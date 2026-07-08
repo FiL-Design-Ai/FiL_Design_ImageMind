@@ -362,3 +362,270 @@ def test_ideogram4_empty_input_uses_placeholder():
     assert parsed["high_level_description"]  # non-empty placeholder
     assert "elements" in parsed["compositional_deconstruction"]
     assert meta["schema_repaired"] is True
+
+
+# ---------------------------------------------------------------------------
+# ULTRA: Comprehensive bbox and color_palette validation
+# ---------------------------------------------------------------------------
+
+
+def test_bbox_boundary_values_valid():
+    """Test bbox validation with boundary values [0, 1000]."""
+    caption = {
+        "high_level_description": "scene",
+        "style_description": {"aesthetics": "x", "lighting": "y", "photo": "z", "medium": "photograph"},
+        "compositional_deconstruction": {
+            "background": "bg",
+            "elements": [
+                {"type": "obj", "desc": "corner", "bbox": [0, 0, 1, 1]},  # min valid
+                {"type": "obj", "desc": "full", "bbox": [0, 0, 1000, 1000]},  # max valid
+                {"type": "obj", "desc": "mid", "bbox": [250, 250, 750, 750]},  # mid-range
+            ],
+        },
+    }
+    output, meta = adapt_ideogram4_caption(json.dumps(caption))
+    parsed = json.loads(output)
+    elements = parsed["compositional_deconstruction"]["elements"]
+    assert all("bbox" in e for e in elements), "All valid bboxes should be preserved"
+    assert len(elements) == 3
+
+
+def test_bbox_boundary_values_invalid():
+    """Test bbox rejection with out-of-range values."""
+    caption = {
+        "high_level_description": "scene",
+        "style_description": {"aesthetics": "x", "lighting": "y", "photo": "z", "medium": "photograph"},
+        "compositional_deconstruction": {
+            "background": "bg",
+            "elements": [
+                {"type": "obj", "desc": "below", "bbox": [-1, 0, 100, 100]},  # y1 < 0
+                {"type": "obj", "desc": "above", "bbox": [0, 0, 1001, 100]},  # y2 > 1000
+                {"type": "obj", "desc": "invalid_x", "bbox": [0, 0, 100, -1]},  # x2 < 0
+            ],
+        },
+    }
+    output, meta = adapt_ideogram4_caption(json.dumps(caption))
+    parsed = json.loads(output)
+    elements = parsed["compositional_deconstruction"]["elements"]
+    assert all("bbox" not in e for e in elements), "All invalid bboxes should be dropped"
+
+
+def test_bbox_inverted_coordinates_rejected():
+    """Test bbox rejection when y1>=y2 or x1>=x2."""
+    caption = {
+        "high_level_description": "scene",
+        "style_description": {"aesthetics": "x", "lighting": "y", "photo": "z", "medium": "photograph"},
+        "compositional_deconstruction": {
+            "background": "bg",
+            "elements": [
+                {"type": "obj", "desc": "y_inverted", "bbox": [100, 50, 50, 150]},  # y1 > y2
+                {"type": "obj", "desc": "x_inverted", "bbox": [50, 150, 100, 50]},  # x1 > x2
+                {"type": "obj", "desc": "both_inverted", "bbox": [100, 150, 50, 50]},  # both
+            ],
+        },
+    }
+    output, meta = adapt_ideogram4_caption(json.dumps(caption))
+    parsed = json.loads(output)
+    elements = parsed["compositional_deconstruction"]["elements"]
+    assert all("bbox" not in e for e in elements), "All inverted bboxes should be dropped"
+
+
+def test_bbox_float_rounding():
+    """Test that float bbox values are properly rounded to integers."""
+    caption = {
+        "high_level_description": "scene",
+        "style_description": {"aesthetics": "x", "lighting": "y", "photo": "z", "medium": "photograph"},
+        "compositional_deconstruction": {
+            "background": "bg",
+            "elements": [
+                {"type": "obj", "desc": "float_vals", "bbox": [10.4, 20.6, 500.1, 800.9]},
+            ],
+        },
+    }
+    output, meta = adapt_ideogram4_caption(json.dumps(caption))
+    parsed = json.loads(output)
+    bbox = parsed["compositional_deconstruction"]["elements"][0]["bbox"]
+    assert bbox == [10, 21, 500, 801], "Floats should be rounded to nearest integer"
+    assert all(isinstance(v, int) for v in bbox), "All bbox values must be integers"
+
+
+def test_palette_hex_format_validation():
+    """Test that only valid #RRGGBB hex colors are accepted."""
+    caption = {
+        "high_level_description": "scene",
+        "style_description": {
+            "aesthetics": "x",
+            "lighting": "y",
+            "photo": "z",
+            "medium": "photograph",
+            "color_palette": [
+                "#FF0000",  # valid
+                "#00ff00",  # valid (will be uppercased)
+                "#abc",  # invalid (3 digits)
+                "#GGGGGG",  # invalid (G not hex)
+                "red",  # invalid (color name)
+                "rgb(255,0,0)",  # invalid (rgb format)
+                "#FF00",  # invalid (4 digits)
+                "#FF000000",  # invalid (8 digits)
+            ],
+        },
+        "compositional_deconstruction": {"background": "bg", "elements": []},
+    }
+    output, meta = adapt_ideogram4_caption(json.dumps(caption))
+    parsed = json.loads(output)
+    palette = parsed["style_description"]["color_palette"]
+    assert palette == ["#FF0000", "#00FF00"], "Only valid 6-digit hex should remain"
+    assert all(p.startswith("#") and len(p) == 7 for p in palette), "All colors must be #RRGGBB"
+
+
+def test_palette_deduplication():
+    """Test that duplicate colors (case-insensitive) are removed."""
+    caption = {
+        "high_level_description": "scene",
+        "style_description": {
+            "aesthetics": "x",
+            "lighting": "y",
+            "photo": "z",
+            "medium": "photograph",
+            "color_palette": [
+                "#FF0000",
+                "#ff0000",  # duplicate (different case)
+                "#FF0000",  # duplicate (exact)
+                "#00FF00",
+                "#00ff00",  # duplicate (different case)
+            ],
+        },
+        "compositional_deconstruction": {"background": "bg", "elements": []},
+    }
+    output, meta = adapt_ideogram4_caption(json.dumps(caption))
+    parsed = json.loads(output)
+    palette = parsed["style_description"]["color_palette"]
+    assert palette == ["#FF0000", "#00FF00"], "Duplicates should be removed"
+    assert len(palette) == len(set(p.lower() for p in palette)), "All unique (case-insensitive)"
+
+
+def test_palette_limit_style_description():
+    """Test that color_palette in style_description is limited to 16 colors."""
+    colors = [f"#{i:02d}FF00" for i in range(25)]  # 25 distinct colors
+    caption = {
+        "high_level_description": "scene",
+        "style_description": {
+            "aesthetics": "x",
+            "lighting": "y",
+            "photo": "z",
+            "medium": "photograph",
+            "color_palette": colors,
+        },
+        "compositional_deconstruction": {"background": "bg", "elements": []},
+    }
+    output, meta = adapt_ideogram4_caption(json.dumps(caption))
+    parsed = json.loads(output)
+    palette = parsed["style_description"]["color_palette"]
+    assert len(palette) == 16, "Style palette should be limited to 16 colors"
+    assert palette == colors[:16], "First 16 colors should be preserved"
+
+
+def test_palette_limit_element():
+    """Test that color_palette in elements is limited to 5 colors."""
+    colors = [f"#{i:02d}FF00" for i in range(10)]  # 10 distinct colors
+    caption = {
+        "high_level_description": "scene",
+        "style_description": {"aesthetics": "x", "lighting": "y", "photo": "z", "medium": "photograph"},
+        "compositional_deconstruction": {
+            "background": "bg",
+            "elements": [
+                {"type": "obj", "desc": "thing", "color_palette": colors},
+            ],
+        },
+    }
+    output, meta = adapt_ideogram4_caption(json.dumps(caption))
+    parsed = json.loads(output)
+    element_palette = parsed["compositional_deconstruction"]["elements"][0]["color_palette"]
+    assert len(element_palette) == 5, "Element palette should be limited to 5 colors"
+    assert element_palette == colors[:5], "First 5 colors should be preserved"
+
+
+def test_element_type_validation():
+    """Test that only 'obj' and 'text' types are accepted."""
+    caption = {
+        "high_level_description": "scene",
+        "style_description": {"aesthetics": "x", "lighting": "y", "photo": "z", "medium": "photograph"},
+        "compositional_deconstruction": {
+            "background": "bg",
+            "elements": [
+                {"type": "obj", "desc": "valid object"},  # valid
+                {"type": "text", "desc": "valid text", "text": "hello"},  # valid
+                {"type": "person", "desc": "invalid type"},  # invalid
+                {"type": "SHAPE", "desc": "invalid uppercase"},  # invalid
+                {"type": "", "desc": "empty type"},  # invalid
+            ],
+        },
+    }
+    output, meta = adapt_ideogram4_caption(json.dumps(caption))
+    parsed = json.loads(output)
+    elements = parsed["compositional_deconstruction"]["elements"]
+    assert all(e["type"] in ("obj", "text") for e in elements), "Only obj and text types allowed"
+    assert len([e for e in elements if e.get("type") == "obj"]) >= 1
+    assert len([e for e in elements if e.get("type") == "text"]) >= 1
+
+
+def test_text_element_requires_text_field():
+    """Test that text elements must have a non-empty 'text' field."""
+    caption = {
+        "high_level_description": "scene",
+        "style_description": {"aesthetics": "x", "lighting": "y", "photo": "z", "medium": "photograph"},
+        "compositional_deconstruction": {
+            "background": "bg",
+            "elements": [
+                {"type": "text", "desc": "label", "text": "Hello"},  # valid
+                {"type": "text", "desc": "label", "text": ""},  # invalid (empty)
+                {"type": "text", "desc": "label"},  # invalid (missing text)
+            ],
+        },
+    }
+    output, meta = adapt_ideogram4_caption(json.dumps(caption))
+    parsed = json.loads(output)
+    text_elements = [e for e in parsed["compositional_deconstruction"]["elements"] if e["type"] == "text"]
+    assert len(text_elements) == 1, "Only valid text element should remain"
+    assert text_elements[0]["text"] == "Hello"
+
+
+def test_composite_bbox_and_palette():
+    """Test comprehensive element with both bbox and color_palette."""
+    caption = {
+        "high_level_description": "neon cyberpunk scene",
+        "style_description": {
+            "aesthetics": "cyber",
+            "lighting": "neon",
+            "photo": "sharp",
+            "medium": "photograph",
+            "color_palette": ["#FF00FF", "#00FFFF", "#FF0000"],
+        },
+        "compositional_deconstruction": {
+            "background": "dark city",
+            "elements": [
+                {
+                    "type": "obj",
+                    "desc": "neon sign",
+                    "bbox": [100, 50, 400, 250],
+                    "color_palette": ["#FF00FF", "#00FFFF"],
+                },
+                {
+                    "type": "text",
+                    "text": "CYBER",
+                    "desc": "neon text",
+                    "bbox": [150, 100, 350, 200],
+                    "color_palette": ["#FF00FF"],
+                },
+            ],
+        },
+    }
+    output, meta = adapt_ideogram4_caption(json.dumps(caption))
+    parsed = json.loads(output)
+    elements = parsed["compositional_deconstruction"]["elements"]
+    assert len(elements) == 2
+    for elem in elements:
+        assert "bbox" in elem, "Valid bbox should be preserved"
+        assert "color_palette" in elem, "Valid color_palette should be preserved"
+        bbox = elem["bbox"]
+        assert bbox[0] < bbox[2] and bbox[1] < bbox[3], "Bbox coordinates must be valid"
