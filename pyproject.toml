@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "FiL_LLM"
+version = "4.0.0"
+description = "FiL LLM Nodes for ComfyUI — image understanding and prompt generation (V3 API)."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "FiL-Design-Ai" }]
+requires-comfyui = ">=0.3.60"
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+
+[project.urls]
+Repository = "https://github.com/FiL-Design-Ai/FiL_LLM"
+
+[tool.comfy]
+PublisherId = "fil-design-ai"
+DisplayName = "FiL_LLM"
+
+[tool.setuptools.package-dir]
+FiL_LLM = "."
+
+[tool.setuptools.package-data]
+FiL_LLM = [
+  "config.yaml",
+  "data/locales/*.json",
+  "data/provider_vision_smoke.json",
+  "frontend/dist/*",
+  "docs/workflows/*.json",
+]
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }

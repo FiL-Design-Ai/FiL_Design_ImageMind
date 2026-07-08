@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-python:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Checkout FiL_LLM
+        uses: actions/checkout@v4
+        with:
+          path: fil-llm-temp
+
+      - name: Checkout ComfyUI
+        uses: actions/checkout@v4
+        with:
+          repository: comfyanonymous/ComfyUI
+          path: ComfyUI
+          fetch-depth: 1
+          filter: blob:none
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: |
+            fil-llm-temp/requirements.txt
+            ComfyUI/requirements.txt
+
+      - name: Install CPU-only PyTorch
+        run: pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Install ComfyUI dependencies
+        run: pip install -r ComfyUI/requirements.txt
+
+      - name: Install FiL_LLM dependencies
+        run: pip install -r fil-llm-temp/requirements.txt
+
+      - name: Move FiL_LLM into ComfyUI custom_nodes
+        run: |
+          mkdir -p ComfyUI/custom_nodes
+          mv fil-llm-temp ComfyUI/custom_nodes/FiL_LLM
+
+      - name: Run Python tests
+        working-directory: ComfyUI/custom_nodes/FiL_LLM
+        run: python -m pytest tests/ -v --tb=short -q
+
+  test-frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Type check & build
+        working-directory: frontend
+        run: npm run build
+
+      - name: Run frontend tests
+        working-directory: frontend
+        run: npx vitest run
