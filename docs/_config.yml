@@ -1,0 +1,31 @@
+# GitHub Pages configuration
+title: FiL_LLM
+description: AI-powered ComfyUI nodes for image analysis, prompt generation, and intelligent workflows
+url: https://fil-design-ai.github.io/FiL_LLM
+
+# Theme (GitHub Pages default)
+theme: jekyll-default
+
+# Plugins
+plugins:
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+# Markdown processor
+markdown: kramdown
+
+# Permalink style
+permalink: /blog/:year/:month/:day/:title
+
+# Collections
+collections_dir: .
+
+# Build settings
+exclude:
+  - .gitignore
+  - README.md
+  - package.json
+  - node_modules
+
+# GitHub Pages specific
+github_url: https://github.com/FiL-Design-Ai/FiL_LLM
