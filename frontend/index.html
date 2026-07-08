@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FiL_LLM Frontend — Vite Dev Playground</title>
+  </head>
+  <body>
+    <!--
+      This HTML exists only for `vite dev` / `vite preview` outside ComfyUI.
+      In production ComfyUI loads /extensions/FiL_LLM/fil_llm.js (UMD) and
+      the bootstrap auto-runs against the global `app`.
+    -->
+    <h1>FiL_LLM frontend dev playground</h1>
+    <p>Open the browser console — the bootstrap is exposed at <code>window.fil_llm</code>.</p>
+    <script type="module">
+      try {
+        await import("/src/main.ts");
+      } catch (err) {
+        console.warn("Dev bootstrap failed (expected when ComfyUI `app` is absent):", err);
+      }
+      // Expose for inspection.
+      window.fil_llm = window.fil_llm || { note: "ComfyUI app global not available in dev html" };
+    </script>
+  </body>
+</html>

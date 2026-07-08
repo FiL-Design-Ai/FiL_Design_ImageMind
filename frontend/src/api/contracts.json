@@ -1,0 +1,3677 @@
+{
+  "node_ids": {
+    "FiLSeed": {
+      "title": "♻️ Seed",
+      "category": "FiL_LLM/Values"
+    },
+    "FiLProviderLoader": {
+      "title": "🔌 Provider Loader",
+      "category": "FiL_LLM/LLM/Provider"
+    },
+    "FiLOpticScanner": {
+      "title": "🕵️ Optic Scanner",
+      "category": "FiL_LLM/LLM/Scanner"
+    },
+    "FiLNeuroCleaner": {
+      "title": "🧹 Cleaner",
+      "category": "FiL_LLM/Tools/Cleaner"
+    },
+    "FiLBeforeAfterCompare": {
+      "title": "🔄 Compare",
+      "category": "FiL_LLM/Image/Compare"
+    },
+    "FiLUpscaleTileCalc": {
+      "title": "🔍 Upscaler",
+      "category": "FiL_LLM/Image/Upscale"
+    }
+  },
+  "schemas": {
+    "FiLSeed": {
+      "$defs": {
+        "NodeInputs": {
+          "additionalProperties": false,
+          "properties": {
+            "required": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Required",
+              "type": "array"
+            },
+            "optional": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Optional",
+              "type": "array"
+            },
+            "hidden": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Hidden",
+              "type": "array"
+            }
+          },
+          "title": "NodeInputs",
+          "type": "object"
+        },
+        "NodeOutput": {
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "title": "Name",
+              "type": "string"
+            },
+            "type": {
+              "enum": [
+                "INT",
+                "FLOAT",
+                "STRING",
+                "BOOLEAN",
+                "DICT",
+                "IMAGE",
+                "MASK",
+                "LATENT",
+                "ANY"
+              ],
+              "title": "Type",
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "type"
+          ],
+          "title": "NodeOutput",
+          "type": "object"
+        },
+        "WidgetKind": {
+          "description": "Frontend rendering hint for a single widget.",
+          "enum": [
+            "combo",
+            "segmented",
+            "chip_grid",
+            "chip_list",
+            "number",
+            "slider",
+            "boolean",
+            "string",
+            "color",
+            "dict",
+            "custom"
+          ],
+          "title": "WidgetKind",
+          "type": "string"
+        },
+        "WidgetSpec": {
+          "additionalProperties": false,
+          "description": "A single widget on a node body.",
+          "properties": {
+            "name": {
+              "description": "Widget name; matches the ComfyUI INPUT_TYPES key.",
+              "title": "Name",
+              "type": "string"
+            },
+            "kind": {
+              "$ref": "#/$defs/WidgetKind"
+            },
+            "label": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional display label (defaults to the widget name).",
+              "title": "Label"
+            },
+            "default": {
+              "default": null,
+              "title": "Default"
+            },
+            "tooltip": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Tooltip"
+            },
+            "values": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Values"
+            },
+            "columns": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Layout hint for chip grids.",
+              "title": "Columns"
+            },
+            "searchable": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Whether a chip list shows a search box.",
+              "title": "Searchable"
+            },
+            "min": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Min"
+            },
+            "max": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Max"
+            },
+            "step": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Step"
+            },
+            "units": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Units"
+            },
+            "options": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Options"
+            },
+            "section": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Section"
+            },
+            "visible_when": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Visible When"
+            },
+            "visible_when_value": {
+              "anyOf": [
+                {},
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Visible When Value"
+            }
+          },
+          "required": [
+            "name",
+            "kind"
+          ],
+          "title": "WidgetSpec",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Full frontend contract for a single FiL_LLM node.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "category": {
+          "title": "Category",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "inputs": {
+          "$ref": "#/$defs/NodeInputs"
+        },
+        "outputs": {
+          "items": {
+            "$ref": "#/$defs/NodeOutput"
+          },
+          "title": "Outputs",
+          "type": "array"
+        },
+        "min_size": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min Size"
+        },
+        "family": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Family"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "category"
+      ],
+      "title": "NodeContract",
+      "type": "object"
+    },
+    "FiLProviderLoader": {
+      "$defs": {
+        "NodeInputs": {
+          "additionalProperties": false,
+          "properties": {
+            "required": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Required",
+              "type": "array"
+            },
+            "optional": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Optional",
+              "type": "array"
+            },
+            "hidden": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Hidden",
+              "type": "array"
+            }
+          },
+          "title": "NodeInputs",
+          "type": "object"
+        },
+        "NodeOutput": {
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "title": "Name",
+              "type": "string"
+            },
+            "type": {
+              "enum": [
+                "INT",
+                "FLOAT",
+                "STRING",
+                "BOOLEAN",
+                "DICT",
+                "IMAGE",
+                "MASK",
+                "LATENT",
+                "ANY"
+              ],
+              "title": "Type",
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "type"
+          ],
+          "title": "NodeOutput",
+          "type": "object"
+        },
+        "WidgetKind": {
+          "description": "Frontend rendering hint for a single widget.",
+          "enum": [
+            "combo",
+            "segmented",
+            "chip_grid",
+            "chip_list",
+            "number",
+            "slider",
+            "boolean",
+            "string",
+            "color",
+            "dict",
+            "custom"
+          ],
+          "title": "WidgetKind",
+          "type": "string"
+        },
+        "WidgetSpec": {
+          "additionalProperties": false,
+          "description": "A single widget on a node body.",
+          "properties": {
+            "name": {
+              "description": "Widget name; matches the ComfyUI INPUT_TYPES key.",
+              "title": "Name",
+              "type": "string"
+            },
+            "kind": {
+              "$ref": "#/$defs/WidgetKind"
+            },
+            "label": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional display label (defaults to the widget name).",
+              "title": "Label"
+            },
+            "default": {
+              "default": null,
+              "title": "Default"
+            },
+            "tooltip": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Tooltip"
+            },
+            "values": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Values"
+            },
+            "columns": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Layout hint for chip grids.",
+              "title": "Columns"
+            },
+            "searchable": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Whether a chip list shows a search box.",
+              "title": "Searchable"
+            },
+            "min": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Min"
+            },
+            "max": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Max"
+            },
+            "step": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Step"
+            },
+            "units": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Units"
+            },
+            "options": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Options"
+            },
+            "section": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Section"
+            },
+            "visible_when": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Visible When"
+            },
+            "visible_when_value": {
+              "anyOf": [
+                {},
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Visible When Value"
+            }
+          },
+          "required": [
+            "name",
+            "kind"
+          ],
+          "title": "WidgetSpec",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Full frontend contract for a single FiL_LLM node.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "category": {
+          "title": "Category",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "inputs": {
+          "$ref": "#/$defs/NodeInputs"
+        },
+        "outputs": {
+          "items": {
+            "$ref": "#/$defs/NodeOutput"
+          },
+          "title": "Outputs",
+          "type": "array"
+        },
+        "min_size": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min Size"
+        },
+        "family": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Family"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "category"
+      ],
+      "title": "NodeContract",
+      "type": "object"
+    },
+    "FiLOpticScanner": {
+      "$defs": {
+        "NodeInputs": {
+          "additionalProperties": false,
+          "properties": {
+            "required": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Required",
+              "type": "array"
+            },
+            "optional": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Optional",
+              "type": "array"
+            },
+            "hidden": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Hidden",
+              "type": "array"
+            }
+          },
+          "title": "NodeInputs",
+          "type": "object"
+        },
+        "NodeOutput": {
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "title": "Name",
+              "type": "string"
+            },
+            "type": {
+              "enum": [
+                "INT",
+                "FLOAT",
+                "STRING",
+                "BOOLEAN",
+                "DICT",
+                "IMAGE",
+                "MASK",
+                "LATENT",
+                "ANY"
+              ],
+              "title": "Type",
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "type"
+          ],
+          "title": "NodeOutput",
+          "type": "object"
+        },
+        "WidgetKind": {
+          "description": "Frontend rendering hint for a single widget.",
+          "enum": [
+            "combo",
+            "segmented",
+            "chip_grid",
+            "chip_list",
+            "number",
+            "slider",
+            "boolean",
+            "string",
+            "color",
+            "dict",
+            "custom"
+          ],
+          "title": "WidgetKind",
+          "type": "string"
+        },
+        "WidgetSpec": {
+          "additionalProperties": false,
+          "description": "A single widget on a node body.",
+          "properties": {
+            "name": {
+              "description": "Widget name; matches the ComfyUI INPUT_TYPES key.",
+              "title": "Name",
+              "type": "string"
+            },
+            "kind": {
+              "$ref": "#/$defs/WidgetKind"
+            },
+            "label": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional display label (defaults to the widget name).",
+              "title": "Label"
+            },
+            "default": {
+              "default": null,
+              "title": "Default"
+            },
+            "tooltip": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Tooltip"
+            },
+            "values": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Values"
+            },
+            "columns": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Layout hint for chip grids.",
+              "title": "Columns"
+            },
+            "searchable": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Whether a chip list shows a search box.",
+              "title": "Searchable"
+            },
+            "min": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Min"
+            },
+            "max": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Max"
+            },
+            "step": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Step"
+            },
+            "units": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Units"
+            },
+            "options": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Options"
+            },
+            "section": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Section"
+            },
+            "visible_when": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Visible When"
+            },
+            "visible_when_value": {
+              "anyOf": [
+                {},
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Visible When Value"
+            }
+          },
+          "required": [
+            "name",
+            "kind"
+          ],
+          "title": "WidgetSpec",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Full frontend contract for a single FiL_LLM node.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "category": {
+          "title": "Category",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "inputs": {
+          "$ref": "#/$defs/NodeInputs"
+        },
+        "outputs": {
+          "items": {
+            "$ref": "#/$defs/NodeOutput"
+          },
+          "title": "Outputs",
+          "type": "array"
+        },
+        "min_size": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min Size"
+        },
+        "family": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Family"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "category"
+      ],
+      "title": "NodeContract",
+      "type": "object"
+    },
+    "FiLNeuroCleaner": {
+      "$defs": {
+        "NodeInputs": {
+          "additionalProperties": false,
+          "properties": {
+            "required": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Required",
+              "type": "array"
+            },
+            "optional": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Optional",
+              "type": "array"
+            },
+            "hidden": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Hidden",
+              "type": "array"
+            }
+          },
+          "title": "NodeInputs",
+          "type": "object"
+        },
+        "NodeOutput": {
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "title": "Name",
+              "type": "string"
+            },
+            "type": {
+              "enum": [
+                "INT",
+                "FLOAT",
+                "STRING",
+                "BOOLEAN",
+                "DICT",
+                "IMAGE",
+                "MASK",
+                "LATENT",
+                "ANY"
+              ],
+              "title": "Type",
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "type"
+          ],
+          "title": "NodeOutput",
+          "type": "object"
+        },
+        "WidgetKind": {
+          "description": "Frontend rendering hint for a single widget.",
+          "enum": [
+            "combo",
+            "segmented",
+            "chip_grid",
+            "chip_list",
+            "number",
+            "slider",
+            "boolean",
+            "string",
+            "color",
+            "dict",
+            "custom"
+          ],
+          "title": "WidgetKind",
+          "type": "string"
+        },
+        "WidgetSpec": {
+          "additionalProperties": false,
+          "description": "A single widget on a node body.",
+          "properties": {
+            "name": {
+              "description": "Widget name; matches the ComfyUI INPUT_TYPES key.",
+              "title": "Name",
+              "type": "string"
+            },
+            "kind": {
+              "$ref": "#/$defs/WidgetKind"
+            },
+            "label": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional display label (defaults to the widget name).",
+              "title": "Label"
+            },
+            "default": {
+              "default": null,
+              "title": "Default"
+            },
+            "tooltip": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Tooltip"
+            },
+            "values": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Values"
+            },
+            "columns": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Layout hint for chip grids.",
+              "title": "Columns"
+            },
+            "searchable": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Whether a chip list shows a search box.",
+              "title": "Searchable"
+            },
+            "min": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Min"
+            },
+            "max": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Max"
+            },
+            "step": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Step"
+            },
+            "units": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Units"
+            },
+            "options": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Options"
+            },
+            "section": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Section"
+            },
+            "visible_when": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Visible When"
+            },
+            "visible_when_value": {
+              "anyOf": [
+                {},
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Visible When Value"
+            }
+          },
+          "required": [
+            "name",
+            "kind"
+          ],
+          "title": "WidgetSpec",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Full frontend contract for a single FiL_LLM node.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "category": {
+          "title": "Category",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "inputs": {
+          "$ref": "#/$defs/NodeInputs"
+        },
+        "outputs": {
+          "items": {
+            "$ref": "#/$defs/NodeOutput"
+          },
+          "title": "Outputs",
+          "type": "array"
+        },
+        "min_size": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min Size"
+        },
+        "family": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Family"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "category"
+      ],
+      "title": "NodeContract",
+      "type": "object"
+    },
+    "FiLBeforeAfterCompare": {
+      "$defs": {
+        "NodeInputs": {
+          "additionalProperties": false,
+          "properties": {
+            "required": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Required",
+              "type": "array"
+            },
+            "optional": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Optional",
+              "type": "array"
+            },
+            "hidden": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Hidden",
+              "type": "array"
+            }
+          },
+          "title": "NodeInputs",
+          "type": "object"
+        },
+        "NodeOutput": {
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "title": "Name",
+              "type": "string"
+            },
+            "type": {
+              "enum": [
+                "INT",
+                "FLOAT",
+                "STRING",
+                "BOOLEAN",
+                "DICT",
+                "IMAGE",
+                "MASK",
+                "LATENT",
+                "ANY"
+              ],
+              "title": "Type",
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "type"
+          ],
+          "title": "NodeOutput",
+          "type": "object"
+        },
+        "WidgetKind": {
+          "description": "Frontend rendering hint for a single widget.",
+          "enum": [
+            "combo",
+            "segmented",
+            "chip_grid",
+            "chip_list",
+            "number",
+            "slider",
+            "boolean",
+            "string",
+            "color",
+            "dict",
+            "custom"
+          ],
+          "title": "WidgetKind",
+          "type": "string"
+        },
+        "WidgetSpec": {
+          "additionalProperties": false,
+          "description": "A single widget on a node body.",
+          "properties": {
+            "name": {
+              "description": "Widget name; matches the ComfyUI INPUT_TYPES key.",
+              "title": "Name",
+              "type": "string"
+            },
+            "kind": {
+              "$ref": "#/$defs/WidgetKind"
+            },
+            "label": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional display label (defaults to the widget name).",
+              "title": "Label"
+            },
+            "default": {
+              "default": null,
+              "title": "Default"
+            },
+            "tooltip": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Tooltip"
+            },
+            "values": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Values"
+            },
+            "columns": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Layout hint for chip grids.",
+              "title": "Columns"
+            },
+            "searchable": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Whether a chip list shows a search box.",
+              "title": "Searchable"
+            },
+            "min": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Min"
+            },
+            "max": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Max"
+            },
+            "step": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Step"
+            },
+            "units": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Units"
+            },
+            "options": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Options"
+            },
+            "section": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Section"
+            },
+            "visible_when": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Visible When"
+            },
+            "visible_when_value": {
+              "anyOf": [
+                {},
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Visible When Value"
+            }
+          },
+          "required": [
+            "name",
+            "kind"
+          ],
+          "title": "WidgetSpec",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Full frontend contract for a single FiL_LLM node.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "category": {
+          "title": "Category",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "inputs": {
+          "$ref": "#/$defs/NodeInputs"
+        },
+        "outputs": {
+          "items": {
+            "$ref": "#/$defs/NodeOutput"
+          },
+          "title": "Outputs",
+          "type": "array"
+        },
+        "min_size": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min Size"
+        },
+        "family": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Family"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "category"
+      ],
+      "title": "NodeContract",
+      "type": "object"
+    },
+    "FiLUpscaleTileCalc": {
+      "$defs": {
+        "NodeInputs": {
+          "additionalProperties": false,
+          "properties": {
+            "required": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Required",
+              "type": "array"
+            },
+            "optional": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Optional",
+              "type": "array"
+            },
+            "hidden": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Hidden",
+              "type": "array"
+            }
+          },
+          "title": "NodeInputs",
+          "type": "object"
+        },
+        "NodeOutput": {
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "title": "Name",
+              "type": "string"
+            },
+            "type": {
+              "enum": [
+                "INT",
+                "FLOAT",
+                "STRING",
+                "BOOLEAN",
+                "DICT",
+                "IMAGE",
+                "MASK",
+                "LATENT",
+                "ANY"
+              ],
+              "title": "Type",
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "type"
+          ],
+          "title": "NodeOutput",
+          "type": "object"
+        },
+        "WidgetKind": {
+          "description": "Frontend rendering hint for a single widget.",
+          "enum": [
+            "combo",
+            "segmented",
+            "chip_grid",
+            "chip_list",
+            "number",
+            "slider",
+            "boolean",
+            "string",
+            "color",
+            "dict",
+            "custom"
+          ],
+          "title": "WidgetKind",
+          "type": "string"
+        },
+        "WidgetSpec": {
+          "additionalProperties": false,
+          "description": "A single widget on a node body.",
+          "properties": {
+            "name": {
+              "description": "Widget name; matches the ComfyUI INPUT_TYPES key.",
+              "title": "Name",
+              "type": "string"
+            },
+            "kind": {
+              "$ref": "#/$defs/WidgetKind"
+            },
+            "label": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional display label (defaults to the widget name).",
+              "title": "Label"
+            },
+            "default": {
+              "default": null,
+              "title": "Default"
+            },
+            "tooltip": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Tooltip"
+            },
+            "values": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Values"
+            },
+            "columns": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Layout hint for chip grids.",
+              "title": "Columns"
+            },
+            "searchable": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Whether a chip list shows a search box.",
+              "title": "Searchable"
+            },
+            "min": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Min"
+            },
+            "max": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Max"
+            },
+            "step": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Step"
+            },
+            "units": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Units"
+            },
+            "options": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Options"
+            },
+            "section": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Section"
+            },
+            "visible_when": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Visible When"
+            },
+            "visible_when_value": {
+              "anyOf": [
+                {},
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Visible When Value"
+            }
+          },
+          "required": [
+            "name",
+            "kind"
+          ],
+          "title": "WidgetSpec",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Full frontend contract for a single FiL_LLM node.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "category": {
+          "title": "Category",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "inputs": {
+          "$ref": "#/$defs/NodeInputs"
+        },
+        "outputs": {
+          "items": {
+            "$ref": "#/$defs/NodeOutput"
+          },
+          "title": "Outputs",
+          "type": "array"
+        },
+        "min_size": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min Size"
+        },
+        "family": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Family"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "category"
+      ],
+      "title": "NodeContract",
+      "type": "object"
+    }
+  },
+  "data": {
+    "FiLSeed": {
+      "id": "FiLSeed",
+      "title": "♻️ Seed",
+      "category": "FiL_LLM/Values",
+      "description": "Fixed or randomized seed with copy and reuse buttons.",
+      "inputs": {
+        "required": [
+          {
+            "name": "mode",
+            "kind": "segmented",
+            "label": "Mode",
+            "default": "random",
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": [
+              "random",
+              "fixed"
+            ],
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "seed",
+            "kind": "number",
+            "label": "Seed",
+            "default": 0,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": 0,
+            "max": 999999999999,
+            "step": 1,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          }
+        ],
+        "optional": [
+          {
+            "name": "copy_to_clipboard",
+            "kind": "boolean",
+            "label": "Copy seed",
+            "default": false,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "actions",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "use_last_seed",
+            "kind": "boolean",
+            "label": "Use last seed",
+            "default": false,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "actions",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "new_fixed",
+            "kind": "boolean",
+            "label": "New fixed random",
+            "default": false,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "actions",
+            "visible_when": null,
+            "visible_when_value": null
+          }
+        ],
+        "hidden": []
+      },
+      "outputs": [
+        {
+          "name": "seed",
+          "type": "INT"
+        }
+      ],
+      "min_size": [
+        220,
+        180
+      ],
+      "family": "value"
+    },
+    "FiLProviderLoader": {
+      "id": "FiLProviderLoader",
+      "title": "🔌 Provider Loader",
+      "category": "FiL_LLM/LLM/Provider",
+      "description": "Provider and model runtime configuration.",
+      "inputs": {
+        "required": [
+          {
+            "name": "provider",
+            "kind": "combo",
+            "label": "Provider",
+            "default": "ollama",
+            "tooltip": null,
+            "values": [
+              "ollama",
+              "lmstudio",
+              "openai",
+              "google",
+              "groq",
+              "openrouter",
+              "cloudflare"
+            ],
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "model",
+            "kind": "combo",
+            "label": "Model",
+            "default": "(loading...)",
+            "tooltip": null,
+            "values": [
+              "(loading...)"
+            ],
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "refresh_models",
+            "kind": "boolean",
+            "label": "Refresh models",
+            "default": false,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "actions",
+            "visible_when": null,
+            "visible_when_value": null
+          }
+        ],
+        "optional": [
+          {
+            "name": "temperature",
+            "kind": "slider",
+            "label": "Temperature",
+            "default": 0.7,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": 0,
+            "max": 2,
+            "step": 0.05,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "max_tokens",
+            "kind": "number",
+            "label": "Max tokens",
+            "default": 0,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": 0,
+            "max": 65536,
+            "step": 1,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "rate_limit_ms",
+            "kind": "number",
+            "label": "Rate limit (ms)",
+            "default": 100,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": 0,
+            "max": 5000,
+            "step": 10,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "seed",
+            "kind": "number",
+            "label": "Seed",
+            "default": -1,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": -1,
+            "max": 999999999999,
+            "step": 1,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          }
+        ],
+        "hidden": []
+      },
+      "outputs": [
+        {
+          "name": "config",
+          "type": "DICT"
+        },
+        {
+          "name": "model",
+          "type": "STRING"
+        }
+      ],
+      "min_size": [
+        300,
+        320
+      ],
+      "family": "llm"
+    },
+    "FiLOpticScanner": {
+      "id": "FiLOpticScanner",
+      "title": "🕵️ Optic Scanner",
+      "category": "FiL_LLM/LLM/Scanner",
+      "description": "Image analysis or text-idea expansion into a generation prompt.",
+      "inputs": {
+        "required": [
+          {
+            "name": "agent",
+            "kind": "chip_grid",
+            "label": null,
+            "default": "Universal",
+            "tooltip": null,
+            "values": [
+              "None",
+              "Universal",
+              "Portrait",
+              "Products",
+              "Nature & Landscape",
+              "Art & Illustration",
+              "Ultra Detailed Expert",
+              "Cinematic Master",
+              "18+",
+              "Fashion",
+              "Animals",
+              "Character Performance Agent",
+              "Architecture",
+              "Interior",
+              "City",
+              "Transport",
+              "Food",
+              "Gadgets",
+              "Games",
+              "Composition Agent",
+              "Lighting & Color Agent",
+              "Professional Tagger"
+            ],
+            "columns": 3,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "agent",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "model_type",
+            "kind": "chip_grid",
+            "label": null,
+            "default": "Auto/None",
+            "tooltip": null,
+            "values": [
+              "Auto/None",
+              "Z-Image Turbo",
+              "FLUX",
+              "SDXL",
+              "QWEN",
+              "Krea 2",
+              "Ideogram 4"
+            ],
+            "columns": 3,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "model",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "detail_level",
+            "kind": "chip_grid",
+            "label": null,
+            "default": "normal",
+            "tooltip": null,
+            "values": [
+              "tiny",
+              "short",
+              "normal",
+              "detailed",
+              "ultra"
+            ],
+            "columns": 5,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "output",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "language",
+            "kind": "combo",
+            "label": null,
+            "default": "en",
+            "tooltip": null,
+            "values": [
+              "en",
+              "ru"
+            ],
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "output",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "prompt_mode",
+            "kind": "segmented",
+            "label": null,
+            "default": "Auto",
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": [
+              "Auto",
+              "Hybrid",
+              "Two-Stage"
+            ],
+            "section": "output",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "response_format",
+            "kind": "segmented",
+            "label": null,
+            "default": "text",
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": [
+              "text",
+              "json"
+            ],
+            "section": "output",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "photo_style",
+            "kind": "chip_list",
+            "label": null,
+            "default": "None",
+            "tooltip": null,
+            "values": [
+              "None",
+              "📷 КАМЕРЫ/📷 Disposable 90s",
+              "📷 КАМЕРЫ/📸 Polaroid 600",
+              "📷 КАМЕРЫ/📷 Hasselblad 70mm",
+              "📷 КАМЕРЫ/🕳️ Pinhole Obscura",
+              "📷 КАМЕРЫ/📹 CCTV surveillance",
+              "📷 КАМЕРЫ/🚓 Police Dashcam",
+              "📷 КАМЕРЫ/🎞️ Raw 35mm Photo",
+              "📐 МОДИФИКАТОРЫ/🛩️ Drone Photo",
+              "📐 МОДИФИКАТОРЫ/🔭 Ultra Wide 12mm",
+              "📐 МОДИФИКАТОРЫ/🌐 Fisheye Lens",
+              "📐 МОДИФИКАТОРЫ/📐 Dutch Angle",
+              "📐 МОДИФИКАТОРЫ/📹 GoPro POV Action",
+              "🎬 КИНО/🎞️ IMAX Production",
+              "🎬 КИНО/🌑 Film Noir",
+              "🎬 КИНО/🌈 Technicolor 50s",
+              "🎬 КИНО/📷 Anamorphic Wide",
+              "🎬 КИНО/🎬 Gangster Cinema",
+              "⏱️ ЗАХВАТ/💫 Motion Blur",
+              "⏱️ ЗАХВАТ/📸 Action Freeze",
+              "⏱️ ЗАХВАТ/🎞️ Slo-Mo Bullet Time",
+              "🕰️ РЕТРО/🎞️ Vintage 70s Portra",
+              "🕰️ РЕТРО/🪞 Daguerreotype",
+              "🕰️ РЕТРО/🧪 Wet Plate Collodion",
+              "🕰️ РЕТРО/🟤 Sepia Nostalgia",
+              "🕰️ РЕТРО/🎸 Rockabilly 50s",
+              "🕰️ РЕТРО/🎩 Gilded Gangster",
+              "🕰️ РЕТРО/🎬 Nostalgic 8mm",
+              "🏠 ИНТЕРЬЕР/🏭 Loft Industrial",
+              "🏠 ИНТЕРЬЕР/🌻 Provence Rustic",
+              "🏠 ИНТЕРЬЕР/🕉️ Boho Chic",
+              "🏠 ИНТЕРЬЕР/🌿 Eco-Style Design",
+              "🏠 ИНТЕРЬЕР/👑 Baroque Ornate",
+              "🏠 ИНТЕРЬЕР/⬜ Minimalism",
+              "🏠 ИНТЕРЬЕР/🏡 Country House",
+              "👗 ФЭШН/📸 Editorial Vogue",
+              "👗 ФЭШН/👤 Portrait Bokeh",
+              "👗 ФЭШН/✨ Glamour Glow",
+              "👗 ФЭШН/🖤 Chanel Aesthetic",
+              "👗 ФЭШН/💋 Pin-up Style",
+              "👗 ФЭШН/👔 Business Pro",
+              "👗 ФЭШН/👠 Fashion Runway",
+              "👗 ФЭШН/🛍️ Street Fashion",
+              "🏙️ СРЕДА/🌃 Cyberpunk Neon",
+              "🏙️ СРЕДА/🌧️ Rainy Neon Noir",
+              "🏙️ СРЕДА/🌫️ Foggy Neon Noir",
+              "🏙️ СРЕДА/🏚️ Dystopian Megacity",
+              "🏙️ СРЕДА/🧱 Urban Grunge",
+              "🏙️ СРЕДА/📷 Street Candid",
+              "🏙️ СРЕДА/🌅 Magic Hour",
+              "🏙️ СРЕДА/☔ Rain Monsoon Puddle",
+              "🏙️ СРЕДА/🇬🇧 London Smog",
+              "🏜️ ЖАНРЫ/🏔️ Пейзажный Landscape",
+              "🏜️ ЖАНРЫ/🦁 Nat Geo Scale",
+              "🏜️ ЖАНРЫ/🔬 Macro Micro-world",
+              "🏜️ ЖАНРЫ/🌌 Astro Cosmic",
+              "🏜️ ЖАНРЫ/✈️ Travel Adventure",
+              "🏜️ ЖАНРЫ/🪶 Ethnic Spirit",
+              "🏜️ ЖАНРЫ/🏜️ Saharan Mirage",
+              "📸 РЕПОРТАЖ/☕ Lifestyle Moment",
+              "📸 РЕПОРТАЖ/📋 Documentary Truth",
+              "📸 РЕПОРТАЖ/💼 Stock Quality",
+              "🧪 ЭФФЕКТЫ/🤖 Holographic HUD",
+              "🧪 ЭФФЕКТЫ/💡 Hard Rim Neon",
+              "🧪 ЭФФЕКТЫ/🎨 Chromatic Aberration",
+              "🧪 ЭФФЕКТЫ/💎 Prism Optical Fracture",
+              "🧪 ЭФФЕКТЫ/🌫️ Volumetric Tyndall Dust",
+              "🧪 ЭФФЕКТЫ/📼 Expired Chemical Leak",
+              "🧪 ЭФФЕКТЫ/☀️ High-Key Airy",
+              "🧪 ЭФФЕКТЫ/🌈 HDR Dynamic",
+              "🧪 ЭФФЕКТЫ/🕯️ Candlelit Mood",
+              "🧪 ЭФФЕКТЫ/🔴 Infrared Surreal",
+              "🦾 КИБЕРПАНК/📱 Sleek White Android",
+              "🦾 КИБЕРПАНК/🪞 Chrome Android",
+              "🦾 КИБЕРПАНК/💉 Wirehead Junkie",
+              "🦾 КИБЕРПАНК/🏢 Corpo-Cyborg",
+              "🦾 КИБЕРПАНК/🎖️ Military Cyborg",
+              "🦾 КИБЕРПАНК/⚔️ Cyber-Samurai",
+              "🦾 КИБЕРПАНК/🧬 Biomechanical Giger",
+              "🦾 КИБЕРПАНК/🧪 Biopunk Organic",
+              "🦾 КИБЕРПАНК/🌱 Solarpunk Hybrid",
+              "🦾 КИБЕРПАНК/💀 Post-Apoc Cyber",
+              "🦾 КИБЕРПАНК/🌃 Neon Cyberpunk City Rain",
+              "🦾 КИБЕРПАНК/🚗 JDM Neon Street Racer",
+              "🦾 КИБЕРПАНК/🌇 Electric Sunset Megacity",
+              "🦾 КИБЕРПАНК/🛰️ Holographic Interface Portrait",
+              "🦾 КИБЕРПАНК/🗡️ Dark Samurai Street",
+              "🦾 КИБЕРПАНК/🤖 Chrome Cyborg Hyperrealism",
+              "🦾 КИБЕРПАНК/🦾 Cybernetic Arm Close-Up",
+              "🦾 КИБЕРПАНК/🧠 Biomechanical Horror Realism",
+              "🦾 КИБЕРПАНК/🕶️ Teal Gold Cyber Noir Portrait",
+              "🦾 КИБЕРПАНК/🧬 Synthetic Skin Android Portrait",
+              "🦾 КИБЕРПАНК/🤍 White Android Minimal Studio",
+              "🦾 КИБЕРПАНК/🏭 Industrial Cyborg Portrait",
+              "🦾 КИБЕРПАНК/🫀 Bio-Mechanical Core",
+              "🦾 КИБЕРПАНК/🧩 Android Anatomy Cutaway",
+              "🦾 КИБЕРПАНК/🧡 Golden Mechanical Luxury",
+              "🦾 КИБЕРПАНК/🪦 Melancholic Robot Portrait",
+              "🦾 КИБЕРПАНК/🩻 X-Ray Cyber Radiograph",
+              "🦾 КИБЕРПАНК/💎 Prismatic Neon Reflections",
+              "🦾 КИБЕРПАНК/🪞 Molten Liquid Chrome Realism",
+              "🦾 КИБЕРПАНК/🌫️ Atmospheric Sci-Fi Mist",
+              "🧪 ЭФФЕКТЫ/📡 Тесла-катушка",
+              "🧪 ЭФФЕКТЫ/🪞 Зеркальный мир",
+              "🧪 ЭФФЕКТЫ/📺 CRT Scanlines",
+              "🧪 ЭФФЕКТЫ/🔦 Полицейский прожектор",
+              "🧪 ЭФФЕКТЫ/🌊 Цифровой муар",
+              "🧪 ЭФФЕКТЫ/🫧 Мыльные пузыри",
+              "🧪 ЭФФЕКТЫ/🕶️ Солнечное затмение",
+              "🧪 ЭФФЕКТЫ/📠 Факс-аппарат",
+              "🧪 ЭФФЕКТЫ/🟣 UV Fluorescence",
+              "🧪 ЭФФЕКТЫ/💥 High-Speed Shatter",
+              "🧪 ЭФФЕКТЫ/🎨 Light Painting",
+              "🧪 ЭФФЕКТЫ/👯 Double Exposure",
+              "🧪 ЭФФЕКТЫ/🌑 Silhouette Drama",
+              "🧪 ЭФФЕКТЫ/🧊 Absolute Zero",
+              "🧪 ЭФФЕКТЫ/⚒️ Forgemaster Heat",
+              "🧪 ЭФФЕКТЫ/🌡️ Thermal Imager",
+              "🧪 ЭФФЕКТЫ/☢️ X-Ray Radiograph",
+              "🧪 ЭФФЕКТЫ/🌊 Bioluminescence",
+              "🧪 ЭФФЕКТЫ/🎭 Hard Chiaroscuro",
+              "🧪 ЭФФЕКТЫ/🔬 Electron Micro",
+              "🗺️ СЦЕНЫ/🎪 Circus Big Top",
+              "🗺️ СЦЕНЫ/🛁 Bathroom Mirror",
+              "🗺️ СЦЕНЫ/🔮 Crystal Ball",
+              "🗺️ СЦЕНЫ/🖼️ Art Gallery",
+              "🗺️ СЦЕНЫ/🛒 Grocery Store",
+              "🗺️ СЦЕНЫ/🛩️ Airplane Window",
+              "🗺️ СЦЕНЫ/🎢 Amusement Park",
+              "🗺️ СЦЕНЫ/🌊 Ocean Wave",
+              "🗺️ СЦЕНЫ/🏊 Swimming Pool",
+              "🗺️ СЦЕНЫ/🏜️ Desert Road",
+              "🗺️ СЦЕНЫ/🍄 Fairy Forest",
+              "🗺️ СЦЕНЫ/🗿 Ancient Ruins",
+              "🗺️ СЦЕНЫ/🎹 Piano Studio",
+              "🗺️ СЦЕНЫ/🧖 Spa Towel",
+              "🗺️ СЦЕНЫ/📚 Library Shelf",
+              "🗺️ СЦЕНЫ/🪜 Construction Site",
+              "🗺️ СЦЕНЫ/🏚️ Abandoned Building",
+              "🗺️ СЦЕНЫ/🖤 Black Light Party",
+              "🗺️ СЦЕНЫ/🏮 Lantern Festival",
+              "🗺️ СЦЕНЫ/🔦 Flashlight Beam",
+              "🗺️ СЦЕНЫ/🏺 Pottery Studio",
+              "🗺️ СЦЕНЫ/🕯️ Candle Meditation",
+              "🗺️ СЦЕНЫ/🪴 Plant Nursery",
+              "🗺️ СЦЕНЫ/🎤 Recording Studio",
+              "🗺️ СЦЕНЫ/🧸 Cozy Bedroom",
+              "🗺️ СЦЕНЫ/🏗️ Skyscraper Edge",
+              "🗺️ СЦЕНЫ/🍳 Kitchen Morning",
+              "🗺️ СЦЕНЫ/⛺ Campfire Night",
+              "🗺️ СЦЕНЫ/🧗 Rock Climbing",
+              "🗺️ СЦЕНЫ/🛒 Vintage Store",
+              "🗺️ СЦЕНЫ/🌉 Golden Gate",
+              "🗺️ СЦЕНЫ/🛁 Rainy Window",
+              "🗺️ СЦЕНЫ/🪐 Neon Desert",
+              "🗺️ СЦЕНЫ/🥾 Hiking Trail",
+              "🗺️ СЦЕНЫ/🌾 Rice Terraces",
+              "🗺️ СЦЕНЫ/🛀 Floating Bath"
+            ],
+            "columns": null,
+            "searchable": true,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "styles",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "nsfw_photo_style",
+            "kind": "chip_list",
+            "label": null,
+            "default": "None",
+            "tooltip": null,
+            "values": [
+              "None",
+              "📸 СТУДИЯ/📸 Studio Elite",
+              "📸 СТУДИЯ/✨ Glamour Core",
+              "📸 СТУДИЯ/🛋️ Boudoir",
+              "📸 СТУДИЯ/🌅 Morning Boudoir",
+              "📸 СТУДИЯ/👙 Fashion Lingerie",
+              "🏠 ИНТЕРЬЕР/🛏️ Bedroom Intimate",
+              "🏠 ИНТЕРЬЕР/🚿 Shower Scene",
+              "🏠 ИНТЕРЬЕР/🛁 Bath Scene",
+              "🏠 ИНТЕРЬЕР/🪞 Vanity Mirror",
+              "🏠 ИНТЕРЬЕР/🛋️ Living Room",
+              "🌿 ПРИРОДА/🌊 Beach Sunset",
+              "🌿 ПРИРОДА/🌲 Forest Glade",
+              "🌿 ПРИРОДА/🌸 Garden Path",
+              "🌿 ПРИРОДА/⛺ Private Pool",
+              "🎭 ФЭШН/💋 Beauty Close-up",
+              "🎭 ФЭШН/📸 Fashion Editorial",
+              "🎭 ФЭШН/👗 Dressed to Kill",
+              "🎭 ФЭШН/🩱 Swimsuit Campaign",
+              "🌑 НУАР/⛓️ Fetish Noir",
+              "🌑 НУАР/🛏️ Bedroom",
+              "🌑 НУАР/🎭 Venetian Velvet",
+              "🌑 НУАР/🔦 Interrogation Room",
+              "🌑 НУАР/🎪 Carnival",
+              "🌑 НУАР/⚰️ Gothic Romance",
+              "🌑 НУАР/🧛 Vampire Gothic",
+              "🌑 НУАР/🌑 Intimate Shadows",
+              "🛀 ТЕКСТУРЫ/💦 Wet Skin",
+              "🛀 ТЕКСТУРЫ/🫒 Wet & Glossy",
+              "🛀 ТЕКСТУРЫ/🛁 Steamy Bathtub",
+              "🛀 ТЕКСТУРЫ/🥛 Milk Bath Editorial",
+              "🛀 ТЕКСТУРЫ/🚿 Frosted Glass Shower",
+              "🛀 ТЕКСТУРЫ/🌊 Underwater Weightless",
+              "🛀 ТЕКСТУРЫ/🎨 Nude Aesthetic",
+              "🛀 ТЕКСТУРЫ/👘 Silk & Lace",
+              "🛀 ТЕКСТУРЫ/🕸️ Spiderweb Silk",
+              "🏙️ ЛОКАЦИИ/🤳 Amateur POV",
+              "🏙️ ЛОКАЦИИ/📹 Amateur Real",
+              "🏙️ ЛОКАЦИИ/🪩 Nightclub Dark",
+              "🏙️ ЛОКАЦИИ/🏖️ Beach Sensual",
+              "🏙️ ЛОКАЦИИ/☔ Neon Rain Cyberpunk",
+              "🏙️ ЛОКАЦИИ/🚗 Backseat Tryst",
+              "🏙️ ЛОКАЦИИ/🏨 Hotel Room Neon",
+              "🏙️ ЛОКАЦИИ/❄️ Winter Cabin",
+              "🏙️ ЛОКАЦИИ/🏜️ Desert Oasis",
+              "🏙️ ЛОКАЦИИ/🏙️ Skyscraper Penthouse",
+              "🏙️ ЛОКАЦИИ/🔧 Garage Oil & Chrome",
+              "🦾 КИБЕРПАНК/🌃 Neon Alley Exposure",
+              "🦾 КИБЕРПАНК/🤖 Chrome Implant Nude",
+              "🦾 КИБЕРПАНК/🧬 Synthetic Skin Android Nude",
+              "🦾 КИБЕРПАНК/🪩 Holographic Strip Club",
+              "🦾 КИБЕРПАНК/🩺 Ripperdoc Aftercare",
+              "🦾 КИБЕРПАНК/⛓️ Cyber Latex Dungeon",
+              "🦾 КИБЕРПАНК/🌧️ Rain-Slick Rooftop Nude",
+              "🦾 КИБЕРПАНК/📹 Backroom Neon POV",
+              "🦾 КИБЕРПАНК/🚦 Red-Light District Android",
+              "🦾 КИБЕРПАНК/🪞 Augmented Mirror Selfie",
+              "🦾 КИБЕРПАНК/💡 Bioluminescent Body Ports",
+              "🦾 КИБЕРПАНК/🏙️ Drone-Lit Penthouse Nude",
+              "🦾 КИБЕРПАНК/🚿 Wet Chrome Shower Pod",
+              "🦾 КИБЕРПАНК/🎤 Virtual Idol Dressing Room",
+              "🦾 КИБЕРПАНК/🩻 Holo-Tattoo Nude Scan",
+              "🦾 КИБЕРПАНК/🫧 Glass Capsule Display",
+              "🦾 КИБЕРПАНК/🏍️ Neon Motorcycle Garage",
+              "🦾 КИБЕРПАНК/🟣 Blacklight Cyber Boudoir",
+              "🦾 КИБЕРПАНК/🖥️ Server Room Heat",
+              "🦾 КИБЕРПАНК/💎 Prismatic Implant Glamour"
+            ],
+            "columns": null,
+            "searchable": true,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "styles",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "art_style",
+            "kind": "chip_list",
+            "label": null,
+            "default": "None",
+            "tooltip": null,
+            "values": [
+              "None",
+              "🎨 ЖИВОПИСЬ/🖌️ Impasto Oil",
+              "🎨 ЖИВОПИСЬ/💧 Wet Watercolor",
+              "🎨 ЖИВОПИСЬ/🔪 Palette Knife",
+              "🎨 ЖИВОПИСЬ/🌸 Ghibli Inspired",
+              "🎨 ЖИВОПИСЬ/🗿 Classical Marble",
+              "🎨 ЖИВОПИСЬ/🎭 Baroque Drama",
+              "🎨 ЖИВОПИСЬ/🖼️ Renaissance",
+              "🎨 ЖИВОПИСЬ/🎪 Impressionist",
+              "🎨 ЖИВОПИСЬ/🖌️ Asian Ink",
+              "🎨 ЖИВОПИСЬ/🖌️ Sumi-e",
+              "✏️ ГРАФИКА/✏️ Pencil Sketch",
+              "✏️ ГРАФИКА/🖊️ Ink Illustration",
+              "✏️ ГРАФИКА/🖍️ Charcoal Drawing",
+              "✏️ ГРАФИКА/✏️ Graphite Study",
+              "✏️ ГРАФИКА/🖋️ Pen & Ink",
+              "💻 ЦИФРОВАЯ/👾 Pixel Art",
+              "💻 ЦИФРОВАЯ/📐 Vector Art",
+              "💻 ЦИФРОВАЯ/🎨 Digital Painting",
+              "💻 ЦИФРОВАЯ/🤖 AI Art Style",
+              "💻 ЦИФРОВАЯ/🌆 Concept Art",
+              "💻 ЦИФРОВАЯ/🏮 Anime Style",
+              "💻 ЦИФРОВАЯ/🗾 Manga Style",
+              "💻 ЦИФРОВАЯ/🎮 Game UI",
+              "💻 ЦИФРОВАЯ/🎲 Tabletop RPG",
+              "🏛️ ИСТОРИЯ/🏺 Ancient Egyptian",
+              "🏛️ ИСТОРИЯ/🏛️ Greek Classical",
+              "🏛️ ИСТОРИЯ/🗿 Roman Bust",
+              "🏛️ ИСТОРИЯ/🖼️ Medieval Icon",
+              "🏛️ ИСТОРИЯ/⚔️ Viking Art",
+              "🏛️ ИСТОРИЯ/🏰 Art Nouveau",
+              "🏛️ ИСТОРИЯ/🎭 Art Deco",
+              "🔬 СТИЛИЗАЦИЯ/🔍 Hyperrealism",
+              "🔬 СТИЛИЗАЦИЯ/🌫️ Vaporwave",
+              "🔬 СТИЛИЗАЦИЯ/🎲 Glitch Art",
+              "🔬 СТИЛИЗАЦИЯ/💎 Steampunk",
+              "🔬 СТИЛИЗАЦИЯ/🌸 Kawaii",
+              "🔬 СТИЛИЗАЦИЯ/🦋 Morbid",
+              "🔬 СТИЛИЗАЦИЯ/🔮 Mystical",
+              "🔬 СТИЛИЗАЦИЯ/🎪 Circus Noir",
+              "💥 КОМИКС/🎬 Dynamic Cel-Shaded",
+              "💥 КОМИКС/🎌 Manga Screen-tone",
+              "💥 КОМИКС/💥 Action Comic",
+              "💥 КОМИКС/📜 Comic Cover",
+              "💥 КОМИКС/🤖 Киберпанк-комикс",
+              "💥 КОМИКС/💡 Неон-комикс",
+              "💥 КОМИКС/💋 Пин-ап комикс",
+              "💥 КОМИКС/📼 Ретро-комикс",
+              "💥 КОМИКС/⚙️ Стимпанк-комикс",
+              "💥 КОМИКС/⚰️ Готический комикс",
+              "💥 КОМИКС/👑 Барокко-комикс",
+              "💥 КОМИКС/⚫ Блэк-энд-уайт",
+              "🦾 КИБЕРПАНК/🎮 Mecha Pilot",
+              "🦾 КИБЕРПАНК/⚛️ Nanopunk Swarm",
+              "🦾 КИБЕРПАНК/💉 Neon Tattoos",
+              "🦾 КИБЕРПАНК/🤖 Flesh-to-Steel Fusion",
+              "🦾 КИБЕРПАНК/💊 Neuro-Interface",
+              "🦾 КИБЕРПАНК/🩸 Bio-Corroded Tech",
+              "👾 ДИДЖИТАЛ/🏄 Vaporwave Cyber",
+              "👾 ДИДЖИТАЛ/👓 Anaglyph Red-Blue",
+              "👾 ДИДЖИТАЛ/🔆 Octane Render",
+              "👾 ДИДЖИТАЛ/🌅 Synthwave Art",
+              "👾 ДИДЖИТАЛ/💧 Molten Liquid Chrome",
+              "👾 ДИДЖИТАЛ/🖥️ Holographic UI",
+              "👾 ДИДЖИТАЛ/📺 Киберпоп",
+              "👾 ДИДЖИТАЛ/🎨 Коллаж-арт",
+              "👾 ДИДЖИТАЛ/🔀 Сегментация-арт",
+              "👾 ДИДЖИТАЛ/🎭 Постер-арт",
+              "👾 ДИДЖИТАЛ/🚗 Лоурайдер-арт",
+              "💻 ЦИФРОВАЯ/🌃 Neon Cyberpunk City Rain",
+              "💻 ЦИФРОВАЯ/🚗 Retro Anime JDM Car Wallpaper",
+              "💻 ЦИФРОВАЯ/🏍️ Anime Motorcycle Action Poster",
+              "💻 ЦИФРОВАЯ/🌇 Electric Sunset Sci-Fi Landscape",
+              "💻 ЦИФРОВАЯ/🔮 Crystal Overload Sci-Fi",
+              "💻 ЦИФРОВАЯ/🧊 Cold Blue Anime Macro",
+              "💻 ЦИФРОВАЯ/🌊 Soft Water Reflection Anime",
+              "💻 ЦИФРОВАЯ/🌌 Lofi Anime City Melancholy",
+              "💻 ЦИФРОВАЯ/📼 Retro 90s Anime Cel",
+              "💻 ЦИФРОВАЯ/🎀 Cute Pink Anime Portrait",
+              "💻 ЦИФРОВАЯ/🐉 Fantasy Dragon Girl Anime",
+              "💻 ЦИФРОВАЯ/🚘 Night Street Car Cinematic",
+              "💻 ЦИФРОВАЯ/🪄 Sorceress Neon Ritual Anime",
+              "💻 ЦИФРОВАЯ/🎧 Moody Headphone Anime Girl",
+              "💻 ЦИФРОВАЯ/🏁 Street Racing Anime Poster",
+              "💻 ЦИФРОВАЯ/🍭 Soft Pastel Kawaii Car",
+              "💻 ЦИФРОВАЯ/🏙️ Urban Fashion Editorial Anime",
+              "💻 ЦИФРОВАЯ/🌫️ Atmospheric Sci-Fi Mist",
+              "💻 ЦИФРОВАЯ/🌆 Neo-Tokyo Anime Adventure",
+              "💻 ЦИФРОВАЯ/📱 Phone Wallpaper Vertical Sci-Fi",
+              "💻 ЦИФРОВАЯ/🎮 Anime Game Character Render",
+              "💻 ЦИФРОВАЯ/🧜 Ethereal Soft Fantasy Anime",
+              "💻 ЦИФРОВАЯ/🗡️ Dark Samurai Cyber Anime",
+              "💻 ЦИФРОВАЯ/🛰️ Holographic Interface Portrait",
+              "💻 ЦИФРОВАЯ/🧩 Abstract Cyber Shape Design",
+              "💻 ЦИФРОВАЯ/🚨 Warning Sign AI Robot Art",
+              "💻 ЦИФРОВАЯ/🖼️ Pinterest Vertical AI Art Mix",
+              "🔬 СТИЛИЗАЦИЯ/🖤 Dark Anime Witch Gothic",
+              "🔬 СТИЛИЗАЦИЯ/🩸 Vampire Red Eye Anime Noir",
+              "🔬 СТИЛИЗАЦИЯ/🎭 Hyperpop Character Illustration",
+              "🔬 СТИЛИЗАЦИЯ/🦇 Gothic Dark Fantasy Portrait",
+              "🔬 СТИЛИЗАЦИЯ/🌹 Dark Floral Gothic Editorial",
+              "🔬 СТИЛИЗАЦИЯ/🫧 Iridescent Hologram Fashion",
+              "🔬 СТИЛИЗАЦИЯ/🧛 Crimson Gothic Beauty",
+              "🔬 СТИЛИЗАЦИЯ/🌠 Cosmic Dream Girl",
+              "🔬 СТИЛИЗАЦИЯ/💿 Holographic Y2K Pop Star",
+              "🔬 СТИЛИЗАЦИЯ/🛸 Alien Fashion Runway",
+              "🔬 СТИЛИЗАЦИЯ/🏴 Black Armor Dark Fantasy",
+              "🔬 СТИЛИЗАЦИЯ/🕯️ Occult Black Magic Anime",
+              "🔬 СТИЛИЗАЦИЯ/🕳️ Black Void High Contrast",
+              "🔬 СТИЛИЗАЦИЯ/🧱 Gritty Post-Apocalyptic Casual",
+              "🔬 СТИЛИЗАЦИЯ/🔥 Red Smoke Dark Character",
+              "🔬 СТИЛИЗАЦИЯ/💎 Prismatic Neon Reflections",
+              "🔬 СТИЛИЗАЦИЯ/🪞 Glossy Black Latex Cyber",
+              "🔬 СТИЛИЗАЦИЯ/🌸 Bloom Soft Girl Aesthetic",
+              "💥 КОМИКС/🕷️ Symbiote Venom Comic Ink",
+              "💥 КОМИКС/⚡ Aggressive Comic Ink Splash",
+              "💥 КОМИКС/🧨 Dynamic Superhero Splash",
+              "🦾 КИБЕРПАНК/🤖 Chrome Cyborg Hyperrealism",
+              "🦾 КИБЕРПАНК/🦾 Cybernetic Arm Concept Art",
+              "🦾 КИБЕРПАНК/🧠 Biomechanical Body Horror",
+              "🦾 КИБЕРПАНК/🕶️ Teal Gold Cyberpunk Noir Portrait",
+              "🦾 КИБЕРПАНК/🧬 Synthetic Skin Android Portrait",
+              "🦾 КИБЕРПАНК/🦾 White Android Minimal Portrait",
+              "🦾 КИБЕРПАНК/🩶 Industrial Female Cyborg Portrait",
+              "🦾 КИБЕРПАНК/🫀Bio-Mechanical Core Portrait",
+              "🦾 КИБЕРПАНК/🧬 Android Anatomy Cutaway",
+              "🦾 КИБЕРПАНК/🦋 Angelic Cyber Feminine",
+              "🦾 КИБЕРПАНК/🧡 Golden Mechanical Portrait",
+              "🦾 КИБЕРПАНК/🪦 Melancholic Robot Portrait",
+              "🦾 КИБЕРПАНК/🩻 X-Ray Skeleton Cyber Anime"
+            ],
+            "columns": null,
+            "searchable": true,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "styles",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "nsfw_art_style",
+            "kind": "chip_list",
+            "label": null,
+            "default": "None",
+            "tooltip": null,
+            "values": [
+              "None",
+              "🎨 ИЛЛЮСТРАЦИЯ/🖌️ Pro Hentai",
+              "🎨 ИЛЛЮСТРАЦИЯ/💎 Premium Hentai",
+              "🎨 ИЛЛЮСТРАЦИЯ/🌸 Anime Ecchi",
+              "🎨 ИЛЛЮСТРАЦИЯ/🦸 Western Adult",
+              "🎨 ИЛЛЮСТРАЦИЯ/🎯 Digital Pin-up",
+              "💻 ЦИФРОВАЯ/🧊 3D Render",
+              "💻 ЦИФРОВАЯ/🖥️ CGI",
+              "💻 ЦИФРОВАЯ/🤖 AI Generated",
+              "📜 КЛАССИКА/🖼️ Baroque Nude",
+              "📜 КЛАССИКА/🏛️ Academic Nude",
+              "📜 КЛАССИКА/🎭 Impressionist Nude",
+              "🎯 ЖАНРЫ/🔞 Explicit",
+              "🎯 ЖАНРЫ/🎭 Sensual Art",
+              "🎯 ЖАНРЫ/📸 Fetish Art",
+              "🎨 ИЛЛЮСТРАЦИЯ/🎭 Kabuki Demon",
+              "🎨 ИЛЛЮСТРАЦИЯ/🌺 Tropical Adult",
+              "🎨 ИЛЛЮСТРАЦИЯ/🌿 Botanical Nymph",
+              "🖌️ ЖИВОПИСЬ/👼 Renaissance Oil",
+              "🖌️ ЖИВОПИСЬ/🔪 Thick Impasto",
+              "🖌️ ЖИВОПИСЬ/💧 Watercolor Soft",
+              "🖌️ ЖИВОПИСЬ/🎨 Artistic Nude",
+              "🖌️ ЖИВОПИСЬ/🛢️ Oil Painting",
+              "✒️ СКЕТЧ/✒️ Ink Erotica",
+              "✒️ СКЕТЧ/🦴 Raw Anatomy",
+              "✒️ СКЕТЧ/💀 Macabre Ink",
+              "🏰 ФЭНТЕЗИ/🧝 Dark Fantasy",
+              "🏰 ФЭНТЕЗИ/🧝 Dark Desire",
+              "🏰 ФЭНТЕЗИ/🏛️ Mythological Nude",
+              "🏰 ФЭНТЕЗИ/🌊 Aquatic Erotic",
+              "🏰 ФЭНТЕЗИ/🏜️ Dune Fantasy",
+              "🏰 ФЭНТЕЗИ/🧚 Fairy Tale",
+              "🏰 ФЭНТЕЗИ/🎨 NSFW Art",
+              "🚀 SCI-FI/🛸 Sci-Fi Adult",
+              "🚀 SCI-FI/🤖 Cyberpunk NSFW",
+              "🚀 SCI-FI/🦾 Mecha-Musume",
+              "🚀 SCI-FI/💎 Crystal Anatomy",
+              "🚀 SCI-FI/🌋 Lava Forged",
+              "🦾 КИБЕРПАНК/👽 Synthetic Skin",
+              "🦾 КИБЕРПАНК/👘 Cyber-Geisha",
+              "🦾 КИБЕРПАНК/⛓️ Chrome Bondage",
+              "🦾 КИБЕРПАНК/🧩 Fragmented Body",
+              "🦾 КИБЕРПАНК/💡 Glowing Fiber Optics",
+              "🕰️ РЕТРО/🎭 Retro Cabaret",
+              "🕰️ РЕТРО/🌿 Nouveau Adult",
+              "🕰️ РЕТРО/🌸 Shoujo Romance",
+              "🕰️ РЕТРО/📼 80s Anime OVA"
+            ],
+            "columns": null,
+            "searchable": true,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "styles",
+            "visible_when": null,
+            "visible_when_value": null
+          }
+        ],
+        "optional": [],
+        "hidden": []
+      },
+      "outputs": [
+        {
+          "name": "prompt",
+          "type": "STRING"
+        },
+        {
+          "name": "metadata_json",
+          "type": "STRING"
+        },
+        {
+          "name": "metadata_dict",
+          "type": "DICT"
+        }
+      ],
+      "min_size": [
+        400,
+        600
+      ],
+      "family": "llm"
+    },
+    "FiLNeuroCleaner": {
+      "id": "FiLNeuroCleaner",
+      "title": "🧹 Cleaner",
+      "category": "FiL_LLM/Tools/Cleaner",
+      "description": "Selective model, VRAM, RAM, and cache cleanup.",
+      "inputs": {
+        "required": [
+          {
+            "name": "clean_vram",
+            "kind": "boolean",
+            "label": "Clear VRAM cache",
+            "default": true,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "vram",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "offload_model",
+            "kind": "boolean",
+            "label": "Unload selected model types",
+            "default": true,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "vram",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "offload_cache",
+            "kind": "boolean",
+            "label": "Flush GPU cache",
+            "default": true,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "vram",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "unload_diffusion",
+            "kind": "boolean",
+            "label": "Diffusion models",
+            "default": true,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "vram",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "unload_clip",
+            "kind": "boolean",
+            "label": "CLIP models",
+            "default": true,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "vram",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "unload_vae",
+            "kind": "boolean",
+            "label": "VAE models",
+            "default": true,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "vram",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "unload_control",
+            "kind": "boolean",
+            "label": "ControlNet models",
+            "default": true,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "vram",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "unload_lora",
+            "kind": "boolean",
+            "label": "LoRA models",
+            "default": true,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "vram",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "clean_ram",
+            "kind": "boolean",
+            "label": "Clean system RAM",
+            "default": false,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "ram",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "clean_file_cache",
+            "kind": "boolean",
+            "label": "Clean file cache (Windows)",
+            "default": true,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "ram",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "clean_processes",
+            "kind": "boolean",
+            "label": "Trim process working set",
+            "default": false,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "ram",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "clean_dlls",
+            "kind": "boolean",
+            "label": "Empty DLL working set",
+            "default": false,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "ram",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "advanced_controls",
+            "kind": "boolean",
+            "label": "Show advanced RAM options",
+            "default": false,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "ram",
+            "visible_when": null,
+            "visible_when_value": null
+          }
+        ],
+        "optional": [],
+        "hidden": []
+      },
+      "outputs": [
+        {
+          "name": "output",
+          "type": "ANY"
+        }
+      ],
+      "min_size": [
+        300,
+        560
+      ],
+      "family": "tool"
+    },
+    "FiLBeforeAfterCompare": {
+      "id": "FiLBeforeAfterCompare",
+      "title": "🔄 Compare",
+      "category": "FiL_LLM/Image/Compare",
+      "description": "Before/after preview with optional output resizing.",
+      "inputs": {
+        "required": [],
+        "optional": [
+          {
+            "name": "swap",
+            "kind": "segmented",
+            "label": "Swap before/after",
+            "default": "OFF",
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": [
+              "ON",
+              "OFF"
+            ],
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "resize_mode",
+            "kind": "segmented",
+            "label": "Resize mode",
+            "default": "Off",
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": [
+              "Off",
+              "Preview only",
+              "Preview + output"
+            ],
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "max_resolution",
+            "kind": "slider",
+            "label": "Max resolution",
+            "default": 4096,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": 256,
+            "max": 8192,
+            "step": 64,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          }
+        ],
+        "hidden": []
+      },
+      "outputs": [
+        {
+          "name": "before",
+          "type": "IMAGE"
+        },
+        {
+          "name": "after",
+          "type": "IMAGE"
+        }
+      ],
+      "min_size": [
+        320,
+        420
+      ],
+      "family": "image"
+    },
+    "FiLUpscaleTileCalc": {
+      "id": "FiLUpscaleTileCalc",
+      "title": "🔍 Upscaler",
+      "category": "FiL_LLM/Image/Upscale",
+      "description": "Computes optimal tile grid layout for upscaling.",
+      "inputs": {
+        "required": [
+          {
+            "name": "upscale_factor",
+            "kind": "slider",
+            "label": "Upscale factor",
+            "default": 2,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": 0.1,
+            "max": 8,
+            "step": 0.25,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "tile_size",
+            "kind": "number",
+            "label": "Tile size",
+            "default": 512,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": 64,
+            "max": 2048,
+            "step": 64,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "tile_overlap",
+            "kind": "number",
+            "label": "Tile overlap",
+            "default": 64,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": 0,
+            "max": 512,
+            "step": 8,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          }
+        ],
+        "optional": [
+          {
+            "name": "auto_mode",
+            "kind": "boolean",
+            "label": "Full auto",
+            "default": false,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "advanced",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "auto_profile",
+            "kind": "segmented",
+            "label": null,
+            "default": "Balanced",
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": [
+              "Low VRAM",
+              "Balanced",
+              "High VRAM",
+              "Max Quality",
+              "Ultra Quality"
+            ],
+            "section": "advanced",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "manual_tile_cols",
+            "kind": "number",
+            "label": null,
+            "default": 0,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": 0,
+            "max": 64,
+            "step": 1,
+            "units": null,
+            "options": null,
+            "section": "advanced",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "manual_tile_rows",
+            "kind": "number",
+            "label": null,
+            "default": 0,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": 0,
+            "max": 64,
+            "step": 1,
+            "units": null,
+            "options": null,
+            "section": "advanced",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "max_megapixels",
+            "kind": "slider",
+            "label": null,
+            "default": 0,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": 0,
+            "max": 64,
+            "step": 0.5,
+            "units": null,
+            "options": null,
+            "section": "advanced",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "non_square_tiles",
+            "kind": "boolean",
+            "label": null,
+            "default": false,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "advanced",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "show_grid_preview",
+            "kind": "boolean",
+            "label": null,
+            "default": true,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "advanced",
+            "visible_when": null,
+            "visible_when_value": null
+          }
+        ],
+        "hidden": []
+      },
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE"
+        },
+        {
+          "name": "tile_grid_preview",
+          "type": "IMAGE"
+        },
+        {
+          "name": "upscale_by",
+          "type": "FLOAT"
+        },
+        {
+          "name": "denoise",
+          "type": "FLOAT"
+        },
+        {
+          "name": "tile_width",
+          "type": "INT"
+        },
+        {
+          "name": "tile_height",
+          "type": "INT"
+        },
+        {
+          "name": "mask_blur",
+          "type": "INT"
+        },
+        {
+          "name": "tile_padding",
+          "type": "INT"
+        },
+        {
+          "name": "overlap",
+          "type": "INT"
+        },
+        {
+          "name": "width",
+          "type": "INT"
+        },
+        {
+          "name": "height",
+          "type": "INT"
+        },
+        {
+          "name": "tile_cols",
+          "type": "INT"
+        },
+        {
+          "name": "tile_rows",
+          "type": "INT"
+        },
+        {
+          "name": "tile_count",
+          "type": "INT"
+        },
+        {
+          "name": "latent_w",
+          "type": "INT"
+        },
+        {
+          "name": "latent_h",
+          "type": "INT"
+        },
+        {
+          "name": "info",
+          "type": "STRING"
+        },
+        {
+          "name": "warnings",
+          "type": "STRING"
+        }
+      ],
+      "min_size": [
+        320,
+        320
+      ],
+      "family": "image"
+    }
+  },
+  "settings_prefix": "FiL_LLM."
+}

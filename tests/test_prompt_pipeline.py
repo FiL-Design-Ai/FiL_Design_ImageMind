@@ -1,0 +1,146 @@
+from __future__ import annotations
+
+from FiL_LLM.common.data import get_visible_style_keys
+from FiL_LLM.common.logic import (
+    MODEL_TYPE_GUIDANCE,
+    PromptGenerator,
+    build_model_type_guidance,
+    negative_to_positive_clause,
+)
+
+pg = PromptGenerator()
+_PHOTO_STYLE_KEY = get_visible_style_keys("photo_style")[0]  # first real style
+
+
+# ---------------------------------------------------------------------------
+# model-aware system prompt guidance
+# ---------------------------------------------------------------------------
+
+
+def test_model_type_guidance_present_for_supported_models():
+    for model_type in ("Z-Image Turbo", "FLUX", "QWEN", "SDXL", "Krea 2", "Ideogram 4"):
+        assert build_model_type_guidance(model_type), f"{model_type} has no guidance"
+
+
+def test_model_type_guidance_empty_for_auto():
+    assert build_model_type_guidance("Auto/None") == ""
+
+
+def test_system_prompt_bundle_includes_flux_guidance():
+    system_prompt, _agent, _style = pg.build_system_prompt_bundle(
+        agent_key="Universal", detail_level="normal", language="en", model_type="FLUX"
+    )
+    assert "FLUX" in system_prompt
+    assert "natural language" in system_prompt
+
+
+def test_system_prompt_bundle_includes_ideogram4_guidance():
+    # Ideogram 4's real API takes a plain text prompt (docs.ideogram.ai) —
+    # the guidance no longer describes the fabricated JSON caption schema.
+    system_prompt, _agent, _style = pg.build_system_prompt_bundle(
+        agent_key="Universal", detail_level="normal", language="en", model_type="Ideogram 4"
+    )
+    assert "Ideogram 4" in system_prompt
+    assert "no JSON" in system_prompt
+    assert "high_level_description" not in system_prompt
+    assert "compositional_deconstruction" not in system_prompt
+
+
+def test_system_prompt_bundle_auto_has_no_model_guidance():
+    system_prompt, _agent, _style = pg.build_system_prompt_bundle(
+        agent_key="Universal", detail_level="normal", language="en", model_type="Auto/None"
+    )
+    # No model-type guidance section for Auto
+    assert "Target generator:" not in system_prompt
+
+
+# ---------------------------------------------------------------------------
+# two-stage bundle
+# ---------------------------------------------------------------------------
+
+
+def test_two_stage_bundle_stage1_has_no_style_stage2_has_style():
+    bundle = pg.build_system_prompt_two_stage_bundle(
+        agent_key="Universal",
+        detail_level="normal",
+        language="en",
+        model_type="FLUX",
+        photo_style=_PHOTO_STYLE_KEY,
+    )
+    stage1 = bundle["stage1"]["prompt"]
+    stage2 = bundle["stage2"]["prompt"]
+    style_block = bundle["style_block"]
+    assert style_block  # a style was selected
+    assert "Style overlay" not in stage1  # stage 1 has NO style
+    assert "Style overlay" in stage2  # stage 2 HAS style
+    # Both include the FLUX model guidance
+    assert "FLUX" in stage1 and "FLUX" in stage2
+
+
+def test_two_stage_bundle_no_style_when_none_selected():
+    bundle = pg.build_system_prompt_two_stage_bundle(
+        agent_key="Universal", detail_level="normal", language="en", model_type="FLUX"
+    )
+    assert bundle["style_block"] == ""
+    assert "Style overlay" not in bundle["stage2"]["prompt"]
+
+
+# ---------------------------------------------------------------------------
+# stage user prompts
+# ---------------------------------------------------------------------------
+
+
+def test_stage1_user_prompt_with_image():
+    msg = pg.build_stage1_user_prompt("describe the lighting", has_image=True)
+    assert "source of truth" in msg
+    assert "describe the lighting" in msg
+
+
+def test_stage1_user_prompt_no_image_passthrough():
+    msg = pg.build_stage1_user_prompt("a mountain lake", has_image=False)
+    assert msg == "a mountain lake"
+
+
+def test_stage2_user_prompt_includes_source_description():
+    msg = pg.build_stage2_user_prompt(
+        "a serene mountain lake", "emphasize the mist", model_type="FLUX"
+    )
+    assert "a serene mountain lake" in msg
+    assert "emphasize the mist" in msg
+    assert "Reformat" in msg or "generation prompt" in msg
+
+
+# ---------------------------------------------------------------------------
+# negative -> positive constraints
+# ---------------------------------------------------------------------------
+
+
+def test_negative_clause_standard_model_uses_avoid():
+    clause = negative_to_positive_clause("blurry, extra fingers", "SDXL")
+    assert clause.startswith("Avoid:")
+    assert "blurry" in clause
+
+
+def test_negative_clause_positive_constraints_model_reframes():
+    clause = negative_to_positive_clause("blurry, extra fingers", "FLUX")
+    assert "Avoid:" not in clause
+    assert "positively" in clause or "do not include" in clause
+    assert "blurry" in clause
+
+
+def test_negative_clause_empty_for_no_negative():
+    assert negative_to_positive_clause("", "FLUX") == ""
+    assert negative_to_positive_clause("   ", "SDXL") == ""
+
+
+def test_negative_clause_applies_to_all_positive_models():
+    for model_type in ("FLUX", "Z-Image Turbo", "Krea 2"):
+        clause = negative_to_positive_clause("x", model_type)
+        assert "Avoid:" not in clause, f"{model_type} should use positive constraints"
+
+
+def test_negative_clause_ideogram4_uses_standard_avoid():
+    # Ideogram 4 has a real negative_prompt field (docs.ideogram.ai), so it
+    # no longer needs the positive-constraint reframing.
+    clause = negative_to_positive_clause("x", "Ideogram 4")
+    assert clause.startswith("Avoid:")

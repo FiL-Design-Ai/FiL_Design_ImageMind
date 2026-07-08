@@ -1,0 +1,6 @@
+# Runtime dependencies for FiL_LLM
+requests>=2.31.0
+aiohttp>=3.9.0
+PyYAML>=6.0.1
+Pillow>=10.0.0
+numpy>=1.26.0

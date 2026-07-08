@@ -1,0 +1,21 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "comfyui-test",
+      "runtimeExecutable": "D:\\AI\\ComfyUI-Easy-Install_v1\\ComfyUI-Easy-Install\\python_embeded\\python.exe",
+      "runtimeArgs": [
+        "-I",
+        "-W",
+        "ignore::FutureWarning",
+        "D:\\AI\\ComfyUI-Easy-Install_v1\\ComfyUI-Easy-Install\\ComfyUI\\main.py",
+        "--windows-standalone-build",
+        "--preview-method",
+        "taesd",
+        "--port",
+        "8189"
+      ],
+      "port": 8189
+    }
+  ]
+}

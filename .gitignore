@@ -1,0 +1,97 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Logs
+*.log
+01FiL_LLM.load.log
+logs/
+
+# Environment
+API.env
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database files (SQLite)
+*.db
+*.db-wal
+*.db-shm
+skills/skills.db
+
+# Test coverage
+.coverage
+htmlcov/
+.pytest_cache/
+.pytest_tmp/
+.mypy_cache/
+pytest_basetemp/
+pytest_run_tmp/
+.tmp_pytest_codex_runtime/
+.tox/
+
+# Local agent/tool state
+.opencode/
+.playwright-mcp/
+.qwen/
+.kilo/
+.pi/
+.claude/settings.local.json
+.claude/worktrees/
+.agents/
+
+# Local runtime/cache
+.fil_cache/
+_archive/
+output/
+bak_*.txt
+
+# Local config
+config.local.yaml
+config.yaml
+*.local
+*.bak
+*.orig
+.tmp_*.py
+my-agent/
+
+# Node.js
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# Local auth/credentials
+data/auth.json
+data/auth.json.backup-*
+data/provider_vision_smoke.json

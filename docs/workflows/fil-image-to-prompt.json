@@ -1,0 +1,110 @@
+{
+  "id": "fil-image-to-prompt-v2",
+  "revision": 0,
+  "last_node_id": 3,
+  "last_link_id": 2,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "LoadImage",
+      "pos": [40, 170],
+      "size": [315, 310],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {"name": "image", "type": "COMBO", "widget": {"name": "image"}, "link": null},
+        {"name": "upload", "type": "IMAGEUPLOAD", "widget": {"name": "upload"}, "link": null}
+      ],
+      "outputs": [
+        {"name": "IMAGE", "type": "IMAGE", "links": [2]},
+        {"name": "MASK", "type": "MASK", "links": null}
+      ],
+      "properties": {"Node name for S&R": "LoadImage"},
+      "widgets_values": [""]
+    },
+    {
+      "id": 2,
+      "type": "FiLProviderLoader",
+      "pos": [400, 40],
+      "size": [360, 440],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {"name": "provider", "type": "COMBO", "widget": {"name": "provider"}, "link": null},
+        {"name": "model", "type": "STRING", "widget": {"name": "model"}, "link": null},
+        {"name": "refresh_models", "type": "BOOLEAN", "widget": {"name": "refresh_models"}, "link": null},
+        {"name": "agent_mode", "type": "COMBO", "widget": {"name": "agent_mode"}, "link": null},
+        {"name": "language", "type": "COMBO", "widget": {"name": "language"}, "link": null},
+        {"name": "model_type", "type": "COMBO", "widget": {"name": "model_type"}, "link": null},
+        {"name": "detail_level", "type": "COMBO", "widget": {"name": "detail_level"}, "link": null},
+        {"name": "prompt_mode", "type": "COMBO", "widget": {"name": "prompt_mode"}, "link": null},
+        {"name": "photo_style", "type": "COMBO", "widget": {"name": "photo_style"}, "link": null},
+        {"name": "art_style", "type": "COMBO", "widget": {"name": "art_style"}, "link": null},
+        {"name": "temperature", "type": "FLOAT", "widget": {"name": "temperature"}, "link": null},
+        {"name": "seed", "type": "INT", "widget": {"name": "seed"}, "link": null},
+        {"name": "max_tokens", "type": "INT", "widget": {"name": "max_tokens"}, "link": null},
+        {"name": "rate_limit_ms", "type": "INT", "widget": {"name": "rate_limit_ms"}, "link": null}
+      ],
+      "outputs": [
+        {"name": "config", "type": "DICT", "links": [1]},
+        {"name": "model", "type": "STRING", "links": null},
+        {"name": "agent_key", "type": "STRING", "links": null},
+        {"name": "language", "type": "STRING", "links": null},
+        {"name": "model_type", "type": "STRING", "links": null},
+        {"name": "detail_level", "type": "STRING", "links": null},
+        {"name": "prompt_mode", "type": "STRING", "links": null},
+        {"name": "style_key", "type": "STRING", "links": null},
+        {"name": "style_overlay", "type": "STRING", "links": null}
+      ],
+      "properties": {"Node name for S&R": "FiLProviderLoader"},
+      "widgets_values": ["ollama", "", false, "None", "ru", "Auto/None", "normal", "Auto", "None", "None", 0.7, -1, 0, 100]
+    },
+    {
+      "id": 3,
+      "type": "FiLOpticScanner",
+      "pos": [810, 40],
+      "size": [400, 570],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {"name": "config", "type": "DICT", "link": 1},
+        {"name": "agent", "type": "COMBO", "widget": {"name": "agent"}, "link": null},
+        {"name": "image", "type": "IMAGE", "link": 2},
+        {"name": "prompt", "type": "STRING", "widget": {"name": "prompt"}, "link": null},
+        {"name": "negative_prompt", "type": "STRING", "widget": {"name": "negative_prompt"}, "link": null},
+        {"name": "detail_level", "type": "COMBO", "widget": {"name": "detail_level"}, "link": null},
+        {"name": "language", "type": "COMBO", "widget": {"name": "language"}, "link": null},
+        {"name": "model_type", "type": "COMBO", "widget": {"name": "model_type"}, "link": null},
+        {"name": "prompt_mode", "type": "COMBO", "widget": {"name": "prompt_mode"}, "link": null},
+        {"name": "photo_style", "type": "COMBO", "widget": {"name": "photo_style"}, "link": null},
+        {"name": "nsfw_photo_style", "type": "COMBO", "widget": {"name": "nsfw_photo_style"}, "link": null},
+        {"name": "art_style", "type": "COMBO", "widget": {"name": "art_style"}, "link": null},
+        {"name": "nsfw_art_style", "type": "COMBO", "widget": {"name": "nsfw_art_style"}, "link": null},
+        {"name": "custom_style", "type": "STRING", "widget": {"name": "custom_style"}, "link": null},
+        {"name": "temperature", "type": "FLOAT", "widget": {"name": "temperature"}, "link": null},
+        {"name": "seed", "type": "INT", "widget": {"name": "seed"}, "link": null},
+        {"name": "max_tokens", "type": "INT", "widget": {"name": "max_tokens"}, "link": null},
+        {"name": "response_format", "type": "COMBO", "widget": {"name": "response_format"}, "link": null},
+        {"name": "max_image_side", "type": "INT", "widget": {"name": "max_image_side"}, "link": null}
+      ],
+      "outputs": [
+        {"name": "prompt", "type": "STRING", "links": null},
+        {"name": "metadata_json", "type": "STRING", "links": null},
+        {"name": "metadata_dict", "type": "DICT", "links": null}
+      ],
+      "properties": {"Node name for S&R": "FiLOpticScanner"},
+      "widgets_values": ["None", "", "", "normal", "en", "Auto/None", "Auto", "None", "None", "None", "None", "", 0.7, -1, 1024, "text", 1024]
+    }
+  ],
+  "groups": [],
+  "links": [
+    [1, 2, 0, 3, 0, "DICT"],
+    [2, 1, 0, 3, 2, "IMAGE"]
+  ],
+  "config": {},
+  "extra": {"ds": {"scale": 0.9, "offset": [60, 60]}},
+  "version": 0.4
+}
