@@ -124,16 +124,28 @@ def _extract_json_object(value: str) -> Optional[Dict[str, Any]]:
 
 
 def _normalize_bbox(value: Any) -> Optional[List[int]]:
-    """Normalize an element bbox to ``[y1, x1, y2, x2]`` ints in [0, 1000]."""
+    """Normalize an element bbox to ``[y1, x1, y2, x2]`` ints in [0, 1000].
+
+    Format: [y1, x1, y2, x2] where:
+    - All values must be integers in [0, 1000]
+    - y1 < y2 (top < bottom)
+    - x1 < x2 (left < right)
+    - Minimum size is 1x1 pixel
+    """
     if not isinstance(value, (list, tuple)) or len(value) != 4:
         return None
     try:
         y1, x1, y2, x2 = (int(round(float(item))) for item in value)
     except (TypeError, ValueError):
         return None
+    # Range check: all values must be in [0, 1000]
     if any(v < 0 or v > 1000 for v in (y1, x1, y2, x2)):
         return None
+    # Validity check: y1 < y2 and x1 < x2
     if y1 >= y2 or x1 >= x2:
+        return None
+    # Minimum size: at least 2x2 (y2-y1 >= 2 for visual significance)
+    if (y2 - y1) < 2 or (x2 - x1) < 2:
         return None
     return [y1, x1, y2, x2]
 
@@ -717,10 +729,33 @@ def build_response_format_instruction(
         )
     if model_uses_ideogram_json_schema(model_type):
         return (
-            "OUTPUT: IDEOGRAM 4 JSON\n"
-            "Return one minified JSON object only. Top-level key order: "
-            "high_level_description, style_description, compositional_deconstruction. "
-            "Do not include aspect_ratio, markdown, commentary, or a negative_prompt field."
+            "OUTPUT: IDEOGRAM 4 CANONICAL JSON\n"
+            "Return minified JSON only. Structure:\n"
+            "{\n"
+            '  "high_level_description": "50-word max scene summary",\n'
+            '  "style_description": {\n'
+            '    "aesthetics": "mood/style terms",\n'
+            '    "lighting": "lighting description",\n'
+            '    "photo": "photography style" (if photo_style),\n'
+            '    "medium": "photograph|illustration",\n'
+            '    "color_palette": ["#RRGGBB", ...] (max 16 colors)\n'
+            "  },\n"
+            '  "compositional_deconstruction": {\n'
+            '    "background": "environmental context",\n'
+            '    "elements": [\n'
+            '      {\n'
+            '        "type": "obj|text",\n'
+            '        "desc": "element description (60 words max)",\n'
+            '        "text": "visible text (if type=text)",\n'
+            '        "bbox": [y1, x1, y2, x2] (0-1000 range, optional),\n'
+            '        "color_palette": ["#RRGGBB", ...] (max 5 colors, optional)\n'
+            "      }\n"
+            "    ]\n"
+            "  }\n"
+            "}\n"
+            "Constraints: All hex colors must be uppercase #RRGGBB format. "
+            "bbox coordinates must be integers [y1, x1, y2, x2] where 0<=all<=1000 and y1<y2, x1<x2. "
+            "No markdown, commentary, or extra fields."
         )
     if model_uses_flux_json_schema(model_type, response_format):
         return (
