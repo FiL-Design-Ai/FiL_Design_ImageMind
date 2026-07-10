@@ -45,3 +45,44 @@ export function createSyncedNodeState(node: unknown, initial: Record<string, unk
     },
   });
 }
+
+/**
+ * Reset a hidden widget's `.value` to `fallback` when it doesn't match the
+ * expected primitive type, mutating the widget in place and returning the
+ * safe value to use for initial state.
+ *
+ * Schema evolution (a new backend Input appended to `define_schema()`)
+ * shifts a saved workflow's legacy `widgets_values` — a plain positional
+ * array — onto the wrong widgets on load, because the count of real
+ * widgets no longer matches what the file was saved with. Since our own
+ * DOM widget (holding the whole Vue panel's nested state object) always
+ * trails the real ones in `node.widgets`, an old file's leftover DOM-state
+ * entry can land on a newly-added widget instead, handing e.g. an INT
+ * field the entire `{nodeState, initialValues, ui}` object. That object
+ * then fails backend int/float/combo conversion and invalidates the whole
+ * prompt (every connected output gets rejected, not just this node) —
+ * reproduced live via a hand-built legacy `widgets_values` array one field
+ * shorter than the current schema, loaded through `app.loadGraphData`.
+ * Called for every hidden widget before it's read into `initialNodeState`
+ * so a corrupted legacy save self-heals to the schema default instead of
+ * silently reaching `execute()`.
+ */
+export function sanitizeWidgetValue<T>(
+  w: ComfyLikeWidget | undefined,
+  kind: "number" | "boolean" | "string",
+  fallback: T,
+): T {
+  if (!w) return fallback;
+  const v = w.value;
+  const ok =
+    (kind === "number" && typeof v === "number" && Number.isFinite(v)) ||
+    (kind === "boolean" && typeof v === "boolean") ||
+    (kind === "string" && typeof v === "string");
+  if (ok) return v as T;
+  console.warn(
+    `[FiL_Design_ImageMind] widget "${w.name}" had a corrupted value (expected ${kind}) — resetting to default. ` +
+    "This usually means the workflow was saved with an older version of this node.",
+  );
+  w.value = fallback;
+  return fallback;
+}
