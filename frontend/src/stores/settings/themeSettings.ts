@@ -25,19 +25,19 @@ function onThemeChange(newValue: unknown): void {
 
 export const THEME_SETTINGS: ComfyExtensionSettings[] = [
   {
-    id: "FiL_LLM.Theme",
+    id: "FiL_Design_ImageMind.Theme",
     name: "Node theme",
     type: "combo",
     defaultValue: "Default",
     options: ["Default", "Cyberpunk", "Fallout"],
-    category: ["FiL_LLM", "Appearance", "Theme"],
-    tooltip: "Recolors every FiL_LLM node panel and adds a small themed flourish (neon glow for Cyberpunk, a CRT scanline texture for Fallout). Applies instantly, no reload.",
+    category: ["FiL_Design_ImageMind", "Appearance", "Theme"],
+    tooltip: "Recolors every FiL_Design_ImageMind node panel and adds a small themed flourish (neon glow for Cyberpunk, a CRT scanline texture for Fallout). Applies instantly, no reload.",
     onChange: onThemeChange,
   },
 ];
 
 /** Applies the currently-saved theme at startup (onChange only fires on *future* changes, not the initial load). */
 export function applyStartupTheme(readSetting: <T>(id: string, fallback: T) => T): void {
-  const stored = readSetting<string>("FiL_LLM.Theme", "Default");
+  const stored = readSetting<string>("FiL_Design_ImageMind.Theme", "Default");
   applyFilTheme(THEME_VALUE_TO_NAME[stored] ?? "default");
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * Native select with FiL_LLM styling. Equivalent of the legacy
+ * Native select with FiL_Design_ImageMind styling. Equivalent of the legacy
  * `createSelectInput()` factory. Used for finite enumerations where a chip
  * grid would be too loud (e.g. `language`).
  */

@@ -1,4 +1,4 @@
-# ⚡ FiL_LLM
+# ⚡ FiL_Design_ImageMind
 
 > **AI-powered ComfyUI nodes** for image analysis, prompt generation, and intelligent workflows
 
@@ -12,7 +12,7 @@
 
 ## English
 
-### What is FiL_LLM?
+### What is FiL_Design_ImageMind?
 
 A modern custom node pack for **ComfyUI** built on the V3 API. Seamlessly integrate LLM models (Ollama, LM Studio, Groq, Google AI, OpenRouter, Cloudflare) for:
 
@@ -21,30 +21,34 @@ A modern custom node pack for **ComfyUI** built on the V3 API. Seamlessly integr
 - 🔧 **Workflow Utilities** — VRAM cleanup, image comparison, upscale planning
 - 🎯 **Multiple Providers** — local or cloud-based, your choice
 
+<!-- TODO: drop fresh screenshots into docs/images/ and reference them here, e.g.:
+![Optic Scanner](docs/images/optic-scanner.png)
+The previous screenshots were removed for the 1.0.0 rename — they showed the old FiL_LLM
+branding and a "Prompt Chat" node that no longer exists in this node pack. -->
+
 ### Quick Start
 
-1. **Install** via ComfyUI Manager (search "FiL_LLM") or manually:
+1. **Install** via ComfyUI Manager (search "FiL_Design_ImageMind") or manually:
    ```bash
    cd ComfyUI/custom_nodes/
-   git clone https://github.com/FiL-Design-Ai/FiL_LLM.git
-   pip install -r FiL_LLM/requirements.txt
+   git clone https://github.com/FiL-Design-Ai/FiL_Design_ImageMind.git
+   pip install -r FiL_Design_ImageMind/requirements.txt
    ```
 
-2. **Configure** → Settings → FiL_LLM → add your API key or start Ollama locally
+2. **Configure** → Settings → FiL_Design_ImageMind → add your API key or start Ollama locally
 
-3. **Add nodes** → `FiL Provider Loader` → `FiL Optic Scanner` → connect image/text → Queue
+3. **Add nodes** → `Provider Loader` → `Optic Scanner` → connect image/text → Queue
 
 ### Available Nodes
 
-| Node | Purpose |
-|------|---------|
-| **FiL Provider Loader** | Choose provider, model, and generation parameters |
-| **FiL Optic Scanner** | Analyze images or expand text with LLM |
-| **FiL Seed** | Fixed or randomized seed with copy/reuse |
-| **FiL Neuro Cleaner** | Selective VRAM, RAM, and cache cleanup |
-| **FiL Before/After Compare** | Side-by-side image preview with swap |
-| **FiL Upscale Tile Calc** | Tile layout and denoise planning |
-| **FiL Help** | Quick project info and links |
+| Node | Class ID | Purpose |
+|------|----------|---------|
+| **🔌 Provider Loader** | `FiLProviderLoader` | Choose provider, model, and generation parameters |
+| **🕵️ Optic Scanner** | `FiLOpticScanner` | Analyze images or expand text with LLM |
+| **♻️ Seed** | `FiLSeed` | Fixed or randomized seed with copy/reuse |
+| **🧹 Cleaner** | `FiLNeuroCleaner` | Selective VRAM, RAM, and cache cleanup |
+| **🔄 Compare** | `FiLBeforeAfterCompare` | Side-by-side image preview with swap |
+| **🔍 Upscaler** | `FiLUpscaleTileCalc` | Tile layout and denoise planning |
 
 ### Supported Providers
 
@@ -70,7 +74,7 @@ A modern custom node pack for **ComfyUI** built on the V3 API. Seamlessly integr
 
 **Vision error?** → Switch to a model that supports vision (e.g., claude-3.5-sonnet, gpt-4-vision)
 
-**Auth error?** → Re-enter the API key in FiL_LLM settings
+**Auth error?** → Re-enter the API key in FiL_Design_ImageMind settings
 
 **Stale frontend?** → Restart ComfyUI and hard-refresh the browser (Ctrl+Shift+R)
 
@@ -96,7 +100,7 @@ npx vitest run
 
 ## Русский
 
-### Что такое FiL_LLM?
+### Что такое FiL_Design_ImageMind?
 
 Современный набор кастомных узлов для **ComfyUI** на V3 API. Интегрирует LLM-модели (Ollama, LM Studio, Groq, Google AI, OpenRouter, Cloudflare) для:
 
@@ -107,28 +111,27 @@ npx vitest run
 
 ### Быстрый старт
 
-1. **Установка** через ComfyUI Manager (поиск "FiL_LLM") или вручную:
+1. **Установка** через ComfyUI Manager (поиск "FiL_Design_ImageMind") или вручную:
    ```bash
    cd ComfyUI/custom_nodes/
-   git clone https://github.com/FiL-Design-Ai/FiL_LLM.git
-   pip install -r FiL_LLM/requirements.txt
+   git clone https://github.com/FiL-Design-Ai/FiL_Design_ImageMind.git
+   pip install -r FiL_Design_ImageMind/requirements.txt
    ```
 
-2. **Настройка** → Settings → FiL_LLM → добавьте API ключ или запустите Ollama локально
+2. **Настройка** → Settings → FiL_Design_ImageMind → добавьте API ключ или запустите Ollama локально
 
-3. **Добавьте узлы** → `FiL Provider Loader` → `FiL Optic Scanner` → подключите изображение/текст → Queue
+3. **Добавьте узлы** → `Provider Loader` → `Optic Scanner` → подключите изображение/текст → Queue
 
 ### Доступные узлы
 
-| Узел | Назначение |
-|------|-----------|
-| **FiL Provider Loader** | Выбор провайдера, модели и параметров генерации |
-| **FiL Optic Scanner** | Анализ изображений или расширение текста |
-| **FiL Seed** | Фиксированное или случайное значение seed |
-| **FiL Neuro Cleaner** | Выборочная очистка VRAM, RAM и кэша |
-| **FiL Before/After Compare** | Сравнение изображений бок-о-бок |
-| **FiL Upscale Tile Calc** | Планирование тайлов и денойза |
-| **FiL Help** | Информация о проекте и ссылки |
+| Узел | Class ID | Назначение |
+|------|----------|-----------|
+| **🔌 Provider Loader** | `FiLProviderLoader` | Выбор провайдера, модели и параметров генерации |
+| **🕵️ Optic Scanner** | `FiLOpticScanner` | Анализ изображений или расширение текста |
+| **♻️ Seed** | `FiLSeed` | Фиксированное или случайное значение seed |
+| **🧹 Cleaner** | `FiLNeuroCleaner` | Выборочная очистка VRAM, RAM и кэша |
+| **🔄 Compare** | `FiLBeforeAfterCompare` | Сравнение изображений бок-о-бок |
+| **🔍 Upscaler** | `FiLUpscaleTileCalc` | Планирование тайлов и денойза |
 
 ### Поддерживаемые провайдеры
 
@@ -150,11 +153,11 @@ npx vitest run
 
 ### Решение проблем
 
-**Список моделей пуст?** → Перейдите в Settings → FiL_LLM, введите ключ, нажмите "Refresh models"
+**Список моделей пуст?** → Перейдите в Settings → FiL_Design_ImageMind, введите ключ, нажмите "Refresh models"
 
 **Ошибка зрения?** → Используйте модель с поддержкой видения (claude-3.5-sonnet, gpt-4-vision)
 
-**Ошибка аутентификации?** → Переведите API ключ в Settings → FiL_LLM
+**Ошибка аутентификации?** → Переведите API ключ в Settings → FiL_Design_ImageMind
 
 **Старый интерфейс?** → Перезагрузите ComfyUI и обновите браузер (Ctrl+Shift+R)
 

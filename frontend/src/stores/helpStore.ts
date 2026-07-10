@@ -40,7 +40,7 @@ export const useHelpStore = defineStore("fil/help", () => {
     injected = true;
     void import("@/stores/helpDefaults")
       .then(({ HELP_DEFAULTS }) => registerAll(HELP_DEFAULTS))
-      .catch((err) => console.warn("[FiL_LLM] help defaults import failed:", err));
+      .catch((err) => console.warn("[FiL_Design_ImageMind] help defaults import failed:", err));
   }
 
   function get(id: string): HelpDef | undefined {

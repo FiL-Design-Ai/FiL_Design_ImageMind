@@ -1,6 +1,6 @@
 /**
- * ComfyUI settings registered by the FiL_LLM extension.
- * Mirrors the legacy `ALL_SETTINGS` from web/fil_llm.js.
+ * ComfyUI settings registered by the FiL_Design_ImageMind extension.
+ * Mirrors the legacy `ALL_SETTINGS` from web/fil_design_imagemind.js.
  *
  * Each sub-array is contributed by a dedicated installer module so the
  * settings stay co-located with the feature they configure.

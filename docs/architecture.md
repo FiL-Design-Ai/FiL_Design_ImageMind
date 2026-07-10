@@ -1,4 +1,4 @@
-# FiL_LLM v3 Architecture
+# FiL_Design_ImageMind v3 Architecture
 
 ## Runtime
 
@@ -24,23 +24,23 @@ This is a new public contract. Workflows created for the former backup implement
 - `common/style_engine/`: data-only style rules, presets, the resolver, and the public `StyleEnforcer` used by Optic Scanner to produce enforcement blocks.
 - `common/prompt_contracts.py`: thin facade re-exporting the Prompt Contract v3 helpers.
 - `common/node_registry.py`: canonical ids, titles and categories used by startup validation and the frontend contract endpoint.
-- `server_routes.py`: `/fil_llm/*` HTTP API. It must not expose API keys or internal exception details.
+- `server_routes.py`: `/fil_design_imagemind/*` HTTP API. It must not expose API keys or internal exception details.
 
-Do not add import aliases, background preflight threads or fallback imports from `FiL_LLM_backup`. Add shared helpers only after two runtime areas need them.
+Do not add import aliases, background preflight threads or fallback imports from `FiL_Design_ImageMind_backup`. Add shared helpers only after two runtime areas need them.
 
 Optional engines (`common/style_engine/`) may be skipped at import time if the rules data is unavailable; the Optic Scanner falls back to the bare style block when the contract is inactive.
 
 ## Frontend ownership (v3 stack)
 
-- **`frontend/dist/`** — built UMD bundle (`fil_llm.js` + `style.css`), served by ComfyUI via `WEB_DIRECTORY = "./frontend/dist"`.
+- **`frontend/dist/`** — built UMD bundle (`fil_design_imagemind.js` + `style.css`), served by ComfyUI via `WEB_DIRECTORY = "./frontend/dist"`.
 - **`frontend/src/api/contracts.ts`** — auto-generated from Pydantic JSON Schema (`scripts/gen_contracts.mjs`).
-- **`frontend/src/api/client.ts`** — typed HTTP client for `/fil_llm/*` routes.
+- **`frontend/src/api/client.ts`** — typed HTTP client for `/fil_design_imagemind/*` routes.
 - **`frontend/src/nodes2/domWidgetHost.ts`** — core `node.addDOMWidget()` harness that mounts Vue components.
 - **`frontend/src/nodes2/nodes/*.ts`** — 7 per-node registration modules using `addFilDomWidget`.
 - **`frontend/src/components/nodes/*.vue`** — 7 Vue node body components.
 - **`frontend/src/components/widgets/*.vue`** — design-system widgets (9 components).
 - **`frontend/src/stores/`** — Pinia stores: `toastStore`, `providerStore`, `compareStore`, `helpStore`.
-- **`frontend/src/stores/settings/`** — settings modules with `category: ["FiL_LLM", ...]`.
+- **`frontend/src/stores/settings/`** — settings modules with `category: ["FiL_Design_ImageMind", ...]`.
 - **`frontend/src/composables/`** — composables: `useShortcuts`, `useConnectionFx`, `useRunButtonFx`, `useAdaptiveTitleInk`, `useColorPicker`, `icons.ts`.
 
 ### UI patterns (v3)
@@ -59,7 +59,7 @@ Optional engines (`common/style_engine/`) may be skipped at import time if the r
 
 ### Settings (v3)
 
-ComfyUI settings registered by FiL_LLM (under `["FiL_LLM", …]` categories):
+ComfyUI settings registered by FiL_Design_ImageMind (under `["FiL_Design_ImageMind", …]` categories):
 - See `frontend/src/stores/settings/*.ts` for the full list (connection FX, run button, shortcuts, title ink, provider manager).
 
 Widget names and values come from Python Pydantic contracts. Frontend must not silently change serialized values.
@@ -68,18 +68,18 @@ Widget names and values come from Python Pydantic contracts. Frontend must not s
 
 Supported routes:
 
-- `GET /fil_llm/health`
-- `GET /fil_llm/providers`
-- `GET /fil_llm/models/{provider}`
-- `GET /fil_llm/auth`
-- `POST /fil_llm/auth`
-- `POST /fil_llm/provider_probe`
-- `GET /fil_llm/node_contracts`
-- `POST /fil_llm/compare/save`
+- `GET /fil_design_imagemind/health`
+- `GET /fil_design_imagemind/providers`
+- `GET /fil_design_imagemind/models/{provider}`
+- `GET /fil_design_imagemind/auth`
+- `POST /fil_design_imagemind/auth`
+- `POST /fil_design_imagemind/provider_probe`
+- `GET /fil_design_imagemind/node_contracts`
+- `POST /fil_design_imagemind/compare/save`
 
-`/fil_llm/node_contracts` is also consumed by the frontend `selfCheckNodeContracts()` hook.
+`/fil_design_imagemind/node_contracts` is also consumed by the frontend `selfCheckNodeContracts()` hook.
 
-Compare save accepts only image descriptors produced in the ComfyUI temp directory. Paths are resolved under that directory and copied to a unique filename under `output/FiL_LLM/compare`.
+Compare save accepts only image descriptors produced in the ComfyUI temp directory. Paths are resolved under that directory and copied to a unique filename under `output/FiL_Design_ImageMind/compare`.
 
 Local credentials are stored in `data/auth.json`, which is ignored by Git. Responses replace keys with `***HIDDEN***`. Logs and provider errors must not contain credentials.
 
@@ -93,6 +93,6 @@ python.exe -m pytest tests -q
 python.exe tools/preflight_check.py
 ```
 
-Run `npm run typecheck` and `npm test` under `frontend/`. Finally restart ComfyUI and verify all seven nodes under `FiL_LLM/...`.
+Run `npm run typecheck` and `npm test` under `frontend/`. Finally restart ComfyUI and verify all seven nodes under `FiL_Design_ImageMind/...`.
 
 Tests that require `torch` use `pytest.importorskip("torch")` so the suite stays green without the framework installed.

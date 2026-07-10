@@ -1,6 +1,6 @@
 # Подключение LLM-провайдеров
 
-FiL_LLM v2 поддерживает простую схему подключения:
+FiL_Design_ImageMind v2 поддерживает простую схему подключения:
 
 - Ollama и LM Studio работают как локальные серверы без ключа.
 - OpenAI API, Google, Groq, OpenRouter и Cloudflare используют API key.
@@ -8,7 +8,7 @@ FiL_LLM v2 поддерживает простую схему подключен
 
 ## Настройка через ComfyUI
 
-Открой `Settings -> FiL_LLM -> Провайдеры и API-ключи`.
+Открой `Settings -> FiL_Design_ImageMind -> Провайдеры и API-ключи`.
 
 Для облачного провайдера:
 
@@ -19,7 +19,7 @@ FiL_LLM v2 поддерживает простую схему подключен
 
 Для Ollama и LM Studio проверь URL и запусти соответствующий локальный сервер перед проверкой.
 
-После подключения добавь `FiL Provider Loader`, выбери provider и нажми `Обновить модели`. Соедини его выход `config` со входом `config` узла `FiL Optic Scanner`.
+После подключения добавь `Provider Loader`, выбери provider и нажми `Обновить модели`. Соедини его выход `config` со входом `config` узла `Optic Scanner`.
 
 ## Хранение ключей
 
@@ -35,10 +35,10 @@ data/auth.json
 
 ## API
 
-- `GET /fil_llm/auth` — безопасные статусы всех провайдеров.
-- `POST /fil_llm/auth` — сохранить разрешённые поля или удалить credential.
-- `GET /fil_llm/models/{provider}` — модели и безопасный статус подключения.
-- `POST /fil_llm/provider_probe` — короткая проверка провайдера или выбранной модели.
+- `GET /fil_design_imagemind/auth` — безопасные статусы всех провайдеров.
+- `POST /fil_design_imagemind/auth` — сохранить разрешённые поля или удалить credential.
+- `GET /fil_design_imagemind/models/{provider}` — модели и безопасный статус подключения.
+- `POST /fil_design_imagemind/provider_probe` — короткая проверка провайдера или выбранной модели.
 
 Возможные статусы:
 

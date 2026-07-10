@@ -4,7 +4,7 @@ import pytest
 
 torch = pytest.importorskip("torch")
 
-from FiL_LLM.nodes.node_compare import FiLBeforeAfterCompare
+from FiL_Design_ImageMind.nodes.node_compare import FiLBeforeAfterCompare
 
 
 class _MockSaver:
@@ -13,7 +13,7 @@ class _MockSaver:
 
 
 def _patch_saver(monkeypatch):
-    monkeypatch.setattr("FiL_LLM.nodes.node_compare._preview_saver", _MockSaver())
+    monkeypatch.setattr("FiL_Design_ImageMind.nodes.node_compare._preview_saver", _MockSaver())
 
 
 def test_preview_only_resizes_preview_but_preserves_batch_outputs(monkeypatch):

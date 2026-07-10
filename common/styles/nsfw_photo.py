@@ -1,5 +1,5 @@
 """
-FiL_LLM - NSFW Photo Styles Library (APRIL 2026)
+FiL_Design_ImageMind - NSFW Photo Styles Library (APRIL 2026)
 Realistic adult photography scenarios.
 """
 

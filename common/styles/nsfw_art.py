@@ -1,5 +1,5 @@
 """
-FiL_LLM - NSFW Art Styles Library (APRIL 2026)
+FiL_Design_ImageMind - NSFW Art Styles Library (APRIL 2026)
 Adult illustration, painting, and render styles.
 """
 

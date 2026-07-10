@@ -28,11 +28,12 @@ export const scannerNode: NodeModule = {
       const result = originalCreated?.apply(this, args);
       const node = this as { widgets?: unknown[]; _filScannerSeedState?: unknown };
 
-      const comboNames = ["agent", "model_type", "detail_level", "language",
+      const hiddenWidgetNames = ["prompt", "negative_prompt", "custom_style", "max_image_side",
+        "agent", "model_type", "detail_level", "language",
         "prompt_mode", "response_format", "photo_style", "nsfw_photo_style", "art_style", "nsfw_art_style"];
       const initialValues: Record<string, unknown> = {};
       const initialNodeState: Record<string, unknown> = {};
-      for (const name of comboNames) {
+      for (const name of hiddenWidgetNames) {
         const w = findFilWidget(node, name);
         if (!w) continue;
         const value = w.value;
@@ -41,9 +42,6 @@ export const scannerNode: NodeModule = {
         (w as { hidden?: boolean }).hidden = true;
       }
 
-      // Seed moves to a bottom rgthree-style block (Seed.vue's own mechanism,
-      // reused here) instead of the plain native int + auto control_after_
-      // generate combo ComfyUI adds for any widget literally named "seed".
       const seedWidget = findFilWidget(node, "seed");
       const controlWidget = findFilWidget(node, "control_after_generate");
       const initialSeed = Number(seedWidget?.value ?? -1) || -1;
@@ -52,15 +50,6 @@ export const scannerNode: NodeModule = {
       initialValues.seed = initialSeed;
       initialNodeState.seed = initialSeed;
       initialNodeState.seed_mode = "random";
-
-      // max_image_side is a plain native io.Int widget on the Python node
-      // (not part of the contract-driven `grouped` widgets above) — hidden
-      // here and re-rendered as FilSlider in the Vue view.
-      const maxImageSideWidget = findFilWidget(node, "max_image_side");
-      const initialMaxImageSide = Number(maxImageSideWidget?.value ?? 1024) || 1024;
-      initialValues.max_image_side = initialMaxImageSide;
-      initialNodeState.max_image_side = initialMaxImageSide;
-      if (maxImageSideWidget) (maxImageSideWidget as { hidden?: boolean }).hidden = true;
 
       const state = {
         nodeState: createSyncedNodeState(node, initialNodeState),
@@ -73,7 +62,7 @@ export const scannerNode: NodeModule = {
       // `_filSeedState` on FiLSeed).
       node._filScannerSeedState = state;
 
-      addFilDomWidget(node, "fil_scanner_view", OpticScannerVue, { state, height: 390 });
+      addFilDomWidget(node, "fil_scanner_view", OpticScannerVue, { state, height: 460 });
       return result;
     };
 

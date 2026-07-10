@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from FiL_LLM.common.vision_smoke import (
+from FiL_Design_ImageMind.common.vision_smoke import (
     is_vision_capable,
     load_vision_smoke_results,
     result_key,

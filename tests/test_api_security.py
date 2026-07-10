@@ -16,7 +16,7 @@ def test_routes_do_not_return_raw_provider_exceptions():
 
 
 def test_unknown_provider_and_invalid_auth_payload():
-    from FiL_LLM.server_routes import apply_auth_payload, build_models_response
+    from FiL_Design_ImageMind.server_routes import apply_auth_payload, build_models_response
 
     assert build_models_response("unknown") == ({"error": "unknown provider"}, 404)
     assert apply_auth_payload({"accounts": []}) == ({"error": "accounts must be an object"}, 400)

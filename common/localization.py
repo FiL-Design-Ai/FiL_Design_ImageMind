@@ -4,11 +4,13 @@ from pathlib import Path
 from threading import Lock
 from typing import Dict, Optional
 
+from .brand import SETTINGS_PREFIX
+
 logger = logging.getLogger(__name__)
 
 _LOCALE_DIR = Path(__file__).resolve().parent.parent / "data" / "locales"
 _DEFAULT_LANG = "en"
-_SETTING_KEY = "FiL_LLM.Language"
+_SETTING_KEY = f"{SETTINGS_PREFIX}Language"
 
 
 def _settings_file_path() -> Optional[Path]:
@@ -21,7 +23,7 @@ def _settings_file_path() -> Optional[Path]:
 
 
 def _read_comfy_language_setting(cache: Dict[str, object]) -> Optional[str]:
-    """Best-effort read of the ComfyUI-managed ``FiL_LLM.Language`` setting.
+    """Best-effort read of the ComfyUI-managed language setting (see `_SETTING_KEY`).
 
     Reads the default (single-user) profile's settings file directly rather
     than going through the server's per-request user manager, since this is

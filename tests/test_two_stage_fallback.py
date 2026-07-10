@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import requests
 
-from FiL_LLM.common.data import get_visible_style_keys
-from FiL_LLM.nodes import node_scanner
-from FiL_LLM.nodes.node_scanner import FiLOpticScanner
+from FiL_Design_ImageMind.common.data import get_visible_style_keys
+from FiL_Design_ImageMind.nodes import node_scanner
+from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner
 
 PHOTO_STYLE = get_visible_style_keys("photo_style")[0]
 

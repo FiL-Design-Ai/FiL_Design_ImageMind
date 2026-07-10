@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from FiL_LLM.server_routes import save_compare_image
+from FiL_Design_ImageMind.server_routes import save_compare_image
 
 
 def descriptor(filename="preview.png", subfolder=""):
@@ -18,9 +18,9 @@ def test_compare_save_copies_temp_image_and_uses_unique_name(tmp_path):
     (temp / "preview.png").write_bytes(b"image")
     first = save_compare_image(descriptor(), temp_dir=temp, output_dir=output)
     second = save_compare_image(descriptor(), temp_dir=temp, output_dir=output)
-    assert first == {"filename": "preview.png", "subfolder": "FiL_LLM/compare", "type": "output"}
+    assert first == {"filename": "preview.png", "subfolder": "FiL_Design_ImageMind/compare", "type": "output"}
     assert second["filename"] == "preview_001.png"
-    assert (output / "FiL_LLM" / "compare" / first["filename"]).read_bytes() == b"image"
+    assert (output / "FiL_Design_ImageMind" / "compare" / first["filename"]).read_bytes() == b"image"
 
 
 @pytest.mark.parametrize("bad", [

@@ -14,7 +14,9 @@ except ImportError:
 
 from .config import get_config
 
-logger = logging.getLogger("FiL_LLM.Processing")
+from .brand import BRAND
+
+logger = logging.getLogger(f"{BRAND}.Processing")
 
 
 def comfy_image_to_rgb_uint8(image: Any) -> np.ndarray:

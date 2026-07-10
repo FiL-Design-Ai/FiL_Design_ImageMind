@@ -24,7 +24,9 @@ from .config import (
 from .network import HTTPClient
 from .processing import normalize_model_name
 
-logger = logging.getLogger("FiL_LLM.ProviderResilience")
+from .brand import BRAND
+
+logger = logging.getLogger(f"{BRAND}.ProviderResilience")
 
 
 # ---------------------------------------------------------------------------

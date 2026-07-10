@@ -1,4 +1,4 @@
-"""Custom ComfyUI V3 socket types for the FiL_LLM project."""
+"""Custom ComfyUI V3 socket types for the FiL_Design_ImageMind project."""
 
 from comfy_api.latest import io
 

@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import types
 
-from FiL_LLM.nodes import node_scanner
-from FiL_LLM.nodes.node_scanner import FiLOpticScanner
+from FiL_Design_ImageMind.nodes import node_scanner
+from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner
 
 
 CONFIG = {"provider": "ollama", "model": "qwen3-vl"}

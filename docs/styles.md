@@ -1,6 +1,6 @@
 # Style Presets and Guardrails
 
-FiL_LLM style presets are **overlays**, not scene rewrites.
+FiL_Design_ImageMind style presets are **overlays**, not scene rewrites.
 
 A preset may strengthen or change medium, render language, palette, material treatment, light, atmosphere, environment, wardrobe/coverage, props, era/weather, explicitness, and generation-facing wording. A preset must preserve the locked core: main subject, subject/object count, main action, main pose, composition essence, focal anchor, object relationships, and age readability.
 

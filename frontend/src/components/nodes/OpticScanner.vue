@@ -21,16 +21,35 @@ const contract = NODE_CONTRACTS["FiLOpticScanner"];
 const widgets: WidgetSpec[] = contract?.inputs.required ?? [];
 
 const SECTION_LABEL_KEYS: Record<string, [string, string]> = {
+  prompt: ["scn_section_prompt", "📝 PROMPT/TEXT"],
   agent: ["scn_section_agent", "🕵️ AGENT"],
   model: ["scn_section_model", "🧠 MODEL"],
   output: ["scn_section_output", "📤 OUTPUT"],
+  advanced: ["scn_section_advanced", "⚙ ADVANCED"],
   actions: ["scn_section_actions", "⚡ ACTIONS"],
+};
+
+// Per-section accent — matches the Neo-Tactile design. `FilSection`/
+// `FilChipGrid`/`FilSegmented` all read only `var(--fil-accent)`, so
+// overriding that variable on each section's wrapper div is enough to
+// recolor its children — no prop plumbing through the shared widgets.
+const SECTION_ACCENT: Record<string, string> = {
+  prompt: "#00d9ff",
+  agent: "#ff9900",
+  model: "#d080ff",
+  output: "#ff9900",
+  advanced: "#00d9ff",
 };
 
 function sectionLabel(section: string): string {
   const entry = SECTION_LABEL_KEYS[section];
   return entry ? t(entry[0], entry[1]) : section.toUpperCase();
 }
+
+// `prompt`/`negative_prompt` render as textareas, `custom_style` as a
+// single-line input — the contract has no dedicated "multiline" flag so
+// this is decided by widget name.
+const MULTILINE_STRING_WIDGETS = new Set(["prompt", "negative_prompt"]);
 
 const WIDGET_TOOLTIP_KEYS: Record<string, string> = {
   config: "tt_config",
@@ -120,7 +139,7 @@ function setValue(name: string, v: unknown) { props.state.nodeState[name] = v; }
 // Agent/Output/Styles start collapsed on a fresh node (before the user has
 // ever toggled them) so the panel isn't cluttered on first drop; once a
 // value is explicitly stored in `state.ui` it always wins over this default.
-const DEFAULT_COLLAPSED = new Set(["agent", "output"]);
+const DEFAULT_COLLAPSED = new Set(["agent", "output", "advanced"]);
 
 function isCollapsed(section: string): boolean {
   const stored = (props.state.ui as Record<string, unknown>)[`collapsed_${section}`];
@@ -172,6 +191,7 @@ const maxImageSide = computed({
   get: () => Number(props.state.nodeState.max_image_side ?? 1024) || 1024,
   set: (v) => { props.state.nodeState.max_image_side = v; },
 });
+
 </script>
 
 <template>
@@ -180,10 +200,12 @@ const maxImageSide = computed({
       :title="t('tt_max_image_side', 'Images are downscaled so their longest side does not exceed this value.')"
       @update:model-value="(v: number) => (maxImageSide = v)" />
     <template v-for="(specs, section) in grouped" :key="section">
-      <template v-if="section !== 'styles'">
+      <div v-if="section !== 'styles'" class="fil-section-block" :style="{ '--fil-accent': SECTION_ACCENT[String(section)] }">
         <FilSection v-if="section !== '_'" :title="sectionLabel(String(section))"
-          :model-value="isCollapsed(String(section))" @update:model-value="(v: boolean) => setCollapsed(String(section), v)" />
-        <div v-for="w in specs" v-show="section === '_' || !isCollapsed(String(section))" :key="w.name" class="fil-w-row" :title="widgetTooltip(w)">
+          :collapsible="section !== 'prompt'"
+          :model-value="section === 'prompt' ? false : isCollapsed(String(section))"
+          @update:model-value="(v: boolean) => setCollapsed(String(section), v)" />
+        <div v-for="w in specs" v-show="section === '_' || section === 'prompt' || !isCollapsed(String(section))" :key="w.name" class="fil-w-row" :title="widgetTooltip(w)">
           <FilChipGrid v-if="w.kind === 'chip_grid'"
             :options="w.values || []" :model-value="String(getValue(w.name, ''))"
             :columns="w.columns ?? 3" @update:model-value="(v: string) => setValue(w.name, v)" />
@@ -193,20 +215,32 @@ const maxImageSide = computed({
           <FilSegmented v-else-if="w.kind === 'segmented'"
             :options="w.options || []" :model-value="String(getValue(w.name, ''))"
             :label="w.label || w.name" @update:model-value="(v: string) => setValue(w.name, v)" />
+          <textarea v-else-if="w.kind === 'string' && MULTILINE_STRING_WIDGETS.has(w.name)"
+            class="fil-w-textarea" :value="String(getValue(w.name, ''))" :placeholder="w.label || w.name"
+            @input="(e: Event) => setValue(w.name, (e.target as HTMLTextAreaElement).value)" />
+          <input v-else-if="w.kind === 'string'" type="text" class="fil-w-input"
+            :value="String(getValue(w.name, ''))" :placeholder="w.label || w.name"
+            @input="(e: Event) => setValue(w.name, (e.target as HTMLInputElement).value)" />
           <FilChipGrid v-else :options="w.values || []" :model-value="String(getValue(w.name, ''))"
             :columns="w.columns ?? 3" @update:model-value="(v: string) => setValue(w.name, v)" />
         </div>
-      </template>
+      </div>
     </template>
 
-    <div v-for="(pair, idx) in stylePairs" :key="`style-pair-${idx}`" class="fil-style-pair-row">
-      <div v-for="w in pair" :key="w.name" class="fil-style-pair-item" :title="widgetTooltip(w)">
-        <FilButton variant="full" :label="styleButtonLabel(w.name)" @click="openStylePicker(w.name)" />
-        <FilModal :open="Boolean(stylePickerOpen[w.name])" :title="w.label || w.name" width="640px"
-          @update:open="(v: boolean) => (stylePickerOpen[w.name] = v)">
-          <FilStylePicker :styles="w.values || []" :model-value="String(getValue(w.name, 'None'))"
-            @select="(v: string) => selectStyle(w.name, v)" />
-        </FilModal>
+    <div class="fil-section-block" :style="{ '--fil-accent': SECTION_ACCENT.advanced }">
+      <FilSection :title="sectionLabel('advanced')" :model-value="isCollapsed('advanced')"
+        @update:model-value="(v: boolean) => setCollapsed('advanced', v)" />
+      <div v-show="!isCollapsed('advanced')" class="fil-section-block">
+        <div v-for="(pair, idx) in stylePairs" :key="`style-pair-${idx}`" class="fil-style-pair-row">
+          <div v-for="w in pair" :key="w.name" class="fil-style-pair-item" :title="widgetTooltip(w)">
+            <FilButton variant="full" :label="styleButtonLabel(w.name)" @click="openStylePicker(w.name)" />
+            <FilModal :open="Boolean(stylePickerOpen[w.name])" :title="w.label || w.name" width="640px"
+              @update:open="(v: boolean) => (stylePickerOpen[w.name] = v)">
+              <FilStylePicker :styles="w.values || []" :model-value="String(getValue(w.name, 'None'))"
+                @select="(v: string) => selectStyle(w.name, v)" />
+            </FilModal>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -243,11 +277,22 @@ const maxImageSide = computed({
 <style scoped>
 .fil-scanner-root {
   display: flex; flex-direction: column; gap: 6px; padding: 8px;
-  background: var(--fil-panel, #171b22); border-radius: var(--fil-radius, 8px);
+  background: rgba(100, 180, 220, 0.06); border: 1px solid rgba(0, 255, 255, 0.18);
+  border-radius: 20px; backdrop-filter: blur(10px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   color: var(--fil-text, #e8edf3); font-family: ui-sans-serif, system-ui, sans-serif;
   width: 100%; box-sizing: border-box; min-width: 0; overflow: hidden;
 }
+.fil-section-block { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .fil-w-row { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.fil-w-textarea, .fil-w-input {
+  width: 100%; box-sizing: border-box; background: rgba(50, 80, 120, 0.18);
+  border: 1px solid rgba(0, 150, 200, 0.35); border-radius: 10px;
+  color: var(--fil-text, #a0c4ff); padding: 8px 10px; font-size: 12px;
+  font-family: inherit; outline: none; transition: border-color .08s;
+}
+.fil-w-textarea { min-height: 56px; resize: vertical; }
+.fil-w-textarea:focus, .fil-w-input:focus { border-color: var(--fil-accent); }
 .fil-style-pair-row { display: flex; gap: 4px; min-width: 0; }
 .fil-style-pair-item { flex: 1; min-width: 0; }
 .fil-scanner-seed {
@@ -266,7 +311,7 @@ const maxImageSide = computed({
 .fil-scanner-seed-field.is-random { color: var(--fil-muted, #9ca8b5); font-style: italic; }
 .fil-scanner-seed-pill {
   flex: 1; min-width: 0; box-sizing: border-box; height: 34px; padding: 0 8px;
-  border-radius: 17px; border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 17px; border: 1px solid rgba(0, 150, 200, 0.4);
   background: rgba(255, 255, 255, 0.06); color: var(--fil-text, #e8edf3);
   font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer;
   transition: background .08s, border-color .08s, color .08s;

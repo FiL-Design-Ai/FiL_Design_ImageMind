@@ -13,7 +13,9 @@ from .network import HTTPClient
 from .processing import normalize_model_name
 from .provider_accounts import get_api_key, get_provider_base_url
 
-logger = logging.getLogger("FiL_LLM.ProviderRuntime")
+from .brand import BRAND
+
+logger = logging.getLogger(f"{BRAND}.ProviderRuntime")
 
 MODEL_CACHE_TTL = 300  # seconds (5 minutes)
 _model_cache: Dict[str, tuple[float, List[str], str, str, List[str]]] = {}

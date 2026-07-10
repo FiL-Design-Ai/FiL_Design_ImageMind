@@ -75,7 +75,7 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
   };
 
   if (typeof n.addDOMWidget !== "function") {
-    console.warn(`[FiL_LLM] domWidgetHost: node.addDOMWidget not available for "${name}" — ComfyUI core too old?`);
+    console.warn(`[FiL_Design_ImageMind] domWidgetHost: node.addDOMWidget not available for "${name}" — ComfyUI core too old?`);
     return null;
   }
 
@@ -192,7 +192,7 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
     try {
       this.app.unmount();
     } catch (err) {
-      console.warn(`[FiL_LLM] unmount failed for "${name}":`, err);
+      console.warn(`[FiL_Design_ImageMind] unmount failed for "${name}":`, err);
     }
     while (this.host.firstChild) this.host.removeChild(this.host.firstChild);
   }
@@ -211,7 +211,7 @@ export function unmountAllFilWidgets(node: unknown): void {
     try {
       n._filVueApps[key].unmount();
     } catch (err) {
-      console.warn(`[FiL_LLM] unmount failed for "${key}":`, err);
+      console.warn(`[FiL_Design_ImageMind] unmount failed for "${key}":`, err);
     }
     delete n._filVueApps[key];
   }

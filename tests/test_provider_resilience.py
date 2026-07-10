@@ -4,8 +4,8 @@ from unittest.mock import patch
 
 import requests
 
-from FiL_LLM.common import provider_resilience as pr
-from FiL_LLM.common.provider_resilience import (
+from FiL_Design_ImageMind.common import provider_resilience as pr
+from FiL_Design_ImageMind.common.provider_resilience import (
     RetryPolicy,
     classify_cloudflare_error,
     get_openrouter_candidates,

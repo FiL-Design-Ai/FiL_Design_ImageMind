@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 
 from comfy_api.latest import io
 
+from ..common.brand import CATEGORY_ROOT
 from ..common.config import PROVIDERS, get_provider_key
 from ..common.io_types import FilProviderConfig
 from ..common.localization import t
@@ -15,8 +16,8 @@ class FiLProviderLoader(io.ComfyNode):
         provider_options = list(PROVIDERS.keys())
         return io.Schema(
             node_id="FiLProviderLoader",
-            display_name="FiL Provider Loader",
-            category="FiL_LLM/LLM/Provider",
+            display_name="🔌 Provider Loader",
+            category=f"{CATEGORY_ROOT}/LLM/Provider",
             description="🔌 FiL Provider Loader — selects an LLM provider, model, and generation parameters. Outputs a `config` dict for downstream FiL nodes.",
             inputs=[
                 io.Combo.Input("provider", options=provider_options, default="ollama",
@@ -33,6 +34,8 @@ class FiLProviderLoader(io.ComfyNode):
                              tooltip=t("tt_rate_limit", "Minimum delay between requests to this provider, to avoid rate limiting.")),
                 io.Int.Input("seed", default=-1, min=-1, max=999999999999, advanced=True,
                              tooltip=t("tt_provider_seed", "Provider-side generation seed, if supported. -1 lets the provider pick one.")),
+                io.Int.Input("max_image_side", default=1024, min=128, max=4096, step=64, advanced=True,
+                             tooltip=t("tt_max_image_side", "Images are downscaled so their longest side does not exceed this value.")),
             ],
             outputs=[
                 FilProviderConfig.Output(display_name="config", tooltip="Provider configuration dict for FiL nodes."),
@@ -45,7 +48,7 @@ class FiLProviderLoader(io.ComfyNode):
     def validate_inputs(cls, model: str = ""):
         # `model`'s schema declares a static ["(loading...)"] placeholder list
         # (the real list is loaded dynamically from the frontend via
-        # /fil_llm/models/{provider} and can't be known at schema-registration
+        # /<route_slug>/models/{provider} and can't be known at schema-registration
         # time). Naming `model` here opts it out of ComfyUI's built-in
         # COMBO "value not in list" check (execution.py validate_inputs),
         # which would otherwise reject every real model name for every
@@ -57,7 +60,8 @@ class FiLProviderLoader(io.ComfyNode):
 
     @classmethod
     def execute(cls, provider: str, model: str = "", refresh_models: bool = False,
-                temperature: float = 0.7, max_tokens: int = 0, rate_limit_ms: int = 100, seed: int = -1) -> io.NodeOutput:
+                temperature: float = 0.7, max_tokens: int = 0, rate_limit_ms: int = 100, seed: int = -1,
+                max_image_side: int = 1024) -> io.NodeOutput:
         p_key = get_provider_key(provider)
         model_name = normalize_model_name(model)
 
@@ -82,6 +86,7 @@ class FiLProviderLoader(io.ComfyNode):
             "max_tokens": max_tokens,
             "rate_limit_ms": rate_limit_ms,
             "seed": seed,
+            "max_image_side": max_image_side,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 

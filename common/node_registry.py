@@ -1,14 +1,16 @@
-"""Single source of truth for the public FiL_LLM node registry (V3)."""
+"""Single source of truth for the public node registry (V3)."""
 
 from __future__ import annotations
 
+from .brand import CATEGORY_ROOT
+
 NODE_CONTRACTS = {
-    "FiLSeed": {"title": "FiL Seed", "category": "FiL_LLM/Values"},
-    "FiLProviderLoader": {"title": "FiL Provider Loader", "category": "FiL_LLM/LLM"},
-    "FiLOpticScanner": {"title": "FiL Optic Scanner", "category": "FiL_LLM/LLM"},
-    "FiLNeuroCleaner": {"title": "FiL Neuro Cleaner", "category": "FiL_LLM/Tools"},
-    "FiLBeforeAfterCompare": {"title": "FiL Before/After Compare", "category": "FiL_LLM/Image"},
-    "FiLUpscaleTileCalc": {"title": "FiL Upscale Tile Calc", "category": "FiL_LLM/Image"},
+    "FiLSeed": {"title": "♻️ Seed", "category": f"{CATEGORY_ROOT}/Values"},
+    "FiLProviderLoader": {"title": "🔌 Provider Loader", "category": f"{CATEGORY_ROOT}/LLM"},
+    "FiLOpticScanner": {"title": "🕵️ Optic Scanner", "category": f"{CATEGORY_ROOT}/LLM"},
+    "FiLNeuroCleaner": {"title": "🧹 Cleaner", "category": f"{CATEGORY_ROOT}/Tools"},
+    "FiLBeforeAfterCompare": {"title": "🔄 Compare", "category": f"{CATEGORY_ROOT}/Image"},
+    "FiLUpscaleTileCalc": {"title": "🔍 Upscaler", "category": f"{CATEGORY_ROOT}/Image"},
 }
 
 CANONICAL_NODE_IDS = tuple(NODE_CONTRACTS)

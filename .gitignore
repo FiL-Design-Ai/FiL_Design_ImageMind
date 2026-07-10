@@ -22,7 +22,7 @@ wheels/
 
 # Logs
 *.log
-01FiL_LLM.load.log
+01FiL_Design_ImageMind.load.log
 logs/
 
 # Environment

@@ -5,7 +5,8 @@ from typing import Any
 
 from comfy_api.latest import io
 
-from ..common.base import FiLLLMError, VisionNotAvailableError
+from ..common.base import FiLError, VisionNotAvailableError
+from ..common.brand import CATEGORY_ROOT
 from ..common.clean_output import clean_output
 from ..common.config import get_config, is_model_vision_capable
 from ..common.data import (
@@ -45,8 +46,8 @@ class FiLOpticScanner(io.ComfyNode):
     def define_schema(cls):
         return io.Schema(
             node_id="FiLOpticScanner",
-            display_name="FiL Optic Scanner",
-            category="FiL_LLM/LLM/Scanner",
+            display_name="🕵️ Optic Scanner",
+            category=f"{CATEGORY_ROOT}/LLM/Scanner",
             description=(
                 "👁️ Optic Scanner — analyzes images with LLM vision models and generates "
                 "optimized prompts for Z-Image, FLUX, QWEN, and SDXL generation models."
@@ -76,16 +77,10 @@ class FiLOpticScanner(io.ComfyNode):
                                tooltip=t("tt_nsfw_art_style", "Adult-only art style overlay (alternative to Art style).")),
                 io.String.Input("custom_style", default="", multiline=True, advanced=True,
                                 tooltip=t("tt_custom_style", "Free-form style text appended after the preset style overlay, if any.")),
-                io.Float.Input("temperature", default=0.7, min=0.0, max=2.0, step=0.05, display_mode=io.NumberDisplay.slider, advanced=True,
-                               tooltip=t("tt_temperature", "Sampling temperature — higher is more creative, lower is more deterministic.")),
                 io.Int.Input("seed", default=-1, min=-1, max=999999999999, advanced=True,
                              tooltip=t("tt_provider_seed", "Provider-side generation seed, if supported. -1 lets the provider pick one.")),
-                io.Int.Input("max_tokens", default=1024, min=64, max=32768, step=64, advanced=True,
-                             tooltip=t("tt_max_tokens", "Maximum tokens in the LLM response.")),
                 io.Combo.Input("response_format", options=["text", "json"], default="text", advanced=True,
                                tooltip=t("tt_response_format", "Ask the model to respond as plain text or as a JSON object.")),
-                io.Int.Input("max_image_side", default=1024, min=128, max=4096, step=64, advanced=True,
-                             tooltip=t("tt_max_image_side", "Images are downscaled so their longest side does not exceed this value.")),
             ],
             outputs=[
                 io.String.Output(display_name="prompt", tooltip="Generated prompt text."),
@@ -369,7 +364,7 @@ class FiLOpticScanner(io.ComfyNode):
                     agent_key=agent_key, detail_level=detail_level,
                     language=language,
                 )
-        except FiLLLMError as exc:
+        except FiLError as exc:
             err_meta = {"status": "error", "message": exc.message, "error_code": exc.code,
                         "provider": provider, "model": model, "details": exc.details}
             return io.NodeOutput(f"Ошибка: {exc.message}", json.dumps(err_meta, ensure_ascii=False), err_meta)

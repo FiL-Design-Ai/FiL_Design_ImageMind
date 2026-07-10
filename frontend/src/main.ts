@@ -1,7 +1,7 @@
 /**
- * Entry point for the FiL_LLM ComfyUI frontend extension.
+ * Entry point for the FiL_Design_ImageMind ComfyUI frontend extension.
  *
- * ComfyUI loads this file from /extensions/FiL_LLM/fil_llm.js (built by
+ * ComfyUI loads this file from /extensions/FiL_Design_ImageMind/fil_design_imagemind.js (built by
  * Vite as a real ES module) via a dynamic `import()`.
  *
  * `app` is imported directly from "/scripts/app.js" (a real ES module core
@@ -29,9 +29,9 @@ import { selfCheckNodeContracts } from "@/api/contractCheck";
 injectFilBrandVars();
 initStores(app);
 void selfCheckNodeContracts().catch((err) => {
-  console.warn("[FiL_LLM] contract self-check failed:", err);
+  console.warn("[FiL_Design_ImageMind] contract self-check failed:", err);
 });
 
 const ext = createFilExtension(app);
 app.registerExtension(ext);
-console.info(`[FiL_LLM] extension registered as "${ext.name}"`);
+console.info(`[FiL_Design_ImageMind] extension registered as "${ext.name}"`);

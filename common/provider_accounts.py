@@ -5,7 +5,9 @@ from typing import Any, Dict, Optional, Tuple
 
 from .config import LOCAL_PROVIDERS, PROVIDERS, get_config
 
-logger = logging.getLogger("FiL_LLM.ProviderAccounts")
+from .brand import BRAND
+
+logger = logging.getLogger(f"{BRAND}.ProviderAccounts")
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 AUTH_JSON_PATH = DATA_DIR / "auth.json"

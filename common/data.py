@@ -117,6 +117,9 @@ MODEL_PROMPT_RULES: Dict[str, Dict[str, Any]] = {
         "supports_negative_prompt": True,
         "negative_strategy": "standard",
         "max_words": None,
+        "json_schema": None,
+        "target_prompt_format": None,
+        "force_response_format": None,
         "source_status": "verified",
     },
 }

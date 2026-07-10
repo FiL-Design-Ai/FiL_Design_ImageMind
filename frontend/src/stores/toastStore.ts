@@ -110,7 +110,7 @@ function emit(level: ToastLevel, text: string): void {
       comfy.addAlert(text);
       return;
     } catch (err) {
-      console.warn("[FiL_LLM toast] extensionManager.toast failed:", err);
+      console.warn("[FiL_Design_ImageMind toast] extensionManager.toast failed:", err);
     }
   }
   // Fallback: our own Pinia stack + FilToastStack component.

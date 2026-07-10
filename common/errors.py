@@ -7,9 +7,10 @@ from enum import Enum, auto
 from functools import wraps
 from typing import Any, Callable, Dict, Iterator, Optional, TypeVar
 
-from .base import FiLLLMError
+from .base import FiLError
+from .brand import BRAND
 
-logger = logging.getLogger("FiL_LLM.Errors")
+logger = logging.getLogger(f"{BRAND}.Errors")
 T = TypeVar("T")
 
 

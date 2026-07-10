@@ -19,7 +19,7 @@ function getAnimationDuration(): number {
     ui?: { settings?: { getSettingValue?: (id: string, fallback?: string) => string } };
   };
 
-  const settingId = "FiL_LLM.RunButton.AnimationDuration";
+  const settingId = "FiL_Design_ImageMind.RunButton.AnimationDuration";
   const duration =
     g.app?.extensionManager?.setting?.get?.(settingId, "Normal") ??
     (globalThis as unknown as { app?: { ui?: { settings?: { getSettingValue?: (i: string, f?: string) => string } } } })
@@ -32,7 +32,7 @@ function getAnimationDuration(): number {
 
 /**
  * Flash the node header. Call after `app.queuePrompt` for the node.
- * Duration is configurable via FiL_LLM.RunButton.AnimationDuration setting.
+ * Duration is configurable via FiL_Design_ImageMind.RunButton.AnimationDuration setting.
  */
 export function flashNodeRun(
   app: { canvas?: { nodeEls?: Record<string | number, HTMLElement> } },
@@ -49,9 +49,9 @@ export function flashNodeRun(
   };
 
   const isEnabled =
-    g.app?.extensionManager?.setting?.get?.("FiL_LLM.RunButton.Enabled", true) ??
+    g.app?.extensionManager?.setting?.get?.("FiL_Design_ImageMind.RunButton.Enabled", true) ??
     (globalThis as unknown as { app?: { ui?: { settings?: { getSettingValue?: (i: string, f?: unknown) => unknown } } } })
-      .app?.ui?.settings?.getSettingValue?.("FiL_LLM.RunButton.Enabled", true) ??
+      .app?.ui?.settings?.getSettingValue?.("FiL_Design_ImageMind.RunButton.Enabled", true) ??
     true;
 
   if (!isEnabled) return;

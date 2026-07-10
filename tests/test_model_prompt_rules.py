@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from FiL_LLM.common.data import (
+from FiL_Design_ImageMind.common.data import (
     DETAIL_LEVELS,
     MODEL_PROMPT_RULES,
     MODEL_TYPE_OPTIONS,

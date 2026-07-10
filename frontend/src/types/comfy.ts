@@ -1,6 +1,6 @@
 /**
- * Minimal ComfyUI `app` API surface used by FiL_LLM.
- * Mirrors the methods we rely on in the legacy web/fil_llm.js entrypoint.
+ * Minimal ComfyUI `app` API surface used by FiL_Design_ImageMind.
+ * Mirrors the methods we rely on in the legacy web/fil_design_imagemind.js entrypoint.
  * Intentionally narrow so we do not silently consume undocumented methods.
  */
 export interface ComfyNodeData {

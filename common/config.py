@@ -8,7 +8,9 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-logger = logging.getLogger("FiL_LLM.Config")
+from .brand import BRAND
+
+logger = logging.getLogger(f"{BRAND}.Config")
 
 try:
     import yaml

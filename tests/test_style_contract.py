@@ -1,7 +1,7 @@
 """Tests for StyleEnforcer contract resolution and enforcement block generation."""
 from __future__ import annotations
 
-from FiL_LLM.common.style_enforcer import StyleEnforcer
+from FiL_Design_ImageMind.common.style_enforcer import StyleEnforcer
 
 
 def test_resolve_style_contract_empty_style_returns_inactive():

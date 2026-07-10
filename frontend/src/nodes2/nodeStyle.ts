@@ -1,5 +1,5 @@
 /**
- * Shared styling hook applied to every FiL_LLM node before its dedicated
+ * Shared styling hook applied to every FiL_Design_ImageMind node before its dedicated
  * registration module runs. Sets minimum sizes, family tag, a help menu
  * entry, and the node's title/body color. Mirrors the legacy
  * `web/core/node_style.js` contract.
@@ -110,7 +110,7 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
 }
 
 /**
- * Re-colors every already-placed FiL_LLM node on the current graph to
+ * Re-colors every already-placed FiL_Design_ImageMind node on the current graph to
  * `ACTIVE_PALETTE` — needed because switching themes (see
  * `styles/brand.ts applyFilTheme`) only affects *new* nodes automatically
  * (`onNodeCreated` reads `ACTIVE_PALETTE` live); nodes dropped under a

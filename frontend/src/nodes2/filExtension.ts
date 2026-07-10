@@ -1,7 +1,7 @@
 /**
- * Build the ComfyUI extension object for the FiL_LLM frontend.
+ * Build the ComfyUI extension object for the FiL_Design_ImageMind frontend.
  *
- * Keeps the same surface as the legacy `web/fil_llm.js` entrypoint:
+ * Keeps the same surface as the legacy `web/fil_design_imagemind.js` entrypoint:
  *   - `name`
  *   - `settings` — declarative settings panel entries
  *   - `setup` — eager installers (toasts, connection FX, shortcuts, ...)
@@ -22,8 +22,9 @@ import { installProviderManager } from "@/nodes2/installers/providerManager";
 import { ALL_SETTINGS } from "@/stores/settings/allSettings";
 import { applyStartupTheme } from "@/stores/settings/themeSettings";
 import { readSetting } from "@/stores/settings/providerSettings";
+import { EXTENSION_NAME, LOG_TAG, ROUTE_PREFIX } from "@/constants/brand";
 
-const NODE_CONTRACT_ENDPOINT = "/fil_llm/node_contracts";
+const NODE_CONTRACT_ENDPOINT = `${ROUTE_PREFIX}/node_contracts`;
 
 interface FilSeedLikeState {
   nodeState: { mode?: string; seed_mode?: string; seed: number };
@@ -81,19 +82,19 @@ function graphToPromptPreflight(prompt: unknown): unknown {
         }
         const configSlot = n.inputs?.find((input) => input.name === "config");
         if (!configSlot || configSlot.link == null) {
-          console.warn(`[FiL_LLM] Optic Scanner #${n.id} has no Provider Loader wired to its "config" slot — execution will fail.`);
+          console.warn(`${LOG_TAG} Optic Scanner #${n.id} has no Provider Loader wired to its "config" slot — execution will fail.`);
         }
       }
     }
   } catch (error) {
-    console.warn("[FiL_LLM] preflight fallback:", error);
+    console.warn(`${LOG_TAG} preflight fallback:`, error);
   }
   return prompt;
 }
 
 export function createFilExtension(app: ComfyApp): ComfyExtension {
   return {
-    name: "FiL_LLM.UI",
+    name: EXTENSION_NAME,
 
     // Declarative settings — registered BEFORE setup so the panel renders
     // even if a later installer throws.
@@ -113,7 +114,7 @@ export function createFilExtension(app: ComfyApp): ComfyExtension {
         try {
           install();
         } catch (error) {
-          console.warn(`[FiL_LLM] installer ${install.name || "anonymous"} failed:`, error);
+          console.warn(`${LOG_TAG} installer ${install.name || "anonymous"} failed:`, error);
         }
       }
     },
@@ -131,7 +132,7 @@ export function createFilExtension(app: ComfyApp): ComfyExtension {
       try {
         await nodeModule.register(nodeType, nodeData);
       } catch (error) {
-        console.warn(`[FiL_LLM] failed to register "${nodeData.name}":`, error);
+        console.warn(`${LOG_TAG} failed to register "${nodeData.name}":`, error);
       }
     },
 
