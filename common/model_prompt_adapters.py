@@ -143,11 +143,8 @@ def _normalize_bbox(value: Any) -> Optional[List[int]]:
     # Range check: all values must be in [0, 1000]
     if any(v < 0 or v > 1000 for v in (y1, x1, y2, x2)):
         return None
-    # Validity check: y1 < y2 and x1 < x2
+    # Validity check: y1 < y2 and x1 < x2 (at least 1x1 for single-pixel regions)
     if y1 >= y2 or x1 >= x2:
-        return None
-    # Minimum size: at least 2x2 (y2-y1 >= 2 for visual significance)
-    if (y2 - y1) < 2 or (x2 - x1) < 2:
         return None
     return [y1, x1, y2, x2]
 
