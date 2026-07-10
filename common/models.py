@@ -4,7 +4,7 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Dict, List, Optional
 
-from .base import FiLError, InferenceError, ServerUnavailableError
+from .base import FiLError, InferenceError
 from .brand import BRAND
 from .config import PROVIDERS, get_config, is_known_vision_model_name
 from .network import HTTPClient, RateLimiter
@@ -14,7 +14,6 @@ from .provider_resilience import (
     classify_cloudflare_error,
     get_openrouter_candidates,
     get_retry_policy,
-    is_timeout_error,
     normalize_cloud_error,
 )
 from .storage import get_prompt_cache
