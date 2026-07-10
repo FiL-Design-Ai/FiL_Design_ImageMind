@@ -654,13 +654,6 @@ def convert_to_dit_format(
     if not raw:
         return raw, base_meta
 
-    # Ideogram 4 JSON mode — uses special caption adapter.
-    if model_type == "Ideogram 4" and response_format == "json":
-        output, adapter_meta = adapt_ideogram4_caption(
-            text, style_text=style_text, style_type=style_type, source_text=source_text
-        )
-        return output, {"mode": "ideogram4_json", "model_type": model_type, "response_format": "json", **adapter_meta}
-
     # FLUX + json — 7-field schema.
     if model_uses_flux_json_schema(model_type, response_format):
         flux = format_for_flux_json(text)

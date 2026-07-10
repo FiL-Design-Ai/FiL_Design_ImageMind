@@ -361,6 +361,7 @@ def get_node_schemas() -> dict[str, dict[str, object]]:
 def public_node_contracts_v2() -> dict[str, object]:
     """Top-level payload returned by `GET /fil_design_imagemind/node_contracts`.
 
+    - `node_ids` — Mapping of node ID to {title, category} (quick lookup for UI).
     - `schemas` — Pydantic JSON Schema per node (used by the Vue 3 + TS
       frontend to type widgets at compile time without a server round-trip).
     - `data` — per-node `NodeContract.model_dump()` (the actual widget
@@ -369,6 +370,7 @@ def public_node_contracts_v2() -> dict[str, object]:
     - `settings_prefix` — e.g. `FiL_Design_ImageMind.` (used by ComfyUI settings keys).
     """
     return {
+        "node_ids": {node_id: {"title": c.title, "category": c.category} for node_id, c in NODE_SCHEMAS.items()},
         "schemas": get_node_schemas(),
         "data": {node_id: c.model_dump(mode="json") for node_id, c in NODE_SCHEMAS.items()},
         "settings_prefix": SETTINGS_PREFIX,
