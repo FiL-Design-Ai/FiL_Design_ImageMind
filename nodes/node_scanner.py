@@ -111,7 +111,7 @@ class FiLOpticScanner(io.ComfyNode):
                             detail_level="normal", language="ru", model_type="Auto/None",
                             prompt_mode="Auto", photo_style="None", nsfw_photo_style="None",
                             art_style="None", nsfw_art_style="None", custom_style="", temperature=0.7, seed=-1,
-                            max_tokens=1024, response_format="text", max_image_side=1024,
+                            max_tokens=1024, response_format="text",
                             **kwargs) -> Any:
         image_key: Any = None
         if image is not None:
@@ -128,7 +128,7 @@ class FiLOpticScanner(io.ComfyNode):
         return hash((
             str(config), agent, prompt, negative_prompt, detail_level, language,
             model_type, prompt_mode, photo_style, nsfw_photo_style, art_style, nsfw_art_style, custom_style,
-            temperature, seed, max_tokens, response_format, max_image_side,
+            temperature, seed, max_tokens, response_format,
             image_key,
         ))
 
@@ -225,7 +225,7 @@ class FiLOpticScanner(io.ComfyNode):
                 detail_level="normal", language="ru", model_type="Auto/None",
                 prompt_mode="Auto", photo_style="None", nsfw_photo_style="None",
                 art_style="None", nsfw_art_style="None", custom_style="", temperature=0.7, seed=-1,
-                max_tokens=1024, response_format="text", max_image_side=1024,
+                max_tokens=1024, response_format="text",
                 **kwargs) -> io.NodeOutput:
         t0 = datetime.now(timezone.utc)
         provider = config.get("provider", "ollama")
@@ -299,7 +299,7 @@ class FiLOpticScanner(io.ComfyNode):
         images_b64 = []
         image_hash = None
         if has_image:
-            _processor.max_side = max_image_side
+            _processor.max_side = config.get("max_image_side", 1024)
             try:
                 images_b64, w, h = _processor.process_batch(image)
                 sample = image[0].cpu().numpy().tobytes()[:1024]

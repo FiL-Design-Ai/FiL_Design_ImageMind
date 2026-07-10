@@ -187,7 +187,6 @@ _SCANNER = NodeContract(
                 default="Auto",
                 section="output",
             ),
-            _int("max_image_side", default=1024, minv=128, maxv=4096, step=64, label="Max image side", section="output"),
             _chip_list(
                 "photo_style",
                 values=["None"] + get_visible_style_keys("photo_style"),
