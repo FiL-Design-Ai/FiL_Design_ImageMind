@@ -24,7 +24,7 @@ const SECTION_LABEL_KEYS: Record<string, [string, string]> = {
   agent: ["scn_section_agent", "🕵️ AGENT"],
   model: ["scn_section_model", "🧠 MODEL"],
   output: ["scn_section_output", "📤 OUTPUT"],
-  advanced: ["scn_section_advanced", "⚙ ADVANCED"],
+  advanced: ["scn_section_advanced", "🎨 STYLE"],
   actions: ["scn_section_actions", "⚡ ACTIONS"],
 };
 
@@ -44,11 +44,6 @@ function sectionLabel(section: string): string {
   const entry = SECTION_LABEL_KEYS[section];
   return entry ? t(entry[0], entry[1]) : section.toUpperCase();
 }
-
-// `prompt`/`negative_prompt` render as textareas, `custom_style` as a
-// single-line input — the contract has no dedicated "multiline" flag so
-// this is decided by widget name.
-const MULTILINE_STRING_WIDGETS = new Set(["prompt", "negative_prompt"]);
 
 const WIDGET_TOOLTIP_KEYS: Record<string, string> = {
   config: "tt_config",
@@ -74,6 +69,36 @@ const WIDGET_TOOLTIP_KEYS: Record<string, string> = {
 function widgetTooltip(w: WidgetSpec): string {
   const key = WIDGET_TOOLTIP_KEYS[w.name];
   return key ? t(key, w.tooltip || "") : w.tooltip || "";
+}
+
+const FIELD_EMOJIS: Record<string, string> = {
+  prompt: "✍️",
+  negative_prompt: "🚫",
+  custom_style: "✨",
+  response_format: "📋",
+  agent: "🕵️",
+  model_type: "🧠",
+  detail_level: "🔍",
+  language: "🌐",
+  prompt_mode: "⚙️",
+  max_image_side: "📏",
+  photo_style: "📷",
+  nsfw_photo_style: "🔞",
+  art_style: "🎨",
+  nsfw_art_style: "🔞",
+  temperature: "🌡️",
+  seed: "🌱",
+  max_tokens: "📊",
+  image: "🖼️",
+};
+
+function formatFieldLabel(w: WidgetSpec): string {
+  if (w.label) return w.label;
+  const emoji = FIELD_EMOJIS[w.name] || "";
+  const base = w.name
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (ch) => ch.toUpperCase());
+  return emoji ? `${emoji} ${base}` : base;
 }
 
 // Ephemeral UI-only state (which style-picker modal is open) — not part of
@@ -189,9 +214,8 @@ function newFixedSeed() {
   <div class="fil-scanner-root">
     <template v-for="(specs, section) in grouped" :key="section">
       <div v-if="section !== 'styles'" class="fil-section-block" :style="{ '--fil-accent': SECTION_ACCENT[String(section)] }">
-        <FilSection v-if="section !== '_'" :title="sectionLabel(String(section))"
-          :collapsible="section !== 'prompt'"
-          :model-value="section === 'prompt' ? false : isCollapsed(String(section))"
+        <FilSection v-if="section !== '_' && section !== 'prompt'" :title="sectionLabel(String(section))"
+          :model-value="isCollapsed(String(section))"
           @update:model-value="(v: boolean) => setCollapsed(String(section), v)" />
         <div v-for="w in specs" v-show="section === '_' || section === 'prompt' || !isCollapsed(String(section))" :key="w.name" class="fil-w-row" :title="widgetTooltip(w)">
           <FilChipGrid v-if="w.kind === 'chip_grid'"
@@ -202,13 +226,7 @@ function newFixedSeed() {
             :searchable="w.searchable ?? true" @update:model-value="(v: string) => setValue(w.name, v)" />
           <FilSegmented v-else-if="w.kind === 'segmented'"
             :options="w.options || []" :model-value="String(getValue(w.name, ''))"
-            :label="w.label || w.name" @update:model-value="(v: string) => setValue(w.name, v)" />
-          <textarea v-else-if="w.kind === 'string' && MULTILINE_STRING_WIDGETS.has(w.name)"
-            class="fil-w-textarea" :value="String(getValue(w.name, ''))" :placeholder="w.label || w.name"
-            @input="(e: Event) => setValue(w.name, (e.target as HTMLTextAreaElement).value)" />
-          <input v-else-if="w.kind === 'string'" type="text" class="fil-w-input"
-            :value="String(getValue(w.name, ''))" :placeholder="w.label || w.name"
-            @input="(e: Event) => setValue(w.name, (e.target as HTMLInputElement).value)" />
+            :label="formatFieldLabel(w)" @update:model-value="(v: string) => setValue(w.name, v)" />
           <FilChipGrid v-else :options="w.values || []" :model-value="String(getValue(w.name, ''))"
             :columns="w.columns ?? 3" @update:model-value="(v: string) => setValue(w.name, v)" />
         </div>
@@ -222,7 +240,7 @@ function newFixedSeed() {
         <div v-for="(pair, idx) in stylePairs" :key="`style-pair-${idx}`" class="fil-style-pair-row">
           <div v-for="w in pair" :key="w.name" class="fil-style-pair-item" :title="widgetTooltip(w)">
             <FilButton variant="full" :label="styleButtonLabel(w.name)" @click="openStylePicker(w.name)" />
-            <FilModal :open="Boolean(stylePickerOpen[w.name])" :title="w.label || w.name" width="640px"
+            <FilModal :open="Boolean(stylePickerOpen[w.name])" :title="formatFieldLabel(w)" width="640px"
               @update:open="(v: boolean) => (stylePickerOpen[w.name] = v)">
               <FilStylePicker :styles="w.values || []" :model-value="String(getValue(w.name, 'None'))"
                 @select="(v: string) => selectStyle(w.name, v)" />
