@@ -3,7 +3,7 @@ import type { ComfyNodeData } from "@/types/comfy";
 import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
-import { createSyncedNodeState, findFilWidget } from "@/nodes2/util";
+import { createSyncedNodeState, findFilWidget, sanitizeWidgetValue } from "@/nodes2/util";
 import { applyFxComposables } from "@/nodes2/applyFxComposables";
 import type { ImageDescriptor } from "@/api/client";
 
@@ -22,6 +22,7 @@ export const compareNode: NodeModule = {
     const proto = nodeType as {
       prototype: {
         onNodeCreated?: (...a: unknown[]) => unknown;
+        onConfigure?: (...a: unknown[]) => unknown;
         onExecuted?: (...a: unknown[]) => unknown;
         onRemoved?: (...a: unknown[]) => unknown;
       };
@@ -34,15 +35,16 @@ export const compareNode: NodeModule = {
       const node = this as {
         widgets?: unknown[];
         onExecuted?: (...a: unknown[]) => unknown;
+        _filCompareState?: unknown;
       };
       const swapW = findFilWidget(node, "swap");
       const resizeModeW = findFilWidget(node, "resize_mode");
       const maxResolutionW = findFilWidget(node, "max_resolution");
 
       const initial = {
-        swap: Boolean(swapW?.value ?? false),
-        resize_mode: String(resizeModeW?.value ?? "Off"),
-        max_resolution: Number(maxResolutionW?.value ?? 4096) || 4096,
+        swap: sanitizeWidgetValue(swapW, "boolean", false),
+        resize_mode: sanitizeWidgetValue(resizeModeW, "string", "Off"),
+        max_resolution: sanitizeWidgetValue(maxResolutionW, "number", 4096),
       };
 
       for (const w of [swapW, resizeModeW, maxResolutionW]) {
@@ -59,6 +61,7 @@ export const compareNode: NodeModule = {
           settings_collapsed: true,
         } as Record<string, unknown>,
       };
+      node._filCompareState = state;
       const controller = addFilDomWidget(node, "fil_compare_view", CompareVue, { state, height: 380 });
 
       // ComfyUI calls `onExecuted(output)` with the node's raw `ui` dict —
@@ -74,6 +77,24 @@ export const compareNode: NodeModule = {
         }
         return result;
       };
+      return result;
+    };
+
+    // See provider.ts / sanitizeWidgetValue(): LiteGraph applies a loaded
+    // node's `widgets_values` (positional array) onto `node.widgets[i]`
+    // AFTER `onNodeCreated` runs, then calls `onConfigure` — so a workflow
+    // saved with an older version of this node's schema can silently
+    // overwrite the sanitized defaults set above. Re-sanitizing here is
+    // what actually prevents a stale/corrupted value reaching `execute()`.
+    const originalConfigure = p.onConfigure;
+    p.onConfigure = function (this: unknown, ...args: unknown[]) {
+      const result = originalConfigure?.apply(this, args);
+      const node = this as { widgets?: unknown[]; _filCompareState?: { nodeState: Record<string, unknown> } };
+      const state = node._filCompareState;
+      if (!state) return result;
+      state.nodeState.swap = sanitizeWidgetValue(findFilWidget(node, "swap"), "boolean", false);
+      state.nodeState.resize_mode = sanitizeWidgetValue(findFilWidget(node, "resize_mode"), "string", "Off");
+      state.nodeState.max_resolution = sanitizeWidgetValue(findFilWidget(node, "max_resolution"), "number", 4096);
       return result;
     };
 

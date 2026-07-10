@@ -3,7 +3,7 @@ import type { ComfyNodeData } from "@/types/comfy";
 import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
-import { createSyncedNodeState, findFilWidget } from "@/nodes2/util";
+import { createSyncedNodeState, findFilWidget, sanitizeWidgetValue } from "@/nodes2/util";
 import { applyFxComposables } from "@/nodes2/applyFxComposables";
 
 const NeuroCleanerVue = defineAsyncComponent(() => import("@/components/nodes/NeuroCleaner.vue"));
@@ -19,32 +19,61 @@ export const cleanerNode: NodeModule = {
     });
 
     const proto = nodeType as {
-      prototype: { onNodeCreated?: (...a: unknown[]) => unknown; onRemoved?: (...a: unknown[]) => unknown };
+      prototype: {
+        onNodeCreated?: (...a: unknown[]) => unknown;
+        onConfigure?: (...a: unknown[]) => unknown;
+        onRemoved?: (...a: unknown[]) => unknown;
+      };
     };
     const p = proto.prototype;
+
+    // Defaults mirror node_cleaner.py's define_schema() — used both as the
+    // display fallback and, via sanitizeWidgetValue(), as what a corrupted
+    // widget value (e.g. from a workflow saved with an older schema) gets
+    // reset to, so a stale save can't silently disable cleanup a user
+    // expects to run by default.
+    const defaults: Record<string, boolean> = {
+      clean_vram: true, offload_model: true, offload_cache: true,
+      unload_diffusion: true, unload_clip: true, unload_vae: true, unload_control: true, unload_lora: true,
+      clean_ram: false, clean_file_cache: true, clean_processes: false, clean_dlls: false, advanced_controls: false,
+    };
 
     const originalCreated = p.onNodeCreated;
     p.onNodeCreated = function (this: unknown, ...args: unknown[]) {
       const result = originalCreated?.apply(this, args);
-      const node = this as { widgets?: unknown[] };
+      const node = this as { widgets?: unknown[]; _filCleanerState?: unknown };
 
-      const names = [
-        "clean_vram", "offload_model", "offload_cache",
-        "unload_diffusion", "unload_clip", "unload_vae", "unload_control", "unload_lora",
-        "clean_ram", "clean_file_cache", "clean_processes", "clean_dlls", "advanced_controls",
-      ];
       const initialNodeState: Record<string, unknown> = {};
       const initialValues: Record<string, unknown> = {};
-      for (const name of names) {
+      for (const name of Object.keys(defaults)) {
         const w = findFilWidget(node, name);
-        const initial = Boolean(w?.value);
+        const initial = sanitizeWidgetValue(w, "boolean", defaults[name]);
         initialNodeState[name] = initial;
         initialValues[name] = initial;
         if (w) (w as { hidden?: boolean }).hidden = true;
       }
 
       const state = { nodeState: createSyncedNodeState(node, initialNodeState), initialValues, ui: {} };
+      node._filCleanerState = state;
       addFilDomWidget(node, "fil_cleaner_view", NeuroCleanerVue, { state, height: 460 });
+      return result;
+    };
+
+    // See provider.ts / sanitizeWidgetValue(): LiteGraph applies a loaded
+    // node's `widgets_values` (positional array) onto `node.widgets[i]`
+    // AFTER `onNodeCreated` runs, then calls `onConfigure` — so a workflow
+    // saved with an older version of this node's schema can silently
+    // overwrite the sanitized defaults set above. Re-sanitizing here is
+    // what actually prevents a stale/corrupted value reaching `execute()`.
+    const originalConfigure = p.onConfigure;
+    p.onConfigure = function (this: unknown, ...args: unknown[]) {
+      const result = originalConfigure?.apply(this, args);
+      const node = this as { widgets?: unknown[]; _filCleanerState?: { nodeState: Record<string, unknown> } };
+      const state = node._filCleanerState;
+      if (!state) return result;
+      for (const name of Object.keys(defaults)) {
+        state.nodeState[name] = sanitizeWidgetValue(findFilWidget(node, name), "boolean", defaults[name]);
+      }
       return result;
     };
 

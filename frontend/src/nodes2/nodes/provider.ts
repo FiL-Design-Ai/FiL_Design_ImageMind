@@ -3,7 +3,7 @@ import type { ComfyNodeData } from "@/types/comfy";
 import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
-import { createSyncedNodeState, findFilWidget } from "@/nodes2/util";
+import { createSyncedNodeState, findFilWidget, sanitizeWidgetValue } from "@/nodes2/util";
 import { applyFxComposables } from "@/nodes2/applyFxComposables";
 
 const ProviderLoaderVue = defineAsyncComponent(() => import("@/components/nodes/ProviderLoader.vue"));
@@ -19,22 +19,45 @@ export const providerNode: NodeModule = {
     });
 
     const proto = nodeType as {
-      prototype: { onNodeCreated?: (...a: unknown[]) => unknown; onRemoved?: (...a: unknown[]) => unknown };
+      prototype: {
+        onNodeCreated?: (...a: unknown[]) => unknown;
+        onConfigure?: (...a: unknown[]) => unknown;
+        onRemoved?: (...a: unknown[]) => unknown;
+      };
     };
     const p = proto.prototype;
+
+    // Widget kind/fallback pairs reused by both onNodeCreated (fresh node,
+    // widgets already at schema defaults) and onConfigure (see below).
+    const widgetSpecs = [
+      { name: "provider", kind: "string" as const, fallback: "ollama" },
+      { name: "model", kind: "string" as const, fallback: "(loading...)" },
+      { name: "temperature", kind: "number" as const, fallback: 0.7 },
+      { name: "max_tokens", kind: "number" as const, fallback: 0 },
+      { name: "rate_limit_ms", kind: "number" as const, fallback: 100 },
+      { name: "max_image_side", kind: "number" as const, fallback: 1024 },
+    ];
 
     const originalCreated = p.onNodeCreated;
     p.onNodeCreated = function (this: unknown, ...args: unknown[]) {
       const result = originalCreated?.apply(this, args);
-      const node = this as { widgets?: unknown[] };
+      const node = this as { widgets?: unknown[]; _filProviderState?: Record<string, unknown> };
 
-      const providerWidget = findFilWidget(node, "provider");
-      const initialProvider = String(providerWidget?.value ?? "ollama") || "ollama";
-      const initialModel = String(findFilWidget(node, "model")?.value ?? "(loading...)") || "(loading...)";
-      const initialTemperature = Number(findFilWidget(node, "temperature")?.value ?? 0.7) || 0.7;
-      const initialMaxTokens = Number(findFilWidget(node, "max_tokens")?.value ?? 0) || 0;
-      const initialRateLimit = Number(findFilWidget(node, "rate_limit_ms")?.value ?? 100) || 100;
-      const initialMaxImageSide = Number(findFilWidget(node, "max_image_side")?.value ?? 1024) || 1024;
+      // Each read also resets the widget's own `.value` (not just this
+      // display copy) when it doesn't match the expected type — a stale
+      // `widgets_values` array from a workflow saved with an older schema
+      // can otherwise leave the *real* hidden widget holding garbage (e.g.
+      // this DOM widget's whole state object) that only surfaces as a hard
+      // validation failure at Queue Prompt time. See sanitizeWidgetValue().
+      // This pass alone only covers *freshly created* nodes though — see
+      // the `onConfigure` hook below for why loaded/pasted nodes need a
+      // second pass.
+      const initialProvider = sanitizeWidgetValue(findFilWidget(node, "provider"), "string", "ollama");
+      const initialModel = sanitizeWidgetValue(findFilWidget(node, "model"), "string", "(loading...)");
+      const initialTemperature = sanitizeWidgetValue(findFilWidget(node, "temperature"), "number", 0.7);
+      const initialMaxTokens = sanitizeWidgetValue(findFilWidget(node, "max_tokens"), "number", 0);
+      const initialRateLimit = sanitizeWidgetValue(findFilWidget(node, "rate_limit_ms"), "number", 100);
+      const initialMaxImageSide = sanitizeWidgetValue(findFilWidget(node, "max_image_side"), "number", 1024);
 
       for (const name of ["provider", "model", "refresh_models", "temperature", "max_tokens", "rate_limit_ms", "seed", "control_after_generate", "max_image_side"]) {
         const w = findFilWidget(node, name);
@@ -69,7 +92,30 @@ export const providerNode: NodeModule = {
       // `props.state.node` working in ProviderLoader.vue (updateWidgetOptions)
       // while excluding it from JSON.stringify's enumerable-only traversal.
       Object.defineProperty(state, "node", { value: node, enumerable: false, configurable: true });
+      node._filProviderState = state;
       addFilDomWidget(node, "fil_provider_view", ProviderLoaderVue, { state, height: 340 });
+      return result;
+    };
+
+    // LiteGraph's own `configure()` (loading a saved/pasted node) applies
+    // `widgets_values` — a plain positional array — onto `node.widgets[i]`
+    // AFTER `onNodeCreated` already ran, then calls `onConfigure`. That
+    // means the sanitized defaults set above get silently overwritten by
+    // whatever a stale, schema-mismatched save contains *after* the fact
+    // (reproduced live: a workflow saved before `max_image_side` existed
+    // shifts this DOM widget's own state object onto it). Re-sanitizing
+    // here, once values are actually in their final restored place, is
+    // what actually prevents the corrupted value from reaching `execute()`.
+    const originalConfigure = p.onConfigure;
+    p.onConfigure = function (this: unknown, ...args: unknown[]) {
+      const result = originalConfigure?.apply(this, args);
+      const node = this as { widgets?: unknown[]; _filProviderState?: Record<string, unknown> };
+      const state = node._filProviderState;
+      if (!state) return result;
+      const nodeState = state.nodeState as Record<string, unknown>;
+      for (const { name, kind, fallback } of widgetSpecs) {
+        nodeState[name] = sanitizeWidgetValue(findFilWidget(node, name), kind, fallback);
+      }
       return result;
     };
 

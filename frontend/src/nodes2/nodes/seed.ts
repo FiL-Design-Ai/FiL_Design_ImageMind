@@ -3,7 +3,7 @@ import type { ComfyNodeData } from "@/types/comfy";
 import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
-import { findFilWidget } from "@/nodes2/util";
+import { findFilWidget, sanitizeWidgetValue } from "@/nodes2/util";
 import { applyFxComposables } from "@/nodes2/applyFxComposables";
 
 const SeedVue = defineAsyncComponent(() => import("@/components/nodes/Seed.vue"));
@@ -41,7 +41,7 @@ export const seedNode: NodeModule = {
       const node = this as { widgets?: unknown[]; size?: [number, number]; _filSeedState?: unknown };
 
       const seedWidget = findFilWidget(node, "seed");
-      const initialSeed = Number(seedWidget?.value ?? 0) || 0;
+      const initialSeed = sanitizeWidgetValue(seedWidget, "number", 0);
       if (seedWidget) (seedWidget as { hidden?: boolean }).hidden = true;
       // ComfyUI auto-adds a control_after_generate combo for any widget
       // literally named "seed" — hide it too, the Vue view owns seed UX.
@@ -62,6 +62,23 @@ export const seedNode: NodeModule = {
       node._filSeedState = state;
 
       addFilDomWidget(node, "fil_seed_view", SeedVue, { state, height: 185 });
+      return result;
+    };
+
+    // LiteGraph applies a loaded node's `widgets_values` (a plain
+    // positional array) onto `node.widgets[i]` AFTER `onNodeCreated` runs,
+    // then calls `onConfigure` — so a workflow saved with an older version
+    // of this node's schema can silently overwrite the sanitized default
+    // set above. Re-sanitizing here, once the (possibly stale) value is
+    // actually in place, is what prevents it reaching `execute()`. See
+    // provider.ts / sanitizeWidgetValue() for the reproduced case this guards.
+    const originalConfigure = p.onConfigure;
+    p.onConfigure = function (this: unknown, ...args: unknown[]) {
+      const result = originalConfigure?.apply(this, args);
+      const node = this as { widgets?: unknown[]; _filSeedState?: { nodeState: Record<string, unknown> } };
+      const state = node._filSeedState;
+      if (!state) return result;
+      state.nodeState.seed = sanitizeWidgetValue(findFilWidget(node, "seed"), "number", 0);
       return result;
     };
 
