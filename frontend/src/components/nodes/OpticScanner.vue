@@ -8,7 +8,6 @@ import FilSection from "@/components/widgets/FilSection.vue";
 import FilButton from "@/components/widgets/FilButton.vue";
 import FilModal from "@/components/widgets/FilModal.vue";
 import FilStylePicker from "@/components/widgets/FilStylePicker.vue";
-import FilSlider from "@/components/widgets/FilSlider.vue";
 import { toast } from "@/stores/toastStore";
 import { NODE_CONTRACTS, type WidgetSpec } from "@/api/contracts";
 import type { FilNodeState } from "@/nodes2/filState";
@@ -70,7 +69,6 @@ const WIDGET_TOOLTIP_KEYS: Record<string, string> = {
   seed: "tt_provider_seed",
   max_tokens: "tt_max_tokens",
   response_format: "tt_response_format",
-  max_image_side: "tt_max_image_side",
 };
 
 function widgetTooltip(w: WidgetSpec): string {
@@ -185,20 +183,10 @@ function newFixedSeed() {
   seedMode.value = "fixed";
 }
 
-// max_image_side is a native ComfyUI widget hidden by scanner.ts's
-// onNodeCreated; rendered here as FilSlider for consistent styling.
-const maxImageSide = computed({
-  get: () => Number(props.state.nodeState.max_image_side ?? 1024) || 1024,
-  set: (v) => { props.state.nodeState.max_image_side = v; },
-});
-
 </script>
 
 <template>
   <div class="fil-scanner-root">
-    <FilSlider :model-value="maxImageSide" :min="128" :max="4096" :step="64" :label="t('lbl_max_image_side', '🖼️ Max image side')"
-      :title="t('tt_max_image_side', 'Images are downscaled so their longest side does not exceed this value.')"
-      @update:model-value="(v: number) => (maxImageSide = v)" />
     <template v-for="(specs, section) in grouped" :key="section">
       <div v-if="section !== 'styles'" class="fil-section-block" :style="{ '--fil-accent': SECTION_ACCENT[String(section)] }">
         <FilSection v-if="section !== '_'" :title="sectionLabel(String(section))"
