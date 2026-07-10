@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from FiL_LLM.common.model_prompt_adapters import (
+from FiL_Design_ImageMind.common.model_prompt_adapters import (
     adapt_ideogram4_caption,
     append_response_format_instruction,
     build_response_format_instruction,

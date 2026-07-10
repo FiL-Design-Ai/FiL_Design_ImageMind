@@ -9,7 +9,7 @@ function mountProviderManager(el: HTMLElement): void {
   if (_pmApp) return;
   _pmApp = createApp(ProviderManager).use(useActivePinia());
   _pmApp.mount(el);
-  console.info("[FiL_LLM] provider manager mounted");
+  console.info("[FiL_Design_ImageMind] provider manager mounted");
 }
 
 interface SidebarTabOptions {
@@ -38,16 +38,16 @@ export function installProviderManager(app: ComfyApp): void {
     extensionManager?: { registerSidebarTab?: (opts: SidebarTabOptions) => void };
   }).extensionManager;
   if (!em?.registerSidebarTab) {
-    console.warn("[FiL_LLM] extensionManager.registerSidebarTab not available — cannot mount provider manager");
+    console.warn("[FiL_Design_ImageMind] extensionManager.registerSidebarTab not available — cannot mount provider manager");
     return;
   }
   em.registerSidebarTab({
-    id: "FiL_LLM.Providers",
+    id: "FiL_Design_ImageMind.Providers",
     icon: "pi pi-key",
     title: "FiL Providers",
     tooltip: "Configure LLM provider API keys and endpoints",
     type: "custom",
     render: (el: HTMLElement) => mountProviderManager(el),
   });
-  console.info("[FiL_LLM] provider manager sidebar tab registered");
+  console.info("[FiL_Design_ImageMind] provider manager sidebar tab registered");
 }

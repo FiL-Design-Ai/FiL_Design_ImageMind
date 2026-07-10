@@ -1,4 +1,4 @@
-"""FiL_LLM node-contract registry.
+"""FiL_Design_ImageMind node-contract registry.
 
 Hand-curated contracts for every canonical node id. The list is small (7
 nodes) and the contracts describe the *frontend-visible* widget layer; the
@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from ..brand import CATEGORY_ROOT, SETTINGS_PREFIX
 from ..config import PROVIDERS
 from ..data import (
     DETAIL_LEVELS,
@@ -85,7 +86,7 @@ def _string(name: str, default: str = "", **kw: Any) -> WidgetSpec:
 _SEED = NodeContract(
     id="FiLSeed",
     title="♻️ Seed",
-    category="FiL_LLM/Values",
+    category=f"{CATEGORY_ROOT}/Values",
     description="Fixed or randomized seed with copy and reuse buttons.",
     min_size=(220, 180),
     family="value",
@@ -106,7 +107,7 @@ _SEED = NodeContract(
 _PROVIDER = NodeContract(
     id="FiLProviderLoader",
     title="🔌 Provider Loader",
-    category="FiL_LLM/LLM/Provider",
+    category=f"{CATEGORY_ROOT}/LLM/Provider",
     description="Provider and model runtime configuration.",
     min_size=(300, 320),
     family="llm",
@@ -126,6 +127,7 @@ _PROVIDER = NodeContract(
             _int("max_tokens", default=0, minv=0, maxv=65536, step=1, label="Max tokens"),
             _int("rate_limit_ms", default=100, minv=0, maxv=5000, step=10, label="Rate limit (ms)"),
             _int("seed", default=-1, minv=-1, maxv=999999999999, label="Seed"),
+            _int("max_image_side", default=1024, minv=128, maxv=4096, step=64, label="Max image side"),
         ],
     ),
     outputs=[
@@ -137,12 +139,21 @@ _PROVIDER = NodeContract(
 _SCANNER = NodeContract(
     id="FiLOpticScanner",
     title="🕵️ Optic Scanner",
-    category="FiL_LLM/LLM/Scanner",
+    category=f"{CATEGORY_ROOT}/LLM/Scanner",
     description="Image analysis or text-idea expansion into a generation prompt.",
     min_size=(400, 600),
     family="llm",
     inputs=NodeInputs(
         required=[
+            _string("prompt", section="prompt"),
+            _string("negative_prompt", section="prompt"),
+            _string("custom_style", section="prompt"),
+            _segmented(
+                "response_format",
+                options=["text", "json"],
+                default="text",
+                section="prompt",
+            ),
             _chip_grid(
                 "agent",
                 values=get_visible_agent_keys(),
@@ -176,12 +187,7 @@ _SCANNER = NodeContract(
                 default="Auto",
                 section="output",
             ),
-            _segmented(
-                "response_format",
-                options=["text", "json"],
-                default="text",
-                section="output",
-            ),
+            _int("max_image_side", default=1024, minv=128, maxv=4096, step=64, label="Max image side", section="output"),
             _chip_list(
                 "photo_style",
                 values=["None"] + get_visible_style_keys("photo_style"),
@@ -218,7 +224,7 @@ _SCANNER = NodeContract(
 _CLEANER = NodeContract(
     id="FiLNeuroCleaner",
     title="🧹 Cleaner",
-    category="FiL_LLM/Tools/Cleaner",
+    category=f"{CATEGORY_ROOT}/Tools/Cleaner",
     description="Selective model, VRAM, RAM, and cache cleanup.",
     min_size=(300, 560),
     family="tool",
@@ -245,7 +251,7 @@ _CLEANER = NodeContract(
 _COMPARE = NodeContract(
     id="FiLBeforeAfterCompare",
     title="🔄 Compare",
-    category="FiL_LLM/Image/Compare",
+    category=f"{CATEGORY_ROOT}/Image/Compare",
     description="Before/after preview with optional output resizing.",
     min_size=(320, 420),
     family="image",
@@ -270,7 +276,7 @@ _COMPARE = NodeContract(
 _UPSCALE = NodeContract(
     id="FiLUpscaleTileCalc",
     title="🔍 Upscaler",
-    category="FiL_LLM/Image/Upscale",
+    category=f"{CATEGORY_ROOT}/Image/Upscale",
     description="Computes optimal tile grid layout for upscaling.",
     min_size=(320, 320),
     family="image",
@@ -338,12 +344,12 @@ assert set(CANONICAL_IDS) == {
     "FiLNeuroCleaner",
     "FiLBeforeAfterCompare",
     "FiLUpscaleTileCalc",
-}, "FiL_LLM contracts drift: node ids differ from common/node_registry.py"
+}, f"{CATEGORY_ROOT} contracts drift: node ids differ from common/node_registry.py"
 
 
 def get_node_contract(node_id: str) -> NodeContract:
     if node_id not in NODE_SCHEMAS:
-        raise KeyError(f"Unknown FiL_LLM node contract: {node_id!r}")
+        raise KeyError(f"Unknown {CATEGORY_ROOT} node contract: {node_id!r}")
     return NODE_SCHEMAS[node_id]
 
 
@@ -353,17 +359,17 @@ def get_node_schemas() -> dict[str, dict[str, object]]:
 
 
 def public_node_contracts_v2() -> dict[str, object]:
-    """Top-level payload returned by `GET /fil_llm/node_contracts`.
+    """Top-level payload returned by `GET /fil_design_imagemind/node_contracts`.
 
     - `schemas` — Pydantic JSON Schema per node (used by the Vue 3 + TS
       frontend to type widgets at compile time without a server round-trip).
     - `data` — per-node `NodeContract.model_dump()` (the actual widget
       values, consumed by `scripts/gen_contracts.mjs` to render the typed
       frontend catalog).
-    - `settings_prefix` — `FiL_LLM.` (used by ComfyUI settings keys).
+    - `settings_prefix` — e.g. `FiL_Design_ImageMind.` (used by ComfyUI settings keys).
     """
     return {
         "schemas": get_node_schemas(),
         "data": {node_id: c.model_dump(mode="json") for node_id, c in NODE_SCHEMAS.items()},
-        "settings_prefix": "FiL_LLM.",
+        "settings_prefix": SETTINGS_PREFIX,
     }

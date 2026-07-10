@@ -1,7 +1,7 @@
 # GitHub Pages configuration
-title: FiL_LLM
+title: FiL_Design_ImageMind
 description: AI-powered ComfyUI nodes for image analysis, prompt generation, and intelligent workflows
-url: https://fil-design-ai.github.io/FiL_LLM
+url: https://fil-design-ai.github.io/FiL_Design_ImageMind
 
 # Theme (GitHub Pages default)
 theme: jekyll-default
@@ -28,4 +28,4 @@ exclude:
   - node_modules
 
 # GitHub Pages specific
-github_url: https://github.com/FiL-Design-Ai/FiL_LLM
+github_url: https://github.com/FiL-Design-Ai/FiL_Design_ImageMind

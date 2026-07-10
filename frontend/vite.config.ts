@@ -41,7 +41,7 @@ function inlineCssPlugin(): Plugin {
   };
 }
 
-// Vite build for the FiL_LLM ComfyUI frontend extension.
+// Vite build for the FiL Design ImageMind ComfyUI frontend extension.
 //
 // ComfyUI loads the file declared in WEB_DIRECTORY from
 //   /extensions/<CUSTOM_NODE_DIR>/<ENTRY>.js
@@ -67,14 +67,16 @@ export default defineConfig(({ command }) => ({
       "@": resolve(__dirname, "src"),
     },
   },
-  // ComfyUI serves extensions under /extensions/FiL_LLM/...
-  base: "/extensions/FiL_LLM/",
+  // ComfyUI serves extensions under /extensions/FiL_Design_ImageMind/...
+  // (must match the custom_nodes/<folder-name> this package is installed under —
+  // see frontend/src/constants/brand.ts for the single source of truth)
+  base: "/extensions/FiL_Design_ImageMind/",
   build: {
     outDir: "dist",
     emptyOutDir: true,
     cssCodeSplit: false,
     sourcemap: true,
-    // Single-file ES module bundle: dist/fil_llm.js (inlined CSS).
+    // Single-file ES module bundle: dist/fil_design_imagemind.js (inlined CSS).
     // Vue/Pinia are bundled in (not external) — a real running ComfyUI
     // 1.45.20 does not expose window.Vue / window.Pinia globally despite
     // the advanced guide's Rule 5 suggesting this "if available globally".
@@ -82,7 +84,7 @@ export default defineConfig(({ command }) => ({
     // `ReferenceError` on first Vue/Pinia API use, before registration.
     lib: {
       entry: resolve(__dirname, "src/main.ts"),
-      fileName: () => "fil_llm.js",
+      fileName: () => "fil_design_imagemind.js",
       formats: ["es"],
     },
     rollupOptions: {

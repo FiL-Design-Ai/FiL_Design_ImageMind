@@ -19,7 +19,7 @@ export function readSetting<T>(id: string, defaultValue: T, app?: unknown): T {
     const legacy = w.ui?.settings?.getSettingValue ?? (globalThis as unknown as { app?: { ui?: { settings?: { getSettingValue?: (i: string, f?: T) => T } } } }).app?.ui?.settings?.getSettingValue;
     if (typeof legacy === "function") return legacy(id, defaultValue);
   } catch (err) {
-    console.warn(`[FiL_LLM] setting read failed for "${id}":`, err);
+    console.warn(`[FiL_Design_ImageMind] setting read failed for "${id}":`, err);
   }
   return defaultValue;
 }

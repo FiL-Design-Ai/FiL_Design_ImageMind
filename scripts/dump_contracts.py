@@ -1,9 +1,9 @@
-"""Dump the public FiL_LLM node contracts as JSON to stdout.
+"""Dump the public FiL_Design_ImageMind node contracts as JSON to stdout.
 
 Used by `frontend/scripts/gen_contracts.mjs` to regenerate
 `frontend/src/api/contracts.ts` without needing ComfyUI running. Keeps the
 contract layer single-source-of-truth: this script imports the same
-Pydantic models exposed by `/fil_llm/node_contracts`.
+Pydantic models exposed by `/fil_design_imagemind/node_contracts`.
 
 Usage::
 

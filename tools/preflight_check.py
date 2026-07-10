@@ -17,7 +17,7 @@ EXPECTED = {
 
 def main() -> int:
     problems: list[str] = []
-    required = [ROOT / "__init__.py", ROOT / "server_routes.py", ROOT / "frontend" / "dist" / "fil_llm.js"]
+    required = [ROOT / "__init__.py", ROOT / "server_routes.py", ROOT / "frontend" / "dist" / "fil_design_imagemind.js"]
     required.extend(ROOT / "nodes" / name for name in (
         "node_seed.py", "node_provider.py", "node_scanner.py", "node_cleaner.py",
         "node_compare.py", "node_upscale.py", "node_help.py",
@@ -40,11 +40,11 @@ def main() -> int:
                 problems.append(f"registry missing: {node_id}")
 
     if problems:
-        print("FiL_LLM preflight: FAILED")
+        print("FiL_Design_ImageMind preflight: FAILED")
         for problem in problems:
             print(f"- {problem}")
         return 1
-    print(f"FiL_LLM preflight: OK ({len(EXPECTED)} nodes, API, frontend, Python syntax)")
+    print(f"FiL_Design_ImageMind preflight: OK ({len(EXPECTED)} nodes, API, frontend, Python syntax)")
     return 0
 
 

@@ -1,10 +1,12 @@
 /**
- * Typed HTTP client for the FiL_LLM `/fil_llm/*` REST routes.
+ * Typed HTTP client for the FiL_Design_ImageMind REST routes (see `ROUTE_PREFIX`).
  * Thin wrapper over `api.fetchApi` when running inside ComfyUI; falls
  * back to `window.fetch` during dev/tests so unit tests can mock with
  * `vi.stubGlobal("fetch", …)` without loading ComfyUI scripts.
  */
-/** GET /fil_llm/auth returns `get_safe_provider_accounts()` entries
+import { LOG_TAG, ROUTE_PREFIX } from "@/constants/brand";
+
+/** GET /fil_design_imagemind/auth returns `get_safe_provider_accounts()` entries
  * (`common/provider_accounts.py`): stored API keys are never echoed back —
  * only safe metadata. `key` exists solely in the POST request body. */
 export interface ProviderAccount {
@@ -15,7 +17,7 @@ export interface ProviderAccount {
   base_url?: string | null;
 }
 
-/** POST /fil_llm/auth request-body shape (the only place a key is sent). */
+/** POST /fil_design_imagemind/auth request-body shape (the only place a key is sent). */
 export interface ProviderAccountUpdate {
   key?: string | null;
   account_id?: string | null;
@@ -108,7 +110,7 @@ function getFetch(): (url: string, opts?: RequestInit) => Promise<Response> {
   };
   if (w.api?.fetchApi) return (url, opts) => w.api!.fetchApi(url, opts);
   if (w.fetch) return w.fetch.bind(globalThis);
-  throw new Error("[FiL_LLM] no HTTP transport (api.fetchApi or window.fetch undefined)");
+  throw new Error(`${LOG_TAG} no HTTP transport (api.fetchApi or window.fetch undefined)`);
 }
 
 export async function getJson<T>(url: string): Promise<T> {
@@ -126,17 +128,17 @@ export async function postJson<T>(url: string, body: unknown): Promise<T> {
 }
 
 export const providerApi = {
-  loadAccounts: () => getJson<ProviderAccounts>("/fil_llm/auth"),
+  loadAccounts: () => getJson<ProviderAccounts>(`${ROUTE_PREFIX}/auth`),
   saveAccounts: (accounts: Record<string, ProviderAccountUpdate | { delete: true }>) =>
-    postJson<{ status: string; accounts: Record<string, ProviderAccount> }>("/fil_llm/auth", {
+    postJson<{ status: string; accounts: Record<string, ProviderAccount> }>(`${ROUTE_PREFIX}/auth`, {
       accounts,
     }),
   loadModels: (provider: string, force = false) =>
-    getJson<ProviderModelsResponse>(`/fil_llm/models/${encodeURIComponent(provider)}${force ? "?force=1" : ""}`),
+    getJson<ProviderModelsResponse>(`${ROUTE_PREFIX}/models/${encodeURIComponent(provider)}${force ? "?force=1" : ""}`),
   probe: (provider: string, model = "") =>
-    postJson<ProbeResponse>("/fil_llm/provider_probe", { provider, model }),
-  listProviders: () => getJson<{ providers: Record<string, string> }>("/fil_llm/providers"),
+    postJson<ProbeResponse>(`${ROUTE_PREFIX}/provider_probe`, { provider, model }),
+  listProviders: () => getJson<{ providers: Record<string, string> }>(`${ROUTE_PREFIX}/providers`),
   saveCompareImage: (image: unknown) =>
-    postJson<CompareSaveResponse>("/fil_llm/compare/save", { image }),
-  nodeContracts: () => getJson<NodeContractsPayload>("/fil_llm/node_contracts"),
+    postJson<CompareSaveResponse>(`${ROUTE_PREFIX}/compare/save`, { image }),
+  nodeContracts: () => getJson<NodeContractsPayload>(`${ROUTE_PREFIX}/node_contracts`),
 };

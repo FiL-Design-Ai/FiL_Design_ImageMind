@@ -1,6 +1,6 @@
 /**
  * Apply visual effects (Connection FX, Run Button FX, Adaptive Title Color)
- * to a FiL_LLM node during registration.
+ * to a FiL_Design_ImageMind node during registration.
  *
  * Called from each node's register() method to wire up the composables
  * that were previously in non-functional installers.

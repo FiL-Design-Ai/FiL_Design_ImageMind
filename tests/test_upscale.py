@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from FiL_LLM.nodes.node_upscale import FiLUpscaleTileCalc
+from FiL_Design_ImageMind.nodes.node_upscale import FiLUpscaleTileCalc
 
 
 def image(width=320, height=192):

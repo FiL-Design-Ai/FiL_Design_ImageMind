@@ -1,6 +1,6 @@
-# FiL_LLM → Vue 3 + TS migration status
+# FiL_Design_ImageMind → Vue 3 + TS migration status
 
-This document tracks the staged migration of the FiL_LLM frontend from the
+This document tracks the staged migration of the FiL_Design_ImageMind frontend from the
 legacy Vanilla JS bundle under `web/` to the new Vue 3 + TypeScript +
 Vite stack under `frontend/`. Decided in the planning round of
 2026-07-05.
@@ -23,7 +23,7 @@ Vite stack under `frontend/`. Decided in the planning round of
 | 0 | Plan + environment (Node v26, npm 11, Python 3.12, Pydantic 2.13) | ✅ done |
 | 1 | `frontend/` skeleton (Vite + Vue 3 + TS + Pinia) with UMD output | ✅ done |
 | 2 | Extension skeleton — `registerExtension`, `beforeRegisterNodeDef`, 7 node stubs | ✅ done |
-| 3 | `common/contracts/` Pydantic models, exposed via `/fil_llm/node_contracts` | ✅ done |
+| 3 | `common/contracts/` Pydantic models, exposed via `/fil_design_imagemind/node_contracts` | ✅ done |
 | 4 | `scripts/gen_contracts.mjs` renders `frontend/src/api/contracts.ts` (7 contracts) | ✅ done |
 | 5 | Design-system widgets (9 Vue components + barrel + 10 Vitest tests → 14) | ✅ done |
 | 6 | Pinia stores — `toastStore`, `providerStore`, `compareStore`, `helpStore` + `helpDefaults` | ✅ done |
@@ -35,7 +35,7 @@ Vite stack under `frontend/`. Decided in the planning round of
 
 ## What is live right now
 
-ComfyUI loads `frontend/dist/fil_llm.js` (Vue 3 + TS + Pinia bundle,
+ComfyUI loads `frontend/dist/fil_design_imagemind.js` (Vue 3 + TS + Pinia bundle,
 14 KB gzip). The legacy `web/` directory has been deleted entirely.
 
 ## Why the staged approach
@@ -51,7 +51,7 @@ and installers were implemented and tested. No dual runtime was deployed.
   `NodeContract`).
 - `common/contracts/registry.py` — `NODE_SCHEMAS` registry covering all
   7 canonical nodes; `public_node_contracts_v2()` is the typed payload.
-- `server_routes.py` — `/fil_llm/node_contracts` now returns
+- `server_routes.py` — `/fil_design_imagemind/node_contracts` now returns
   `{ node_ids, schemas, data, settings_prefix }` (legacy `node_ids`
   preserved for the v1 frontend).
 - `scripts/dump_contracts.py` — offline JSON dumper for
@@ -71,7 +71,7 @@ frontend/
 │   ├── nodes2/        # Extension bootstrap + per-node registration
 │   ├── stores/        # Pinia stores + settings modules
 │   └── types/         # ComfyUI type declarations
-├── dist/              # Built UMD bundle (fil_llm.js + style.css)
+├── dist/              # Built UMD bundle (fil_design_imagemind.js + style.css)
 ├── scripts/           # gen_contracts.mjs (Pydantic → TS)
 └── tests/             # 4 test files, 21 tests total
 ```
@@ -85,7 +85,7 @@ npm install
 npm run gen:contracts   # refreshes src/api/contracts.ts
 npm run typecheck       # vue-tsc --noEmit
 npm test               # vitest run
-npm run build          # dist/fil_llm.js (UMD)
+npm run build          # dist/fil_design_imagemind.js (UMD)
 
 # Backend (existing test suite still green)
 $env:PYTHONIOENCODING="utf-8"

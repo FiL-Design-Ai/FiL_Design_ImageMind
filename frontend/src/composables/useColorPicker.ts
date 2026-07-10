@@ -1,5 +1,5 @@
 /**
- * "Change color…" context-menu item for FiL_LLM nodes. Wired up once, for
+ * "Change color…" context-menu item for FiL_Design_ImageMind nodes. Wired up once, for
  * every node, in `nodes2/nodeStyle.ts`'s `registerStyledNode()` via
  * `getExtraMenuOptions` — this module only builds the menu entry and the
  * floating swatch popup, it doesn't register anything on its own.

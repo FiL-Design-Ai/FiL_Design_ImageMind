@@ -1,4 +1,4 @@
-"""Public StyleEnforcer implementation for FiL_LLM."""
+"""Public StyleEnforcer implementation for FiL_Design_ImageMind."""
 
 from __future__ import annotations
 

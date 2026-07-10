@@ -1,4 +1,4 @@
-"""Text helpers for FiL_LLM style enforcement."""
+"""Text helpers for FiL_Design_ImageMind style enforcement."""
 
 from __future__ import annotations
 

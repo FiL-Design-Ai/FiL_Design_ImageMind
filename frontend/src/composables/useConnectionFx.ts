@@ -16,9 +16,9 @@ function shouldShowToasts(): boolean {
   };
 
   return Boolean(
-    g.app?.extensionManager?.setting?.get?.("FiL_LLM.ConnectionFX.ShowToasts", true) ??
+    g.app?.extensionManager?.setting?.get?.("FiL_Design_ImageMind.ConnectionFX.ShowToasts", true) ??
       (globalThis as unknown as { app?: { ui?: { settings?: { getSettingValue?: (i: string, f?: unknown) => unknown } } } })
-        .app?.ui?.settings?.getSettingValue?.("FiL_LLM.ConnectionFX.ShowToasts", true) ??
+        .app?.ui?.settings?.getSettingValue?.("FiL_Design_ImageMind.ConnectionFX.ShowToasts", true) ??
         true,
   );
 }

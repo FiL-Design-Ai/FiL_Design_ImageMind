@@ -6,6 +6,7 @@ from typing import Any
 
 from comfy_api.latest import io as _io
 
+from ..common.brand import CATEGORY_ROOT
 from ..common.localization import t as _t
 
 
@@ -14,8 +15,8 @@ class FiLNeuroCleaner(_io.ComfyNode):
     def define_schema(cls):
         return _io.Schema(
             node_id="FiLNeuroCleaner",
-            display_name="FiL Neuro Cleaner",
-            category="FiL_LLM/Tools/Cleaner",
+            display_name="🧹 Cleaner",
+            category=f"{CATEGORY_ROOT}/Tools/Cleaner",
             description="🧹 FiL Neuro Cleaner — flushes GPU VRAM, offloads model types, and optionally cleans system RAM/file cache on Windows.",
             inputs=[
                 _io.Boolean.Input("clean_vram", default=True, label_on="VRAM ON", label_off="VRAM OFF", tooltip=_t("nc_clean_vram", "Clean VRAM.")),

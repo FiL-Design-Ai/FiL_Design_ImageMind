@@ -4,7 +4,8 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Dict, List, Optional
 
-from .base import FiLLLMError, InferenceError, ServerUnavailableError
+from .base import FiLError, InferenceError, ServerUnavailableError
+from .brand import BRAND
 from .config import PROVIDERS, get_config, is_known_vision_model_name
 from .network import HTTPClient, RateLimiter
 from .processing import normalize_model_name
@@ -18,7 +19,7 @@ from .provider_resilience import (
 )
 from .storage import get_prompt_cache
 
-logger = logging.getLogger("FiL_LLM.Models")
+logger = logging.getLogger(f"{BRAND}.Models")
 
 
 class ModelStrategy(ABC):
@@ -209,11 +210,11 @@ class ModelClient:
         provider = provider.strip().lower()
         strategy = self._strategies.get(provider)
         if not strategy:
-            raise FiLLLMError(f"Unknown provider: {provider}", code="UNKNOWN_PROVIDER")
+            raise FiLError(f"Unknown provider: {provider}", code="UNKNOWN_PROVIDER")
 
         model_name = normalize_model_name(model)
         if not model_name:
-            raise FiLLLMError("Model name is required", code="MISSING_MODEL")
+            raise FiLError("Model name is required", code="MISSING_MODEL")
 
         img_hash = self._image_hash(images)
         use_cache = not stream and seed is not None and seed >= 0
@@ -271,7 +272,7 @@ class ModelClient:
                 {"provider": provider, "model": model_name}, model_name, require_vision=True
             )[:3]
             if not candidates:
-                raise FiLLLMError(
+                raise FiLError(
                     "No free OpenRouter vision candidates available from /models.",
                     code="OPENROUTER_NO_VISION_CANDIDATES",
                 )
@@ -281,7 +282,7 @@ class ModelClient:
                 logger.info("[OPENROUTER] Vision attempt %s/%s using '%s'", i, len(candidates), candidate)
                 try:
                     return _build_and_send(candidate)
-                except FiLLLMError:
+                except FiLError:
                     raise
                 except Exception as exc:
                     err_str = str(exc)
@@ -295,7 +296,7 @@ class ModelClient:
                     self._log_cloud_failure(provider, candidate, exc)
                     raise InferenceError(f"API call to {provider}/{candidate} failed: {exc}") from exc
             if last_rate_limit_error is not None:
-                raise FiLLLMError(
+                raise FiLError(
                     "Все бесплатные vision-модели OpenRouter сейчас перегружены.",
                     code="OPENROUTER_ALL_RATE_LIMITED",
                 )
@@ -304,7 +305,7 @@ class ModelClient:
         # Non-OpenRouter path (and OpenRouter without images).
         try:
             return _build_and_send(model_name)
-        except FiLLLMError:
+        except FiLError:
             raise
         except Exception as exc:
             # Groq 404 -> append "-preview" and retry once.

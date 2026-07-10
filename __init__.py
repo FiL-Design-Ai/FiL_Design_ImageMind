@@ -1,4 +1,4 @@
-"""FiL_LLM custom nodes for ComfyUI (V3 API)."""
+"""FiL Design ImageMind custom nodes for ComfyUI (V3 API)."""
 
 import os
 from typing import override
@@ -10,7 +10,7 @@ from . import server_routes
 WEB_DIRECTORY = "./frontend/dist"
 
 
-class FiL_LLMExtension(ComfyExtension):
+class FiLExtension(ComfyExtension):
     @override
     async def get_node_list(self) -> list[type[io.ComfyNode]]:
         from .nodes.node_seed import FiLSeed
@@ -29,7 +29,7 @@ class FiL_LLMExtension(ComfyExtension):
         ]
 
 
-async def comfy_entrypoint() -> FiL_LLMExtension:
+async def comfy_entrypoint() -> FiLExtension:
     """ComfyUI V3 extension entry point."""
     server_routes.register_routes()
-    return FiL_LLMExtension()
+    return FiLExtension()

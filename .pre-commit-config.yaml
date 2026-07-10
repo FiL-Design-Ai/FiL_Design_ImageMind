@@ -1,4 +1,4 @@
-# Pre-commit configuration for FiL_LLM
+# Pre-commit configuration for FiL_Design_ImageMind
 # Install: pip install pre-commit && pre-commit install
 
 repos:
@@ -43,7 +43,7 @@ repos:
           - --config-file=pyproject.toml
           - --ignore-missing-imports
           - --explicit-package-bases
-          - --package=FiL_LLM
+          - --package=FiL_Design_ImageMind
         exclude: ^tests/
 
   - repo: https://github.com/PyCQA/bandit

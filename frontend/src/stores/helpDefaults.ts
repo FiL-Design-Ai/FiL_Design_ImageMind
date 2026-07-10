@@ -3,20 +3,20 @@ import type { HelpDef } from "@/stores/helpStore";
 /**
  * Per-node help defaults — one entry per canonical node id, plus a
  * generic `default` index reachable from the toolbar Help button when no
- * FiL_LLM node is selected. Content is short and UI-mirrored to keep the
+ * FiL_Design_ImageMind node is selected. Content is short and UI-mirrored to keep the
  * bundle tiny; longer tutorials remain on the docs site.
  */
 export const HELP_DEFAULTS: Record<string, HelpDef> = {
   __cheatsheet__: {
     id: "__cheatsheet__",
-    title: "FiL_LLM — Keyboard Cheatsheet",
+    title: "FiL_Design_ImageMind — Keyboard Cheatsheet",
     body: "Global keyboard shortcuts available on the ComfyUI canvas.",
     table: {
       headers: ["Key", "Action"],
       rows: [
         ["Shift+?", "Open this cheatsheet"],
         ["Ctrl+Shift+K", "Open this cheatsheet (alternative)"],
-        ["?", "Open help for the selected FiL_LLM node"],
+        ["?", "Open help for the selected FiL_Design_ImageMind node"],
         ["/", "Focus the Add-Node search field"],
         ["Esc", "Close popup / blur form field"],
       ],
@@ -24,10 +24,10 @@ export const HELP_DEFAULTS: Record<string, HelpDef> = {
   },
   default: {
     id: "default",
-    title: "FiL_LLM",
+    title: "FiL_Design_ImageMind",
     body: "Provider + model selector pack for vision-aware LLMs.",
     bullets: [
-      "Open Settings → FiL_LLM → Providers and API keys to configure a provider.",
+      "Open Settings → FiL_Design_ImageMind → Providers and API keys to configure a provider.",
       "Drop a FiL Provider Loader on the canvas, pick a provider + model, and wire its `config` output into the Optic Scanner.",
       "Use Shift+? or Ctrl+Shift+K for the keyboard cheatsheet.",
     ],
@@ -89,7 +89,7 @@ export const HELP_DEFAULTS: Record<string, HelpDef> = {
       "6 modes: before, after, wipe, side-by-side, overlay, difference.",
       "Wipe drags the divider directly on the preview; overlay responds to the opacity slider.",
       "Resize mode (in Settings) downscales the preview and, optionally, the output.",
-      "Save before / Save after write the current image to output/FiL_LLM/compare.",
+      "Save before / Save after write the current image to output/FiL_Design_ImageMind/compare.",
     ],
   },
   FiLUpscaleTileCalc: {

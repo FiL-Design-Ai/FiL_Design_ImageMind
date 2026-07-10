@@ -6,7 +6,7 @@ set "REQUIREMENTS_FILE=%SCRIPT_DIR%requirements.txt"
 set "PYTHON_EXE="
 
 echo ====================================================
-echo   FiL_LLM - Dependency Installer
+echo   FiL_Design_ImageMind - Dependency Installer
 echo ====================================================
 
 if exist "%SCRIPT_DIR%..\..\..\python_embeded\python.exe" (
@@ -57,7 +57,7 @@ if !ERRORLEVEL! EQU 0 (
 )
 
 echo ====================================================
-echo   SUCCESS: FiL_LLM runtime dependencies are ready!
+echo   SUCCESS: FiL_Design_ImageMind runtime dependencies are ready!
 echo ====================================================
 echo [i] Test dependencies, if needed: pip install -r "%SCRIPT_DIR%requirements-dev.txt"
 pause

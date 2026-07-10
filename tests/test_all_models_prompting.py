@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 
-from FiL_LLM.common.model_prompt_adapters import (
+from FiL_Design_ImageMind.common.model_prompt_adapters import (
     build_response_format_instruction,
     convert_to_dit_format,
     format_for_flux_json,

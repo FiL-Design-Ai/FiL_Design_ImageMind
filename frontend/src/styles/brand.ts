@@ -1,5 +1,5 @@
 /**
- * FiL_LLM design-system tokens.
+ * FiL_Design_ImageMind design-system tokens.
  * Mirrors the legacy web/core/ui.js FIL_PALETTE so existing CSS variables
  * (`--fil-accent`, `--fil-panel`, ...) keep the same meaning.
  */
@@ -102,7 +102,7 @@ const THEME_EFFECTS: Record<FilThemeName, string> = {
 };
 
 /**
- * Inject the FiL_LLM CSS variables on `:root` exactly once, plus two extra
+ * Inject the FiL_Design_ImageMind CSS variables on `:root` exactly once, plus two extra
  * (initially empty) `<style>` tags reserved for runtime theme switching —
  * see `applyFilTheme()`. Safe to call from any module — duplicates are
  * skipped via an id guard.
@@ -127,7 +127,7 @@ export function injectFilBrandVars(): void {
 }
 
 /**
- * Switch the FiL_LLM theme at runtime — no page reload needed. Vue widget
+ * Switch the FiL_Design_ImageMind theme at runtime — no page reload needed. Vue widget
  * CSS updates instantly since every component reads `var(--fil-*)`, never a
  * hardcoded hex. LiteGraph's native node title/body colors are plain JS
  * properties (not CSS-driven though), so callers must separately loop

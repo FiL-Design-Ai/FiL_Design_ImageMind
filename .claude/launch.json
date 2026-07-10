@@ -16,6 +16,12 @@
         "8189"
       ],
       "port": 8189
+    },
+    {
+      "name": "docs-preview",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8290", "--directory", "docs"],
+      "port": 8290
     }
   ]
 }

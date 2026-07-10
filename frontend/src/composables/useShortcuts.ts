@@ -1,5 +1,5 @@
 /**
- * useShortcuts — declarative registration of FiL_LLM keyboard shortcuts via
+ * useShortcuts — declarative registration of FiL_Design_ImageMind keyboard shortcuts via
  * the ComfyUI `commands` + `keybindings` + `menuCommands` API (advanced
  * guide §11, §12.3). Replaces the raw `document.addEventListener`
  * capture-phase hook used by the legacy `web/core/shortcuts.js`.
@@ -12,7 +12,7 @@ import type { ComfyApp } from "@/types/comfy";
 import { useHelpStore } from "@/stores/helpStore";
 import { toast } from "@/stores/toastStore";
 
-const SETTING_ENABLED = "FiL_LLM.Shortcuts.Enabled";
+const SETTING_ENABLED = "FiL_Design_ImageMind.Shortcuts.Enabled";
 const CHEATSHEET_ID = "__cheatsheet__";
 
 const SEARCH_SELECTORS = [
@@ -75,34 +75,34 @@ export function installShortcuts(app: ComfyApp): void {
       ext.extensionManager.registerCommands({
         commands: [
           {
-            id: "FiL_LLM.helpCheatsheet",
-            label: "FiL_LLM — Keyboard cheatsheet",
+            id: "FiL_Design_ImageMind.helpCheatsheet",
+            label: "FiL_Design_ImageMind — Keyboard cheatsheet",
             icon: "?",
             function: openCheatsheet,
           },
           {
-            id: "FiL_LLM.focusSearch",
-            label: "FiL_LLM — Focus add-node search",
+            id: "FiL_Design_ImageMind.focusSearch",
+            label: "FiL_Design_ImageMind — Focus add-node search",
             icon: "/",
             function: focusSearch,
           },
         ],
         keybindings: [
-          { combo: { key: "?", shift: true }, commandId: "FiL_LLM.helpCheatsheet" },
-          { combo: { key: "k", ctrl: true, shift: true }, commandId: "FiL_LLM.helpCheatsheet" },
-          { combo: { key: "/" }, commandId: "FiL_LLM.focusSearch" },
+          { combo: { key: "?", shift: true }, commandId: "FiL_Design_ImageMind.helpCheatsheet" },
+          { combo: { key: "k", ctrl: true, shift: true }, commandId: "FiL_Design_ImageMind.helpCheatsheet" },
+          { combo: { key: "/" }, commandId: "FiL_Design_ImageMind.focusSearch" },
         ],
-        menuCommands: [{ path: ["FiL LLM"], commands: ["FiL_LLM.helpCheatsheet", "FiL_LLM.focusSearch"] }],
+        menuCommands: [{ path: ["FiL LLM"], commands: ["FiL_Design_ImageMind.helpCheatsheet", "FiL_Design_ImageMind.focusSearch"] }],
       });
       return;
     } catch (err) {
-      console.warn("[FiL_LLM] declarative shortcuts register failed, falling back:", err);
+      console.warn("[FiL_Design_ImageMind] declarative shortcuts register failed, falling back:", err);
     }
   }
 
   // Fallback — window-level keydown handler (works in dev & old ComfyUI).
   window.addEventListener("keydown", (event) => onFallbackKey(event, app), true);
-  console.info("[FiL_LLM] shortcuts installed (fallback keydown handler)");
+  console.info("[FiL_Design_ImageMind] shortcuts installed (fallback keydown handler)");
 }
 
 function onFallbackKey(event: KeyboardEvent, app: ComfyApp): void {
@@ -140,7 +140,7 @@ function onFallbackKey(event: KeyboardEvent, app: ComfyApp): void {
   if (event.key === "?" || (event.shiftKey && event.key === "/")) {
     if (event.shiftKey) openCheatsheet();
     else {
-      // ? → open help for the single selected FiL_LLM node.
+      // ? → open help for the single selected FiL_Design_ImageMind node.
       const can = (app as unknown as { canvas?: { selected_nodes?: Record<string, unknown> } }).canvas;
       const sel = can?.selected_nodes ?? {};
       const ids = Object.values(sel).filter(Boolean);
@@ -150,7 +150,7 @@ function onFallbackKey(event: KeyboardEvent, app: ComfyApp): void {
         store.ensureHelpDefaultsInjected();
         store.value_open?.(id);
       } else {
-        toast.info("Select exactly one FiL_LLM node, then press ?");
+        toast.info("Select exactly one FiL_Design_ImageMind node, then press ?");
       }
     }
     event.preventDefault();

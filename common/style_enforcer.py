@@ -1,4 +1,4 @@
-"""Compatibility facade for FiL_LLM style enforcement.
+"""Compatibility facade for FiL_Design_ImageMind style enforcement.
 
 The implementation lives in common.style_engine so the style rule data,
 preset support, resolver, and public enforcer stay maintainable.

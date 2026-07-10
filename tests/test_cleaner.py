@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from FiL_LLM.nodes import node_cleaner
+from FiL_Design_ImageMind.nodes import node_cleaner
 
 
 def test_model_classification_uses_nested_runtime_types():

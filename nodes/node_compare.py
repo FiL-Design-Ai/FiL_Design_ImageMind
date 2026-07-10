@@ -1,5 +1,6 @@
 from comfy_api.latest import io
 
+from ..common.brand import CATEGORY_ROOT
 from ..common.localization import t
 
 try:
@@ -14,8 +15,8 @@ class FiLBeforeAfterCompare(io.ComfyNode):
     def define_schema(cls):
         return io.Schema(
             node_id="FiLBeforeAfterCompare",
-            display_name="FiL Before/After Compare",
-            category="FiL_LLM/Image/Compare",
+            display_name="🔄 Compare",
+            category=f"{CATEGORY_ROOT}/Image/Compare",
             description="🖼️ FiL Before/After Compare — side-by-side image comparison with optional swap and resize controls.",
             inputs=[
                 io.Image.Input("before", tooltip=t("cmp_before", "Image shown on the left side.")),

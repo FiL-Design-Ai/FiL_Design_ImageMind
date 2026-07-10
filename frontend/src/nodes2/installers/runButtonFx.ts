@@ -2,13 +2,13 @@ import type { ComfyApp } from "@/types/comfy";
 import { flashNodeRun } from "@/composables/useRunButtonFx";
 
 /**
- * Hook into app.canvas.ds.executeNode to flash FiL_LLM nodes when they queue.
+ * Hook into app.canvas.ds.executeNode to flash FiL_Design_ImageMind nodes when they queue.
  * This provides visual feedback similar to the old executeButton click.
  */
 export function installRunButtonFx(app: ComfyApp): void {
   const canvas = (app as unknown as { canvas?: { ds?: { executeNode?: unknown } } })?.canvas;
   if (!canvas?.ds) {
-    console.warn("[FiL_LLM] run button FX: canvas not available, skipping");
+    console.warn("[FiL_Design_ImageMind] run button FX: canvas not available, skipping");
     return;
   }
 
@@ -29,8 +29,8 @@ export function installRunButtonFx(app: ComfyApp): void {
       }
       return result;
     };
-    console.info("[FiL_LLM] run button FX installed (execute hook)");
+    console.info("[FiL_Design_ImageMind] run button FX installed (execute hook)");
   } else {
-    console.warn("[FiL_LLM] run button FX: executeNode not found, skipping");
+    console.warn("[FiL_Design_ImageMind] run button FX: executeNode not found, skipping");
   }
 }

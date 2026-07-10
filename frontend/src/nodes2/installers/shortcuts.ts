@@ -3,5 +3,5 @@ import { installShortcuts as installShortcutsComposable } from "@/composables/us
 
 export function installShortcuts(app: ComfyApp): void {
   installShortcutsComposable(app);
-  console.info("[FiL_LLM] shortcuts installed");
+  console.info("[FiL_Design_ImageMind] shortcuts installed");
 }

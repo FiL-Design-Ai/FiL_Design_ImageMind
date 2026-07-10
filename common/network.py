@@ -9,7 +9,9 @@ import requests
 
 from .config import get_config
 
-logger = logging.getLogger("FiL_LLM.Network")
+from .brand import BRAND
+
+logger = logging.getLogger(f"{BRAND}.Network")
 
 # Default retry policy. Override per-call via request(..., retry_statuses=...,
 # no_retry_statuses=..., retry_delay_base=...).

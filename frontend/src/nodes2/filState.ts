@@ -1,5 +1,5 @@
 /**
- * Shared state shape passed to every FiL_LLM Vue node component by
+ * Shared state shape passed to every FiL_Design_ImageMind Vue node component by
  * `addFilDomWidget`. The same `state` object is also exposed to ComfyUI
  * via `getValue()`/`setValue()` so it serializes into `.json` workflows.
  *

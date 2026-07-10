@@ -1,8 +1,8 @@
-# FiL_LLM Prompting Documentation
+# FiL_Design_ImageMind Prompting Documentation
 
 ## Overview
 
-FiL_LLM follows the v3 prompting contract:
+FiL_Design_ImageMind follows the v3 prompting contract:
 
 `BASE PROMPT + STYLE OVERLAY + AGENT MODE + MODEL TYPE = FINAL PROMPT`
 
@@ -30,7 +30,7 @@ Production invariant:
 
 ## Prompt Hierarchy
 
-FiL_LLM builds prompts in this canonical order:
+FiL_Design_ImageMind builds prompts in this canonical order:
 
 `Meaning -> Subject -> Geometry -> Details -> Focal Anchor -> Environment -> Light -> Style`
 
@@ -112,7 +112,7 @@ Normalization rule:
 
 ## UI Agent System
 
-FiL_LLM must expose exactly **21 visible UI agents + None**.
+FiL_Design_ImageMind must expose exactly **21 visible UI agents + None**.
 
 `None` means no specialized mode selected.
 
@@ -185,7 +185,7 @@ Every selected agent must return a **final generation-ready prompt**, not analys
 
 ### Character liveliness upgrade
 
-FiL_LLM includes a global **Liveliness + Character Performance Pass**. It is active in final prompt construction and is especially important for people, creatures, and character-like subjects.
+FiL_Design_ImageMind includes a global **Liveliness + Character Performance Pass**. It is active in final prompt construction and is especially important for people, creatures, and character-like subjects.
 
 The pass may strengthen:
 
@@ -358,7 +358,7 @@ Conflict rule: do not negative a term that is part of the selected style identit
 
 ## Final Prompt Compiler
 
-Before final output, FiL_LLM treats the assembled prompt as a compiled visual contract:
+Before final output, FiL_Design_ImageMind treats the assembled prompt as a compiled visual contract:
 
 `Style/Medium Signature -> Main Subject + Pose/Action -> Focal Anchor -> Composition -> Material Response -> Environment -> Light Physics -> Camera/Art Grammar -> Style Finish -> Model Packaging`
 
@@ -374,7 +374,7 @@ The compiler may reorder or compress wording for the target model and may restyl
 
 ## Adult Scene Truth Pass
 
-When the `🔞 18+` agent or an NSFW style is active, FiL_LLM adds an adult-scene truth pass:
+When the `🔞 18+` agent or an NSFW style is active, FiL_Design_ImageMind adds an adult-scene truth pass:
 
 - confirm adult-only subject framing;
 - suppress age ambiguity or childlike/teen-coded wording;

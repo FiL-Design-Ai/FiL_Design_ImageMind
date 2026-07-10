@@ -12,6 +12,7 @@ except ImportError:
 
 from comfy_api.latest import io
 
+from ..common.brand import CATEGORY_ROOT
 from ..common.localization import t as _t
 
 
@@ -44,8 +45,8 @@ class FiLUpscaleTileCalc(io.ComfyNode):
     def define_schema(cls):
         return io.Schema(
             node_id="FiLUpscaleTileCalc",
-            display_name="FiL Upscale Tile Calc",
-            category="FiL_LLM/Image/Upscale",
+            display_name="🔍 Upscaler",
+            category=f"{CATEGORY_ROOT}/Image/Upscale",
             description="📐 FiL Upscale Tile Calc — computes optimal tile grid layout for upscaling. Supports auto-profile, manual grid, and MP cap.",
             inputs=[
                 io.Image.Input("image", tooltip=_t("utc_image", "Input image to analyze.")),

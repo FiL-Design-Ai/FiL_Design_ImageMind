@@ -6,7 +6,7 @@ import requests
 
 
 def test_credentials_are_saved_redacted_and_deleted(tmp_path, monkeypatch):
-    from FiL_LLM.common import provider_accounts
+    from FiL_Design_ImageMind.common import provider_accounts
 
     path = tmp_path / "auth.json"
     monkeypatch.setattr(provider_accounts, "AUTH_JSON_PATH", path)
@@ -24,7 +24,7 @@ def test_credentials_are_saved_redacted_and_deleted(tmp_path, monkeypatch):
 
 
 def test_missing_cloud_key_does_not_make_network_request(monkeypatch):
-    from FiL_LLM.common import provider_runtime
+    from FiL_Design_ImageMind.common import provider_runtime
 
     monkeypatch.setattr(provider_runtime, "get_api_key", lambda provider: None)
     result = provider_runtime.fetch_models_with_status("openai")
@@ -37,7 +37,7 @@ def test_missing_cloud_key_does_not_make_network_request(monkeypatch):
 
 
 def test_successful_model_list(monkeypatch):
-    from FiL_LLM.common import provider_runtime
+    from FiL_Design_ImageMind.common import provider_runtime
 
     class Response:
         def json(self):
@@ -58,7 +58,7 @@ def test_successful_model_list(monkeypatch):
 
 
 def test_http_statuses_are_safely_classified(monkeypatch):
-    from FiL_LLM.common import provider_runtime
+    from FiL_Design_ImageMind.common import provider_runtime
 
     class Client:
         status = 401
@@ -79,7 +79,7 @@ def test_http_statuses_are_safely_classified(monkeypatch):
 
 
 def test_offline_local_provider(monkeypatch):
-    from FiL_LLM.common import provider_runtime
+    from FiL_Design_ImageMind.common import provider_runtime
 
     class Client:
         def __init__(self, **kwargs):

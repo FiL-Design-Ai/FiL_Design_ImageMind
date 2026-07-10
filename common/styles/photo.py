@@ -1,5 +1,5 @@
 """
-FiL_LLM - Photo Styles Library (APRIL 2026 - DiT/FLUX OPTIMIZED)
+FiL_Design_ImageMind - Photo Styles Library (APRIL 2026 - DiT/FLUX OPTIMIZED)
 Categorized realistic photography styles.
 """
 

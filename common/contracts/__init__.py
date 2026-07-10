@@ -1,8 +1,8 @@
-"""FiL_LLM node contract models (Pydantic v2).
+"""FiL_Design_ImageMind node contract models (Pydantic v2).
 
-Single source of truth describing the shape of every FiL_LLM node that the
+Single source of truth describing the shape of every FiL_Design_ImageMind node that the
 frontend needs to drive. `NODE_SCHEMAS` is exported as JSON Schema via the
-`/fil_llm/node_contracts` endpoint and consumed by the Vue 3 + TS frontend
+`/fil_design_imagemind/node_contracts` endpoint and consumed by the Vue 3 + TS frontend
 to generate TypeScript interfaces (scripts/gen_contracts.mjs).
 
 The models intentionally describe the *frontend-visible* widget contract: a

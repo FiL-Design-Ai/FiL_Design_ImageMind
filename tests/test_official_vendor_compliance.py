@@ -13,7 +13,7 @@ Tests added after reviewing official docs:
 
 from __future__ import annotations
 
-from FiL_LLM.common.model_prompt_adapters import (
+from FiL_Design_ImageMind.common.model_prompt_adapters import (
     convert_to_dit_format,
     build_response_format_instruction,
 )

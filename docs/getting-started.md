@@ -2,16 +2,16 @@
 
 ## Provider setup
 
-1. Restart ComfyUI after installing or updating FiL_LLM.
-2. Open `Settings → FiL_LLM → Providers and API keys`.
+1. Restart ComfyUI after installing or updating FiL_Design_ImageMind.
+2. Open `Settings → FiL_Design_ImageMind → Providers and API keys`.
 3. Configure a cloud API key or start Ollama/LM Studio locally.
-4. Add `FiL Provider Loader`, choose the provider, and refresh its model list.
+4. Add `Provider Loader`, choose the provider, and refresh its model list.
 
 Credentials stay in `data/auth.json` or environment configuration. They are not written to workflows or returned by the loader.
 
 ## Image to prompt
 
-1. Add `Load Image`, `FiL Provider Loader`, and `FiL Optic Scanner`.
+1. Add `Load Image`, `Provider Loader`, and `Optic Scanner`.
 2. Connect Loader `config` to Scanner `config`.
 3. Connect the image to Scanner `image`.
 4. Choose a vision-capable model and queue the workflow.
@@ -24,9 +24,9 @@ Use the same Loader and Scanner, leave `image` disconnected, and enter the sourc
 
 ## Utility nodes
 
-- `FiL Seed`: fixed seed or random value when set to `-1`.
-- `FiL Neuro Cleaner`: optional VRAM/RAM cleanup with value passthrough.
-- `FiL Before/After Compare`: comparison preview, swap, and optional resize.
-- `FiL Upscale Tile Calc`: tile, grid, latent-size, denoise, and warning calculation.
+- `Seed`: fixed seed or random value when set to `-1`.
+- `Cleaner`: optional VRAM/RAM cleanup with value passthrough.
+- `Compare`: comparison preview, swap, and optional resize.
+- `Upscaler`: tile, grid, latent-size, denoise, and warning calculation.
 
-All nodes are available under `FiL_LLM/...`. Use `FiL_LLM: help` in a node context menu for a short explanation.
+All nodes are available under `FiL_Design_ImageMind/...`. Use `FiL_Design_ImageMind: help` in a node context menu for a short explanation.

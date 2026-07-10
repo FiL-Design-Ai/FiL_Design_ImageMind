@@ -19,5 +19,5 @@ export function installHelpToolbar(_app: ComfyApp): void {
   document.body.appendChild(host);
   _helpApp = createApp(FilHelpPopup).use(useActivePinia());
   _helpApp.mount(host);
-  console.info("[FiL_LLM] help popup mounted");
+  console.info("[FiL_Design_ImageMind] help popup mounted");
 }

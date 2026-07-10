@@ -20,10 +20,10 @@ jobs:
         python-version: ["3.10", "3.11", "3.12"]
 
     steps:
-      - name: Checkout FiL_LLM
+      - name: Checkout FiL_Design_ImageMind
         uses: actions/checkout@v4
         with:
-          path: fil-llm-temp
+          path: fil-design-imagemind-temp
 
       - name: Checkout ComfyUI
         uses: actions/checkout@v4
@@ -39,7 +39,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: pip
           cache-dependency-path: |
-            fil-llm-temp/requirements.txt
+            fil-design-imagemind-temp/requirements.txt
             ComfyUI/requirements.txt
 
       - name: Install CPU-only PyTorch
@@ -48,16 +48,16 @@ jobs:
       - name: Install ComfyUI dependencies
         run: pip install -r ComfyUI/requirements.txt
 
-      - name: Install FiL_LLM dependencies
-        run: pip install -r fil-llm-temp/requirements.txt
+      - name: Install FiL_Design_ImageMind dependencies
+        run: pip install -r fil-design-imagemind-temp/requirements.txt
 
-      - name: Move FiL_LLM into ComfyUI custom_nodes
+      - name: Move FiL_Design_ImageMind into ComfyUI custom_nodes
         run: |
           mkdir -p ComfyUI/custom_nodes
-          mv fil-llm-temp ComfyUI/custom_nodes/FiL_LLM
+          mv fil-design-imagemind-temp ComfyUI/custom_nodes/FiL_Design_ImageMind
 
       - name: Run Python tests
-        working-directory: ComfyUI/custom_nodes/FiL_LLM
+        working-directory: ComfyUI/custom_nodes/FiL_Design_ImageMind
         run: python -m pytest tests/ -v --tb=short -q
 
   test-frontend:

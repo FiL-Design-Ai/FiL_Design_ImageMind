@@ -21,7 +21,7 @@ export function installToasts(): void {
   import("@/stores/toastStore")
     .then(({ toast }) => {
       w.__filToast = toast;
-      console.info("[FiL_LLM] toast stack mounted");
+      console.info("[FiL_Design_ImageMind] toast stack mounted");
     })
-    .catch((err) => console.warn("[FiL_LLM] toast store import failed:", err));
+    .catch((err) => console.warn("[FiL_Design_ImageMind] toast store import failed:", err));
 }

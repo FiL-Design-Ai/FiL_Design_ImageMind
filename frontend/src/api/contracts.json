@@ -1,30 +1,4 @@
 {
-  "node_ids": {
-    "FiLSeed": {
-      "title": "♻️ Seed",
-      "category": "FiL_LLM/Values"
-    },
-    "FiLProviderLoader": {
-      "title": "🔌 Provider Loader",
-      "category": "FiL_LLM/LLM/Provider"
-    },
-    "FiLOpticScanner": {
-      "title": "🕵️ Optic Scanner",
-      "category": "FiL_LLM/LLM/Scanner"
-    },
-    "FiLNeuroCleaner": {
-      "title": "🧹 Cleaner",
-      "category": "FiL_LLM/Tools/Cleaner"
-    },
-    "FiLBeforeAfterCompare": {
-      "title": "🔄 Compare",
-      "category": "FiL_LLM/Image/Compare"
-    },
-    "FiLUpscaleTileCalc": {
-      "title": "🔍 Upscaler",
-      "category": "FiL_LLM/Image/Upscale"
-    }
-  },
   "schemas": {
     "FiLSeed": {
       "$defs": {
@@ -293,7 +267,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Full frontend contract for a single FiL_LLM node.",
+      "description": "Full frontend contract for a single FiL Design ImageMind node.",
       "properties": {
         "id": {
           "title": "Id",
@@ -639,7 +613,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Full frontend contract for a single FiL_LLM node.",
+      "description": "Full frontend contract for a single FiL Design ImageMind node.",
       "properties": {
         "id": {
           "title": "Id",
@@ -985,7 +959,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Full frontend contract for a single FiL_LLM node.",
+      "description": "Full frontend contract for a single FiL Design ImageMind node.",
       "properties": {
         "id": {
           "title": "Id",
@@ -1331,7 +1305,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Full frontend contract for a single FiL_LLM node.",
+      "description": "Full frontend contract for a single FiL Design ImageMind node.",
       "properties": {
         "id": {
           "title": "Id",
@@ -1677,7 +1651,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Full frontend contract for a single FiL_LLM node.",
+      "description": "Full frontend contract for a single FiL Design ImageMind node.",
       "properties": {
         "id": {
           "title": "Id",
@@ -2023,7 +1997,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Full frontend contract for a single FiL_LLM node.",
+      "description": "Full frontend contract for a single FiL Design ImageMind node.",
       "properties": {
         "id": {
           "title": "Id",
@@ -2107,7 +2081,7 @@
     "FiLSeed": {
       "id": "FiLSeed",
       "title": "♻️ Seed",
-      "category": "FiL_LLM/Values",
+      "category": "FiL_Design_ImageMind/Values",
       "description": "Fixed or randomized seed with copy and reuse buttons.",
       "inputs": {
         "required": [
@@ -2224,7 +2198,7 @@
     "FiLProviderLoader": {
       "id": "FiLProviderLoader",
       "title": "🔌 Provider Loader",
-      "category": "FiL_LLM/LLM/Provider",
+      "category": "FiL_Design_ImageMind/LLM/Provider",
       "description": "Provider and model runtime configuration.",
       "inputs": {
         "required": [
@@ -2365,6 +2339,24 @@
             "section": null,
             "visible_when": null,
             "visible_when_value": null
+          },
+          {
+            "name": "max_image_side",
+            "kind": "number",
+            "label": "Max image side",
+            "default": 1024,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": 128,
+            "max": 4096,
+            "step": 64,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
           }
         ],
         "hidden": []
@@ -2388,10 +2380,85 @@
     "FiLOpticScanner": {
       "id": "FiLOpticScanner",
       "title": "🕵️ Optic Scanner",
-      "category": "FiL_LLM/LLM/Scanner",
+      "category": "FiL_Design_ImageMind/LLM/Scanner",
       "description": "Image analysis or text-idea expansion into a generation prompt.",
       "inputs": {
         "required": [
+          {
+            "name": "prompt",
+            "kind": "string",
+            "label": null,
+            "default": "",
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "prompt",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "negative_prompt",
+            "kind": "string",
+            "label": null,
+            "default": "",
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "prompt",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "custom_style",
+            "kind": "string",
+            "label": null,
+            "default": "",
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "prompt",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "response_format",
+            "kind": "segmented",
+            "label": null,
+            "default": "text",
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": [
+              "text",
+              "json"
+            ],
+            "section": "prompt",
+            "visible_when": null,
+            "visible_when_value": null
+          },
           {
             "name": "agent",
             "kind": "chip_grid",
@@ -2527,22 +2594,19 @@
             "visible_when_value": null
           },
           {
-            "name": "response_format",
-            "kind": "segmented",
-            "label": null,
-            "default": "text",
+            "name": "max_image_side",
+            "kind": "number",
+            "label": "Max image side",
+            "default": 1024,
             "tooltip": null,
             "values": null,
             "columns": null,
             "searchable": null,
-            "min": null,
-            "max": null,
-            "step": null,
+            "min": 128,
+            "max": 4096,
+            "step": 64,
             "units": null,
-            "options": [
-              "text",
-              "json"
-            ],
+            "options": null,
             "section": "output",
             "visible_when": null,
             "visible_when_value": null
@@ -3052,7 +3116,7 @@
     "FiLNeuroCleaner": {
       "id": "FiLNeuroCleaner",
       "title": "🧹 Cleaner",
-      "category": "FiL_LLM/Tools/Cleaner",
+      "category": "FiL_Design_ImageMind/Tools/Cleaner",
       "description": "Selective model, VRAM, RAM, and cache cleanup.",
       "inputs": {
         "required": [
@@ -3309,7 +3373,7 @@
     "FiLBeforeAfterCompare": {
       "id": "FiLBeforeAfterCompare",
       "title": "🔄 Compare",
-      "category": "FiL_LLM/Image/Compare",
+      "category": "FiL_Design_ImageMind/Image/Compare",
       "description": "Before/after preview with optional output resizing.",
       "inputs": {
         "required": [],
@@ -3397,7 +3461,7 @@
     "FiLUpscaleTileCalc": {
       "id": "FiLUpscaleTileCalc",
       "title": "🔍 Upscaler",
-      "category": "FiL_LLM/Image/Upscale",
+      "category": "FiL_Design_ImageMind/Image/Upscale",
       "description": "Computes optimal tile grid layout for upscaling.",
       "inputs": {
         "required": [
@@ -3673,5 +3737,5 @@
       "family": "image"
     }
   },
-  "settings_prefix": "FiL_LLM."
+  "settings_prefix": "FiL_Design_ImageMind."
 }

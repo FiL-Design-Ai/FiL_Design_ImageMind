@@ -1,4 +1,4 @@
-"""Category and policy resolution for FiL_LLM style enforcement."""
+"""Category and policy resolution for FiL_Design_ImageMind style enforcement."""
 
 from __future__ import annotations
 

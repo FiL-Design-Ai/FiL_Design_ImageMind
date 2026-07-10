@@ -33,7 +33,9 @@ from .data import (
     model_uses_ideogram_json_schema,
 )
 
-logger = logging.getLogger("FiL_LLM.PromptAdapters")
+from .brand import BRAND
+
+logger = logging.getLogger(f"{BRAND}.PromptAdapters")
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -356,8 +358,10 @@ def adapt_ideogram4_caption(
     background = _clean_text(composition.get("background")) or (
         "Environment and spatial context consistent with the high-level description."
     )
+    # For quoted-literal extraction: prefer source_text (LLM output), skip raw JSON.
+    elements_source = source_text or ("" if raw_text.strip().startswith(("{", "[")) else raw_text)
     elements = _normalize_elements(
-        composition.get("elements"), source_text=source_text or raw_text, fallback_desc=high_level
+        composition.get("elements"), source_text=elements_source, fallback_desc=high_level
     )
 
     caption = {
@@ -569,12 +573,31 @@ def _render_prompt_components(components: Dict[str, List[str]], model_type: str)
         if style:
             labeled.append(f"Style: {style}")
         return ". ".join(labeled)
-    # Z-Image Turbo, SDXL, default: comma-joined.
+    if model_type == "SDXL":
+        labeled = []
+        if scene_mood:
+            labeled.append(f"scene: {scene_mood}")
+        if subject_action:
+            labeled.append(f"subject: {subject_action}")
+        if composition:
+            labeled.append(f"composition: {composition}")
+        if details:
+            labeled.append(f"details: {details}")
+        if focal:
+            labeled.append(f"focal: {focal}")
+        if environment:
+            labeled.append(f"environment: {environment}")
+        if lighting:
+            labeled.append(f"lighting: {lighting}")
+        if style:
+            labeled.append(f"style: {style}")
+        if quality:
+            labeled.append(f"quality: {quality}")
+        return ", ".join(labeled)
+    # Z-Image Turbo, default: comma-joined.
     parts = [
         p for p in (scene_mood, subject_action, composition, details, focal, environment, lighting, style)
     ]
-    if model_type == "SDXL" and quality:
-        parts.append(quality)
     return ", ".join(parts)
 
 
@@ -634,8 +657,8 @@ def convert_to_dit_format(
     if not raw:
         return raw, base_meta
 
-    # Ideogram 4 — always JSON caption.
-    if model_uses_ideogram_json_schema(model_type):
+    # Ideogram 4 JSON mode — uses special caption adapter.
+    if model_type == "Ideogram 4" and response_format == "json":
         output, adapter_meta = adapt_ideogram4_caption(
             text, style_text=style_text, style_type=style_type, source_text=source_text
         )
@@ -667,9 +690,9 @@ def convert_to_dit_format(
                 "response_format": "json",
             }
 
-    # Auto — pass through unchanged.
+    # Auto — pass through with truncation if needed.
     if model_type in ("Auto/None", "Auto", ""):
-        return raw, base_meta
+        return _truncate_words(raw, max_words), base_meta
 
     rule = get_model_prompt_rule(model_type)
 
@@ -681,6 +704,10 @@ def convert_to_dit_format(
     # Text-mode: only convert if the rule says so.
     if not rule.get("post_convert_text") and response_format != "json":
         return raw, {**base_meta, "mode": "passthrough"}
+
+    # Z-Image Turbo: only normalize, never restructure (per contract).
+    if model_type == "Z-Image Turbo":
+        return _normalize_prompt_ready_text(raw, max_words), {**base_meta, "mode": "normalize_only"}
 
     force_restructure = model_type in {"QWEN", "SDXL"}
     needs_restructure = force_restructure or text_needs_dit_restructure(raw, model_type, max_words)

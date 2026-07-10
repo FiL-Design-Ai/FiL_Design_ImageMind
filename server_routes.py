@@ -1,5 +1,5 @@
 """
-FiL_LLM API Routes — минимальные REST-эндпоинты для управления.
+FiL_Design_ImageMind API Routes — минимальные REST-эндпоинты для управления.
 """
 
 import logging
@@ -7,6 +7,7 @@ import shutil
 from pathlib import Path
 from aiohttp import web
 
+from .common.brand import OUTPUT_SUBFOLDER, ROUTE_SLUG, BRAND
 from .common.provider_runtime import fetch_models_with_status, invalidate_model_cache, probe_provider
 from .common.provider_accounts import (
     delete_provider_credentials,
@@ -19,7 +20,7 @@ from .common.localization import get_localization_manager
 
 PROVIDER_DISPLAY_NAMES = {k: v.display_name for k, v in PROVIDERS.items()}
 
-logger = logging.getLogger("FiL_LLM.API")
+logger = logging.getLogger(f"{BRAND}.API")
 
 _ROUTES_REGISTERED = False
 
@@ -49,7 +50,7 @@ def save_compare_image(descriptor, *, temp_dir=None, output_dir=None):
     if not source.is_file():
         raise FileNotFoundError("temporary image not found")
 
-    target_root = (Path(output_dir).resolve() / "FiL_LLM" / "compare")
+    target_root = (Path(output_dir).resolve() / OUTPUT_SUBFOLDER / "compare")
     target_root.mkdir(parents=True, exist_ok=True)
     stem, suffix = source.stem, source.suffix.lower()
     target = target_root / f"{stem}{suffix}"
@@ -58,7 +59,7 @@ def save_compare_image(descriptor, *, temp_dir=None, output_dir=None):
         target = target_root / f"{stem}_{counter:03d}{suffix}"
         counter += 1
     shutil.copy2(source, target)
-    return {"filename": target.name, "subfolder": "FiL_LLM/compare", "type": "output"}
+    return {"filename": target.name, "subfolder": f"{OUTPUT_SUBFOLDER}/compare", "type": "output"}
 
 
 def build_models_response(provider, force=False):
@@ -107,26 +108,26 @@ def register_routes():
         return
     server = PromptServer.instance
 
-    @server.routes.get("/fil_llm/health")
+    @server.routes.get(f"/{ROUTE_SLUG}/health")
     async def health(request):
         return web.json_response({"status": "ok", "version": "2.0.0"})
 
-    @server.routes.get("/fil_llm/models/{provider}")
+    @server.routes.get(f"/{ROUTE_SLUG}/models/{{provider}}")
     async def get_models(request):
         provider = request.match_info.get("provider", "")
         force = request.query.get("force", "0") == "1"
         payload, status = build_models_response(provider, force=force)
         return web.json_response(payload, status=status)
 
-    @server.routes.get("/fil_llm/providers")
+    @server.routes.get(f"/{ROUTE_SLUG}/providers")
     async def list_providers(request):
         return web.json_response({"providers": PROVIDER_DISPLAY_NAMES})
 
-    @server.routes.get("/fil_llm/auth")
+    @server.routes.get(f"/{ROUTE_SLUG}/auth")
     async def get_auth(request):
         return web.json_response({"accounts": get_safe_provider_accounts()})
 
-    @server.routes.post("/fil_llm/auth")
+    @server.routes.post(f"/{ROUTE_SLUG}/auth")
     async def save_auth(request):
         try:
             data = await request.json()
@@ -135,7 +136,7 @@ def register_routes():
         payload, status = apply_auth_payload(data)
         return web.json_response(payload, status=status)
 
-    @server.routes.post("/fil_llm/provider_probe")
+    @server.routes.post(f"/{ROUTE_SLUG}/provider_probe")
     async def provider_probe(request):
         try:
             data = await request.json()
@@ -147,7 +148,7 @@ def register_routes():
             return web.json_response({"error": "unknown provider"}, status=404)
         return web.json_response(probe_provider(provider, model))
 
-    @server.routes.post("/fil_llm/compare/save")
+    @server.routes.post(f"/{ROUTE_SLUG}/compare/save")
     async def compare_save(request):
         try:
             data = await request.json()
@@ -159,13 +160,13 @@ def register_routes():
             logger.warning("Compare output save failed")
             return web.json_response({"error": "save failed"}, status=500)
 
-    @server.routes.get("/fil_llm/locale/{lang}")
+    @server.routes.get(f"/{ROUTE_SLUG}/locale/{{lang}}")
     async def get_locale(request):
         lang = request.match_info.get("lang", "en")
         translations = get_localization_manager().get_all(lang)
         return web.json_response(translations)
 
-    @server.routes.get("/fil_llm/node_contracts")
+    @server.routes.get(f"/{ROUTE_SLUG}/node_contracts")
     async def node_contracts(request):
         # `node_ids` and `settings_prefix` are preserved for the legacy
         # frontend; `schemas` (Pydantic JSON Schemas per node) is consumed
@@ -173,4 +174,4 @@ def register_routes():
         return web.json_response(public_node_contracts_v2())
 
     _ROUTES_REGISTERED = True
-    logger.info("[FiL_LLM] API routes registered: /fil_llm/*")
+    logger.info(f"[{BRAND}] API routes registered: /{ROUTE_SLUG}/*")

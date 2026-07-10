@@ -3,9 +3,9 @@ requires = ["setuptools>=69", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "FiL_LLM"
-version = "4.0.0"
-description = "FiL LLM Nodes for ComfyUI — image understanding and prompt generation (V3 API)."
+name = "FiL_Design_ImageMind"
+version = "1.0.0"
+description = "FiL Design ImageMind nodes for ComfyUI — image understanding and prompt generation (V3 API)."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
@@ -20,17 +20,17 @@ classifiers = [
 ]
 
 [project.urls]
-Repository = "https://github.com/FiL-Design-Ai/FiL_LLM"
+Repository = "https://github.com/FiL-Design-Ai/FiL_Design_ImageMind"
 
 [tool.comfy]
 PublisherId = "fil-design-ai"
-DisplayName = "FiL_LLM"
+DisplayName = "FiL_Design_ImageMind"
 
 [tool.setuptools.package-dir]
-FiL_LLM = "."
+FiL_Design_ImageMind = "."
 
 [tool.setuptools.package-data]
-FiL_LLM = [
+FiL_Design_ImageMind = [
   "config.yaml",
   "data/locales/*.json",
   "data/provider_vision_smoke.json",

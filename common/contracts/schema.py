@@ -1,4 +1,4 @@
-"""Pydantic v2 models for the public FiL_LLM node contract."""
+"""Pydantic v2 models for the public FiL Design ImageMind node contract."""
 
 from __future__ import annotations
 
@@ -72,7 +72,7 @@ class NodeOutput(BaseModel):
 
 
 class NodeContract(BaseModel):
-    """Full frontend contract for a single FiL_LLM node."""
+    """Full frontend contract for a single FiL Design ImageMind node."""
 
     model_config = ConfigDict(extra="forbid")
 

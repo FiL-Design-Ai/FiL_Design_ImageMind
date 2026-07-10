@@ -16,5 +16,5 @@ for path in (str(COMFY_ROOT), str(CUSTOM_NODES_ROOT)):
 @pytest.fixture(autouse=True)
 def _clear_model_cache():
     """Clear the TTL model cache between tests to avoid stale state."""
-    from FiL_LLM.common.provider_runtime import invalidate_model_cache
+    from FiL_Design_ImageMind.common.provider_runtime import invalidate_model_cache
     invalidate_model_cache()

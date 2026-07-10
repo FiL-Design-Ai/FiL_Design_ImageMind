@@ -2,7 +2,8 @@
 /**
  * Regenerate `frontend/src/api/contracts.ts` from the Pydantic node
  * contract dump produced by `scripts/dump_contracts.py` (which ships the
- * same payload as the live `/fil_llm/node_contracts` endpoint).
+ * same payload as the live node_contracts endpoint, see
+ * `common/brand.py`'s `ROUTE_SLUG` for the current route prefix).
  *
  * The contract layer under `common/contracts/` is the single source of
  * truth. This generator renders it into a small, hand-readable TypeScript
@@ -103,7 +104,7 @@ function renderFile(payload) {
   out.push("");
   out.push("export const NODE_CONTRACTS: Record<string, NodeContract> = {");
   const data = payload.data || {};
-  for (const id of Object.keys(payload.node_ids || {})) {
+  for (const id of Object.keys(data)) {
     const node = data[id] || null;
     out.push(`  ${JSON.stringify(id)}: ${JSON.stringify(node, null, 2) ?? "null"},`);
   }
@@ -119,5 +120,5 @@ const payload = loadPayload();
 const fileContent = renderFile(payload);
 mkdirSync(dirname(TS_OUT), { recursive: true });
 writeFileSync(TS_OUT, fileContent + "\n", "utf8");
-const count = Object.keys(payload.node_ids || {}).length;
+const count = Object.keys(payload.data || {}).length;
 console.info(`[gen_contracts] wrote ${TS_OUT} (${count} contracts)`);

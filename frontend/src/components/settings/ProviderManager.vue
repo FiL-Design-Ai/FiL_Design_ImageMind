@@ -18,7 +18,7 @@ onMounted(async () => {
   for (const pid of PROVIDER_LIST) {
     const acct = store.accounts[pid];
     editing.value[pid] = {
-      // Stored keys are never echoed back by GET /fil_llm/auth (write-only
+      // Stored keys are never echoed back by GET /fil_design_imagemind/auth (write-only
       // by the security contract) — the field always starts empty and the
       // `configured` flag drives the "a key is saved" UI state instead.
       key: "",

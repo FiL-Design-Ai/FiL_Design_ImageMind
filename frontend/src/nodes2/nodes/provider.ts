@@ -34,13 +34,9 @@ export const providerNode: NodeModule = {
       const initialTemperature = Number(findFilWidget(node, "temperature")?.value ?? 0.7) || 0.7;
       const initialMaxTokens = Number(findFilWidget(node, "max_tokens")?.value ?? 0) || 0;
       const initialRateLimit = Number(findFilWidget(node, "rate_limit_ms")?.value ?? 100) || 100;
+      const initialMaxImageSide = Number(findFilWidget(node, "max_image_side")?.value ?? 1024) || 1024;
 
-      // Hide native combos/sliders — the Vue view owns them. `seed` and its
-      // auto-added `control_after_generate` combo (ComfyUI adds one for any
-      // widget literally named "seed") are hidden here too — the Vue panel
-      // has no UI for them, but the native widget's own value still drives
-      // execute()'s `seed` argument unmirrored, same as `refresh_models`.
-      for (const name of ["provider", "model", "refresh_models", "temperature", "max_tokens", "rate_limit_ms", "seed", "control_after_generate"]) {
+      for (const name of ["provider", "model", "refresh_models", "temperature", "max_tokens", "rate_limit_ms", "seed", "control_after_generate", "max_image_side"]) {
         const w = findFilWidget(node, name);
         if (w) (w as { hidden?: boolean }).hidden = true;
       }
@@ -52,6 +48,7 @@ export const providerNode: NodeModule = {
           temperature: initialTemperature,
           max_tokens: initialMaxTokens,
           rate_limit_ms: initialRateLimit,
+          max_image_side: initialMaxImageSide,
         }),
         initialValues: {
           provider: initialProvider,
@@ -59,6 +56,7 @@ export const providerNode: NodeModule = {
           temperature: initialTemperature,
           max_tokens: initialMaxTokens,
           rate_limit_ms: initialRateLimit,
+          max_image_side: initialMaxImageSide,
         },
         ui: {},
       };

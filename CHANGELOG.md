@@ -1,5 +1,33 @@
 # Changelog
 
+## 1.0.0 (2026-07-10)
+
+### Breaking
+- **Project renamed: `FiL_LLM` → `FiL_Design_ImageMind`.** This is the first
+  public 1.0.0 release under the new name; there is no backward-compatibility
+  shim for anything below since the project was never publicly released
+  under the old name.
+- **Package/import name** — `FiL_LLM` → `FiL_Design_ImageMind` (`pyproject.toml`,
+  `custom_nodes/<folder>`, all internal imports).
+- **Node categories** — `FiL_LLM/*` → `FiL_Design_ImageMind/*` in the ComfyUI
+  node browser.
+- **REST API route prefix** — `/fil_llm/*` → `/fil_design_imagemind/*`
+  (health, models, providers, auth, provider_probe, compare/save, locale,
+  node_contracts).
+- **Settings prefix** — `FiL_LLM.*` → `FiL_Design_ImageMind.*` ComfyUI
+  settings keys.
+- **Frontend bundle** — `dist/fil_llm.js` → `dist/fil_design_imagemind.js`;
+  Vite `base` now serves from `/extensions/FiL_Design_ImageMind/`.
+- **Python exception base class** — `FiLLLMError` → `FiLError`.
+- **Compare output folder** — saved images now land in
+  `output/FiL_Design_ImageMind/compare/` instead of `output/FiL_LLM/compare/`.
+
+### Added
+- **`common/brand.py`** / **`frontend/src/constants/brand.ts`** — single
+  source of truth for the brand token and its derived forms (category root,
+  settings prefix, route slug, log tag), so future rebrands don't require a
+  repo-wide string sweep.
+
 ## 4.0.0 (2026-07-05)
 
 ### Breaking

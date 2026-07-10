@@ -1,18 +1,18 @@
-"""Tests for the Pydantic node-contract layer (`FiL_LLM.common.contracts`).
+"""Tests for the Pydantic node-contract layer (`FiL_Design_ImageMind.common.contracts`).
 """
 
 from __future__ import annotations
 
 import pytest
 
-from FiL_LLM.common.contracts import (
+from FiL_Design_ImageMind.common.contracts import (
     CANONICAL_IDS,
     NODE_SCHEMAS,
     get_node_contract,
     get_node_schemas,
     public_node_contracts_v2,
 )
-from FiL_LLM.common.contracts.schema import NodeContract, WidgetKind
+from FiL_Design_ImageMind.common.contracts.schema import NodeContract, WidgetKind
 
 CANONICAL = {
     "FiLSeed",
@@ -45,11 +45,11 @@ def test_node_schemas_export_per_node_json_schema():
 def test_public_node_contracts_v2_payload_shape():
     payload = public_node_contracts_v2()
     assert set(payload) == {"node_ids", "schemas", "data", "settings_prefix"}
-    assert payload["settings_prefix"] == "FiL_LLM."
+    assert payload["settings_prefix"] == "FiL_Design_ImageMind."
     assert set(payload["node_ids"]) == CANONICAL
     for node_id, info in payload["node_ids"].items():
         assert set(info) == {"title", "category"}
-        assert info["category"].startswith("FiL_LLM/")
+        assert info["category"].startswith("FiL_Design_ImageMind/")
     # `data` carries the per-node model_dump() — needed by the TS generator.
     assert set(payload["data"]) == CANONICAL
     for node_id, node_data in payload["data"].items():

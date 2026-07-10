@@ -15,7 +15,9 @@ from .data import (
     resolve_runtime_prompt_mode,
 )
 
-logger = logging.getLogger("FiL_LLM.Logic")
+from .brand import BRAND
+
+logger = logging.getLogger(f"{BRAND}.Logic")
 
 # Per model_type extra system-prompt guidance. Appended after the agent/lang/
 # detail sections so the LLM knows what output shape the target generator
