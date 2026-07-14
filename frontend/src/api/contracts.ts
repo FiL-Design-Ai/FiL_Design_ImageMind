@@ -58,7 +58,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "FiLSeed": {
   "id": "FiLSeed",
   "title": "♻️ Seed",
-  "category": "FiL_Design_ImageMind/Values",
+  "category": "🎨 FiL Design/Values",
   "description": "Fixed or randomized seed with copy and reuse buttons.",
   "inputs": {
     "required": [
@@ -175,7 +175,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "FiLProviderLoader": {
   "id": "FiLProviderLoader",
   "title": "🔌 Provider Loader",
-  "category": "FiL_Design_ImageMind/LLM/Provider",
+  "category": "🎨 FiL Design/LLM/Provider",
   "description": "Provider and model runtime configuration.",
   "inputs": {
     "required": [
@@ -357,7 +357,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "FiLOpticScanner": {
   "id": "FiLOpticScanner",
   "title": "🕵️ Optic Scanner",
-  "category": "FiL_Design_ImageMind/LLM/Scanner",
+  "category": "🎨 FiL Design/LLM/Scanner",
   "description": "Image analysis or text-idea expansion into a generation prompt.",
   "inputs": {
     "required": [
@@ -566,24 +566,6 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
           "Hybrid",
           "Two-Stage"
         ],
-        "section": "output",
-        "visible_when": null,
-        "visible_when_value": null
-      },
-      {
-        "name": "max_image_side",
-        "kind": "number",
-        "label": "Max image side",
-        "default": 1024,
-        "tooltip": null,
-        "values": null,
-        "columns": null,
-        "searchable": null,
-        "min": 128,
-        "max": 4096,
-        "step": 64,
-        "units": null,
-        "options": null,
         "section": "output",
         "visible_when": null,
         "visible_when_value": null
@@ -1093,7 +1075,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "FiLNeuroCleaner": {
   "id": "FiLNeuroCleaner",
   "title": "🧹 Cleaner",
-  "category": "FiL_Design_ImageMind/Tools/Cleaner",
+  "category": "🎨 FiL Design/Tools/Cleaner",
   "description": "Selective model, VRAM, RAM, and cache cleanup.",
   "inputs": {
     "required": [
@@ -1350,7 +1332,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "FiLBeforeAfterCompare": {
   "id": "FiLBeforeAfterCompare",
   "title": "🔄 Compare",
-  "category": "FiL_Design_ImageMind/Image/Compare",
+  "category": "🎨 FiL Design/Image/Compare",
   "description": "Before/after preview with optional output resizing.",
   "inputs": {
     "required": [],
@@ -1438,7 +1420,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "FiLUpscaleTileCalc": {
   "id": "FiLUpscaleTileCalc",
   "title": "🔍 Upscaler",
-  "category": "FiL_Design_ImageMind/Image/Upscale",
+  "category": "🎨 FiL Design/Image/Upscale",
   "description": "Computes optimal tile grid layout for upscaling.",
   "inputs": {
     "required": [
