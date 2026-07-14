@@ -88,9 +88,9 @@ export default defineConfig(({ command }) => ({
       formats: ["es"],
     },
     rollupOptions: {
-      // The real ComfyUI-provided module main.ts imports `app` from —
+      // The real ComfyUI-provided modules main.ts/runButtonFx.ts import `app`/`api` from —
       // not an npm package, must not be bundled or resolved from node_modules.
-      external: ["/scripts/app.js"],
+      external: ["/scripts/app.js", "/scripts/api.js"],
       output: {
         // Each node component is loaded via `defineAsyncComponent(() =>
         // import(...))`, which Rollup would otherwise split into separate
@@ -103,6 +103,7 @@ export default defineConfig(({ command }) => ({
   test: {
     environment: "jsdom",
     globals: true,
+    setupFiles: ["./tests/setup.ts"],
     include: ["tests/**/*.test.ts"],
     // Tests run with the real Vue/Pinia from node_modules (not external);
     // the production `external` config above only applies to `vite build`.
