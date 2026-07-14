@@ -1,5 +1,7 @@
 # Official Model Prompting Guide - Based on Vendor Documentation
 
+> **Historical snapshot — 2026-07-08, re-verified 2026-07-10.** This file is a point-in-time research note, not the runtime contract. The canonical, code-synced source of truth is [prompting.md](prompting.md); the implementation lives in `common/model_prompt_adapters.py`. When the two disagree, `prompting.md` wins. Known drift since this snapshot: the QWEN "1-3 sentences" rule below is outdated (see correction inline) and the SDXL section already correctly rejects tag-based prompting, matching the current implementation.
+
 This is the CORRECTED guide based on official documentation from each model's vendor.
 Updated: 2026-07-08
 
@@ -49,7 +51,10 @@ A sleek android, no blur, not cartoon, avoid dark colors, don't make it look fak
 
 ## QWEN (Official Qwen Image 2512 Guide)
 
-### Sweet Spot: 1-3 Sentences
+### Update (2026-07-10): superseded by structured-sections guidance
+The original "1-3 sentences" rule below reflected an earlier Qwen Image guide. Current 2026 official/vendor guides for Qwen Image 2512 (fal.ai, Civitai, apiyi.com) instead recommend **structured sections** — Subject / Pose / Clothing / Camera / Environment / Lighting / Mood — and using the full available token budget rather than compressing to 1-3 sentences. This matches what `docs/prompting.md` and `common/model_prompt_adapters.py` already implement (labeled Scene/Subject/Composition/... clauses). Treat the subsection immediately below as outdated.
+
+### (Outdated) Sweet Spot: 1-3 Sentences
 **CRITICAL**: Keep prompts to 1-3 sentences. This is optimized.
 - Longer = 60% more tokens wasted
 - Shorter = Better results

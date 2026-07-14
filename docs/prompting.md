@@ -304,6 +304,7 @@ Runtime diagnostics for Two-Stage are derived from the exact Stage 1 and Stage 2
 - Ideogram's own Magic Prompt feature (server-side) handles further enhancement; the tool does not build a structured caption object
 - literal on-image text is put in quotes
 - supports a real `negative_prompt` field (standard negative-prompt policy, not positive-constraint reframing)
+- this text-mode default targets the hosted Ideogram API (`docs.ideogram.ai`), where Magic Prompt runs server-side on plain text. The open-weights `ideogram-oss/ideogram4` model was trained exclusively on structured JSON captions — passing it plain text directly is documented to fail/trigger a safety warning. If the downstream consumer is the raw self-hosted model rather than the hosted API, use `response_format: json` (see [IDEOGRAM4_JSON_PROMPTING.md](IDEOGRAM4_JSON_PROMPTING.md)), which the adapter already supports via `adapt_ideogram4_caption`.
 
 ### Z-Image Turbo
 
@@ -317,6 +318,7 @@ Runtime diagnostics for Two-Stage are derived from the exact Stage 1 and Stage 2
 - coherent natural English
 - medium descriptive style
 - logical scene readability
+- follows a subject → environment → style → technical-specs hierarchy (per `docs.bfl.ml`); FLUX's attention mechanism makes explicit emphasis syntax largely unnecessary — natural sentence structure and ordering already signal what matters
 - length follows the selected `detail_level`, not a separate model cap
 
 ### QWEN
@@ -327,11 +329,10 @@ Runtime diagnostics for Two-Stage are derived from the exact Stage 1 and Stage 2
 
 ### SDXL
 
-- comma-separated visual tokens
-- strongest tokens first
-- style and quality tags closer to the end
-- optional negative prompt supported
-- roughly `60-140` comma-separated tokens depending on scene complexity
+- full natural-language sentences, not comma-separated SD1.5-style tags — official guidance (Stability AI / SDXL prompting guides) is explicit that tag-lists underperform on SDXL
+- subject/action leads, environment and lighting as their own sentences, style and quality words trail as a short comma-tagged tail
+- optional negative prompt supported (kept minimal, not a long SD1.5-style exclusion list)
+- roughly 2-4 sentences depending on scene complexity
 
 ## Negative Prompt Policy
 
