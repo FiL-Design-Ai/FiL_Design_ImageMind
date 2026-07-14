@@ -40,6 +40,10 @@ const SECTION_ACCENT: Record<string, string> = {
   advanced: "#00d9ff",
 };
 
+// `string`-kind widgets that render as a multiline textarea rather than a
+// single-line input (they map to `multiline=True` string inputs on the node).
+const MULTILINE_STRING_WIDGETS = new Set(["prompt", "negative_prompt", "custom_style"]);
+
 function sectionLabel(section: string): string {
   const entry = SECTION_LABEL_KEYS[section];
   return entry ? t(entry[0], entry[1]) : section.toUpperCase();
@@ -227,6 +231,12 @@ function newFixedSeed() {
           <FilSegmented v-else-if="w.kind === 'segmented'"
             :options="w.options || []" :model-value="String(getValue(w.name, ''))"
             :label="formatFieldLabel(w)" @update:model-value="(v: string) => setValue(w.name, v)" />
+          <textarea v-else-if="w.kind === 'string' && MULTILINE_STRING_WIDGETS.has(w.name)"
+            class="fil-w-textarea" :value="String(getValue(w.name, ''))" :placeholder="formatFieldLabel(w)"
+            @input="(e: Event) => setValue(w.name, (e.target as HTMLTextAreaElement).value)" />
+          <input v-else-if="w.kind === 'string'" type="text" class="fil-w-input"
+            :value="String(getValue(w.name, ''))" :placeholder="formatFieldLabel(w)"
+            @input="(e: Event) => setValue(w.name, (e.target as HTMLInputElement).value)" />
           <FilChipGrid v-else :options="w.values || []" :model-value="String(getValue(w.name, ''))"
             :columns="w.columns ?? 3" @update:model-value="(v: string) => setValue(w.name, v)" />
         </div>
