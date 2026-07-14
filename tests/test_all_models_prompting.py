@@ -157,23 +157,31 @@ def test_flux_color_palette_deterministic():
 
 
 def test_sdxl_forces_restructuring():
-    """SDXL forces restructuring even for simple text."""
+    """SDXL always uses the restructured (prose) mode."""
     prompt = "A simple scene description"
     output, meta = convert_to_dit_format(prompt, "SDXL", "text")
     # SDXL always restructures
     assert meta["mode"] == "restructured"
-    assert len(output) > len(prompt)
+    # Restructuring preserves the content (prose, not artificial padding)
+    assert output.strip()
 
 
-def test_sdxl_restructure_adds_labels():
-    """SDXL restructuring adds semantic labels."""
+def test_sdxl_restructure_is_natural_language_not_labels():
+    """SDXL restructuring yields natural-language prose, not label:value tags.
+
+    The tag-style output (`subject: ...`, `composition: ...`) was intentionally
+    removed — official guidance is that SDXL underperforms on tag-style prompts.
+    """
     prompt = "A sleek android in a neon city with rain"
     output, meta = convert_to_dit_format(prompt, "SDXL", "text")
 
-    # Output should be longer due to added labels
-    assert len(output) > len(prompt)
-    # Should contain original terms
+    assert meta["mode"] == "restructured"
+    # Original terms preserved
     assert "android" in output or "neon" in output or "rain" in output
+    # No SDXL label tags should be introduced
+    lower = output.lower()
+    for label in ("subject:", "composition:", "focal:", "scene:", "details:"):
+        assert label not in lower
 
 
 def test_sdxl_json_mode_wraps():

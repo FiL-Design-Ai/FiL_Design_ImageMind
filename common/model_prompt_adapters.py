@@ -571,26 +571,18 @@ def _render_prompt_components(components: Dict[str, List[str]], model_type: str)
             labeled.append(f"Style: {style}")
         return ". ".join(labeled)
     if model_type == "SDXL":
-        labeled = []
+        # SDXL (unlike SD1.5) reads best as full natural-language sentences,
+        # not comma-separated label:value tags — official guidance is explicit
+        # that tag-style prompts underperform on SDXL.
+        lead = ", ".join(filter(None, (subject_action, composition, details, focal)))
         if scene_mood:
-            labeled.append(f"scene: {scene_mood}")
-        if subject_action:
-            labeled.append(f"subject: {subject_action}")
-        if composition:
-            labeled.append(f"composition: {composition}")
-        if details:
-            labeled.append(f"details: {details}")
-        if focal:
-            labeled.append(f"focal: {focal}")
-        if environment:
-            labeled.append(f"environment: {environment}")
-        if lighting:
-            labeled.append(f"lighting: {lighting}")
-        if style:
-            labeled.append(f"style: {style}")
-        if quality:
-            labeled.append(f"quality: {quality}")
-        return ", ".join(labeled)
+            lead = f"{lead} in {scene_mood}" if lead else scene_mood
+        sentences = [s for s in (lead, environment, lighting) if s]
+        prose = ". ".join(sentences)
+        tail = ", ".join(filter(None, (style, quality)))
+        if tail:
+            prose = f"{prose}, {tail}" if prose else tail
+        return prose.strip()
     # Z-Image Turbo, default: comma-joined.
     parts = [
         p for p in (scene_mood, subject_action, composition, details, focal, environment, lighting, style)
