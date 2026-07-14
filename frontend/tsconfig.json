@@ -17,7 +17,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "/scripts/app.js": ["src/types/comfyAppModule.ts"]
+      "/scripts/app.js": ["src/types/comfyAppModule.ts"],
+      "/scripts/api.js": ["src/types/comfyApiModule.ts"]
     },
     "types": ["vite/client", "node"]
   },
