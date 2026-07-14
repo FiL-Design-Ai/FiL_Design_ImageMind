@@ -6,7 +6,7 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-dist/
+/dist/
 downloads/
 eggs/
 .eggs/
@@ -89,7 +89,8 @@ my-agent/
 # Node.js
 node_modules/
 frontend/node_modules/
-frontend/dist/
+# frontend/dist/ is intentionally committed: ComfyUI loads it via
+# WEB_DIRECTORY and the Comfy Registry publish ships whatever is in git.
 
 # Local auth/credentials
 data/auth.json

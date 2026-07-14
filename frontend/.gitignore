@@ -1,5 +1,5 @@
 node_modules/
-dist/
+# dist/ is intentionally committed — ComfyUI serves it via WEB_DIRECTORY.
 *.local
 .vite/
 coverage/

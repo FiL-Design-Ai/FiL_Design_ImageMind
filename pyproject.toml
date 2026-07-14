@@ -35,6 +35,7 @@ FiL_Design_ImageMind = [
   "data/locales/*.json",
   "data/provider_vision_smoke.json",
   "frontend/dist/*",
+  "frontend/dist/style-previews/*",
   "docs/workflows/*.json",
 ]
 
