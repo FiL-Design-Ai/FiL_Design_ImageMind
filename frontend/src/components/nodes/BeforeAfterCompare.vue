@@ -94,6 +94,16 @@ function loadImage(url: string): Promise<HTMLImageElement> {
   });
 }
 
+// ---- canvas rendering state --------------------------------------------
+// Declared BEFORE the immediate `compare_images` watcher below: that watcher
+// runs synchronously inside setup() and, when a node has no images yet, falls
+// straight through to `scheduleDraw()` which reads `rafId`. Declaring these
+// lexical bindings first avoids a temporal-dead-zone ReferenceError.
+const wrapRef = ref<HTMLDivElement | null>(null);
+const canvasRef = ref<HTMLCanvasElement | null>(null);
+let rafId = 0;
+let resizeObserver: ResizeObserver | null = null;
+
 watch(
   () => props.state.ui.compare_images,
   async (val) => {
@@ -117,11 +127,6 @@ watch(
 watch([mode, position, opacity], () => scheduleDraw());
 
 // ---- canvas rendering --------------------------------------------------
-
-const wrapRef = ref<HTMLDivElement | null>(null);
-const canvasRef = ref<HTMLCanvasElement | null>(null);
-let rafId = 0;
-let resizeObserver: ResizeObserver | null = null;
 
 function containRect(cw: number, ch: number, iw: number, ih: number) {
   if (!iw || !ih) return { x: 0, y: 0, w: cw, h: ch };
