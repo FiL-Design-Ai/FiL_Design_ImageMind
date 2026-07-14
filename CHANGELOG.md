@@ -9,7 +9,7 @@
   under the old name.
 - **Package/import name** — `FiL_LLM` → `FiL_Design_ImageMind` (`pyproject.toml`,
   `custom_nodes/<folder>`, all internal imports).
-- **Node categories** — `FiL_LLM/*` → `FiL_Design_ImageMind/*` in the ComfyUI
+- **Node categories** — `FiL_LLM/*` → `🎨 FiL Design/*` in the ComfyUI
   node browser.
 - **REST API route prefix** — `/fil_llm/*` → `/fil_design_imagemind/*`
   (health, models, providers, auth, provider_probe, compare/save, locale,

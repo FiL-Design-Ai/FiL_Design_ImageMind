@@ -4,6 +4,8 @@
 
 Optic Scanner supports structured JSON prompting for Ideogram 4, enabling precise control over composition, colors, and element placement through bbox coordinates.
 
+**When this schema is required, not just optional:** the default text-mode output for Ideogram 4 (see [prompting.md](prompting.md)) targets the hosted API (`docs.ideogram.ai`), which runs Magic Prompt server-side to expand plain text. The open-weights `ideogram-oss/ideogram4` model, by contrast, was trained exclusively on structured JSON captions — its own docs state that plain-text prompts sent directly to the raw model will not work and will likely trigger a safety warning. If the downstream target is the self-hosted/raw model rather than the hosted API, request `response_format: json` to get the canonical caption object documented below.
+
 ## JSON Structure
 
 The canonical Ideogram 4 JSON caption format has this exact structure:
