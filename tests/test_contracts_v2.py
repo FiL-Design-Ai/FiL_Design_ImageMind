@@ -13,6 +13,7 @@ from FiL_Design_ImageMind.common.contracts import (
     public_node_contracts_v2,
 )
 from FiL_Design_ImageMind.common.contracts.schema import NodeContract, WidgetKind
+from FiL_Design_ImageMind.common.brand import CATEGORY_ROOT
 
 CANONICAL = {
     "FiLSeed",
@@ -49,7 +50,7 @@ def test_public_node_contracts_v2_payload_shape():
     assert set(payload["node_ids"]) == CANONICAL
     for node_id, info in payload["node_ids"].items():
         assert set(info) == {"title", "category"}
-        assert info["category"].startswith("FiL_Design_ImageMind/")
+        assert info["category"].startswith(f"{CATEGORY_ROOT}/")
     # `data` carries the per-node model_dump() — needed by the TS generator.
     assert set(payload["data"]) == CANONICAL
     for node_id, node_data in payload["data"].items():
