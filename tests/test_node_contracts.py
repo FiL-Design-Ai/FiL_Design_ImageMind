@@ -3,6 +3,8 @@ from __future__ import annotations
 import importlib
 import asyncio
 
+from FiL_Design_ImageMind.common.brand import CATEGORY_ROOT
+
 
 EXPECTED_IDS = {
     "FiLSeed",
@@ -35,7 +37,7 @@ def test_contracts_use_fil_design_imagemind_categories_and_valid_schema():
     node_classes = asyncio.run(ext.get_node_list())
     for node_class in node_classes:
         schema = node_class.GET_SCHEMA()
-        assert schema.category.startswith("FiL_Design_ImageMind/")
+        assert schema.category.startswith(f"{CATEGORY_ROOT}/")
 
 
 def test_seed_passthrough():
