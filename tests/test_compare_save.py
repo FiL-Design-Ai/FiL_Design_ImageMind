@@ -4,11 +4,20 @@ from pathlib import Path
 
 import pytest
 
+from FiL_Design_ImageMind.nodes.node_compare import FiLBeforeAfterCompare
 from FiL_Design_ImageMind.server_routes import save_compare_image
 
 
 def descriptor(filename="preview.png", subfolder=""):
     return {"filename": filename, "subfolder": subfolder, "type": "temp"}
+
+
+def test_compare_is_output_node_so_terminal_viewer_executes():
+    """The Compare node emits a `ui` payload for its in-node before/after
+    viewer. It must be an output node, otherwise ComfyUI prunes a terminal
+    Compare (image outputs unconnected), execute() never runs, and the viewer
+    stays blank. Regression guard for that pruning bug."""
+    assert FiLBeforeAfterCompare.GET_SCHEMA().is_output_node is True
 
 
 def test_compare_save_copies_temp_image_and_uses_unique_name(tmp_path):

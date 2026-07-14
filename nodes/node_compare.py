@@ -34,6 +34,12 @@ class FiLBeforeAfterCompare(io.ComfyNode):
             ],
             search_aliases=["compare", "side by side", "before after", "diff", "comparison"],
             hidden=[io.Hidden.prompt, io.Hidden.extra_pnginfo],
+            # The node's primary purpose is the in-node before/after viewer,
+            # populated from the `ui` payload emitted by execute(). Without this
+            # flag ComfyUI prunes a terminal Compare node (image outputs left
+            # unconnected), so execute() never runs and the viewer stays on its
+            # placeholder. The before/after outputs remain available for chaining.
+            is_output_node=True,
         )
 
     @staticmethod
