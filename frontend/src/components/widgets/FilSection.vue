@@ -44,7 +44,7 @@ const arrow = computed(() => (props.modelValue ? "▶" : "▼"));
 .fil-w-section {
   box-sizing: border-box;
   width: 100%;
-  padding: 6px 10px;
+  padding: var(--fil-row-pad);
   border: none;
   border-radius: 5px;
   background: rgba(255, 255, 255, 0.04);

@@ -1695,6 +1695,482 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   ],
   "family": "image"
 },
+  "FiLKSampler": {
+  "id": "FiLKSampler",
+  "title": "⚡ KSampler",
+  "category": "🎨 FiL Design/Sampling/KSampler",
+  "description": "Full-featured sampler with every sampler and scheduler.",
+  "inputs": {
+    "required": [
+      {
+        "name": "seed",
+        "kind": "number",
+        "label": "Seed",
+        "default": 0,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "min": 0,
+        "max": 18446744073709552000,
+        "step": 1,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "steps",
+        "kind": "number",
+        "label": "Steps",
+        "default": 20,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "min": 1,
+        "max": 10000,
+        "step": 1,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "cfg",
+        "kind": "slider",
+        "label": "CFG",
+        "default": 7,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "min": 0,
+        "max": 100,
+        "step": 0.1,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "sampler_name",
+        "kind": "combo",
+        "label": "Sampler",
+        "default": "euler",
+        "tooltip": null,
+        "values": [
+          "euler"
+        ],
+        "columns": null,
+        "searchable": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "scheduler",
+        "kind": "combo",
+        "label": "Scheduler",
+        "default": "normal",
+        "tooltip": null,
+        "values": [
+          "normal"
+        ],
+        "columns": null,
+        "searchable": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "denoise",
+        "kind": "slider",
+        "label": "Denoise",
+        "default": 1,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "min": 0,
+        "max": 1,
+        "step": 0.01,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      }
+    ],
+    "optional": [
+      {
+        "name": "preview_method",
+        "kind": "combo",
+        "label": "Preview",
+        "default": "auto",
+        "tooltip": null,
+        "values": [
+          "auto",
+          "latent2rgb",
+          "taesd",
+          "vae_decoded_only",
+          "none"
+        ],
+        "columns": null,
+        "searchable": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": "advanced",
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "vae_decode",
+        "kind": "combo",
+        "label": "VAE decode",
+        "default": "true",
+        "tooltip": null,
+        "values": [
+          "true",
+          "true (tiled)",
+          "false"
+        ],
+        "columns": null,
+        "searchable": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": "advanced",
+        "visible_when": null,
+        "visible_when_value": null
+      }
+    ],
+    "hidden": []
+  },
+  "outputs": [
+    {
+      "name": "MODEL",
+      "type": "ANY"
+    },
+    {
+      "name": "CONDITIONING+",
+      "type": "ANY"
+    },
+    {
+      "name": "CONDITIONING-",
+      "type": "ANY"
+    },
+    {
+      "name": "LATENT",
+      "type": "LATENT"
+    },
+    {
+      "name": "VAE",
+      "type": "ANY"
+    },
+    {
+      "name": "IMAGE",
+      "type": "IMAGE"
+    }
+  ],
+  "min_size": [
+    320,
+    360
+  ],
+  "family": "sampling"
+},
+  "FiLHighResFix": {
+  "id": "FiLHighResFix",
+  "title": "🔬 HighRes Fix",
+  "category": "🎨 FiL Design/Sampling/HighResFix",
+  "description": "Packs latent/pixel upscale + re-sample settings into a script.",
+  "inputs": {
+    "required": [
+      {
+        "name": "upscale_type",
+        "kind": "segmented",
+        "label": "Upscale type",
+        "default": "latent",
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": [
+          "latent",
+          "pixel",
+          "both"
+        ],
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "hires_ckpt_name",
+        "kind": "combo",
+        "label": "Hires checkpoint",
+        "default": "(use same)",
+        "tooltip": null,
+        "values": [
+          "(use same)"
+        ],
+        "columns": null,
+        "searchable": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "latent_upscaler",
+        "kind": "combo",
+        "label": "Latent upscaler",
+        "default": "nearest-exact",
+        "tooltip": null,
+        "values": [
+          "nearest-exact",
+          "bilinear",
+          "area",
+          "bicubic",
+          "bislerp"
+        ],
+        "columns": null,
+        "searchable": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": "upscale_type",
+        "visible_when_value": "latent"
+      },
+      {
+        "name": "pixel_upscaler",
+        "kind": "combo",
+        "label": "Pixel upscaler",
+        "default": "(none)",
+        "tooltip": null,
+        "values": [
+          "(none)"
+        ],
+        "columns": null,
+        "searchable": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": "upscale_type",
+        "visible_when_value": "pixel"
+      },
+      {
+        "name": "upscale_by",
+        "kind": "slider",
+        "label": "Upscale by",
+        "default": 1.25,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "min": 0.01,
+        "max": 8,
+        "step": 0.05,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "use_same_seed",
+        "kind": "boolean",
+        "label": "Use same seed",
+        "default": true,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "seed",
+        "kind": "number",
+        "label": "Seed",
+        "default": 0,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "min": 0,
+        "max": 18446744073709552000,
+        "step": 1,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "hires_steps",
+        "kind": "number",
+        "label": "Hires steps",
+        "default": 12,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "min": 1,
+        "max": 10000,
+        "step": 1,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "denoise",
+        "kind": "slider",
+        "label": "Denoise",
+        "default": 0.56,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "min": 0,
+        "max": 1,
+        "step": 0.01,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "iterations",
+        "kind": "number",
+        "label": "Iterations",
+        "default": 1,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "min": 0,
+        "max": 5,
+        "step": 1,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      }
+    ],
+    "optional": [
+      {
+        "name": "use_controlnet",
+        "kind": "boolean",
+        "label": "Use ControlNet",
+        "default": false,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": "controlnet",
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "control_net_name",
+        "kind": "combo",
+        "label": "ControlNet",
+        "default": "(none)",
+        "tooltip": null,
+        "values": [
+          "(none)"
+        ],
+        "columns": null,
+        "searchable": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": "controlnet",
+        "visible_when": "use_controlnet",
+        "visible_when_value": true
+      },
+      {
+        "name": "strength",
+        "kind": "slider",
+        "label": "Strength",
+        "default": 1,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "min": 0,
+        "max": 10,
+        "step": 0.01,
+        "units": null,
+        "options": null,
+        "section": "controlnet",
+        "visible_when": "use_controlnet",
+        "visible_when_value": true
+      }
+    ],
+    "hidden": []
+  },
+  "outputs": [
+    {
+      "name": "SCRIPT",
+      "type": "DICT"
+    }
+  ],
+  "min_size": [
+    320,
+    380
+  ],
+  "family": "sampling"
+},
 };
 
 export type NodeId = keyof typeof NODE_CONTRACTS;

@@ -206,7 +206,7 @@ onUnmounted(() => {
 /* Container surface comes from the shared `.fil-node-shell [class$="-root"]`
  * rule in styles/brand.ts — keep only layout here. */
 .fil-provider-root {
-  display: flex; flex-direction: column; gap: 5px; padding: 6px;
+  display: flex; flex-direction: column; gap: var(--fil-node-gap); padding: var(--fil-node-pad);
   color: var(--fil-text, #e8edf3); font-family: ui-sans-serif, system-ui, sans-serif;
   min-width: 0;
 }

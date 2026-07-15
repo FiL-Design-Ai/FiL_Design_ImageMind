@@ -8,10 +8,12 @@ const CANONICAL_IDS = [
   "FiLNeuroCleaner",
   "FiLBeforeAfterCompare",
   "FiLUpscaleTileCalc",
+  "FiLKSampler",
+  "FiLHighResFix",
 ];
 
 describe("node registry", () => {
-  it("registers all 6 canonical node ids", () => {
+  it("registers all canonical node ids", () => {
     for (const id of CANONICAL_IDS) {
       expect(NODE_MODULES[id], `missing ${id}`).toBeDefined();
       expect(typeof NODE_MODULES[id].register).toBe("function");

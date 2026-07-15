@@ -22,6 +22,8 @@ CANONICAL = {
     "FiLNeuroCleaner",
     "FiLBeforeAfterCompare",
     "FiLUpscaleTileCalc",
+    "FiLKSampler",
+    "FiLHighResFix",
 }
 
 

@@ -87,10 +87,10 @@ watch(() => props.state.nodeState, () => {}, { deep: true });
 <style scoped>
 /* Container surface comes from the shared `.fil-node-shell [class$="-root"]`
  * rule in styles/brand.ts — keep only layout here. */
-.fil-cleaner-root { display: flex; flex-direction: column; gap: 5px; padding: 6px;
+.fil-cleaner-root { display: flex; flex-direction: column; gap: var(--fil-node-gap); padding: var(--fil-node-pad);
   color: var(--fil-text, #e8edf3); font-family: ui-sans-serif, system-ui, sans-serif; }
-.fil-cleaner-row { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 10px;
-  padding: 8px 10px; border-radius: var(--fil-field-radius); border: 1px solid var(--fil-glass-border);
+.fil-cleaner-row { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 8px;
+  padding: var(--fil-row-pad); border-radius: var(--fil-field-radius); border: 1px solid var(--fil-glass-border);
   background: var(--fil-glass-bg); cursor: pointer; user-select: none;
   transition: background .08s, border-color .08s; }
 .fil-cleaner-row:hover { background: rgba(255,255,255,0.08); }

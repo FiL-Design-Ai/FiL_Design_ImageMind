@@ -295,7 +295,7 @@ function newFixedSeed() {
  * `.fil-node-shell [class$="-root"]` rule in styles/brand.ts — keep only
  * layout here so every node stays in sync. */
 .fil-scanner-root {
-  display: flex; flex-direction: column; gap: 5px; padding: 6px;
+  display: flex; flex-direction: column; gap: var(--fil-node-gap); padding: var(--fil-node-pad);
   color: var(--fil-text, #e8edf3); font-family: ui-sans-serif, system-ui, sans-serif;
   width: 100%; box-sizing: border-box; min-width: 0;
 }
@@ -304,7 +304,7 @@ function newFixedSeed() {
 .fil-w-textarea, .fil-w-input {
   width: 100%; box-sizing: border-box; background: var(--fil-glass-bg);
   border: 1px solid var(--fil-glass-border); border-radius: var(--fil-field-radius);
-  color: var(--fil-text, #a0c4ff); padding: 8px 10px; font-size: 12px;
+  color: var(--fil-text, #a0c4ff); padding: var(--fil-row-pad); font-size: 12px;
   font-family: inherit; outline: none; transition: border-color .08s;
 }
 .fil-w-textarea { min-height: 56px; resize: vertical; }

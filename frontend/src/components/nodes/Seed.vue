@@ -86,16 +86,16 @@ const display = computed(() => (mode.value === "fixed" ? `${seed.value}` : "rand
 .fil-seed-root {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  padding: 6px;
+  gap: var(--fil-node-gap);
+  padding: var(--fil-node-pad);
   color: var(--fil-text, #e8edf3);
   font-family: ui-sans-serif, system-ui, sans-serif;
 }
 .fil-seed-readout { display: flex; flex-direction: column; gap: 4px; }
 .fil-seed-display {
-  width: 100%; box-sizing: border-box; height: 42px;
+  width: 100%; box-sizing: border-box; height: 34px;
   background: var(--fil-glass-bg); border: 1px solid var(--fil-glass-border); border-radius: var(--fil-field-radius);
-  padding: 9px 8px; color: var(--fil-text, #f2f2f2);
+  padding: 6px 8px; color: var(--fil-text, #f2f2f2);
   font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
   font-size: 19px; text-align: center; outline: none; transition: border-color .08s;
 }
