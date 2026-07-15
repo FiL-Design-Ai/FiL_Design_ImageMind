@@ -86,8 +86,8 @@ const display = computed(() => (mode.value === "fixed" ? `${seed.value}` : "rand
 .fil-seed-root {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 8px;
+  gap: 5px;
+  padding: 6px;
   color: var(--fil-text, #e8edf3);
   font-family: ui-sans-serif, system-ui, sans-serif;
 }
