@@ -85,12 +85,13 @@ watch(() => props.state.nodeState, () => {}, { deep: true });
 </template>
 
 <style scoped>
+/* Container surface comes from the shared `.fil-node-shell [class$="-root"]`
+ * rule in styles/brand.ts — keep only layout here. */
 .fil-cleaner-root { display: flex; flex-direction: column; gap: 5px; padding: 8px;
-  background: var(--fil-panel, #171b22); border-radius: var(--fil-radius, 8px);
   color: var(--fil-text, #e8edf3); font-family: ui-sans-serif, system-ui, sans-serif; }
 .fil-cleaner-row { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 10px;
-  padding: 8px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.04); cursor: pointer; user-select: none;
+  padding: 8px 10px; border-radius: var(--fil-field-radius); border: 1px solid var(--fil-glass-border);
+  background: var(--fil-glass-bg); cursor: pointer; user-select: none;
   transition: background .08s, border-color .08s; }
 .fil-cleaner-row:hover { background: rgba(255,255,255,0.08); }
 .fil-cleaner-row.active { border-color: var(--fil-accent); background: rgba(246,138,69,0.12); }

@@ -112,8 +112,9 @@ watch(() => props.state.nodeState, () => {}, { deep: true });
 </template>
 
 <style scoped>
+/* Container surface comes from the shared `.fil-node-shell [class$="-root"]`
+ * rule in styles/brand.ts — keep only layout here. */
 .fil-up-root { display: flex; flex-direction: column; gap: 8px; padding: 8px;
-  background: var(--fil-panel, #171b22); border-radius: var(--fil-radius, 8px);
   color: var(--fil-text, #e8edf3); font-family: ui-sans-serif, system-ui, sans-serif; }
 .fil-up-row { display: grid; grid-template-columns: minmax(auto, max-content) minmax(48px, 1fr) minmax(auto, max-content) minmax(48px, 1fr); align-items: center; gap: 6px; }
 .fil-w-label { font-size: 11px; color: var(--fil-muted, rgba(255,255,255,0.55)); }

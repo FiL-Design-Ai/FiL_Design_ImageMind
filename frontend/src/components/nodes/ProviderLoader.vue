@@ -203,11 +203,12 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+/* Container surface comes from the shared `.fil-node-shell [class$="-root"]`
+ * rule in styles/brand.ts — keep only layout here. */
 .fil-provider-root {
   display: flex; flex-direction: column; gap: 6px; padding: 8px;
-  background: var(--fil-panel, #171b22); border-radius: var(--fil-radius, 8px);
   color: var(--fil-text, #e8edf3); font-family: ui-sans-serif, system-ui, sans-serif;
-  min-width: 0; overflow: hidden;
+  min-width: 0;
 }
 .fil-w-label { font-size: 10px; color: var(--fil-muted, rgba(255,255,255,0.55)); margin-top: 2px; }
 .fil-provider-row {
@@ -218,7 +219,7 @@ onUnmounted(() => {
 .fil-model-filter-wrap { flex: 1; min-width: 0; }
 .fil-model-filter {
   width: 100%; box-sizing: border-box; height: 24px;
-  background: var(--fil-panel-alt, #0f1113); border: 1px solid var(--fil-muted, #3a3d40); border-radius: 4px;
+  background: var(--fil-glass-bg); border: 1px solid var(--fil-glass-border); border-radius: var(--fil-field-radius);
   padding: 2px 6px; color: var(--fil-text, #e8edf3); font-family: inherit; font-size: 11px; outline: none;
 }
 .fil-model-filter:focus { border-color: var(--fil-accent); }

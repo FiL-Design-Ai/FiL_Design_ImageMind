@@ -291,19 +291,19 @@ function newFixedSeed() {
 </template>
 
 <style scoped>
+/* Container surface (glass, radius, blur, shadow) comes from the shared
+ * `.fil-node-shell [class$="-root"]` rule in styles/brand.ts — keep only
+ * layout here so every node stays in sync. */
 .fil-scanner-root {
   display: flex; flex-direction: column; gap: 6px; padding: 8px;
-  background: rgba(100, 180, 220, 0.06); border: 1px solid rgba(0, 255, 255, 0.18);
-  border-radius: 20px; backdrop-filter: blur(10px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   color: var(--fil-text, #e8edf3); font-family: ui-sans-serif, system-ui, sans-serif;
-  width: 100%; box-sizing: border-box; min-width: 0; overflow: hidden;
+  width: 100%; box-sizing: border-box; min-width: 0;
 }
 .fil-section-block { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .fil-w-row { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .fil-w-textarea, .fil-w-input {
-  width: 100%; box-sizing: border-box; background: rgba(50, 80, 120, 0.18);
-  border: 1px solid rgba(0, 150, 200, 0.35); border-radius: 10px;
+  width: 100%; box-sizing: border-box; background: var(--fil-glass-bg);
+  border: 1px solid var(--fil-glass-border); border-radius: var(--fil-field-radius);
   color: var(--fil-text, #a0c4ff); padding: 8px 10px; font-size: 12px;
   font-family: inherit; outline: none; transition: border-color .08s;
 }
@@ -318,7 +318,7 @@ function newFixedSeed() {
 .fil-scanner-seed-row { display: flex; gap: 6px; min-width: 0; }
 .fil-scanner-seed-field {
   flex: 1.3; min-width: 0; box-sizing: border-box; height: 34px;
-  background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 17px;
+  background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--fil-pill-radius);
   padding: 0 12px; color: var(--fil-text, #f2f2f2);
   font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
   font-size: 13px; text-align: center; outline: none; transition: border-color .08s;
@@ -327,8 +327,8 @@ function newFixedSeed() {
 .fil-scanner-seed-field.is-random { color: var(--fil-muted, #9ca8b5); font-style: italic; }
 .fil-scanner-seed-pill {
   flex: 1; min-width: 0; box-sizing: border-box; height: 34px; padding: 0 8px;
-  border-radius: 17px; border: 1px solid rgba(0, 150, 200, 0.4);
-  background: rgba(255, 255, 255, 0.06); color: var(--fil-text, #e8edf3);
+  border-radius: var(--fil-pill-radius); border: 1px solid var(--fil-pill-border);
+  background: var(--fil-pill-bg); color: var(--fil-text, #e8edf3);
   font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer;
   transition: background .08s, border-color .08s, color .08s;
   appearance: none; -webkit-appearance: none; outline: none;
