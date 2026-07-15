@@ -344,14 +344,16 @@ async function saveSide(side: "a" | "b") {
 </template>
 
 <style scoped>
+/* Container surface comes from the shared `.fil-node-shell [class$="-root"]`
+ * rule in styles/brand.ts — keep only layout here. */
 .fil-cmp-root { display: flex; flex-direction: column; gap: 8px; padding: 8px;
-  background: var(--fil-panel, #171b22); border-radius: var(--fil-radius, 8px);
   color: var(--fil-text, #e8edf3); font-family: ui-sans-serif, system-ui, sans-serif; }
 .fil-cmp-canvas-wrap {
   position: relative;
   width: 100%;
   height: 220px;
-  border-radius: 6px;
+  border-radius: var(--fil-field-radius);
+  border: 1px solid var(--fil-glass-border);
   overflow: hidden;
   background:
     linear-gradient(45deg, rgba(255,255,255,0.04) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.04) 75%) 0 0/16px 16px,

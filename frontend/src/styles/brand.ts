@@ -102,6 +102,40 @@ const THEME_EFFECTS: Record<FilThemeName, string> = {
 };
 
 /**
+ * Neo-Tactile "glass" surface tokens — extracted from the original hardcoded
+ * OpticScanner CSS so every node shares one source of truth. Cyan is the
+ * current default; a future style variant only needs to reassign these.
+ * `--fil-surface-*` = the node container; `--fil-glass-*`/`--fil-field-*`/
+ * `--fil-pill-*` = inner fields, textareas and pill buttons.
+ */
+const SURFACE_VARS_CYAN =
+  "--fil-surface-bg:rgba(100,180,220,0.06);" +
+  "--fil-surface-border:rgba(0,255,255,0.18);" +
+  "--fil-surface-radius:20px;" +
+  "--fil-surface-blur:10px;" +
+  "--fil-surface-shadow:0 8px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08);" +
+  "--fil-glass-bg:rgba(50,80,120,0.18);" +
+  "--fil-glass-border:rgba(0,150,200,0.35);" +
+  "--fil-field-radius:10px;" +
+  "--fil-pill-radius:17px;" +
+  "--fil-pill-bg:rgba(255,255,255,0.06);" +
+  "--fil-pill-border:rgba(0,150,200,0.4);";
+
+/** Light-theme surface: softer tint, same geometry. */
+const SURFACE_VARS_LIGHT =
+  "--fil-surface-bg:rgba(70,130,170,0.08);" +
+  "--fil-surface-border:rgba(40,120,160,0.28);" +
+  "--fil-surface-radius:20px;" +
+  "--fil-surface-blur:10px;" +
+  "--fil-surface-shadow:0 8px 24px rgba(40,60,90,0.18), inset 0 1px 0 rgba(255,255,255,0.5);" +
+  "--fil-glass-bg:rgba(120,160,200,0.16);" +
+  "--fil-glass-border:rgba(40,120,160,0.3);" +
+  "--fil-field-radius:10px;" +
+  "--fil-pill-radius:17px;" +
+  "--fil-pill-bg:rgba(30,60,90,0.06);" +
+  "--fil-pill-border:rgba(40,120,160,0.35);";
+
+/**
  * Inject the FiL_Design_ImageMind CSS variables on `:root` exactly once, plus two extra
  * (initially empty) `<style>` tags reserved for runtime theme switching —
  * see `applyFilTheme()`. Safe to call from any module — duplicates are
@@ -112,9 +146,20 @@ export function injectFilBrandVars(): void {
   if (document.getElementById("fil-brand-vars")) return;
   const el = document.createElement("style");
   el.id = "fil-brand-vars";
-  el.textContent = `:root{${paletteCssVars(FIL_PALETTE)}--fil-radius:8px;--fil-gap:.55rem;--fil-input-border:rgba(240,138,69,0.35);}
-.comfy-theme-light{${paletteCssVars(FIL_PALETTE_LIGHT)}--fil-input-border:rgba(201,104,44,0.35);}
-.comfy-multiline-input{border-color:var(--fil-input-border) !important;}`;
+  el.textContent = `:root{${paletteCssVars(FIL_PALETTE)}--fil-radius:8px;--fil-gap:.55rem;--fil-input-border:rgba(240,138,69,0.35);${SURFACE_VARS_CYAN}}
+.comfy-theme-light{${paletteCssVars(FIL_PALETTE_LIGHT)}--fil-input-border:rgba(201,104,44,0.35);${SURFACE_VARS_LIGHT}}
+.comfy-multiline-input{border-color:var(--fil-input-border) !important;}
+/* Shared "Neo-Tactile" glass surface for every node body (scoped to the Vue
+ * shell so it only hits node roots). Values live in the fil-surface and
+ * fil-glass tokens above, so a future style just reassigns the tokens. */
+.fil-node-shell [class$="-root"]{
+  background:var(--fil-surface-bg);
+  border:1px solid var(--fil-surface-border);
+  border-radius:var(--fil-surface-radius);
+  backdrop-filter:blur(var(--fil-surface-blur));
+  box-shadow:var(--fil-surface-shadow);
+  overflow:hidden;
+}`;
   document.head.appendChild(el);
 
   themeVarsEl = document.createElement("style");

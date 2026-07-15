@@ -81,20 +81,20 @@ const display = computed(() => (mode.value === "fixed" ? `${seed.value}` : "rand
 </template>
 
 <style scoped>
+/* Container surface comes from the shared `.fil-node-shell [class$="-root"]`
+ * rule in styles/brand.ts — keep only layout here. */
 .fil-seed-root {
   display: flex;
   flex-direction: column;
   gap: 8px;
   padding: 8px;
-  background: var(--fil-panel, #171b22);
-  border-radius: var(--fil-radius, 8px);
   color: var(--fil-text, #e8edf3);
   font-family: ui-sans-serif, system-ui, sans-serif;
 }
 .fil-seed-readout { display: flex; flex-direction: column; gap: 4px; }
 .fil-seed-display {
   width: 100%; box-sizing: border-box; height: 42px;
-  background: var(--fil-panel-alt, #171819); border: 1px solid var(--fil-muted, #3a3d40); border-radius: 6px;
+  background: var(--fil-glass-bg); border: 1px solid var(--fil-glass-border); border-radius: var(--fil-field-radius);
   padding: 9px 8px; color: var(--fil-text, #f2f2f2);
   font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
   font-size: 19px; text-align: center; outline: none; transition: border-color .08s;
