@@ -91,7 +91,12 @@ def sample_unified(
     if noise is None:
         from comfy_extras.nodes_custom_sampler import Noise_RandomNoise
 
-        noise = Noise_RandomNoise(seed).generate_noise(out)
+        noise = Noise_RandomNoise(seed)
+    # A NOISE socket carries a noise *generator* (e.g. Noise_RandomNoise), not a
+    # tensor — realise it against the channel-fixed latent, exactly as
+    # SamplerCustom does. Tolerate a raw tensor too, for defensive callers.
+    if hasattr(noise, "generate_noise"):
+        noise = noise.generate_noise(out)
 
     noise_mask = out.get("noise_mask")
     disable_pbar = not comfy.utils.PROGRESS_BAR_ENABLED

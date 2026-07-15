@@ -74,15 +74,21 @@ def test_wired_sampler_and_sigmas_route_to_sample_custom(monkeypatch):
         # Two-entry schedule → one real step, passes the > 1 length guard.
         shape = (2,)
 
+    class _Noise:
+        # A NOISE socket carries a generator, not a tensor — sample_unified must
+        # call generate_noise() to realise the tensor before sampling.
+        def generate_noise(self, latent):
+            return "NOISE_TENSOR"
+
     result = sampling.sample_unified(
         model=object(), seed=99, steps=20, cfg=6.0,
         sampler_name="euler", scheduler="normal",
         positive="P", negative="N", latent={"samples": "IN"}, denoise=1.0,
-        sampler="MY_SAMPLER", sigmas=_Sigmas(), noise="MY_NOISE",
+        sampler="MY_SAMPLER", sigmas=_Sigmas(), noise=_Noise(),
     )
 
     assert spy.get("called") is not True  # legacy path not taken
     assert captured["sampler"] == "MY_SAMPLER"
-    assert captured["noise"] == "MY_NOISE"
+    assert captured["noise"] == "NOISE_TENSOR"  # generator was realised
     assert captured["seed"] == 99
     assert result["samples"] == "OUT_SAMPLES"
