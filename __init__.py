@@ -19,6 +19,8 @@ class FiLExtension(ComfyExtension):
         from .nodes.node_cleaner import FiLNeuroCleaner
         from .nodes.node_compare import FiLBeforeAfterCompare
         from .nodes.node_upscale import FiLUpscaleTileCalc
+        from .nodes.node_ksampler import FiLKSampler
+        from .nodes.node_hiresfix import FiLHighResFix
         return [
             FiLSeed,
             FiLProviderLoader,
@@ -26,6 +28,8 @@ class FiLExtension(ComfyExtension):
             FiLNeuroCleaner,
             FiLBeforeAfterCompare,
             FiLUpscaleTileCalc,
+            FiLKSampler,
+            FiLHighResFix,
         ]
 
 

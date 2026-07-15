@@ -12,6 +12,8 @@ import { scannerNode } from "@/nodes2/nodes/scanner";
 import { cleanerNode } from "@/nodes2/nodes/cleaner";
 import { compareNode } from "@/nodes2/nodes/compare";
 import { upscaleNode } from "@/nodes2/nodes/upscale";
+import { ksamplerNode } from "@/nodes2/nodes/ksampler";
+import { hiresfixNode } from "@/nodes2/nodes/hiresfix";
 
 export interface NodeModule {
   id: string;
@@ -25,6 +27,8 @@ const modules: NodeModule[] = [
   cleanerNode,
   compareNode,
   upscaleNode,
+  ksamplerNode,
+  hiresfixNode,
 ];
 
 export const NODE_MODULES: Record<string, NodeModule> = Object.fromEntries(

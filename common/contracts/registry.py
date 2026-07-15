@@ -35,6 +35,36 @@ def _combo(name: str, values: list[str], default: str, **kw: Any) -> WidgetSpec:
     return WidgetSpec(name=name, kind=WidgetKind.COMBO, values=values, default=default, **kw)
 
 
+def _samplers() -> list[str]:
+    try:
+        import comfy.samplers
+
+        return list(comfy.samplers.KSampler.SAMPLERS)
+    except Exception:
+        return ["euler"]
+
+
+def _schedulers() -> list[str]:
+    try:
+        import comfy.samplers
+
+        return list(comfy.samplers.KSampler.SCHEDULERS)
+    except Exception:
+        return ["normal"]
+
+
+def _folder_list(kind: str, prefix: list[str] | None = None, empty: str = "(none)") -> list[str]:
+    try:
+        import folder_paths
+
+        names = list(folder_paths.get_filename_list(kind))
+    except Exception:
+        names = []
+    if not names and not prefix:
+        names = [empty]
+    return (prefix or []) + names
+
+
 def _chip_grid(name: str, values: list[str], default: str, columns: int, **kw: Any) -> WidgetSpec:
     return WidgetSpec(
         name=name, kind=WidgetKind.CHIP_GRID, values=values, default=default, columns=columns, **kw
@@ -322,6 +352,78 @@ _UPSCALE = NodeContract(
     ],
 )
 
+_KSAMPLER = NodeContract(
+    id="FiLKSampler",
+    title="⚡ KSampler",
+    category=f"{CATEGORY_ROOT}/Sampling/KSampler",
+    description="Full-featured sampler with every sampler and scheduler.",
+    min_size=(320, 360),
+    family="sampling",
+    inputs=NodeInputs(
+        required=[
+            _int("seed", default=0, minv=0, maxv=0xFFFFFFFFFFFFFFFF, step=1, label="Seed"),
+            _int("steps", default=20, minv=1, maxv=10000, step=1, label="Steps"),
+            _slider("cfg", default=7.0, minv=0.0, maxv=100.0, step=0.1, label="CFG"),
+            _combo("sampler_name", values=_samplers(), default=_samplers()[0], label="Sampler"),
+            _combo("scheduler", values=_schedulers(), default=_schedulers()[0], label="Scheduler"),
+            _slider("denoise", default=1.0, minv=0.0, maxv=1.0, step=0.01, label="Denoise"),
+        ],
+        optional=[
+            _combo("preview_method",
+                   values=["auto", "latent2rgb", "taesd", "vae_decoded_only", "none"],
+                   default="auto", label="Preview", section="advanced"),
+            _combo("vae_decode", values=["true", "true (tiled)", "false"], default="true",
+                   label="VAE decode", section="advanced"),
+        ],
+    ),
+    outputs=[
+        NodeOutput(name="MODEL", type="ANY"),
+        NodeOutput(name="CONDITIONING+", type="ANY"),
+        NodeOutput(name="CONDITIONING-", type="ANY"),
+        NodeOutput(name="LATENT", type="LATENT"),
+        NodeOutput(name="VAE", type="ANY"),
+        NodeOutput(name="IMAGE", type="IMAGE"),
+    ],
+)
+
+_HIRESFIX = NodeContract(
+    id="FiLHighResFix",
+    title="🔬 HighRes Fix",
+    category=f"{CATEGORY_ROOT}/Sampling/HighResFix",
+    description="Packs latent/pixel upscale + re-sample settings into a script.",
+    min_size=(320, 380),
+    family="sampling",
+    inputs=NodeInputs(
+        required=[
+            _segmented("upscale_type", options=["latent", "pixel", "both"], default="latent", label="Upscale type"),
+            _combo("hires_ckpt_name", values=_folder_list("checkpoints", prefix=["(use same)"]),
+                   default="(use same)", label="Hires checkpoint"),
+            _combo("latent_upscaler",
+                   values=["nearest-exact", "bilinear", "area", "bicubic", "bislerp"],
+                   default="nearest-exact", label="Latent upscaler",
+                   visible_when="upscale_type", visible_when_value="latent"),
+            _combo("pixel_upscaler", values=_folder_list("upscale_models"),
+                   default=_folder_list("upscale_models")[0], label="Pixel upscaler",
+                   visible_when="upscale_type", visible_when_value="pixel"),
+            _slider("upscale_by", default=1.25, minv=0.01, maxv=8.0, step=0.05, label="Upscale by"),
+            _bool("use_same_seed", default=True, label="Use same seed"),
+            _int("seed", default=0, minv=0, maxv=0xFFFFFFFFFFFFFFFF, step=1, label="Seed"),
+            _int("hires_steps", default=12, minv=1, maxv=10000, step=1, label="Hires steps"),
+            _slider("denoise", default=0.56, minv=0.0, maxv=1.0, step=0.01, label="Denoise"),
+            _int("iterations", default=1, minv=0, maxv=5, step=1, label="Iterations"),
+        ],
+        optional=[
+            _bool("use_controlnet", default=False, label="Use ControlNet", section="controlnet"),
+            _combo("control_net_name", values=_folder_list("controlnet"),
+                   default=_folder_list("controlnet")[0], label="ControlNet", section="controlnet",
+                   visible_when="use_controlnet", visible_when_value=True),
+            _slider("strength", default=1.0, minv=0.0, maxv=10.0, step=0.01, label="Strength",
+                    section="controlnet", visible_when="use_controlnet", visible_when_value=True),
+        ],
+    ),
+    outputs=[NodeOutput(name="SCRIPT", type="DICT")],
+)
+
 NODE_SCHEMAS: dict[str, NodeContract] = {
     contract.id: contract
     for contract in (
@@ -331,6 +433,8 @@ NODE_SCHEMAS: dict[str, NodeContract] = {
         _CLEANER,
         _COMPARE,
         _UPSCALE,
+        _KSAMPLER,
+        _HIRESFIX,
     )
 }
 
@@ -343,6 +447,8 @@ assert set(CANONICAL_IDS) == {
     "FiLNeuroCleaner",
     "FiLBeforeAfterCompare",
     "FiLUpscaleTileCalc",
+    "FiLKSampler",
+    "FiLHighResFix",
 }, f"{CATEGORY_ROOT} contracts drift: node ids differ from common/node_registry.py"
 
 

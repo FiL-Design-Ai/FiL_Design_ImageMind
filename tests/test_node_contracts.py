@@ -13,6 +13,8 @@ EXPECTED_IDS = {
     "FiLNeuroCleaner",
     "FiLBeforeAfterCompare",
     "FiLUpscaleTileCalc",
+    "FiLKSampler",
+    "FiLHighResFix",
 }
 
 
@@ -23,7 +25,7 @@ def test_package_has_comfy_entrypoint():
     assert package.WEB_DIRECTORY == "./frontend/dist"
 
 
-def test_entrypoint_returns_all_seven_nodes():
+def test_entrypoint_returns_all_nodes():
     package = importlib.import_module("FiL_Design_ImageMind")
     ext = asyncio.run(package.comfy_entrypoint())
     node_classes = asyncio.run(ext.get_node_list())
