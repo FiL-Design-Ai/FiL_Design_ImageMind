@@ -295,11 +295,11 @@ function newFixedSeed() {
  * `.fil-node-shell [class$="-root"]` rule in styles/brand.ts — keep only
  * layout here so every node stays in sync. */
 .fil-scanner-root {
-  display: flex; flex-direction: column; gap: 6px; padding: 8px;
+  display: flex; flex-direction: column; gap: 5px; padding: 6px;
   color: var(--fil-text, #e8edf3); font-family: ui-sans-serif, system-ui, sans-serif;
   width: 100%; box-sizing: border-box; min-width: 0;
 }
-.fil-section-block { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.fil-section-block { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
 .fil-w-row { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .fil-w-textarea, .fil-w-input {
   width: 100%; box-sizing: border-box; background: var(--fil-glass-bg);

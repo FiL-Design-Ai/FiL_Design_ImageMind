@@ -87,7 +87,7 @@ watch(() => props.state.nodeState, () => {}, { deep: true });
 <style scoped>
 /* Container surface comes from the shared `.fil-node-shell [class$="-root"]`
  * rule in styles/brand.ts — keep only layout here. */
-.fil-cleaner-root { display: flex; flex-direction: column; gap: 5px; padding: 8px;
+.fil-cleaner-root { display: flex; flex-direction: column; gap: 5px; padding: 6px;
   color: var(--fil-text, #e8edf3); font-family: ui-sans-serif, system-ui, sans-serif; }
 .fil-cleaner-row { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 10px;
   padding: 8px 10px; border-radius: var(--fil-field-radius); border: 1px solid var(--fil-glass-border);
