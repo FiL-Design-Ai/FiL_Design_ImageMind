@@ -37,9 +37,7 @@ def test_optional_vae_and_script_are_optional():
     assert inputs["script"].optional is True
 
 
-def test_advanced_sampling_sockets_are_optional_typed_inputs():
+def test_no_advanced_sampling_sockets():
     inputs = _inputs_by_id(FiLKSampler.GET_SCHEMA())
-    for name, io_type in (("sampler", "SAMPLER"), ("sigmas", "SIGMAS"), ("noise", "NOISE")):
-        assert name in inputs, f"missing socket input {name}"
-        assert inputs[name].optional is True
-        assert inputs[name].io_type == io_type
+    for name in ("sampler", "sigmas", "noise"):
+        assert name not in inputs, f"unexpected socket input {name}"
