@@ -135,16 +135,27 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
   // we Object.assign the payload into the reactive `state`.
   const state = reactive(opts.state) as S;
 
-  // `getHeight()` starts at the caller's initial estimate, but is kept in
-  // sync afterward by the ResizeObserver below — collapsible sections,
-  // conditional fields (e.g. UpscaleTileCalc's auto-mode toggle), and
-  // theme/locale-driven label length changes all resize `host` post-mount,
-  // and a stale static number here left the node's own box the wrong size
-  // while the Vue content kept growing — Vue content isn't clipped to the
-  // node's box by default, so it visibly spilled out past the node's own
-  // rectangle onto the canvas (and neighboring nodes) instead of just
-  // leaving empty space.
+  // `getHeight()` starts at the caller's initial estimate for the very first
+  // paint (before anything is mounted), then measures the live content on
+  // every subsequent call. LiteGraph polls `getHeight()` on its own draw
+  // loop, so this can't rely on a cached number kept in sync by a side
+  // channel — a ResizeObserver here was tried and silently stopped firing
+  // for some nodes (observed live: content height changed, callback never
+  // ran), leaving the node's box pinned at the stale initial estimate with
+  // dead space below the panel. Measuring on every call is cheap
+  // (`scrollHeight` read) and can't go stale.
   let currentHeight = opts.height;
+
+  const measureHeight = (): number => {
+    const content = host.firstElementChild as HTMLElement | null;
+    if (!content || content.clientHeight === 0) return currentHeight; // hidden (e.g. hideOnZoom) or not yet mounted
+    // Rounded up to a 4px grid: sub-pixel/1-2px content jitter (font
+    // metrics, locale-driven label width, etc.) otherwise reports a
+    // slightly different height on every reload of the same workflow,
+    // marking it dirty for no visible reason.
+    currentHeight = Math.ceil(content.scrollHeight / 4) * 4;
+    return currentHeight;
+  };
 
   const widget = n.addDOMWidget(name, "custom", host, {
     hideOnZoom: true,
@@ -152,7 +163,7 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
     setValue: (v: S) => {
       if (v && typeof v === "object") Object.assign(state, v);
     },
-    getHeight: () => currentHeight,
+    getHeight: measureHeight,
     ...(opts.onDraw ? { onDraw: opts.onDraw } : {}),
   });
 
@@ -163,27 +174,21 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
   const app = createApp(FilNodeShell, { root, state, comfyClass: n.comfyClass ?? "default" }).use(useActivePinia());
   app.mount(host);
 
-  // Coalesced into one update per animation frame — a section toggle or
-  // conditional-field change can fire several layout passes in a row.
+  // `getHeight()` above is the source of truth for the node's own box size,
+  // but LiteGraph only calls `computeSize()`/re-layouts on its own cadence
+  // (draw loop, drag, etc.) — a mid-frame content change (collapsible
+  // section, conditional field, locale-driven label width) needs an
+  // explicit nudge or the node box visibly lags one interaction behind the
+  // actual content. Coalesced into one update per animation frame — a
+  // section toggle can fire several layout passes in a row.
   let resizeFrame = 0;
   const resizeObserver = new ResizeObserver(() => {
     if (resizeFrame) return;
     resizeFrame = requestAnimationFrame(() => {
       resizeFrame = 0;
-      // Measure the mounted Vue content directly (the `.fil-node-shell`
-      // wrapper), not `host.scrollHeight`. The host can be stretched taller
-      // than its content by ComfyUI's own widget wrapper, and its scrollHeight
-      // never drops below that — masking a shorter body and leaving dead space
-      // below the panel. Before mount `firstElementChild` is null, so we keep
-      // the current estimate until content exists.
-      // Rounded up to a 4px grid: sub-pixel/1-2px content jitter (font
-      // metrics, locale-driven label width, etc.) otherwise reports a
-      // slightly different height on every reload of the same workflow,
-      // marking it dirty for no visible reason.
-      const content = host.firstElementChild as HTMLElement | null;
-      const measured = Math.ceil((content?.scrollHeight ?? currentHeight) / 4) * 4;
-      if (Math.abs(measured - currentHeight) < 2) return;
-      currentHeight = measured;
+      const before = currentHeight;
+      measureHeight();
+      if (Math.abs(currentHeight - before) < 2) return;
       // Only height is touched — `computeSize()`'s own width opinion
       // ignores the `minSize` registered in nodeStyle.ts entirely (seen
       // live shrinking a 271px-wide node down to 210px on a section
