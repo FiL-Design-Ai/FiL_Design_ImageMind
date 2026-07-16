@@ -1,10 +1,7 @@
 <script setup lang="ts">
 /** FiLUpscaleTileCalc — tile sizing controls (mirrors the real node inputs). */
 import { computed, watch } from "vue";
-import FilNumberInput from "@/components/widgets/FilNumberInput.vue";
-import FilSlider from "@/components/widgets/FilSlider.vue";
-import FilSegmented from "@/components/widgets/FilSegmented.vue";
-import FilSection from "@/components/widgets/FilSection.vue";
+import { FilNumberInput, FilSlider, FilSegmented, FilSection } from "@/components/widgets";
 import { useI18n } from "@/composables/useI18n";
 import type { FilNodeState } from "@/nodes2/filState";
 

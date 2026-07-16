@@ -10,11 +10,7 @@
  * (ComfyUI's standard preview-image shape), never raw pixels.
  */
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import FilComboBox, { type FilComboOption } from "@/components/widgets/FilComboBox.vue";
-import FilSegmented from "@/components/widgets/FilSegmented.vue";
-import FilSlider from "@/components/widgets/FilSlider.vue";
-import FilButton from "@/components/widgets/FilButton.vue";
-import FilSection from "@/components/widgets/FilSection.vue";
+import { FilComboBox, type FilComboOption, FilSegmented, FilSlider, FilButton, FilSection } from "@/components/widgets";
 import { imageUrl, providerApi, type ImageDescriptor } from "@/api/client";
 import { clamp01, type CompareMode } from "@/nodes2/compareEngine";
 import { toast } from "@/stores/toastStore";

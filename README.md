@@ -45,6 +45,8 @@ branding and a "Prompt Chat" node that no longer exists in this node pack. -->
 |------|----------|---------|
 | **🔌 Provider Loader** | `FiLProviderLoader` | Choose provider, model, and generation parameters |
 | **🕵️ Optic Scanner** | `FiLOpticScanner` | Analyze images or expand text with LLM |
+| **⚡ KSampler** | `FiLKSampler` | Full sampler — every sampler/scheduler, passthrough, preview, HighRes-fix script |
+| **🔬 HighRes Fix** | `FiLHighResFix` | Latent/pixel upscale + re-sample script for KSampler |
 | **♻️ Seed** | `FiLSeed` | Fixed or randomized seed with copy/reuse |
 | **🧹 Cleaner** | `FiLNeuroCleaner` | Selective VRAM, RAM, and cache cleanup |
 | **🔄 Compare** | `FiLBeforeAfterCompare` | Side-by-side image preview with swap |
@@ -128,6 +130,8 @@ npx vitest run
 |------|----------|-----------|
 | **🔌 Provider Loader** | `FiLProviderLoader` | Выбор провайдера, модели и параметров генерации |
 | **🕵️ Optic Scanner** | `FiLOpticScanner` | Анализ изображений или расширение текста |
+| **⚡ KSampler** | `FiLKSampler` | Полный сэмплер — все сэмплеры/планировщики, passthrough, превью, HighRes-скрипт |
+| **🔬 HighRes Fix** | `FiLHighResFix` | Скрипт латент/пиксельного апскейла и ре-сэмплинга для KSampler |
 | **♻️ Seed** | `FiLSeed` | Фиксированное или случайное значение seed |
 | **🧹 Cleaner** | `FiLNeuroCleaner` | Выборочная очистка VRAM, RAM и кэша |
 | **🔄 Compare** | `FiLBeforeAfterCompare` | Сравнение изображений бок-о-бок |
