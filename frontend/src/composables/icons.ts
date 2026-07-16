@@ -17,14 +17,14 @@ export const ICONS = {
   plus: '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></svg>',
   external: '<svg viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5z"/><path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0v-5z"/></svg>',
 
-  // Provider logos (simple letter-based SVGs)
-  "provider-ollama": '<svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="#6b5b95"/><text x="8" y="11" text-anchor="middle" font-size="9" font-weight="700" fill="white" font-family="sans-serif">O</text></svg>',
-  "provider-lmstudio": '<svg viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="14" height="14" rx="3" fill="#4a90d9"/><text x="8" y="11" text-anchor="middle" font-size="7" font-weight="700" fill="white" font-family="sans-serif">LM</text></svg>',
-  "provider-openai": '<svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="#10a37f"/><text x="8" y="11" text-anchor="middle" font-size="7" font-weight="700" fill="white" font-family="sans-serif">AI</text></svg>',
-  "provider-groq": '<svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="#f97316"/><text x="8" y="11" text-anchor="middle" font-size="9" font-weight="700" fill="white" font-family="sans-serif">G</text></svg>',
-  "provider-google": '<svg viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="14" height="14" rx="3" fill="#4285f4"/><text x="8" y="11" text-anchor="middle" font-size="8" font-weight="700" fill="white" font-family="sans-serif">G+</text></svg>',
-  "provider-openrouter": '<svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="#8b5cf6"/><text x="8" y="11" text-anchor="middle" font-size="7" font-weight="700" fill="white" font-family="sans-serif">OR</text></svg>',
-  "provider-cloudflare": '<svg viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="14" height="14" rx="3" fill="#f38020"/><text x="8" y="11" text-anchor="middle" font-size="7" font-weight="700" fill="white" font-family="sans-serif">CF</text></svg>',
+  // Provider logos (simple letter-based SVGs, no background — brand-coloured glyphs)
+  "provider-ollama": '<svg viewBox="0 0 16 16" fill="none"><text x="8" y="12" text-anchor="middle" font-size="12" font-weight="700" fill="#8b7bb5" font-family="sans-serif">O</text></svg>',
+  "provider-lmstudio": '<svg viewBox="0 0 16 16" fill="none"><text x="8" y="11" text-anchor="middle" font-size="9" font-weight="700" fill="#5aa0e9" font-family="sans-serif">LM</text></svg>',
+  "provider-openai": '<svg viewBox="0 0 16 16" fill="none"><text x="8" y="11" text-anchor="middle" font-size="9" font-weight="700" fill="#1abb95" font-family="sans-serif">AI</text></svg>',
+  "provider-groq": '<svg viewBox="0 0 16 16" fill="none"><text x="8" y="12" text-anchor="middle" font-size="12" font-weight="700" fill="#f97316" font-family="sans-serif">G</text></svg>',
+  "provider-google": '<svg viewBox="0 0 16 16" fill="none"><text x="8" y="11" text-anchor="middle" font-size="10" font-weight="700" fill="#5a95f4" font-family="sans-serif">G+</text></svg>',
+  "provider-openrouter": '<svg viewBox="0 0 16 16" fill="none"><text x="8" y="11" text-anchor="middle" font-size="9" font-weight="700" fill="#9b7cf6" font-family="sans-serif">OR</text></svg>',
+  "provider-cloudflare": '<svg viewBox="0 0 16 16" fill="none"><text x="8" y="11" text-anchor="middle" font-size="9" font-weight="700" fill="#f38020" font-family="sans-serif">CF</text></svg>',
 } as const;
 
 export type IconName = keyof typeof ICONS;

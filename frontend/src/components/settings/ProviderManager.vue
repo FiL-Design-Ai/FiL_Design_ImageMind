@@ -12,6 +12,9 @@ const editing = ref<Record<string, { key: string; base_url: string; account_id: 
 const probing = ref<Record<string, boolean>>({});
 const probedOk = ref<Record<string, boolean>>({});
 const loadingModels = ref<Record<string, boolean>>({});
+// Off-status cards render as a single compact row; the user expands them to
+// configure. Keyed by provider id, only meaningful while status === "off".
+const expanded = ref<Record<string, boolean>>({});
 
 onMounted(async () => {
   await Promise.all([store.loadAccounts(), store.loadDisplayNames()]);
@@ -26,6 +29,13 @@ onMounted(async () => {
       account_id: acct?.account_id ?? "",
     };
   }
+  // Silently probe already-configured providers so the header badge reflects
+  // real reachability the moment the panel opens, without the user clicking
+  // Probe on each card. Fire-and-forget — each updates its own badge.
+  for (const pid of PROVIDER_LIST) {
+    const acct = store.accounts[pid];
+    if (acct?.configured || acct?.local || acct?.base_url) void doProbe(pid);
+  }
 });
 
 const providerLabel = PROVIDER_LABEL;
@@ -37,6 +47,39 @@ function fieldClass(field: string): Record<string, boolean> {
 
 function needsAccountId(pid: string): boolean {
   return pid === "cloudflare";
+}
+
+type PmStatus = "connected" | "configured" | "off";
+
+// Derives the header badge state. A successful probe or a non-empty model
+// list is proof the provider actually responds ("connected"); a saved key /
+// local base_url means it's set up but unverified ("configured").
+function providerStatus(pid: string): PmStatus {
+  const acct = store.accounts[pid];
+  const entry = store.modelsByProvider[pid];
+  const hasModels = (entry?.list.length ?? 0) > 0 && !entry?.error;
+  if (store.probeState[pid]?.status === "available" || probedOk.value[pid] || hasModels) {
+    return "connected";
+  }
+  if (acct?.configured || acct?.local || acct?.base_url) return "configured";
+  return "off";
+}
+
+const STATUS_LABEL: Record<PmStatus, string> = {
+  connected: "Connected",
+  configured: "Configured",
+  off: "Not connected",
+};
+
+// Only unconfigured ("off") providers collapse; a configured/connected one is
+// always shown expanded regardless of the toggle.
+function isCollapsed(pid: string): boolean {
+  return providerStatus(pid) === "off" && !expanded.value[pid];
+}
+
+function toggleExpand(pid: string) {
+  if (providerStatus(pid) !== "off") return;
+  expanded.value[pid] = !expanded.value[pid];
 }
 
 async function doSave(pid: string) {
@@ -96,13 +139,34 @@ const hasChanges = (pid: string) => {
       v-for="pid in PROVIDER_LIST"
       :key="pid"
       class="fil-pm-card"
+      :class="{ 'fil-pm-card--collapsed': isCollapsed(pid) }"
     >
-      <div class="fil-pm-header">
+      <div
+        class="fil-pm-header"
+        :class="{ 'fil-pm-header--clickable': providerStatus(pid) === 'off' }"
+        @click="toggleExpand(pid)"
+      >
         <span class="fil-pm-icon"><FilIcon :name="providerIconMap[pid]" :size="20" /></span>
         <span class="fil-pm-name">{{ providerLabel[pid] }}</span>
         <span v-if="store.displayNames[pid]" class="fil-pm-disp">({{ store.displayNames[pid] }})</span>
+        <span
+          class="fil-pm-status"
+          :class="`fil-pm-status--${providerStatus(pid)}`"
+          :title="STATUS_LABEL[providerStatus(pid)]"
+        >
+          <span class="fil-pm-dot" />
+          {{ STATUS_LABEL[providerStatus(pid)] }}
+        </span>
+        <span
+          v-if="providerStatus(pid) === 'off'"
+          class="fil-pm-chevron"
+          :class="{ 'fil-pm-chevron--open': expanded[pid] }"
+        >
+          <FilIcon name="chevronRight" :size="12" />
+        </span>
       </div>
 
+      <template v-if="!isCollapsed(pid)">
       <div class="fil-pm-fields">
         <label class="fil-pm-field">
           <span class="fil-pm-field-label">API Key</span>
@@ -193,6 +257,7 @@ const hasChanges = (pid: string) => {
       <div v-if="store.lastError" class="fil-pm-err fil-pm-global-err">
         {{ store.lastError }}
       </div>
+      </template>
     </div>
   </div>
 </template>
@@ -216,18 +281,33 @@ const hasChanges = (pid: string) => {
   gap: 8px;
   margin-bottom: 10px;
 }
+.fil-pm-card--collapsed {
+  padding: 8px 12px;
+}
+.fil-pm-card--collapsed .fil-pm-header {
+  margin-bottom: 0;
+}
+.fil-pm-header--clickable {
+  cursor: pointer;
+}
+.fil-pm-header--clickable:hover .fil-pm-name {
+  color: var(--fil-accent, #7c5cfc);
+}
+.fil-pm-chevron {
+  display: inline-flex;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.4);
+  transition: transform 0.12s ease;
+}
+.fil-pm-chevron--open {
+  transform: rotate(90deg);
+}
 .fil-pm-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 26px;
   height: 26px;
-  border-radius: 6px;
-  background: var(--fil-accent, #7c5cfc);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  font-family: ui-monospace, monospace;
 }
 .fil-pm-name {
   font-weight: 600;
@@ -237,6 +317,33 @@ const hasChanges = (pid: string) => {
 .fil-pm-disp {
   font-size: 11px;
   color: rgba(255, 255, 255, 0.5);
+}
+.fil-pm-status {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
+}
+.fil-pm-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 22%, transparent);
+}
+.fil-pm-status--connected {
+  color: var(--fil-success, #4ade80);
+}
+.fil-pm-status--configured {
+  color: var(--fil-warning, #fbbf24);
+}
+.fil-pm-status--off {
+  color: rgba(255, 255, 255, 0.3);
 }
 .fil-pm-fields {
   display: flex;
