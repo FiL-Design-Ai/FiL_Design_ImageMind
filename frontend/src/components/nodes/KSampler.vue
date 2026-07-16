@@ -1,10 +1,7 @@
 <script setup lang="ts">
 /** FiLKSampler — sampling controls (mirrors nodes/node_ksampler.py inputs). */
 import { computed } from "vue";
-import FilSlider from "@/components/widgets/FilSlider.vue";
-import FilNumberInput from "@/components/widgets/FilNumberInput.vue";
-import FilSelect from "@/components/widgets/FilSelect.vue";
-import FilSegmented from "@/components/widgets/FilSegmented.vue";
+import { FilSlider, FilNumberInput, FilSelect, FilSegmented } from "@/components/widgets";
 import { useI18n } from "@/composables/useI18n";
 import { findFilWidget } from "@/nodes2/util";
 import type { FilNodeState } from "@/nodes2/filState";

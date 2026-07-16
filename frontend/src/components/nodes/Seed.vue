@@ -5,8 +5,7 @@
  * `getValue()` already wired in the host.
  */
 import { computed, watch } from "vue";
-import FilButton from "@/components/widgets/FilButton.vue";
-import FilInfo from "@/components/widgets/FilInfo.vue";
+import { FilButton, FilInfo } from "@/components/widgets";
 import { toast } from "@/stores/toastStore";
 import { useI18n } from "@/composables/useI18n";
 import type { FilNodeState } from "@/nodes2/filState";

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /** FiLNeuroCleaner — checkbox list of cleanup targets (mirrors the real node inputs). */
 import { watch } from "vue";
-import FilSection from "@/components/widgets/FilSection.vue";
+import { FilSection } from "@/components/widgets";
 import type { FilNodeState } from "@/nodes2/filState";
 import { useI18n } from "@/composables/useI18n";
 

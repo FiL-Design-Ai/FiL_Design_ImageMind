@@ -5,10 +5,7 @@
  * and survives load/save through `addDOMWidget` getValue/setValue.
  */
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import FilComboBox, { type FilComboOption } from "@/components/widgets/FilComboBox.vue";
-import FilButton from "@/components/widgets/FilButton.vue";
-import FilSlider from "@/components/widgets/FilSlider.vue";
-import FilInfo from "@/components/widgets/FilInfo.vue";
+import { FilComboBox, type FilComboOption, FilButton, FilSlider, FilInfo } from "@/components/widgets";
 import { useProviderStore, PROVIDER_LIST } from "@/stores/providerStore";
 import { PROVIDER_LABEL, PROVIDER_ICON } from "@/composables/providerMeta";
 import { toast } from "@/stores/toastStore";

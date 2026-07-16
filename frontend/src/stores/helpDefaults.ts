@@ -102,4 +102,36 @@ export const HELP_DEFAULTS: Record<string, HelpDef> = {
       "Wire outputs into KSampler-tile-aware upscale nodes.",
     ],
   },
+  FiLKSampler: {
+    id: "FiLKSampler",
+    title: "FiL KSampler",
+    body: "Full-featured sampler with every ComfyUI sampler/scheduler, passthrough outputs, built-in preview, and optional HighRes-fix script.",
+    bullets: [
+      "Wire model, positive/negative conditioning, and a latent, then Queue.",
+      "Denoise 1.0 = full sample; lower for img2img / refine passes.",
+      "VAE decode outputs an IMAGE preview — needs a VAE (input or passthrough).",
+      "Plug a FiL HighRes Fix `script` into the `script` slot to add an upscale pass.",
+    ],
+    rows: [
+      { label: "CFG", desc: "Classifier-free guidance scale (higher = follows the prompt more strictly)." },
+      { label: "Preview method", desc: "How the live sampling preview is rendered (auto/latent2rgb/taesd)." },
+      { label: "VAE decode", desc: "Decode the result to an IMAGE output. Off = latent only." },
+    ],
+  },
+  FiLHighResFix: {
+    id: "FiLHighResFix",
+    title: "FiL HighRes Fix",
+    body: "Packs latent/pixel upscale + re-sample settings into a script for FiL KSampler.",
+    bullets: [
+      "Outputs a `script` — wire it into the KSampler `script` slot, not into a latent.",
+      "Upscale type: latent (fast), pixel (model upscaler), or both.",
+      "Denoise controls how much the hires pass reworks the image (0.4–0.6 is typical).",
+      "Iterations run multiple upscale+resample passes; ControlNet (advanced) can guide them.",
+    ],
+    rows: [
+      { label: "Upscale by", desc: "Resolution multiplier for the hires pass." },
+      { label: "Same seed", desc: "Reuse the sampler's seed; turn off to set an own seed." },
+      { label: "Hires steps", desc: "Denoising steps for the re-sample (fewer than the base pass is fine)." },
+    ],
+  },
 };

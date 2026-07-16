@@ -1,13 +1,7 @@
 <script setup lang="ts">
 /** FiLOpticScanner — image analysis / prompt expansion via LLM. */
 import { computed, reactive, watch } from "vue";
-import FilChipGrid from "@/components/widgets/FilChipGrid.vue";
-import FilChipList from "@/components/widgets/FilChipList.vue";
-import FilSegmented from "@/components/widgets/FilSegmented.vue";
-import FilSection from "@/components/widgets/FilSection.vue";
-import FilButton from "@/components/widgets/FilButton.vue";
-import FilModal from "@/components/widgets/FilModal.vue";
-import FilStylePicker from "@/components/widgets/FilStylePicker.vue";
+import { FilChipGrid, FilChipList, FilSegmented, FilSection, FilButton, FilModal, FilStylePicker } from "@/components/widgets";
 import { toast } from "@/stores/toastStore";
 import { NODE_CONTRACTS, type WidgetSpec } from "@/api/contracts";
 import type { FilNodeState } from "@/nodes2/filState";

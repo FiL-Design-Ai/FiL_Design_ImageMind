@@ -3,11 +3,7 @@
  * Latent/pixel/controlnet fields show/hide reactively — this replaces the
  * widgethider.js behaviour of the original efficiency-nodes node. */
 import { computed } from "vue";
-import FilSlider from "@/components/widgets/FilSlider.vue";
-import FilNumberInput from "@/components/widgets/FilNumberInput.vue";
-import FilSelect from "@/components/widgets/FilSelect.vue";
-import FilSegmented from "@/components/widgets/FilSegmented.vue";
-import FilSection from "@/components/widgets/FilSection.vue";
+import { FilSlider, FilNumberInput, FilSelect, FilSegmented, FilSection } from "@/components/widgets";
 import { useI18n } from "@/composables/useI18n";
 import { findFilWidget } from "@/nodes2/util";
 import type { FilNodeState } from "@/nodes2/filState";

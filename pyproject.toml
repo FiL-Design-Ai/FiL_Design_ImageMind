@@ -25,6 +25,7 @@ Repository = "https://github.com/FiL-Design-Ai/FiL_Design_ImageMind"
 [tool.comfy]
 PublisherId = "fil-design-ai"
 DisplayName = "FiL_Design_ImageMind"
+Icon = "https://raw.githubusercontent.com/FiL-Design-Ai/FiL_Design_ImageMind/main/frontend/public/fil_design_imagemind_logo.svg"
 
 [tool.setuptools.package-dir]
 FiL_Design_ImageMind = "."
