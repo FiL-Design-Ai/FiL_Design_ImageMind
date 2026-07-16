@@ -86,15 +86,22 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
   // width here previously left dead space when a node was widened.
   host.style.width = "100%";
   host.style.boxSizing = "border-box";
-  host.style.minHeight = `${opts.height}px`;
+  // No `min-height` floor here on purpose. It used to be `opts.height`, but
+  // that pinned the host's own box at the *initial estimate* forever: the
+  // ResizeObserver below measures the real content height, and a host whose
+  // `scrollHeight` can never drop below the floor kept reporting the stale
+  // estimate — so a node whose tightened body is (say) 104px tall stayed
+  // pinned at a 185px estimate, leaving dead space below the panel. The
+  // observer measures the mounted child directly now, so no floor is needed;
+  // `getHeight()` still returns `opts.height` for the very first paint frame
+  // before the observer runs.
   // ComfyUI's own DOM-widget wrapper adds an `h-full` class to whatever
   // element `addDOMWidget` mounts (`height: 100%` of the widget's own,
   // separately-computed box) — a CSS explicit `height` never grows past
   // its resolved value no matter how tall the content wants to be, content
   // just overflows past it instead of the box adapting. An inline style
   // has higher specificity than a class, so this forces `height: auto`
-  // (content-driven sizing, with `min-height` above still acting as a
-  // floor) — without it, `getHeight()`/`min-height` below can report the
+  // (content-driven sizing) — without it, `getHeight()` below can report the
   // right number but the *actual* rendered box stays capped at whatever
   // `h-full` resolved to, and Vue content visibly spills out past it.
   host.style.height = "auto";
@@ -163,11 +170,18 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
     if (resizeFrame) return;
     resizeFrame = requestAnimationFrame(() => {
       resizeFrame = 0;
+      // Measure the mounted Vue content directly (the `.fil-node-shell`
+      // wrapper), not `host.scrollHeight`. The host can be stretched taller
+      // than its content by ComfyUI's own widget wrapper, and its scrollHeight
+      // never drops below that — masking a shorter body and leaving dead space
+      // below the panel. Before mount `firstElementChild` is null, so we keep
+      // the current estimate until content exists.
       // Rounded up to a 4px grid: sub-pixel/1-2px content jitter (font
       // metrics, locale-driven label width, etc.) otherwise reports a
       // slightly different height on every reload of the same workflow,
       // marking it dirty for no visible reason.
-      const measured = Math.ceil(host.scrollHeight / 4) * 4;
+      const content = host.firstElementChild as HTMLElement | null;
+      const measured = Math.ceil((content?.scrollHeight ?? currentHeight) / 4) * 4;
       if (Math.abs(measured - currentHeight) < 2) return;
       currentHeight = measured;
       // Only height is touched — `computeSize()`'s own width opinion
