@@ -34,19 +34,10 @@ def test_output_is_script_socket():
     assert schema.outputs[0].io_type == "FIL_HIRES_SCRIPT"
 
 
-def test_advanced_sampling_sockets_are_optional_typed_inputs():
+def test_no_advanced_sampling_sockets():
     inputs = _inputs_by_id(FiLHighResFix.GET_SCHEMA())
-    for name, io_type in (("sampler", "SAMPLER"), ("sigmas", "SIGMAS")):
-        assert name in inputs, f"missing socket input {name}"
-        assert inputs[name].optional is True
-        assert inputs[name].io_type == io_type
-
-
-def test_execute_stashes_sampler_and_sigmas_into_script():
-    out = FiLHighResFix.execute(**_base_kwargs(sampler="SAMP", sigmas="SIG"))
-    hf = out[0]["hiresfix"]
-    assert hf["sampler"] == "SAMP"
-    assert hf["sigmas"] == "SIG"
+    for name in ("sampler", "sigmas"):
+        assert name not in inputs, f"unexpected socket input {name}"
 
 
 def test_execute_packs_hiresfix_dict():

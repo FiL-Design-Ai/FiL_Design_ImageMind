@@ -81,10 +81,6 @@ class FiLHighResFix(io.ComfyNode):
                                tooltip=t("hrf_cn_name", "ControlNet model to apply.")),
                 io.Float.Input("strength", default=1.0, min=0.0, max=10.0, step=0.01, advanced=True,
                                tooltip=t("hrf_cn_strength", "ControlNet strength.")),
-                io.Sampler.Input("sampler", optional=True,
-                                 tooltip=t("hrf_in_sampler", "Optional SAMPLER for the hires re-sample. Overrides the KSampler's sampler when wired.")),
-                io.Sigmas.Input("sigmas", optional=True,
-                                tooltip=t("hrf_in_sigmas", "Optional SIGMAS for the hires re-sample. Overrides scheduler/steps/denoise when wired.")),
                 FilHiresScript.Input("script", optional=True,
                                      tooltip=t("hrf_script", "Optional upstream FiL script to extend.")),
             ],
@@ -98,7 +94,7 @@ class FiLHighResFix(io.ComfyNode):
     def execute(cls, upscale_type, hires_ckpt_name, latent_upscaler, pixel_upscaler,
                 upscale_by, use_same_seed, seed, hires_steps, denoise, iterations,
                 use_controlnet=False, control_net_name=None, strength=1.0,
-                sampler=None, sigmas=None, script=None) -> io.NodeOutput:
+                script=None) -> io.NodeOutput:
         control_net = None
         if use_controlnet and control_net_name and control_net_name != "(none)":
             try:
@@ -122,7 +118,5 @@ class FiLHighResFix(io.ComfyNode):
             "iterations": int(iterations),
             "control_net": control_net,
             "strength": float(strength),
-            "sampler": sampler,
-            "sigmas": sigmas,
         }
         return io.NodeOutput(new_script)

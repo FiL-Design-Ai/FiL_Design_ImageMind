@@ -64,12 +64,6 @@ class FiLKSampler(io.ComfyNode):
                                tooltip=t("ks_vae_decode", "Decode the result to an IMAGE preview/output. Needs a VAE.")),
                 io.Vae.Input("optional_vae", optional=True,
                              tooltip=t("ks_vae", "VAE for decoding the preview/output image.")),
-                io.Sampler.Input("sampler", optional=True,
-                                 tooltip=t("ks_in_sampler", "Optional SAMPLER (e.g. from KSamplerSelect). Overrides 'sampler_name' when wired.")),
-                io.Sigmas.Input("sigmas", optional=True,
-                                tooltip=t("ks_in_sigmas", "Optional SIGMAS (e.g. from BasicScheduler). Overrides 'scheduler'/'steps'/'denoise' when wired.")),
-                io.Noise.Input("noise", optional=True,
-                               tooltip=t("ks_in_noise", "Optional NOISE (e.g. from RandomNoise). Overrides 'seed' when wired.")),
                 FilHiresScript.Input("script", optional=True,
                                      tooltip=t("ks_script", "Optional FiL HighRes-fix script to run after sampling.")),
             ],
@@ -108,7 +102,7 @@ class FiLKSampler(io.ComfyNode):
     @classmethod
     def execute(cls, model, seed, steps, cfg, sampler_name, scheduler, positive, negative,
                 latent_image, denoise=1.0, preview_method="auto", vae_decode="true",
-                optional_vae=None, sampler=None, sigmas=None, noise=None, script=None,
+                optional_vae=None, script=None,
                 prompt=None, extra_pnginfo=None) -> io.NodeOutput:
         from ..common.sampling import sample_unified
 
@@ -122,12 +116,12 @@ class FiLKSampler(io.ComfyNode):
         # image below is what it wants), so map it to no intermediate preview.
         cls._set_preview_method("none" if preview_method == "vae_decoded_only" else preview_method)
         try:
-            # 1) Base sampling (honouring optional sampler/sigmas/noise sockets).
+            # 1) Base sampling.
             latent = sample_unified(
                 model, seed=seed, steps=steps, cfg=cfg,
                 sampler_name=sampler_name, scheduler=scheduler,
                 positive=positive, negative=negative, latent=latent_image,
-                denoise=denoise, sampler=sampler, sigmas=sigmas, noise=noise,
+                denoise=denoise,
             )
 
             # 2) Optional HighRes-fix pass.
