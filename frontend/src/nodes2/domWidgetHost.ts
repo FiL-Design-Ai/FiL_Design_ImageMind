@@ -181,28 +181,53 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
   // explicit nudge or the node box visibly lags one interaction behind the
   // actual content. Coalesced into one update per animation frame — a
   // section toggle can fire several layout passes in a row.
+  function syncNodeHeight() {
+    measureHeight();
+    if (!n.computeSize || !n.setSize || !n.size) return;
+    // Compare against the NODE's own actual current size, not a before/after
+    // snapshot of the local `currentHeight` cache: LiteGraph calls
+    // `getHeight()` (which mutates `currentHeight`) on its own draw loop,
+    // independently of this function, so a before/after diff on that same
+    // shared variable is frequently already "consumed" by the time this
+    // runs — `before` and the freshly measured value end up equal even
+    // though `n.size` itself is still stale, silently skipping the
+    // resize (reproduced live: FiLProviderLoader stuck at 386px tall for
+    // ~237px of real content, FiLUpscaleTileCalc stuck at 786px for
+    // ~289px). `n.size[1]` vs `computeSize()[1]` is the actual ground
+    // truth for whether the node box needs correcting.
+    const [currentWidth, currentSizeHeight] = n.size;
+    const [, computedHeight] = n.computeSize();
+    if (Math.abs(computedHeight - currentSizeHeight) < 2) return;
+    // Only height is touched — `computeSize()`'s own width opinion
+    // ignores the `minSize` registered in nodeStyle.ts entirely (seen
+    // live shrinking a 271px-wide node down to 210px on a section
+    // collapse), so the *current* width is explicitly preserved instead
+    // of trusting `computeSize()`'s full [w, h] pair.
+    n.setSize([currentWidth, computedHeight]);
+    n.graph?.setDirtyCanvas?.(true, true);
+  }
+
   let resizeFrame = 0;
   const resizeObserver = new ResizeObserver(() => {
     if (resizeFrame) return;
     resizeFrame = requestAnimationFrame(() => {
       resizeFrame = 0;
-      const before = currentHeight;
-      measureHeight();
-      if (Math.abs(currentHeight - before) < 2) return;
-      // Only height is touched — `computeSize()`'s own width opinion
-      // ignores the `minSize` registered in nodeStyle.ts entirely (seen
-      // live shrinking a 271px-wide node down to 210px on a section
-      // collapse), so the *current* width is explicitly preserved instead
-      // of trusting `computeSize()`'s full [w, h] pair.
-      if (n.computeSize && n.setSize && n.size) {
-        const [currentWidth] = n.size;
-        const [, computedHeight] = n.computeSize();
-        n.setSize([currentWidth, computedHeight]);
-      }
-      n.graph?.setDirtyCanvas?.(true, true);
+      syncNodeHeight();
     });
   });
   resizeObserver.observe(host);
+
+  // `root` is normally a `defineAsyncComponent(...)` (see nodes2/nodes/*.ts):
+  // it resolves and mounts its real content *after* `app.mount(host)` above
+  // already returned, so the very first paint can still be mid-layout when
+  // the ResizeObserver's first callback fires. A few follow-up passes across
+  // the next several frames catches the settled size independent of exactly
+  // when the async chunk + first layout finish.
+  let settleFrames = 20;
+  (function settleLoop() {
+    syncNodeHeight();
+    if (settleFrames-- > 0) requestAnimationFrame(settleLoop);
+  })();
 
   const controller: FilWidgetController<S> = { widget, host, app, state, unmount };
   function unmount(this: FilWidgetController<S>) {

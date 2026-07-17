@@ -96,7 +96,7 @@ watch(() => props.state.nodeState, () => {}, { deep: true });
       </template>
     </template>
 
-    <FilSlider :model-value="maxMegapixels" :min="0" :max="64" :step="0.5" :label="t('lbl_max_megapixels', '🖼️ Max megapixels (0 = no cap)')"
+    <FilSlider :model-value="maxMegapixels" :min="0" :max="64" :step="0.5" :label="t('lbl_max_megapixels', '🖼️ Max megapixels')"
       :title="t('utc_max_mp', 'Cap the upscaled output at this many megapixels. 0 = no cap.')"
       @update:model-value="(v: number) => (maxMegapixels = v)" />
     <FilSegmented :options="['ON', 'OFF']" :option-labels="{ ON: '🧩 ON', OFF: 'OFF' }" :model-value="nonSquareTiles" :label="t('lbl_non_square', '📐 Non-square tiles')"

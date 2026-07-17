@@ -68,23 +68,28 @@ function onNumber(n: number) {
 
 <style scoped>
 .fil-w-slider {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  display: grid;
+  grid-template-columns: minmax(auto, max-content) minmax(60px, 1fr);
+  align-items: center;
+  gap: var(--fil-node-gap, 6px);
   width: 100%;
 }
 .fil-w-slider-label {
+  grid-column: 1;
   font-size: 11px;
   color: var(--fil-muted, rgba(255, 255, 255, 0.55));
   font-family: inherit;
 }
 .fil-w-slider-row {
+  grid-column: 2;
   display: flex;
   align-items: center;
   gap: 6px;
+  min-width: 0;
 }
 .fil-w-slider-range {
   flex: 1;
+  min-width: 0;
   accent-color: var(--fil-accent);
   cursor: pointer;
 }

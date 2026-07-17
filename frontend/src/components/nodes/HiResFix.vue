@@ -76,19 +76,19 @@ function setCollapsed(section: string, collapsed: boolean) {
       @update:model-value="(v: string) => (upscaleType = v)" />
 
     <template v-if="showLatent">
-      <label class="fil-w-label" :title="t('hrf_latent_up', 'Latent upscale method.')">{{ t('lbl_latent_up', '🌀 Latent upscaler') }}</label>
       <FilSelect :options="latentMethods" :model-value="latentUpscaler"
+        :label="t('lbl_latent_up', '🌀 Latent upscaler')" :title="t('hrf_latent_up', 'Latent upscale method.')"
         @update:model-value="(v: string) => (latentUpscaler = v)" />
     </template>
 
     <template v-if="showPixel">
-      <label class="fil-w-label" :title="t('hrf_pixel_up', 'Pixel upscale model (from upscale_models).')">{{ t('lbl_pixel_up', '🖼️ Pixel upscaler') }}</label>
       <FilSelect :options="pixelOptions" :model-value="pixelUpscaler"
+        :label="t('lbl_pixel_up', '🖼️ Pixel upscaler')" :title="t('hrf_pixel_up', 'Pixel upscale model (from upscale_models).')"
         @update:model-value="(v: string) => (pixelUpscaler = v)" />
     </template>
 
-    <label class="fil-w-label" :title="t('hrf_ckpt', 'Checkpoint for the hires pass. (use same) reuses the base model.')">{{ t('lbl_hires_ckpt', '📦 Hires checkpoint') }}</label>
     <FilSelect :options="ckptOptions" :model-value="hiresCkpt"
+      :label="t('lbl_hires_ckpt', '📦 Hires checkpoint')" :title="t('hrf_ckpt', 'Checkpoint for the hires pass. (use same) reuses the base model.')"
       @update:model-value="(v: string) => (hiresCkpt = v)" />
 
     <FilSlider :model-value="upscaleBy" :min="0.01" :max="8" :step="0.05" :label="t('lbl_upscale_by', '🔍 Upscale by')"
@@ -120,8 +120,8 @@ function setCollapsed(section: string, collapsed: boolean) {
         :title="t('hrf_use_cn', 'Guide the hires pass with a ControlNet.')"
         @update:model-value="(v) => (useControlnet = v as 'ON' | 'OFF')" />
       <template v-if="useControlnet === 'ON'">
-        <label class="fil-w-label" :title="t('hrf_cn_name', 'ControlNet model to apply.')">{{ t('lbl_cn_name', '🧩 ControlNet model') }}</label>
         <FilSelect :options="controlNetOptions" :model-value="controlNetName"
+          :label="t('lbl_cn_name', '🧩 ControlNet model')" :title="t('hrf_cn_name', 'ControlNet model to apply.')"
           @update:model-value="(v: string) => (controlNetName = v)" />
         <FilSlider :model-value="strength" :min="0" :max="10" :step="0.01" :label="t('lbl_cn_strength', '💪 Strength')"
           :title="t('hrf_cn_strength', 'ControlNet strength.')" @update:model-value="(v: number) => (strength = v)" />
