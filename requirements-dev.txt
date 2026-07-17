@@ -1,0 +1,17 @@
+# Development / test dependencies for FiL_Design_ImageMind
+# Install: pip install -r requirements-dev.txt
+-r requirements.txt
+
+# Test runner
+pytest>=8.0.0
+
+# Lint / format / type-check (mirrors .pre-commit-config.yaml)
+ruff>=0.4.10
+black>=24.4.2
+mypy>=1.10.0
+bandit>=1.7.7
+pre-commit>=3.7.0
+
+# Type stubs
+types-requests
+types-PyYAML

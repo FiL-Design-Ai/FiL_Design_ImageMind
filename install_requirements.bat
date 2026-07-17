@@ -41,7 +41,7 @@ if !ERRORLEVEL! NEQ 0 (
 )
 
 echo [*] Verifying runtime libraries...
-call !PYTHON_EXE! -c "import requests; import aiohttp; import yaml; import PIL; import numpy; import psutil; print('SUCCESS: Runtime libraries verified')"
+call !PYTHON_EXE! -c "import requests; import aiohttp; import yaml; import PIL; import numpy; print('SUCCESS: Runtime libraries verified')"
 if !ERRORLEVEL! NEQ 0 (
     echo [!] Verification failed. Please check the errors above.
     pause
