@@ -9,7 +9,7 @@ import { applyFxComposables } from "@/nodes2/applyFxComposables";
 const HiResFixVue = defineAsyncComponent(() => import("@/components/nodes/HiResFix.vue"));
 
 const numericDefaults: Record<string, number> = {
-  upscale_by: 1.25, seed: 0, hires_steps: 12, denoise: 0.56, iterations: 1, strength: 1.0,
+  upscale_by: 1.25, denoise: 0.56, iterations: 1, strength: 1.0,
 };
 const stringDefaults: Record<string, string> = {
   upscale_type: "latent", hires_ckpt_name: "(use same)",
@@ -18,9 +18,12 @@ const stringDefaults: Record<string, string> = {
 const boolDefaults: Record<string, boolean> = {
   use_same_seed: true, use_controlnet: false,
 };
+// `seed`, `hires_steps` (and its native `control_after_generate` companion)
+// are intentionally left off this list — they stay regular, unhidden
+// ComfyUI widgets (same treatment as every widget on FiLKSampler) instead
+// of being folded into the Vue panel.
 const HIDE = [
   ...Object.keys(numericDefaults), ...Object.keys(stringDefaults), ...Object.keys(boolDefaults),
-  "control_after_generate",
 ];
 
 export const hiresfixNode: NodeModule = {
