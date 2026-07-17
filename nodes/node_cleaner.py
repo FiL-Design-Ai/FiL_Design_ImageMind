@@ -16,7 +16,7 @@ class FiLNeuroCleaner(_io.ComfyNode):
         return _io.Schema(
             node_id="FiLNeuroCleaner",
             display_name="🧹 Cleaner",
-            category=f"{CATEGORY_ROOT}/Tools/Cleaner",
+            category=f"{CATEGORY_ROOT}/Tools",
             description="🧹 FiL Neuro Cleaner — flushes GPU VRAM, offloads model types, and optionally cleans system RAM/file cache on Windows.",
             inputs=[
                 _io.Boolean.Input("clean_vram", default=True, label_on="VRAM ON", label_off="VRAM OFF", tooltip=_t("nc_clean_vram", "Clean VRAM.")),

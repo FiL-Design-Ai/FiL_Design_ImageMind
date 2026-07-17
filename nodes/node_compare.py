@@ -16,7 +16,7 @@ class FiLBeforeAfterCompare(io.ComfyNode):
         return io.Schema(
             node_id="FiLBeforeAfterCompare",
             display_name="🔄 Compare",
-            category=f"{CATEGORY_ROOT}/Image/Compare",
+            category=f"{CATEGORY_ROOT}/Image",
             description="🖼️ FiL Before/After Compare — side-by-side image comparison with optional swap and resize controls.",
             inputs=[
                 io.Image.Input("before", tooltip=t("cmp_before", "Image shown on the left side.")),
