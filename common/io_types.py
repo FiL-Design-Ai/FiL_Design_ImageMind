@@ -10,6 +10,16 @@ Connects FiLProviderLoader (output) → FiLOpticScanner (input),
 preventing accidental connection of incompatible sockets on the graph.
 """
 
+FilDict = io.Custom("DICT")
+"""
+Generic ``DICT`` socket.
+
+Stand-in for ``io.Dict``, which is not present in every ComfyUI build
+(removed from ``comfy_api.latest`` in newer releases). ``io.Custom("DICT")``
+yields the same ``"DICT"`` wire type and is available across versions, so the
+package imports on both old and new ComfyUI.
+"""
+
 FilHiresScript = io.Custom("FIL_HIRES_SCRIPT")
 """
 Socket-typed HighRes-fix "script" dict.
