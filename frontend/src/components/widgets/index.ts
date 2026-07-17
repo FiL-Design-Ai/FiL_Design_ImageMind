@@ -11,7 +11,6 @@ export { default as FilHelpPopup } from "./FilHelpPopup.vue";
 export { default as FilIcon } from "./FilIcon.vue";
 export { default as FilInfo } from "./FilInfo.vue";
 export { default as FilModal } from "./FilModal.vue";
-export { default as FilNodeHelpBadge } from "./FilNodeHelpBadge.vue";
 export { default as FilNodeShell } from "./FilNodeShell.vue";
 export { default as FilNumberInput } from "./FilNumberInput.vue";
 export { default as FilSection } from "./FilSection.vue";
