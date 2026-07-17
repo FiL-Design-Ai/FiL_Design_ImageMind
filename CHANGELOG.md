@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.0 (2026-07-10)
+## 1.0.0 (2026-07-17)
 
 ### Breaking
 - **Project renamed: `FiL_LLM` → `FiL_Design_ImageMind`.** This is the first
