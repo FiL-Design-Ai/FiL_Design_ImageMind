@@ -23,7 +23,7 @@ from ..common.data import (
     model_needs_prompt_post_conversion,
     resolve_agent_key,
 )
-from ..common.io_types import FilProviderConfig
+from ..common.io_types import FilDict, FilProviderConfig
 from ..common.localization import t
 from ..common.logic import PromptGenerator, StyleManager
 from ..common.model_prompt_adapters import append_response_format_instruction, post_convert_prompt
@@ -85,7 +85,7 @@ class FiLOpticScanner(io.ComfyNode):
             outputs=[
                 io.String.Output(display_name="prompt", tooltip="Generated prompt text."),
                 io.String.Output(display_name="metadata_json", tooltip="JSON metadata string."),
-                io.Dict.Output(display_name="metadata_dict", tooltip="Parsed metadata dict."),
+                FilDict.Output(display_name="metadata_dict", tooltip="Parsed metadata dict."),
             ],
             search_aliases=["scanner", "vision", "image analysis", "prompt generator", "describe"],
         )
