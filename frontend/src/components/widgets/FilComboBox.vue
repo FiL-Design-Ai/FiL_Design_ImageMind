@@ -215,9 +215,13 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.fil-combo { display: flex; flex-direction: column; gap: 4px; width: 100%; }
-.fil-combo-label { font-size: 11px; color: var(--fil-muted, rgba(255, 255, 255, 0.55)); font-family: inherit; }
+.fil-combo {
+  display: grid; grid-template-columns: minmax(auto, max-content) minmax(60px, 1fr);
+  align-items: center; gap: var(--fil-node-gap, 6px); width: 100%;
+}
+.fil-combo-label { grid-column: 1; font-size: 11px; color: var(--fil-muted, rgba(255, 255, 255, 0.55)); font-family: inherit; }
 .fil-combo-trigger {
+  grid-column: 2;
   width: 100%; box-sizing: border-box; height: 30px;
   display: flex; align-items: center; gap: 6px;
   background: var(--fil-panel-alt, #171819); border: 1px solid var(--fil-muted, #3a3d40); border-radius: 6px;

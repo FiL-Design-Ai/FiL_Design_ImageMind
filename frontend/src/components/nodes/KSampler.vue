@@ -61,19 +61,16 @@ const VAE_DECODE_LABELS: Record<string, string> = {
     <FilSlider :model-value="cfg" :min="0" :max="100" :step="0.1" :label="t('lbl_cfg', '🎯 CFG')"
       :title="t('ks_cfg', 'Classifier-free guidance scale.')" @update:model-value="(v: number) => (cfg = v)" />
 
-    <label class="fil-w-label" :title="t('ks_sampler', 'Sampling algorithm.')">{{ t('lbl_sampler', '🌀 Sampler') }}</label>
-    <FilSelect :options="samplerOptions" :model-value="samplerName"
+    <FilSelect :options="samplerOptions" :model-value="samplerName" :label="t('lbl_sampler', '🌀 Sampler')"
       :title="t('ks_sampler', 'Sampling algorithm.')" @update:model-value="(v: string) => (samplerName = v)" />
 
-    <label class="fil-w-label" :title="t('ks_scheduler', 'Noise schedule.')">{{ t('lbl_scheduler', '📉 Scheduler') }}</label>
-    <FilSelect :options="schedulerOptions" :model-value="scheduler"
+    <FilSelect :options="schedulerOptions" :model-value="scheduler" :label="t('lbl_scheduler', '📉 Scheduler')"
       :title="t('ks_scheduler', 'Noise schedule.')" @update:model-value="(v: string) => (scheduler = v)" />
 
     <FilSlider :model-value="denoise" :min="0" :max="1" :step="0.01" :label="t('lbl_denoise', '💧 Denoise')"
       :title="t('ks_denoise', 'Denoise strength (1.0 = full).')" @update:model-value="(v: number) => (denoise = v)" />
 
-    <label class="fil-w-label" :title="t('ks_preview', 'How the live sampling preview is rendered.')">{{ t('lbl_preview', '👁️ Preview') }}</label>
-    <FilSelect :options="PREVIEW_OPTIONS" :model-value="previewMethod"
+    <FilSelect :options="PREVIEW_OPTIONS" :model-value="previewMethod" :label="t('lbl_preview', '👁️ Preview')"
       :title="t('ks_preview', 'How the live sampling preview is rendered.')" @update:model-value="(v: string) => (previewMethod = v)" />
 
     <FilSegmented :options="VAE_DECODE_OPTIONS" :option-labels="VAE_DECODE_LABELS" :model-value="vaeDecode"

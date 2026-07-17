@@ -42,17 +42,20 @@ const valueProxy = computed({
 
 <style scoped>
 .fil-w-select {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  display: grid;
+  grid-template-columns: minmax(auto, max-content) minmax(60px, 1fr);
+  align-items: center;
+  gap: var(--fil-node-gap, 6px);
   width: 100%;
 }
 .fil-w-select-label {
+  grid-column: 1;
   font-size: 11px;
   color: var(--fil-muted, rgba(255, 255, 255, 0.55));
   font-family: inherit;
 }
 .fil-w-select-input {
+  grid-column: 2;
   width: 100%;
   box-sizing: border-box;
   height: 30px;

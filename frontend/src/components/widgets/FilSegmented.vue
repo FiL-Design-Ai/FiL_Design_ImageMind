@@ -79,19 +79,23 @@ function onKeydown(e: KeyboardEvent, index: number) {
 
 <style scoped>
 .fil-w-segmented {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  display: grid;
+  grid-template-columns: minmax(auto, max-content) minmax(60px, 1fr);
+  align-items: center;
+  gap: var(--fil-node-gap, 6px);
   width: 100%;
 }
 .fil-w-segmented-label {
+  grid-column: 1;
   font-size: 11px;
   color: var(--fil-muted, rgba(255, 255, 255, 0.55));
   font-family: inherit;
 }
 .fil-w-pill {
+  grid-column: 2;
   display: flex;
   gap: 0;
+  min-width: 0;
   background: rgba(255, 255, 255, 0.06);
   border-radius: 7px;
   padding: 3px;
