@@ -17,6 +17,12 @@ const props = withDefaults(
     step?: number | null;
     disabled?: boolean;
     ariaLabel?: string;
+    /** Optional — renders the same label|control grid row every other
+     * leaf widget (FilSlider/FilSegmented/FilSelect/FilComboBox) uses, for
+     * standalone fields. Callers that lay the label out externally (e.g.
+     * paired rows) simply omit it and get the bare `<input>` as before. */
+    label?: string;
+    title?: string;
   }>(),
   { step: 1 },
 );
@@ -105,24 +111,47 @@ function bump(direction: number) {
 </script>
 
 <template>
-  <input
-    v-model="text"
-    type="text"
-    class="fil-w-num"
-    inputmode="numeric"
-    :disabled="disabled"
-    :min="min ?? undefined"
-    :max="max ?? undefined"
-    :step="step ?? undefined"
-    :aria-label="ariaLabel"
-    @focus="onFocus"
-    @blur="onBlur"
-    @keydown="onKeydown"
-  />
+  <div class="fil-w-numfield" :class="{ 'no-label': !label }" :title="title">
+    <label v-if="label" class="fil-w-numfield-label">{{ label }}</label>
+    <input
+      v-model="text"
+      type="text"
+      class="fil-w-num"
+      inputmode="numeric"
+      :disabled="disabled"
+      :min="min ?? undefined"
+      :max="max ?? undefined"
+      :step="step ?? undefined"
+      :aria-label="ariaLabel ?? label"
+      @focus="onFocus"
+      @blur="onBlur"
+      @keydown="onKeydown"
+    />
+  </div>
 </template>
 
 <style scoped>
+.fil-w-numfield {
+  display: grid;
+  grid-template-columns: minmax(auto, max-content) minmax(60px, 1fr);
+  align-items: center;
+  gap: var(--fil-node-gap, 6px);
+  width: 100%;
+}
+/* No label passed (paired-row / FilSlider readout usage): collapse to a
+ * transparent wrapper so the bare `<input>` behaves exactly as before —
+ * a direct participant in whatever flex/grid layout the caller provides. */
+.fil-w-numfield.no-label {
+  display: contents;
+}
+.fil-w-numfield-label {
+  grid-column: 1;
+  font-size: 11px;
+  color: var(--fil-muted, rgba(255, 255, 255, 0.55));
+  font-family: inherit;
+}
 .fil-w-num {
+  grid-column: 2;
   width: 100%;
   box-sizing: border-box;
   height: 32px;
