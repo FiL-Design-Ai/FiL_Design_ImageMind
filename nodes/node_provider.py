@@ -17,7 +17,7 @@ class FiLProviderLoader(io.ComfyNode):
         return io.Schema(
             node_id="FiLProviderLoader",
             display_name="🔌 Provider Loader",
-            category=f"{CATEGORY_ROOT}/LLM/Provider",
+            category=f"{CATEGORY_ROOT}/LLM",
             description="🔌 FiL Provider Loader — selects an LLM provider, model, and generation parameters. Outputs a `config` dict for downstream FiL nodes.",
             inputs=[
                 io.Combo.Input("provider", options=provider_options, default="ollama",

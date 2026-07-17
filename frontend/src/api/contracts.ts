@@ -175,7 +175,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "FiLProviderLoader": {
   "id": "FiLProviderLoader",
   "title": "🔌 Provider Loader",
-  "category": "🎨 FiL Design/LLM/Provider",
+  "category": "🎨 FiL Design/LLM",
   "description": "Provider and model runtime configuration.",
   "inputs": {
     "required": [
@@ -357,7 +357,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "FiLOpticScanner": {
   "id": "FiLOpticScanner",
   "title": "🕵️ Optic Scanner",
-  "category": "🎨 FiL Design/LLM/Scanner",
+  "category": "🎨 FiL Design/LLM",
   "description": "Image analysis or text-idea expansion into a generation prompt.",
   "inputs": {
     "required": [
@@ -1075,7 +1075,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "FiLNeuroCleaner": {
   "id": "FiLNeuroCleaner",
   "title": "🧹 Cleaner",
-  "category": "🎨 FiL Design/Tools/Cleaner",
+  "category": "🎨 FiL Design/Tools",
   "description": "Selective model, VRAM, RAM, and cache cleanup.",
   "inputs": {
     "required": [
@@ -1332,7 +1332,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "FiLBeforeAfterCompare": {
   "id": "FiLBeforeAfterCompare",
   "title": "🔄 Compare",
-  "category": "🎨 FiL Design/Image/Compare",
+  "category": "🎨 FiL Design/Image",
   "description": "Before/after preview with optional output resizing.",
   "inputs": {
     "required": [],
@@ -1420,7 +1420,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "FiLUpscaleTileCalc": {
   "id": "FiLUpscaleTileCalc",
   "title": "🔍 Upscaler",
-  "category": "🎨 FiL Design/Image/Upscale",
+  "category": "🎨 FiL Design/Image",
   "description": "Computes optimal tile grid layout for upscaling.",
   "inputs": {
     "required": [
@@ -1698,7 +1698,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "FiLKSampler": {
   "id": "FiLKSampler",
   "title": "⚡ KSampler",
-  "category": "🎨 FiL Design/Sampling/KSampler",
+  "category": "🎨 FiL Design/Sampling",
   "description": "Full-featured sampler with every sampler and scheduler.",
   "inputs": {
     "required": [
@@ -1763,7 +1763,50 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
         "default": "euler",
         "tooltip": null,
         "values": [
-          "euler"
+          "euler",
+          "euler_cfg_pp",
+          "euler_ancestral",
+          "euler_ancestral_cfg_pp",
+          "heun",
+          "heunpp2",
+          "exp_heun_2_x0",
+          "exp_heun_2_x0_sde",
+          "dpm_2",
+          "dpm_2_ancestral",
+          "lms",
+          "dpm_fast",
+          "dpm_adaptive",
+          "dpmpp_2s_ancestral",
+          "dpmpp_2s_ancestral_cfg_pp",
+          "dpmpp_sde",
+          "dpmpp_sde_gpu",
+          "dpmpp_2m",
+          "dpmpp_2m_cfg_pp",
+          "dpmpp_2m_sde",
+          "dpmpp_2m_sde_gpu",
+          "dpmpp_2m_sde_heun",
+          "dpmpp_2m_sde_heun_gpu",
+          "dpmpp_3m_sde",
+          "dpmpp_3m_sde_gpu",
+          "ddpm",
+          "lcm",
+          "ipndm",
+          "ipndm_v",
+          "deis",
+          "res_multistep",
+          "res_multistep_cfg_pp",
+          "res_multistep_ancestral",
+          "res_multistep_ancestral_cfg_pp",
+          "gradient_estimation",
+          "gradient_estimation_cfg_pp",
+          "er_sde",
+          "seeds_2",
+          "seeds_3",
+          "sa_solver",
+          "sa_solver_pece",
+          "ddim",
+          "uni_pc",
+          "uni_pc_bh2"
         ],
         "columns": null,
         "searchable": null,
@@ -1780,10 +1823,18 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
         "name": "scheduler",
         "kind": "combo",
         "label": "Scheduler",
-        "default": "normal",
+        "default": "simple",
         "tooltip": null,
         "values": [
-          "normal"
+          "simple",
+          "sgm_uniform",
+          "karras",
+          "exponential",
+          "ddim_uniform",
+          "beta",
+          "normal",
+          "linear_quadratic",
+          "kl_optimal"
         ],
         "columns": null,
         "searchable": null,
@@ -1900,7 +1951,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "FiLHighResFix": {
   "id": "FiLHighResFix",
   "title": "🔬 HighRes Fix",
-  "category": "🎨 FiL Design/Sampling/HighResFix",
+  "category": "🎨 FiL Design/Sampling",
   "description": "Packs latent/pixel upscale + re-sample settings into a script.",
   "inputs": {
     "required": [

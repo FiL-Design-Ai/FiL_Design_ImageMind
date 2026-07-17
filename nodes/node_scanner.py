@@ -47,7 +47,7 @@ class FiLOpticScanner(io.ComfyNode):
         return io.Schema(
             node_id="FiLOpticScanner",
             display_name="🕵️ Optic Scanner",
-            category=f"{CATEGORY_ROOT}/LLM/Scanner",
+            category=f"{CATEGORY_ROOT}/LLM",
             description=(
                 "👁️ Optic Scanner — analyzes images with LLM vision models and generates "
                 "optimized prompts for Z-Image, FLUX, QWEN, and SDXL generation models."

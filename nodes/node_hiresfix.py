@@ -52,7 +52,7 @@ class FiLHighResFix(io.ComfyNode):
         return io.Schema(
             node_id="FiLHighResFix",
             display_name="🔬 HighRes Fix",
-            category=f"{CATEGORY_ROOT}/Sampling/HighResFix",
+            category=f"{CATEGORY_ROOT}/Sampling",
             description="🔬 FiL HighRes Fix — packs latent/pixel upscale + re-sample settings into a script for FiLKSampler.",
             inputs=[
                 io.Combo.Input("upscale_type", options=["latent", "pixel", "both"], default="latent",
