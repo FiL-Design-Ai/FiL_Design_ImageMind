@@ -9,10 +9,10 @@ import type { ComfyExtensionSettings } from "@/types/comfy";
 import { ADAPTIVE_TITLE_SETTINGS } from "@/stores/settings/titleSettings";
 import { RUN_BUTTON_FX_ADVANCED_SETTINGS } from "@/stores/settings/runButtonFxSettingsAdvanced";
 import { CONNECTION_FX_SETTINGS } from "@/stores/settings/connectionFxSettings";
-import { CONNECTION_FX_ADVANCED_SETTINGS } from "@/stores/settings/connectionFxSettingsAdvanced";
 import { SHORTCUTS_SETTINGS } from "@/stores/settings/shortcutsSettings";
 import { LANGUAGE_SETTINGS } from "@/stores/settings/languageSettings";
 import { THEME_SETTINGS } from "@/stores/settings/themeSettings";
+import { LOGGING_SETTINGS } from "@/stores/settings/loggingSettings";
 
 // Provider/API-key management lives in a sidebar tab now, not here — see
 // `nodes2/installers/providerManager.ts`. A `type: "dom"` Settings entry
@@ -22,8 +22,8 @@ export const ALL_SETTINGS: ComfyExtensionSettings[] = [
   ...ADAPTIVE_TITLE_SETTINGS,
   ...RUN_BUTTON_FX_ADVANCED_SETTINGS,
   ...CONNECTION_FX_SETTINGS,
-  ...CONNECTION_FX_ADVANCED_SETTINGS,
   ...SHORTCUTS_SETTINGS,
   ...LANGUAGE_SETTINGS,
   ...THEME_SETTINGS,
+  ...LOGGING_SETTINGS,
 ];

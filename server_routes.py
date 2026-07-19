@@ -14,7 +14,8 @@ from .common.provider_accounts import (
     get_safe_provider_accounts,
     save_provider_credentials,
 )
-from .common.config import PROVIDERS
+from .common.base import set_log_level
+from .common.config import PROVIDERS, get_config
 from .common.contracts import public_node_contracts_v2
 from .common.localization import get_localization_manager
 
@@ -108,9 +109,21 @@ def register_routes():
         return
     server = PromptServer.instance
 
+    set_log_level(get_config().get("logging.console.level", "WARNING"))
+
     @server.routes.get(f"/{ROUTE_SLUG}/health")
     async def health(request):
         return web.json_response({"status": "ok", "version": "2.0.0"})
+
+    @server.routes.post(f"/{ROUTE_SLUG}/log_level")
+    async def set_log_level_route(request):
+        try:
+            data = await request.json()
+        except Exception:
+            data = {}
+        level = str(data.get("level", "WARNING"))
+        set_log_level(level)
+        return web.json_response({"ok": True, "level": level})
 
     @server.routes.get(f"/{ROUTE_SLUG}/models/{{provider}}")
     async def get_models(request):
