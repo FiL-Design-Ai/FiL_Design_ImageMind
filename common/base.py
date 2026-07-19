@@ -77,3 +77,15 @@ def get_logger(name: Optional[str] = None) -> logging.Logger:
         logger.addHandler(handler)
     logger.setLevel(logging.WARNING)
     return logger
+
+
+_VALID_LOG_LEVELS = {"DEBUG", "INFO", "WARNING", "ERROR"}
+
+
+def set_log_level(level: str) -> None:
+    """Set the level on the BRAND root logger; every module logger is a child
+    of it with NOTSET level, so they inherit this cascaded effective level."""
+    normalized = str(level).upper()
+    if normalized not in _VALID_LOG_LEVELS:
+        normalized = "WARNING"
+    logging.getLogger(BRAND).setLevel(normalized)
