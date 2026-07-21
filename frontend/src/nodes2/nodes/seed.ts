@@ -20,7 +20,7 @@ export const seedNode: NodeModule = {
   id: "FiLSeed",
   register(nodeType: unknown, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
-      minSize: [220, 220],
+      minSize: [240, 90],
       family: "value",
       description: "Fixed or randomized seed with copy and reuse buttons.",
       badges: [{ text: "seed" }],
@@ -61,7 +61,7 @@ export const seedNode: NodeModule = {
       // Expose state on node for graphToPrompt seed injection
       node._filSeedState = state;
 
-      addFilDomWidget(node, "fil_seed_view", SeedVue, { state, height: 185 });
+      addFilDomWidget(node, "fil_seed_view", SeedVue, { state, height: 52 });
       return result;
     };
 

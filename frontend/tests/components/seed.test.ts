@@ -18,14 +18,11 @@ describe("Seed.vue", () => {
     setActivePinia(createPinia());
   });
 
-  it("renders mode toggle with default 'random'", () => {
+  it("renders three icon action buttons", () => {
     const state = makeState();
     const wrapper = mount(SeedVue, { props: { state } });
-    const buttons = wrapper.findAll("button");
-    const randomBtn = buttons.find((b) => b.text().toLowerCase().includes("random"));
-    const fixedBtn = buttons.find((b) => b.text().toLowerCase().includes("fixed"));
-    expect(randomBtn).toBeTruthy();
-    expect(fixedBtn).toBeTruthy();
+    const labels = wrapper.findAll(".fil-seed-actions button").map((b) => b.text());
+    expect(labels).toEqual(["🔀", "♻️", "🎲"]);
   });
 
   it("shows seed value in fixed mode", () => {
@@ -39,7 +36,7 @@ describe("Seed.vue", () => {
   it("switches to fixed mode on newFixed", async () => {
     const state = makeState({ nodeState: { mode: "random", seed: 0 } });
     const wrapper = mount(SeedVue, { props: { state } });
-    const newFixedBtn = wrapper.findAll("button").find((b) => b.text().toLowerCase().includes("new"));
+    const newFixedBtn = wrapper.findAll(".fil-seed-actions button").find((b) => b.text() === "🎲");
     await newFixedBtn?.trigger("click");
     expect(state.nodeState.mode).toBe("fixed");
     expect(typeof state.nodeState.seed).toBe("number");
@@ -51,5 +48,15 @@ describe("Seed.vue", () => {
     const wrapper = mount(SeedVue, { props: { state } });
     const input = wrapper.find<HTMLInputElement>(".fil-seed-display");
     expect(input.element.value).toBe("random");
+  });
+
+  it("typing a value in fixed mode applies it as the seed", async () => {
+    const state = makeState({ nodeState: { mode: "fixed", seed: 42 } });
+    const wrapper = mount(SeedVue, { props: { state } });
+    const input = wrapper.find<HTMLInputElement>(".fil-seed-display");
+    input.element.value = "12345";
+    await input.trigger("input");
+    expect(state.nodeState.mode).toBe("fixed");
+    expect(state.nodeState.seed).toBe(12345);
   });
 });

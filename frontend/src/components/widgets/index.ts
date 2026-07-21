@@ -19,3 +19,4 @@ export { default as FilSelect } from "./FilSelect.vue";
 export { default as FilSlider } from "./FilSlider.vue";
 export { default as FilStylePicker } from "./FilStylePicker.vue";
 export { default as FilToastStack } from "./FilToastStack.vue";
+export { default as FilToggle } from "./FilToggle.vue";

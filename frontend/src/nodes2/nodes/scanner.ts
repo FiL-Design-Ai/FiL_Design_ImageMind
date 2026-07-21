@@ -12,7 +12,11 @@ export const scannerNode: NodeModule = {
   id: "FiLOpticScanner",
   register(nodeType: unknown, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
-      minSize: [380, 340],
+      // Height kept LOW on purpose — computeSize() (~660px real content)
+      // always wins via Math.max in domWidgetHost.ts, so a buffer above it
+      // here would just be dead space at the bottom. Width is the actual
+      // reason this floor exists (computeSize()'s own width guess ignores it).
+      minSize: [380, 300],
       family: "llm",
       description: "Image analysis or text-idea expansion into a generation prompt.",
       badges: [{ text: "LLM", color: "#7c5cfc", text_color: "#fff" }],
@@ -27,8 +31,11 @@ export const scannerNode: NodeModule = {
     };
     const p = proto.prototype;
 
-    const hiddenWidgetNames = ["prompt", "negative_prompt", "custom_style",
-      "agent", "model_type", "detail_level", "language",
+    // `prompt`, `negative_prompt`, `custom_style` are declared force_input on
+    // the node (node_scanner.py) — they have no native widget to hide, their
+    // value lives in the Vue panel's DOM state and is injected at
+    // graphToPrompt when the input socket is unconnected (filExtension.ts).
+    const hiddenWidgetNames = ["agent", "model_type", "detail_level", "language",
       "prompt_mode", "response_format", "photo_style", "nsfw_photo_style", "art_style", "nsfw_art_style"];
 
     const originalCreated = p.onNodeCreated;

@@ -99,7 +99,18 @@ export const HELP_DEFAULTS: Record<string, HelpDef> = {
     bullets: [
       "Computes optimal tile grid for a target resolution.",
       "Outputs tile width/height, grid cols/rows, latent width/height.",
+      "Optional latent input mirrors image/tiles: latent + latent_tiles out, same grid, bislerp resize.",
       "Wire outputs into KSampler-tile-aware upscale nodes.",
+    ],
+  },
+  FiLUpscaleSimple: {
+    id: "FiLUpscaleSimple",
+    title: "FiL Upscale Simple",
+    body: "Upscale + tile crop with the same tiling controls as Advanced, through a required model.",
+    bullets: [
+      "Same widget panel as Upscaler Advanced (factor, tile size/overlap, auto mode, manual grid).",
+      "upscale_model is required; optional latent input adds latent + latent_tiles outputs.",
+      "Delegates to Upscaler Advanced internally — one source of truth for the tiling math.",
     ],
   },
   FiLKSampler: {
@@ -132,6 +143,20 @@ export const HELP_DEFAULTS: Record<string, HelpDef> = {
       { label: "Upscale by", desc: "Resolution multiplier for the hires pass." },
       { label: "Same seed", desc: "Reuse the sampler's seed; turn off to set an own seed." },
       { label: "Hires steps", desc: "Denoising steps for the re-sample (fewer than the base pass is fine)." },
+    ],
+  },
+  FiLNoiseControl: {
+    id: "FiLNoiseControl",
+    title: "FiL Noise Control",
+    body: "Packs an RNG source and optional seed-variation blend into a script for FiL KSampler.",
+    bullets: [
+      "Outputs a `script` — wire it into the KSampler `script` slot, not into a latent.",
+      "RNG source: 'gpu' can better match Automatic1111-style noise for the same seed.",
+      "Seed variation blends a second seed's noise in at the given weight (0 = base only, 1 = variation only).",
+    ],
+    rows: [
+      { label: "RNG source", desc: "Device the initial noise is drawn on (cpu/gpu)." },
+      { label: "Weight", desc: "Variation strength — how much of the second seed's noise to blend in." },
     ],
   },
 };

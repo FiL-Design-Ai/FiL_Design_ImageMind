@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /** FiLUpscaleTileCalc — tile sizing controls (mirrors the real node inputs). */
 import { computed, watch } from "vue";
-import { FilNumberInput, FilSlider, FilSegmented, FilSection } from "@/components/widgets";
+import { FilNumberInput, FilSlider, FilSegmented, FilToggle, FilSection } from "@/components/widgets";
 import { useI18n } from "@/composables/useI18n";
 import type { FilNodeState } from "@/nodes2/filState";
 
@@ -31,14 +31,14 @@ function boolField(name: string, fallback: boolean) {
 }
 
 const upscaleFactor = numberField("upscale_factor", 2.0);
-const tileSize = numberField("tile_size", 512);
+const tileSize = numberField("tile_size", 1024);
 const tileOverlap = numberField("tile_overlap", 64);
 const manualTileCols = numberField("manual_tile_cols", 0);
 const manualTileRows = numberField("manual_tile_rows", 0);
-const maxMegapixels = numberField("max_megapixels", 0);
+const autoOverlap = boolField("auto_overlap", false);
 const autoMode = boolField("auto_mode", false);
 const nonSquareTiles = boolField("non_square_tiles", false);
-const showGridPreview = boolField("show_grid_preview", true);
+const autoFixThinEdges = boolField("auto_fix_thin_edges", false);
 
 const autoProfile = computed({
   get: () => String(props.state.nodeState.auto_profile ?? props.state.initialValues.auto_profile ?? "Balanced"),
@@ -69,9 +69,9 @@ watch(() => props.state.nodeState, () => {}, { deep: true });
          but a bare <template> renders as a fragment (no wrapper node), so
          v-show here was silently a no-op — content never actually hid. -->
     <template v-if="!isCollapsed('auto')">
-      <FilSegmented :options="['ON', 'OFF']" :option-labels="{ ON: '⚙️ ON', OFF: 'OFF' }" :model-value="autoMode" :label="t('lbl_full_auto', '🤖 Full auto')"
+      <FilToggle :model-value="autoMode" :label="t('lbl_full_auto', '🤖 Full auto')"
         :title="t('utc_auto_mode', 'Pick tile size/overlap automatically from the selected VRAM profile.')"
-        @update:model-value="(v) => (autoMode = v as 'ON' | 'OFF')" />
+        @update:model-value="(v) => (autoMode = v)" />
 
       <!-- Full Auto ON: only auto_profile matters — manual tile_size/overlap/cols/rows
            are ignored by the backend (nodes/node_upscale.py _compute_auto_tile_settings). -->
@@ -81,30 +81,30 @@ watch(() => props.state.nodeState, () => {}, { deep: true });
 
       <!-- Full Auto OFF: manual tile_size/overlap/cols/rows control the grid instead. -->
       <template v-if="autoMode === 'OFF'">
-        <div class="fil-up-row">
+        <div class="fil-up-row fil-up-row-overlap">
           <label class="fil-w-label" :title="t('utc_tile_size', 'Base tile size.')">{{ t('lbl_tile_size', '🔲 Tile size') }}</label>
           <FilNumberInput v-model="tileSize" :min="64" :max="2048" :step="64" />
           <label class="fil-w-label" :title="t('utc_overlap', 'Tile overlap.')">{{ t('lbl_overlap', '🧵 Overlap') }}</label>
-          <FilNumberInput v-model="tileOverlap" :min="0" :max="512" :step="8" />
+          <FilNumberInput v-model="tileOverlap" :min="0" :max="512" :step="8" :disabled="autoOverlap === 'ON'" />
+          <FilToggle bare :model-value="autoOverlap" :label="t('lbl_auto_overlap', '🧵 Auto')"
+            :title="t('utc_auto_overlap', 'Derive overlap automatically from tile size (~12.5%) instead of the fixed value above.')"
+            @update:model-value="(v) => (autoOverlap = v)" />
         </div>
         <div class="fil-up-row">
-          <label class="fil-w-label" :title="t('utc_manual_cols', 'Force this many tile columns. 0 = compute from tile size.')">{{ t('lbl_manual_cols', '↔️ Manual cols') }}</label>
+          <label class="fil-w-label" :title="t('utc_manual_cols', 'Force this many tile columns. 0 = compute from tile size.')">{{ t('lbl_manual_cols', '↔️ Cols') }}</label>
           <FilNumberInput v-model="manualTileCols" :min="0" :max="64" :step="1" />
-          <label class="fil-w-label" :title="t('utc_manual_rows', 'Force this many tile rows. 0 = compute from tile size.')">{{ t('lbl_manual_rows', '↕️ Manual rows') }}</label>
+          <label class="fil-w-label" :title="t('utc_manual_rows', 'Force this many tile rows. 0 = compute from tile size.')">{{ t('lbl_manual_rows', '↕️ Rows') }}</label>
           <FilNumberInput v-model="manualTileRows" :min="0" :max="64" :step="1" />
         </div>
+        <FilToggle :model-value="autoFixThinEdges" :label="t('lbl_auto_fix_edges', '🩹 Auto-fix thin edges')"
+          :title="t('utc_auto_fix_edges', 'Shrink tile_size to the next standard size instead of just warning when the grid would leave a thin edge tile.')"
+          @update:model-value="(v) => (autoFixThinEdges = v)" />
       </template>
     </template>
 
-    <FilSlider :model-value="maxMegapixels" :min="0" :max="64" :step="0.5" :label="t('lbl_max_megapixels', '🖼️ Max megapixels')"
-      :title="t('utc_max_mp', 'Cap the upscaled output at this many megapixels. 0 = no cap.')"
-      @update:model-value="(v: number) => (maxMegapixels = v)" />
-    <FilSegmented :options="['ON', 'OFF']" :option-labels="{ ON: '🧩 ON', OFF: 'OFF' }" :model-value="nonSquareTiles" :label="t('lbl_non_square', '📐 Non-square tiles')"
+    <FilToggle :model-value="nonSquareTiles" :label="t('lbl_non_square', '📐 Non-square tiles')"
       :title="t('utc_non_square', 'Allow rectangular tiles instead of forcing square ones.')"
-      @update:model-value="(v) => (nonSquareTiles = v as 'ON' | 'OFF')" />
-    <FilSegmented :options="['ON', 'OFF']" :option-labels="{ ON: '🔲 ON', OFF: 'OFF' }" :model-value="showGridPreview" :label="t('lbl_show_grid', '🔳 Show grid preview')"
-      :title="t('utc_show_grid', 'Render a tile-grid overlay on the preview output.')"
-      @update:model-value="(v) => (showGridPreview = v as 'ON' | 'OFF')" />
+      @update:model-value="(v) => (nonSquareTiles = v)" />
   </div>
 </template>
 
@@ -113,6 +113,13 @@ watch(() => props.state.nodeState, () => {}, { deep: true });
  * rule in styles/brand.ts — keep only layout here. */
 .fil-up-root { display: flex; flex-direction: column; gap: var(--fil-node-gap); padding: var(--fil-node-pad);
   color: var(--fil-text, #e8edf3); font-family: ui-sans-serif, system-ui, sans-serif; }
-.fil-up-row { display: grid; grid-template-columns: minmax(auto, max-content) minmax(48px, 1fr) minmax(auto, max-content) minmax(48px, 1fr); align-items: center; gap: var(--fil-node-gap); }
+/* Value columns capped, not 1fr: these fields only ever hold small integers
+ * (0-2048), so letting them greedily fill available width just starved the
+ * label columns and forced "Manual rows" onto its own line. */
+.fil-up-row { display: grid; grid-template-columns: minmax(auto, max-content) 64px minmax(auto, max-content) 64px; align-items: center; gap: var(--fil-node-gap); }
+/* Overlap row gets a 5th column for the inline "Auto" toggle glued onto the
+ * Overlap field — auto-sized (~fits switch+short label), doesn't steal
+ * space from the two fixed 64px value columns. */
+.fil-up-row-overlap { grid-template-columns: minmax(auto, max-content) 64px minmax(auto, max-content) 64px auto; }
 .fil-w-label { font-size: 11px; color: var(--fil-muted, rgba(255,255,255,0.55)); }
 </style>

@@ -16,6 +16,87 @@ from __future__ import annotations
 from typing import Any
 
 
+def _prepare_noise(latent_image, seed: int, rng_source: str = "cpu"):
+    """Generate a noise tensor for ``latent_image``/``seed``.
+
+    ``"cpu"`` delegates to ``comfy.sample.prepare_noise`` (ComfyUI's stock
+    behaviour). ``"gpu"`` draws from a CUDA/MPS generator on the model's
+    execution device instead — a different (and, for some samplers, more
+    A1111-consistent) noise pattern for the same seed. Only ever reads the
+    public ``comfy.sample``/``comfy.model_management`` API — no monkeypatching
+    of comfy internals.
+    """
+    import comfy.sample
+
+    if rng_source != "gpu":
+        return comfy.sample.prepare_noise(latent_image, seed)
+
+    import torch
+    import comfy.model_management
+
+    device = comfy.model_management.get_torch_device()
+    generator = torch.Generator(device=device).manual_seed(seed)
+    noise = torch.randn(
+        latent_image.size(), dtype=torch.float32, layout=latent_image.layout,
+        generator=generator, device=device,
+    )
+    return noise.to(dtype=latent_image.dtype, device="cpu")
+
+
+def _blend_noise(base_noise, variation_noise, weight: float):
+    """Blend two independent unit-variance noise tensors.
+
+    Uses a sin/cos rotation (``weight`` maps 0..1 to a 0..90° blend angle)
+    rather than a linear mix so the result stays unit-variance regardless of
+    ``weight`` — a plain ``lerp`` would shrink the noise magnitude in the
+    middle of the range and change the effective denoise strength.
+    """
+    import math
+
+    theta = max(0.0, min(1.0, weight)) * (math.pi / 2)
+    return base_noise * math.cos(theta) + variation_noise * math.sin(theta)
+
+
+def _sample_with_noise_control(
+    model, *, seed, steps, cfg, sampler_name, scheduler, positive, negative,
+    latent, denoise, noise_control: dict[str, Any],
+):
+    """``common_ksampler`` re-assembled from public ``comfy.sample`` calls so a
+    custom-generated noise tensor (RNG source / seed variation) can be
+    substituted for the stock CPU noise — mirrors ``nodes.common_ksampler``'s
+    own logic (see ``nodes.py``) apart from that substitution."""
+    import comfy.sample
+    import comfy.utils
+    import latent_preview
+
+    rng_source = noise_control.get("rng_source", "cpu")
+    add_seed_noise = bool(noise_control.get("add_seed_noise", False))
+    variation_seed = int(noise_control.get("seed", 0))
+    weight = float(noise_control.get("weight", 0.0))
+
+    latent_image = latent["samples"]
+    latent_image = comfy.sample.fix_empty_latent_channels(
+        model, latent_image, latent.get("downscale_ratio_spacial"), latent.get("downscale_ratio_temporal"),
+    )
+
+    noise = _prepare_noise(latent_image, seed, rng_source)
+    if add_seed_noise and weight > 0:
+        variation = _prepare_noise(latent_image, variation_seed, rng_source)
+        noise = _blend_noise(noise, variation, weight)
+
+    callback = latent_preview.prepare_callback(model, steps)
+    samples = comfy.sample.sample(
+        model, noise, steps, cfg, sampler_name, scheduler, positive, negative, latent_image,
+        denoise=denoise, noise_mask=latent.get("noise_mask"),
+        callback=callback, disable_pbar=not comfy.utils.PROGRESS_BAR_ENABLED, seed=seed,
+    )
+    out = latent.copy()
+    out.pop("downscale_ratio_spacial", None)
+    out.pop("downscale_ratio_temporal", None)
+    out["samples"] = samples
+    return out
+
+
 def sample_unified(
     model,
     *,
@@ -28,11 +109,21 @@ def sample_unified(
     negative,
     latent,
     denoise: float = 1.0,
+    noise_control: dict[str, Any] | None = None,
 ):
-    """Sample a latent via ComfyUI's stock ``common_ksampler``.
+    """Sample a latent via ComfyUI's stock ``common_ksampler`` — or, when a
+    ``noise_control`` script is attached, an equivalent that substitutes a
+    custom-generated noise tensor (see ``_sample_with_noise_control``).
 
     Returns a latent dict (``{"samples": ...}``).
     """
+    if noise_control is not None:
+        return _sample_with_noise_control(
+            model, seed=seed, steps=steps, cfg=cfg, sampler_name=sampler_name,
+            scheduler=scheduler, positive=positive, negative=negative,
+            latent=latent, denoise=denoise, noise_control=noise_control,
+        )
+
     from nodes import common_ksampler
 
     return common_ksampler(
@@ -49,10 +140,53 @@ def _decode(vae, latent, tiled: bool = False):
     return VAEDecode().decode(vae, latent)[0]
 
 
-def _encode(vae, image):
-    from nodes import VAEEncode
+def _encode(vae, image, tiled: bool = False):
+    from nodes import VAEEncode, VAEEncodeTiled
 
+    if tiled:
+        return VAEEncodeTiled().encode(vae, image, tile_size=512, overlap=64)[0]
     return VAEEncode().encode(vae, image)[0]
+
+
+# At most one entry, keyed by checkpoint name. CheckpointLoaderSimple goes
+# through comfy.sd.load_checkpoint_guess_config, which registers the model
+# with comfy's model management — VRAM offloading between the base and hires
+# models is core's job; this cache only pins system RAM for one extra
+# checkpoint so switching hires settings doesn't re-read GBs from disk on
+# every queue (the original efficiency-nodes kept its own cache=1 for the
+# same reason).
+_HIRES_CKPT_CACHE: dict[str, Any] = {}
+
+
+def _load_checkpoint_raw(ckpt_name: str):
+    from nodes import CheckpointLoaderSimple
+
+    return CheckpointLoaderSimple().load_checkpoint(ckpt_name)[0]
+
+
+def load_hires_checkpoint(ckpt_name: str):
+    """Return the MODEL for ``ckpt_name``, cached (single entry). Raises on failure."""
+    if ckpt_name in _HIRES_CKPT_CACHE:
+        return _HIRES_CKPT_CACHE[ckpt_name]
+    model = _load_checkpoint_raw(ckpt_name)
+    _HIRES_CKPT_CACHE.clear()  # drop the previous checkpoint ref so it can be freed
+    _HIRES_CKPT_CACHE[ckpt_name] = model
+    return model
+
+
+def _preprocess_hint(image, preprocessor: str):
+    """Run the selected hint preprocessor. Only comfy-built-ins — no extra deps."""
+    if preprocessor == "canny":
+        from comfy_extras.nodes_canny import Canny
+
+        return Canny.execute(image, 0.4, 0.8)[0]
+    return image
+
+
+def _apply_controlnet(positive, control_net, hint, strength: float):
+    from nodes import ControlNetApply
+
+    return ControlNetApply().apply_controlnet(positive, control_net, hint, strength)[0]
 
 
 def _latent_dims(latent) -> tuple[int, int]:
@@ -88,17 +222,20 @@ def apply_hiresfix(
     cfg: float,
     sampler_name: str,
     scheduler: str,
+    tiled: bool = False,
+    noise_control: dict[str, Any] | None = None,
 ) -> tuple[Any, list[str]]:
     """Run the HighRes-fix upscale + re-sample pass.
 
     Returns ``(latent, warnings)``. On any recoverable problem the original
     latent is returned with a warning message rather than raising.
     """
-    from nodes import ControlNetApply, LatentUpscaleBy
+    from nodes import LatentUpscaleBy
 
     warnings: list[str] = []
 
     upscale_type = hiresfix.get("upscale_type", "latent")
+    hires_ckpt_name = str(hiresfix.get("hires_ckpt_name") or "(use same)")
     latent_upscaler = hiresfix.get("latent_upscaler", "nearest-exact")
     pixel_upscaler = hiresfix.get("pixel_upscaler")
     upscale_by = float(hiresfix.get("upscale_by", 1.25))
@@ -109,6 +246,7 @@ def apply_hiresfix(
     iterations = int(hiresfix.get("iterations", 1))
     control_net = hiresfix.get("control_net")
     strength = float(hiresfix.get("strength", 1.0))
+    preprocessor = str(hiresfix.get("preprocessor", "none"))
 
     if iterations <= 0 or upscale_by <= 0:
         return latent, warnings
@@ -121,28 +259,52 @@ def apply_hiresfix(
         warnings.append("HighRes-fix: no pixel upscale model selected — skipped.")
         return latent, warnings
 
+    if upscale_type == "pixel":
+        # Pure pixel upscale, single shot — no re-sample, matching
+        # efficiency-nodes' HiRes-Fix Script (which never resamples here).
+        if hires_ckpt_name != "(use same)":
+            warnings.append("HighRes-fix: hires checkpoint is ignored in pixel mode (no re-sample).")
+        image = _decode(vae, latent, tiled=tiled)
+        try:
+            image = _pixel_upscale(image, pixel_upscaler, upscale_by)
+        except Exception as exc:  # pragma: no cover - depends on installed models
+            warnings.append(f"HighRes-fix: pixel upscale failed ({exc}).")
+            return latent, warnings
+        return _encode(vae, image, tiled=tiled), warnings
+
+    # Resample paths ("latent"/"both") honour the hires checkpoint choice.
+    pass_model = model
+    if hires_ckpt_name != "(use same)":
+        try:
+            pass_model = load_hires_checkpoint(hires_ckpt_name)
+        except Exception as exc:  # pragma: no cover - depends on installed models
+            warnings.append(
+                f"HighRes-fix: checkpoint '{hires_ckpt_name}' failed to load ({exc}) — using base model."
+            )
+
     for i in range(iterations):
         seed = base_seed if use_same_seed else hires_seed + i
 
         # 1) Upscale.
         if upscale_type == "latent":
             latent = LatentUpscaleBy().upscale(latent, latent_upscaler, upscale_by)[0]
-        else:  # "pixel" or "both"
-            image = _decode(vae, latent)
+        else:  # "both"
+            image = _decode(vae, latent, tiled=tiled)
             try:
                 image = _pixel_upscale(image, pixel_upscaler, upscale_by)
             except Exception as exc:  # pragma: no cover - depends on installed models
                 warnings.append(f"HighRes-fix: pixel upscale failed ({exc}).")
                 return latent, warnings
-            latent = _encode(vae, image)
+            latent = _encode(vae, image, tiled=tiled)
 
         # 2) Optional ControlNet conditioning off the upscaled image.
         pass_positive = positive
         if control_net is not None:
             try:
-                hint = _decode(vae, latent) if vae is not None else None
+                hint = _decode(vae, latent, tiled=tiled) if vae is not None else None
                 if hint is not None:
-                    pass_positive = ControlNetApply().apply_controlnet(positive, control_net, hint, strength)[0]
+                    hint = _preprocess_hint(hint, preprocessor)
+                    pass_positive = _apply_controlnet(positive, control_net, hint, strength)
                 else:
                     warnings.append("HighRes-fix: ControlNet needs a VAE — skipped.")
             except Exception as exc:  # pragma: no cover
@@ -150,10 +312,10 @@ def apply_hiresfix(
 
         # 3) Re-sample at the hires settings.
         latent = sample_unified(
-            model, seed=seed, steps=hires_steps, cfg=cfg,
+            pass_model, seed=seed, steps=hires_steps, cfg=cfg,
             sampler_name=sampler_name, scheduler=scheduler,
             positive=pass_positive, negative=negative, latent=latent,
-            denoise=denoise,
+            denoise=denoise, noise_control=noise_control,
         )
 
     return latent, warnings

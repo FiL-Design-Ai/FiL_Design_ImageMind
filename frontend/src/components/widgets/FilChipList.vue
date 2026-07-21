@@ -138,7 +138,7 @@ function select(value: string) {
 }
 .fil-w-chip.active {
   background: var(--fil-accent);
-  color: #fff;
+  color: var(--fil-accent-ink, #fff);
   border-color: var(--fil-accent);
   font-weight: 500;
 }

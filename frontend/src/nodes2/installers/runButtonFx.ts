@@ -2,35 +2,30 @@ import type { ComfyApp } from "@/types/comfy";
 import { flashNodeRun } from "@/composables/useRunButtonFx";
 
 /**
- * Hook into app.canvas.ds.executeNode to flash FiL_Design_ImageMind nodes when they queue.
- * This provides visual feedback similar to the old executeButton click.
+ * Flash FiL_Design_ImageMind node headers when a node starts executing.
+ *
+ * Hooks the canonical ComfyUI signal — the `executing` event on `app.api`,
+ * whose detail is the id of the node currently running (or null when the
+ * queue drains) — rather than the non-existent `canvas.ds.executeNode`
+ * method the previous implementation tried to wrap (which never fired).
  */
 export function installRunButtonFx(app: ComfyApp): void {
-  const canvas = (app as unknown as { canvas?: { ds?: { executeNode?: unknown } } })?.canvas;
-  if (!canvas?.ds) {
-    console.warn("[FiL_Design_ImageMind] run button FX: canvas not available, skipping");
+  const api = app.api;
+  if (typeof api?.addEventListener !== "function") {
+    console.warn("[FiL_Design_ImageMind] run button FX: api not available, skipping");
     return;
   }
 
-  // Hook into node execution to flash the header
-  const originalExecute = (canvas.ds as Record<string, unknown>).executeNode as
-    | ((nodeId: unknown) => Promise<unknown>)
-    | undefined;
+  api.addEventListener("executing", (event: Event) => {
+    const detail = (event as CustomEvent).detail;
+    // Older core sends the bare node id; newer wraps it as `{ node }`.
+    const nodeId = detail && typeof detail === "object"
+      ? (detail as { node?: string | number }).node
+      : detail;
+    if (typeof nodeId === "string" || typeof nodeId === "number") {
+      flashNodeRun({ canvas: app.canvas }, nodeId);
+    }
+  });
 
-  if (typeof originalExecute === "function") {
-    (canvas.ds as Record<string, unknown>).executeNode = async function (
-      this: unknown,
-      nodeId: unknown,
-    ): Promise<unknown> {
-      const result = await originalExecute.call(this, nodeId);
-      if (typeof nodeId === "string" || typeof nodeId === "number") {
-        const appForFlash = { canvas } as unknown as { canvas?: { nodeEls?: Record<string | number, HTMLElement> } };
-        flashNodeRun(appForFlash, nodeId);
-      }
-      return result;
-    };
-    console.info("[FiL_Design_ImageMind] run button FX installed (execute hook)");
-  } else {
-    console.warn("[FiL_Design_ImageMind] run button FX: executeNode not found, skipping");
-  }
+  console.info("[FiL_Design_ImageMind] run button FX installed (api executing hook)");
 }

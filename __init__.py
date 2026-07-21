@@ -6,6 +6,7 @@ from typing import override
 from comfy_api.latest import ComfyExtension, io
 
 from . import server_routes
+from .common.release_gate import filter_release_nodes
 
 WEB_DIRECTORY = "./frontend/dist"
 
@@ -19,18 +20,22 @@ class FiLExtension(ComfyExtension):
         from .nodes.node_cleaner import FiLNeuroCleaner
         from .nodes.node_compare import FiLBeforeAfterCompare
         from .nodes.node_upscale import FiLUpscaleTileCalc
+        from .nodes.node_upscale_simple import FiLUpscaleSimple
         from .nodes.node_ksampler import FiLKSampler
         from .nodes.node_hiresfix import FiLHighResFix
-        return [
+        from .nodes.node_noise_control import FiLNoiseControl
+        return filter_release_nodes([
             FiLSeed,
             FiLProviderLoader,
             FiLOpticScanner,
             FiLNeuroCleaner,
             FiLBeforeAfterCompare,
             FiLUpscaleTileCalc,
+            FiLUpscaleSimple,
             FiLKSampler,
             FiLHighResFix,
-        ]
+            FiLNoiseControl,
+        ])
 
 
 async def comfy_entrypoint() -> FiLExtension:

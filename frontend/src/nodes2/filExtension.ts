@@ -18,13 +18,22 @@ import { installHelpToolbar } from "@/nodes2/installers/helpToolbar";
 import { installRunButtonFx } from "@/nodes2/installers/runButtonFx";
 import { installToasts } from "@/nodes2/installers/toasts";
 import { installShortcuts } from "@/nodes2/installers/shortcuts";
+import { installGlobalScrollGuard } from "@/nodes2/installers/scrollGuard";
+import { filCommands, filKeybindings } from "@/composables/useShortcuts";
 import { installProviderManager } from "@/nodes2/installers/providerManager";
 import { ALL_SETTINGS } from "@/stores/settings/allSettings";
 import { applyStartupTheme } from "@/stores/settings/themeSettings";
+import { applyStartupLogLevel } from "@/stores/settings/loggingSettings";
 import { readSetting } from "@/stores/settings/providerSettings";
 import { EXTENSION_NAME, LOG_TAG, ROUTE_PREFIX } from "@/constants/brand";
 
 const NODE_CONTRACT_ENDPOINT = `${ROUTE_PREFIX}/node_contracts`;
+
+// Registered at module import (not in setup()) so our window capture-phase
+// wheel listener is bound before any other extension's setup hook can add
+// its own — stopImmediatePropagation only silences listeners registered
+// AFTER ours on the same target.
+installGlobalScrollGuard();
 
 interface FilSeedLikeState {
   nodeState: { mode?: string; seed_mode?: string; seed: number };
@@ -58,6 +67,31 @@ function resolveAndInjectSeed(
   }
 }
 
+/** Inject Vue-panel values for force_input fields whose input socket is left
+ * unconnected. These fields have no native widget (declared force_input on the
+ * node), so their value lives only in the panel's DOM state and would
+ * otherwise reach the backend as the Python default. A connected socket wins:
+ * its link value is left untouched. */
+function injectPanelFields(
+  prompt: unknown,
+  classType: string,
+  node: { id?: number; inputs?: Array<{ name: string; link: unknown }> },
+  nodeState: Record<string, unknown>,
+  fields: string[],
+): void {
+  if (typeof prompt !== "object" || prompt === null || node.id == null) return;
+  const target = (prompt as Record<string, unknown>)[String(node.id)] as
+    | { class_type?: string; inputs?: Record<string, unknown> }
+    | undefined;
+  if (!target || target.class_type !== classType || !target.inputs) return;
+  for (const field of fields) {
+    const slot = node.inputs?.find((input) => input.name === field);
+    if (slot && slot.link != null) continue; // connected — link value wins
+    const value = nodeState[field];
+    if (value !== undefined) target.inputs[field] = value;
+  }
+}
+
 function graphToPromptPreflight(prompt: unknown): unknown {
   try {
     const app = (globalThis as unknown as { app?: ComfyApp }).app;
@@ -67,6 +101,7 @@ function graphToPromptPreflight(prompt: unknown): unknown {
         comfyClass?: string; id?: number; inputs?: Array<{ name: string; link: unknown }>;
         _filSeedState?: FilSeedLikeState;
         _filScannerSeedState?: FilSeedLikeState;
+        _filHiResFixState?: FilSeedLikeState & { nodeState: { use_same_seed?: unknown } };
       };
 
       // FiLSeed: inject resolved seed into prompt
@@ -75,10 +110,26 @@ function graphToPromptPreflight(prompt: unknown): unknown {
         continue;
       }
 
+      // FiLHighResFix: cross-version fallback only. In this frontend version
+      // this hook doesn't fire on queue — HiResFix.vue drives core's native
+      // control_after_generate instead, which is what actually randomizes
+      // the hidden seed. Where the hook *does* fire, inject the own-seed
+      // value (capped 32-bit, still a valid seed); same-seed mode is left
+      // untouched so its input stays constant and the sampler cache holds.
+      if (n.comfyClass === "FiLHighResFix" && n._filHiResFixState) {
+        if (n._filHiResFixState.nodeState.use_same_seed === false) {
+          resolveAndInjectSeed(prompt, "FiLHighResFix", n.id, n._filHiResFixState);
+        }
+        continue;
+      }
+
       // FiLOpticScanner: inject resolved seed + warn if no config connected
       if (n.comfyClass === "FiLOpticScanner") {
         if (n._filScannerSeedState) {
           resolveAndInjectSeed(prompt, "FiLOpticScanner", n.id, n._filScannerSeedState);
+          injectPanelFields(prompt, "FiLOpticScanner", n,
+            n._filScannerSeedState.nodeState as Record<string, unknown>,
+            ["prompt", "negative_prompt", "custom_style"]);
         }
         const configSlot = n.inputs?.find((input) => input.name === "config");
         if (!configSlot || configSlot.link == null) {
@@ -100,6 +151,12 @@ export function createFilExtension(app: ComfyApp): ComfyExtension {
     // even if a later installer throws.
     settings: ALL_SETTINGS,
 
+    // Declarative shortcuts — modern ComfyUI registers these through its
+    // native command palette / keybinding system. The keydown fallback in
+    // installShortcuts only kicks in when this API is unavailable.
+    commands: filCommands,
+    keybindings: filKeybindings,
+
     async setup() {
       // All installers are isolated: a throw in one must not break others.
       const installers: Array<() => unknown> = [
@@ -109,6 +166,7 @@ export function createFilExtension(app: ComfyApp): ComfyExtension {
         () => installShortcuts(app),
         () => installProviderManager(app),
         () => applyStartupTheme((id, fallback) => readSetting(id, fallback, app)),
+        () => applyStartupLogLevel((id, fallback) => readSetting(id, fallback, app)),
       ];
       for (const install of installers) {
         try {
@@ -119,11 +177,11 @@ export function createFilExtension(app: ComfyApp): ComfyExtension {
       }
     },
 
-    getCustomWidgets(canvas: unknown): unknown {
-      const c = canvas as { widgets?: Record<string, unknown> };
-      c.widgets = c.widgets || {};
-      c.widgets["fil_compare"] = { serialize: false };
-      return c.widgets;
+    getCustomWidgets(): Record<string, unknown> {
+      // ComfyUI passes the app here and merges the *returned* map into its custom
+      // widget registry. The previous version mutated `app.widgets` directly, but
+      // that property is getter-only on modern ComfyUI and threw on every load.
+      return { fil_compare: { serialize: false } };
     },
 
     async beforeRegisterNodeDef(nodeType: unknown, nodeData: ComfyNodeData): Promise<void> {

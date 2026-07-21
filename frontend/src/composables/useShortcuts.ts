@@ -8,7 +8,7 @@
  * Vite server), we fall back to a window-level keydown handler that
  * emulates the same bindings — keeps the extension functional everywhere.
  */
-import type { ComfyApp } from "@/types/comfy";
+import type { ComfyApp, ComfyCommand, ComfyKeybinding } from "@/types/comfy";
 import { useHelpStore } from "@/stores/helpStore";
 import { toast } from "@/stores/toastStore";
 
@@ -23,11 +23,33 @@ const SEARCH_SELECTORS = [
   'input[placeholder*="search" i]',
 ];
 
-interface ExtensionShape {
-  commands?: unknown[];
-  keybindings?: unknown[];
-  menuCommands?: unknown[];
-}
+/**
+ * Declarative commands + keybindings, attached to the extension object in
+ * filExtension.ts so modern ComfyUI registers them through its native
+ * command palette / keybinding system. The window-level fallback below is
+ * only used when that API is unavailable (very old or dev-only ComfyUI).
+ */
+export const filCommands: ComfyCommand[] = [
+  {
+    id: "FiL_Design_ImageMind.helpCheatsheet",
+    label: "FiL_Design_ImageMind — Keyboard cheatsheet",
+    icon: "?",
+    function: openCheatsheet,
+  },
+  {
+    id: "FiL_Design_ImageMind.focusSearch",
+    label: "FiL_Design_ImageMind — Focus add-node search",
+    icon: "/",
+    function: focusSearch,
+  },
+];
+
+export const filKeybindings: ComfyKeybinding[] = [
+  { commandId: "FiL_Design_ImageMind.helpCheatsheet", combo: { key: "?", shift: true } },
+  // NB: Ctrl+Shift+K is reserved by core (Workspace.ToggleBottomPanel) — binding it
+  // via the native API throws a duplicate-keybinding error, so we don't register it.
+  { commandId: "FiL_Design_ImageMind.focusSearch", combo: { key: "/" } },
+];
 
 function isFormField(target: EventTarget | null): boolean {
   if (!target || typeof target !== "object") return false;
@@ -65,42 +87,19 @@ function focusSearch() {
   }
 }
 
-/** Install declarative commands; falls back to a global keydown handler. */
+/**
+ * Modern ComfyUI registers `filCommands` / `filKeybindings` declaratively via
+ * the extension object (filExtension.ts), so nothing to do here beyond a log.
+ * Only when the native `extensionManager` is absent (very old / dev-only
+ * ComfyUI) do we install the window-level keydown fallback.
+ */
 export function installShortcuts(app: ComfyApp): void {
-  const ext = app as unknown as { extensionManager?: { registerCommands?: (reg: ExtensionShape) => void } };
-
-  // Declarative path — preferred when ComfyUI exposes the API.
-  if (typeof ext.extensionManager?.registerCommands === "function") {
-    try {
-      ext.extensionManager.registerCommands({
-        commands: [
-          {
-            id: "FiL_Design_ImageMind.helpCheatsheet",
-            label: "FiL_Design_ImageMind — Keyboard cheatsheet",
-            icon: "?",
-            function: openCheatsheet,
-          },
-          {
-            id: "FiL_Design_ImageMind.focusSearch",
-            label: "FiL_Design_ImageMind — Focus add-node search",
-            icon: "/",
-            function: focusSearch,
-          },
-        ],
-        keybindings: [
-          { combo: { key: "?", shift: true }, commandId: "FiL_Design_ImageMind.helpCheatsheet" },
-          { combo: { key: "k", ctrl: true, shift: true }, commandId: "FiL_Design_ImageMind.helpCheatsheet" },
-          { combo: { key: "/" }, commandId: "FiL_Design_ImageMind.focusSearch" },
-        ],
-        menuCommands: [{ path: ["FiL LLM"], commands: ["FiL_Design_ImageMind.helpCheatsheet", "FiL_Design_ImageMind.focusSearch"] }],
-      });
-      return;
-    } catch (err) {
-      console.warn("[FiL_Design_ImageMind] declarative shortcuts register failed, falling back:", err);
-    }
+  const hasNativeCommands = Boolean((app as { extensionManager?: unknown }).extensionManager);
+  if (hasNativeCommands) {
+    console.info("[FiL_Design_ImageMind] shortcuts registered via native commands API");
+    return;
   }
 
-  // Fallback — window-level keydown handler (works in dev & old ComfyUI).
   window.addEventListener("keydown", (event) => onFallbackKey(event, app), true);
   console.info("[FiL_Design_ImageMind] shortcuts installed (fallback keydown handler)");
 }

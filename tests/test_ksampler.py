@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from FiL_Design_ImageMind.common import sampling
 from FiL_Design_ImageMind.nodes.node_ksampler import FiLKSampler
 
 
@@ -10,7 +11,7 @@ def _inputs_by_id(schema):
 def test_output_contract_is_stable_six_values():
     schema = FiLKSampler.GET_SCHEMA()
     assert [o.display_name for o in schema.outputs] == [
-        "MODEL", "CONDITIONING+", "CONDITIONING-", "LATENT", "VAE", "IMAGE",
+        "model", "positive", "negative", "latent", "vae", "image",
     ]
 
 
@@ -41,3 +42,72 @@ def test_no_advanced_sampling_sockets():
     inputs = _inputs_by_id(FiLKSampler.GET_SCHEMA())
     for name in ("sampler", "sigmas", "noise"):
         assert name not in inputs, f"unexpected socket input {name}"
+
+
+def test_ksampler_passes_tiled_to_hiresfix(monkeypatch):
+    captured: dict = {}
+
+    monkeypatch.setattr(sampling, "sample_unified", lambda *a, **kw: {"samples": "BASE"})
+    monkeypatch.setattr(sampling, "_decode", lambda vae, latent, tiled=False: "IMAGE")
+
+    def _fake_hiresfix(hf, **kw):
+        captured.update(kw)
+        return kw["latent"], []
+
+    monkeypatch.setattr(sampling, "apply_hiresfix", _fake_hiresfix)
+
+    FiLKSampler.execute(
+        model="MODEL", seed=1, steps=1, cfg=7.0, sampler_name="euler", scheduler="normal",
+        positive="P", negative="N", latent_image={"samples": "L"},
+        vae_decode="true (tiled)", optional_vae="VAE",
+        script={"hiresfix": {"iterations": 1}},
+    )
+    assert captured.get("tiled") is True
+
+
+def test_vae_decode_false_returns_placeholder_image(monkeypatch):
+    monkeypatch.setattr(sampling, "sample_unified", lambda *a, **kw: {"samples": "BASE"})
+
+    def _boom(*a, **kw):
+        raise AssertionError("_decode must not run when vae_decode is off")
+
+    monkeypatch.setattr(sampling, "_decode", _boom)
+
+    result = FiLKSampler.execute(
+        model="MODEL", seed=1, steps=1, cfg=7.0, sampler_name="euler", scheduler="normal",
+        positive="P", negative="N", latent_image={"samples": "L"},
+        vae_decode="false", optional_vae=None,
+    )
+    assert tuple(result[5].shape) == (1, 1, 1, 3)
+
+
+def test_missing_vae_forces_decode_off_even_if_widget_says_true(monkeypatch):
+    monkeypatch.setattr(sampling, "sample_unified", lambda *a, **kw: {"samples": "BASE"})
+
+    def _boom(*a, **kw):
+        raise AssertionError("_decode must not run without a connected VAE")
+
+    monkeypatch.setattr(sampling, "_decode", _boom)
+
+    result = FiLKSampler.execute(
+        model="MODEL", seed=1, steps=1, cfg=7.0, sampler_name="euler", scheduler="normal",
+        positive="P", negative="N", latent_image={"samples": "L"},
+        vae_decode="true", optional_vae=None,
+    )
+    assert tuple(result[5].shape) == (1, 1, 1, 3)
+
+
+def test_script_without_hiresfix_key_is_a_noop(monkeypatch):
+    monkeypatch.setattr(sampling, "sample_unified", lambda *a, **kw: {"samples": "BASE"})
+
+    def _boom(*a, **kw):
+        raise AssertionError("apply_hiresfix must not run without a 'hiresfix' key")
+
+    monkeypatch.setattr(sampling, "apply_hiresfix", _boom)
+
+    result = FiLKSampler.execute(
+        model="MODEL", seed=1, steps=1, cfg=7.0, sampler_name="euler", scheduler="normal",
+        positive="P", negative="N", latent_image={"samples": "L"},
+        vae_decode="false", script={"other": 1},
+    )
+    assert result[3] == {"samples": "BASE"}

@@ -76,25 +76,27 @@ class FiLHighResFix(io.ComfyNode):
                 io.Int.Input("iterations", default=1, min=0, max=5, step=1,
                              tooltip=t("hrf_iterations", "How many upscale+resample passes to run.")),
                 io.Boolean.Input("use_controlnet", default=False, label_on="ControlNet ON", label_off="ControlNet OFF",
-                                 advanced=True, tooltip=t("hrf_use_cn", "Guide the hires pass with a ControlNet.")),
+                                 advanced=True, tooltip=t("hrf_use_cn", "Guide the hires pass with a ControlNet. Tile ControlNets work without a preprocessor.")),
                 io.Combo.Input("control_net_name", options=_controlnets(), advanced=True,
                                tooltip=t("hrf_cn_name", "ControlNet model to apply.")),
                 io.Float.Input("strength", default=1.0, min=0.0, max=10.0, step=0.01, advanced=True,
                                tooltip=t("hrf_cn_strength", "ControlNet strength.")),
+                io.Combo.Input("preprocessor", options=["none", "canny"], default="none", advanced=True,
+                               tooltip=t("hrf_cn_preproc", "Preprocess the ControlNet hint image. 'none' feeds the raw upscaled image (right for tile ControlNets).")),
                 FilHiresScript.Input("script", optional=True,
                                      tooltip=t("hrf_script", "Optional upstream FiL script to extend.")),
             ],
             outputs=[
-                FilHiresScript.Output("script", display_name="SCRIPT", tooltip="FiL HighRes-fix script for FiLKSampler."),
+                FilHiresScript.Output("script", display_name="script", tooltip="FiL HighRes-fix script for FiLKSampler."),
             ],
             search_aliases=["hires", "highres", "hires fix", "upscale", "script", "refine"],
         )
 
     @classmethod
     def execute(cls, upscale_type, hires_ckpt_name, latent_upscaler, pixel_upscaler,
-                upscale_by, use_same_seed, seed, hires_steps, denoise, iterations,
+                use_same_seed, seed, hires_steps, upscale_by=1.25, denoise=0.56, iterations=1,
                 use_controlnet=False, control_net_name=None, strength=1.0,
-                script=None) -> io.NodeOutput:
+                preprocessor="none", script=None) -> io.NodeOutput:
         control_net = None
         if use_controlnet and control_net_name and control_net_name != "(none)":
             try:
@@ -112,11 +114,23 @@ class FiLHighResFix(io.ComfyNode):
             "pixel_upscaler": None if pixel_upscaler in (None, "(none)") else pixel_upscaler,
             "upscale_by": float(upscale_by),
             "use_same_seed": bool(use_same_seed),
-            "seed": int(seed),
+            # In "same seed" mode this value is never read by apply_hiresfix
+            # (it reuses base_seed instead) — but the "seed" widget's own
+            # control_after_generate defaults to "randomize" and changes on
+            # every queue regardless. Packing that live value here would
+            # change this node's output dict every run even with nothing
+            # else changed, busting ComfyUI's input-hash cache for the
+            # downstream FiLKSampler and forcing a full re-sample (base +
+            # hires) each time — even with a fixed base seed. Pin it to a
+            # constant so "same seed" mode actually benefits from caching;
+            # "own seed" mode still wants the live value to bust the cache
+            # on purpose (a new own-seed is a new result).
+            "seed": int(seed) if not use_same_seed else 0,
             "hires_steps": int(hires_steps),
             "denoise": float(denoise),
             "iterations": int(iterations),
             "control_net": control_net,
             "strength": float(strength),
+            "preprocessor": str(preprocessor),
         }
         return io.NodeOutput(new_script)
