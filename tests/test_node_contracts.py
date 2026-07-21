@@ -13,8 +13,10 @@ EXPECTED_IDS = {
     "FiLNeuroCleaner",
     "FiLBeforeAfterCompare",
     "FiLUpscaleTileCalc",
+    "FiLUpscaleSimple",
     "FiLKSampler",
     "FiLHighResFix",
+    "FiLNoiseControl",
 }
 
 

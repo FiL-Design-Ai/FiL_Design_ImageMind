@@ -98,7 +98,7 @@ watch(() => props.state.nodeState, () => {}, { deep: true });
 .fil-cleaner-dot { width: 14px; height: 14px; border-radius: 50%;
   border: 2px solid rgba(255,255,255,0.3); flex: none; transition: border-color .08s, background .08s;
   display: flex; align-items: center; justify-content: center; }
-.fil-cleaner-dot::after { content: "✓"; font-size: 10px; line-height: 1; color: #fff; opacity: 0; transition: opacity .08s; }
+.fil-cleaner-dot::after { content: "✓"; font-size: 10px; line-height: 1; color: var(--fil-accent-ink, #fff); opacity: 0; transition: opacity .08s; }
 .fil-cleaner-row.active .fil-cleaner-dot { background: var(--fil-accent); border-color: var(--fil-accent); }
 .fil-cleaner-row.active .fil-cleaner-dot::after { opacity: 1; }
 .fil-cleaner-label { flex: 1; font-size: 12px; }

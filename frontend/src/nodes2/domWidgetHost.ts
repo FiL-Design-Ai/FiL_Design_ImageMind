@@ -17,6 +17,7 @@
 import { createApp, reactive, type Component, type App as VueApp } from "vue";
 import { useActivePinia } from "@/stores";
 import FilNodeShell from "@/components/widgets/FilNodeShell.vue";
+import { scrollRegionWantsWheel } from "@/composables/scrollGuard";
 
 export interface FilWidgetOptions<S extends object = Record<string, unknown>> {
   /** Reactive state object passed to the Vue component as `state` prop. */
@@ -71,6 +72,7 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
     computeSize?: () => [number, number];
     setSize?: (s: [number, number]) => void;
     size?: [number, number];
+    minSize?: [number, number];
     comfyClass?: string;
   };
 
@@ -111,11 +113,15 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
   // the real <canvas> LiteGraph binds its own wheel-zoom listener to, so
   // scrolling while hovering any FiL panel silently did nothing. Forward the
   // event onto the real canvas so LiteGraph's own handler runs as if the user
-  // had scrolled directly over it. `{ passive: false }` is required for
-  // `preventDefault()` to actually suppress the host's own (non-)scroll.
+  // had scrolled directly over it — UNLESS the cursor is over a scrollable
+  // inner region (a style picker list, chip list, help popup, …) that still
+  // has room to scroll that way, in which case let it scroll normally instead
+  // of hijacking the wheel for canvas zoom. `{ passive: false }` is required
+  // for `preventDefault()` to actually suppress the host's own (non-)scroll.
   host.addEventListener(
     "wheel",
     (e: WheelEvent) => {
+      if (scrollRegionWantsWheel(e.target, e.deltaX, e.deltaY, host.parentElement)) return;
       const realCanvas = (globalThis as unknown as {
         app?: { canvas?: { canvas?: HTMLCanvasElement } };
       }).app?.canvas?.canvas;
@@ -197,13 +203,22 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
     // truth for whether the node box needs correcting.
     const [currentWidth, currentSizeHeight] = n.size;
     const [, computedHeight] = n.computeSize();
-    if (Math.abs(computedHeight - currentSizeHeight) < 2) return;
-    // Only height is touched — `computeSize()`'s own width opinion
-    // ignores the `minSize` registered in nodeStyle.ts entirely (seen
-    // live shrinking a 271px-wide node down to 210px on a section
-    // collapse), so the *current* width is explicitly preserved instead
-    // of trusting `computeSize()`'s full [w, h] pair.
-    n.setSize([currentWidth, computedHeight]);
+    // `minSize` (nodeStyle.ts's `registerStyledNode({minSize})`) is a floor
+    // we own and enforce ourselves — LiteGraph has no native concept of it
+    // and computeSize() never looks at it, so without this a node's real
+    // settled width/height could land BELOW the value every node module
+    // declares (reproduced live: FiLUpscaleTileCalc's declared 320px-wide
+    // minSize did nothing, actual width settled at 275px). Only ever a
+    // floor (Math.max), never shrinks below whatever's already there.
+    const [minW, minH] = n.minSize ?? [0, 0];
+    const targetWidth = Math.max(currentWidth, minW);
+    const targetHeight = Math.max(computedHeight, minH);
+    if (targetWidth === currentWidth && Math.abs(targetHeight - currentSizeHeight) < 2) return;
+    // Width otherwise just preserves `currentWidth` — computeSize()'s own
+    // width opinion ignores minSize entirely (seen live shrinking a
+    // 271px-wide node down to 210px on a section collapse), so trusting
+    // computeSize()'s full [w, h] pair for width would reintroduce that.
+    n.setSize([targetWidth, targetHeight]);
     n.graph?.setDirtyCanvas?.(true, true);
   }
 
@@ -229,10 +244,22 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
     if (settleFrames-- > 0) requestAnimationFrame(settleLoop);
   })();
 
+  // Belt-and-suspenders backstop: the ResizeObserver above is the primary
+  // mechanism, but it's been observed live to silently stop firing for some
+  // nodes (reproduced: FiLNeuroCleaner stuck at 522px tall for 738px of real
+  // content, indefinitely — computeSize() itself already reported the
+  // correct number, only the ResizeObserver-triggered setSize() never ran a
+  // second time). A cheap low-frequency poll for the widget's whole lifetime
+  // guarantees eventual correctness even when the observer flakes out —
+  // syncNodeHeight()'s own early-return (`Math.abs(...) < 2`) makes the
+  // no-op case near-free.
+  const pollInterval = setInterval(syncNodeHeight, 400);
+
   const controller: FilWidgetController<S> = { widget, host, app, state, unmount };
   function unmount(this: FilWidgetController<S>) {
     resizeObserver.disconnect();
     if (resizeFrame) cancelAnimationFrame(resizeFrame);
+    clearInterval(pollInterval);
     try {
       this.app.unmount();
     } catch (err) {

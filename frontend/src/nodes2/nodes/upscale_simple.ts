@@ -6,22 +6,22 @@ import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
 import { createSyncedNodeState, findFilWidget, sanitizeWidgetValue } from "@/nodes2/util";
 import { applyFxComposables } from "@/nodes2/applyFxComposables";
 
+// Same tiling widget panel as FiLUpscaleTileCalc (upscale.ts) — Simple only
+// differs in a required upscale_model input and trimmed outputs, so the Vue
+// panel is reused as-is.
 const UpscaleVue = defineAsyncComponent(() => import("@/components/nodes/UpscaleTileCalc.vue"));
 
-export const upscaleNode: NodeModule = {
-  id: "FiLUpscaleTileCalc",
+export const upscaleSimpleNode: NodeModule = {
+  id: "FiLUpscaleSimple",
   register(nodeType: unknown, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
-      // Height is deliberately LOW here — it only has to cover the very
-      // first paint before Vue mounts. computeSize() reliably reports the
-      // real content height once mounted (~790px for the 20 outputs + full
-      // panel) and always wins via Math.max in domWidgetHost.ts, so an
-      // above-content buffer here would just show up as permanent dead
-      // space at the bottom of the node — width is the actual reason this
-      // floor exists (computeSize()'s own width guess ignores it entirely).
+      // Height is deliberately LOW — see upscale.ts's identical note. Only
+      // needs to cover the very first paint; computeSize() (~470px for this
+      // panel) always wins via Math.max in domWidgetHost.ts, so a buffer
+      // here would just be permanent dead space at the bottom of the node.
       minSize: [340, 300],
       family: "image",
-      description: "Tile dimensions, grid preview, denoise, latent-size calculation.",
+      description: "Upscale + tile an image through a required model — same tiling controls as Advanced.",
       badges: [{ text: "upscale", color: "#62c987", text_color: "#1a1a1a" }],
     });
 
@@ -34,10 +34,7 @@ export const upscaleNode: NodeModule = {
     };
     const p = proto.prototype;
 
-    // Defaults mirror node_upscale.py's define_schema(); sanitizeWidgetValue()
-    // resets the widget's own `.value` (not just the display copy) to
-    // these when a stale legacy workflow save left it holding the wrong
-    // type — see its docstring for why that can otherwise happen.
+    // Defaults mirror node_upscale_simple.py's define_schema().
     const numericDefaults: Record<string, number> = {
       upscale_factor: 2.0, tile_size: 1024, tile_overlap: 64,
       manual_tile_cols: 0, manual_tile_rows: 0,
@@ -79,16 +76,12 @@ export const upscaleNode: NodeModule = {
       }
       const state = { nodeState: createSyncedNodeState(node, initialNodeState), initialValues, ui: {} };
       node._filUpscaleState = state;
-      addFilDomWidget(node, "fil_upscale_view", UpscaleVue, { state, height: 420 });
+      addFilDomWidget(node, "fil_upscale_simple_view", UpscaleVue, { state, height: 420 });
       return result;
     };
 
-    // See provider.ts / sanitizeWidgetValue(): LiteGraph applies a loaded
-    // node's `widgets_values` (positional array) onto `node.widgets[i]`
-    // AFTER `onNodeCreated` runs, then calls `onConfigure` — so a workflow
-    // saved with an older version of this node's schema can silently
-    // overwrite the sanitized defaults set above. Re-sanitizing here is
-    // what actually prevents a stale/corrupted value reaching `execute()`.
+    // See upscale.ts: workflow-loaded widgets_values can overwrite the
+    // sanitized defaults after onNodeCreated — re-sanitize on configure.
     const originalConfigure = p.onConfigure;
     p.onConfigure = function (this: unknown, ...args: unknown[]) {
       const result = originalConfigure?.apply(this, args);
@@ -113,7 +106,6 @@ export const upscaleNode: NodeModule = {
       return originalRemoved?.apply(this, args);
     };
 
-    // Apply visual effects (Connection FX, Adaptive Title Color)
     applyFxComposables(nodeType as { prototype?: unknown });
   },
 };

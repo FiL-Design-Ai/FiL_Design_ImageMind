@@ -88,8 +88,18 @@ function onNumber(n: number) {
   min-width: 0;
 }
 .fil-w-slider-range {
-  flex: 1;
+  /* `flex: 1` alone stretches the track to fill the ENTIRE remaining grid
+   * column (a `1fr` track — see `.fil-w-slider`), which grows unbounded as
+   * the node itself grows: on a wide node (e.g. Upscaler Advanced/Simple,
+   * whose height now has to fit 20 outputs, forcing extra width too) a
+   * single decimal-value track stretching 300+px looks disproportionate and
+   * isn't any more precise to drag. `min-width: 0` still lets it shrink
+   * properly on a narrow node; `max-width` just stops it growing past a
+   * sane length once there's more room than the control needs.
+   */
+  flex: 1 1 auto;
   min-width: 0;
+  max-width: 220px;
   accent-color: var(--fil-accent);
   cursor: pointer;
 }
@@ -97,7 +107,7 @@ function onNumber(n: number) {
   outline: 2px solid var(--fil-accent);
   outline-offset: 2px;
 }
-.fil-w-slider-row :deep(.fil-w-num) {
+.fil-w-slider-row :deep(.fil-w-num-wrap) {
   width: 70px;
   flex: none;
 }

@@ -39,9 +39,27 @@ export interface ComfyExtensionSettings {
   render?: (el: HTMLElement) => void;
 }
 
+/** A ComfyUI command registered declaratively via the extension object. */
+export interface ComfyCommand {
+  id: string;
+  label?: string;
+  icon?: string;
+  function: () => void;
+}
+
+/** A key combo → command binding registered via the extension object. */
+export interface ComfyKeybinding {
+  commandId: string;
+  combo: { key: string; ctrl?: boolean; shift?: boolean; alt?: boolean };
+}
+
 export interface ComfyExtension {
   name: string;
   settings?: ComfyExtensionSettings[];
+  /** Declarative commands picked up by ComfyUI's command palette / keybindings. */
+  commands?: ComfyCommand[];
+  /** Declarative keybindings bound to `commands` above. */
+  keybindings?: ComfyKeybinding[];
   setup?(...args: unknown[]): unknown | Promise<unknown>;
   getCustomWidgets?(canvas: unknown): unknown;
   beforeRegisterNodeDef?(nodeType: unknown, nodeData: ComfyNodeData): void | Promise<void>;
@@ -54,4 +72,14 @@ export interface ComfyApp {
   graph?: unknown;
   graphToPrompt?: (...args: unknown[]) => Promise<unknown>;
   ui?: unknown;
+  /** ComfyApi singleton — emits execution events (`executing`, `progress`, ...). */
+  api?: {
+    addEventListener?: (type: string, cb: (event: Event) => void) => void;
+  };
+  /** LiteGraph canvas; `nodeEls` maps node id → its DOM element for DOM nodes. */
+  canvas?: {
+    nodeEls?: Record<string | number, HTMLElement>;
+  };
+  /** Present on modern ComfyUI — its existence signals the native commands API. */
+  extensionManager?: unknown;
 }

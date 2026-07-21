@@ -234,7 +234,7 @@ onBeforeUnmount(() => {
 .fil-combo-chevron { font-size: 9px; color: var(--fil-muted, rgba(255, 255, 255, 0.5)); flex-shrink: 0; }
 .fil-combo-badge {
   flex-shrink: 0; font-size: 9px; line-height: 1; padding: 2px 5px; border-radius: 999px;
-  background: var(--fil-accent); color: #fff; font-weight: 600;
+  background: var(--fil-accent); color: var(--fil-accent-ink, #fff); font-weight: 600;
 }
 .fil-combo-panel {
   position: fixed; z-index: 10001; box-sizing: border-box;

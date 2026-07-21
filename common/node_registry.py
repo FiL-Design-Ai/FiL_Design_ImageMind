@@ -10,7 +10,8 @@ NODE_CONTRACTS = {
     "FiLOpticScanner": {"title": "🕵️ Optic Scanner", "category": f"{CATEGORY_ROOT}/LLM"},
     "FiLNeuroCleaner": {"title": "🧹 Cleaner", "category": f"{CATEGORY_ROOT}/Tools"},
     "FiLBeforeAfterCompare": {"title": "🔄 Compare", "category": f"{CATEGORY_ROOT}/Image"},
-    "FiLUpscaleTileCalc": {"title": "🔍 Upscaler", "category": f"{CATEGORY_ROOT}/Image"},
+    "FiLUpscaleTileCalc": {"title": "🔍 Upscaler Advanced", "category": f"{CATEGORY_ROOT}/Image"},
+    "FiLUpscaleSimple": {"title": "🔍 Upscaler Simple", "category": f"{CATEGORY_ROOT}/Image"},
     "FiLKSampler": {"title": "⚡ KSampler", "category": f"{CATEGORY_ROOT}/Sampling"},
     "FiLHighResFix": {"title": "🔬 HighRes Fix", "category": f"{CATEGORY_ROOT}/Sampling"},
 }

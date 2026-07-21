@@ -68,12 +68,12 @@ class FiLKSampler(io.ComfyNode):
                                      tooltip=t("ks_script", "Optional FiL HighRes-fix script to run after sampling.")),
             ],
             outputs=[
-                io.Model.Output("model", display_name="MODEL", tooltip="Passthrough model."),
-                io.Conditioning.Output("positive", display_name="CONDITIONING+", tooltip="Passthrough positive conditioning."),
-                io.Conditioning.Output("negative", display_name="CONDITIONING-", tooltip="Passthrough negative conditioning."),
-                io.Latent.Output("latent", display_name="LATENT", tooltip="Sampled latent."),
-                io.Vae.Output("vae", display_name="VAE", tooltip="Passthrough VAE."),
-                io.Image.Output("image", display_name="IMAGE", tooltip="Decoded image (empty if VAE decode is off)."),
+                io.Model.Output("model", display_name="model", tooltip="Passthrough model."),
+                io.Conditioning.Output("positive", display_name="positive", tooltip="Passthrough positive conditioning."),
+                io.Conditioning.Output("negative", display_name="negative", tooltip="Passthrough negative conditioning."),
+                io.Latent.Output("latent", display_name="latent", tooltip="Sampled latent."),
+                io.Vae.Output("vae", display_name="vae", tooltip="Passthrough VAE."),
+                io.Image.Output("image", display_name="image", tooltip="Decoded image (empty if VAE decode is off)."),
             ],
             search_aliases=["ksampler", "sampler", "efficient", "sample", "generate", "denoise"],
             hidden=[io.Hidden.prompt, io.Hidden.extra_pnginfo, io.Hidden.unique_id],
@@ -109,19 +109,25 @@ class FiLKSampler(io.ComfyNode):
         vae = optional_vae
         if vae is None:
             vae_decode = "false"
+        # Tiled VAE is an OOM guard for big upscales; it applies to the hires
+        # pass's internal decodes/encodes too, not just the final preview.
+        # With vae_decode == "false" the hires pass still decodes when it
+        # must — just non-tiled (the flag comes only from "true (tiled)").
+        tiled = vae_decode == "true (tiled)"
 
         # Honour the preview_method widget by overriding ComfyUI's global live
         # previewer for the duration of sampling, then restoring it.
         # "vae_decoded_only" has no live-preview equivalent (the final decoded
         # image below is what it wants), so map it to no intermediate preview.
         cls._set_preview_method("none" if preview_method == "vae_decoded_only" else preview_method)
+        noise_control = script.get("noise_control") if isinstance(script, dict) else None
         try:
             # 1) Base sampling.
             latent = sample_unified(
                 model, seed=seed, steps=steps, cfg=cfg,
                 sampler_name=sampler_name, scheduler=scheduler,
                 positive=positive, negative=negative, latent=latent_image,
-                denoise=denoise,
+                denoise=denoise, noise_control=noise_control,
             )
 
             # 2) Optional HighRes-fix pass.
@@ -133,7 +139,8 @@ class FiLKSampler(io.ComfyNode):
                     script["hiresfix"],
                     model=model, positive=positive, negative=negative, vae=vae,
                     latent=latent, base_seed=seed, cfg=cfg,
-                    sampler_name=sampler_name, scheduler=scheduler,
+                    sampler_name=sampler_name, scheduler=scheduler, tiled=tiled,
+                    noise_control=noise_control,
                 )
         finally:
             cls._set_preview_method(None)
@@ -143,7 +150,6 @@ class FiLKSampler(io.ComfyNode):
         # 3) Optional VAE decode + preview.
         ui_data: dict = {"images": []}
         if vae_decode != "false":
-            tiled = vae_decode == "true (tiled)"
             from ..common.sampling import _decode
 
             image = _decode(vae, latent, tiled=tiled)

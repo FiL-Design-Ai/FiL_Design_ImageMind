@@ -5,6 +5,7 @@
  */
 export const FIL_PALETTE = {
   accent: "#f08a45",
+  accentInk: "#fff",
   panel: "#171b22",
   panelAlt: "#222934",
   text: "#e8edf3",
@@ -25,6 +26,7 @@ export type FilPalette = Record<FilPaletteKey, string>;
  */
 const FIL_PALETTE_LIGHT: FilPalette = {
   accent: "#c9682c",
+  accentInk: "#fff",
   panel: "#eef1f5",
   panelAlt: "#e2e6ec",
   text: "#1c2430",
@@ -35,6 +37,7 @@ const FIL_PALETTE_LIGHT: FilPalette = {
 
 const FIL_PALETTE_CYBERPUNK: FilPalette = {
   accent: "#00e5ff",
+  accentInk: "#fff",
   panel: "#0a0e1a",
   panelAlt: "#131a2e",
   text: "#dff9ff",
@@ -45,6 +48,7 @@ const FIL_PALETTE_CYBERPUNK: FilPalette = {
 
 const FIL_PALETTE_FALLOUT: FilPalette = {
   accent: "#d4a017",
+  accentInk: "#fff",
   panel: "#1a1712",
   panelAlt: "#26221a",
   text: "#e8dcc0",
@@ -53,12 +57,34 @@ const FIL_PALETTE_FALLOUT: FilPalette = {
   ok: "#8fbf3f",
 };
 
-export type FilThemeName = "default" | "cyberpunk" | "fallout";
+/**
+ * "Travelmate" — adapted from a Behance mobile-app reference (Liza Prymak,
+ * TravelMate / Travel Mobile App UX/UI Design): acid-lime accent on a
+ * near-black surface. Colors sampled directly from that project's published
+ * design-system swatches (accent D5FF40, dark surface 181916, neutral
+ * C0C2B8); panelAlt/text/muted/danger/ok are derived to fit the existing
+ * token roles since the reference doesn't define them. `accentInk` is dark
+ * here (unlike every other theme's white) because white text on this lime
+ * is unreadable — see the `--fil-accent-ink` usages this theme requires.
+ */
+const FIL_PALETTE_TRAVELMATE: FilPalette = {
+  accent: "#d5ff40",
+  accentInk: "#14150f",
+  panel: "#181916",
+  panelAlt: "#232620",
+  text: "#edf2e2",
+  muted: "#8b9483",
+  danger: "#ff5c72",
+  ok: "#3ed98c",
+};
+
+export type FilThemeName = "default" | "cyberpunk" | "fallout" | "travelmate";
 
 const THEMES: Record<FilThemeName, FilPalette> = {
   default: FIL_PALETTE,
   cyberpunk: FIL_PALETTE_CYBERPUNK,
   fallout: FIL_PALETTE_FALLOUT,
+  travelmate: FIL_PALETTE_TRAVELMATE,
 };
 
 /**
@@ -75,7 +101,7 @@ let themeVarsEl: HTMLStyleElement | null = null;
 let themeEffectsEl: HTMLStyleElement | null = null;
 
 function paletteCssVars(p: FilPalette): string {
-  return `--fil-accent:${p.accent};--fil-panel:${p.panel};--fil-panel-alt:${p.panelAlt};--fil-text:${p.text};--fil-muted:${p.muted};--fil-danger:${p.danger};--fil-ok:${p.ok};`;
+  return `--fil-accent:${p.accent};--fil-accent-ink:${p.accentInk};--fil-panel:${p.panel};--fil-panel-alt:${p.panelAlt};--fil-text:${p.text};--fil-muted:${p.muted};--fil-danger:${p.danger};--fil-ok:${p.ok};`;
 }
 
 /**
@@ -90,14 +116,20 @@ const THEME_EFFECTS: Record<FilThemeName, string> = {
 [data-fil-theme="cyberpunk"] .fil-w-seg.active,
 [data-fil-theme="cyberpunk"] .fil-combo-trigger.open,
 [data-fil-theme="cyberpunk"] .fil-combo-trigger:focus-visible{box-shadow:0 0 6px var(--fil-accent),0 0 14px var(--fil-accent);}
-[data-fil-theme="cyberpunk"] [class$="-root"]{border:1px solid rgba(0,229,255,0.18);}
+[data-fil-theme="cyberpunk"] .fil-node-shell [class$="-root"]{border:1px solid rgba(0,229,255,0.18);}
 `,
   fallout: `
-[data-fil-theme="fallout"] [class$="-root"]{
+[data-fil-theme="fallout"] .fil-node-shell [class$="-root"]{
   background-image:repeating-linear-gradient(0deg,rgba(0,0,0,0.12) 0px,rgba(0,0,0,0.12) 1px,transparent 1px,transparent 3px);
   border:1px solid rgba(212,160,23,0.2);
 }
 [data-fil-theme="fallout"] .comfy-node-header{text-shadow:0 0 4px rgba(212,160,23,0.55);}
+`,
+  travelmate: `
+[data-fil-theme="travelmate"] .fil-node-shell [class$="-root"]{border:none;box-shadow:none;}
+[data-fil-theme="travelmate"] .fil-w-seg.active,
+[data-fil-theme="travelmate"] .fil-combo-trigger.open,
+[data-fil-theme="travelmate"] .fil-combo-trigger:focus-visible{box-shadow:0 0 6px var(--fil-accent),0 0 14px var(--fil-accent);}
 `,
 };
 
@@ -177,7 +209,8 @@ export function injectFilBrandVars(): void {
  * hardcoded hex. LiteGraph's native node title/body colors are plain JS
  * properties (not CSS-driven though), so callers must separately loop
  * existing graph nodes and reassign `.color`/`.bgcolor` from `ACTIVE_PALETTE`
- * — see `installTheme.ts`, which does that right after calling this.
+ * — see `nodes2/nodeStyle.ts::reapplyThemeToGraph`, which does that right
+ * after calling this (invoked from `themeSettings.ts::onThemeChange`).
  */
 export function applyFilTheme(theme: FilThemeName): void {
   const palette = THEMES[theme] ?? FIL_PALETTE;

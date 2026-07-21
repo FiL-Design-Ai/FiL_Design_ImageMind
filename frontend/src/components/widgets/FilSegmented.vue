@@ -105,6 +105,15 @@ function onKeydown(e: KeyboardEvent, index: number) {
 }
 .fil-w-seg {
   flex: 1;
+  /* Flex items default to min-width:auto (content-based), so they refuse to
+   * shrink below their own text width — with 5 options like "💎 Max Quality"
+   * that forced the whole pill (and node) wider than the panel. min-width:0
+   * lets them actually shrink; overflow/ellipsis keeps squeezed text tidy
+   * instead of wrapping unpredictably. */
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   text-align: center;
   padding: 6px;
   border: none;
@@ -125,7 +134,7 @@ function onKeydown(e: KeyboardEvent, index: number) {
 }
 .fil-w-seg.active {
   background: var(--fil-accent);
-  color: #fff;
+  color: var(--fil-accent-ink, #fff);
   font-weight: 500;
 }
 .fil-w-seg:focus-visible {

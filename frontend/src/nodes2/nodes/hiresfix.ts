@@ -10,18 +10,16 @@ const HiResFixVue = defineAsyncComponent(() => import("@/components/nodes/HiResF
 
 const numericDefaults: Record<string, number> = {
   upscale_by: 1.25, denoise: 0.56, iterations: 1, strength: 1.0,
+  seed: 0, hires_steps: 12,
 };
 const stringDefaults: Record<string, string> = {
   upscale_type: "latent", hires_ckpt_name: "(use same)",
   latent_upscaler: "nearest-exact", pixel_upscaler: "", control_net_name: "",
+  preprocessor: "none",
 };
 const boolDefaults: Record<string, boolean> = {
   use_same_seed: true, use_controlnet: false,
 };
-// `seed`, `hires_steps` (and its native `control_after_generate` companion)
-// are intentionally left off this list — they stay regular, unhidden
-// ComfyUI widgets (same treatment as every widget on FiLKSampler) instead
-// of being folded into the Vue panel.
 const HIDE = [
   ...Object.keys(numericDefaults), ...Object.keys(stringDefaults), ...Object.keys(boolDefaults),
 ];
@@ -30,7 +28,11 @@ export const hiresfixNode: NodeModule = {
   id: "FiLHighResFix",
   register(nodeType: unknown, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
-      minSize: [320, 380],
+      // Height kept LOW on purpose — computeSize() (~430px real content)
+      // always wins via Math.max in domWidgetHost.ts, so a buffer above it
+      // here would just be dead space at the bottom. Width is the actual
+      // reason this floor exists (computeSize()'s own width guess ignores it).
+      minSize: [320, 300],
       family: "sampling",
       description: "Latent/pixel upscale + re-sample settings, packed into a script for FiLKSampler.",
       badges: [{ text: "hires", color: "#bb9af7", text_color: "#0b0e14" }],
@@ -67,14 +69,31 @@ export const hiresfixNode: NodeModule = {
         const w = findFilWidget(node, name);
         if (w) (w as { hidden?: boolean }).hidden = true;
       }
+      // ComfyUI auto-adds a control_after_generate combo for the "seed"
+      // widget. The panel owns seed UX (same as FiLSeed/FiLOpticScanner):
+      // hide it and default it to "fixed" (matches the default same-seed
+      // mode). HiResFix.vue then drives its value from the panel — "fixed"
+      // in same-seed/own+fixed, "randomize" in own+random — so core itself
+      // varies the hidden seed each queue (the mechanism that actually fires
+      // on queue in this frontend version).
+      const controlWidget = findFilWidget(node, "control_after_generate");
+      if (controlWidget) {
+        controlWidget.hidden = true;
+        controlWidget.value = "fixed";
+      }
+      // `seed_mode` is panel-only state (no native widget behind it — the
+      // Proxy mirror finds nothing to sync, which is fine); persists via
+      // the DOM widget's getValue/setValue like scanner's.
+      initial.seed_mode = "random";
       const state = {
         nodeState: createSyncedNodeState(node, initial),
         initialValues: { ...initial },
         ui: {},
+        lastRunSeed: null,
       };
       Object.defineProperty(state, "node", { value: node, enumerable: false, configurable: true });
       node._filHiResFixState = state;
-      addFilDomWidget(node, "fil_hiresfix_view", HiResFixVue, { state, height: 360 });
+      addFilDomWidget(node, "fil_hiresfix_view", HiResFixVue, { state, height: 420 });
       return result;
     };
 

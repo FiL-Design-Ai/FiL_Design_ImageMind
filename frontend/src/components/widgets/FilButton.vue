@@ -86,7 +86,7 @@ function onClick(e: MouseEvent) {
 .fil-w-btn:hover:not(:disabled) {
   background: var(--fil-accent);
   border-color: var(--fil-accent);
-  color: #fff;
+  color: var(--fil-accent-ink, #fff);
 }
 .fil-w-btn:active {
   transform: translateY(1px);
@@ -98,7 +98,7 @@ function onClick(e: MouseEvent) {
 .fil-w-btn-accent {
   background: var(--fil-accent);
   border-color: var(--fil-accent);
-  color: #fff;
+  color: var(--fil-accent-ink, #fff);
 }
 .fil-w-btn-danger {
   color: var(--fil-danger, #ef6666);

@@ -113,20 +113,42 @@ function bump(direction: number) {
 <template>
   <div class="fil-w-numfield" :class="{ 'no-label': !label }" :title="title">
     <label v-if="label" class="fil-w-numfield-label">{{ label }}</label>
-    <input
-      v-model="text"
-      type="text"
-      class="fil-w-num"
-      inputmode="numeric"
-      :disabled="disabled"
-      :min="min ?? undefined"
-      :max="max ?? undefined"
-      :step="step ?? undefined"
-      :aria-label="ariaLabel ?? label"
-      @focus="onFocus"
-      @blur="onBlur"
-      @keydown="onKeydown"
-    />
+    <div class="fil-w-num-wrap">
+      <input
+        v-model="text"
+        type="text"
+        class="fil-w-num"
+        inputmode="numeric"
+        :disabled="disabled"
+        :min="min ?? undefined"
+        :max="max ?? undefined"
+        :step="step ?? undefined"
+        :aria-label="ariaLabel ?? label"
+        @focus="onFocus"
+        @blur="onBlur"
+        @keydown="onKeydown"
+      />
+      <div class="fil-w-num-step">
+        <button
+          type="button"
+          class="fil-w-num-btn"
+          tabindex="-1"
+          aria-label="Increment"
+          :disabled="disabled || (max != null && modelValue >= max)"
+          @mousedown.prevent
+          @click="bump($event.shiftKey ? 10 : 1)"
+        >▲</button>
+        <button
+          type="button"
+          class="fil-w-num-btn"
+          tabindex="-1"
+          aria-label="Decrement"
+          :disabled="disabled || (min != null && modelValue <= min)"
+          @mousedown.prevent
+          @click="bump($event.shiftKey ? -10 : -1)"
+        >▼</button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -150,15 +172,29 @@ function bump(direction: number) {
   color: var(--fil-muted, rgba(255, 255, 255, 0.55));
   font-family: inherit;
 }
-.fil-w-num {
+/* grid-column: 2 only makes sense inside this component's OWN label|input
+ * grid (the `label` prop path below). In the no-label/`display:contents`
+ * path the bare <input> becomes a direct child of whatever grid the caller
+ * built (e.g. a 4-column label/value/label/value paired row) — forcing
+ * grid-column: 2 there collided with a sibling input already occupying
+ * that column, silently bumping it onto a second row misaligned from its
+ * own label. Scope the placement to the labeled variant only. */
+.fil-w-numfield:not(.no-label) .fil-w-num-wrap {
   grid-column: 2;
+}
+.fil-w-num-wrap {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+.fil-w-num {
   width: 100%;
   box-sizing: border-box;
   height: 32px;
   background: var(--fil-panel-alt, #171819);
   border: 1px solid var(--fil-muted, #3a3d40);
   border-radius: 6px;
-  padding: 7px 8px;
+  padding: 7px 20px 7px 8px;
   color: var(--fil-text, #f2f2f2);
   font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
   font-size: 14px;
@@ -175,5 +211,43 @@ function bump(direction: number) {
 }
 .fil-w-num:disabled {
   opacity: 0.5;
+}
+.fil-w-num-step {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  bottom: 1px;
+  width: 17px;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--fil-muted, #3a3d40);
+  overflow: hidden;
+  border-radius: 0 5px 5px 0;
+}
+.fil-w-num-btn {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--fil-muted, rgba(255, 255, 255, 0.55));
+  font-size: 7px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.08s, background 0.08s;
+}
+.fil-w-num-btn:last-child {
+  border-top: 1px solid var(--fil-muted, #3a3d40);
+}
+.fil-w-num-btn:hover:not(:disabled) {
+  color: var(--fil-accent);
+  background: rgba(255, 255, 255, 0.07);
+}
+.fil-w-num-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
 }
 </style>

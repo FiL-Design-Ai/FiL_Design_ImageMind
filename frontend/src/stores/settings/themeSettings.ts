@@ -6,6 +6,7 @@ const THEME_VALUE_TO_NAME: Record<string, FilThemeName> = {
   Default: "default",
   Cyberpunk: "cyberpunk",
   Fallout: "fallout",
+  Travelmate: "travelmate",
 };
 
 /**
@@ -29,9 +30,9 @@ export const THEME_SETTINGS: ComfyExtensionSettings[] = [
     name: "Node theme",
     type: "combo",
     defaultValue: "Default",
-    options: ["Default", "Cyberpunk", "Fallout"],
+    options: ["Default", "Cyberpunk", "Fallout", "Travelmate"],
     category: ["FiL_Design_ImageMind", "Appearance", "Theme"],
-    tooltip: "Recolors every FiL_Design_ImageMind node panel and adds a small themed flourish (neon glow for Cyberpunk, a CRT scanline texture for Fallout). Applies instantly, no reload.",
+    tooltip: "Recolors every FiL_Design_ImageMind node panel and adds a small themed flourish (neon glow for Cyberpunk, a CRT scanline texture for Fallout, acid-lime glow for Travelmate). Applies instantly, no reload.",
     onChange: onThemeChange,
   },
 ];

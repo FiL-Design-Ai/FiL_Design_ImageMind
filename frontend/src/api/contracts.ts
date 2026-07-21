@@ -1419,7 +1419,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
 },
   "FiLUpscaleTileCalc": {
   "id": "FiLUpscaleTileCalc",
-  "title": "🔍 Upscaler",
+  "title": "🔍 Upscaler Advanced",
   "category": "🎨 FiL Design/Image",
   "description": "Computes optimal tile grid layout for upscaling.",
   "inputs": {
@@ -1446,7 +1446,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
         "name": "tile_size",
         "kind": "number",
         "label": "Tile size",
-        "default": 512,
+        "default": 1024,
         "tooltip": null,
         "values": null,
         "columns": null,
@@ -1480,6 +1480,24 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
       }
     ],
     "optional": [
+      {
+        "name": "auto_overlap",
+        "kind": "boolean",
+        "label": "Auto overlap",
+        "default": false,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": "advanced",
+        "visible_when": null,
+        "visible_when_value": null
+      },
       {
         "name": "auto_mode",
         "kind": "boolean",
@@ -1559,24 +1577,6 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
         "visible_when_value": null
       },
       {
-        "name": "max_megapixels",
-        "kind": "slider",
-        "label": null,
-        "default": 0,
-        "tooltip": null,
-        "values": null,
-        "columns": null,
-        "searchable": null,
-        "min": 0,
-        "max": 64,
-        "step": 0.5,
-        "units": null,
-        "options": null,
-        "section": "advanced",
-        "visible_when": null,
-        "visible_when_value": null
-      },
-      {
         "name": "non_square_tiles",
         "kind": "boolean",
         "label": null,
@@ -1595,10 +1595,10 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
         "visible_when_value": null
       },
       {
-        "name": "show_grid_preview",
+        "name": "auto_fix_thin_edges",
         "kind": "boolean",
         "label": null,
-        "default": true,
+        "default": false,
         "tooltip": null,
         "values": null,
         "columns": null,
@@ -1621,7 +1621,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
       "type": "IMAGE"
     },
     {
-      "name": "tile_grid_preview",
+      "name": "tiles",
       "type": "IMAGE"
     },
     {
@@ -1650,7 +1650,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     },
     {
       "name": "overlap",
-      "type": "INT"
+      "type": "FLOAT"
     },
     {
       "name": "width",
@@ -1687,6 +1687,236 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     {
       "name": "warnings",
       "type": "STRING"
+    },
+    {
+      "name": "latent",
+      "type": "LATENT"
+    },
+    {
+      "name": "latent_tiles",
+      "type": "LATENT"
+    }
+  ],
+  "min_size": [
+    320,
+    320
+  ],
+  "family": "image"
+},
+  "FiLUpscaleSimple": {
+  "id": "FiLUpscaleSimple",
+  "title": "🔍 Upscaler Simple",
+  "category": "🎨 FiL Design/Image",
+  "description": "Upscale + tile an image through a required model — same tiling controls as Advanced.",
+  "inputs": {
+    "required": [
+      {
+        "name": "upscale_factor",
+        "kind": "slider",
+        "label": "Upscale factor",
+        "default": 2,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "min": 0.1,
+        "max": 8,
+        "step": 0.25,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "tile_size",
+        "kind": "number",
+        "label": "Tile size",
+        "default": 1024,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "min": 64,
+        "max": 2048,
+        "step": 64,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "tile_overlap",
+        "kind": "number",
+        "label": "Tile overlap",
+        "default": 64,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "min": 0,
+        "max": 512,
+        "step": 8,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      }
+    ],
+    "optional": [
+      {
+        "name": "auto_overlap",
+        "kind": "boolean",
+        "label": "Auto overlap",
+        "default": false,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": "advanced",
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "auto_mode",
+        "kind": "boolean",
+        "label": "Full auto",
+        "default": false,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": "advanced",
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "auto_profile",
+        "kind": "segmented",
+        "label": null,
+        "default": "Balanced",
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": [
+          "Low VRAM",
+          "Balanced",
+          "High VRAM",
+          "Max Quality",
+          "Ultra Quality"
+        ],
+        "section": "advanced",
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "manual_tile_cols",
+        "kind": "number",
+        "label": null,
+        "default": 0,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "min": 0,
+        "max": 64,
+        "step": 1,
+        "units": null,
+        "options": null,
+        "section": "advanced",
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "manual_tile_rows",
+        "kind": "number",
+        "label": null,
+        "default": 0,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "min": 0,
+        "max": 64,
+        "step": 1,
+        "units": null,
+        "options": null,
+        "section": "advanced",
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "non_square_tiles",
+        "kind": "boolean",
+        "label": null,
+        "default": false,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": "advanced",
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "auto_fix_thin_edges",
+        "kind": "boolean",
+        "label": null,
+        "default": false,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": "advanced",
+        "visible_when": null,
+        "visible_when_value": null
+      }
+    ],
+    "hidden": []
+  },
+  "outputs": [
+    {
+      "name": "image",
+      "type": "IMAGE"
+    },
+    {
+      "name": "tiles",
+      "type": "IMAGE"
+    },
+    {
+      "name": "latent",
+      "type": "LATENT"
+    },
+    {
+      "name": "latent_tiles",
+      "type": "LATENT"
     }
   ],
   "min_size": [
@@ -1763,50 +1993,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
         "default": "euler",
         "tooltip": null,
         "values": [
-          "euler",
-          "euler_cfg_pp",
-          "euler_ancestral",
-          "euler_ancestral_cfg_pp",
-          "heun",
-          "heunpp2",
-          "exp_heun_2_x0",
-          "exp_heun_2_x0_sde",
-          "dpm_2",
-          "dpm_2_ancestral",
-          "lms",
-          "dpm_fast",
-          "dpm_adaptive",
-          "dpmpp_2s_ancestral",
-          "dpmpp_2s_ancestral_cfg_pp",
-          "dpmpp_sde",
-          "dpmpp_sde_gpu",
-          "dpmpp_2m",
-          "dpmpp_2m_cfg_pp",
-          "dpmpp_2m_sde",
-          "dpmpp_2m_sde_gpu",
-          "dpmpp_2m_sde_heun",
-          "dpmpp_2m_sde_heun_gpu",
-          "dpmpp_3m_sde",
-          "dpmpp_3m_sde_gpu",
-          "ddpm",
-          "lcm",
-          "ipndm",
-          "ipndm_v",
-          "deis",
-          "res_multistep",
-          "res_multistep_cfg_pp",
-          "res_multistep_ancestral",
-          "res_multistep_ancestral_cfg_pp",
-          "gradient_estimation",
-          "gradient_estimation_cfg_pp",
-          "er_sde",
-          "seeds_2",
-          "seeds_3",
-          "sa_solver",
-          "sa_solver_pece",
-          "ddim",
-          "uni_pc",
-          "uni_pc_bh2"
+          "euler"
         ],
         "columns": null,
         "searchable": null,
@@ -1823,18 +2010,10 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
         "name": "scheduler",
         "kind": "combo",
         "label": "Scheduler",
-        "default": "simple",
+        "default": "normal",
         "tooltip": null,
         "values": [
-          "simple",
-          "sgm_uniform",
-          "karras",
-          "exponential",
-          "ddim_uniform",
-          "beta",
-          "normal",
-          "linear_quadratic",
-          "kl_optimal"
+          "normal"
         ],
         "columns": null,
         "searchable": null,
@@ -1918,33 +2097,33 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   },
   "outputs": [
     {
-      "name": "MODEL",
+      "name": "model",
       "type": "ANY"
     },
     {
-      "name": "CONDITIONING+",
+      "name": "positive",
       "type": "ANY"
     },
     {
-      "name": "CONDITIONING-",
+      "name": "negative",
       "type": "ANY"
     },
     {
-      "name": "LATENT",
+      "name": "latent",
       "type": "LATENT"
     },
     {
-      "name": "VAE",
+      "name": "vae",
       "type": "ANY"
     },
     {
-      "name": "IMAGE",
+      "name": "image",
       "type": "IMAGE"
     }
   ],
   "min_size": [
-    320,
-    360
+    270,
+    260
   ],
   "family": "sampling"
 },
@@ -2039,7 +2218,10 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
         "options": null,
         "section": null,
         "visible_when": "upscale_type",
-        "visible_when_value": "pixel"
+        "visible_when_value": [
+          "pixel",
+          "both"
+        ]
       },
       {
         "name": "upscale_by",
@@ -2206,19 +2388,138 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
         "section": "controlnet",
         "visible_when": "use_controlnet",
         "visible_when_value": true
+      },
+      {
+        "name": "preprocessor",
+        "kind": "combo",
+        "label": "Preprocessor",
+        "default": "none",
+        "tooltip": null,
+        "values": [
+          "none",
+          "canny"
+        ],
+        "columns": null,
+        "searchable": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": "controlnet",
+        "visible_when": "use_controlnet",
+        "visible_when_value": true
       }
     ],
     "hidden": []
   },
   "outputs": [
     {
-      "name": "SCRIPT",
+      "name": "script",
       "type": "DICT"
     }
   ],
   "min_size": [
     320,
-    380
+    300
+  ],
+  "family": "sampling"
+},
+  "FiLNoiseControl": {
+  "id": "FiLNoiseControl",
+  "title": "🎛️ Noise Control",
+  "category": "🎨 FiL Design/Sampling",
+  "description": "RNG source + seed-variation script for FiLKSampler.",
+  "inputs": {
+    "required": [
+      {
+        "name": "rng_source",
+        "kind": "combo",
+        "label": "RNG source",
+        "default": "cpu",
+        "tooltip": null,
+        "values": [
+          "cpu",
+          "gpu"
+        ],
+        "columns": null,
+        "searchable": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "add_seed_noise",
+        "kind": "boolean",
+        "label": "Seed variation",
+        "default": false,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "seed",
+        "kind": "number",
+        "label": "Variation seed",
+        "default": 0,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "min": 0,
+        "max": 18446744073709552000,
+        "step": 1,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "weight",
+        "kind": "slider",
+        "label": "Weight",
+        "default": 0.5,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "min": 0,
+        "max": 1,
+        "step": 0.01,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      }
+    ],
+    "optional": [],
+    "hidden": []
+  },
+  "outputs": [
+    {
+      "name": "script",
+      "type": "DICT"
+    }
+  ],
+  "min_size": [
+    270,
+    220
   ],
   "family": "sampling"
 },

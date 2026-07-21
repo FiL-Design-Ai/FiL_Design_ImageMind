@@ -12,7 +12,13 @@ export const cleanerNode: NodeModule = {
   id: "FiLNeuroCleaner",
   register(nodeType: unknown, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
-      minSize: [300, 340],
+      // Height kept LOW on purpose — computeSize() (~740px real content)
+      // always wins via Math.max in domWidgetHost.ts (plus the polling
+      // backstop added there, since this specific node's ResizeObserver was
+      // observed to silently stop firing), so a buffer above it here would
+      // just be dead space at the bottom. Width is the actual reason this
+      // floor exists (computeSize()'s own width guess ignores it).
+      minSize: [300, 300],
       family: "tool",
       description: "Selective model, VRAM, RAM, and cache cleanup.",
       badges: [{ text: "utility", color: "#888", text_color: "#fff" }],

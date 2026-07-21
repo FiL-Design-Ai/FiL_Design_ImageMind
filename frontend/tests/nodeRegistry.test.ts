@@ -8,8 +8,10 @@ const CANONICAL_IDS = [
   "FiLNeuroCleaner",
   "FiLBeforeAfterCompare",
   "FiLUpscaleTileCalc",
+  "FiLUpscaleSimple",
   "FiLKSampler",
   "FiLHighResFix",
+  "FiLNoiseControl",
 ];
 
 describe("node registry", () => {

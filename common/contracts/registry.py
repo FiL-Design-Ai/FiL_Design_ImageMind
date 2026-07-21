@@ -53,18 +53,6 @@ def _schedulers() -> list[str]:
         return ["normal"]
 
 
-def _folder_list(kind: str, prefix: list[str] | None = None, empty: str = "(none)") -> list[str]:
-    try:
-        import folder_paths
-
-        names = list(folder_paths.get_filename_list(kind))
-    except Exception:
-        names = []
-    if not names and not prefix:
-        names = [empty]
-    return (prefix or []) + names
-
-
 def _chip_grid(name: str, values: list[str], default: str, columns: int, **kw: Any) -> WidgetSpec:
     return WidgetSpec(
         name=name, kind=WidgetKind.CHIP_GRID, values=values, default=default, columns=columns, **kw
@@ -304,7 +292,7 @@ _COMPARE = NodeContract(
 
 _UPSCALE = NodeContract(
     id="FiLUpscaleTileCalc",
-    title="🔍 Upscaler",
+    title="🔍 Upscaler Advanced",
     category=f"{CATEGORY_ROOT}/Image",
     description="Computes optimal tile grid layout for upscaling.",
     min_size=(320, 320),
@@ -312,10 +300,11 @@ _UPSCALE = NodeContract(
     inputs=NodeInputs(
         required=[
             _slider("upscale_factor", default=2.0, minv=0.1, maxv=8.0, step=0.25, label="Upscale factor"),
-            _int("tile_size", default=512, minv=64, maxv=2048, step=64, label="Tile size"),
+            _int("tile_size", default=1024, minv=64, maxv=2048, step=64, label="Tile size"),
             _int("tile_overlap", default=64, minv=0, maxv=512, step=8, label="Tile overlap"),
         ],
         optional=[
+            _bool("auto_overlap", default=False, label="Auto overlap", section="advanced"),
             _bool("auto_mode", default=False, label="Full auto", section="advanced"),
             _segmented(
                 "auto_profile",
@@ -325,21 +314,20 @@ _UPSCALE = NodeContract(
             ),
             _int("manual_tile_cols", default=0, minv=0, maxv=64, step=1, section="advanced"),
             _int("manual_tile_rows", default=0, minv=0, maxv=64, step=1, section="advanced"),
-            _slider("max_megapixels", default=0.0, minv=0.0, maxv=64.0, step=0.5, section="advanced"),
             _bool("non_square_tiles", default=False, section="advanced"),
-            _bool("show_grid_preview", default=True, section="advanced"),
+            _bool("auto_fix_thin_edges", default=False, section="advanced"),
         ],
     ),
     outputs=[
         NodeOutput(name="image", type="IMAGE"),
-        NodeOutput(name="tile_grid_preview", type="IMAGE"),
+        NodeOutput(name="tiles", type="IMAGE"),
         NodeOutput(name="upscale_by", type="FLOAT"),
         NodeOutput(name="denoise", type="FLOAT"),
         NodeOutput(name="tile_width", type="INT"),
         NodeOutput(name="tile_height", type="INT"),
         NodeOutput(name="mask_blur", type="INT"),
         NodeOutput(name="tile_padding", type="INT"),
-        NodeOutput(name="overlap", type="INT"),
+        NodeOutput(name="overlap", type="FLOAT"),
         NodeOutput(name="width", type="INT"),
         NodeOutput(name="height", type="INT"),
         NodeOutput(name="tile_cols", type="INT"),
@@ -349,6 +337,44 @@ _UPSCALE = NodeContract(
         NodeOutput(name="latent_h", type="INT"),
         NodeOutput(name="info", type="STRING"),
         NodeOutput(name="warnings", type="STRING"),
+        NodeOutput(name="latent", type="LATENT"),
+        NodeOutput(name="latent_tiles", type="LATENT"),
+    ],
+)
+
+_UPSCALE_SIMPLE = NodeContract(
+    id="FiLUpscaleSimple",
+    title="🔍 Upscaler Simple",
+    category=f"{CATEGORY_ROOT}/Image",
+    description="Upscale + tile an image through a required model — same tiling controls as Advanced.",
+    min_size=(320, 320),
+    family="image",
+    inputs=NodeInputs(
+        required=[
+            _slider("upscale_factor", default=2.0, minv=0.1, maxv=8.0, step=0.25, label="Upscale factor"),
+            _int("tile_size", default=1024, minv=64, maxv=2048, step=64, label="Tile size"),
+            _int("tile_overlap", default=64, minv=0, maxv=512, step=8, label="Tile overlap"),
+        ],
+        optional=[
+            _bool("auto_overlap", default=False, label="Auto overlap", section="advanced"),
+            _bool("auto_mode", default=False, label="Full auto", section="advanced"),
+            _segmented(
+                "auto_profile",
+                options=["Low VRAM", "Balanced", "High VRAM", "Max Quality", "Ultra Quality"],
+                default="Balanced",
+                section="advanced",
+            ),
+            _int("manual_tile_cols", default=0, minv=0, maxv=64, step=1, section="advanced"),
+            _int("manual_tile_rows", default=0, minv=0, maxv=64, step=1, section="advanced"),
+            _bool("non_square_tiles", default=False, section="advanced"),
+            _bool("auto_fix_thin_edges", default=False, section="advanced"),
+        ],
+    ),
+    outputs=[
+        NodeOutput(name="image", type="IMAGE"),
+        NodeOutput(name="tiles", type="IMAGE"),
+        NodeOutput(name="latent", type="LATENT"),
+        NodeOutput(name="latent_tiles", type="LATENT"),
     ],
 )
 
@@ -357,7 +383,7 @@ _KSAMPLER = NodeContract(
     title="⚡ KSampler",
     category=f"{CATEGORY_ROOT}/Sampling",
     description="Full-featured sampler with every sampler and scheduler.",
-    min_size=(320, 360),
+    min_size=(270, 260),
     family="sampling",
     inputs=NodeInputs(
         required=[
@@ -377,12 +403,12 @@ _KSAMPLER = NodeContract(
         ],
     ),
     outputs=[
-        NodeOutput(name="MODEL", type="ANY"),
-        NodeOutput(name="CONDITIONING+", type="ANY"),
-        NodeOutput(name="CONDITIONING-", type="ANY"),
-        NodeOutput(name="LATENT", type="LATENT"),
-        NodeOutput(name="VAE", type="ANY"),
-        NodeOutput(name="IMAGE", type="IMAGE"),
+        NodeOutput(name="model", type="ANY"),
+        NodeOutput(name="positive", type="ANY"),
+        NodeOutput(name="negative", type="ANY"),
+        NodeOutput(name="latent", type="LATENT"),
+        NodeOutput(name="vae", type="ANY"),
+        NodeOutput(name="image", type="IMAGE"),
     ],
 )
 
@@ -391,20 +417,20 @@ _HIRESFIX = NodeContract(
     title="🔬 HighRes Fix",
     category=f"{CATEGORY_ROOT}/Sampling",
     description="Packs latent/pixel upscale + re-sample settings into a script.",
-    min_size=(320, 380),
+    min_size=(320, 300),
     family="sampling",
     inputs=NodeInputs(
         required=[
             _segmented("upscale_type", options=["latent", "pixel", "both"], default="latent", label="Upscale type"),
-            _combo("hires_ckpt_name", values=_folder_list("checkpoints", prefix=["(use same)"]),
+            _combo("hires_ckpt_name", values=["(use same)"],
                    default="(use same)", label="Hires checkpoint"),
             _combo("latent_upscaler",
                    values=["nearest-exact", "bilinear", "area", "bicubic", "bislerp"],
                    default="nearest-exact", label="Latent upscaler",
                    visible_when="upscale_type", visible_when_value="latent"),
-            _combo("pixel_upscaler", values=_folder_list("upscale_models"),
-                   default=_folder_list("upscale_models")[0], label="Pixel upscaler",
-                   visible_when="upscale_type", visible_when_value="pixel"),
+            _combo("pixel_upscaler", values=["(none)"],
+                   default="(none)", label="Pixel upscaler",
+                   visible_when="upscale_type", visible_when_value=["pixel", "both"]),
             _slider("upscale_by", default=1.25, minv=0.01, maxv=8.0, step=0.05, label="Upscale by"),
             _bool("use_same_seed", default=True, label="Use same seed"),
             _int("seed", default=0, minv=0, maxv=0xFFFFFFFFFFFFFFFF, step=1, label="Seed"),
@@ -414,14 +440,35 @@ _HIRESFIX = NodeContract(
         ],
         optional=[
             _bool("use_controlnet", default=False, label="Use ControlNet", section="controlnet"),
-            _combo("control_net_name", values=_folder_list("controlnet"),
-                   default=_folder_list("controlnet")[0], label="ControlNet", section="controlnet",
+            _combo("control_net_name", values=["(none)"],
+                   default="(none)", label="ControlNet", section="controlnet",
                    visible_when="use_controlnet", visible_when_value=True),
             _slider("strength", default=1.0, minv=0.0, maxv=10.0, step=0.01, label="Strength",
                     section="controlnet", visible_when="use_controlnet", visible_when_value=True),
+            _combo("preprocessor", values=["none", "canny"],
+                   default="none", label="Preprocessor", section="controlnet",
+                   visible_when="use_controlnet", visible_when_value=True),
         ],
     ),
-    outputs=[NodeOutput(name="SCRIPT", type="DICT")],
+    outputs=[NodeOutput(name="script", type="DICT")],
+)
+
+_NOISE_CONTROL = NodeContract(
+    id="FiLNoiseControl",
+    title="🎛️ Noise Control",
+    category=f"{CATEGORY_ROOT}/Sampling",
+    description="RNG source + seed-variation script for FiLKSampler.",
+    min_size=(270, 220),
+    family="sampling",
+    inputs=NodeInputs(
+        required=[
+            _combo("rng_source", values=["cpu", "gpu"], default="cpu", label="RNG source"),
+            _bool("add_seed_noise", default=False, label="Seed variation"),
+            _int("seed", default=0, minv=0, maxv=0xFFFFFFFFFFFFFFFF, step=1, label="Variation seed"),
+            _slider("weight", default=0.5, minv=0.0, maxv=1.0, step=0.01, label="Weight"),
+        ],
+    ),
+    outputs=[NodeOutput(name="script", type="DICT")],
 )
 
 NODE_SCHEMAS: dict[str, NodeContract] = {
@@ -433,8 +480,10 @@ NODE_SCHEMAS: dict[str, NodeContract] = {
         _CLEANER,
         _COMPARE,
         _UPSCALE,
+        _UPSCALE_SIMPLE,
         _KSAMPLER,
         _HIRESFIX,
+        _NOISE_CONTROL,
     )
 }
 
@@ -447,8 +496,10 @@ assert set(CANONICAL_IDS) == {
     "FiLNeuroCleaner",
     "FiLBeforeAfterCompare",
     "FiLUpscaleTileCalc",
+    "FiLUpscaleSimple",
     "FiLKSampler",
     "FiLHighResFix",
+    "FiLNoiseControl",
 }, f"{CATEGORY_ROOT} contracts drift: node ids differ from common/node_registry.py"
 
 

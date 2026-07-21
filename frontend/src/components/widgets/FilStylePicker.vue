@@ -147,7 +147,7 @@ function select(key: string) {
 .fil-style-cat.active {
   background: var(--fil-accent);
   border-color: var(--fil-accent);
-  color: #fff;
+  color: var(--fil-accent-ink, #fff);
   font-weight: 500;
 }
 .fil-style-cat:focus-visible {
