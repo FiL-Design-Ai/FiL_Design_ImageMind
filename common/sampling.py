@@ -57,6 +57,28 @@ def _blend_noise(base_noise, variation_noise, weight: float):
     return base_noise * math.cos(theta) + variation_noise * math.sin(theta)
 
 
+def _sampler_accepts_eta(sampler_name: str) -> bool:
+    """Check if the k-diffusion sampler function accepts an ``eta`` kwarg.
+
+    Results are cached so introspection runs at most once per sampler name.
+    Falls back to ``False`` on any error.
+    """
+    import inspect
+    import comfy.samplers as _s
+
+    if sampler_name not in _ACCEPTS_ETA_CACHE:
+        try:
+            ks = _s.ksampler(sampler_name)
+            sig = inspect.signature(ks.sampler_function)
+            _ACCEPTS_ETA_CACHE[sampler_name] = "eta" in sig.parameters
+        except Exception:
+            _ACCEPTS_ETA_CACHE[sampler_name] = False
+    return _ACCEPTS_ETA_CACHE[sampler_name]
+
+
+_ACCEPTS_ETA_CACHE: dict[str, bool] = {}
+
+
 def _sample_core(
     model, *, seed, steps, cfg, sampler_name, scheduler, positive, negative,
     latent, denoise, noise_control: dict[str, Any] | None = None,
@@ -65,8 +87,10 @@ def _sample_core(
     """``common_ksampler`` re-assembled from public ``comfy.sample`` calls so a
     custom-generated noise tensor (RNG source / seed variation) can be
     substituted for the stock CPU noise, and/or ``eta`` (noise multiplier for
-    ancestral/SDE samplers) can be passed via ``sampler_options``."""
+    ancestral/SDE samplers) can be passed via the low-level
+    ``comfy.samplers.ksampler`` API which supports ``extra_options``."""
     import comfy.sample
+    import comfy.samplers
     import comfy.utils
     import latent_preview
 
@@ -90,16 +114,27 @@ def _sample_core(
         variation = _prepare_noise(latent_image, variation_seed, rng_source)
         noise = _blend_noise(noise, variation, weight)
 
-    sampler_options = None
-    if eta is not None:
-        sampler_options = {"eta": eta}
+    # Build a KSampler to reuse its sigma calculation (same as common_ksampler).
+    k_sampler = comfy.samplers.KSampler(
+        model, steps=steps, device=model.load_device,
+        sampler=sampler_name, scheduler=scheduler,
+        denoise=denoise, model_options=model.model_options,
+    )
+    sigmas = k_sampler.sigmas
+
+    # Create a KSAMPLER with optional eta in extra_options.
+    extra_opts: dict[str, Any] = {}
+    if eta is not None and _sampler_accepts_eta(sampler_name):
+        extra_opts["eta"] = eta
+    sampler_instance = comfy.samplers.ksampler(sampler_name, extra_options=extra_opts, inpaint_options={})
 
     callback = latent_preview.prepare_callback(model, steps)
-    samples = comfy.sample.sample(
-        model, noise, steps, cfg, sampler_name, scheduler, positive, negative, latent_image,
-        denoise=denoise, noise_mask=latent.get("noise_mask"),
-        callback=callback, disable_pbar=not comfy.utils.PROGRESS_BAR_ENABLED, seed=seed,
-        sampler_options=sampler_options,
+    samples = comfy.samplers.sample(
+        model, noise, positive, negative, cfg, model.load_device,
+        sampler_instance, sigmas, model_options=model.model_options,
+        latent_image=latent_image, denoise_mask=latent.get("noise_mask"),
+        callback=callback, disable_pbar=not comfy.utils.PROGRESS_BAR_ENABLED,
+        seed=seed,
     )
     out = latent.copy()
     out.pop("downscale_ratio_spacial", None)
@@ -130,7 +165,7 @@ def sample_unified(
 
     Returns a latent dict (``{"samples": ...}``).
     """
-    if noise_control is not None or eta is not None:
+    if noise_control is not None or (eta is not None and abs(eta - 1.0) > 1e-9):
         return _sample_core(
             model, seed=seed, steps=steps, cfg=cfg, sampler_name=sampler_name,
             scheduler=scheduler, positive=positive, negative=negative,
