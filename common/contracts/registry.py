@@ -406,6 +406,7 @@ _KSAMPLER = NodeContract(
             _combo("sampler_name", values=_samplers(), default=_samplers()[0], label="Sampler"),
             _combo("scheduler", values=_schedulers(), default=_schedulers()[0], label="Scheduler"),
             _slider("denoise", default=1.0, minv=0.0, maxv=1.0, step=0.01, label="Denoise"),
+            _slider("eta", default=1.0, minv=0.0, maxv=100.0, step=0.01, label="Eta (η)"),
         ],
         optional=[
             _combo("preview_method",

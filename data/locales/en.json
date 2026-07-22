@@ -178,6 +178,7 @@
   "ks_negative": "Negative conditioning.",
   "ks_latent": "Latent to denoise.",
   "ks_denoise": "Denoise strength (1.0 = full).",
+  "ks_eta": "Noise multiplier for ancestral/SDE samplers (1.0 = standard, 0.0 = deterministic).",
   "ks_preview": "How the live sampling preview is rendered.",
   "ks_vae_decode": "Decode the result to an IMAGE preview/output. Needs a VAE.",
   "ks_vae": "VAE for decoding the preview/output image.",
