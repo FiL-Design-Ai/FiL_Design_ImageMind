@@ -11,17 +11,9 @@ from ..common.brand import CATEGORY_ROOT
 from ..common.io_types import FilHiresScript
 from ..common.localization import t
 
-# Sampler/scheduler option lists are needed at schema-registration time.
-# Import defensively so the node still registers if comfy internals move.
-try:
-    import comfy.samplers as _samplers
-
-    _SAMPLERS = list(_samplers.KSampler.SAMPLERS)
-    _SCHEDULERS = list(_samplers.KSampler.SCHEDULERS)
-except Exception:  # pragma: no cover - comfy always present at runtime
-    _SAMPLERS = ["euler"]
-    _SCHEDULERS = ["normal"]
-
+# Sampler/scheduler lists are read lazily in define_schema() (not at import
+# time) so that custom nodes which extend KSampler.SAMPLERS/SCHEDULERS after
+# this module loads — e.g. RES4LYF, Efficiency Nodes — are included.
 _PREVIEW_METHODS = ["auto", "latent2rgb", "taesd", "vae_decoded_only", "none"]
 _VAE_DECODE = ["true", "true (tiled)", "false"]
 
@@ -35,7 +27,16 @@ except Exception:  # pragma: no cover
 
 class FiLKSampler(io.ComfyNode):
     @classmethod
+    def _sampler_list(cls):
+        try:
+            import comfy.samplers as _samplers
+            return list(_samplers.KSampler.SAMPLERS), list(_samplers.KSampler.SCHEDULERS)
+        except Exception:
+            return ["euler"], ["normal"]
+
+    @classmethod
     def define_schema(cls):
+        samplers, schedulers = cls._sampler_list()
         return io.Schema(
             node_id="FiLKSampler",
             display_name="⚡ KSampler",
@@ -49,9 +50,9 @@ class FiLKSampler(io.ComfyNode):
                              tooltip=t("ks_steps", "Number of denoising steps.")),
                 io.Float.Input("cfg", default=7.0, min=0.0, max=100.0, step=0.1,
                                tooltip=t("ks_cfg", "Classifier-free guidance scale.")),
-                io.Combo.Input("sampler_name", options=_SAMPLERS, default=_SAMPLERS[0],
+                io.Combo.Input("sampler_name", options=samplers, default=samplers[0],
                                tooltip=t("ks_sampler", "Sampling algorithm.")),
-                io.Combo.Input("scheduler", options=_SCHEDULERS, default=_SCHEDULERS[0],
+                io.Combo.Input("scheduler", options=schedulers, default=schedulers[0],
                                tooltip=t("ks_scheduler", "Noise schedule.")),
                 io.Conditioning.Input("positive", tooltip=t("ks_positive", "Positive conditioning.")),
                 io.Conditioning.Input("negative", tooltip=t("ks_negative", "Negative conditioning.")),
