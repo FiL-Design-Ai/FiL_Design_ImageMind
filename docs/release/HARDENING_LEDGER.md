@@ -104,6 +104,16 @@ PDF через canvas-пиксели, т.к. подписи на референ�
   `node_upscale.py` теперь тонкая обёртка: schema + `execute()` только оркестрирует ветвления
   (auto/manual/partial-grid) и вызывает `tile_calc.*`. 1:1 перенос тел функций — риск регресса
   минимален, подтверждено тестами и живым смоуком.
+- **Баг найден после промоута (реальный прод-краш, не синтетика):** `crop_latent_tiles` резала
+  латент фиксированными индексами `[:, :, y0:.., x0:..]`, считая тензор всегда 4D `(B,C,H,W)`.
+  Некоторые чекпоинты (в данном случае Z-Image-подобная модель, обвязанная `ModelSamplingAuraFlow`)
+  отдают латент 5D `(B,C,T=1,H,W)` даже для одиночного изображения — индексы 2/3 резали ось T
+  вместо H, и для каждого тайла со row>0 (`y0>0 > T=1`) срез схлопывался в 0 элементов →
+  `RuntimeError: ... size 0 for tensor number 3 in the list` в `FiLUpscaleSimple`/`FiLTileAssembly`
+  цепочке. Воспроизведено 1-в-1 синтетическим 5D-латентом. **Исправлено:** `samples[..., y0:.., x0:..]`
+  (эллипсис на последние 2 оси вместо жёстких позиций 2/3) — работает для 4D и 5D одинаково.
+  `apply_latent_resize`/`comfy.utils.common_upscale` уже была safe для >4D (reshape/restore), только
+  `crop_latent_tiles` — нет. Тест: `test_latent_tiles_support_5d_video_style_latent_format`.
 - **Находки:**
   - [x] `data/locales/{en,ru}.json` — мёртвые дубли `utc_manual_tile_cols`/`utc_manual_tile_rows`
     (реально используются `utc_manual_cols`/`utc_manual_rows`) → **выкинуто**.

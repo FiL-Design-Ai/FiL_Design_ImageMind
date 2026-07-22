@@ -102,6 +102,14 @@ def crop_latent_tiles(latent, target_lw: int, target_lh: int, layout: TileLayout
     latent tile N directly. Positions are rounded (tile sizes divide evenly
     by 8 by construction, but overlap/step values are not always an exact
     multiple of 8), each tile clamped in-bounds like `crop_tiles`.
+
+    Indexes the last two dims via ellipsis rather than a hardcoded `[:, :, ...]`
+    — some models (video-style latent formats) return a 5D
+    ``(B, C, T, H, W)`` sample tensor even for a single still image; slicing
+    at fixed positions 2/3 would crop the T axis instead of H, producing an
+    empty (0-sized) tile for every row/col past the first once T (usually 1)
+    is smaller than the requested crop — reproduced with a real Z-Image-style
+    checkpoint (`RuntimeError: ... size 0 for tensor number 3 in the list`).
     """
     import torch
 
@@ -113,7 +121,7 @@ def crop_latent_tiles(latent, target_lw: int, target_lh: int, layout: TileLayout
         y0 = max(0, min(round(row * layout.step_h / 8), target_lh - tile_lh))
         for col in range(layout.tile_cols):
             x0 = max(0, min(round(col * layout.step_w / 8), target_lw - tile_lw))
-            tiles.append(samples[:, :, y0:y0 + tile_lh, x0:x0 + tile_lw])
+            tiles.append(samples[..., y0:y0 + tile_lh, x0:x0 + tile_lw])
     return {"samples": torch.cat(tiles, dim=0)}
 
 
