@@ -14,6 +14,7 @@ EXPECTED_IDS = {
     "FiLBeforeAfterCompare",
     "FiLUpscaleTileCalc",
     "FiLUpscaleSimple",
+    "FiLTileAssembly",
     "FiLKSampler",
     "FiLHighResFix",
     "FiLNoiseControl",

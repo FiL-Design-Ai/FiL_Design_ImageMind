@@ -28,6 +28,10 @@
       "title": "🔍 Upscaler Simple",
       "category": "🎨 FiL Design/Image"
     },
+    "FiLTileAssembly": {
+      "title": "🧩 Tile Assembly",
+      "category": "🎨 FiL Design/Image"
+    },
     "FiLKSampler": {
       "title": "⚡ KSampler",
       "category": "🎨 FiL Design/Sampling"
@@ -2119,6 +2123,352 @@
       "type": "object"
     },
     "FiLUpscaleSimple": {
+      "$defs": {
+        "NodeInputs": {
+          "additionalProperties": false,
+          "properties": {
+            "required": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Required",
+              "type": "array"
+            },
+            "optional": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Optional",
+              "type": "array"
+            },
+            "hidden": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Hidden",
+              "type": "array"
+            }
+          },
+          "title": "NodeInputs",
+          "type": "object"
+        },
+        "NodeOutput": {
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "title": "Name",
+              "type": "string"
+            },
+            "type": {
+              "enum": [
+                "INT",
+                "FLOAT",
+                "STRING",
+                "BOOLEAN",
+                "DICT",
+                "IMAGE",
+                "MASK",
+                "LATENT",
+                "ANY"
+              ],
+              "title": "Type",
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "type"
+          ],
+          "title": "NodeOutput",
+          "type": "object"
+        },
+        "WidgetKind": {
+          "description": "Frontend rendering hint for a single widget.",
+          "enum": [
+            "combo",
+            "segmented",
+            "chip_grid",
+            "chip_list",
+            "number",
+            "slider",
+            "boolean",
+            "string",
+            "color",
+            "dict",
+            "custom"
+          ],
+          "title": "WidgetKind",
+          "type": "string"
+        },
+        "WidgetSpec": {
+          "additionalProperties": false,
+          "description": "A single widget on a node body.",
+          "properties": {
+            "name": {
+              "description": "Widget name; matches the ComfyUI INPUT_TYPES key.",
+              "title": "Name",
+              "type": "string"
+            },
+            "kind": {
+              "$ref": "#/$defs/WidgetKind"
+            },
+            "label": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional display label (defaults to the widget name).",
+              "title": "Label"
+            },
+            "default": {
+              "default": null,
+              "title": "Default"
+            },
+            "tooltip": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Tooltip"
+            },
+            "values": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Values"
+            },
+            "columns": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Layout hint for chip grids.",
+              "title": "Columns"
+            },
+            "searchable": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Whether a chip list shows a search box.",
+              "title": "Searchable"
+            },
+            "min": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Min"
+            },
+            "max": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Max"
+            },
+            "step": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Step"
+            },
+            "units": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Units"
+            },
+            "options": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Options"
+            },
+            "section": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Section"
+            },
+            "visible_when": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Visible When"
+            },
+            "visible_when_value": {
+              "anyOf": [
+                {},
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Visible When Value"
+            }
+          },
+          "required": [
+            "name",
+            "kind"
+          ],
+          "title": "WidgetSpec",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Full frontend contract for a single FiL Design ImageMind node.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "category": {
+          "title": "Category",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "inputs": {
+          "$ref": "#/$defs/NodeInputs"
+        },
+        "outputs": {
+          "items": {
+            "$ref": "#/$defs/NodeOutput"
+          },
+          "title": "Outputs",
+          "type": "array"
+        },
+        "min_size": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min Size"
+        },
+        "family": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Family"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "category"
+      ],
+      "title": "NodeContract",
+      "type": "object"
+    },
+    "FiLTileAssembly": {
       "$defs": {
         "NodeInputs": {
           "additionalProperties": false,
@@ -5144,6 +5494,10 @@
         {
           "name": "latent_tiles",
           "type": "LATENT"
+        },
+        {
+          "name": "layout",
+          "type": "DICT"
         }
       ],
       "min_size": [
@@ -5366,11 +5720,37 @@
         {
           "name": "latent_tiles",
           "type": "LATENT"
+        },
+        {
+          "name": "layout",
+          "type": "DICT"
         }
       ],
       "min_size": [
         320,
         320
+      ],
+      "family": "image"
+    },
+    "FiLTileAssembly": {
+      "id": "FiLTileAssembly",
+      "title": "🧩 Tile Assembly",
+      "category": "🎨 FiL Design/Image",
+      "description": "Recombines processed tiles back into one image, feathered across the real overlap zones.",
+      "inputs": {
+        "required": [],
+        "optional": [],
+        "hidden": []
+      },
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE"
+        }
+      ],
+      "min_size": [
+        270,
+        200
       ],
       "family": "image"
     },

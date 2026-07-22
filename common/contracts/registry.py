@@ -339,6 +339,7 @@ _UPSCALE = NodeContract(
         NodeOutput(name="warnings", type="STRING"),
         NodeOutput(name="latent", type="LATENT"),
         NodeOutput(name="latent_tiles", type="LATENT"),
+        NodeOutput(name="layout", type="DICT"),
     ],
 )
 
@@ -375,7 +376,19 @@ _UPSCALE_SIMPLE = NodeContract(
         NodeOutput(name="tiles", type="IMAGE"),
         NodeOutput(name="latent", type="LATENT"),
         NodeOutput(name="latent_tiles", type="LATENT"),
+        NodeOutput(name="layout", type="DICT"),
     ],
+)
+
+_TILE_ASSEMBLY = NodeContract(
+    id="FiLTileAssembly",
+    title="🧩 Tile Assembly",
+    category=f"{CATEGORY_ROOT}/Image",
+    description="Recombines processed tiles back into one image, feathered across the real overlap zones.",
+    min_size=(270, 200),
+    family="image",
+    inputs=NodeInputs(required=[]),
+    outputs=[NodeOutput(name="image", type="IMAGE")],
 )
 
 _KSAMPLER = NodeContract(
@@ -481,6 +494,7 @@ NODE_SCHEMAS: dict[str, NodeContract] = {
         _COMPARE,
         _UPSCALE,
         _UPSCALE_SIMPLE,
+        _TILE_ASSEMBLY,
         _KSAMPLER,
         _HIRESFIX,
         _NOISE_CONTROL,
@@ -497,6 +511,7 @@ assert set(CANONICAL_IDS) == {
     "FiLBeforeAfterCompare",
     "FiLUpscaleTileCalc",
     "FiLUpscaleSimple",
+    "FiLTileAssembly",
     "FiLKSampler",
     "FiLHighResFix",
     "FiLNoiseControl",

@@ -113,6 +113,16 @@ export const HELP_DEFAULTS: Record<string, HelpDef> = {
       "Delegates to Upscaler Advanced internally — one source of truth for the tiling math.",
     ],
   },
+  FiLTileAssembly: {
+    id: "FiLTileAssembly",
+    title: "FiL Tile Assembly",
+    body: "Recombines a batch of processed tiles back into one image.",
+    bullets: [
+      "Wire `layout` straight from Upscaler Advanced/Simple's `layout` output — no manual grid setup.",
+      "`tiles` must be the same order/count as when they were produced (process each tile, don't reorder).",
+      "Overlap zones are feathered automatically from the real tile positions — no extra padding widget.",
+    ],
+  },
   FiLKSampler: {
     id: "FiLKSampler",
     title: "FiL KSampler",

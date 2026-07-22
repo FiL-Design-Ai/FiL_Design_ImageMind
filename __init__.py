@@ -21,6 +21,7 @@ class FiLExtension(ComfyExtension):
         from .nodes.node_compare import FiLBeforeAfterCompare
         from .nodes.node_upscale import FiLUpscaleTileCalc
         from .nodes.node_upscale_simple import FiLUpscaleSimple
+        from .nodes.node_tile_assembly import FiLTileAssembly
         from .nodes.node_ksampler import FiLKSampler
         from .nodes.node_hiresfix import FiLHighResFix
         from .nodes.node_noise_control import FiLNoiseControl
@@ -32,6 +33,7 @@ class FiLExtension(ComfyExtension):
             FiLBeforeAfterCompare,
             FiLUpscaleTileCalc,
             FiLUpscaleSimple,
+            FiLTileAssembly,
             FiLKSampler,
             FiLHighResFix,
             FiLNoiseControl,

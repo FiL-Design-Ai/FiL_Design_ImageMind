@@ -23,6 +23,7 @@ CANONICAL = {
     "FiLBeforeAfterCompare",
     "FiLUpscaleTileCalc",
     "FiLUpscaleSimple",
+    "FiLTileAssembly",
     "FiLKSampler",
     "FiLHighResFix",
     "FiLNoiseControl",

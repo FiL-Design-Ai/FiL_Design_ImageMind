@@ -211,6 +211,8 @@
   "nsc_seed": "Сид вариации (используется при включённой вариации).",
   "nsc_weight": "Сила вариации: 0 = только базовый сид, 1 = только сид вариации.",
   "nsc_script": "Опциональный входящий FiL-скрипт для расширения.",
+  "tla_tiles": "Батч обработанных тайлов — тот же порядок/количество, что и выход `tiles`, из которого получен `layout`.",
+  "tla_layout": "Раскладка тайлов из выхода `layout` FiL Upscaler Advanced/Simple.",
   "loader_title": "Cyber-Deck Loader",
   "scanner_title": "Optic Scanner",
   "seed_title": "Cyber-Seed"
