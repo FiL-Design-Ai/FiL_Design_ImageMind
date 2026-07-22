@@ -3,6 +3,7 @@ from comfy_api.latest import io
 from .node_upscale import FiLUpscaleTileCalc
 from ..common import tile_calc
 from ..common.brand import CATEGORY_ROOT
+from ..common.io_types import FilTileLayout
 from ..common.localization import t as _t
 
 
@@ -49,6 +50,7 @@ class FiLUpscaleSimple(io.ComfyNode):
                 io.Image.Output(display_name="tiles", tooltip="Batch of the actual cropped tile pieces (edge tiles shifted inward to stay full-size, no black padding). Empty placeholder when no image is connected (latent-only mode)."),
                 io.Latent.Output(display_name="latent", tooltip="Input latent resized to the tile-aligned target (bislerp). Empty placeholder when no latent is connected."),
                 io.Latent.Output(display_name="latent_tiles", tooltip="Batch of latent crops, one per image tile (same grid/order as `tiles`). Empty placeholder when no latent is connected."),
+                FilTileLayout.Output(display_name="layout", tooltip="Tile-grid layout (exact per-tile positions) — wire into FiL Tile Assembly to recombine processed tiles."),
             ],
             search_aliases=["upscale", "tile", "simple", "SD upscale"],
         )
@@ -73,4 +75,4 @@ class FiLUpscaleSimple(io.ComfyNode):
             non_square_tiles=non_square_tiles,
             auto_fix_thin_edges=auto_fix_thin_edges,
         )
-        return io.NodeOutput(result[0], result[1], result[18], result[19])
+        return io.NodeOutput(result[0], result[1], result[18], result[19], result[20])

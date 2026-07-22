@@ -14,14 +14,14 @@ def image_filled(width=320, height=192, value=1.0):
     return np.full((1, height, width, 3), value, dtype=np.float32)
 
 
-def test_output_contract_has_stable_twenty_values():
+def test_output_contract_has_stable_twenty_one_values():
     schema = FiLUpscaleTileCalc.GET_SCHEMA()
-    assert len(schema.outputs) == 20
+    assert len(schema.outputs) == 21
     expected_names = [
         "image", "tiles", "upscale_by", "denoise", "tile_width",
         "tile_height", "mask_blur", "tile_padding", "overlap", "width", "height",
         "tile_cols", "tile_rows", "tile_count", "latent_w", "latent_h",
-        "info", "warnings", "latent", "latent_tiles",
+        "info", "warnings", "latent", "latent_tiles", "layout",
     ]
     assert [o.display_name for o in schema.outputs] == expected_names
 
@@ -417,6 +417,31 @@ def test_latent_outputs_are_blank_placeholder_when_not_connected():
     latent, latent_tiles = result[18], result[19]
     assert latent["samples"].shape == (1, 4, 8, 8)
     assert latent_tiles["samples"].shape == (1, 4, 8, 8)
+
+
+def test_layout_output_matches_tile_grid_and_canvas_size():
+    result = FiLUpscaleTileCalc.execute(image(320, 192), 2.0, 512, 64)
+    width, height = result[9], result[10]
+    tile_cols, tile_rows, tile_count = result[11], result[12], result[13]
+    layout = result[20]
+    assert layout["cols"] == tile_cols
+    assert layout["rows"] == tile_rows
+    assert layout["cols"] * layout["rows"] == tile_count
+    assert len(layout["rects"]) == tile_count
+    assert layout["canvas_w"] == width
+    assert layout["canvas_h"] == height
+
+
+def test_layout_output_is_real_grid_even_in_latent_only_mode():
+    """`layout` describes the grid geometry, not the `tiles` image batch —
+    it must stay the real computed grid even when there's no image to crop
+    (latent-only mode), so FiLTileAssembly always has something meaningful
+    to work with regardless of which input was connected."""
+    result = FiLUpscaleTileCalc.execute(image=None, upscale_factor=2.0, tile_size=512, tile_overlap=64,
+                                        latent=_latent(320, 192))
+    layout = result[20]
+    assert layout["cols"] * layout["rows"] == result[13]
+    assert len(layout["rects"]) == result[13]
 
 
 def test_latent_resizes_to_latent_aligned_target():

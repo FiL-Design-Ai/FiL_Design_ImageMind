@@ -29,3 +29,15 @@ opaque dict such as ``{"hiresfix": {...}}`` describing the post-sampling
 upscale/re-sample pass. Kept as a dedicated socket type so it can only be
 wired into FiL nodes that understand it.
 """
+
+FilTileLayout = io.Custom("FIL_TILE_LAYOUT")
+"""
+Socket-typed tile-grid layout dict.
+
+Connects FiLUpscaleTileCalc/FiLUpscaleSimple (`layout` output) →
+FiLTileAssembly (`layout` input). Carries ``{"rects": [(sx,sy,ex,ey), ...],
+"cols": int, "rows": int, "canvas_w": int, "canvas_h": int}`` — the exact
+per-tile positions from ``tile_calc.compute_layout()``, in the same order as
+the `tiles` output, so the tiles can be recombined without re-deriving the
+grid math.
+"""

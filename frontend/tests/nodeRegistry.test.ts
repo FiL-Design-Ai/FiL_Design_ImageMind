@@ -9,6 +9,7 @@ const CANONICAL_IDS = [
   "FiLBeforeAfterCompare",
   "FiLUpscaleTileCalc",
   "FiLUpscaleSimple",
+  "FiLTileAssembly",
   "FiLKSampler",
   "FiLHighResFix",
   "FiLNoiseControl",

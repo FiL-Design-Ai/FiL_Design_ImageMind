@@ -336,6 +336,74 @@ def compute_layout(aw, ah, tw, th, overlap_w: int = 0, overlap_h: int = 0) -> Ti
     return TileLayout(round(step_w), round(step_h), cols, rows, cols * rows, rects)
 
 
+def _feather_ramp_1d(length: int, overlap_start: int, overlap_end: int, dtype):
+    """1D weight ramp for `assemble_tiles`: 1.0 in the interior, linearly
+    ramping down toward (but never reaching) 0 across `overlap_start`/
+    `overlap_end` px at each end — only where that end actually has a
+    neighbouring tile to blend with (0 = no ramp, e.g. a real canvas edge).
+    Never hitting exactly 0 keeps every pixel covered by at least one
+    nonzero-weighted tile even before the two neighbours' masks are summed.
+    """
+    import torch
+
+    w = torch.ones(length, dtype=dtype)
+    if overlap_start > 0:
+        n = min(overlap_start, length)
+        w[:n] = torch.minimum(w[:n], torch.linspace(1.0 / (n + 1), 1.0, n, dtype=dtype))
+    if overlap_end > 0:
+        n = min(overlap_end, length)
+        w[length - n:] = torch.minimum(w[length - n:], torch.linspace(1.0, 1.0 / (n + 1), n, dtype=dtype))
+    return w
+
+
+def assemble_tiles(tiles, layout: dict):
+    """Recombine a batch of (independently processed) tile images back into
+    one canvas, using the exact positions in `layout` (a FIL_TILE_LAYOUT dict
+    — see `common/io_types.py`) — the same grid `crop_tiles` produced them
+    from, so no re-derivation of the tile math is needed.
+
+    Blends the real overlap zones with a separable linear feather (per-tile
+    2D weight mask, accumulated then normalized) rather than pairwise
+    row-then-column blending — this handles a 4-way corner overlap correctly
+    by construction instead of needing special-case corner logic. Pure
+    torch/float throughout (no PIL round-trip, no precision loss).
+    """
+    import torch
+
+    rects = layout["rects"]
+    cols = int(layout["cols"])
+    rows = int(layout["rows"])
+    canvas_w = int(layout["canvas_w"])
+    canvas_h = int(layout["canvas_h"])
+
+    if tiles.shape[0] != len(rects):
+        raise ValueError(
+            f"FiL Tile Assembly: tiles batch has {tiles.shape[0]} image(s) but layout "
+            f"expects {len(rects)} — keep the tile order/count unchanged after processing."
+        )
+
+    channels = tiles.shape[-1]
+    canvas = torch.zeros((1, canvas_h, canvas_w, channels), dtype=tiles.dtype)
+    weight = torch.zeros((1, canvas_h, canvas_w, 1), dtype=tiles.dtype)
+
+    for idx, (sx, sy, ex, ey) in enumerate(rects):
+        row, col = divmod(idx, cols)
+        overlap_left = max(0, rects[idx - 1][2] - sx) if col > 0 else 0
+        overlap_right = max(0, ex - rects[idx + 1][0]) if col < cols - 1 else 0
+        overlap_top = max(0, rects[idx - cols][3] - sy) if row > 0 else 0
+        overlap_bottom = max(0, ey - rects[idx + cols][1]) if row < rows - 1 else 0
+
+        wx = _feather_ramp_1d(ex - sx, overlap_left, overlap_right, tiles.dtype)
+        wy = _feather_ramp_1d(ey - sy, overlap_top, overlap_bottom, tiles.dtype)
+        mask = (wy.view(-1, 1) * wx.view(1, -1)).unsqueeze(-1)  # [th, tw, 1]
+
+        tile = tiles[idx, : ey - sy, : ex - sx, :]
+        canvas[0, sy:ey, sx:ex, :] += tile * mask
+        weight[0, sy:ey, sx:ex, :] += mask
+
+    return canvas / torch.clamp(weight, min=1e-6)
+
+
 def apply_upscale_model(image, upscale_model, target_w: int, target_h: int):
     """Run a loaded ESRGAN-style model over `image`, then resize the result to
     the exact tile-aligned target size. The model's own scale factor (e.g. 4x)

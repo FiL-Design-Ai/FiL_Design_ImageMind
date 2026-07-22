@@ -1695,6 +1695,10 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     {
       "name": "latent_tiles",
       "type": "LATENT"
+    },
+    {
+      "name": "layout",
+      "type": "DICT"
     }
   ],
   "min_size": [
@@ -1917,11 +1921,37 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     {
       "name": "latent_tiles",
       "type": "LATENT"
+    },
+    {
+      "name": "layout",
+      "type": "DICT"
     }
   ],
   "min_size": [
     320,
     320
+  ],
+  "family": "image"
+},
+  "FiLTileAssembly": {
+  "id": "FiLTileAssembly",
+  "title": "🧩 Tile Assembly",
+  "category": "🎨 FiL Design/Image",
+  "description": "Recombines processed tiles back into one image, feathered across the real overlap zones.",
+  "inputs": {
+    "required": [],
+    "optional": [],
+    "hidden": []
+  },
+  "outputs": [
+    {
+      "name": "image",
+      "type": "IMAGE"
+    }
+  ],
+  "min_size": [
+    270,
+    200
   ],
   "family": "image"
 },

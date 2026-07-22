@@ -38,9 +38,9 @@ def _fake_model_inference(monkeypatch):
     )
 
 
-def test_returns_exactly_four_outputs():
+def test_returns_exactly_five_outputs():
     result = FiLUpscaleSimple.execute(image(320, 192), FakeUpscaleModel(2), 2.0, 512, 64)
-    assert len(result.args) == 4
+    assert len(result.args) == 5
 
 
 def test_matches_advanced_with_same_widget_values():
@@ -118,3 +118,12 @@ def test_latent_forwards_through_to_advanced_and_matches():
     )
     assert simple[2]["samples"].shape == advanced[18]["samples"].shape
     assert simple[3]["samples"].shape == advanced[19]["samples"].shape
+
+
+def test_layout_forwards_through_to_advanced_and_matches():
+    model = FakeUpscaleModel(2)
+    simple = FiLUpscaleSimple.execute(image(320, 192), model, 2.0, 512, 64)
+    advanced = FiLUpscaleTileCalc.execute(
+        image=image(320, 192), upscale_factor=2.0, tile_size=512, tile_overlap=64, upscale_model=model,
+    )
+    assert simple[4] == advanced[20]

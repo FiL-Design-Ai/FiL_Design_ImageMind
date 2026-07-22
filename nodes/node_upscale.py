@@ -4,6 +4,7 @@ from comfy_api.latest import io
 
 from ..common import tile_calc
 from ..common.brand import CATEGORY_ROOT
+from ..common.io_types import FilTileLayout
 from ..common.localization import t as _t
 
 
@@ -65,6 +66,7 @@ class FiLUpscaleTileCalc(io.ComfyNode):
                 # on reload.
                 io.Latent.Output(display_name="latent", tooltip="Input latent resized to the tile-aligned target (bislerp). Empty placeholder when no latent is connected."),
                 io.Latent.Output(display_name="latent_tiles", tooltip="Batch of latent crops, one per image tile (same grid/order as `tiles`). Empty placeholder when no latent is connected."),
+                FilTileLayout.Output(display_name="layout", tooltip="Tile-grid layout (exact per-tile positions) — wire into FiL Tile Assembly to recombine processed tiles. Always the real computed grid, independent of image/latent connection."),
             ],
             search_aliases=["upscale", "tile", "grid", "calculator", "SD upscale", "tile calc"],
         )
@@ -262,6 +264,13 @@ class FiLUpscaleTileCalc(io.ComfyNode):
             info += (f"\nAuto-fix: tile already at min standard {tile_size}px — thin edge "
                      f"handled by overlap/mask_blur downstream, not by shrinking")
         warn_str = "\n".join(warn) if warn else "No warnings"
+        layout_dict = {
+            "rects": layout.tile_rects,
+            "cols": layout.tile_cols,
+            "rows": layout.tile_rows,
+            "canvas_w": aw,
+            "canvas_h": ah,
+        }
         return io.NodeOutput(out_image, tiles_batch, actual_scale, denoise, tw, th, mb, tp, eff_overlap, aw, ah,
                              layout.tile_cols, layout.tile_rows, layout.tile_count,
-                             lw, lh, info, warn_str, out_latent, latent_tiles_batch)
+                             lw, lh, info, warn_str, out_latent, latent_tiles_batch, layout_dict)

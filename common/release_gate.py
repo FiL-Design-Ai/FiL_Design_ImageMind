@@ -22,6 +22,7 @@ RELEASE_NODES: set[str] = {
     "FiLSeed",
     "FiLUpscaleTileCalc",
     "FiLUpscaleSimple",
+    "FiLTileAssembly",
     "FiLKSampler",
     "FiLHighResFix",
     "FiLNoiseControl",

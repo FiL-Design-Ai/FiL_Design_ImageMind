@@ -211,6 +211,8 @@
   "nsc_seed": "Variation seed (used when Variation is ON).",
   "nsc_weight": "Variation strength: 0 = base seed only, 1 = variation seed only.",
   "nsc_script": "Optional upstream FiL script to extend.",
+  "tla_tiles": "Batch of processed tile images — same order/count as the `tiles` output that produced `layout`.",
+  "tla_layout": "Tile layout from FiL Upscaler Advanced/Simple's `layout` output.",
   "loader_title": "Cyber-Deck Loader",
   "scanner_title": "Optic Scanner",
   "seed_title": "Cyber-Seed"

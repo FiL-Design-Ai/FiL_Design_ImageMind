@@ -13,6 +13,7 @@ import { cleanerNode } from "@/nodes2/nodes/cleaner";
 import { compareNode } from "@/nodes2/nodes/compare";
 import { upscaleNode } from "@/nodes2/nodes/upscale";
 import { upscaleSimpleNode } from "@/nodes2/nodes/upscale_simple";
+import { tileAssemblyNode } from "@/nodes2/nodes/tile_assembly";
 import { ksamplerNode } from "@/nodes2/nodes/ksampler";
 import { hiresfixNode } from "@/nodes2/nodes/hiresfix";
 import { noiseControlNode } from "@/nodes2/nodes/noise_control";
@@ -30,6 +31,7 @@ const modules: NodeModule[] = [
   compareNode,
   upscaleNode,
   upscaleSimpleNode,
+  tileAssemblyNode,
   ksamplerNode,
   hiresfixNode,
   noiseControlNode,

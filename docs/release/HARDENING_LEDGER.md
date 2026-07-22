@@ -14,6 +14,7 @@
 | 1 | FiLSeed | promoted | обкатка gate; UX-фикс поля seed |
 | 2 | FiLUpscaleTileCalc | promoted | вынесена логика в common/tile_calc.py; 2 мёртвых ключа локали убраны; переименована в "🔍 Upscaler Advanced" |
 | 2b | FiLUpscaleSimple | promoted | новая нода, 100% делегат в FiLUpscaleTileCalc, тот же виджет-панель, см. секцию ниже |
+| 2c | FiLTileAssembly | promoted | новая нода (не из исходного списка), см. секцию ниже |
 | 3 | FiLNeuroCleaner | todo | VRAM/RAM, 8 широких except |
 | 4 | FiLBeforeAfterCompare | todo | вьювер, 7 except |
 | 5 | FiLProviderLoader | todo | фиксы max_tokens, тихого refresh_models |
@@ -826,6 +827,62 @@ content-driven рост высоты обычно и так работал, но
   `setSize([600,1200])` — ширина остаётся 600 (уважает выбор пользователя), высота возвращается к
   810 (не оставляет пустого места). Прод перезапущен на итоговой сборке, `FiLUpscaleTileCalc`
   подтверждён `[340,810]`.
+
+## 2c. FiLTileAssembly — promoted (новая нода, не из исходного списка)
+
+- **Статус:** promoted.
+- **Файлы:** `nodes/node_tile_assembly.py`, `nodes2/nodes/tile_assembly.ts`,
+  `common/tile_calc.py` (`assemble_tiles`/`_feather_ramp_1d`), `common/io_types.py`
+  (новый сокет `FIL_TILE_LAYOUT`), contract, locale `tla_*`.
+- **Происхождение:** запрошено пользователем после сравнения с ComfyUI_Eclipse
+  (сторонний пакет) — его пара Tile Split/Tile Assembly делает split+recombine
+  end-to-end, а наш `FiLUpscaleTileCalc` до этого считал грид и резал тайлы, но
+  **не собирал их обратно** (`common/tile_calc.py:154`'s старый докстринг прямо
+  говорил "the real recombine step stays downstream") — реальный пробел,
+  раньше требовавший внешний пакет (Ultimate SD Upscale и т.п.) для финальной
+  сборки.
+- **Дизайн:** отдельная нода (не встроено в Advanced/Simple — другая
+  ответственность, SoC), парой к Advanced/Simple как `FiLHighResFix`+`FiLKSampler`.
+  Раскладка передаётся через новый bundled DICT-сокет `FIL_TILE_LAYOUT`
+  (`{"rects": [...], "cols", "rows", "canvas_w", "canvas_h"}`) — по аналогии с
+  `FilHiresScript`, вместо 4-5 отдельных скалярных проводов.
+- **Реализация:** `assemble_tiles()` — чистый torch/float, без PIL round-trip
+  (в отличие от Eclipse, который гоняет tensor→uint8 PIL→tensor и теряет
+  точность). Блендинг — сепарабельная 2D feather-маска на тайл (accumulate +
+  normalize по сумме весов), а не попарный blend "сначала по строкам, потом
+  по столбцам" как у Eclipse — наш подход корректно обрабатывает угловой
+  4-сторонний нахлёст без отдельной угловой логики. Рамп никогда не доходит
+  ровно до 0 (мин. вес `1/(n+1)`), чтобы ни один пиксель не остался без веса
+  до суммирования соседей.
+- **`layout` output:** добавлен в конец списка выходов `FiLUpscaleTileCalc`
+  (индекс 20) и `FiLUpscaleSimple` (индекс 4) — не трогает существующие
+  индексы сохранённых воркфлоу. Всегда реальная посчитанная сетка, даже в
+  latent-only режиме (геометрия не зависит от того, подключена ли картинка).
+- **Ошибки:** несовпадение количества тайлов в батче и `layout["rects"]`
+  → `ValueError` с понятным сообщением, а не молчаливое "додумывание"/чёрные
+  области на канве.
+- **Тесты:** `tests/test_tile_assembly.py` (схема, delegation, точная
+  реконструкция плоского цвета, точное совпадение отдельно раскрашенных
+  тайлов в глубине интерьера — вдали от реальной, после redistribution,
+  зоны нахлёста, — ошибка на несовпадении батча) + новые тесты в
+  `test_upscale.py`/`test_upscale_simple.py` на сам `layout` output
+  (форма/значения, проброс через Simple, реальная сетка в latent-only режиме).
+- **Живой смоук:** полный реальный прогон на `comfyui-test` через `/prompt`
+  без обхода gate — `EmptyImage → FiLUpscaleTileCalc → FiLTileAssembly →
+  PreviewImage`, `execution_success`, реальный PNG на выходе. В отличие от
+  KSampler/HighResFix/NoiseControl этот путь не требует диффузионной модели,
+  так что здесь получилось проверить по-настоящему end-to-end, а не только
+  структурно.
+- **UX-фикс (по запросу пользователя):** нода изначально не имела своей
+  Vue-панели (у неё вообще нет виджетов — только 2 сокета), но и превью
+  результата на самом узле тоже не было — визуально выпадала из интерфейса
+  пакета. Добавлен встроенный превью результата по образцу `FiLKSampler`
+  (`is_output_node=True` + `PreviewImage().save_images()`, best-effort —
+  ошибка сохранения не роняет execute()): собранная картинка теперь видна
+  прямо на узле, отдельный `PreviewImage` ниже по графу больше не обязателен.
+  Перепроверено вживую: тот же `/prompt`, но с `FiLTileAssembly` как
+  терминальной output-нодой (без `PreviewImage` после неё) —
+  `execution_success`, `outputs["3"]["images"]` содержит реальный PNG.
 
 ## 3. FiLNeuroCleaner
 
