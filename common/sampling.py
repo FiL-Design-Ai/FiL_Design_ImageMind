@@ -57,22 +57,28 @@ def _blend_noise(base_noise, variation_noise, weight: float):
     return base_noise * math.cos(theta) + variation_noise * math.sin(theta)
 
 
-def _sample_with_noise_control(
+def _sample_core(
     model, *, seed, steps, cfg, sampler_name, scheduler, positive, negative,
-    latent, denoise, noise_control: dict[str, Any],
+    latent, denoise, noise_control: dict[str, Any] | None = None,
+    eta: float | None = None,
 ):
     """``common_ksampler`` re-assembled from public ``comfy.sample`` calls so a
     custom-generated noise tensor (RNG source / seed variation) can be
-    substituted for the stock CPU noise — mirrors ``nodes.common_ksampler``'s
-    own logic (see ``nodes.py``) apart from that substitution."""
+    substituted for the stock CPU noise, and/or ``eta`` (noise multiplier for
+    ancestral/SDE samplers) can be passed via ``sampler_options``."""
     import comfy.sample
     import comfy.utils
     import latent_preview
 
-    rng_source = noise_control.get("rng_source", "cpu")
-    add_seed_noise = bool(noise_control.get("add_seed_noise", False))
-    variation_seed = int(noise_control.get("seed", 0))
-    weight = float(noise_control.get("weight", 0.0))
+    rng_source = "cpu"
+    add_seed_noise = False
+    variation_seed = 0
+    weight = 0.0
+    if noise_control is not None:
+        rng_source = noise_control.get("rng_source", "cpu")
+        add_seed_noise = bool(noise_control.get("add_seed_noise", False))
+        variation_seed = int(noise_control.get("seed", 0))
+        weight = float(noise_control.get("weight", 0.0))
 
     latent_image = latent["samples"]
     latent_image = comfy.sample.fix_empty_latent_channels(
@@ -84,11 +90,16 @@ def _sample_with_noise_control(
         variation = _prepare_noise(latent_image, variation_seed, rng_source)
         noise = _blend_noise(noise, variation, weight)
 
+    sampler_options = None
+    if eta is not None:
+        sampler_options = {"eta": eta}
+
     callback = latent_preview.prepare_callback(model, steps)
     samples = comfy.sample.sample(
         model, noise, steps, cfg, sampler_name, scheduler, positive, negative, latent_image,
         denoise=denoise, noise_mask=latent.get("noise_mask"),
         callback=callback, disable_pbar=not comfy.utils.PROGRESS_BAR_ENABLED, seed=seed,
+        sampler_options=sampler_options,
     )
     out = latent.copy()
     out.pop("downscale_ratio_spacial", None)
@@ -110,18 +121,21 @@ def sample_unified(
     latent,
     denoise: float = 1.0,
     noise_control: dict[str, Any] | None = None,
+    eta: float | None = None,
 ):
-    """Sample a latent via ComfyUI's stock ``common_ksampler`` — or, when a
-    ``noise_control`` script is attached, an equivalent that substitutes a
-    custom-generated noise tensor (see ``_sample_with_noise_control``).
+    """Sample a latent via ComfyUI's stock ``common_ksampler`` — or, when
+    ``noise_control`` or ``eta`` is provided, an equivalent that substitutes
+    a custom-generated noise tensor and/or passes ``eta`` via
+    ``sampler_options`` (see ``_sample_core``).
 
     Returns a latent dict (``{"samples": ...}``).
     """
-    if noise_control is not None:
-        return _sample_with_noise_control(
+    if noise_control is not None or eta is not None:
+        return _sample_core(
             model, seed=seed, steps=steps, cfg=cfg, sampler_name=sampler_name,
             scheduler=scheduler, positive=positive, negative=negative,
             latent=latent, denoise=denoise, noise_control=noise_control,
+            eta=eta,
         )
 
     from nodes import common_ksampler
@@ -224,6 +238,7 @@ def apply_hiresfix(
     scheduler: str,
     tiled: bool = False,
     noise_control: dict[str, Any] | None = None,
+    eta: float | None = None,
 ) -> tuple[Any, list[str]]:
     """Run the HighRes-fix upscale + re-sample pass.
 
@@ -315,7 +330,7 @@ def apply_hiresfix(
             pass_model, seed=seed, steps=hires_steps, cfg=cfg,
             sampler_name=sampler_name, scheduler=scheduler,
             positive=pass_positive, negative=negative, latent=latent,
-            denoise=denoise, noise_control=noise_control,
+            denoise=denoise, noise_control=noise_control, eta=eta,
         )
 
     return latent, warnings

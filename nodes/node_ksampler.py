@@ -59,6 +59,8 @@ class FiLKSampler(io.ComfyNode):
                 io.Latent.Input("latent_image", tooltip=t("ks_latent", "Latent to denoise.")),
                 io.Float.Input("denoise", default=1.0, min=0.0, max=1.0, step=0.01,
                                tooltip=t("ks_denoise", "Denoise strength (1.0 = full).")),
+                io.Float.Input("eta", default=1.0, min=0.0, max=100.0, step=0.01,
+                               tooltip=t("ks_eta", "Noise multiplier for ancestral/SDE samplers (1.0 = standard, 0.0 = deterministic).")),
                 io.Combo.Input("preview_method", options=_PREVIEW_METHODS, default="auto",
                                tooltip=t("ks_preview", "How the live sampling preview is rendered.")),
                 io.Combo.Input("vae_decode", options=_VAE_DECODE, default="true",
@@ -102,7 +104,7 @@ class FiLKSampler(io.ComfyNode):
 
     @classmethod
     def execute(cls, model, seed, steps, cfg, sampler_name, scheduler, positive, negative,
-                latent_image, denoise=1.0, preview_method="auto", vae_decode="true",
+                latent_image, denoise=1.0, eta=1.0, preview_method="auto", vae_decode="true",
                 optional_vae=None, script=None,
                 prompt=None, extra_pnginfo=None) -> io.NodeOutput:
         from ..common.sampling import sample_unified
@@ -128,7 +130,7 @@ class FiLKSampler(io.ComfyNode):
                 model, seed=seed, steps=steps, cfg=cfg,
                 sampler_name=sampler_name, scheduler=scheduler,
                 positive=positive, negative=negative, latent=latent_image,
-                denoise=denoise, noise_control=noise_control,
+                denoise=denoise, noise_control=noise_control, eta=eta,
             )
 
             # 2) Optional HighRes-fix pass.
@@ -141,7 +143,7 @@ class FiLKSampler(io.ComfyNode):
                     model=model, positive=positive, negative=negative, vae=vae,
                     latent=latent, base_seed=seed, cfg=cfg,
                     sampler_name=sampler_name, scheduler=scheduler, tiled=tiled,
-                    noise_control=noise_control,
+                    noise_control=noise_control, eta=eta,
                 )
         finally:
             cls._set_preview_method(None)
