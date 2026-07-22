@@ -412,6 +412,22 @@ def _latent(width=320, height=192, channels=4):
     return {"samples": torch.zeros(1, channels, height // 8, width // 8)}
 
 
+def test_latent_tiles_support_5d_video_style_latent_format():
+    """Some checkpoints (e.g. Z-Image-style models) return a 5D
+    (B, C, T=1, H, W) latent even for a single still image, not the usual
+    4D (B, C, H, W). Reproduced live: `crop_latent_tiles` sliced dims 2/3
+    positionally, cropping the T axis (size 1) instead of H for every row
+    past the first — RuntimeError 'size 0 for tensor number 3 in the list'."""
+    import torch
+
+    latent = {"samples": torch.zeros(1, 16, 1, 128, 128)}
+    result = FiLUpscaleTileCalc.execute(
+        image=None, upscale_factor=2.0, tile_size=1024, tile_overlap=64, latent=latent,
+    )
+    latent_tiles = result[19]
+    assert latent_tiles["samples"].shape == (9, 16, 1, 128, 128)
+
+
 def test_latent_outputs_are_blank_placeholder_when_not_connected():
     result = FiLUpscaleTileCalc.execute(image(320, 192), 2.0, 512, 64)
     latent, latent_tiles = result[18], result[19]

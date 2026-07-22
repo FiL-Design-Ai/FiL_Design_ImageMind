@@ -41,7 +41,7 @@ def test_noise_control_bypasses_common_ksampler(monkeypatch):
     spy: dict = {}
     _install_fake_common_ksampler(monkeypatch, spy)
     monkeypatch.setattr(
-        sampling, "_sample_with_noise_control",
+        sampling, "_sample_core",
         lambda *a, **kw: {"samples": "NOISE_CONTROLLED", "kw": kw},
     )
 
