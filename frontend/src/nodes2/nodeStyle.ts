@@ -62,6 +62,42 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
     return result;
   };
 
+  // Fix ComfyUI's text stretching logic. ComfyUI's core `onResize` for `customtext`
+  // widgets iterates over `node.widgets` and subtracts every widget's height from
+  // the node's total height to find remaining space for text boxes. BUT it forgets
+  // to check `w.hidden`! Our Scanner hides ~10 native widgets, so ComfyUI subtracts
+  // ~220px of phantom height, leaving 0 or negative remaining space for the text
+  // boxes — preventing them from stretching, and instead forcing the node's empty
+  // background ("lower frame") to stretch.
+  if (!Object.getOwnPropertyDescriptor(p, "onResize")) {
+    Object.defineProperty(p, "onResize", {
+      get() {
+        if (this.hasOwnProperty("__filOnResize")) return this.__filOnResize;
+        const parent = Object.getPrototypeOf(p);
+        return parent ? parent.onResize : undefined;
+      },
+      set(val) {
+        const original = val;
+        this.__filOnResize = function(this: any, size: [number, number]) {
+          if (!original) return;
+
+          // Temporarily hide `hidden` widgets from `this.widgets` so ComfyUI's native
+          // text-stretching logic calculates the available height correctly without
+          // subtracting "phantom" height from widgets that aren't rendered.
+          const allWidgets = this.widgets || [];
+          const visibleWidgets = allWidgets.filter((w: any) => !w.hidden);
+          
+          this.widgets = visibleWidgets;
+          try {
+            original.apply(this, [size]);
+          } finally {
+            this.widgets = allWidgets;
+          }
+        };
+      }
+    });
+  }
+
   // Dark title bar with a left accent stripe instead of a solid accent
   // fill. `onDrawTitleBar` is a real per-node-type LiteGraph hook (verified
   // against the actual bundled litegraph in comfyui_frontend_package — not

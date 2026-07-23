@@ -6,6 +6,7 @@ import { toast } from "@/stores/toastStore";
 import { NODE_CONTRACTS, type WidgetSpec } from "@/api/contracts";
 import type { FilNodeState } from "@/nodes2/filState";
 import { useI18n } from "@/composables/useI18n";
+import { findFilWidget } from "@/nodes2/util";
 
 const props = defineProps<{ state: FilNodeState }>();
 const { t } = useI18n();
@@ -13,30 +14,21 @@ const { t } = useI18n();
 const contract = NODE_CONTRACTS["FiLOpticScanner"];
 const widgets: WidgetSpec[] = contract?.inputs.required ?? [];
 
+// FilSection applies `text-transform: uppercase` itself, so these fallbacks
+// stay in normal case — the header still renders uppercase.
 const SECTION_LABEL_KEYS: Record<string, [string, string]> = {
-  prompt: ["scn_section_prompt", "📝 PROMPT/TEXT"],
-  agent: ["scn_section_agent", "🕵️ AGENT"],
-  model: ["scn_section_model", "🧠 MODEL"],
-  output: ["scn_section_output", "📤 OUTPUT"],
-  advanced: ["scn_section_advanced", "🎨 STYLE"],
-  actions: ["scn_section_actions", "⚡ ACTIONS"],
+  prompt: ["scn_section_prompt", "📝 Prompt/Text"],
+  agent: ["scn_section_agent", "🕵️ Agent"],
+  model: ["scn_section_model", "🧠 Model"],
+  output: ["scn_section_output", "📤 Output"],
+  advanced: ["scn_section_advanced", "🎨 Style"],
+  actions: ["scn_section_actions", "⚡ Actions"],
 };
 
-// Per-section accent — matches the Neo-Tactile design. `FilSection`/
-// `FilChipGrid`/`FilSegmented` all read only `var(--fil-accent)`, so
-// overriding that variable on each section's wrapper div is enough to
-// recolor its children — no prop plumbing through the shared widgets.
-const SECTION_ACCENT: Record<string, string> = {
-  prompt: "#00d9ff",
-  agent: "#ff9900",
-  model: "#d080ff",
-  output: "#ff9900",
-  advanced: "#00d9ff",
-};
-
-// `string`-kind widgets that render as a multiline textarea rather than a
-// single-line input (they map to `multiline=True` string inputs on the node).
-const MULTILINE_STRING_WIDGETS = new Set(["prompt", "negative_prompt", "custom_style"]);
+// These fields stay as native LiteGraph widgets (not hidden in scanner.ts)
+// so ComfyUI's drag-to-connect works on them. They are excluded from the
+// Vue panel to avoid a duplicate — the native widget renders above the panel.
+const NATIVE_WIDGET_NAMES = new Set(["prompt", "negative_prompt", "custom_style"]);
 
 function sectionLabel(section: string): string {
   const entry = SECTION_LABEL_KEYS[section];
@@ -175,29 +167,54 @@ function setCollapsed(section: string, collapsed: boolean) {
 watch(() => props.state.nodeState, () => {}, { deep: true });
 
 // Bottom seed block — mirrors FiLSeed/Seed.vue's own mechanism (mode +
-// readout + Copy/Use Last/New Fixed) rather than the plain native
-// int + control_after_generate pair ComfyUI auto-adds for any "seed"
-// widget. `scanner.ts` hides both native widgets and resolves the actual
-// value through `graphToPromptPreflight` at queue time, same as FiLSeed.
+// readout + Use last/New fixed). `scanner.ts` hides both native seed/
+// control_after_generate widgets; randomization is driven by ComfyUI
+// core's native `control_after_generate` on the hidden seed widget
+// (verified: core randomizes it each queue even while hidden) — the
+// graphToPrompt hook this used to rely on doesn't fire on queue in this
+// frontend version, so it never actually injected anything.
 const seedMode = computed({
   get: () => (props.state.nodeState.seed_mode as "random" | "fixed") ?? "random",
   set: (v) => { props.state.nodeState.seed_mode = v; },
 });
 const seedValue = computed({
   get: () => Number(props.state.nodeState.seed ?? -1) || -1,
-  set: (v) => { props.state.nodeState.seed = v; },
+  // Write the native seed widget directly, not just nodeState: the
+  // createSyncedNodeState mirror doesn't reach the seed widget the same way
+  // control_after_generate expects, so a fixed seed set only via nodeState
+  // can fail to reach the queued prompt. Direct assignment sticks.
+  set: (v) => {
+    props.state.nodeState.seed = v;
+    const w = props.state.node ? findFilWidget(props.state.node, "seed") : null;
+    if (w) w.value = v;
+  },
 });
 const seedDisplay = computed(() => (seedMode.value === "fixed" ? `${seedValue.value}` : "random"));
+
+// Point core's seed control at the mode the panel wants: "fixed" pins the
+// widget so re-queuing a fixed seed doesn't drift and the LLM-call cache
+// (fingerprint_inputs) stays warm; "randomize" makes core draw a fresh
+// seed into the hidden widget every queue.
+watch(seedMode, (mode) => {
+  const node = props.state.node;
+  const ctrl = node ? findFilWidget(node, "control_after_generate") : null;
+  if (ctrl) ctrl.value = mode === "fixed" ? "fixed" : "randomize";
+}, { immediate: true });
 
 function setRandomSeed() {
   seedMode.value = "random";
 }
 function useLastSeed() {
-  if (props.state.lastRunSeed == null) {
+  // After a random queue the last value core drew lives on the native seed
+  // widget; fall back to lastRunSeed for older saved state.
+  const node = props.state.node;
+  const w = node ? findFilWidget(node, "seed") : null;
+  const last = w && Number.isFinite(Number(w.value)) ? Number(w.value) : props.state.lastRunSeed;
+  if (last == null || !Number.isFinite(last)) {
     toast.warning("No last-run seed recorded yet");
     return;
   }
-  seedValue.value = props.state.lastRunSeed;
+  seedValue.value = last;
   seedMode.value = "fixed";
 }
 function newFixedSeed() {
@@ -211,33 +228,33 @@ function newFixedSeed() {
 <template>
   <div class="fil-scanner-root">
     <template v-for="(specs, section) in grouped" :key="section">
-      <div v-if="section !== 'styles'" class="fil-section-block" :style="{ '--fil-accent': SECTION_ACCENT[String(section)] }">
+      <div v-if="section !== 'styles'" class="fil-section-block">
         <FilSection v-if="section !== '_' && section !== 'prompt'" :title="sectionLabel(String(section))"
           :model-value="isCollapsed(String(section))"
           @update:model-value="(v: boolean) => setCollapsed(String(section), v)" />
-        <div v-for="w in specs" v-show="section === '_' || section === 'prompt' || !isCollapsed(String(section))" :key="w.name" class="fil-w-row" :title="widgetTooltip(w)">
-          <FilChipGrid v-if="w.kind === 'chip_grid'"
-            :options="w.values || []" :model-value="String(getValue(w.name, ''))"
-            :columns="w.columns ?? 3" @update:model-value="(v: string) => setValue(w.name, v)" />
-          <FilChipList v-else-if="w.kind === 'chip_list'"
-            :options="w.values || []" :model-value="(getValue(w.name, null) as string | null)"
-            :searchable="w.searchable ?? true" @update:model-value="(v: string) => setValue(w.name, v)" />
-          <FilSegmented v-else-if="w.kind === 'segmented'"
-            :options="w.options || []" :model-value="String(getValue(w.name, ''))"
-            :label="formatFieldLabel(w)" @update:model-value="(v: string) => setValue(w.name, v)" />
-          <textarea v-else-if="w.kind === 'string' && MULTILINE_STRING_WIDGETS.has(w.name)"
-            class="fil-w-textarea" :value="String(getValue(w.name, ''))" :placeholder="formatFieldLabel(w)"
-            @input="(e: Event) => setValue(w.name, (e.target as HTMLTextAreaElement).value)" />
-          <input v-else-if="w.kind === 'string'" type="text" class="fil-w-input"
-            :value="String(getValue(w.name, ''))" :placeholder="formatFieldLabel(w)"
-            @input="(e: Event) => setValue(w.name, (e.target as HTMLInputElement).value)" />
-          <FilChipGrid v-else :options="w.values || []" :model-value="String(getValue(w.name, ''))"
-            :columns="w.columns ?? 3" @update:model-value="(v: string) => setValue(w.name, v)" />
-        </div>
+        <!-- Skip native widgets — prompt/negative_prompt/custom_style are rendered
+             by LiteGraph above the Vue panel and support drag-to-connect natively. -->
+        <template v-for="w in specs" :key="w.name">
+          <div v-if="!NATIVE_WIDGET_NAMES.has(w.name)"
+            v-show="section === '_' || section === 'prompt' || !isCollapsed(String(section))"
+            class="fil-w-row" :title="widgetTooltip(w)">
+            <FilChipGrid v-if="w.kind === 'chip_grid'"
+              :options="w.values || []" :model-value="String(getValue(w.name, ''))"
+              :columns="w.columns ?? 3" @update:model-value="(v: string) => setValue(w.name, v)" />
+            <FilChipList v-else-if="w.kind === 'chip_list'"
+              :options="w.values || []" :model-value="(getValue(w.name, null) as string | null)"
+              :searchable="w.searchable ?? true" @update:model-value="(v: string) => setValue(w.name, v)" />
+            <FilSegmented v-else-if="w.kind === 'segmented'"
+              :options="w.options || []" :model-value="String(getValue(w.name, ''))"
+              :label="formatFieldLabel(w)" @update:model-value="(v: string) => setValue(w.name, v)" />
+            <FilChipGrid v-else :options="w.values || []" :model-value="String(getValue(w.name, ''))"
+              :columns="w.columns ?? 3" @update:model-value="(v: string) => setValue(w.name, v)" />
+          </div>
+        </template>
       </div>
     </template>
 
-    <div class="fil-section-block" :style="{ '--fil-accent': SECTION_ACCENT.advanced }">
+    <div class="fil-section-block">
       <FilSection :title="sectionLabel('advanced')" :model-value="isCollapsed('advanced')"
         @update:model-value="(v: boolean) => setCollapsed('advanced', v)" />
       <div v-show="!isCollapsed('advanced')" class="fil-section-block">
@@ -254,10 +271,9 @@ function newFixedSeed() {
       </div>
     </div>
 
-    <div class="fil-scanner-seed">
-      <div class="fil-scanner-seed-row">
-        <input
-          :value="seedDisplay"
+    <div class="fil-scanner-seed-row">
+      <input
+        :value="seedDisplay"
           type="text"
           class="fil-scanner-seed-field"
           :class="{ 'is-random': seedMode === 'random' }"
@@ -279,7 +295,6 @@ function newFixedSeed() {
           :title="t('scn_seed_new_fixed_tt', 'Generate a new random fixed seed.')" @click="newFixedSeed">
           {{ t('scn_seed_new_fixed', 'New fixed') }}
         </button>
-      </div>
     </div>
   </div>
 </template>
@@ -295,20 +310,8 @@ function newFixedSeed() {
 }
 .fil-section-block { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
 .fil-w-row { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.fil-w-textarea, .fil-w-input {
-  width: 100%; box-sizing: border-box; background: var(--fil-glass-bg);
-  border: 1px solid var(--fil-glass-border); border-radius: var(--fil-field-radius);
-  color: var(--fil-text, #a0c4ff); padding: var(--fil-row-pad); font-size: 12px;
-  font-family: inherit; outline: none; transition: border-color .08s;
-}
-.fil-w-textarea { min-height: 56px; resize: vertical; }
-.fil-w-textarea:focus, .fil-w-input:focus { border-color: var(--fil-accent); }
 .fil-style-pair-row { display: flex; gap: 4px; min-width: 0; }
 .fil-style-pair-item { flex: 1; min-width: 0; }
-.fil-scanner-seed {
-  display: flex; flex-direction: column; gap: 4px; padding-top: 3px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08); min-width: 0;
-}
 .fil-scanner-seed-row { display: flex; gap: 6px; min-width: 0; }
 .fil-scanner-seed-field {
   flex: 1.3; min-width: 0; box-sizing: border-box; height: 34px;
@@ -326,7 +329,6 @@ function newFixedSeed() {
   font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer;
   transition: background .08s, border-color .08s, color .08s;
   appearance: none; -webkit-appearance: none; outline: none;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .fil-scanner-seed-pill:hover { background: rgba(255, 255, 255, 0.12); }
 .fil-scanner-seed-pill.active { background: rgba(255, 255, 255, 0.16); border-color: rgba(255, 255, 255, 0.2); }

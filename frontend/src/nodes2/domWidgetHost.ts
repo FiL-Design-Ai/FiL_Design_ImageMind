@@ -167,7 +167,21 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
     hideOnZoom: true,
     getValue: () => state,
     setValue: (v: S) => {
-      if (v && typeof v === "object") Object.assign(state, v);
+      if (v && typeof v === "object") {
+        const payload = v as Record<string, unknown>;
+        const targetState = state as Record<string, unknown>;
+        if (payload.nodeState && typeof payload.nodeState === "object" && targetState.nodeState) {
+          Object.assign(targetState.nodeState as object, payload.nodeState);
+        }
+        if (payload.ui && typeof payload.ui === "object" && targetState.ui) {
+          Object.assign(targetState.ui as object, payload.ui);
+        }
+        for (const [k, val] of Object.entries(payload)) {
+          if (k !== "nodeState" && k !== "ui") {
+            targetState[k] = val;
+          }
+        }
+      }
     },
     getHeight: measureHeight,
     ...(opts.onDraw ? { onDraw: opts.onDraw } : {}),
@@ -212,7 +226,11 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
     // floor (Math.max), never shrinks below whatever's already there.
     const [minW, minH] = n.minSize ?? [0, 0];
     const targetWidth = Math.max(currentWidth, minW);
-    const targetHeight = Math.max(computedHeight, minH);
+    // Never shrink the height below what the user manually dragged to:
+    // if the user stretched the node taller than content, respect that.
+    // We still grow automatically when content height increases (e.g.
+    // section expand, new widget). minH is always a lower bound.
+    const targetHeight = Math.max(computedHeight, currentSizeHeight, minH);
     if (targetWidth === currentWidth && Math.abs(targetHeight - currentSizeHeight) < 2) return;
     // Width otherwise just preserves `currentWidth` — computeSize()'s own
     // width opinion ignores minSize entirely (seen live shrinking a

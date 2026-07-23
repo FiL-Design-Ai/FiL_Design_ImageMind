@@ -9,6 +9,7 @@ import { FilButton } from "@/components/widgets";
 import { toast } from "@/stores/toastStore";
 import { useI18n } from "@/composables/useI18n";
 import type { FilNodeState } from "@/nodes2/filState";
+import { findFilWidget } from "@/nodes2/util";
 
 const props = defineProps<{ state: FilNodeState }>();
 const { t } = useI18n();
@@ -20,8 +21,24 @@ const mode = computed({
 });
 const seed = computed({
   get: () => Number(props.state.nodeState.seed ?? 0) || 0,
-  set: (v) => { props.state.nodeState.seed = v; },
+  // Write the native seed widget directly, not just nodeState — a fixed
+  // seed set only via nodeState can fail to reach the queued prompt.
+  set: (v) => {
+    props.state.nodeState.seed = v;
+    const w = props.state.node ? findFilWidget(props.state.node, "seed") : null;
+    if (w) w.value = v;
+  },
 });
+
+// Point core's seed control at the mode the panel wants: "fixed" pins the
+// widget, "randomize" makes core draw a fresh seed into the hidden widget
+// every queue — this is what actually fires on queue in this frontend
+// version (the graphToPrompt hook does not).
+watch(mode, (m) => {
+  const node = props.state.node;
+  const ctrl = node ? findFilWidget(node, "control_after_generate") : null;
+  if (ctrl) ctrl.value = m === "fixed" ? "fixed" : "randomize";
+}, { immediate: true });
 
 // Restore from a loaded workflow: setState() (from ComfyUI setValue)
 // replaces nodeState entirely; we mirror it back into our locals.
@@ -39,11 +56,16 @@ function setRandom() {
 }
 
 function useLast() {
-  if (props.state.lastRunSeed == null) {
+  // After a random queue the last value core drew lives on the native seed
+  // widget; fall back to lastRunSeed for older saved state.
+  const node = props.state.node;
+  const w = node ? findFilWidget(node, "seed") : null;
+  const last = w && Number.isFinite(Number(w.value)) ? Number(w.value) : props.state.lastRunSeed;
+  if (last == null || !Number.isFinite(last)) {
     toast.warning("No last-run seed recorded yet");
     return;
   }
-  seed.value = props.state.lastRunSeed;
+  seed.value = last;
   mode.value = "fixed";
 }
 

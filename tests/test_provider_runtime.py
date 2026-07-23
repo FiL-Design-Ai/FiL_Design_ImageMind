@@ -92,3 +92,47 @@ def test_offline_local_provider(monkeypatch):
     result = provider_runtime.fetch_models_with_status("ollama")
     assert result["status"] == "offline"
     assert "offline" not in result["message"].lower()
+
+
+def test_all_seven_providers_schema_and_fetching(monkeypatch):
+    from FiL_Design_ImageMind.common.config import PROVIDERS, is_model_vision_capable
+    from FiL_Design_ImageMind.common.provider_runtime import fetch_models_with_status
+    from FiL_Design_ImageMind.common.processing import is_valid_model_name
+
+    expected_providers = {"ollama", "lmstudio", "openai", "google", "groq", "openrouter", "cloudflare"}
+    assert set(PROVIDERS.keys()) == expected_providers
+
+    # Mock API key so cloud providers get beyond auth missing check
+    monkeypatch.setattr("FiL_Design_ImageMind.common.provider_runtime.get_api_key", lambda p: "fake_key")
+
+    class FakeResponse:
+        def __init__(self, prov):
+            self.prov = prov
+
+        def json(self):
+            if self.prov == "google":
+                return {"models": [{"name": "models/gemini-2.0-flash"}]}
+            elif self.prov == "ollama":
+                return {"models": [{"name": "qwen3-vl:8b"}]}
+            return {"data": [{"id": "test-model-vl"}]}
+
+    class FakeClient:
+        def __init__(self, **kwargs):
+            pass
+
+        def get(self, url, **kwargs):
+            prov = "google" if "googleapis" in url else ("ollama" if "11434" in url else "generic")
+            return FakeResponse(prov)
+
+    monkeypatch.setattr("FiL_Design_ImageMind.common.provider_runtime.HTTPClient", FakeClient)
+
+    for prov in expected_providers:
+        res = fetch_models_with_status(prov, force=True)
+        assert res["status"] == "available"
+        assert len(res["models"]) > 0
+        for m in res["models"]:
+            assert is_valid_model_name(m)
+        # Verify vision capability check works for each provider
+        v_model = res["models"][0]
+        assert isinstance(is_model_vision_capable(prov, v_model), bool)
+

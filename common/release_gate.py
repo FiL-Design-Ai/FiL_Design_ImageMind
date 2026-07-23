@@ -26,6 +26,10 @@ RELEASE_NODES: set[str] = {
     "FiLKSampler",
     "FiLHighResFix",
     "FiLNoiseControl",
+    "FiLProviderLoader",
+    "FiLOpticScanner",
+    "FiLNeuroCleaner",
+    "FiLBeforeAfterCompare",
 }
 
 _TRUTHY = {"1", "true", "yes", "on"}

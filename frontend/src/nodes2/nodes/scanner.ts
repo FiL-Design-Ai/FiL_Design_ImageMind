@@ -31,10 +31,11 @@ export const scannerNode: NodeModule = {
     };
     const p = proto.prototype;
 
-    // `prompt`, `negative_prompt`, `custom_style` are declared force_input on
-    // the node (node_scanner.py) — they have no native widget to hide, their
-    // value lives in the Vue panel's DOM state and is injected at
-    // graphToPrompt when the input socket is unconnected (filExtension.ts).
+    // `prompt`/`negative_prompt`/`custom_style` are kept as native LiteGraph
+    // widgets (NOT hidden) so ComfyUI's built-in drag-to-connect works on them
+    // exactly like any other string widget: drag a STRING output onto the field
+    // and it converts in-place to an input socket. Their values are read by
+    // ComfyUI directly from the native widget, not from the Vue state.
     const hiddenWidgetNames = ["agent", "model_type", "detail_level", "language",
       "prompt_mode", "response_format", "photo_style", "nsfw_photo_style", "art_style", "nsfw_art_style"];
 
@@ -72,9 +73,11 @@ export const scannerNode: NodeModule = {
         ui: {},
         lastRunSeed: null,
       };
-
-      // Expose state on node for graphToPrompt seed injection (parallels
-      // `_filSeedState` on FiLSeed).
+      // Exposed so OpticScanner.vue can drive the hidden native seed/
+      // control_after_generate widgets directly (see HiResFix.vue) — the
+      // graphToPrompt extension hook this used to rely on doesn't fire on
+      // queue in this frontend version.
+      Object.defineProperty(state, "node", { value: node, enumerable: false, configurable: true });
       node._filScannerSeedState = state;
 
       addFilDomWidget(node, "fil_scanner_view", OpticScannerVue, { state, height: 460 });

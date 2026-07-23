@@ -407,6 +407,7 @@ _KSAMPLER = NodeContract(
             _combo("scheduler", values=_schedulers(), default=_schedulers()[0], label="Scheduler"),
             _slider("denoise", default=1.0, minv=0.0, maxv=1.0, step=0.01, label="Denoise"),
             _slider("eta", default=1.0, minv=0.0, maxv=100.0, step=0.01, label="Eta (η)"),
+            _bool("bongmath", default=True, label="Bongmath", section="advanced"),
         ],
         optional=[
             _combo("preview_method",

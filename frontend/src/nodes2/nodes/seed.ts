@@ -57,8 +57,11 @@ export const seedNode: NodeModule = {
         ui: {},
         lastRunSeed: null,
       };
-
-      // Expose state on node for graphToPrompt seed injection
+      // Exposed so Seed.vue can drive the hidden native seed/
+      // control_after_generate widgets directly (see HiResFix.vue /
+      // OpticScanner.vue) — the graphToPrompt extension hook this used to
+      // rely on doesn't fire on queue in this frontend version.
+      Object.defineProperty(state, "node", { value: node, enumerable: false, configurable: true });
       node._filSeedState = state;
 
       addFilDomWidget(node, "fil_seed_view", SeedVue, { state, height: 52 });

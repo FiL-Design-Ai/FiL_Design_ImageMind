@@ -114,14 +114,13 @@ def crop_latent_tiles(latent, target_lw: int, target_lh: int, layout: TileLayout
     import torch
 
     samples = latent["samples"]
-    tile_lw = min(tile_lw, target_lw)
-    tile_lh = min(tile_lh, target_lh)
     tiles = []
-    for row in range(layout.tile_rows):
-        y0 = max(0, min(round(row * layout.step_h / 8), target_lh - tile_lh))
-        for col in range(layout.tile_cols):
-            x0 = max(0, min(round(col * layout.step_w / 8), target_lw - tile_lw))
-            tiles.append(samples[..., y0:y0 + tile_lh, x0:x0 + tile_lw])
+    for sx, sy, ex, ey in layout.tile_rects:
+        y0 = max(0, min(sy // 8, target_lh - 1))
+        x0 = max(0, min(sx // 8, target_lw - 1))
+        y1 = max(y0 + 1, min((ey + 7) // 8, target_lh))
+        x1 = max(x0 + 1, min((ex + 7) // 8, target_lw))
+        tiles.append(samples[..., y0:y1, x0:x1])
     return {"samples": torch.cat(tiles, dim=0)}
 
 
@@ -164,14 +163,9 @@ def crop_tiles(image, aw: int, ah: int, layout: TileLayout, tw: int, th: int):
     """
     is_torch = hasattr(image, "movedim")
     single = _resize_source(image[0:1], aw, ah)
-    tile_w = min(tw, aw)
-    tile_h = min(th, ah)
     tiles = []
-    for row in range(layout.tile_rows):
-        y0 = max(0, min(row * layout.step_h, ah - tile_h))
-        for col in range(layout.tile_cols):
-            x0 = max(0, min(col * layout.step_w, aw - tile_w))
-            tiles.append(single[:, y0:y0 + tile_h, x0:x0 + tile_w, :])
+    for idx, (sx, sy, ex, ey) in enumerate(layout.tile_rects):
+        tiles.append(single[:, sy:ey, sx:ex, :])
     if is_torch:
         import torch
         return torch.cat(tiles, dim=0)
@@ -335,12 +329,14 @@ def compute_layout(aw, ah, tw, th, overlap_w: int = 0, overlap_h: int = 0) -> Ti
     step_h = (ah - th) / (rows - 1) if rows > 1 else nominal_step_h
     rects = []
     for row in range(rows):
-        sy = min(round(row * step_h), max(0, ah - th))
-        ey = min(sy + th, ah)
+        sy = max(0, min(round(row * step_h), ah - th))
+        sy8 = round(sy / 8) * 8
+        ey8 = min(sy8 + th, ah)
         for col in range(cols):
-            sx = min(round(col * step_w), max(0, aw - tw))
-            ex = min(sx + tw, aw)
-            rects.append((sx, sy, ex, ey))
+            sx = max(0, min(round(col * step_w), aw - tw))
+            sx8 = round(sx / 8) * 8
+            ex8 = min(sx8 + tw, aw)
+            rects.append((sx8, sy8, ex8, ey8))
     return TileLayout(round(step_w), round(step_h), cols, rows, cols * rows, rects)
 
 

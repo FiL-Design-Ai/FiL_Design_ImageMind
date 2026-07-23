@@ -273,15 +273,18 @@ def test_ideogram4_text_mode_passthrough():
     assert "cyberpunk" in output or "android" in output
 
 
-def test_ideogram4_json_mode_generic():
-    """Ideogram 4 JSON mode returns generic JSON (not Ideogram-specific)."""
+def test_ideogram4_json_mode_uses_caption_schema():
+    """Ideogram 4 JSON mode routes through the canonical caption schema —
+    response_format="json" is an explicit request for it, not generic JSON."""
     prompt = "A scene"
     output, meta = convert_to_dit_format(prompt, "Ideogram 4", "json")
     parsed = json.loads(output)
 
-    # Should be generic JSON, not Ideogram 4 schema
-    assert "prompt" in parsed or isinstance(parsed, dict)
-    assert "high_level_description" not in parsed  # Not Ideogram JSON schema
+    assert list(parsed.keys()) == [
+        "high_level_description",
+        "style_description",
+        "compositional_deconstruction",
+    ]
 
 
 # ─────────────────────────────────────────────────────────────────────────

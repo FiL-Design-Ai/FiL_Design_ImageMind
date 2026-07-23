@@ -6,7 +6,15 @@ import ProviderManager from "@/components/settings/ProviderManager.vue";
 let _pmApp: VueApp<Element> | null = null;
 
 function mountProviderManager(el: HTMLElement): void {
-  if (_pmApp) return;
+  // ComfyUI destroys the tab container on close and hands us a fresh `el` on
+  // every re-open. Tear down any previous instance before mounting into the
+  // new container, otherwise the stale app stays bound to the dead DOM node
+  // and the re-opened tab renders empty. The Pinia store is global
+  // (useActivePinia), so unmounting the component does not destroy it.
+  if (_pmApp) {
+    _pmApp.unmount();
+    _pmApp = null;
+  }
   _pmApp = createApp(ProviderManager).use(useActivePinia());
   _pmApp.mount(el);
   console.info("[FiL_Design_ImageMind] provider manager mounted");

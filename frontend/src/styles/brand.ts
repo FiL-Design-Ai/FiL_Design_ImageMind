@@ -178,7 +178,7 @@ export function injectFilBrandVars(): void {
   if (document.getElementById("fil-brand-vars")) return;
   const el = document.createElement("style");
   el.id = "fil-brand-vars";
-  el.textContent = `:root{${paletteCssVars(FIL_PALETTE)}--fil-radius:8px;--fil-node-pad:3px;--fil-node-gap:4px;--fil-row-pad:4px 6px;--fil-input-border:rgba(240,138,69,0.35);${SURFACE_VARS_CYAN}}
+  el.textContent = `:root{${paletteCssVars(FIL_PALETTE)}--fil-radius:8px;--fil-node-pad:6px 8px 14px 8px;--fil-node-gap:4px;--fil-row-pad:4px 6px;--fil-input-border:rgba(240,138,69,0.35);${SURFACE_VARS_CYAN}}
 .comfy-theme-light{${paletteCssVars(FIL_PALETTE_LIGHT)}--fil-input-border:rgba(201,104,44,0.35);${SURFACE_VARS_LIGHT}}
 .comfy-multiline-input{border-color:var(--fil-input-border) !important;}
 /* Shared "Neo-Tactile" glass surface for every node body (scoped to the Vue
@@ -191,6 +191,7 @@ export function injectFilBrandVars(): void {
   backdrop-filter:blur(var(--fil-surface-blur));
   box-shadow:var(--fil-surface-shadow);
   overflow:hidden;
+  padding-bottom:14px !important;
 }`;
   document.head.appendChild(el);
 

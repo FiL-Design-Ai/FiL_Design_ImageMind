@@ -117,7 +117,13 @@ MODEL_PROMPT_RULES: Dict[str, Dict[str, Any]] = {
         "supports_negative_prompt": True,
         "negative_strategy": "standard",
         "max_words": None,
-        "json_schema": None,
+        # Ideogram 4's own API takes a plain-text prompt (docs.ideogram.ai), so
+        # text mode stays plain natural language — but when the user explicitly
+        # asks for `response_format="json"`, route through the canonical
+        # high_level_description/style_description/compositional_deconstruction
+        # caption schema (adapt_ideogram4_caption) instead of generic JSON
+        # passthrough, so structured captions stay well-formed.
+        "json_schema": "ideogram4",
         "target_prompt_format": None,
         "force_response_format": None,
         "source_status": "verified",
@@ -371,4 +377,11 @@ AGENT_OUTPUT_MODE_TAGS = "tags"
 
 
 def get_agent_output_mode(agent_key: str) -> str:
-    return AGENT_OUTPUT_MODE_PROSE
+    """Return whether ``agent_key`` produces prose or a comma-tag list.
+
+    Only "Professional Tagger" asks for flat comma-separated tags — its
+    output must not be rewritten into sentences by the per-model_type DiT
+    restructuring step (convert_to_dit_format), which would otherwise
+    silently discard the tag format the user explicitly picked.
+    """
+    return AGENT_OUTPUT_MODE_TAGS if agent_key == "Professional Tagger" else AGENT_OUTPUT_MODE_PROSE

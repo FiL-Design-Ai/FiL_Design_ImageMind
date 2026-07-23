@@ -21,7 +21,7 @@ from FiL_Design_ImageMind.common.provider_resilience import (
 
 
 def test_retry_policy_per_provider():
-    assert get_retry_policy("google") == RetryPolicy(max_retries=2, retry_delay_base=0.75)
+    assert get_retry_policy("google") == RetryPolicy(max_retries=3, retry_delay_base=5.0)
     assert get_retry_policy("groq") == RetryPolicy(max_retries=2, retry_delay_base=1.25)
     assert get_retry_policy("openrouter") == RetryPolicy(max_retries=1, retry_delay_base=0.75)
     assert get_retry_policy("cloudflare") == RetryPolicy(max_retries=1, retry_delay_base=0.75)
@@ -205,3 +205,15 @@ def test_openrouter_candidates_openrouter_free_pushed_to_end():
     with patch.object(pr, "_fetch_openrouter_catalog", return_value=(catalog, True)):
         candidates = get_openrouter_candidates({"provider": "openrouter"}, "")
     assert candidates[-1] == "openrouter/free"
+
+
+def test_sanitize_sensitive_data():
+    raw_err = "429 Client Error: Too Many Requests for url: https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=AQ.Ab8RN6Jxa8pAyoUN82"
+    sanitized = pr.sanitize_sensitive_data(raw_err)
+    assert "AQ.Ab8RN6Jxa8pAyoUN82" not in sanitized
+    assert "key=***REDACTED***" in sanitized
+
+    raw_header = "x-goog-api-key: MY_SECRET_KEY_12345"
+    sanitized_hdr = pr.sanitize_sensitive_data(raw_header)
+    assert "MY_SECRET_KEY_12345" not in sanitized_hdr
+    assert "***REDACTED***" in sanitized_hdr

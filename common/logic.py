@@ -249,16 +249,3 @@ class PromptGenerator:
         if extra:
             parts.append(f"Additional request: {extra}")
         return "\n\n".join(parts)
-
-    def build_hybrid_artifact(self, system_prompt: str, user_prompt: str, model_type: str) -> str:
-        if system_prompt and user_prompt:
-            return f"[SYSTEM]\n{system_prompt}\n\n[USER]\n{user_prompt}"
-        return user_prompt or system_prompt
-
-    def build_two_stage_prompt_artifact(self, system_prompt: str, user_prompt: str, description: str, model_type: str) -> str:
-        return (
-            f"[SYSTEM]\n{system_prompt}\n\n"
-            f"[SOURCE DESCRIPTION]\n{description}\n\n"
-            f"[USER REQUEST]\nCreate a generation prompt based on this description.\n\n"
-            f"Additional instructions: {user_prompt or 'None'}"
-        )

@@ -162,6 +162,3 @@ function onFallbackKey(event: KeyboardEvent, app: ComfyApp): void {
     event.preventDefault();
   }
 }
-
-/** Placeholder hooks consumed by the cheatsheet module above. */
-export const __shortcutHooks = { openCheatsheet, focusSearch };
