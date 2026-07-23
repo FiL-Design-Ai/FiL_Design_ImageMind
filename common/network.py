@@ -65,8 +65,20 @@ class HTTPClient:
                     if response.status_code in no_retry_statuses:
                         response.raise_for_status()
                     if response.status_code in retry_statuses and attempt < max_retries:
+                        # Honor Retry-After header if present (Google sends this on 429).
+                        # Cap at 65 s to avoid hanging ComfyUI queue indefinitely.
+                        retry_after_raw = response.headers.get("Retry-After", "")
+                        try:
+                            retry_after_sec = min(float(retry_after_raw), 65.0) if retry_after_raw else None
+                        except ValueError:
+                            retry_after_sec = None
+                        if retry_after_sec and retry_after_sec > retry_delay_base:
+                            if not quiet:
+                                logger.warning("Retry-After: %.0fs — waiting before retry %s/%s", retry_after_sec, attempt + 1, max_retries)
+                            time.sleep(retry_after_sec)
                         continue
                     response.raise_for_status()
+
 
                 return response
 

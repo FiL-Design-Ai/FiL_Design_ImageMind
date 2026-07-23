@@ -15,12 +15,12 @@
 | 2 | FiLUpscaleTileCalc | promoted | вынесена логика в common/tile_calc.py; 2 мёртвых ключа локали убраны; переименована в "🔍 Upscaler Advanced" |
 | 2b | FiLUpscaleSimple | promoted | новая нода, 100% делегат в FiLUpscaleTileCalc, тот же виджет-панель, см. секцию ниже |
 | 2c | FiLTileAssembly | promoted | новая нода (не из исходного списка), см. секцию ниже |
-| 3 | FiLNeuroCleaner | todo | VRAM/RAM, 8 широких except |
-| 4 | FiLBeforeAfterCompare | todo | вьювер, 7 except |
-| 5 | FiLProviderLoader | todo | фиксы max_tokens, тихого refresh_models |
-| 6 | FiLKSampler | promoted | сэмплинг |
-| 7 | FiLHighResFix | promoted | script для KSampler (пара с #6) |
-| 8 | FiLOpticScanner | todo | ядро; passthrough temperature/config |
+| 3 | FiLProviderLoader | promoted | max_tokens/seed/response_format wiring, refresh_models, parse_response, +Seed UI (перенесён вперёд по запросу пользователя) |
+| 4 | FiLOpticScanner | promoted | temperature/max_tokens/rate_limit_ms из config, глобальный rate-limiter фикс (перенесён вперёд по запросу пользователя) |
+| 5 | FiLNeuroCleaner | todo | VRAM/RAM, 8 широких except |
+| 6 | FiLBeforeAfterCompare | todo | вьювер, 7 except |
+| 7 | FiLKSampler | promoted | сэмплинг |
+| 8 | FiLHighResFix | promoted | script для KSampler (пара с #6) |
 | 9 | FiLNoiseControl | promoted | новая нода (не из исходного списка), см. секцию ниже |
 
 ## Общий backlog (не привязан к одной ноде)
@@ -908,15 +908,54 @@ content-driven рост высоты обычно и так работал, но
 - **Аудит:** path-traversal guard уже покрыт `test_api_security.py`.
 - **Находки:**
 
-## 5. FiLProviderLoader
+## 5. FiLProviderLoader — promoted
 
-- **Статус:** todo
-- **Файлы:** `nodes/node_provider.py`, `components/nodes/ProviderLoader.vue`, `nodes2/nodes/provider.ts`, `common/models.py`, `common/provider_*`, contract, locale `prov_*`.
-- **Находки:**
-  - [ ] `max_tokens` не пишется в `build_payload` ни одной стратегии → **доработать или выкинуть**.
-  - [ ] `GoogleStrategy.build_payload` теряет `seed` и `response_format` → **доработать**.
-  - [ ] `refresh_models` глушит ошибки fetch без обратной связи → **изменить** (toast/лог).
-  - [ ] `models.py:135-162` fall-through к `str(data)` маскирует parse-фейл → **изменить**.
+- **Статус:** promoted (перенесена вперёд по запросу пользователя, до NeuroCleaner/Compare).
+- **Файлы:** `nodes/node_provider.py`, `components/nodes/ProviderLoader.vue`, `nodes2/nodes/provider.ts`, `common/models.py`, `common/provider_runtime.py`, contract, locale `prov_*`.
+- **Находки и фиксы:**
+  - [x] `max_tokens` не писался в `build_payload` ни одной стратегии (Ollama/OpenAI-совместимые/Google) —
+    `ModelClient.generate()` принимал его и прокидывал в `kwargs`, но ни одна реализация его не читала.
+    **Исправлено:** Ollama → `options.num_predict`, OpenAI-совместимые → `max_tokens`, Google →
+    `generationConfig.maxOutputTokens`. Везде гейтится на truthy (`0` = "без явного лимита", как и
+    задумано в тултипе виджета) — поле просто не добавляется в payload.
+  - [x] `GoogleStrategy.build_payload` терял `seed` и `response_format` (только `temperature` доходил
+    до API). **Исправлено:** `generationConfig.seed` (Gemini API поддерживает) и
+    `generationConfig.responseMimeType="application/json"` для JSON-режима.
+  - [x] `refresh_models` в `node_provider.py` глушил любую ошибку `except Exception: pass` без единого
+    следа в логах — молчаливый сбой. **Дополнительно найдено по ходу:** он и не форсировал реальное
+    обновление — `fetch_models_from_provider()` уважает 5-минутный TTL-кэш, так что "Refresh" внутри
+    `execute()` чаще всего просто возвращал тот же кэш. **Исправлено:** `invalidate_model_cache(p_key)`
+    перед фетчем + `logger.warning(..., exc_info=True)` на неудаче (реальный fetch-путь UI — отдельный
+    REST `/models/{provider}?force=1`, не тронут, работал верно и раньше).
+  - [x] `models.py:135-162` (`OpenAIStrategy`/`GoogleStrategy.parse_response`) — fallback на `str(data)`
+    маскировал реальный parse-фейл, превращая сырой JSON-ответ провайдера (в т.ч. объект ошибки) в
+    видимый пользователю "текст промпта". **Исправлено:** явная проверка `data["error"]` → `raise
+    InferenceError`, затем строгий поиск ожидаемой формы ответа; если ничего не найдено — тоже
+    `InferenceError` с телом payload, вместо тихой подмены.
+- **Побочная находка (не в исходном списке, тот же файл):** `RateLimiter` создавался и передавался в
+  каждую стратегию (`ModelClient.__init__`), но `wait_if_needed()` не вызывался НИГДЕ — весь виджет
+  "Rate limit" был плацебо для всех провайдеров, не только Scanner'а. См. фикс в #8 (тот же корень —
+  `common/models.py`), т.к. обнаружено при разборе находки Scanner'а про `rate_limit_ms`.
+- **UX:** аудит панели показал, что у `seed` (реальный, теперь до конца прокинутый в провайдеры вход)
+  не было своего поля в `ProviderLoader.vue` — виджет существовал в схеме, но был скрыт без
+  Vue-замены (единственное расхождение с остальными 6 полями панели). Добавлено `FilNumberInput`
+  (min=-1, max=999999999999, диапазон 64-битного seed) между Rate limit и Max image side; проводка
+  через `nodeState.seed` идентична остальным полям (`provider.ts`: `widgetSpecs`/`initialValues`).
+  Новый локаль-ключ `lbl_provider_seed` (en/ru), `tt_provider_seed` уже существовал.
+- **Тесты:** `tests/test_models.py` (новый, 17 тестов) — max_tokens/seed/response_format wiring по
+  всем 3 стратегиям, `parse_response` больше не маскирует ошибки/пустые ответы, rate-limiter реально
+  вызывается с переданным `rate_limit_ms` (и корректно дефолтится на 100мс при `None`).
+  `tests/test_node_provider.py` (новый, 4 теста) — `execute()` пакует все виджеты в `config`,
+  `refresh_models=True` реально инвалидирует кэш перед фетчем, сбой логируется (не глушится),
+  `refresh_models=False` не трогает кэш вообще. Полный набор **379/380** pytest (единственный красный —
+  предсуществующий `test_noise_control_bypasses_common_ksampler`, не связан с этой правкой), vitest
+  37/37, `npm run build` чисто.
+- **Живой смоук:** временный байпас гейта на `comfyui-test` (порт занят другим чатом — перезапущен с
+  явного разрешения пользователя). `/api/object_info/FiLProviderLoader` подтвердил полную схему
+  (8 инпутов, включая `seed`). Панель на канвасе: `getComputedStyle`/DOM-обход подтвердил рендер
+  лейбла "🎲 Seed" между Rate limit и Max image side; прямая запись в `nodeState.seed` (12345)
+  корректно долетела до скрытого нативного виджета (то самое значение, что читает `execute()`).
+  Gate возвращён в исходное состояние после проверки.
 
 ## 6. FiLKSampler — promoted
 
@@ -970,13 +1009,242 @@ content-driven рост высоты обычно и так работал, но
 - **Output-название:** выход `SCRIPT` → `script` (та же причина, что у #6 —
   совпадает с именем входа `script` у FiLKSampler/FiLNoiseControl).
 
-## 8. FiLOpticScanner
+## 8. FiLOpticScanner — promoted
 
-- **Статус:** todo
-- **Файлы:** `nodes/node_scanner.py`, `components/nodes/OpticScanner.vue`, `nodes2/nodes/scanner.ts`, `common/logic.py`/`data.py`/`models.py`/`style_engine/`, contract, locale `scn_*`.
-- **Находки:**
-  - [ ] `execute` игнорит `config["temperature"]` (хардкод 0.7), а также `max_tokens/rate_limit_ms/seed` из конфига → **изменить**.
-  - [ ] import-time синглтоны (5 шт) + `get_visible_agent_keys()` → оценить, оставлять ли.
+- **Статус:** promoted (перенесена вперёд по запросу пользователя, сразу после Provider Loader).
+- **Файлы:** `nodes/node_scanner.py`, `components/nodes/OpticScanner.vue`, `nodes2/nodes/scanner.ts`, `common/models.py`, contract, locale `scn_*`.
+- **Находки и фиксы:**
+  - [x] `execute()`/`fingerprint_inputs()` объявляли `temperature=0.7, max_tokens=1024` как параметры
+    функции, но у Scanner НЕТ собственных виджетов для них в схеме — эти значения физически никогда
+    не приходили от ComfyUI, execute() всегда получал ровно свои Python-дефолты, а `config["temperature"]`/
+    `config["max_tokens"]` от Provider Loader полностью игнорировались. **Исправлено:** убраны из
+    сигнатур (были недостижимы), вместо этого `temperature = config.get("temperature", 0.7)`,
+    `max_tokens = config.get("max_tokens") or 1024` считаются в начале `execute()` (явное `0` в конфиге
+    — "нет лимита у провайдера" — намеренно остаётся 1024 у Scanner'а, т.к. ему нужен реальный кап для
+    стабильного парсинга сгенерированного промпта). `rate_limit_ms` — та же история, добавлен как новый
+    параметр `_run_one_pass`/`_hybrid_call`, прокидывается в оба места вызова.
+  - [x] **Побочная находка, более серьёзная, чем формулировка в ledger:** `rate_limit_ms` не просто
+    "игнорился Scanner'ом" — сам `RateLimiter` (`common/network.py`), создаваемый в `ModelClient.__init__`
+    и переданный в КАЖДУЮ стратегию, нигде не вызывался (`wait_if_needed()` — 0 вызовов во всём
+    `models.py`). Значит виджет "Rate limit" в Provider Loader был плацебо для всех провайдеров и всех
+    нод, не только Scanner'а. **Исправлено:** `ModelClient.generate()` получил параметр `rate_limit_ms`,
+    `_build_and_send()` вызывает `self.rate_limiter.wait_if_needed(rate_limit_ms)` перед каждым реальным
+    HTTP-запросом (после cache-hit — не перед ним, кэш не должен тротлиться).
+  - [x] import-time синглтоны (`_processor`/`_style_manager`/`_prompt_gen`/`_model_client`/
+    `_style_enforcer`) и `_AGENT_KEYS = get_visible_agent_keys()` — **оценено, решение: оставить**.
+    Синглтоны — намеренное переиспользование HTTP-сессии/промпт-кэша между запусками (тот же паттерн,
+    что и `ModelClient`'s собственный `self.http_client`/`self._cache`), не race-condition (нет
+    мутируемого общего состояния между вызовами `execute()`). `_AGENT_KEYS` в отличие от
+    `get_visible_style_keys(...)` (вызывается заново внутри `define_schema()`) кэшируется на импорте —
+    выглядит как несогласованность с style-паттерном, но `AGENTS` в `common/data.py:221` — статичный
+    dict-литерал в коде, не файл на диске и не runtime-конфиг, так что оба подхода дают идентичный
+    результат весь срок жизни процесса. Не бага, чисто стилистическое расхождение — трогать не стал.
+  - Vue-панель (`OpticScanner.vue`) уже полностью покрывает свои собственные виджеты (`seed`,
+    `response_format` и т.д.) — в отличие от Provider Loader, пробелов в UI не найдено.
+- **Тесты:** `tests/test_scanner_metadata.py` — 2 новых теста (`config` с явными `temperature`/
+  `max_tokens`/`rate_limit_ms` доходят до `_model_client.generate()` как есть; при их отсутствии в
+  `config` используются прежние дефолты 0.7/1024/100 — поведение не регрессирует для старых
+  сохранённых графов). `tests/test_models.py` — 3 новых теста на сам rate-limiter (см. #5). Полный
+  набор **379/380** pytest (единственный красный — предсуществующий, не связан), vitest 37/37.
+- **Живой смоук:** тот же временный байпас гейта, что и #5. `/api/object_info/FiLOpticScanner`
+  подтвердил схему без изменений (temperature/max_tokens намеренно не входят в неё — идут только через
+  `config`). `LiteGraph.createNode` для обеих нод (Provider Loader → Optic Scanner), реальное
+  соединение `config`→`config` через `node.connect()`, консоль без ошибок. Полный `/prompt`-прогон
+  через LLM не делался осознанно — на `comfyui-test` нет ни локального Ollama, ни облачных ключей
+  (тот же класс ограничения окружения, что у KSampler/HighResFix — см. #6/#7); корректность payload
+  подтверждена мок-тестами `_model_client.generate`, не живым вызовом сети.
+
+### Полный функциональный аудит (по запросу пользователя "проверить абсолютно всё")
+
+Прочитан весь prompt-pipeline построчно: `common/logic.py`, `common/style_engine/*`
+(`enforcer.py`, `presets.py` — 2476 строк, `resolver.py`, `rules.py`, `text.py`),
+`common/model_prompt_adapters.py`, `common/clean_output.py`, `common/data.py`,
+плюс весь провайдерский слой (`models.py`, `provider_runtime.py`, `provider_accounts.py`,
+`provider_resilience.py`, `network.py`, `config.py`, `base.py`) и фронтенд
+(`ProviderLoader.vue`/`provider.ts`, `OpticScanner.vue`/`scanner.ts`, seed-preflight
+в `filExtension.ts`).
+
+**Найден и исправлен главный баг пайплайна — style enforcement терялся в Two-Stage режиме.**
+`_style_enforcer.build_enforcement_block()` (FORBIDDEN WORDS/REQUIRED CUES/camera override)
+добавлялся в `system_prompt` в `execute()`, но Two-Stage-ветка `_run_one_pass` пересобирала
+`stage1_sys`/`stage2_sys` с нуля через `build_system_prompt_two_stage_bundle()` и никогда не
+подмешивала enforcement обратно — хотя `nsfw_active`/`custom_style` там корректно дублировались.
+Two-Stage — дефолтный режим при `prompt_mode="Auto"` + выбранном стиле (`effective_mode =
+"Two-Stage" if style_block.strip() else "Hybrid"`), т.е. именно тогда, когда enforcement нужнее
+всего, он не работал вообще. Hybrid-режим (без стиля) был не затронут — там `system_prompt` идёт
+в `_model_client.generate()` как есть.
+
+**Найдена и полностью подключена "мёртвая" preset-support система (75 пресетов).**
+`resolve_style_contract()` умеет определять, поддерживает ли реальное описание сцены выбранный
+пресет (`support_signals` vs `contradiction_signals` → режим `full`/`weak`/`blocked`, с отдельным
+текстом-инструкцией для LLM на каждый режим — не выдумывать элементы стиля, которых нет в кадре).
+В `common/style_engine/presets.py` под это заведено **75 пресетов** (Motion Blur, вся серия
+Cyborg/Android, Anime Style, Concept Art, Game UI и др.) с полностью прописанными
+`weak_mode_contract`/`blocked_mode_contract`/`fallback_behavior` — существенный объём проделанной
+работы. Проблема: `resolve_style_contract()` вызывался в `execute()` ДО генерации stage-1
+описания (`support_text` всегда `""` → `support_active=False` → режим всегда `"inert"`), и даже
+если бы сработал — `build_preset_support_block()` нигде не вызывался, результат нигде не
+использовался (ни в промпте, ни в metadata).
+
+**Решение пользователя: подключить полностью.** `_run_one_pass()` (`nodes/node_scanner.py`)
+теперь в Two-Stage-ветке, сразу после получения stage-1 `description`, повторно вызывает
+`resolve_style_contract(style_block, style_key=style_key, support_text=description)` — с реальным
+текстом сцены вместо пустого — и подмешивает в `stage2_sys`:
+1. `build_enforcement_block(...)` (фикс главного бага выше);
+2. `build_preset_support_block(..., support_text=description, support_mode=resolved.support_mode)`
+   (реальный контракт weak/full/blocked для тех пресетов, у которых он определён).
+
+Для этого `_run_one_pass`/`execute()` теперь возвращают/прокидывают `contract`/`enforcement`
+дополнительным элементом кортежа (было `(text, fallback_reason)`, стало
+`(text, fallback_reason, resolved_contract)`), а `meta_dict` получил новые поля
+`preset_support_mode`/`preset_support_summary`. **Hybrid-режим осознанно не трогали** — там нет
+отдельного stage-1 текста для анализа (единственный вызов LLM), так что `support_mode` там
+остаётся `"inert"" — как и было, это не регрессия, а честная граница возможностей.
+
+**Побочный найденный баг того же класса:** `post_convert_prompt()` (DiT-реструктуризация под
+QWEN/SDXL/FLUX) принимает `style_enforcer`, который активирует `_style_cue_guard` — защиту от
+потери обязательных cue стиля при реструктуризации (откат на безопасный вариант, если
+реструктурированный текст потерял cue, которые были в исходном). Scanner никогда не передавал
+свой `_style_enforcer`, так что guard был `None`-заглушкой (`survived` всегда `True`, откат
+никогда не срабатывал). **Исправлено:** `post_convert_prompt(..., style_key=style_key,
+style_enforcer=_style_enforcer)` в `execute()`.
+
+**Мелкая находка, не влияющая на поведение (перенесена в общий backlog):**
+`common/provider_accounts.py::get_api_key()` — ветка `hasattr(config_inst,
+'get_provider_config')` всегда `False` (`get_provider_config` — функция модуля `config.py`, а не
+метод `Config`). **Убрано** — итоговый fallback на `auth.json`/env-переменные покрывает то же самое.
+
+**Dead-code чистка (по решению пользователя, разобрано по каждому пункту):**
+- `get_agent_output_mode()`/`AGENT_OUTPUT_MODE_TAGS`/`AGENT_OUTPUT_MODE_PROSE` (`common/data.py`) —
+  **выпилено**. Задумывалось как код-метка для агента "Professional Tagger" (просит тег-вывод
+  вместо prose), нигде не вызывалось — агент и так управляет выводом через текст системного
+  промпта, отдельная инфраструктура не нужна.
+- `build_hybrid_artifact`/`build_two_stage_prompt_artifact` (`common/logic.py`) — **выпилено**.
+  Собирали точный текст промпта, отправленного в LLM, но ни один caller их не читал.
+- `OutputCleanConfig.strip_think` (`common/clean_output.py`) — **починено, не выпилено**.
+  Поле объявлено, но `<think>`/`analysis_scratchpad`-стриппинг применялся безусловно, флаг ничего
+  не гейтил. Теперь `<think>`-блоки реально сохраняются при `strip_think=False`;
+  `analysis_scratchpad` по-прежнему убирается всегда (отдельный, не связанный со strip_think
+  паттерн в `CLEANUP_PATTERNS`) — это осознанно, не баг.
+
+**Тесты:** `tests/test_scanner_metadata.py` — 5 новых (enforcement реально доходит до stage2;
+`support_mode` = `full` при наличии сигналов в stage-1 описании / `weak` при их отсутствии /
+`inert` в Hybrid; `post_convert_prompt` реально получает `style_enforcer`+`style_key`).
+`tests/test_clean_output.py` (новый, 3 теста) — `strip_think=True/False` поведение,
+`analysis_scratchpad` всегда убирается. Полный набор **387/388** pytest (единственный красный —
+предсуществующий `test_noise_control_bypasses_common_ksampler`, не по теме).
+- **Живой смоук:** не повторялся отдельно для этого раунда — правки внутри уже проверенного
+  структурно пайплайна (`execute()`/`_run_one_pass`), полностью покрыты новыми mock-тестами на
+  реальном коде; для проверки настоящего LLM-вызова на этом окружении по-прежнему нет ни Ollama,
+  ни облачных ключей (см. живой смоук выше).
+
+### Второй проход по вопросу "что ещё недоделано/мертво" (по прямому запросу пользователя)
+
+**Возрождена JSON-схема Ideogram 4 (решение пользователя: "JSON промптинг для Ideogram 4 мне
+очень нужен").** `adapt_ideogram4_caption()` + 8 хелперов в `model_prompt_adapters.py` были
+полностью реализованы и покрыты 13 тестами, но осиротели после решения прошлой сессии "Ideogram 4
+больше не роутится на выдуманную JSON-схему, реальный API берёт plain text" — `data.py`'s
+`MODEL_PROMPT_RULES["Ideogram 4"]["json_schema"]` стоял `None`, так что схема была недостижима
+даже при явном `response_format="json"`.
+
+**Исправлено точечно, без регресса text-режима:** `json_schema` вернули на `"ideogram4"` —
+но диспатч в `convert_to_dit_format()` (`common/model_prompt_adapters.py`) теперь проверяет
+`response_format == "json" and model_uses_ideogram_json_schema(model_type)` явно, поэтому JSON-
+схема активируется **только** когда пользователь сам выбрал `response_format="json"` для
+`model_type="Ideogram 4"` — в text-режиме (дефолт, соответствует реальному Ideogram API) поведение
+не изменилось ни на бит. `build_response_format_instruction()` для этой комбинации теперь снова
+возвращает инструкцию "IDEOGRAM 4 CANONICAL JSON" (было тоже недостижимо по той же причине).
+
+- **Тесты:** обновлены 2 старых теста, закреплявших прошлое решение
+  (`test_json_schema_helpers` в `test_model_prompt_rules.py`,
+  `test_ideogram4_json_mode_generic` → `test_ideogram4_json_mode_uses_caption_schema` в
+  `test_all_models_prompting.py`), переписан
+  `test_response_format_instruction_ideogram4_no_longer_uses_json_schema` →
+  `test_response_format_instruction_ideogram4_json_mode_uses_caption_schema`. Добавлены 2 новых:
+  `test_dit_convert_ideogram4_json_mode_uses_caption_schema` (модульный уровень) и
+  `test_ideogram4_json_mode_produces_canonical_caption_schema` (сквозной, через
+  `FiLOpticScanner.execute()` — реальный путь пользователя, включая `clean_output()` после
+  конвертации — подтверждено, что JSON не портится).
+
+**Мёртвый параметр `has_image` в `_run_one_pass()`** (`nodes/node_scanner.py`) — объявлен в
+сигнатуре, ни разу не читался в теле функции; оба вызова передавали `has_image=True` безусловно,
+даже в чисто текстовом режиме без изображения. Убран из сигнатуры и обоих call-сайтов — поведение
+не менялось (параметр был чистым мусором).
+
+**Дочитан весь оставшийся стек до конца** (по прямому запросу "проверить абсолютно всё"):
+`style_engine/resolver.py`, `style_engine/text.py`, `style_engine/rules.py` (3474 строки —
+автоматически сверены все категории между `CATEGORY_PATTERNS`/`FORBIDDEN`/`REQUIRED_CUES`/
+`PRIORITY_RULES`/`DRIFT_TARGETS`/`OUTPUT_OBLIGATIONS`/`STYLE_TRANSFORM_RULES` — расхождения есть
+(часть категорий вроде `cyberpunk`/`noir`/`retro` не имеют required_cues/priority/drift/obligation),
+но это осознанная многоуровневость (везде `.get(cat, [])`/`.get(cat, "")` fallback), не баг), и
+весь `model_prompt_adapters.py` целиком. Новых находок сверх Ideogram4/`has_image` не выявлено.
+
+- **Тесты:** полный набор **391/391** pytest — все зелёные (ранее нестабильный
+  `test_noise_control_bypasses_common_ksampler` тоже теперь проходит стабильно и в изоляции;
+  `common/sampling.py` в этой сессии не трогали, похоже на артефакт закэшированного состояния
+  раннего запуска, а не реальный баг).
+
+### Пересмотр всех вырезанных за сессию находок (по замечанию пользователя: "прежний функционал не значит не нужный")
+
+Пользователь верно указал, что Ideogram4-эпизод (чуть не выпилил реально нужную фичу) — повод
+перепроверить остальные удаления этой сессии тем же методом (git-история + реальные потребители),
+а не полагаться на "не вызывается = не нужно".
+
+**Подтверждено безопасным (реально расследовано, не просто грепом):**
+- `common/node_registry.py` — `docs/architecture.md` утверждал, что `__init__.py` валидирует ноды
+  через этот файл. Проверка по всей git-истории (с первого коммита) показала: `__init__.py`
+  **никогда** этого не делал. `contracts/registry.py` уже дублирует title/category для всех 11 нод
+  — сам `node_registry.py` на момент удаления знал только про 9 (без FiLTileAssembly/
+  FiLNoiseControl), т.е. отставал от реальности ещё до удаления. `docs/architecture.md` поправлен
+  (убрана ссылка на несуществующий файл и на устаревший "?" help badge момент).
+- `__shortcutHooks` — реальные функции `openCheatsheet`/`focusSearch` работают напрямую, привязаны
+  к клавишам `?`/`/`; `__shortcutHooks` был лишним ре-экспортом без единого потребителя (ни в коде,
+  ни в тестах, ни разу за всю историю).
+- Мёртвая ветка `hasattr` в `provider_accounts.get_api_key()` — оживление поменяло бы приоритет
+  (config.yaml перебивал бы ключ, сохранённый пользователем через UI/`auth.json`) — была бы
+  регрессия, не фича.
+
+**Возвращены/подключены (пользователь оказался прав, что резать было рано):**
+
+1. **`get_agent_output_mode()`/`AGENT_OUTPUT_MODE_TAGS`** (`common/data.py`) — возвращены и
+   **подключены по-настоящему** (в прошлый раз просто удалил, не докопавшись до сути). Расследование
+   вскрыло реальное противоречие: агент "Professional Tagger" в своём PURPOSE прямо говорит "flat
+   comma-separated tokens... suitable for SDXL-style prompting", но SDXL-ветка `convert_to_dit_format`
+   (`common/model_prompt_adapters.py`) безусловно реструктурирует ЛЮБОЙ текст под SDXL/QWEN в
+   предложения — тег-вывод Tagger'а молча ломался в prose именно на той паре агент+модель, для
+   которой он сам себя рекламирует. **Решение пользователя: теги остаются как есть.**
+   `convert_to_dit_format()`/`post_convert_prompt()` получили параметр `agent_output_mode` —
+   при `"tags"` реструктуризация (для ЛЮБОГО `model_type`, не только SDXL/QWEN) полностью
+   пропускается, применяется только нормализация (whitespace/усечение по словам), новый `mode`
+   в метаданных — `"tags_as_is"`. `node_scanner.py::execute()` прокидывает
+   `get_agent_output_mode(agent_key)` в вызов.
+   - **Тесты:** `test_professional_tagger_is_the_only_tags_output_agent` (`test_model_prompt_rules.py`),
+     3 теста в `test_model_adapters.py` (tags-режим переживает SDXL/QWEN нетронутым, prose-режим
+     реструктурирует как раньше), сквозной `test_professional_tagger_keeps_comma_tags_on_sdxl`
+     (`test_scanner_metadata.py`, через реальный `FiLOpticScanner.execute()`).
+
+2. **JSON-схема Ideogram 4** (`adapt_ideogram4_caption` + 8 хелперов) — возвращена в диспатч
+   (`MODEL_PROMPT_RULES["Ideogram 4"]["json_schema"]` снова `"ideogram4"`), активна только при явном
+   `response_format="json"` — text-режим (соответствует реальному API) не тронут. См. подробности
+   выше (это решение принято раньше в этой же сессии, до общего пересмотра).
+
+3. **`build_hybrid_artifact`/`build_two_stage_prompt_artifact`** (`common/logic.py`) — НЕ
+   восстановлены дословно (устарели по структуре — не видят enforcement/preset-support блоки,
+   добавленные позже в этой же сессии), но их суть реализована заново, правильно: `_run_one_pass()`
+   теперь возвращает 4-й элемент — `sent_prompt = {"system": ..., "user": ...}`, точный текст
+   последнего реального вызова LLM, который дал возвращённый результат (корректно учитывает все
+   ветки: Hybrid, Two-Stage успех = stage2, timeout-фоллбэк = system_prompt/user_message,
+   stage2-слишком-короткий = откат на stage1). Новое поле `meta_dict["sent_prompt"]` — точный
+   промпт для отладки/аудита, без раздувания на каждый запуск сверх одного словаря из двух строк.
+   - **Тесты:** `test_sent_prompt_reflects_hybrid_mode_system_and_user`,
+     `test_sent_prompt_reflects_stage2_in_two_stage_mode`,
+     `test_sent_prompt_falls_back_to_stage1_when_stage2_is_too_short` (`test_scanner_metadata.py`).
+
+**Мёртвый параметр `has_image`** в `_run_one_pass()` — подтверждён нечитаемым внутри функции (это
+не суждение, а факт: grep по телу функции — 0 совпадений), убран из сигнатуры и обоих call-сайтов.
+
+- **Тесты:** полный набор **399/399** pytest, все зелёные. `npm run build`/vitest не требовались —
+  правки этого раунда только backend (Python).
 
 ## 9. FiLNoiseControl — promoted (новая нода, не из исходного списка)
 

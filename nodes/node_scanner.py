@@ -17,6 +17,7 @@ from ..common.data import (
     PROMPT_MODE_OPTIONS,
     default_detail_level,
     first_or_default,
+    get_agent_output_mode,
     get_default_agent_key,
     get_visible_agent_keys,
     get_visible_style_keys,
@@ -27,10 +28,11 @@ from ..common.io_types import FilDict, FilProviderConfig
 from ..common.localization import t
 from ..common.logic import PromptGenerator, StyleManager
 from ..common.model_prompt_adapters import append_response_format_instruction, post_convert_prompt
+from ..common.processing import ImageProcessor, is_valid_model_name
 from ..common.models import ModelClient
 from ..common.processing import ImageProcessor, normalize_model_name
 from ..common.style_enforcer import StyleEnforcer
-from ..common.provider_resilience import is_timeout_error
+from ..common.provider_resilience import is_timeout_error, sanitize_sensitive_data
 from ..common.provider_runtime import safe_provider_error
 
 _processor = ImageProcessor()
@@ -57,8 +59,8 @@ class FiLOpticScanner(io.ComfyNode):
                 io.Combo.Input("agent", options=_AGENT_KEYS, default=get_default_agent_key(),
                                tooltip=t("tt_agent", "Analysis focus mode.")),
                 io.Image.Input("image", optional=True, tooltip=t("tt_image", "Image(s) to analyze. If connected, sent to vision LLM. Otherwise the prompt text below is sent as standalone text input.")),
-                io.String.Input("prompt", default="", multiline=True, optional=True, force_input=True, tooltip=t("tt_prompt", "User instruction or standalone text prompt. If image is connected, this becomes the instruction; without image, it is the full text input.")),
-                io.String.Input("negative_prompt", default="", multiline=True, optional=True, force_input=True, tooltip=t("tt_neg_prompt", "What to avoid in the generated prompt."), advanced=True),
+                io.String.Input("prompt", default="", multiline=True, optional=True, tooltip=t("tt_prompt", "User instruction or standalone text prompt. If image is connected, this becomes the instruction; without image, it is the full text input.")),
+                io.String.Input("negative_prompt", default="", multiline=True, optional=True, tooltip=t("tt_neg_prompt", "What to avoid in the generated prompt."), advanced=True),
                 io.Combo.Input("detail_level", options=list(DETAIL_LEVELS), default=default_detail_level(DETAIL_LEVELS), advanced=True,
                                tooltip=t("tt_detail", "How much detail to include in the generated description.")),
                 io.Combo.Input("language", options=LANGUAGES, default=first_or_default(LANGUAGES, "ru"), advanced=True,
@@ -75,7 +77,7 @@ class FiLOpticScanner(io.ComfyNode):
                                tooltip=t("tt_art_style", "Art style overlay applied on top of the base description.")),
                 io.Combo.Input("nsfw_art_style", options=["None"] + get_visible_style_keys("nsfw_art_style"), default="None", advanced=True,
                                tooltip=t("tt_nsfw_art_style", "Adult-only art style overlay (alternative to Art style).")),
-                io.String.Input("custom_style", default="", multiline=True, optional=True, force_input=True, advanced=True,
+                io.String.Input("custom_style", default="", multiline=True, optional=True, advanced=True,
                                 tooltip=t("tt_custom_style", "Free-form style text appended after the preset style overlay, if any.")),
                 io.Int.Input("seed", default=-1, min=-1, max=999999999999, advanced=True,
                              tooltip=t("tt_provider_seed", "Provider-side generation seed, if supported. -1 lets the provider pick one.")),
@@ -102,16 +104,16 @@ class FiLOpticScanner(io.ComfyNode):
         model = config.get("model", "")
         if not provider or not isinstance(provider, str):
             return "Invalid provider in config."
-        if not model or not isinstance(model, str):
-            return "Invalid model in config."
+        if not is_valid_model_name(model):
+            return f"Invalid or placeholder model ('{model}') in config. Please select a valid model in Provider Loader."
         return True
 
     @classmethod
     def fingerprint_inputs(cls, config=None, agent="None", image=None, prompt="", negative_prompt="",
                             detail_level="normal", language="ru", model_type="Auto/None",
                             prompt_mode="Auto", photo_style="None", nsfw_photo_style="None",
-                            art_style="None", nsfw_art_style="None", custom_style="", temperature=0.7, seed=-1,
-                            max_tokens=1024, response_format="text",
+                            art_style="None", nsfw_art_style="None", custom_style="", seed=-1,
+                            response_format="text",
                             **kwargs) -> Any:
         image_key: Any = None
         if image is not None:
@@ -126,19 +128,22 @@ class FiLOpticScanner(io.ComfyNode):
             except Exception:
                 image_key = id(image)
         return hash((
+            # `temperature`/`max_tokens`/`rate_limit_ms` are sourced from `config`
+            # at execute() time (see below) rather than being real widget inputs —
+            # `str(config)` already covers their contribution to the fingerprint.
             str(config), agent, prompt, negative_prompt, detail_level, language,
             model_type, prompt_mode, photo_style, nsfw_photo_style, art_style, nsfw_art_style, custom_style,
-            temperature, seed, max_tokens, response_format,
+            seed, response_format,
             image_key,
         ))
 
     @classmethod
     def _run_one_pass(cls, provider, model, system_prompt, style_block, custom_style,
                       nsfw_active, style_kwargs, style_key, user_message, images_b64,
-                      temperature, seed, max_tokens, response_format, has_image,
+                      temperature, seed, max_tokens, response_format,
                       model_type, prompt, effective_mode, hybrid_timeout,
                       two_stage_timeout, agent_key="None", detail_level="normal",
-                      language="ru"):
+                      language="ru", rate_limit_ms=100, contract=None, enforcement=""):
         fb = None
         if effective_mode == "Two-Stage" and style_block.strip():
             bundle = _prompt_gen.build_system_prompt_two_stage_bundle(
@@ -165,14 +170,37 @@ class FiLOpticScanner(io.ComfyNode):
                     max_tokens=max_tokens,
                     response_format=response_format,
                     timeout=two_stage_timeout,
+                    rate_limit_ms=rate_limit_ms,
                 )
             except Exception as stage1_exc:
                 if is_timeout_error(stage1_exc):
                     fb = "two_stage_stage1_timeout"
                     return cls._hybrid_call(provider, model, system_prompt, user_message, images_b64,
                                             temperature, seed, max_tokens, response_format,
-                                            hybrid_timeout), fb
+                                            hybrid_timeout, rate_limit_ms), fb, contract, {
+                        "system": system_prompt, "user": user_message,
+                    }
                 raise
+
+            # Now that stage 1's raw (unstyled) description exists, resolve the
+            # REAL preset-support contract against it — the earlier `contract`
+            # (computed in execute() before any generation ran) always analyzed
+            # an empty support_text and was architecturally inert. This is the
+            # only point in the pipeline where a "does the source actually
+            # support this style?" check is possible.
+            resolved_contract = contract
+            if style_block.strip():
+                resolved_contract = _style_enforcer.resolve_style_contract(
+                    style_block, style_key=style_key, support_text=description,
+                )
+                if enforcement:
+                    stage2_sys = f"{stage2_sys}\n\n{enforcement}"
+                support_block = _style_enforcer.build_preset_support_block(
+                    style_block, style_key=style_key, support_text=description,
+                    support_mode=resolved_contract.get("support_mode") or "",
+                )
+                if support_block:
+                    stage2_sys = f"{stage2_sys}\n\n{support_block}"
 
             second_seed = seed + 1 if seed > 0 else -1
             stage2_user = _prompt_gen.build_stage2_user_prompt(
@@ -190,25 +218,30 @@ class FiLOpticScanner(io.ComfyNode):
                     max_tokens=max_tokens,
                     response_format=response_format,
                     timeout=two_stage_timeout,
+                    rate_limit_ms=rate_limit_ms,
                 )
             except Exception as stage2_exc:
                 if is_timeout_error(stage2_exc):
                     fb = "two_stage_stage2_timeout"
                     return cls._hybrid_call(provider, model, system_prompt, user_message, images_b64,
                                             temperature, seed, max_tokens, response_format,
-                                            hybrid_timeout), fb
+                                            hybrid_timeout, rate_limit_ms), fb, resolved_contract, {
+                        "system": system_prompt, "user": user_message,
+                    }
                 raise
             if not stage2_result or len(stage2_result.strip()) < 10:
                 fb = "stage2_empty_using_stage1"
-                return description, fb
-            return stage2_result, fb
+                return description, fb, resolved_contract, {"system": stage1_sys, "user": user_message}
+            return stage2_result, fb, resolved_contract, {"system": stage2_sys, "user": stage2_user}
         return cls._hybrid_call(provider, model, system_prompt, user_message, images_b64,
                                 temperature, seed, max_tokens, response_format,
-                                hybrid_timeout), None
+                                hybrid_timeout, rate_limit_ms), None, contract, {
+            "system": system_prompt, "user": user_message,
+        }
 
     @classmethod
     def _hybrid_call(cls, provider, model, system_prompt, user_message, images_b64,
-                     temperature, seed, max_tokens, response_format, timeout):
+                     temperature, seed, max_tokens, response_format, timeout, rate_limit_ms=100):
         return _model_client.generate(
             provider=provider, model=model,
             system_prompt=system_prompt,
@@ -218,21 +251,31 @@ class FiLOpticScanner(io.ComfyNode):
             max_tokens=max_tokens,
             response_format=response_format,
             timeout=timeout,
+            rate_limit_ms=rate_limit_ms,
         )
 
     @classmethod
     def execute(cls, config, agent="None", image=None, prompt="", negative_prompt="",
                 detail_level="normal", language="ru", model_type="Auto/None",
                 prompt_mode="Auto", photo_style="None", nsfw_photo_style="None",
-                art_style="None", nsfw_art_style="None", custom_style="", temperature=0.7, seed=-1,
-                max_tokens=1024, response_format="text",
+                art_style="None", nsfw_art_style="None", custom_style="", seed=-1,
+                response_format="text",
                 **kwargs) -> io.NodeOutput:
         t0 = datetime.now(timezone.utc)
         provider = config.get("provider", "ollama")
         model = normalize_model_name(config.get("model", ""))
+        # Provider Loader owns temperature/max_tokens/rate_limit_ms — Scanner has
+        # no widgets of its own for them, so they must come from `config`, not
+        # from a hardcoded default (previously always 0.7/1024, config ignored).
+        temperature = config.get("temperature", 0.7)
+        configured_max_tokens = config.get("max_tokens", 0)
+        max_tokens = configured_max_tokens if configured_max_tokens else 1024
+        rate_limit_ms = config.get("rate_limit_ms", 100)
 
         if not model:
             return io.NodeOutput("Ошибка: модель не выбрана в Provider Loader.", "{}", {})
+        if not is_valid_model_name(model):
+            return io.NodeOutput("Ошибка: в Provider Loader не выбрана действующая модель.", "{}", {})
 
         has_image = image is not None
         has_text = bool(prompt.strip())
@@ -272,6 +315,7 @@ class FiLOpticScanner(io.ComfyNode):
         )
 
         contract = None
+        enforcement = ""
         if style_block.strip():
             contract = _style_enforcer.resolve_style_contract(style_block, style_key=style_key)
             enforcement = _style_enforcer.build_enforcement_block(style_block, style_key=style_key)
@@ -326,7 +370,7 @@ class FiLOpticScanner(io.ComfyNode):
                     if unique_id is not None:
                         io.execution.set_progress(unique_id, i, total)
                     t_image_start = datetime.now(timezone.utc)
-                    single_result, single_fb = cls._run_one_pass(
+                    single_result, single_fb, contract, sent_prompt = cls._run_one_pass(
                         provider=provider, model=model,
                         system_prompt=system_prompt,
                         style_block=style_block, custom_style=custom_style,
@@ -334,12 +378,13 @@ class FiLOpticScanner(io.ComfyNode):
                         style_key=style_key, user_message=user_message,
                         images_b64=[b64], temperature=temperature, seed=seed,
                         max_tokens=max_tokens, response_format=response_format,
-                        has_image=True, model_type=model_type, prompt=prompt,
+                        model_type=model_type, prompt=prompt,
                         effective_mode=effective_mode,
                         hybrid_timeout=hybrid_timeout,
                         two_stage_timeout=two_stage_timeout,
                         agent_key=agent_key, detail_level=detail_level,
-                        language=language,
+                        language=language, rate_limit_ms=rate_limit_ms,
+                        contract=contract, enforcement=enforcement,
                     )
                     per_image_results.append(single_result)
                     image_runs.append({
@@ -349,7 +394,7 @@ class FiLOpticScanner(io.ComfyNode):
                     })
                 result = "\n\n---\n\n".join(per_image_results)
             else:
-                result, fallback_reason = cls._run_one_pass(
+                result, fallback_reason, contract, sent_prompt = cls._run_one_pass(
                     provider=provider, model=model,
                     system_prompt=system_prompt,
                     style_block=style_block, custom_style=custom_style,
@@ -357,17 +402,19 @@ class FiLOpticScanner(io.ComfyNode):
                     style_key=style_key, user_message=user_message,
                     images_b64=images_b64, temperature=temperature, seed=seed,
                     max_tokens=max_tokens, response_format=response_format,
-                    has_image=True, model_type=model_type, prompt=prompt,
+                    model_type=model_type, prompt=prompt,
                     effective_mode=effective_mode,
                     hybrid_timeout=hybrid_timeout,
                     two_stage_timeout=two_stage_timeout,
                     agent_key=agent_key, detail_level=detail_level,
-                    language=language,
+                    language=language, rate_limit_ms=rate_limit_ms,
+                    contract=contract, enforcement=enforcement,
                 )
         except FiLError as exc:
-            err_meta = {"status": "error", "message": exc.message, "error_code": exc.code,
+            clean_msg = sanitize_sensitive_data(exc.message)
+            err_meta = {"status": "error", "message": clean_msg, "error_code": exc.code,
                         "provider": provider, "model": model, "details": exc.details}
-            return io.NodeOutput(f"Ошибка: {exc.message}", json.dumps(err_meta, ensure_ascii=False), err_meta)
+            return io.NodeOutput(f"Ошибка: {clean_msg}", json.dumps(err_meta, ensure_ascii=False), err_meta)
         except Exception as exc:
             message = safe_provider_error(exc)
             error_meta = {"status": "error", "message": message, "error_code": "UNKNOWN_ERROR",
@@ -380,8 +427,11 @@ class FiLOpticScanner(io.ComfyNode):
                 model_type,
                 response_format,
                 style_text=style_block + custom_style,
+                style_key=style_key,
                 detail_level=detail_level,
                 source_text=user_message,
+                style_enforcer=_style_enforcer,
+                agent_output_mode=get_agent_output_mode(agent_key),
             )
         else:
             convert_meta = {}
@@ -435,8 +485,15 @@ class FiLOpticScanner(io.ComfyNode):
             "style_required_cues": contract.get("required_cues") if contract else [],
             "forbidden_drift": contract.get("forbidden_drift") if contract else [],
             "camera_override": contract.get("camera_override_profile") if contract else None,
+            "preset_support_mode": contract.get("support_mode") if contract else None,
+            "preset_support_summary": contract.get("support_summary") if contract else "",
             "response_outcome": response_outcome,
             "decision_trace": decision_trace,
+            # Exact system/user prompt of the last real LLM call that produced
+            # `result` — debug/audit visibility into what was actually sent.
+            # Multi-image batches only keep the last image's pair (same
+            # convention as `fallback_reason`/`contract` above).
+            "sent_prompt": sent_prompt,
         }
         if fallback_reason:
             meta_dict["fallback_reason"] = fallback_reason

@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 from FiL_Design_ImageMind.common.data import (
+    AGENT_OUTPUT_MODE_PROSE,
+    AGENT_OUTPUT_MODE_TAGS,
     DETAIL_LEVELS,
     MODEL_PROMPT_RULES,
     MODEL_TYPE_OPTIONS,
+    get_agent_output_mode,
     get_detail_info,
     get_effective_response_format,
     get_model_prompt_max_words,
@@ -21,6 +24,13 @@ from FiL_Design_ImageMind.common.data import (
 def test_model_type_options_match_rules_keys():
     """MODEL_PROMPT_RULES keys must equal MODEL_TYPE_OPTIONS, in order."""
     assert list(MODEL_PROMPT_RULES.keys()) == MODEL_TYPE_OPTIONS
+
+
+def test_professional_tagger_is_the_only_tags_output_agent():
+    assert get_agent_output_mode("Professional Tagger") == AGENT_OUTPUT_MODE_TAGS
+    assert get_agent_output_mode("Universal") == AGENT_OUTPUT_MODE_PROSE
+    assert get_agent_output_mode("None") == AGENT_OUTPUT_MODE_PROSE
+    assert get_agent_output_mode("Cinematic Master") == AGENT_OUTPUT_MODE_PROSE
 
 
 def test_every_rule_has_full_schema():
@@ -97,7 +107,10 @@ def test_positive_constraints_flags():
 
 
 def test_json_schema_helpers():
-    assert model_uses_ideogram_json_schema("Ideogram 4") is False
+    # Ideogram 4's own API takes plain text, but when the user explicitly asks
+    # for response_format="json" we route through the canonical caption schema
+    # (adapt_ideogram4_caption) rather than generic JSON passthrough.
+    assert model_uses_ideogram_json_schema("Ideogram 4") is True
     assert model_uses_ideogram_json_schema("FLUX") is False
     assert model_uses_flux_json_schema("FLUX", "json") is True
     assert model_uses_flux_json_schema("FLUX", "text") is False

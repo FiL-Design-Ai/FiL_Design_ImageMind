@@ -41,8 +41,9 @@ def clean_output(text: str, config: Optional[OutputCleanConfig] = None) -> str:
     for pattern, replacement in CLEANUP_PATTERNS:
         cleaned = re.sub(pattern, replacement, cleaned, flags=re.IGNORECASE | re.MULTILINE)
 
-    cleaned = re.sub(r"<(think|analysis_scratchpad)[^>]*>.*?</\1>", "", cleaned, flags=re.DOTALL | re.IGNORECASE)
-    cleaned = re.sub(r"</?(think|analysis_scratchpad)[^>]*>", "", cleaned, flags=re.IGNORECASE)
+    if cfg.strip_think:
+        cleaned = re.sub(r"<(think|analysis_scratchpad)[^>]*>.*?</\1>", "", cleaned, flags=re.DOTALL | re.IGNORECASE)
+        cleaned = re.sub(r"</?(think|analysis_scratchpad)[^>]*>", "", cleaned, flags=re.IGNORECASE)
 
     if cfg.strip_code_fences:
         cleaned = cleaned.replace("```", "")

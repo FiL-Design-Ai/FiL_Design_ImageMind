@@ -85,7 +85,7 @@ class ImageProcessor:
 
     def process_single(self, image_tensor: Any) -> Tuple[str, int, int]:
         batch, w, h = self.process_batch(image_tensor)
-        return batch[0], w, h if batch else ("", 0, 0)
+        return (batch[0], w, h) if batch else ("", 0, 0)
 
 
 def normalize_model_name(model: str) -> str:
@@ -98,3 +98,22 @@ def normalize_model_name(model: str) -> str:
             clean = clean[len(badge) :].strip()
             break
     return clean
+
+
+INVALID_MODEL_PLACEHOLDERS = {
+    "", "(loading...)", "(no models)", "(error loading models)", "(no vision models)", "(no models available)"
+}
+
+
+def is_valid_model_name(model: Any) -> bool:
+    if not model or not isinstance(model, str):
+        return False
+    clean = normalize_model_name(model)
+    if not clean:
+        return False
+    if clean in INVALID_MODEL_PLACEHOLDERS:
+        return False
+    if clean.startswith("(") and clean.endswith(")"):
+        return False
+    return True
+

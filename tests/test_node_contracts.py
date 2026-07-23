@@ -119,6 +119,17 @@ def test_scanner_rejects_non_vision_model_before_processing():
     assert "не поддерживает анализ изображений" in result[0]
 
 
+def test_scanner_rejects_placeholder_model():
+    from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner
+
+    assert FiLOpticScanner.validate_inputs(config={"provider": "ollama", "model": "(no models)"}) != True
+    result = FiLOpticScanner.execute(
+        config={"provider": "ollama", "model": "(no models)"}, image=object()
+    )
+    assert "не выбрана действующая модель" in result[0]
+
+
+
 def test_scanner_no_image_no_text_returns_error():
     from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner
 

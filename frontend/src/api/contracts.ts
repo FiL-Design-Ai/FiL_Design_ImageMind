@@ -2142,6 +2142,24 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
         "section": null,
         "visible_when": null,
         "visible_when_value": null
+      },
+      {
+        "name": "bongmath",
+        "kind": "boolean",
+        "label": "Bongmath",
+        "default": true,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": "advanced",
+        "visible_when": null,
+        "visible_when_value": null
       }
     ],
     "optional": [

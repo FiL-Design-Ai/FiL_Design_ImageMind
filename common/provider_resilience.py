@@ -50,8 +50,21 @@ class RetryPolicy:
         }
 
 
+import re
+
+
+def sanitize_sensitive_data(text: str) -> str:
+    """Redact sensitive query parameters and auth tokens from error strings/urls."""
+    if not text or not isinstance(text, str):
+        return str(text) if text is not None else ""
+    sanitized = re.sub(r'([?&]key=)[^&\s]+', r'\1***REDACTED***', text, flags=re.IGNORECASE)
+    sanitized = re.sub(r'(x-goog-api-key["\']?\s*:\s*["\']?)[^"\'\s,]+', r'\1***REDACTED***', sanitized, flags=re.IGNORECASE)
+    sanitized = re.sub(r'(Bearer\s+)[A-Za-z0-9_\-\.]+', r'\1***REDACTED***', sanitized, flags=re.IGNORECASE)
+    return sanitized
+
+
 _RETRY_TABLE: Dict[str, RetryPolicy] = {
-    "google": RetryPolicy(max_retries=2, retry_delay_base=0.75),
+    "google": RetryPolicy(max_retries=3, retry_delay_base=5.0),
     "groq": RetryPolicy(max_retries=2, retry_delay_base=1.25),
     "openrouter": RetryPolicy(max_retries=1, retry_delay_base=0.75),
     "cloudflare": RetryPolicy(max_retries=1, retry_delay_base=0.75),
@@ -84,7 +97,7 @@ def classify_cloudflare_error(error_details: Dict[str, Any]) -> Tuple[str, str]:
         return "rate_limited", "У Cloudflare закончилась daily free allocation для Workers AI."
     if status in {400, 404}:
         return "bad_payload_or_model", "Cloudflare отклонил payload или model id."
-    return "error", str(body) or "Cloudflare request failed"
+    return "error", sanitize_sensitive_data(str(body) or "Cloudflare request failed")
 
 
 # ---------------------------------------------------------------------------
@@ -94,15 +107,13 @@ def classify_cloudflare_error(error_details: Dict[str, Any]) -> Tuple[str, str]:
 
 def normalize_cloud_error(exc: BaseException, provider: str, model: str) -> Dict[str, Any]:
     """Provider-agnostic error classifier producing a normalized dict."""
-    message = str(exc)
+    message = sanitize_sensitive_data(str(exc))
     lowered = message.lower()
     status: Optional[int] = None
     if isinstance(exc, requests.exceptions.HTTPError) and exc.response is not None:
         status = exc.response.status_code
     if status is None:
         # Fall back to sniffing a leading HTTP status code out of the message.
-        import re
-
         match = re.search(r"\b(4\d{2}|5\d{2})\b", message)
         if match:
             status = int(match.group(1))
@@ -133,7 +144,7 @@ def normalize_cloud_error(exc: BaseException, provider: str, model: str) -> Dict
     recommendations = {
         "auth_failed": "Проверьте API-ключ провайдера.",
         "payment_required": "Пополните баланс аккаунта провайдера.",
-        "rate_limited": "Подождите или уменьшите частоту запросов.",
+        "rate_limited": "Лимит запросов исчерпан (429 Too Many Requests). Подождите 1 минуту, увеличьте Rate limit на Provider Loader или смените модель.",
         "access_denied": "Проверьте доступ к модели на аккаунте.",
         "bad_payload_or_model": "Проверьте имя модели и формат запроса.",
         "network_error": "Проверьте подключение к сети или уменьшите размер запроса.",

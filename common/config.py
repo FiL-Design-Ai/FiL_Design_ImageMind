@@ -145,12 +145,13 @@ LOCAL_PROVIDERS = ("ollama", "lmstudio")
 # is not vision-capable or is rate-limited). The catalog is fetched live and
 # filtered; these constants guide preference and exclusion.
 OPENROUTER_PREFERRED_VISION_MODELS = [
-    "google/gemma-4-26b-a4b-it:free",
     "google/gemma-4-31b-it:free",
-    "nvidia/nemotron-nano-12b-v2-vl:free",
+    "google/gemma-4-26b-a4b-it:free",
+    "nvidia/nemotron-3-nano-30b-a3b:free",
+    "openai/gpt-oss-20b:free",
     "openrouter/free",
 ]
-OPENROUTER_EXCLUDED_MODEL_PATTERNS = ["lyria-", "llama-guard"]
+OPENROUTER_EXCLUDED_MODEL_PATTERNS = ["lyria-", "llama-guard", "whisper", "tts-", "safeguard"]
 OPENROUTER_EXCLUDED_MODEL_IDS = {
     "google/gemma-3-27b-it:free",
     "google/gemma-3-12b-it:free",
@@ -158,16 +159,51 @@ OPENROUTER_EXCLUDED_MODEL_IDS = {
 }
 ACCOUNT_PROVIDER_KEYS = ("openai", "google", "groq", "openrouter", "cloudflare")
 
-VISION_MODEL_HINTS = ["vision", "vl", "llava", "qwen-vl", "qwenvl", "qwen2vl", "qwen3vl", "moondream", "gemini", "gemma-3", "gemma-4", "pixtral", "llama-3.2-11b", "llama-4-scout", "llama-4-maverick", "claude", "grok"]
+VISION_MODEL_HINTS = ["vision", "vl", "llava", "qwen-vl", "qwenvl", "qwen2vl", "qwen3vl", "moondream", "gemini", "gemma-3", "gemma-4", "pixtral", "llama-3.2-11b", "llama-4-scout", "llama-4-maverick", "claude", "grok", "kimi", "glm-4", "glm-5", "gpt-oss", "nemotron"]
 
 RECOMMENDED_MODELS = {
-    "ollama": ["qwen3-vl:8b", "llava:13b", "moondream:latest", "deepseek-r1:8b", "llama-3.3:latest"],
-    "lmstudio": ["qwen2-vl-7b-instruct", "llama-3.2-3b-instruct"],
-    "openai": ["gpt-4o", "gpt-4o-mini", "gpt-4.1-mini"],
-    "google": ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.0-flash"],
-    "groq": ["meta-llama/llama-4-scout-17b-16e-instruct", "llama-3.3-70b-versatile", "llama-3.1-8b-instant", "deepseek-r1-distill-llama-70b"],
-    "openrouter": ["google/gemma-4-26b-a4b-it:free", "openrouter/free"],
-    "cloudflare": ["@cf/meta/llama-3.2-11b-vision-instruct", "@cf/meta/llama-4-scout-17b-16e-instruct"],
+    # Local providers — pulled from Ollama Hub / LM Studio catalog July 2026
+    "ollama": ["qwen3-vl:8b", "qwen2.5-vl:7b", "llava:13b", "moondream:latest", "deepseek-r1:8b", "llama-3.3:latest"],
+    "lmstudio": ["qwen2.5-vl-7b-instruct", "qwen2-vl-7b-instruct", "llama-3.2-3b-instruct"],
+    # OpenAI — GPT-5.6 series current flagship (July 2026); gpt-5.6 alias routes to -sol
+    "openai": ["gpt-5.6", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-4o", "gpt-4o-mini", "gpt-4.1-mini"],
+    # Google — Gemini 3.x GA + 2.5 series still available; 3.6-flash newest workhorse (July 21 2026)
+    "google": [
+        "gemini-3.6-flash",
+        "gemini-3.5-flash",
+        "gemini-3.5-flash-lite",
+        "gemini-3.1-pro",
+        "gemini-2.5-flash",
+        "gemini-2.5-pro",
+        "gemini-2.0-flash",
+        "gemini-1.5-flash",
+    ],
+    # Groq — LPU inference, July 2026. llama-3.1-8b-instant and llama-3.3-70b-versatile
+    # are DEPRECATED — replaced by gpt-oss-20b and gpt-oss-120b/qwen3.6-27b respectively.
+    "groq": [
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b",
+        "qwen/qwen3.6-27b",
+        "meta-llama/llama-4-scout-17b-16e-instruct",
+        "deepseek-r1-distill-llama-70b",
+    ],
+    # OpenRouter — free router slug first; gemma-4-31b supports vision; nemotron-3 added July 2026
+    "openrouter": [
+        "openrouter/free",
+        "google/gemma-4-31b-it:free",
+        "google/gemma-4-26b-a4b-it:free",
+        "meta-llama/llama-3.3-70b-instruct:free",
+        "nvidia/nemotron-3-nano-30b-a3b:free",
+        "openai/gpt-oss-20b:free",
+    ],
+    # Cloudflare Workers AI — glm-5.2 and kimi-k2.6 added mid-2026; llama-4-scout remains primary
+    "cloudflare": [
+        "@cf/meta/llama-4-scout-17b-16e-instruct",
+        "@cf/meta/llama-3.2-11b-vision-instruct",
+        "@cf/meta/llama-3.3-70b-instruct",
+        "@cf/zai-org/glm-5.2",
+        "@cf/google/gemma-4-26b-a4b-it",
+    ],
 }
 
 

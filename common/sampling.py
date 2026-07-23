@@ -57,38 +57,104 @@ def _blend_noise(base_noise, variation_noise, weight: float):
     return base_noise * math.cos(theta) + variation_noise * math.sin(theta)
 
 
+# Samplers that accept an ``eta`` kwarg (noise multiplier).
+# Ancestral / SDE samplers apply stochastic noise at each step — eta scales it.
+# Deterministic samplers (euler, heun, dpm_2, lms …) do NOT use eta at all;
+# passing it would raise TypeError inside k_diffusion.
+_ETA_SAMPLERS: frozenset[str] = frozenset({
+    "euler_ancestral",
+    "euler_ancestral_cfg_pp",
+    "dpm_2_ancestral",
+    "dpmpp_2s_ancestral",
+    "dpmpp_2s_ancestral_cfg_pp",
+    "dpmpp_sde",
+    "dpmpp_sde_gpu",
+    "dpmpp_2m_sde",
+    "dpmpp_2m_sde_gpu",
+    "dpmpp_2m_sde_heun",
+    "dpmpp_2m_sde_heun_gpu",
+    "dpmpp_3m_sde",
+    "dpmpp_3m_sde_gpu",
+    "er_sde",
+    "res_multistep_ancestral",
+    "res_multistep_ancestral_cfg_pp",
+    "sa_solver",
+    "sa_solver_pece",
+    "seeds_2",
+    "seeds_3",
+})
+
+
 def _sampler_accepts_eta(sampler_name: str) -> bool:
-    """Check if the k-diffusion sampler function accepts an ``eta`` kwarg.
+    """Return True if ``sampler_name`` is a stochastic (ancestral/SDE) sampler
+    that honours the ``eta`` noise-multiplier kwarg.
 
-    Results are cached so introspection runs at most once per sampler name.
-    Falls back to ``False`` on any error.
+    Uses an explicit allowlist derived from ComfyUI's ``KSAMPLER_NAMES`` so the
+    check is fast, reliable, and immune to ComfyUI's internal wrapper structure
+    (the old ``inspect.signature`` approach broke silently when the wrapper hid
+    the original function's parameters).
     """
-    import inspect
-    import comfy.samplers as _s
-
-    if sampler_name not in _ACCEPTS_ETA_CACHE:
-        try:
-            ks = _s.ksampler(sampler_name)
-            sig = inspect.signature(ks.sampler_function)
-            _ACCEPTS_ETA_CACHE[sampler_name] = "eta" in sig.parameters
-        except Exception:
-            _ACCEPTS_ETA_CACHE[sampler_name] = False
-    return _ACCEPTS_ETA_CACHE[sampler_name]
+    return sampler_name in _ETA_SAMPLERS
 
 
-_ACCEPTS_ETA_CACHE: dict[str, bool] = {}
+# Samplers that directly accept a ``BONGMATH`` kwarg via ``**extra_options``.
+#
+# Architecture note for RES4LYF:
+#   - ``rk_beta``   → sample_rk_beta() has explicit ``BONGMATH: bool = True``
+#                      parameter. Passing BONGMATH via extra_options works. ✓
+#   - ``res_2m/3m/2s/3s/5s/6s``, ``deis_2m/3m`` etc.
+#                  → thin wrapper functions with a FIXED signature.
+#                      No **kwargs. ComfyUI's KSAMPLER does
+#                      ``sampler_fn(..., **extra_options)`` — so passing
+#                      BONGMATH to them raises TypeError. ✗
+#                      These wrappers call sample_rk_beta with BONGMATH
+#                      left at its default (True), so they always use bongmath
+#                      and the widget has no effect on them.
+_BONGMATH_KNOWN: frozenset[str] = frozenset({
+    # The only RES4LYF sampler whose top-level function directly exposes BONGMATH.
+    "rk_beta",
+})
+
+# Cache for unknown sampler names checked via inspect.signature.
+_BONGMATH_CACHE: dict[str, bool] = {}
+
+
+def _sampler_accepts_bongmath(sampler_name: str) -> bool:
+    """Return True if this sampler reads ``BONGMATH`` from ``extra_options``.
+
+    Uses a two-level strategy:
+    1. Fast allowlist for known RES4LYF samplers (immune to importlib.reload
+       bugs that temporarily remove the functions from k_diffusion_sampling).
+    2. ``inspect.signature`` fallback for unknown custom samplers — valid
+       because custom samplers are registered directly by name and their
+       top-level function signature is authoritative.
+    """
+    if sampler_name in _BONGMATH_KNOWN:
+        return True
+    if sampler_name in _BONGMATH_CACHE:
+        return _BONGMATH_CACHE[sampler_name]
+    # Fallback: introspect the registered sampler function.
+    try:
+        import inspect
+        import comfy.samplers as _s
+        ks = _s.ksampler(sampler_name)
+        sig = inspect.signature(ks.sampler_function)
+        result = "BONGMATH" in sig.parameters
+    except Exception:
+        result = False
+    _BONGMATH_CACHE[sampler_name] = result
+    return result
 
 
 def _sample_core(
     model, *, seed, steps, cfg, sampler_name, scheduler, positive, negative,
     latent, denoise, noise_control: dict[str, Any] | None = None,
-    eta: float | None = None,
+    eta: float | None = None, bongmath: bool | None = None,
 ):
     """``common_ksampler`` re-assembled from public ``comfy.sample`` calls so a
     custom-generated noise tensor (RNG source / seed variation) can be
-    substituted for the stock CPU noise, and/or ``eta`` (noise multiplier for
-    ancestral/SDE samplers) can be passed via the low-level
-    ``comfy.samplers.ksampler`` API which supports ``extra_options``."""
+    substituted for the stock CPU noise, and/or ``eta``/``bongmath`` can be
+    passed via ``extra_options`` to custom samplers (RES4LYF, etc.)."""
     import comfy.sample
     import comfy.samplers
     import comfy.utils
@@ -122,10 +188,12 @@ def _sample_core(
     )
     sigmas = k_sampler.sigmas
 
-    # Create a KSAMPLER with optional eta in extra_options.
+    # Create a KSAMPLER with optional eta/bongmath in extra_options.
     extra_opts: dict[str, Any] = {}
     if eta is not None and _sampler_accepts_eta(sampler_name):
         extra_opts["eta"] = eta
+    if bongmath is not None and _sampler_accepts_bongmath(sampler_name):
+        extra_opts["BONGMATH"] = bongmath
     sampler_instance = comfy.samplers.ksampler(sampler_name, extra_options=extra_opts, inpaint_options={})
 
     callback = latent_preview.prepare_callback(model, steps)
@@ -157,20 +225,21 @@ def sample_unified(
     denoise: float = 1.0,
     noise_control: dict[str, Any] | None = None,
     eta: float | None = None,
+    bongmath: bool | None = None,
 ):
     """Sample a latent via ComfyUI's stock ``common_ksampler`` — or, when
-    ``noise_control`` or ``eta`` is provided, an equivalent that substitutes
-    a custom-generated noise tensor and/or passes ``eta`` via
-    ``sampler_options`` (see ``_sample_core``).
+    ``noise_control``, ``eta``, or ``bongmath`` is provided, an equivalent that
+    substitutes a custom-generated noise tensor and/or passes options via
+    ``extra_options`` to custom samplers (see ``_sample_core``).
 
     Returns a latent dict (``{"samples": ...}``).
     """
-    if noise_control is not None or (eta is not None and abs(eta - 1.0) > 1e-9):
+    if noise_control is not None or eta is not None or bongmath is not None:
         return _sample_core(
             model, seed=seed, steps=steps, cfg=cfg, sampler_name=sampler_name,
             scheduler=scheduler, positive=positive, negative=negative,
             latent=latent, denoise=denoise, noise_control=noise_control,
-            eta=eta,
+            eta=eta, bongmath=bongmath,
         )
 
     from nodes import common_ksampler
@@ -274,6 +343,7 @@ def apply_hiresfix(
     tiled: bool = False,
     noise_control: dict[str, Any] | None = None,
     eta: float | None = None,
+    bongmath: bool | None = None,
 ) -> tuple[Any, list[str]]:
     """Run the HighRes-fix upscale + re-sample pass.
 
@@ -366,6 +436,7 @@ def apply_hiresfix(
             sampler_name=sampler_name, scheduler=scheduler,
             positive=pass_positive, negative=negative, latent=latent,
             denoise=denoise, noise_control=noise_control, eta=eta,
+            bongmath=bongmath,
         )
 
     return latent, warnings

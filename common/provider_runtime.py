@@ -104,17 +104,22 @@ def fetch_models_with_status(provider: str, force: bool = False) -> Dict[str, An
         url = f"{base_url.rstrip('/')}{definition.models_endpoint}"
         headers: Dict[str, str] = {}
         if provider_key == "google":
-            url = f"{url}?key={api_key}"
+            headers["x-goog-api-key"] = api_key
         elif provider_key not in LOCAL_PROVIDERS:
             headers[definition.header_name] = f"{definition.header_prefix}{api_key}".strip()
         response = client.get(url, headers=headers, quiet=True)
         data = response.json()
         if provider_key == "ollama":
             models = [item.get("name", "") for item in data.get("models", [])]
+        elif provider_key == "google":
+            raw_models = data.get("models", [])
+            models = [
+                item.get("name", "").removeprefix("models/")
+                for item in raw_models
+                if "generateContent" in item.get("supportedGenerationMethods", ["generateContent"])
+            ]
         else:
             models = [item.get("id") or item.get("name", "") for item in data.get("data", data.get("models", []))]
-            if provider_key == "google":
-                models = [name.removeprefix("models/") for name in models]
         clean = sorted({normalize_model_name(name) for name in models if name})
         vision_models = [m for m in clean if is_model_vision_capable(provider_key, m)]
         message = "Подключение работает."

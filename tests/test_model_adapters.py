@@ -264,11 +264,49 @@ def test_dit_convert_flux_json_mode_returns_7_field_schema():
 
 
 def test_dit_convert_ideogram4_text_mode_normalizes_plain_text():
-    # Ideogram 4's real API takes a plain natural-language prompt (docs.ideogram.ai) —
-    # it no longer routes to the fabricated JSON caption schema.
+    # Ideogram 4's own API takes a plain natural-language prompt
+    # (docs.ideogram.ai) — text mode stays plain, no JSON caption schema.
     output, meta = convert_to_dit_format("a scene description", "Ideogram 4", "text")
     assert "scene description" in output
     assert meta["mode"] != "ideogram4_json"
+
+
+def test_dit_convert_ideogram4_json_mode_uses_caption_schema():
+    # response_format="json" is an explicit request for the structured
+    # caption schema, not the generic passthrough/wrap used by other models.
+    raw = '{"high_level_description": "a red car", "extra": "dropped"}'
+    output, meta = convert_to_dit_format(raw, "Ideogram 4", "json")
+    parsed = json.loads(output)
+    assert list(parsed.keys()) == [
+        "high_level_description",
+        "style_description",
+        "compositional_deconstruction",
+    ]
+    assert parsed["high_level_description"] == "a red car"
+    assert meta["target_prompt_format"] == "ideogram4_json"
+
+
+def test_dit_convert_tags_mode_skips_restructure_for_sdxl():
+    # Professional Tagger's comma-tag output must survive SDXL's normally
+    # forced restructure-into-sentences step untouched.
+    tags = "red car, sunset, dramatic lighting, close-up shot"
+    output, meta = convert_to_dit_format(tags, "SDXL", "text", agent_output_mode="tags")
+    assert output == tags
+    assert meta["mode"] == "tags_as_is"
+
+
+def test_dit_convert_tags_mode_skips_restructure_for_qwen():
+    tags = "red car, sunset, dramatic lighting, close-up shot"
+    output, meta = convert_to_dit_format(tags, "QWEN", "text", agent_output_mode="tags")
+    assert output == tags
+    assert meta["mode"] == "tags_as_is"
+
+
+def test_dit_convert_prose_mode_still_restructures_sdxl():
+    # Default (prose) agents keep the existing SDXL restructure behavior.
+    tags = "red car, sunset, dramatic lighting, close-up shot"
+    _output, meta = convert_to_dit_format(tags, "SDXL", "text")
+    assert meta["mode"] != "tags_as_is"
 
 
 def test_dit_convert_generic_json_passthrough():
@@ -296,8 +334,8 @@ def test_post_convert_prompt_returns_tuple_and_meta():
     output, meta = post_convert_prompt("a scene", "Ideogram 4", "text")
     assert isinstance(output, str)
     assert isinstance(meta, dict)
-    # Ideogram 4 no longer forces json response_format — real API takes a
-    # plain text prompt (docs.ideogram.ai).
+    # Text mode (no response_format="json") stays plain — Ideogram 4's own
+    # API takes a plain text prompt (docs.ideogram.ai).
     assert meta["mode"] != "ideogram4_json"
     assert meta["response_format"] == "text"
 
@@ -312,12 +350,13 @@ def test_response_format_instruction_empty_in_text_mode():
     assert build_response_format_instruction("FLUX", "text") == ""
 
 
-def test_response_format_instruction_ideogram4_no_longer_uses_json_schema():
-    # Ideogram 4 no longer routes to the fabricated JSON caption schema —
-    # it falls through to the generic JSON instruction like any other model.
+def test_response_format_instruction_ideogram4_json_mode_uses_caption_schema():
+    # Ideogram 4's own API takes plain text, but response_format="json" is an
+    # explicit user request for the structured caption schema, not generic JSON.
     instruction = build_response_format_instruction("Ideogram 4", "json")
-    assert "IDEOGRAM 4 JSON" not in instruction
-    assert instruction == "OUTPUT: JSON\nReturn valid JSON only."
+    assert "IDEOGRAM 4 CANONICAL JSON" in instruction
+    assert "high_level_description" in instruction
+    assert "compositional_deconstruction" in instruction
 
 
 def test_response_format_instruction_flux_json_mode():

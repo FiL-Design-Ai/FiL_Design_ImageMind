@@ -632,6 +632,7 @@ def convert_to_dit_format(
     source_text: str = "",
     *,
     style_enforcer: Any = None,
+    agent_output_mode: str = "prose",
 ) -> Tuple[str, Dict[str, Any]]:
     """Convert raw LLM text into the model-specific target format.
 
@@ -654,6 +655,13 @@ def convert_to_dit_format(
             "model_type": model_type,
             "response_format": "json",
         }
+
+    # Ideogram 4 + json — canonical caption schema (validate/repair, don't
+    # just passthrough/wrap the raw LLM JSON like the generic path below).
+    if response_format == "json" and model_uses_ideogram_json_schema(model_type):
+        return adapt_ideogram4_caption(
+            text, style_text=style_text, style_type=style_type, source_text=source_text,
+        )
 
     # Generic json mode.
     if response_format == "json":
@@ -690,6 +698,12 @@ def convert_to_dit_format(
     # Z-Image Turbo: only normalize, never restructure (per contract).
     if model_type == "Z-Image Turbo":
         return _normalize_prompt_ready_text(raw, max_words), {**base_meta, "mode": "normalize_only"}
+
+    # Tag-output agents (Professional Tagger) asked for a flat comma-tag list —
+    # restructuring into DiT-style sentences would silently discard the exact
+    # format the user picked that agent for, regardless of model_type.
+    if agent_output_mode == "tags":
+        return _normalize_prompt_ready_text(raw, max_words), {**base_meta, "mode": "tags_as_is"}
 
     force_restructure = model_type in {"QWEN", "SDXL"}
     needs_restructure = force_restructure or text_needs_dit_restructure(raw, model_type, max_words)
@@ -800,6 +814,7 @@ def post_convert_prompt(
     style_type: str = "",
     source_text: str = "",
     style_enforcer: Any = None,
+    agent_output_mode: str = "prose",
 ) -> Tuple[str, Dict[str, Any]]:
     """Node-facing entry point. Delegates to convert_to_dit_format.
 
@@ -817,4 +832,5 @@ def post_convert_prompt(
         style_type=style_type,
         source_text=source_text,
         style_enforcer=style_enforcer,
+        agent_output_mode=agent_output_mode,
     )

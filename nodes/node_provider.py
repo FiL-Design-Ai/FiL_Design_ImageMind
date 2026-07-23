@@ -1,13 +1,16 @@
+import logging
 from datetime import datetime, timezone
 
 from comfy_api.latest import io
 
-from ..common.brand import CATEGORY_ROOT
+from ..common.brand import BRAND, CATEGORY_ROOT
 from ..common.config import PROVIDERS, get_provider_key
 from ..common.io_types import FilProviderConfig
 from ..common.localization import t
-from ..common.processing import normalize_model_name
-from ..common.provider_runtime import fetch_models_from_provider
+from ..common.processing import is_valid_model_name, normalize_model_name
+from ..common.provider_runtime import fetch_models_from_provider, invalidate_model_cache
+
+logger = logging.getLogger(f"{BRAND}.ProviderLoader")
 
 
 class FiLProviderLoader(io.ComfyNode):
@@ -32,8 +35,6 @@ class FiLProviderLoader(io.ComfyNode):
                              tooltip=t("tt_provider_max_tokens", "Maximum tokens in the response. 0 = provider default (no explicit limit).")),
                 io.Int.Input("rate_limit_ms", default=100, min=0, max=5000, step=10, advanced=True,
                              tooltip=t("tt_rate_limit", "Minimum delay between requests to this provider, to avoid rate limiting.")),
-                io.Int.Input("seed", default=-1, min=-1, max=999999999999, advanced=True,
-                             tooltip=t("tt_provider_seed", "Provider-side generation seed, if supported. -1 lets the provider pick one.")),
                 io.Int.Input("max_image_side", default=1024, min=128, max=4096, step=64, advanced=True,
                              tooltip=t("tt_max_image_side", "Images are downscaled so their longest side does not exceed this value.")),
             ],
@@ -54,22 +55,23 @@ class FiLProviderLoader(io.ComfyNode):
         # which would otherwise reject every real model name for every
         # provider. Actual availability is still checked at execution time
         # by the provider runtime.
-        if not model or not str(model).strip():
-            return "Model must be selected in Provider Loader."
+        if not is_valid_model_name(model):
+            return f"Model must be selected in Provider Loader (got '{model}')."
         return True
 
     @classmethod
     def execute(cls, provider: str, model: str = "", refresh_models: bool = False,
-                temperature: float = 0.7, max_tokens: int = 0, rate_limit_ms: int = 100, seed: int = -1,
+                temperature: float = 0.7, max_tokens: int = 0, rate_limit_ms: int = 100,
                 max_image_side: int = 1024) -> io.NodeOutput:
         p_key = get_provider_key(provider)
         model_name = normalize_model_name(model)
 
         if refresh_models:
             try:
+                invalidate_model_cache(p_key)
                 fetch_models_from_provider(p_key)
             except Exception:
-                pass
+                logger.warning("Model refresh failed for provider '%s'", p_key, exc_info=True)
 
         config = {
             "provider": p_key,
@@ -85,9 +87,7 @@ class FiLProviderLoader(io.ComfyNode):
             "temperature": temperature,
             "max_tokens": max_tokens,
             "rate_limit_ms": rate_limit_ms,
-            "seed": seed,
             "max_image_side": max_image_side,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
         return io.NodeOutput(config, model_name)

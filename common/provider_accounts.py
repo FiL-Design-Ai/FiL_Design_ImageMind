@@ -32,10 +32,6 @@ def _save_auth_json(data: Dict[str, Any]) -> None:
 
 def get_api_key(provider: str) -> Optional[str]:
     config_inst = get_config()
-    prov_cfg = config_inst.get_provider_config(provider) if hasattr(config_inst, 'get_provider_config') else None
-    if prov_cfg and prov_cfg.get("api_key"):
-        return prov_cfg["api_key"]
-
     auth = _load_auth_json()
     provider_data = auth.get(provider, {})
     api_section = provider_data.get("api", {})

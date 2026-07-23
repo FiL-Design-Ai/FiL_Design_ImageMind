@@ -34,20 +34,14 @@ describe("OpticScanner.vue", () => {
     setActivePinia(createPinia());
   });
 
-  // Regression guard: commit f6ebc38 dropped the `string`-kind branch, so the
-  // prompt / negative_prompt / custom_style textareas silently disappeared
-  // (they fell through to an empty FilChipGrid).
-  it("renders textareas for the string-kind prompt fields", () => {
+  // Regression guard: prompt / negative_prompt / custom_style stay as native
+  // LiteGraph widgets (rendered above the Vue panel, for drag-to-connect) and
+  // must NOT be duplicated inside the panel. They are listed in
+  // NATIVE_WIDGET_NAMES and skipped in the template, so no textarea/input for
+  // them should appear here.
+  it("does not duplicate the native prompt fields in the Vue panel", () => {
     const wrapper = mount(OpticScannerVue, { props: { state: makeState() } });
-    const textareas = wrapper.findAll("textarea.fil-w-textarea");
-    expect(textareas.length).toBe(3);
-  });
-
-  it("writes typed text into nodeState.prompt", async () => {
-    const state = makeState();
-    const wrapper = mount(OpticScannerVue, { props: { state } });
-    const promptArea = wrapper.findAll<HTMLTextAreaElement>("textarea.fil-w-textarea")[0];
-    await promptArea.setValue("a robot walking through neon Tokyo");
-    expect(state.nodeState.prompt).toBe("a robot walking through neon Tokyo");
+    expect(wrapper.findAll("textarea.fil-w-textarea").length).toBe(0);
+    expect(wrapper.findAll("input.fil-w-input").length).toBe(0);
   });
 });

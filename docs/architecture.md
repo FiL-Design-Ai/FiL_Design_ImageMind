@@ -2,7 +2,7 @@
 
 ## Runtime
 
-`__init__.py` is a thin ComfyUI bootstrap. It combines the mappings exported by six node modules, validates them against `common/node_registry.py`, publishes `WEB_DIRECTORY = "./frontend/dist"`, and registers `server_routes.py`.
+`__init__.py` is a thin ComfyUI bootstrap. It imports each node module, filters the list through `common/release_gate.py` (staged 1.0.0 hardening rollout), publishes `WEB_DIRECTORY = "./frontend/dist"`, and registers `server_routes.py`.
 
 Canonical node ids:
 
@@ -22,8 +22,7 @@ This is a new public contract. Workflows created for the former backup implement
 - `nodes/node_*.py`: ComfyUI inputs, outputs and node-owned behavior.
 - `common/`: provider, prompt, image and style helpers used by more than one runtime area.
 - `common/style_engine/`: data-only style rules, presets, the resolver, and the public `StyleEnforcer` used by Optic Scanner to produce enforcement blocks.
-- `common/prompt_contracts.py`: thin facade re-exporting the Prompt Contract v3 helpers.
-- `common/node_registry.py`: canonical ids, titles and categories used by startup validation and the frontend contract endpoint.
+- `common/contracts/registry.py`: canonical ids, titles, categories and input/output schemas for every node — single source of truth, used by the frontend contract endpoint and validated at import time via its own `assert set(CANONICAL_IDS) == {...}`.
 - `server_routes.py`: `/fil_design_imagemind/*` HTTP API. It must not expose API keys or internal exception details.
 
 Do not add import aliases, background preflight threads or fallback imports from `FiL_Design_ImageMind_backup`. Add shared helpers only after two runtime areas need them.

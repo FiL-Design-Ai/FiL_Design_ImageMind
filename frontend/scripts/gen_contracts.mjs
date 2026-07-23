@@ -106,7 +106,7 @@ function renderFile(payload) {
   const data = payload.data || {};
   for (const id of Object.keys(data)) {
     const node = data[id] || null;
-    out.push(`  ${JSON.stringify(id)}: ${JSON.stringify(node, null, 2) ?? "null"},`);
+    out.push(`  ${JSON.stringify(id)}: ${JSON.stringify(node, null, 2)},`);
   }
   out.push("};");
   out.push("");

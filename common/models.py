@@ -15,6 +15,7 @@ from .provider_resilience import (
     get_openrouter_candidates,
     get_retry_policy,
     normalize_cloud_error,
+    sanitize_sensitive_data,
 )
 from .storage import get_prompt_cache
 
@@ -69,6 +70,9 @@ class OllamaStrategy(ModelStrategy):
         seed = kwargs.get("seed", -1)
         if seed is not None and seed >= 0:
             payload["options"]["seed"] = int(seed)
+        max_tokens = kwargs.get("max_tokens", 0)
+        if max_tokens:
+            payload["options"]["num_predict"] = int(max_tokens)
         if kwargs.get("response_format") == "json":
             payload["format"] = "json"
         return payload
@@ -128,46 +132,78 @@ class OpenAIStrategy(ModelStrategy):
         seed = kwargs.get("seed", -1)
         if seed is not None and seed >= 0:
             payload["seed"] = int(seed)
+        max_tokens = kwargs.get("max_tokens", 0)
+        if max_tokens:
+            payload["max_tokens"] = int(max_tokens)
         if kwargs.get("response_format") == "json":
             payload["response_format"] = {"type": "json_object"}
         return payload
 
     def parse_response(self, data):
-        try:
-            choices = data.get("choices", [])
-            if choices:
-                return choices[0].get("message", {}).get("content", "").strip()
-        except Exception:
-            pass
-        return data.get("content") or data.get("response") or str(data)
+        if not isinstance(data, dict):
+            raise InferenceError(f"Unexpected provider response type: {type(data).__name__}")
+        error = data.get("error")
+        if error:
+            raise InferenceError(f"Provider returned an error: {error}")
+        choices = data.get("choices") or []
+        if choices:
+            content = choices[0].get("message", {}).get("content", "")
+            if content:
+                return content.strip()
+        # A few OpenAI-compatible providers reply with a bare `content`/`response`
+        # field instead of the `choices` shape — accept those, but never fall
+        # back to dumping the raw payload as if it were the model's answer.
+        for key in ("content", "response"):
+            value = data.get(key)
+            if value:
+                return str(value).strip()
+        raise InferenceError(f"Could not find a response in provider payload: {data!r}")
 
 
 class GoogleStrategy(ModelStrategy):
     def get_chat_url(self, config):
         base_url = config.get("url", "https://generativelanguage.googleapis.com/v1beta").rstrip("/")
         model_name = normalize_model_name(config.get("model", "gemini-2.0-flash"))
-        api_key = config.get("api_key") or get_api_key("google") or ""
-        return f"{base_url}/models/{model_name}:generateContent?key={api_key}"
+        if model_name.startswith("models/"):
+            model_name = model_name.removeprefix("models/")
+        return f"{base_url}/models/{model_name}:generateContent"
 
     def get_headers(self, config):
-        return {"Content-Type": "application/json"}
+        api_key = config.get("api_key") or get_api_key("google") or ""
+        headers = {"Content-Type": "application/json"}
+        if api_key:
+            headers["x-goog-api-key"] = api_key
+        return headers
 
     def build_payload(self, config, system, user, img=None, **kwargs):
         parts = [{"text": f"{system}\n\n{user}" if system else user}]
         if img:
             clean_img = img.split(",", 1)[1] if "," in img else img
             parts.insert(0, {"inline_data": {"mime_type": "image/jpeg", "data": clean_img}})
-        return {"contents": [{"parts": parts}], "generationConfig": {"temperature": kwargs.get("temperature", 0.7)}}
+        generation_config: Dict[str, Any] = {"temperature": kwargs.get("temperature", 0.7)}
+        seed = kwargs.get("seed", -1)
+        if seed is not None and seed >= 0:
+            generation_config["seed"] = int(seed) % 2147483647
+        max_tokens = kwargs.get("max_tokens", 0)
+        if max_tokens:
+            generation_config["maxOutputTokens"] = int(max_tokens)
+        if kwargs.get("response_format") == "json":
+            generation_config["responseMimeType"] = "application/json"
+        return {"contents": [{"parts": parts}], "generationConfig": generation_config}
 
     def parse_response(self, data):
-        try:
-            candidates = data.get("candidates", [])
-            if candidates:
-                parts = candidates[0].get("content", {}).get("parts", [])
-                return "".join(p.get("text", "") for p in parts)
-        except Exception:
-            pass
-        return str(data)
+        if not isinstance(data, dict):
+            raise InferenceError(f"Unexpected provider response type: {type(data).__name__}")
+        error = data.get("error")
+        if error:
+            raise InferenceError(f"Provider returned an error: {error}")
+        candidates = data.get("candidates") or []
+        if candidates:
+            parts = candidates[0].get("content", {}).get("parts", [])
+            text = "".join(p.get("text", "") for p in parts)
+            if text:
+                return text
+        raise InferenceError(f"Could not find a response in provider payload: {data!r}")
 
 
 class ModelClient:
@@ -205,6 +241,7 @@ class ModelClient:
         stream: bool = False,
         stream_callback: Optional[Callable[[str], None]] = None,
         timeout: Optional[int] = None,
+        rate_limit_ms: Optional[int] = None,
     ) -> str:
         provider = provider.strip().lower()
         strategy = self._strategies.get(provider)
@@ -248,6 +285,7 @@ class ModelClient:
             req_kwargs = {"json": pl, "timeout": resolved_timeout, "headers": hdrs}
             if retry_policy:
                 req_kwargs.update(retry_policy.as_kwargs())
+            self.rate_limiter.wait_if_needed(rate_limit_ms)
             if stream and stream_callback:
                 resp = self.http_client.post(chat_url, stream=True, **req_kwargs)
                 resp.raise_for_status()
@@ -293,13 +331,13 @@ class ModelClient:
                         continue
                     # Non-429 error: raise immediately (matches backup behavior).
                     self._log_cloud_failure(provider, candidate, exc)
-                    raise InferenceError(f"API call to {provider}/{candidate} failed: {exc}") from exc
+                    raise InferenceError(sanitize_sensitive_data(f"API call to {provider}/{candidate} failed: {exc}")) from exc
             if last_rate_limit_error is not None:
                 raise FiLError(
                     "Все бесплатные vision-модели OpenRouter сейчас перегружены.",
                     code="OPENROUTER_ALL_RATE_LIMITED",
                 )
-            raise InferenceError(f"API call to {provider}/{model_name} failed: {last_error}") from last_error
+            raise InferenceError(sanitize_sensitive_data(f"API call to {provider}/{model_name} failed: {last_error}")) from last_error
 
         # Non-OpenRouter path (and OpenRouter without images).
         try:
@@ -320,9 +358,17 @@ class ModelClient:
                 except Exception as fallback_exc:
                     logger.error("[GROQ] Fallback to '%s' also failed: %s", fallback_model, fallback_exc)
                     self._log_cloud_failure(provider, model_name, exc)
-                    raise InferenceError(f"API call to {provider}/{model_name} failed: {exc}") from exc
+                    raise InferenceError(sanitize_sensitive_data(f"API call to {provider}/{model_name} failed: {exc}")) from exc
             self._log_cloud_failure(provider, model_name, exc)
-            raise InferenceError(f"API call to {provider}/{model_name} failed: {exc}") from exc
+            # Provide a clear, actionable message for Google 429 rate-limit.
+            exc_str = str(exc)
+            if provider == "google" and "429" in exc_str:
+                raise InferenceError(
+                    "Google API 429 — Rate limit исчерпан. Бесплатный tier: 15 запросов/мин и 1500/день. "
+                    "Подождите ~1 минуту или увеличьте значение 'Rate limit' в Provider Loader."
+                ) from exc
+            raise InferenceError(sanitize_sensitive_data(f"API call to {provider}/{model_name} failed: {exc}")) from exc
+
 
     def _log_cloud_failure(self, provider: str, model: str, exc: BaseException) -> None:
         """Classify and log a cloud provider failure without changing control flow."""

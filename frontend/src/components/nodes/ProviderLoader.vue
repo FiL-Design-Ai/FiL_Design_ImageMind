@@ -3,10 +3,13 @@
  * FiLProviderLoader — provider + model runtime configuration.
  * State lives in `state.nodeState = { provider, model, temperature, ... }`
  * and survives load/save through `addDOMWidget` getValue/setValue.
+ *
+ * Uses ProviderModelPicker modal for easy provider & model browsing.
  */
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { FilComboBox, type FilComboOption, FilButton, FilSlider, FilInfo } from "@/components/widgets";
-import { useProviderStore, PROVIDER_LIST } from "@/stores/providerStore";
+import { FilSlider, FilInfo, FilIcon } from "@/components/widgets";
+import ProviderModelPicker from "@/components/nodes/ProviderModelPicker.vue";
+import { useProviderStore } from "@/stores/providerStore";
 import { PROVIDER_LABEL, PROVIDER_ICON } from "@/composables/providerMeta";
 import { toast } from "@/stores/toastStore";
 import { useI18n } from "@/composables/useI18n";
@@ -18,7 +21,7 @@ const store = useProviderStore();
 const { t } = useI18n();
 
 const REFRESH_INTERVAL = 300_000; // 5 minutes
-const modelFilter = ref("");
+const pickerOpen = ref(false);
 
 function field<T>(name: string, fallback: T): { get: () => T; set: (v: T) => void } {
   return {
@@ -30,63 +33,20 @@ function field<T>(name: string, fallback: T): { get: () => T; set: (v: T) => voi
 const provider = computed<string>(() => String(field("provider", "ollama").get()));
 function setProvider(v: string) {
   field("provider", "ollama").set(v);
-  modelFilter.value = "";
-  // Show cached models immediately if available, refresh in background
-  const cached = store.modelsFor(v);
-  if (cached.length) {
-    setModel(cached[0]);
-    updateWidgetOptions();
-    void store.loadModels(v); // background refresh (no force)
-  } else {
-    state.nodeState.model = "(loading...)";
-    void reload();
-  }
+  updateWidgetOptions();
 }
 
 const model = computed<string>(() => String(field("model", "(loading...)").get()));
-function setModel(v: string) { field("model", "(loading...)").set(v); }
+function setModel(v: string) { 
+  field("model", "(loading...)").set(v); 
+  updateWidgetOptions();
+}
 
 const temperature = computed(() => Number(field("temperature", 0.7).get()));
 const maxTokens = computed(() => Number(field("max_tokens", 0).get()));
 const rateLimit = computed(() => Number(field("rate_limit_ms", 100).get()));
 const maxImageSide = computed(() => Number(field("max_image_side", 1024).get()));
 const state = props.state;
-
-const modelOptions = computed<string[]>(() => {
-  const list = store.modelsFor(provider.value);
-  return list.length ? list : ["(no models)"];
-});
-
-const hasRealModels = computed(() => {
-  const list = store.modelsFor(provider.value);
-  return list.length > 0;
-});
-
-const filteredModelOptions = computed(() => {
-  const all = modelOptions.value;
-  if (!modelFilter.value || !hasRealModels.value) return all;
-  const q = modelFilter.value.toLowerCase();
-  return all.filter((m) => m.toLowerCase().includes(q));
-});
-
-const modelCountLabel = computed(() => {
-  if (!hasRealModels.value) return "";
-  const total = store.modelsFor(provider.value).length;
-  const shown = filteredModelOptions.value.length;
-  return shown === total ? `${total}` : `${shown} of ${total}`;
-});
-
-const providerComboOptions = computed<FilComboOption[]>(() =>
-  PROVIDER_LIST.map((p) => ({ value: p, label: PROVIDER_LABEL[p] ?? p, icon: PROVIDER_ICON[p] })),
-);
-
-const modelComboOptions = computed<FilComboOption[]>(() => {
-  const visionModels = store.visionModelsFor(provider.value);
-  return filteredModelOptions.value.map((m) => ({
-    value: m,
-    badge: visionModels.includes(m) ? "👁" : undefined,
-  }));
-});
 
 const loading = computed(() => store.isLoading(provider.value));
 const probe = computed(() => store.probeState[provider.value]);
@@ -109,38 +69,20 @@ function updateWidgetOptions() {
   }
 }
 
-async function reload() {
-  try {
-    await store.loadModels(provider.value, true);
-    const list = store.modelsFor(provider.value);
-    setModel(list[0] ?? "(no models)");
-    updateWidgetOptions();
-  } catch (err) {
-    toast.error(err instanceof Error ? err.message : String(err));
-  }
+function handlePickerSelect(payload: { provider: string; model: string }) {
+  setProvider(payload.provider);
+  setModel(payload.model);
 }
 
 onMounted(async () => {
   void store.loadDisplayNames();
-  // Mirrors setProvider()'s cold/warm branching: the store is a page-wide
-  // singleton, so another FiLProviderLoader node (or an earlier load this
-  // session) may have already cached this provider's models. Previously
-  // this only synced `model` off the placeholder in the cold-cache branch,
-  // so a node mounting into an already-warm cache stayed stuck showing
-  // "(loading...)" — a value with no matching <option>, rendering blank —
-  // even though the store had a full model list the whole time.
   const cached = store.modelsFor(provider.value);
   if (cached.length) {
-    // Only replace the "(loading...)" placeholder — never overwrite a model
-    // value restored from a saved workflow just because it isn't in this
-    // (possibly still-cold) cache yet. A stale/unavailable saved model is a
-    // backend concern (surfaced via execution errors), not something to
-    // silently clobber here.
     if (model.value === "(loading...)") {
       setModel(cached[0] ?? "(no models)");
     }
     updateWidgetOptions();
-    void store.loadModels(provider.value); // background refresh, respects TTL
+    void store.loadModels(provider.value);
   } else {
     try {
       await store.loadModels(provider.value);
@@ -153,7 +95,6 @@ onMounted(async () => {
       toast.error(err instanceof Error ? err.message : String(err));
     }
   }
-  // Periodic auto-refresh while the node is on the graph
   refreshTimer = setInterval(() => {
     void store.loadModels(provider.value, true);
   }, REFRESH_INTERVAL);
@@ -166,24 +107,25 @@ onUnmounted(() => {
 
 <template>
   <div class="fil-provider-root">
-    <FilComboBox :options="providerComboOptions" :model-value="provider" :label="t('lbl_provider', '🔌 Provider')"
-      :title="t('tt_provider', 'LLM provider to use — local (Ollama, LM Studio) or cloud.')"
-      @update:model-value="setProvider" />
-    <div class="fil-provider-row">
-      <FilComboBox :options="modelComboOptions" :model-value="model" :label="t('lbl_model', '🧠 Model')"
-        :title="t('tt_model', 'Choose which model to use. If the list is empty, refresh it or check the provider account.')"
-        @update:model-value="setModel" />
-      <FilButton label="↻" :title="t('tt_refresh', 'Reload the model list. Use after adding a new model or API key.')" :disabled="loading || state.ui.refreshing === true" @click="reload" />
-    </div>
-    <div v-if="hasRealModels" class="fil-model-filter-bar">
-      <div class="fil-model-filter-wrap">
-        <input v-model="modelFilter" type="text" class="fil-model-filter" :placeholder="t('prov_search_models', 'Search models…')" />
+    <!-- Main trigger button opening the full-screen modal picker -->
+    <button type="button" class="picker-trigger-btn" @click="pickerOpen = true">
+      <div class="trigger-header">
+        <div class="provider-badge">
+          <FilIcon :name="PROVIDER_ICON[provider]" :size="16" />
+          <span class="provider-title">{{ PROVIDER_LABEL[provider] ?? provider }}</span>
+        </div>
+        <span class="open-icon">⚙️ Choose</span>
       </div>
-      <span class="fil-model-count">{{ modelCountLabel }}</span>
-    </div>
+      <div class="trigger-model">
+        <span class="model-label">🧠 Model:</span>
+        <span class="model-name" :title="model">{{ model }}</span>
+      </div>
+    </button>
+
     <FilInfo v-if="loading" :text="t('prov_loading_models', 'Loading models…')" />
     <FilInfo v-else-if="probe && probe.status && probe.status !== 'available'" :err="true" :text="probe.message || probe.status" />
     <FilInfo v-else-if="ageLabel" :text="`${t('prov_models_updated', 'Models updated')}: ${ageLabel}`" />
+
     <FilSlider :model-value="temperature" :min="0" :max="2" :step="0.05" :label="t('lbl_temperature', '🌡️ Temperature')"
       :title="t('tt_temperature', 'Sampling temperature — higher is more creative, lower is more deterministic.')"
       @update:model-value="(v: number) => (state.nodeState.temperature = v)" />
@@ -196,28 +138,94 @@ onUnmounted(() => {
     <FilSlider :model-value="maxImageSide" :min="128" :max="4096" :step="64" :label="t('lbl_max_image_side', '🖼️ Max image side')"
       :title="t('tt_max_image_side', 'Images are downscaled so their longest side does not exceed this value.')"
       @update:model-value="(v: number) => (state.nodeState.max_image_side = v)" />
+
+    <!-- Fullscreen Provider & Model Modal Picker -->
+    <ProviderModelPicker
+      v-model:open="pickerOpen"
+      :provider="provider"
+      :model="model"
+      @select="handlePickerSelect"
+    />
   </div>
 </template>
 
 <style scoped>
-/* Container surface comes from the shared `.fil-node-shell [class$="-root"]`
- * rule in styles/brand.ts — keep only layout here. */
 .fil-provider-root {
   display: flex; flex-direction: column; gap: var(--fil-node-gap); padding: var(--fil-node-pad);
   color: var(--fil-text, #e8edf3); font-family: ui-sans-serif, system-ui, sans-serif;
   min-width: 0;
 }
-.fil-provider-row {
-  display: flex; gap: 4px; align-items: stretch; min-width: 0;
+
+.picker-trigger-btn {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  background: var(--fil-panel-alt, #171819);
+  border: 1px solid var(--fil-pill-border);
+  border-radius: var(--fil-field-radius, 8px);
+  color: var(--fil-text, #f2f2f2);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease, background 0.15s ease;
+  outline: none;
 }
-.fil-provider-row :deep(.fil-combo) { flex: 1; min-width: 0; }
-.fil-model-filter-bar { display: flex; align-items: center; gap: 4px; min-width: 0; }
-.fil-model-filter-wrap { flex: 1; min-width: 0; }
-.fil-model-filter {
-  width: 100%; box-sizing: border-box; height: 24px;
-  background: var(--fil-glass-bg); border: 1px solid var(--fil-glass-border); border-radius: var(--fil-field-radius);
-  padding: 2px 6px; color: var(--fil-text, #e8edf3); font-family: inherit; font-size: 11px; outline: none;
+
+.picker-trigger-btn:hover {
+  border-color: var(--fil-accent, #f08a45);
+  background: var(--fil-pill-bg);
 }
-.fil-model-filter:focus { border-color: var(--fil-accent); }
-.fil-model-count { font-size: 9px; color: var(--fil-muted, rgba(255,255,255,0.45)); white-space: nowrap; flex-shrink: 0; }
+
+.picker-trigger-btn:focus-visible {
+  outline: 2px solid var(--fil-accent);
+  outline-offset: 1px;
+  border-color: var(--fil-accent);
+}
+
+.trigger-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.provider-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--fil-accent, #f08a45);
+}
+
+.open-icon {
+  font-size: 11px;
+  background: var(--fil-pill-bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--fil-text, #e8edf3);
+}
+
+.trigger-model {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  min-width: 0;
+}
+
+.model-label {
+  color: var(--fil-muted, #9ca8b5);
+  flex-shrink: 0;
+}
+
+.model-name {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
 </style>
