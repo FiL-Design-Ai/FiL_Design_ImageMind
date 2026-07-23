@@ -39,47 +39,31 @@ def test_cleanup_switches_call_only_requested_operations(monkeypatch):
     calls = []
     monkeypatch.setattr(node_cleaner, "_unload_models", lambda selected: calls.append(("models", selected)))
     monkeypatch.setattr(node_cleaner, "_clear_vram", lambda: calls.append(("vram",)))
-    monkeypatch.setattr(node_cleaner, "_clear_ram", lambda *args: calls.append(("ram", args)))
     marker = object()
-    result = node_cleaner.FiLNeuroCleaner.execute(
-        clean_vram=True, offload_model=True, offload_cache=False,
-        unload_diffusion=True, unload_clip=False, unload_vae=False,
-        unload_control=False, unload_lora=False, clean_ram=True,
-        clean_file_cache=False, clean_processes=False, clean_dlls=False,
-        retry_times=2, anything=marker,
-    )
-    assert result[0] is marker
-    assert calls == [("models", {"diffusion"}), ("ram", (False, False, False, 2))]
+
+    # Flush VRAM (All)
+    res1 = node_cleaner.FiLNeuroCleaner.execute(clean_mode="Flush VRAM (All)", anything=marker)
+    assert res1[0] is marker
+    assert ("models", {"diffusion", "clip", "vae", "control", "lora", "other"}) in calls
+    assert ("vram",) in calls
+
+    calls.clear()
+    # Unload Diffusion Only
+    res2 = node_cleaner.FiLNeuroCleaner.execute(clean_mode="Unload Diffusion Only", anything=marker)
+    assert res2[0] is marker
+    assert calls == [("models", {"diffusion"}), ("vram",)]
+
+    calls.clear()
+    # Soft Cache Only
+    res3 = node_cleaner.FiLNeuroCleaner.execute(clean_mode="Soft Cache Only", anything=marker)
+    assert res3[0] is marker
+    assert calls == [("vram",)]
 
 
 def test_disabled_cleanup_is_pure_passthrough(monkeypatch):
     monkeypatch.setattr(node_cleaner, "_clear_vram", lambda: (_ for _ in ()).throw(AssertionError("must not run")))
-    marker = object()
-    result = node_cleaner.FiLNeuroCleaner.execute(clean_vram=False, clean_ram=False, anything=marker)
-    assert result[0] is marker
-
-
-def test_force_flag_triggers_cleanup_regardless_of_selection(monkeypatch):
-    calls = []
-    monkeypatch.setattr(node_cleaner, "_unload_models", lambda selected: calls.append(("models", selected)))
-    monkeypatch.setattr(node_cleaner, "_clear_vram", lambda: calls.append(("vram",)))
-    marker = object()
-    result = node_cleaner.FiLNeuroCleaner.execute(
-        clean_vram=True, offload_model=False, unload_diffusion=False,
-        unload_clip=False, unload_vae=False, unload_control=False,
-        unload_lora=False, clean_ram=False, force=True, anything=marker,
-    )
-    assert result[0] is marker
-    assert ("vram",) in calls
-
-
-def test_all_disabled_with_force_does_nothing(monkeypatch):
-    monkeypatch.setattr(node_cleaner, "_clear_vram", lambda: (_ for _ in ()).throw(AssertionError("must not run")))
     monkeypatch.setattr(node_cleaner, "_unload_models", lambda s: (_ for _ in ()).throw(AssertionError("must not run")))
     marker = object()
-    result = node_cleaner.FiLNeuroCleaner.execute(
-        clean_vram=False, offload_model=False, unload_diffusion=False,
-        unload_clip=False, unload_vae=False, unload_control=False,
-        unload_lora=False, clean_ram=False, force=False, anything=marker,
-    )
+    result = node_cleaner.FiLNeuroCleaner.execute(clean_mode="Off", anything=marker)
     assert result[0] is marker
+
