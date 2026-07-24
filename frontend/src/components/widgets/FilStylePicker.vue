@@ -201,7 +201,7 @@ function select(key: string) {
 }
 .fil-style-tile.active {
   border-color: var(--fil-accent);
-  background: rgba(246, 138, 69, 0.14);
+  background: color-mix(in srgb, var(--fil-accent) 14%, transparent);
 }
 .fil-style-tile:focus-visible {
   outline: 2px solid var(--fil-accent);
