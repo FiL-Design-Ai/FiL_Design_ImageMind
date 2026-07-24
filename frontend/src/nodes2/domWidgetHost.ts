@@ -226,11 +226,10 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
     // floor (Math.max), never shrinks below whatever's already there.
     const [minW, minH] = n.minSize ?? [0, 0];
     const targetWidth = Math.max(currentWidth, minW);
-    // Never shrink the height below what the user manually dragged to:
-    // if the user stretched the node taller than content, respect that.
-    // We still grow automatically when content height increases (e.g.
-    // section expand, new widget). minH is always a lower bound.
-    const targetHeight = Math.max(computedHeight, currentSizeHeight, minH);
+    // Height is driven by computed content height, floored by declared minH.
+    // This allows nodes loaded from old workflow files (saved with larger heights)
+    // to automatically collapse to their exact UI height.
+    const targetHeight = Math.max(computedHeight, minH);
     if (targetWidth === currentWidth && Math.abs(targetHeight - currentSizeHeight) < 2) return;
     // Width otherwise just preserves `currentWidth` — computeSize()'s own
     // width opinion ignores minSize entirely (seen live shrinking a

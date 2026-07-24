@@ -5628,7 +5628,7 @@ function Wt(e, t, n, s) {
   function d() {
     var E, G;
     if (r(), !o.computeSize || !o.setSize || !o.size) return;
-    const [x, I] = o.size, [, v] = o.computeSize(), [S, M] = o.minSize ?? [0, 0], A = Math.max(x, S), T = Math.max(v, I, M);
+    const [x, I] = o.size, [, v] = o.computeSize(), [S, M] = o.minSize ?? [0, 0], A = Math.max(x, S), T = Math.max(v, M);
     A === x && Math.abs(T - I) < 2 || (o.setSize([A, T]), (G = (E = o.graph) == null ? void 0 : E.setDirtyCanvas) == null || G.call(E, !0, !0));
   }
   let f = 0;
