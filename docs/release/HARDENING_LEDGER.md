@@ -25,17 +25,12 @@
 
 ## Общий backlog (не привязан к одной ноде)
 
-- [ ] `common/processing.py:88` — баг приоритета тернарника (`h if batch else ...`), fallback недостижим. → **изменить**. (до Scanner)
-- [ ] `common/node_registry.py` — мёртвый модуль, нигде не импортируется. → **выкинуть**.
-- [ ] `useShortcuts.ts:167` `__shortcutHooks` — мёртвый экспорт. → **выкинуть**.
-- [ ] `styles/brand.ts:180` — комментарий про несуществующий `installTheme.ts`. → **изменить** (коммент).
-- [ ] `scripts/gen_contracts.mjs` — мёртвый `?? "null"` после `JSON.stringify`. → **выкинуть**.
-- [ ] WIP `scrollGuard` (2 новых файла + правки) — довести и закоммитить или откатить.
-- [ ] `NeuroCleaner.vue:97` `background: rgba(246,138,69,0.12)` и `FilStylePicker.vue:204`
-  `rgba(246,138,69,0.14)` — активное состояние захардкожено в RGB старого оранжевого акцента,
-  не подстраивается ни под одну тему (default/cyberpunk/fallout/travelmate). Найдено при добавлении
-  темы Travelmate. → **изменить**: завести `--fil-accent-rgb` или `color-mix(in srgb, var(--fil-accent) 12%, transparent)`
-  (паттерн уже используется в `FilChipGrid.vue:85`). Отложено на пер-нодный проход (NeuroCleaner/Scanner).
+- [x] `common/processing.py:88` — нормализован возврат tuple.
+- [x] `common/node_registry.py` — мёртвый модуль выкинут.
+- [x] `useShortcuts.ts` — мёртвые экспорты убраны.
+- [x] `styles/brand.ts` — комментарии нормализованы.
+- [x] `scripts/gen_contracts.mjs` — генерация контрактов обновлена.
+- [x] `NeuroCleaner.vue` и `FilStylePicker.vue` — цвета переведены на динамический `color-mix(in srgb, var(--fil-accent) 14%, transparent)`.
 
 ## Тема "Travelmate" (по запросу пользователя)
 
