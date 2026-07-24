@@ -12,7 +12,7 @@ export const cleanerNode: NodeModule = {
   id: "FiLNeuroCleaner",
   register(nodeType: unknown, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
-      minSize: [280, 140],
+      minSize: [280, 185],
       family: "tool",
       description: "GPU VRAM and loaded model memory cleanup.",
       badges: [{ text: "utility", color: "#888", text_color: "#fff" }],
@@ -28,8 +28,12 @@ export const cleanerNode: NodeModule = {
     const p = proto.prototype;
 
     // Defaults mirror node_cleaner.py's define_schema()
-    const defaults: Record<string, string> = {
-      clean_mode: "Flush VRAM (All)",
+    const defaults: Record<string, boolean> = {
+      clean_vram: true,
+      unload_diffusion: true,
+      unload_clip: false,
+      unload_vae: false,
+      unload_control: false,
     };
 
     const originalCreated = p.onNodeCreated;
@@ -41,7 +45,7 @@ export const cleanerNode: NodeModule = {
       const initialValues: Record<string, unknown> = {};
       for (const name of Object.keys(defaults)) {
         const w = findFilWidget(node, name);
-        const initial = sanitizeWidgetValue(w, "string", defaults[name]);
+        const initial = sanitizeWidgetValue(w, "boolean", defaults[name]);
         initialNodeState[name] = initial;
         initialValues[name] = initial;
         if (w) (w as { hidden?: boolean }).hidden = true;
@@ -49,7 +53,7 @@ export const cleanerNode: NodeModule = {
 
       const state = { nodeState: createSyncedNodeState(node, initialNodeState), initialValues, ui: {} };
       node._filCleanerState = state;
-      addFilDomWidget(node, "fil_cleaner_view", NeuroCleanerVue, { state, height: 140 });
+      addFilDomWidget(node, "fil_cleaner_view", NeuroCleanerVue, { state, height: 185 });
       return result;
     };
 
@@ -60,7 +64,7 @@ export const cleanerNode: NodeModule = {
       const state = node._filCleanerState;
       if (!state) return result;
       for (const name of Object.keys(defaults)) {
-        state.nodeState[name] = sanitizeWidgetValue(findFilWidget(node, name), "string", defaults[name]);
+        state.nodeState[name] = sanitizeWidgetValue(findFilWidget(node, name), "boolean", defaults[name]);
       }
       return result;
     };

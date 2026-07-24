@@ -1,54 +1,49 @@
 <script setup lang="ts">
-/** FiLNeuroCleaner — compact mode selector for GPU VRAM & model memory cleanup. */
-import { computed } from "vue";
-import { FilComboBox, type FilComboOption } from "@/components/widgets";
+/** FiLNeuroCleaner — toggle button list for VRAM & model cleanup targets. */
 import type { FilNodeState } from "@/nodes2/filState";
 import { useI18n } from "@/composables/useI18n";
 
 const props = defineProps<{ state: FilNodeState }>();
 const { t } = useI18n();
 
-const cleanMode = computed<string>({
-  get: () => String(props.state.nodeState.clean_mode ?? "Flush VRAM (All)"),
-  set: (v) => { props.state.nodeState.clean_mode = v; },
-});
+interface Row {
+  name: string;
+  label: string;
+  defaultOn: boolean;
+}
 
-const modeOptions = computed<FilComboOption[]>(() => [
-  { value: "Flush VRAM (All)", label: t("nc_mode_vram_all", "🧹 Flush VRAM & All Models") },
-  { value: "Unload Diffusion Only", label: t("nc_mode_diffusion", "🌀 Unload Diffusion Only") },
-  { value: "Soft Cache Only", label: t("nc_mode_soft_cache", "💧 Soft Cache Only") },
-  { value: "Off", label: t("nc_mode_off", "🚫 Off (Passthrough)") },
-]);
+const rows: Row[] = [
+  { name: "clean_vram", label: "🧹 Flush GPU Cache", defaultOn: true },
+  { name: "unload_diffusion", label: "🌀 Unload Diffusion (FLUX/SD)", defaultOn: true },
+  { name: "unload_clip", label: "📎 Unload CLIP / Text Encoder", defaultOn: false },
+  { name: "unload_vae", label: "🖼️ Unload VAE", defaultOn: false },
+  { name: "unload_control", label: "🎛️ Unload ControlNet / Adapter", defaultOn: false },
+];
 
-const modeHint = computed<string>(() => {
-  switch (cleanMode.value) {
-    case "Flush VRAM (All)":
-      return t("nc_hint_vram_all", "Frees GPU VRAM completely. Offloads UNet, CLIP, VAE & ControlNet.");
-    case "Unload Diffusion Only":
-      return t("nc_hint_diffusion", "Unloads heavy diffusion model (FLUX/Z-Image) while keeping CLIP & VAE.");
-    case "Soft Cache Only":
-      return t("nc_hint_soft_cache", "Runs PyTorch soft_empty_cache() without unloading models.");
-    case "Off":
-      return t("nc_hint_off", "Cleaner is disabled. Inputs pass through untouched.");
-    default:
-      return "";
-  }
-});
+function isOn(name: string, def: boolean): boolean {
+  const v = props.state.nodeState[name];
+  return typeof v === "boolean" ? v : def;
+}
+
+function toggle(name: string, def: boolean) {
+  props.state.nodeState[name] = !isOn(name, def);
+}
 </script>
 
 <template>
   <div class="fil-cleaner-root">
-    <label class="fil-cleaner-field">
-      <span class="fil-cleaner-label">{{ t("nc_clean_mode", "Clean Mode") }}</span>
-      <FilComboBox
-        :model-value="cleanMode"
-        :options="modeOptions"
-        @update:model-value="(v: string) => cleanMode = v"
-      />
-    </label>
-    <div v-if="modeHint" class="fil-cleaner-hint">
-      {{ modeHint }}
-    </div>
+    <button
+      v-for="r in rows"
+      :key="r.name"
+      type="button"
+      class="fil-cleaner-row"
+      :class="{ active: isOn(r.name, r.defaultOn) }"
+      :aria-pressed="isOn(r.name, r.defaultOn)"
+      @click="toggle(r.name, r.defaultOn)"
+    >
+      <span class="fil-cleaner-dot" />
+      <span class="fil-cleaner-label">{{ t(`nc_${r.name}`, r.label) }}</span>
+    </button>
   </div>
 </template>
 
@@ -56,30 +51,61 @@ const modeHint = computed<string>(() => {
 .fil-cleaner-root {
   display: flex;
   flex-direction: column;
-  gap: var(--fil-node-gap, 8px);
-  padding: var(--fil-node-pad, 10px);
+  gap: 6px;
+  padding: var(--fil-node-pad, 8px);
   color: var(--fil-text, #e8edf3);
   font-family: ui-sans-serif, system-ui, sans-serif;
 }
-.fil-cleaner-field {
+.fil-cleaner-row {
+  all: unset;
+  box-sizing: border-box;
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: var(--fil-field-radius, 6px);
+  border: 1px solid var(--fil-glass-border, rgba(255, 255, 255, 0.08));
+  background: var(--fil-glass-bg, rgba(255, 255, 255, 0.04));
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.12s, border-color 0.12s;
+}
+.fil-cleaner-row:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+.fil-cleaner-row.active {
+  border-color: var(--fil-accent);
+  background: color-mix(in srgb, var(--fil-accent) 14%, transparent);
+}
+.fil-cleaner-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  flex: none;
+  transition: border-color 0.12s, background 0.12s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.fil-cleaner-dot::after {
+  content: "✓";
+  font-size: 10px;
+  line-height: 1;
+  color: var(--fil-accent-ink, #fff);
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.fil-cleaner-row.active .fil-cleaner-dot {
+  background: var(--fil-accent);
+  border-color: var(--fil-accent);
+}
+.fil-cleaner-row.active .fil-cleaner-dot::after {
+  opacity: 1;
 }
 .fil-cleaner-label {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--fil-muted, #94a3b8);
-}
-.fil-cleaner-hint {
-  font-size: 11px;
-  line-height: 1.4;
-  color: var(--fil-text-secondary, #cbd5e1);
-  background: var(--fil-glass-bg, rgba(255, 255, 255, 0.04));
-  border: 1px solid var(--fil-glass-border, rgba(255, 255, 255, 0.08));
-  border-radius: var(--fil-field-radius, 6px);
-  padding: 6px 10px;
+  flex: 1;
+  font-size: 12px;
+  font-weight: 500;
 }
 </style>

@@ -243,21 +243,15 @@ _CLEANER = NodeContract(
     title="🧹 Cleaner",
     category=f"{CATEGORY_ROOT}/Tools",
     description="GPU VRAM and loaded model memory cleanup.",
-    min_size=(280, 160),
+    min_size=(280, 200),
     family="tool",
     inputs=NodeInputs(
         required=[
-            _combo(
-                "clean_mode",
-                values=[
-                    "Flush VRAM (All)",
-                    "Unload Diffusion Only",
-                    "Soft Cache Only",
-                    "Off",
-                ],
-                default="Flush VRAM (All)",
-                label="Clean Mode",
-            ),
+            _bool("clean_vram", default=True, label="Flush GPU Cache"),
+            _bool("unload_diffusion", default=True, label="Unload Diffusion (FLUX/SD)"),
+            _bool("unload_clip", default=False, label="Unload CLIP / Text Encoder"),
+            _bool("unload_vae", default=False, label="Unload VAE"),
+            _bool("unload_control", default=False, label="Unload ControlNet / Adapter"),
         ],
     ),
     outputs=[NodeOutput(name="output", type="ANY")],

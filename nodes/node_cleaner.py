@@ -7,12 +7,7 @@ from comfy_api.latest import io as _io
 from ..common.brand import CATEGORY_ROOT
 from ..common.localization import t as _t
 
-CLEAN_MODE_OPTIONS = [
-    "Flush VRAM (All)",
-    "Unload Diffusion Only",
-    "Soft Cache Only",
-    "Off",
-]
+
 
 
 class FiLNeuroCleaner(_io.ComfyNode):
@@ -24,12 +19,11 @@ class FiLNeuroCleaner(_io.ComfyNode):
             category=f"{CATEGORY_ROOT}/Tools",
             description="🧹 FiL Neuro Cleaner — flushes GPU VRAM and offloads loaded models to prevent Out-Of-Memory errors.",
             inputs=[
-                _io.Combo.Input(
-                    "clean_mode",
-                    options=CLEAN_MODE_OPTIONS,
-                    default="Flush VRAM (All)",
-                    tooltip=_t("nc_clean_mode", "Select VRAM & GPU memory cleanup strategy."),
-                ),
+                _io.Boolean.Input("clean_vram", default=True, label_on="Cache ON", label_off="Cache OFF", tooltip=_t("nc_clean_vram", "Flush GPU CUDA cache.")),
+                _io.Boolean.Input("unload_diffusion", default=True, label_on="Diffusion", label_off="Keep", tooltip=_t("nc_unload_diffusion", "Unload diffusion models (FLUX/SD).")),
+                _io.Boolean.Input("unload_clip", default=False, label_on="CLIP", label_off="Keep", tooltip=_t("nc_unload_clip", "Unload CLIP/text encoders.")),
+                _io.Boolean.Input("unload_vae", default=False, label_on="VAE", label_off="Keep", tooltip=_t("nc_unload_vae", "Unload VAE models.")),
+                _io.Boolean.Input("unload_control", default=False, label_on="ControlNet", label_off="Keep", tooltip=_t("nc_unload_control", "Unload ControlNet/IP-Adapter models.")),
                 _io.AnyType.Input("anything", optional=True),
             ],
             outputs=[
@@ -42,24 +36,27 @@ class FiLNeuroCleaner(_io.ComfyNode):
 
     @classmethod
     def fingerprint_inputs(cls, **kwargs) -> Any:
-        mode = kwargs.get("clean_mode", "Flush VRAM (All)")
-        if mode != "Off":
+        if kwargs.get("clean_vram") or kwargs.get("unload_diffusion") or kwargs.get("unload_clip") or kwargs.get("unload_vae") or kwargs.get("unload_control"):
             return time.time()
         return 0.0
 
     @classmethod
-    def execute(cls, clean_mode="Flush VRAM (All)", anything=None,
+    def execute(cls, clean_vram=True, unload_diffusion=True, unload_clip=False,
+                unload_vae=False, unload_control=False, anything=None,
                 unique_id=None, extra_pnginfo=None, **kwargs) -> _io.NodeOutput:
-        if clean_mode == "Off":
-            return _io.NodeOutput(anything)
+        selected = set()
+        if unload_diffusion:
+            selected.add("diffusion")
+        if unload_clip:
+            selected.add("clip")
+        if unload_vae:
+            selected.add("vae")
+        if unload_control:
+            selected.add("control")
 
-        if clean_mode == "Flush VRAM (All)":
-            _unload_models({"diffusion", "clip", "vae", "control", "lora", "other"})
-            _clear_vram()
-        elif clean_mode == "Unload Diffusion Only":
-            _unload_models({"diffusion"})
-            _clear_vram()
-        elif clean_mode == "Soft Cache Only":
+        if selected:
+            _unload_models(selected)
+        if clean_vram:
             _clear_vram()
 
         return _io.NodeOutput(anything)
