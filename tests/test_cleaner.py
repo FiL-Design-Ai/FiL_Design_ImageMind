@@ -41,29 +41,28 @@ def test_cleanup_switches_call_only_requested_operations(monkeypatch):
     monkeypatch.setattr(node_cleaner, "_clear_vram", lambda: calls.append(("vram",)))
     marker = object()
 
-    # Flush VRAM (All)
-    res1 = node_cleaner.FiLNeuroCleaner.execute(clean_mode="Flush VRAM (All)", anything=marker)
+    # VRAM cache + Diffusion
+    res1 = node_cleaner.FiLNeuroCleaner.execute(clean_vram=True, unload_diffusion=True, unload_clip=False, unload_vae=False, unload_control=False, anything=marker)
     assert res1[0] is marker
-    assert ("models", {"diffusion", "clip", "vae", "control", "lora", "other"}) in calls
-    assert ("vram",) in calls
-
-    calls.clear()
-    # Unload Diffusion Only
-    res2 = node_cleaner.FiLNeuroCleaner.execute(clean_mode="Unload Diffusion Only", anything=marker)
-    assert res2[0] is marker
     assert calls == [("models", {"diffusion"}), ("vram",)]
 
     calls.clear()
-    # Soft Cache Only
-    res3 = node_cleaner.FiLNeuroCleaner.execute(clean_mode="Soft Cache Only", anything=marker)
-    assert res3[0] is marker
+    # Cache only
+    res2 = node_cleaner.FiLNeuroCleaner.execute(clean_vram=True, unload_diffusion=False, unload_clip=False, unload_vae=False, unload_control=False, anything=marker)
+    assert res2[0] is marker
     assert calls == [("vram",)]
+
+    calls.clear()
+    # CLIP + VAE
+    res3 = node_cleaner.FiLNeuroCleaner.execute(clean_vram=False, unload_diffusion=False, unload_clip=True, unload_vae=True, unload_control=False, anything=marker)
+    assert res3[0] is marker
+    assert calls == [("models", {"clip", "vae"})]
 
 
 def test_disabled_cleanup_is_pure_passthrough(monkeypatch):
     monkeypatch.setattr(node_cleaner, "_clear_vram", lambda: (_ for _ in ()).throw(AssertionError("must not run")))
     monkeypatch.setattr(node_cleaner, "_unload_models", lambda s: (_ for _ in ()).throw(AssertionError("must not run")))
     marker = object()
-    result = node_cleaner.FiLNeuroCleaner.execute(clean_mode="Off", anything=marker)
+    result = node_cleaner.FiLNeuroCleaner.execute(clean_vram=False, unload_diffusion=False, unload_clip=False, unload_vae=False, unload_control=False, anything=marker)
     assert result[0] is marker
 
