@@ -7,7 +7,9 @@ import { PROVIDER_LABEL, PROVIDER_ICON } from "@/composables/providerMeta";
 
 const store = useProviderStore();
 
-const editing = ref<Record<string, { key: string; base_url: string; account_id: string }>>({});
+const editing = ref<Record<string, { key: string; base_url: string; account_id: string }>>(
+  Object.fromEntries(PROVIDER_LIST.map((pid) => [pid, { key: "", base_url: "", account_id: "" }]))
+);
 
 const probing = ref<Record<string, boolean>>({});
 const probedOk = ref<Record<string, boolean>>({});
@@ -122,6 +124,7 @@ async function doLoadModels(pid: string) {
 
 const hasChanges = (pid: string) => {
   const ed = editing.value[pid];
+  if (!ed) return false;
   const acct = store.accounts[pid];
   // Any typed key is a change (the saved key is never echoed back to compare
   // against); base_url/account_id compare against the returned safe metadata.
