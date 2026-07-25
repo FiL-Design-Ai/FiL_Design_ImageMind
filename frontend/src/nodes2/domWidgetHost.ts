@@ -151,6 +151,10 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
   // dead space below the panel. Measuring on every call is cheap
   // (`scrollHeight` read) and can't go stale.
   let currentHeight = opts.height;
+  // Forward declaration on purpose: the closures just below capture `widget`,
+  // but it can only be assigned once addDOMWidget() has returned further down.
+  // eslint-disable-next-line prefer-const
+  let widget: any;
 
   const measureHeight = (): number => {
     const content = host.firstElementChild as HTMLElement | null;
@@ -160,10 +164,14 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
     // slightly different height on every reload of the same workflow,
     // marking it dirty for no visible reason.
     currentHeight = Math.ceil(content.scrollHeight / 4) * 4;
+    if (widget) {
+      widget.height = currentHeight;
+      widget.computeSize = () => [host.clientWidth || 380, currentHeight];
+    }
     return currentHeight;
   };
 
-  const widget = n.addDOMWidget(name, "custom", host, {
+  widget = n.addDOMWidget(name, "custom", host, {
     hideOnZoom: true,
     getValue: () => state,
     setValue: (v: S) => {
@@ -204,37 +212,15 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
   function syncNodeHeight() {
     measureHeight();
     if (!n.computeSize || !n.setSize || !n.size) return;
-    // Compare against the NODE's own actual current size, not a before/after
-    // snapshot of the local `currentHeight` cache: LiteGraph calls
-    // `getHeight()` (which mutates `currentHeight`) on its own draw loop,
-    // independently of this function, so a before/after diff on that same
-    // shared variable is frequently already "consumed" by the time this
-    // runs — `before` and the freshly measured value end up equal even
-    // though `n.size` itself is still stale, silently skipping the
-    // resize (reproduced live: FiLProviderLoader stuck at 386px tall for
-    // ~237px of real content, FiLUpscaleTileCalc stuck at 786px for
-    // ~289px). `n.size[1]` vs `computeSize()[1]` is the actual ground
-    // truth for whether the node box needs correcting.
     const [currentWidth, currentSizeHeight] = n.size;
     const [, computedHeight] = n.computeSize();
-    // `minSize` (nodeStyle.ts's `registerStyledNode({minSize})`) is a floor
-    // we own and enforce ourselves — LiteGraph has no native concept of it
-    // and computeSize() never looks at it, so without this a node's real
-    // settled width/height could land BELOW the value every node module
-    // declares (reproduced live: FiLUpscaleTileCalc's declared 320px-wide
-    // minSize did nothing, actual width settled at 275px). Only ever a
-    // floor (Math.max), never shrinks below whatever's already there.
     const [minW, minH] = n.minSize ?? [0, 0];
     const targetWidth = Math.max(currentWidth, minW);
-    // Height is driven by computed content height, floored by declared minH.
-    // This allows nodes loaded from old workflow files (saved with larger heights)
-    // to automatically collapse to their exact UI height.
-    const targetHeight = Math.max(computedHeight, minH);
+    // Header/title padding in LiteGraph (~35px for title bar + margins).
+    // Ensure node total height always covers DOM content height + header.
+    const requiredTotalHeight = currentHeight + 35;
+    const targetHeight = Math.max(computedHeight, requiredTotalHeight, minH);
     if (targetWidth === currentWidth && Math.abs(targetHeight - currentSizeHeight) < 2) return;
-    // Width otherwise just preserves `currentWidth` — computeSize()'s own
-    // width opinion ignores minSize entirely (seen live shrinking a
-    // 271px-wide node down to 210px on a section collapse), so trusting
-    // computeSize()'s full [w, h] pair for width would reintroduce that.
     n.setSize([targetWidth, targetHeight]);
     n.graph?.setDirtyCanvas?.(true, true);
   }
