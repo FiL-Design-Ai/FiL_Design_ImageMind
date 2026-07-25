@@ -1,5 +1,6 @@
 <script setup lang="ts">
 /** FiLNeuroCleaner — toggle list for VRAM & model cleanup targets. */
+import { computed } from "vue";
 import { FilToggle } from "@/components/widgets";
 import type { FilNodeState } from "@/nodes2/filState";
 import { useI18n } from "@/composables/useI18n";
@@ -14,14 +15,16 @@ interface Row {
 }
 
 // `name` is the backend widget id and must never be translated; only `label` is
-// display text.
-const rows: Row[] = [
+// display text. Computed, not a plain const: useI18n loads the dictionary
+// asynchronously, so calling t() at <script setup> time would freeze the English
+// fallback in place.
+const rows = computed<Row[]>(() => [
   { name: "clean_vram", label: t("cln_flush_vram", "🧹 Flush GPU Cache"), defaultOn: true },
   { name: "unload_diffusion", label: t("cln_unload_diffusion", "🌀 Unload Diffusion (FLUX/SD)"), defaultOn: true },
   { name: "unload_clip", label: t("cln_unload_clip", "📎 Unload CLIP / Text Encoder"), defaultOn: false },
   { name: "unload_vae", label: t("cln_unload_vae", "🖼️ Unload VAE"), defaultOn: false },
   { name: "unload_control", label: t("cln_unload_control", "🎛️ Unload ControlNet / Adapter"), defaultOn: false },
-];
+]);
 
 function isOn(name: string, def: boolean): boolean {
   const v = props.state.nodeState[name];

@@ -3,7 +3,7 @@
  * FiLColorWizard - Cyberpunk HUD panel for automatic color correction & quick presets.
  */
 import { computed } from "vue";
-import { FilSection, FilSegmented, FilSlider, FilToggle } from "@/components/widgets";
+import { FilSection, FilComboBox, FilSlider, FilToggle, type FilComboOption } from "@/components/widgets";
 import type { FilNodeState } from "@/nodes2/filState";
 import { findFilWidget } from "@/nodes2/util";
 import { NODE_CONTRACTS } from "@/api/contracts";
@@ -21,8 +21,12 @@ const cwContract = NODE_CONTRACTS["FiLColorWizard"];
 const methodSpec =
   cwContract?.inputs.required.find((i) => i.name === "method") ||
   cwContract?.inputs.optional.find((i) => i.name === "method");
-const methodOptions = computed<string[]>(() =>
-  methodSpec?.values?.length ? methodSpec.values : ["Full Auto"],
+// A dropdown, not a segmented strip: five method names never fit across a
+// ~290px node — measured live, every option was clipped to 53px of the 61–95px
+// it needed, so not one of them was readable. The contract declares this widget
+// as `combo` for exactly that reason.
+const methodOptions = computed<FilComboOption[]>(() =>
+  (methodSpec?.values?.length ? methodSpec.values : ["Full Auto"]).map((value) => ({ value })),
 );
 
 function createRef<T>(name: string, defaultValue: T) {
@@ -100,7 +104,7 @@ function applyPreset(preset: "warm" | "cool" | "skin" | "contrast") {
 
     <!-- Algorithm Method -->
     <FilSection :title="t('cw_section_method', '⚙️ Method')" />
-    <FilSegmented
+    <FilComboBox
       v-model="method"
       :options="methodOptions"
       :title="t('tt_cw_method', 'Correction algorithm.')"

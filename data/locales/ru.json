@@ -265,5 +265,7 @@
   "cln_unload_diffusion": "🌀 Выгрузить диффузию (FLUX/SD)",
   "cln_unload_clip": "📎 Выгрузить CLIP / текстовый энкодер",
   "cln_unload_vae": "🖼️ Выгрузить VAE",
-  "cln_unload_control": "🎛️ Выгрузить ControlNet / адаптер"
+  "cln_unload_control": "🎛️ Выгрузить ControlNet / адаптер",
+  "sm_fusion_fast": "⚡ Быстрый стек",
+  "sm_fusion_smart": "🧬 Умная LLM-фузия"
 }

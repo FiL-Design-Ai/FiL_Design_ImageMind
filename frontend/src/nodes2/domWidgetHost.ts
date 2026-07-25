@@ -16,6 +16,22 @@
  */
 import { createApp, reactive, type Component, type App as VueApp } from "vue";
 import { useActivePinia } from "@/stores";
+
+/**
+ * True when `prop` can be assigned on `obj` without throwing.
+ *
+ * ComfyUI turns some widget fields into getter-only accessors between frontend
+ * releases; writing one throws, and when that happens inside LiteGraph's draw
+ * loop the whole frame is lost. Probing the descriptor chain keeps the write
+ * optional instead of fatal.
+ */
+function isWritable(obj: object, prop: string): boolean {
+  for (let o: object | null = obj; o; o = Object.getPrototypeOf(o)) {
+    const d = Object.getOwnPropertyDescriptor(o, prop);
+    if (d) return Boolean(d.writable || d.set);
+  }
+  return true; // not defined anywhere yet — a plain assignment creates it
+}
 import FilNodeShell from "@/components/widgets/FilNodeShell.vue";
 import { scrollRegionWantsWheel } from "@/composables/scrollGuard";
 
@@ -165,7 +181,15 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
     // marking it dirty for no visible reason.
     currentHeight = Math.ceil(content.scrollHeight / 4) * 4;
     if (widget) {
-      widget.height = currentHeight;
+      // `height` became a getter-only accessor on BaseWidget in the ComfyUI
+      // frontend (seen on 1.47.10). Assigning it throws *inside* LiteGraph's
+      // draw loop, which aborts the frame — every FiL node then rendered as
+      // nothing at all. `computeSize()` is the supported channel and is what
+      // LiteGraph actually reads; only set `height` where it is still writable,
+      // for older frontends that rely on it.
+      if (isWritable(widget, "height")) {
+        (widget as { height?: number }).height = currentHeight;
+      }
       widget.computeSize = () => [host.clientWidth || 380, currentHeight];
     }
     return currentHeight;
