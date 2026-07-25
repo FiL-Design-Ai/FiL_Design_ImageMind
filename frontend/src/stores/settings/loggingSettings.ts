@@ -1,6 +1,6 @@
 import type { ComfyExtensionSettings } from "@/types/comfy";
 import { postJson } from "@/api/client";
-import { ROUTE_PREFIX } from "@/constants/brand";
+import { ROUTE_PREFIX, SETTINGS_CATEGORY } from "@/constants/brand";
 
 function onLogLevelChange(newValue: unknown): void {
   postJson(`${ROUTE_PREFIX}/log_level`, { level: String(newValue) }).catch(() => {});
@@ -13,7 +13,7 @@ export const LOGGING_SETTINGS: ComfyExtensionSettings[] = [
     type: "combo",
     defaultValue: "WARNING",
     options: ["DEBUG", "INFO", "WARNING", "ERROR"],
-    category: ["FiL_Design_ImageMind", "Logging"],
+    category: [SETTINGS_CATEGORY, "Logging"],
     tooltip: "Python backend log verbosity for this node pack.",
     onChange: onLogLevelChange,
   },

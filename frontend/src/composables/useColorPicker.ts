@@ -9,6 +9,14 @@ import FilColorPicker from "@/components/widgets/FilColorPicker.vue";
 
 const COLOR_PICKER_ID = "__fil_color_picker_popup__";
 
+/**
+ * Teardown for the picker that is currently open, if any. Removing the popup's
+ * DOM node is not enough: its `mousedown`/`keydown` handlers live on `document`
+ * and its Vue subtree needs `render(null, …)`, so reopening the picker without
+ * running this first leaked a listener pair (and a component) every time.
+ */
+let activeCleanup: (() => void) | null = null;
+
 interface LiteGraphNode {
   color?: string;
   properties?: Record<string, unknown>;
@@ -32,8 +40,8 @@ export function getColorMenuItems(node: LiteGraphNode): unknown[] {
 }
 
 function openColorPicker(node: LiteGraphNode, event?: MouseEvent) {
-  const existing = document.getElementById(COLOR_PICKER_ID);
-  if (existing) existing.remove();
+  activeCleanup?.();
+  document.getElementById(COLOR_PICKER_ID)?.remove();
 
   const mount = document.createElement("div");
   mount.id = COLOR_PICKER_ID;
@@ -63,6 +71,7 @@ function openColorPicker(node: LiteGraphNode, event?: MouseEvent) {
     mount.remove();
     document.removeEventListener("mousedown", outsideHandler, true);
     document.removeEventListener("keydown", keyHandler, true);
+    if (activeCleanup === cleanup) activeCleanup = null;
   }
 
   function outsideHandler(e: MouseEvent) {
@@ -80,6 +89,7 @@ function openColorPicker(node: LiteGraphNode, event?: MouseEvent) {
 
   document.addEventListener("mousedown", outsideHandler, true);
   document.addEventListener("keydown", keyHandler, true);
+  activeCleanup = cleanup;
 
   nextTick(() => {
     mount.querySelector<HTMLElement>(".fil-color-swatch")?.focus();

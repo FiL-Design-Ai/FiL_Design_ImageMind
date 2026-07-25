@@ -11,7 +11,6 @@ import { computed, ref, watch } from "vue";
 
 const props = withDefaults(
   defineProps<{
-    modelValue: number;
     min?: number | null;
     max?: number | null;
     step?: number | null;
@@ -27,9 +26,9 @@ const props = withDefaults(
   { step: 1 },
 );
 
-const emit = defineEmits<{ "update:modelValue": [value: number] }>();
+const modelValue = defineModel<number>({ required: true });
 
-const committed = computed(() => props.modelValue);
+const committed = computed(() => modelValue.value);
 const text = ref(formatNum(committed.value));
 
 watch(committed, (v) => {
@@ -68,7 +67,7 @@ function commit(parsed: number | null) {
   let v = parsed;
   if (props.min != null && v < props.min) v = props.min;
   if (props.max != null && v > props.max) v = props.max;
-  if (v !== committed.value) emit("update:modelValue", v);
+  if (v !== committed.value) modelValue.value = v;
   text.value = formatNum(v);
 }
 
@@ -105,7 +104,7 @@ function bump(direction: number) {
   let v = committed.value + direction * (props.step || 1);
   if (props.min != null && v < props.min) v = props.min;
   if (props.max != null && v > props.max) v = props.max;
-  emit("update:modelValue", v);
+  modelValue.value = v;
   text.value = formatNum(v);
 }
 </script>

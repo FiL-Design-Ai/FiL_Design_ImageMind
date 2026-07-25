@@ -13,10 +13,15 @@
 import { computed, ref } from "vue";
 import { STYLE_PREVIEWS } from "@/generated/stylePreviews";
 
-const props = defineProps<{
-  styles: string[];
-  modelValue: string;
-}>();
+const props = withDefaults(
+  defineProps<{
+    styles: string[];
+    multi?: boolean;
+  }>(),
+  { multi: false }
+);
+
+const modelValue = defineModel<string>({ required: true });
 
 const emit = defineEmits<{ select: [value: string] }>();
 
@@ -27,6 +32,18 @@ function parseCategory(key: string): string {
 function parseName(key: string): string {
   const idx = key.indexOf("/");
   return idx === -1 ? key : key.slice(idx + 1);
+}
+
+const selectedList = computed<string[]>(() => {
+  const raw = modelValue.value || "";
+  if (!raw || raw === "None") return [];
+  return raw.split("|").map((s) => s.trim()).filter((s) => s && s !== "None");
+});
+
+const selectedSet = computed<Set<string>>(() => new Set(selectedList.value));
+
+function isSelected(key: string): boolean {
+  return selectedSet.value.has(key);
 }
 
 const categories = computed(() => {
@@ -59,13 +76,46 @@ function previewFor(key: string): string | undefined {
   return STYLE_PREVIEWS[key];
 }
 
+function removeStyle(key: string) {
+  const current = selectedList.value.filter((k) => k !== key);
+  const nextVal = current.length > 0 ? current.join(" | ") : "None";
+  modelValue.value = nextVal;
+  emit("select", nextVal);
+}
+
 function select(key: string) {
-  emit("select", key);
+  if (props.multi) {
+    let next: string[];
+    if (selectedSet.value.has(key)) {
+      next = selectedList.value.filter((k) => k !== key);
+    } else {
+      next = [...selectedList.value, key];
+    }
+    const nextVal = next.length > 0 ? next.join(" | ") : "None";
+    modelValue.value = nextVal;
+    emit("select", nextVal);
+  } else {
+    // Single mode: clicking active deselects to None
+    const nextVal = modelValue.value === key ? "None" : key;
+    modelValue.value = nextVal;
+    emit("select", nextVal);
+  }
 }
 </script>
 
 <template>
   <div class="fil-style-picker">
+    <div v-if="selectedList.length > 0" class="fil-style-selected-bar">
+      <span
+        v-for="s in selectedList"
+        :key="s"
+        class="fil-style-chip"
+      >
+        <span class="fil-chip-text">{{ parseName(s) }}</span>
+        <button type="button" class="fil-chip-remove" title="Remove style" @click.stop="removeStyle(s)">×</button>
+      </span>
+    </div>
+
     <div class="fil-style-cats">
       <button
         type="button"
@@ -86,21 +136,32 @@ function select(key: string) {
         {{ c }}
       </button>
     </div>
-    <input
-      v-model="query"
-      type="search"
-      class="fil-style-search"
-      placeholder="Search styles…"
-      aria-label="Search styles"
-      spellcheck="false"
-    />
+    <div class="fil-style-search-wrap">
+      <input
+        v-model="query"
+        type="search"
+        class="fil-style-search"
+        placeholder="Search styles…"
+        aria-label="Search styles"
+        spellcheck="false"
+      />
+      <button
+        v-if="query.trim().length > 0"
+        type="button"
+        class="fil-style-search-clear"
+        title="Clear search"
+        @click="query = ''"
+      >
+        ×
+      </button>
+    </div>
     <div class="fil-style-grid">
       <button
         v-for="s in filtered"
         :key="s"
         type="button"
         class="fil-style-tile"
-        :class="{ active: s === modelValue }"
+        :class="{ active: isSelected(s) }"
         :title="s"
         @click="select(s)"
       >
@@ -154,10 +215,14 @@ function select(key: string) {
   outline: 2px solid var(--fil-accent);
   outline-offset: 1px;
 }
+.fil-style-search-wrap {
+  position: relative;
+  width: 100%;
+}
 .fil-style-search {
   box-sizing: border-box;
   width: 100%;
-  padding: 7px 10px;
+  padding: 7px 28px 7px 10px;
   background: var(--fil-panel-alt, #171819);
   border: 1px solid var(--fil-muted, #3a3d40);
   border-radius: 6px;
@@ -168,6 +233,29 @@ function select(key: string) {
 }
 .fil-style-search:focus {
   border-color: var(--fil-accent);
+}
+.fil-style-search-clear {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.12);
+  color: #bbb;
+  font-size: 13px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+.fil-style-search-clear:hover {
+  background: rgba(255, 75, 75, 0.3);
+  color: #ff6b6b;
 }
 .fil-style-grid {
   display: grid;
@@ -239,5 +327,52 @@ function select(key: string) {
   text-align: center;
   color: var(--fil-muted, #666);
   font-size: 12px;
+}
+
+.fil-style-selected-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 6px;
+  background: rgba(0, 240, 255, 0.06);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+}
+.fil-style-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--fil-accent, #00f0ff);
+  color: #12151a;
+  font-size: 11px;
+  font-weight: 600;
+}
+.fil-chip-text {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fil-chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.2);
+  color: #12151a;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.08s, color 0.08s;
+}
+.fil-chip-remove:hover {
+  background: #ff4b4b;
+  color: #ffffff;
 }
 </style>

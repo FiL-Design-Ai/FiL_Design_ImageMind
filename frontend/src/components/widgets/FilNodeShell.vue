@@ -19,5 +19,7 @@ defineProps<{ root: Component; state: Record<string, unknown>; comfyClass: strin
 <style scoped>
 .fil-node-shell {
   position: relative;
+  width: 100%;
+  box-sizing: border-box;
 }
 </style>

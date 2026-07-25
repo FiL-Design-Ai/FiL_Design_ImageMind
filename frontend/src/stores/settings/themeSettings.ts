@@ -1,12 +1,14 @@
 import type { ComfyExtensionSettings } from "@/types/comfy";
 import { applyFilTheme, type FilThemeName } from "@/styles/brand";
 import { reapplyThemeToGraph } from "@/nodes2/nodeStyle";
+import { SETTINGS_CATEGORY } from "@/constants/brand";
 
 const THEME_VALUE_TO_NAME: Record<string, FilThemeName> = {
   Default: "default",
   Cyberpunk: "cyberpunk",
   Fallout: "fallout",
-  Travelmate: "travelmate",
+  Pipboy: "pipboy",
+  "FiL Green": "travelmate",
 };
 
 /**
@@ -30,9 +32,9 @@ export const THEME_SETTINGS: ComfyExtensionSettings[] = [
     name: "Node theme",
     type: "combo",
     defaultValue: "Default",
-    options: ["Default", "Cyberpunk", "Fallout", "Travelmate"],
-    category: ["FiL_Design_ImageMind", "Appearance", "Theme"],
-    tooltip: "Recolors every FiL_Design_ImageMind node panel and adds a small themed flourish (neon glow for Cyberpunk, a CRT scanline texture for Fallout, acid-lime glow for Travelmate). Applies instantly, no reload.",
+    options: ["Default", "Cyberpunk", "Fallout", "Pipboy", "FiL Green"],
+    category: [SETTINGS_CATEGORY, "Appearance", "Theme"],
+    tooltip: "Recolors every FiL_Design_ImageMind node panel and adds a small themed flourish (neon glow for Cyberpunk, a CRT scanline texture for Pipboy and Fallout, acid-lime glow for Travelmate). Applies instantly, no reload.",
     onChange: onThemeChange,
   },
 ];

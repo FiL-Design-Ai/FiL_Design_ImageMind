@@ -398,10 +398,10 @@ PHOTO_STYLES = {
         "supermarket aisle, fluorescent lighting, product shelves, reflective floor, high detail packaging textures, everyday environment realism."
     ),
     "🗺️ СЦЕНЫ/🛩️ Airplane Window": (
-        "airplane window view, high altitude clouds, wing structure detail, atmospheric haze, bright daylight sky, travel perspective realism."
+        "airplane window view from passenger seat, curved plastic window edge and wing strut in foreground, cotton-wool cloud layer far below, thin atmospheric haze gradient to horizon, high-altitude sunlight casting hard shadows across the wing, scratched double-pane window surface catching side flare, compressed cloud texture from cruise altitude, travel document realism without fisheye or ultra-wide distortion."
     ),
     "🗺️ СЦЕНЫ/🎢 Amusement Park": (
-        "amusement park environment, colorful lights, motion structures, evening lighting, vibrant atmosphere, dynamic composition, theme park realism."
+        "amusement park night environment, densely packed crowd silhouettes against illuminated ride structures, multicolored string-light and neon-tube reflections, steel roller-coaster track geometry against dark sky, motion blur of spinning rides in the background, cotton-candy and popcorn stall lighting in the foreground, warm-tungsten and cool-LED mixed color temperature, festive high-contrast night realism."
     ),
     "🗺️ СЦЕНЫ/🌊 Ocean Wave": (
         "ocean wave motion, water spray particles, sunlight reflections, dynamic water surface, high detail liquid texture, surfing environment realism."
@@ -410,84 +410,84 @@ PHOTO_STYLES = {
         "swimming pool surface, clear blue water, caustic light patterns, tiled bottom texture, bright sunlight reflections, resort environment realism."
     ),
     "🗺️ СЦЕНЫ/🏜️ Desert Road": (
-        "desert highway, heat haze distortion, asphalt texture, bright sun exposure, empty landscape, long distance perspective, travel realism."
+        "two-lane desert highway vanishing to a horizon point, heat-shimmer distortion rising from dark asphalt, bleached sand and dry brush shoulder texture, harsh overhead sun blowing out distant detail, mirage-like water reflection on road surface far ahead, empty landscape scale emphasized by small roadside signage, high-temperature atmospheric clarity, long-exposure travel realism."
     ),
     "🗺️ СЦЕНЫ/🍄 Fairy Forest": (
-        "dense forest environment, moss-covered ground, soft mist, low light diffusion, organic textures, subtle glowing elements, atmospheric woodland realism."
+        "dense woodland interior with layered canopy, moss-covered tree trunks and exposed root systems, soft mist settling knee-high between trees, low-angle sunlight piercing through leaves in scattered god rays, damp bark texture and wet fern detail, tiny bioluminescent sparkle dots in shadow pockets, rich green and brown organic palette, atmospheric woodland realism without fantasy glow excess."
     ),
     "🗺️ СЦЕНЫ/🗿 Ancient Ruins": (
-        "ancient ruins, weathered stone textures, erosion detail, natural lighting, historical decay, environmental storytelling realism."
+        "weathered stone ruin structure against open sky, cracked and moss-stained masonry block texture, partial wall or column collapse geometry, erosion-rounded edges on carved detail, warm late-afternoon light raking across stone surfaces, scattered rubble and weed-overgrown base, historical decay evidence visible in material stratification, documentary archaeological realism."
     ),
     "🗺️ СЦЕНЫ/🎹 Piano Studio": (
         "piano studio interior, polished wood surfaces, soft side lighting, instrument reflections, sheet music detail, quiet indoor realism."
     ),
     "🗺️ СЦЕНЫ/🧖 Spa Towel": (
-        "spa environment, soft towels, humid air, diffused lighting, wet stone textures, calm atmosphere, wellness realism."
+        "spa treatment room, neatly folded towel stacks on heated stone bench, humid air softening the light, steam-diffused window glow, polished teak wood surfaces with water droplets, smooth river-stone accent wall, eucalyptus or greenery detail in corner, calm low-contrast lighting, wellness editorial realism with tactile fabric and stone surface truth."
     ),
     "🗺️ СЦЕНЫ/📚 Library Shelf": (
         "library shelves, books texture detail, warm lamp lighting, wooden surfaces, quiet reading environment, intellectual space realism."
     ),
     "🗺️ СЦЕНЫ/🪜 Construction Site": (
-        "construction site, scaffolding structures, concrete textures, industrial materials, harsh daylight, work environment realism."
+        "active construction site, steel scaffolding lattice against building face, raw concrete pour surfaces with form-tie holes, exposed rebar and conduit detail, orange safety netting accent, dust particles lit by harsh midday sun, portable light-stand and cable clutter, bare plywood and gravel ground texture, industrial work-in-progress realism."
     ),
     "🗺️ СЦЕНЫ/🏚️ Abandoned Building": (
-        "abandoned interior, peeling paint, dust layers, broken windows, cold light entering, decay textures, urban ruin realism."
+        "abandoned interior space, layered peeling paint revealing older color underneath, thick dust coating every horizontal surface, broken window glass fragments on floor, cold blue daylight entering through gaps, rusted metal fixture and exposed lath texture, decayed wallpaper or rotted fabric remnants, urban ruin atmosphere with real material decomposition evidence."
     ),
     "🗺️ СЦЕНЫ/🖤 Black Light Party": (
-        "UV club environment, fluorescent materials, neon glow, dark background, high contrast lighting, party atmosphere realism."
+        "UV nightclub environment, ultraviolet tube fixtures casting purple-black ambient light, fluorescent fabric and body-paint glowing sharply against dark background, white garments shifted to electric blue-violet, crowd silhouettes with glowing accents, haze machine scattering UV light into visible beams, high-contrast neon party atmosphere, real club photography lighting physics."
     ),
     "🗺️ СЦЕНЫ/🏮 Lantern Festival": (
-        "lantern festival, glowing lanterns, warm light tones, night sky contrast, cultural event atmosphere, festive realism."
+        "nighttime lantern festival, hundreds of paper lanterns suspended at varying heights, warm amber and red glow cast on surrounding crowd faces, dark twilight sky as contrast backdrop, wooden stall and string-light details in background, floating sky lanterns as small bright dots in distance, smoke haze softening distant lanterns, festive cultural atmosphere with real fire-lit color temperature."
     ),
     "🗺️ СЦЕНЫ/🔦 Flashlight Beam": (
         "dark environment, focused flashlight beam, sharp light cone, strong falloff, dust particles in light, search lighting realism."
     ),
     "🗺️ СЦЕНЫ/🏺 Pottery Studio": (
-        "ceramic workshop, clay textures, pottery wheel, natural lighting, artisan environment, tactile material realism."
+        "ceramic workshop with potter's wheel, wet clay on wheel surface with spiral throwing marks, damp earthy smell implied by diffused natural light, plaster and wooden rib tools on workbench, unfired pots on drying shelves in background, splattered clay droplets on floor and apron, warm side window lighting emphasizing clay texture, artisan workspace realism."
     ),
     "🗺️ СЦЕНЫ/🕯️ Candle Meditation": (
-        "candle-lit environment, warm low light, soft shadows, calm atmosphere, reflective surfaces, meditative space realism."
+        "candle-lit quiet room, single flame light source casting warm flickering glow, soft shadow pools around the room's edges, reflective surfaces catching tiny flame highlights, calm intimate atmosphere with minimal furniture silhouette, smoke trail from recently extinguished match, low ambient light with extreme warm color temperature, meditative space realism."
     ),
     "🗺️ СЦЕНЫ/🪴 Plant Nursery": (
-        "greenhouse environment, plant rows, humid air, natural light diffusion, leaf texture detail, botanical realism."
+        "greenhouse or plant nursery interior, long rows of potted plants on metal shelving, humid air creating soft light diffusion, translucent roof panels casting even overhead light, varied leaf textures from glossy to matte, drip irrigation tubing and small watering can details, earthy potting mix and terracotta pot surfaces, botanical environment realism with genuine growing-space clutter."
     ),
     "🗺️ СЦЕНЫ/🎤 Recording Studio": (
         "recording studio interior, microphone setup, acoustic panels, low light environment, equipment reflections, professional audio space realism."
     ),
     "🗺️ СЦЕНЫ/🧸 Cozy Bedroom": (
-        "cozy bedroom, soft bedding textures, warm lamp lighting, intimate interior, relaxed composition, domestic realism."
+        "cozy bedroom interior, rumpled duvet and layered pillow textures, warm bedside lamp pool on nightstand, soft window light filtering through curtain edge, personal clutter on dresser, folded clothes on chair corner, intimate domestic atmosphere with real lived-in surface detail, relaxed composition, residential realism without hotel sterility."
     ),
     "🗺️ СЦЕНЫ/🏗️ Skyscraper Edge": (
-        "high-rise building edge, city depth below, strong perspective drop, wind exposure, urban height realism."
+        "high-rise building edge perspective, sheer vertical drop visible at frame edge, dense city grid far below compressed by telephoto, wind-exposure evidence in blurred foreground element, glass curtain wall reflections, hard top-down sunlight creating deep vertical shadow on facade, urban height vertigo captured through architectural photography discipline."
     ),
     "🗺️ СЦЕНЫ/🍳 Kitchen Morning": (
-        "kitchen interior, morning sunlight, soft shadows, domestic textures, natural light realism."
+        "kitchen interior in early morning, strong sunlight from east window casting long geometric shadows across countertop, coffee cup rim highlight and steam catching light, textured tile backsplash with shadow patterns, stainless steel faucet reflection, crumb and dish towel detail on wooden cutting board, warm domestic atmosphere with natural morning light temperature and soft interior-shadow falloff."
     ),
     "🗺️ СЦЕНЫ/⛺ Campfire Night": (
-        "campfire scene, glowing embers, firelight illumination, dark forest background, smoke particles, outdoor night realism."
+        "night campfire scene, glowing ember bed with flame tips, firelight illumination on faces and nearby tent fabric, deep dark forest wall beyond the light circle, thin smoke trail and wood-burning particles visible in the beam of a headlamp, log and camp chair silhouettes, warm orange light against cool night sky, outdoor night realism with real fire behavior and temperature contrast."
     ),
     "🗺️ СЦЕНЫ/🧗 Rock Climbing": (
-        "rock climbing scene, textured stone surface, physical tension, outdoor lighting, action environment realism."
+        "rock climbing scene, textured granite or sandstone surface close-up, climber's hand on hold with chalk dust visible, tension in arm and finger tendons, harness and rope detail against rock, harsh outdoor sunlight casting sharp shadow on cliff face, safety equipment metal hardware glint, dramatic downward perspective, action environment realism with genuine climbing-texture detail."
     ),
     "🗺️ СЦЕНЫ/🛒 Vintage Store": (
-        "vintage shop interior, mixed retro objects, warm lighting, cluttered composition, nostalgic realism."
+        "vintage shop interior, densely packed shelves with mixed-era objects, retro signage and tin advertising panels, warm incandescent lighting creating amber glow, worn wooden floorboards, glass display case reflections, stacked vinyl records and paperback books, nostalgic clutter composition with real aged-surface and paper-patina texture."
     ),
     "🗺️ СЦЕНЫ/🌉 Golden Gate": (
-        "Golden Gate Bridge, fog atmosphere, red structure detail, coastal lighting, landmark realism."
+        "Golden Gate Bridge framed through coastal fog layer, International Orange paint texture on cable and tower surface, suspension cable geometry against mist-white sky, bridge tower fading into fog above, car and pedestrian scale detail on roadway, damp sea air softening distant structure edges, cold blue-gray fog against warm rust-orange metal, landmark photography realism."
     ),
     "🗺️ СЦЕНЫ/🛁 Rainy Window": (
-        "rain on glass surface, water droplets, blurred background, soft lighting, reflective moisture, interior-exterior contrast realism."
+        "rain on glass surface viewed from indoors, water droplet lensing creating distorted view of outside, individual droplet tracks and splash patterns on pane, soft indoor light reflecting on wet glass, blurred city or garden shapes behind moisture layer, condensation ring at glass bottom edge, interior-exterior contrast with real droplet physics and surface tension detail."
     ),
     "🗺️ СЦЕНЫ/🪐 Neon Desert": (
-        "desert at night, neon signage, dark sky, reflective surfaces, retrofuture lighting, stylized desert realism."
+        "open desert at night, single neon sign structure planted in sand, dark starry sky with minimal light pollution, neon glow spilling across sandy ground and casting colored shadows, distant mesas or rock formations faintly visible, reflective surfaces on sign frame catching the glow, retrofuture roadside atmosphere, stylized desert-night photography realism."
     ),
     "🗺️ СЦЕНЫ/🥾 Hiking Trail": (
-        "mountain trail, natural terrain, daylight lighting, outdoor textures, travel environment realism."
+        "mountain trail curving through terrain, packed dirt and loose gravel texture underfoot, wild grass and low brush on trail edges, natural daylight with cloud-softened shadows, distant mountain layers fading in atmospheric haze, backpack and pole detail in frame edge, outdoor adventure photography with real terrain and vegetation truth."
     ),
     "🗺️ СЦЕНЫ/🌾 Rice Terraces": (
-        "terraced fields, water reflections, agricultural landscape, humid atmosphere, natural environment realism."
+        "tiered rice terraces carved into hillside, water-filled paddies reflecting sky, young rice plant rows breaking the water surface, earthen retaining wall detail between levels, humid mountain atmosphere softening distance, water-buffalo or farmer silhouette on narrow path, natural agricultural landscape with mirror-like water reflections and genuine cultivation surface detail."
     ),
     "🗺️ СЦЕНЫ/🛀 Floating Bath": (
-        "still water bath, reflective surface, minimal lighting, calm environment, wellness realism."
+        "still water bath surface, submerged body silhouette beneath clear water, minimal ripples creating soft reflection distortion, minimalist bathroom architecture with natural stone or ceramic surfaces, soft diffused overhead light, steam wisps at water level, calm meditative atmosphere, wellness photography with real water-surface optics and porcelain edge detail."
     ),
 }

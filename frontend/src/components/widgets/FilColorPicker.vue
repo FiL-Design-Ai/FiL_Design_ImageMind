@@ -11,22 +11,16 @@ const PRESETS = [
   "#3b82f6", "#6366f1", "#a855f7", "#ec4899", "#78716c",
 ];
 
-const props = withDefaults(
-  defineProps<{
-    modelValue?: string;
-    presets?: string[];
-  }>(),
-  { modelValue: "#78716c" },
-);
-
-const emit = defineEmits<{
-  "update:modelValue": [value: string];
+const props = defineProps<{
+  presets?: string[];
 }>();
+
+const modelValue = defineModel<string>({ default: "#78716c" });
 
 const colors = computed(() => props.presets ?? PRESETS);
 
 function select(color: string) {
-  emit("update:modelValue", color);
+  modelValue.value = color;
 }
 
 // ---- hex <-> hsv ----------------------------------------------------
@@ -82,7 +76,7 @@ function hsvToRgb(h: number, s: number, v: number): [number, number, number] {
 const hue = ref(0);
 const sat = ref(0);
 const val = ref(0);
-const hexInput = ref(props.modelValue);
+const hexInput = ref(modelValue.value);
 
 function syncFromHex(hex: string) {
   const rgb = hexToRgb(hex);
@@ -94,12 +88,12 @@ function syncFromHex(hex: string) {
   hexInput.value = rgbToHex(...rgb);
 }
 
-watch(() => props.modelValue, (v) => syncFromHex(v), { immediate: true });
+watch(modelValue, (v) => syncFromHex(v), { immediate: true });
 
 const currentHex = computed(() => rgbToHex(...hsvToRgb(hue.value, sat.value, val.value)));
 
 function commitHsv() {
-  emit("update:modelValue", currentHex.value);
+  modelValue.value = currentHex.value;
   hexInput.value = currentHex.value;
 }
 
@@ -113,7 +107,7 @@ function commitHexInput() {
   hue.value = h;
   sat.value = s;
   val.value = v;
-  emit("update:modelValue", rgbToHex(...rgb));
+  modelValue.value = rgbToHex(...rgb);
 }
 
 // ---- SV square + hue strip drag handling ------------------------------

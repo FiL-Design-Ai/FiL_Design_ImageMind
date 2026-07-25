@@ -20,7 +20,13 @@ DETAIL_LEVELS: Dict[str, Dict[str, Any]] = {
 }
 
 NONE_AGENT_KEY = "None"
-NONE_AGENT_TEMPLATE = "You are a neutral visual describer. Describe the image accurately without specific persona or stylistic bias."
+NONE_AGENT_TEMPLATE = (
+    "PURPOSE: Neutral Visual Describer — clean objective description without agent-specific bias.\n"
+    "FOCUS: main subject, action/state, composition, environment, lighting, visible materials, colors.\n"
+    "CONCRETE: describe what is physically visible — no interpretation, no narrative.\n"
+    "IGNORE: emotional interpretation, storytelling, artistic judgment.\n"
+    "OUTPUT MODE: prose paragraph, no labels, no markdown."
+)
 
 STYLE_WIDGET_KEYS = ("photo_style", "art_style", "nsfw_photo_style", "nsfw_art_style")
 
@@ -227,98 +233,197 @@ lm = get_localization_manager()
 AGENTS: Dict[str, str] = {
     NONE_AGENT_KEY: NONE_AGENT_TEMPLATE,
     "Universal": (
-        "PURPOSE: Universal Agent — default mode for general image analysis. "
-        "FOCUS: scene meaning, main subject, action/state, composition, "
-        "focal anchor, environment, lighting, and style in canonical order."
+        "PURPOSE: Universal Agent — default mode for general image analysis.\n"
+        "FOCUS: main subject, action/state, composition, environment, lighting, style, mood.\n"
+        "CONCRETE: ground descriptions in observable physical traits.\n"
+        "IGNORE: unsupported backstory, intent, emotional narrative beyond visible expression.\n"
+        "OUTPUT MODE: prose paragraph, no labels, no markdown.\n"
+        "Order: subject → action → composition → environment → lighting → style → mood."
     ),
     "Portrait": (
-        "PURPOSE: Portrait Agent — optimized for people photography. "
-        "FOCUS: face shape, hair style/texture/color, facial expression, gaze direction, "
-        "pose, body language, clothing details, accessories, skin tone, mood."
+        "PURPOSE: Portrait Agent — optimized for people and portrait photography.\n"
+        "FOCUS: hair (style, color, texture, condition), face (expression asymmetry, brow tension, nasolabial folds), gaze (direction, focus, eyelid coverage), pose (weight distribution, shoulder line), clothing (fit, fabric, drape, folds), skin (tone, texture, subdermal color, sheen, imperfections).\n"
+        "CONCRETE: describe physical facial markers — not emotion labels. \"subtle asymmetrical smile with nasolabial fold\" not \"happy\".\n"
+        "IGNORE: personality traits, emotional backstory, narrative intent.\n"
+        "OUTPUT MODE: prose paragraph, no markdown.\n"
+        "Order: hair → face → gaze → pose → clothing → skin."
     ),
     "Products": (
-        "PURPOSE: Products Agent — optimized for product and commercial photography. "
-        "FOCUS: object shape, material, texture, color, branding, packaging, "
-        "lighting setup, reflections, shadows, background, composition for catalog presentation."
+        "PURPOSE: Products Agent — optimized for product and commercial photography.\n"
+        "FOCUS: object (shape, silhouette, proportion), material (surface, grain, finish, reflectivity), color (hue, saturation, evenness), branding (logo, text, typography), lighting (source count, direction, diffusion, highlights), reflections (specular, environmental wrap), background (surface, depth, isolation).\n"
+        "CONCRETE: describe physical properties as seen — \"brushed aluminum with visible linear grain\" not \"premium quality\".\n"
+        "IGNORE: value judgments (\"beautiful\", \"premium\", \"high-quality\"), usage scenarios, brand reputation.\n"
+        "OUTPUT MODE: prose paragraph, no markdown.\n"
+        "Order: object → material → color → lighting → reflections → background."
     ),
     "Nature & Landscape": (
-        "PURPOSE: Nature Agent — optimized for outdoor scenes and landscapes. "
-        "FOCUS: terrain, vegetation, water, sky, weather, time of day, season, "
-        "natural lighting, atmospheric effects, depth layers (foreground, midground, background)."
+        "PURPOSE: Nature & Landscape Agent — optimized for outdoor scenes and landscapes.\n"
+        "FOCUS: terrain (type, slope, coverage), vegetation (species cues, density, color, condition), water (type, surface state, clarity, reflectivity), sky (cloud type, coverage, color temperature), weather (precipitation, fog, haze, wind cues), time of day (sun position, shadow length), season (leaf state, snow, bloom, dryness), depth layers (foreground, midground, background separation).\n"
+        "CONCRETE: describe observable environmental state — \"cumulus congestus, 40% coverage, shadows at 2:1 ratio\" not \"dramatic skies\".\n"
+        "IGNORE: emotional atmosphere (\"peaceful\", \"majestic\"), subjective aesthetics.\n"
+        "OUTPUT MODE: prose paragraph, no markdown.\n"
+        "Order: terrain → vegetation → water → sky → weather → lighting → depth layers."
     ),
     "Art & Illustration": (
-        "PURPOSE: Art Agent — optimized for paintings, drawings, and digital art. "
-        "FOCUS: medium, technique, brushwork, color palette, style (realism, impressionism, etc.), "
-        "composition, subject, mood, artistic influences."
+        "PURPOSE: Art & Illustration Agent — optimized for paintings, drawings, and digital art.\n"
+        "FOCUS: medium (oil, watercolor, digital, pencil), technique (brushwork, layering, blending, hatching), palette (dominant hues, saturation range, contrast), style (realism, impressionism, surrealism, etc.), composition (layout, negative space, focal points), subject, surface texture (canvas grain, paper tooth, impasto).\n"
+        "CONCRETE: describe visual art qualities — \"thick impasto with visible palette knife strokes, warm sienna underpainting peeking through\" not \"beautiful painting\".\n"
+        "IGNORE: subjective taste (\"masterpiece\"), supposed artistic intent, narrative speculation.\n"
+        "OUTPUT MODE: prose paragraph, no markdown.\n"
+        "Order: medium → style → composition → subject → palette → technique → surface."
     ),
     "Ultra Detailed Expert": (
-        "PURPOSE: Ultra Detailed Expert — extreme close attention to fine grain and texture. "
-        "FOCUS: micro details, surface texture, material response, "
-        "lighting interaction at pixel level, imperfection, wear, reflectance, translucency."
+        "PURPOSE: Ultra Detailed Expert — extreme close attention to fine grain, texture, and surface realism.\n"
+        "FOCUS: micro details (pores, fibers, grain, cracks), surface texture (roughness, smoothness, pattern regularity), material wear (scratches, patina, oxidation, fraying, pilling), reflectance (specular vs diffuse, gloss level), translucency (subsurface scatter, edge light), fine materials (fabric weave, wood grain, stone veining, metal brushing).\n"
+        "CONCRETE: describe at the finest observable grain — \"worn denim with visible white weft threads, fading at knee creases, surface pilling, uneven indigo loss at seams\" not \"old jeans\".\n"
+        "IGNORE: general category labels, style, mood, composition overview.\n"
+        "OUTPUT MODE: prose paragraph, no markdown.\n"
+        "Order: surface → texture → micro details → wear → reflectance → translucency."
     ),
     "Cinematic Master": (
-        "PURPOSE: Cinematic Master — film-oriented analysis for storytelling frames. "
-        "FOCUS: camera angle (low, high, dutch), lens type (wide, tele, macro), "
-        "depth of field, contrast (high/low key), color grading, atmosphere, frame composition."
+        "PURPOSE: Cinematic Master — film-oriented analysis for storytelling frames.\n"
+        "FOCUS: camera angle (low, high, Dutch, eye-level), lens type (wide, tele, macro, anamorphic hints), depth of field (shallow, deep, rack focus), contrast (high/low key, lighting ratio), color grading (palette, LUT cues, split toning), atmosphere (haze, fog, bloom, grain), frame composition (rule of thirds, leading lines, negative space, symmetry).\n"
+        "CONCRETE: describe cinematographic techniques observable in the frame — \"shallow DoF with bokeh highlights, teal/orange grade, backlit haze, leading lines converging at upper third\" not \"looks like a movie\".\n"
+        "IGNORE: plot, character motivation, genre labels.\n"
+        "OUTPUT MODE: prose paragraph, no markdown.\n"
+        "Order: angle → lens → DoF → composition → grading → atmosphere → contrast."
     ),
     "18+": (
-        "PURPOSE: 18+ Agent — anatomical, pose, and sensual-scene precision without drift. "
-        "FOCUS: adult subject identity, anatomy, pose, clothing/coverage, lighting, expression, and context."
+        "PURPOSE: 18+ Agent — anatomical and sensual-scene precision without drift.\n"
+        "FOCUS: subject identity (age cues, body type, visible anatomy), pose (limb placement, weight distribution, contact points), clothing/coverage (type, fit, removal state, fabric tension), expression (gaze, mouth state, micro-tension), lighting (volume, shadow on body contours), context (setting, props, surface).\n"
+        "CONCRETE: describe anatomy and pose with clinical precision — \"trapezius engaged, arm raised above head, hip rotated 30° to camera, fabric pulled taut across ribs\" not \"sexy pose\".\n"
+        "IGNORE: subjective arousal language, narrative, value judgment.\n"
+        "OUTPUT MODE: prose paragraph, no markdown.\n"
+        "Order: subject → pose → clothing → expression → lighting → context."
     ),
     "Fashion": (
-        "PURPOSE: Fashion Agent — wardrobe, fabric, fit, and styling analysis. "
-        "FOCUS: garments, fabrics, colors, accessories, silhouette, and brand cues when visible."
+        "PURPOSE: Fashion Agent — wardrobe, fabric, fit, and styling analysis.\n"
+        "FOCUS: garments (type, silhouette, cut, layering), fabric (material, texture, weight, drape, sheen), colors (hue, pattern, print, color blocking), accessories (jewelry, bags, belts, shoes), silhouette (fit, tailoring, volume, hemline), brand cues (logo, monogram, signature hardware).\n"
+        "CONCRETE: describe clothing as physical garments — \"double-breasted wool-blend blazer, notch lapel, padded shoulders, center vent, matte black horn buttons\" not \"stylish jacket\".\n"
+        "IGNORE: trend labels, fashion opinions (\"chic\", \"outdated\"), personal suitability.\n"
+        "OUTPUT MODE: prose paragraph, no markdown.\n"
+        "Order: silhouette → garments → fabric → color → accessories → brand cues."
     ),
     "Animals": (
-        "PURPOSE: Animals Agent — species, coloring, behavior, and context fidelity. "
-        "FOCUS: species, breed/variety cues, markings, build, features, expression/state, and environment."
+        "PURPOSE: Animals Agent — species, coloring, behavior, and context fidelity.\n"
+        "FOCUS: species (type, breed cues, size cues), markings (coat color, pattern, texture, moult state), build (proportion, muscle tone, weight cues, posture), head/face (ear set, muzzle shape, eye color, whiskers), expression/state (alertness, mouth state, tongue, eye focus), environment (habitat cues, surface, lighting).\n"
+        "CONCRETE: describe zoological/physical traits — \"tricolor rough-coated collie, prick ears 45° forward, tongue lolling left, visible rib definition, standing on dew-wet grass\" not \"cute dog\".\n"
+        "IGNORE: anthropomorphic emotion (\"sad eyes\", \"happy tail\"), human-like narrative.\n"
+        "OUTPUT MODE: prose paragraph, no markdown.\n"
+        "Order: species → build → coat → head → expression → environment."
     ),
     "Character Performance Agent": (
-        "PURPOSE: Character Performance Agent — merge emotion, action impulse, and alive presence for character subjects. "
-        "FOCUS: micro-expression, gaze direction, mouth/eyebrow tension, shoulder/hand pressure, action vector, "
-        "limb tension, weight shift, pose energy, camera interaction, and environment contact when supported."
+        "PURPOSE: Character Performance Agent — emotion, action impulse, and alive presence for character subjects.\n"
+        "FOCUS: micro-expression (brow asymmetry, lip corner tension, orbicularis engagement), gaze (direction, focus stability, blink state), mouth/eyebrow tension (neutral vs engaged vs strained), shoulder/hand pressure (relaxed vs flexed vs posed), action vector (movement direction, momentum cues, limb position), weight shift (center of gravity, hip/shoulder relationship), pose energy (dynamic vs static vs transitional), camera interaction (direct eye contact, fourth-wall awareness).\n"
+        "CONCRETE: describe body language as physical signals — \"left eyebrow slightly lower than right, shoulders rolled forward, hands interlaced with visible knuckle tension, weight on back foot\" not \"nervous\".\n"
+        "IGNORE: psychological diagnosis, character backstory, narrative emotion labels (\"fear\", \"joy\").\n"
+        "OUTPUT MODE: prose paragraph, no markdown.\n"
+        "Order: expression → gaze → tension → pose → action vector → weight shift → energy."
     ),
     "Architecture": (
-        "PURPOSE: Architecture Agent — structural truth and spatial clarity. "
-        "FOCUS: building type, structural logic, materials, facade/interior elements, context, and scale."
+        "PURPOSE: Architecture Agent — structural truth and spatial clarity.\n"
+        "FOCUS: building type (residential, commercial, industrial, religious), structural logic (load-bearing cues, frame vs masonry, span), materials (facade cladding, roofing, glazing, joinery), facade elements (windows, doors, columns, arches, ornament), interior context (plan hints, ceiling height, circulation), scale (human proportion cues, floor count, massing), context (street, landscape, density).\n"
+        "CONCRETE: describe structural and material facts — \"steel-frame curtain wall, unitized glazing with horizontal mullions at 1.5m spacing, recessed entry, cantilevered canopy\" not \"modern building\".\n"
+        "IGNORE: architectural style labels without visible evidence (\"brutalist\", \"gothic\" unless clear), subjective aesthetics.\n"
+        "OUTPUT MODE: prose paragraph, no markdown.\n"
+        "Order: type → scale → structural logic → materials → facade → context."
     ),
     "Interior": (
-        "PURPOSE: Interior Agent — room layout, furniture, decor, and material logic. "
-        "FOCUS: room type, furniture arrangement, materials, colors, lighting, decor, and style cues."
+        "PURPOSE: Interior Agent — room layout, furniture, decor, and material logic.\n"
+        "FOCUS: room type (living, bedroom, kitchen, office), furniture (type, placement, style, material, color), layout (traffic flow, zoning, focal point), materials (flooring, wall finish, countertop, textiles), colors (palette, accent, contrast), lighting (fixtures, source type, temperature, shadows), decor (art, plants, objects, styling).\n"
+        "CONCRETE: describe interior as physical spatial arrangement — \"L-shaped modular sofa in charcoal bouclé, centered on a rectangular oak coffee table, sheepskin throw draped asymmetrically over left arm, warm 2700K track lighting\" not \"cozy living room\".\n"
+        "IGNORE: lifestyle quality (\"cozy\", \"luxurious\"), inhabitant personality speculation.\n"
+        "OUTPUT MODE: prose paragraph, no markdown.\n"
+        "Order: room → layout → furniture → materials → colors → lighting → decor."
     ),
     "City": (
-        "PURPOSE: City Agent — urban scene reading with infrastructure and streetscape priority. "
-        "FOCUS: location type, buildings, street elements, infrastructure, vegetation, density, and atmosphere."
+        "PURPOSE: City Agent — urban scene reading with infrastructure and streetscape priority.\n"
+        "FOCUS: location type (downtown, residential, industrial, waterfront), buildings (height, density, architectural period, facade materials, roofscape), street elements (pavement, signage, lighting, furniture, markings), infrastructure (roads, bridges, transit cues, utility poles), vegetation (street trees, planters, public green), density (crowding, traffic, pedestrian level), atmosphere (time of day, weather, light quality, noise cues).\n"
+        "CONCRETE: describe urban environment as physical infrastructure — \"four-lane divided avenue with median, Art Deco mid-rises with limestone cladding, cast-iron street lamps, deciduous trees in full canopy, heavy pedestrian flow on 2m sidewalks\" not \"busy city street\".\n"
+        "IGNORE: socioeconomic commentary, neighborhood quality judgment (\"dangerous\", \"upscale\").\n"
+        "OUTPUT MODE: prose paragraph, no markdown.\n"
+        "Order: location → density → buildings → street elements → vegetation → atmosphere."
     ),
     "Transport": (
-        "PURPOSE: Transport Agent — vehicle-focused accuracy for form, condition, and context. "
-        "FOCUS: vehicle type, make/model hints, body style, color, condition, wheels, and environment."
+        "PURPOSE: Transport Agent — vehicle-focused accuracy for form, condition, and context.\n"
+        "FOCUS: vehicle type (car, truck, motorcycle, aircraft, boat), make/model cues (badge, grille, silhouette, lighting signature), body style (coupe, SUV, sedan, convertible), color and finish (paint, gloss, wrap), condition (clean, dirty, damaged, modified, patina), wheels (type, size, spokes, brake cues), environment (road, track, studio, natural setting).\n"
+        "CONCRETE: describe vehicle as physical object — \"3rd-gen black Porsche 911 (991), side profile, center-lock wheels, carbon-ceramic brakes visible, sun striking the rear quarter panel, paint in showroom condition\" not \"nice car\".\n"
+        "IGNORE: performance speculation, owner identity, subjective speed/status cues.\n"
+        "OUTPUT MODE: prose paragraph, no markdown.\n"
+        "Order: type → make/model → body → color → condition → wheels → environment."
     ),
     "Food": (
-        "PURPOSE: Food Agent — culinary presentation and ingredient visibility. "
-        "FOCUS: dish type, visible ingredients, plating, textures, colors, freshness cues, and ambiance."
+        "PURPOSE: Food Agent — culinary presentation and ingredient visibility.\n"
+        "FOCUS: dish type (course, cuisine cues), visible ingredients (protein, vegetable, grain, sauce), plating (arrangement, height, garnish, vessel), textures (crispy, creamy, layered, glistening), colors (natural vs cooked, contrast, browning), freshness cues (steam, condensation, wilt, sear), ambiance (table setting, lighting, backdrop, props).\n"
+        "CONCRETE: describe food as physical composition — \"seared ribeye with crosshatch grill marks, medium-rare interior visible at cut edge, resting on wooden board with rosemary sprig and flake salt, steam rising, 25% fat cap rendered\" not \"delicious steak\".\n"
+        "IGNORE: taste, quality rating, dietary categories, chef intent.\n"
+        "OUTPUT MODE: prose paragraph, no markdown.\n"
+        "Order: dish → ingredients → plating → textures → colors → freshness → ambiance."
     ),
     "Gadgets": (
-        "PURPOSE: Gadgets Agent — electronics and device description with screen/context logic. "
-        "FOCUS: device type, brand/model hints, visible interface, materials, condition, and usage context."
+        "PURPOSE: Gadgets Agent — electronics and device description with screen/context logic.\n"
+        "FOCUS: device type (phone, laptop, tablet, wearable, peripheral), brand/model cues (logo, form factor, port layout), visible interface (screen content, UI elements, button state), materials (chassis, finish, texture, glass type), condition (scratches, wear, screen state, cable management), usage context (hands, desk, mount, studio, lifestyle).\n"
+        "CONCRETE: describe device as industrial object — \"silver MacBook Pro (M-series, 14\"), closed lid, MagSafe and two USB-C visible on left edge, anodized aluminum unibody with fine micro-abrasions at palm rest, sitting on white marble desktop with ambient LED strip behind\" not \"modern laptop\".\n"
+        "IGNORE: performance specs, brand loyalty, price/value judgment.\n"
+        "OUTPUT MODE: prose paragraph, no markdown.\n"
+        "Order: type → brand/model → materials → interface → condition → context."
     ),
     "Games": (
-        "PURPOSE: Games Agent — game scene, UI, and graphics-style interpretation. "
-        "FOCUS: game type, graphics style, HUD/UI, characters, environment, gameplay state, and platform cues."
+        "PURPOSE: Games Agent — game scene, UI, and graphics-style interpretation.\n"
+        "FOCUS: game type (FPS, RPG, racing, platformer, strategy), graphics style (realistic, stylized, pixel art, cel-shaded, low-poly), HUD/UI (health bar, minimap, ammo, score, menu), characters (model quality, rigging, costume, team colors), environment (level design, texture quality, lighting, draw distance), gameplay state (idle, action, menu, cutscene), platform cues (controller hints, touch controls, button prompts).\n"
+        "CONCRETE: describe game as rendered interactive scene — \"third-person over-the-shoulder view, photorealistic UE5 forest level, SSAO visible, HUD shows health bar upper left, compass upper center, ammo counter lower right, character in tactical gear with visible weapon holster\" not \"cool game\".\n"
+        "IGNORE: genre quality, review opinion, mental narrative of game story.\n"
+        "OUTPUT MODE: prose paragraph, no markdown.\n"
+        "Order: type → graphics → environment → characters → UI → gameplay state."
     ),
     "Composition Agent": (
-        "PURPOSE: Composition Agent — focus on composition, camera, framing, and space. "
-        "FOCUS: shot type, angle, crop/framing, subject placement, depth of field, perspective, and lens hints when useful."
+        "PURPOSE: Composition Agent — focus on composition, camera, framing, and space.\n"
+        "FOCUS: shot type (wide, medium, close-up, extreme close-up, macro), camera angle (high, low, Dutch, aerial, POV), crop/framing (tight, loose, headroom, noseroom, lead room), subject placement (center, rule of thirds, off-center, symmetry, negative space), depth of field (shallow, deep, focus plane, bokeh quality), perspective (linear, atmospheric, forced, isometric), lens cues (focal length feel, distortion, compression, anamorphic flare).\n"
+        "CONCRETE: describe photographic/cinematic framing decisions — \"low-angle medium-wide, subject placed on left third, strong leading line from lower right corner, deep focus with atmospheric perspective haze at horizon\" not \"nice composition\".\n"
+        "IGNORE: subject identity, narrative meaning, lighting unless it affects framing.\n"
+        "OUTPUT MODE: prose paragraph, no markdown.\n"
+        "Order: shot type → angle → framing → subject placement → DoF → perspective → lens cues."
     ),
     "Lighting & Color Agent": (
-        "PURPOSE: Lighting & Color Agent — prioritize light source, direction, contrast, palette, and atmosphere. "
-        "FOCUS: source, direction, contrast, palette, reflections, haze, glow, and bloom only when justified."
+        "PURPOSE: Lighting & Color Agent — prioritize light source, direction, contrast, palette, and atmosphere.\n"
+        "FOCUS: source (natural, artificial, mixed, practical, key/fill/rim count), direction (front, side, backlight, top, bottom, Rembrandt, split), contrast (ratio, hard vs soft, highlight rolloff, shadow density), palette (dominant hue, accent, complementary, monochrome, temperature), reflections (specular highlights, caustics, bounce light, fresnel), atmospheric effects (haze, fog, volumetric, bloom, lens flare, god rays).\n"
+        "CONCRETE: describe light as physical phenomenon — \"single hard key light at 45° camera-left, producing a defined triangular nose shadow (Rembrandt pattern), deep shadows with no fill, warm 3200K tungsten, thin rim light on hair from back-right\" not \"dramatic lighting\".\n"
+        "IGNORE: subject identity, compositional analysis, style/mood labels.\n"
+        "OUTPUT MODE: prose paragraph, no markdown.\n"
+        "Order: source → direction → contrast → palette → reflections → atmospheric effects."
     ),
     "Professional Tagger": (
-        "PURPOSE: Professional Tagger — convert the image into clean strongest-first visual tags. "
-        "FOCUS: subject, action, composition, details, environment, lighting, style, and useful quality tags when warranted. "
+        "PURPOSE: Professional Tagger — convert the image into clean strongest-first visual tags.\n"
+        "FOCUS: subject, action, composition, details, environment, lighting, style, useful quality tags.\n"
+        "CONCRETE: output raw visual tokens with no prose — \"cyberpunk street, neon signs, wet asphalt, holographic advertisement, rain, purple and blue lighting, detailed, highly detailed\" not a sentence.\n"
+        "IGNORE: any prose, full sentences, field labels, markdown, commentary.\n"
         "OUTPUT MODE: flat comma-separated tokens ordered by visual weight, suitable for SDXL-style prompting."
     ),
+}
+
+AGENT_EMOJIS: Dict[str, str] = {
+    NONE_AGENT_KEY: "⚪",
+    "Universal": "🌐",
+    "Portrait": "👤",
+    "Products": "📦",
+    "Nature & Landscape": "🌿",
+    "Art & Illustration": "🎨",
+    "Ultra Detailed Expert": "🔬",
+    "Cinematic Master": "🎬",
+    "18+": "🔞",
+    "Fashion": "👗",
+    "Animals": "🐾",
+    "Character Performance Agent": "🎭",
+    "Architecture": "🏛",
+    "Interior": "🪑",
+    "City": "🌆",
+    "Transport": "🚗",
+    "Food": "🍽",
+    "Gadgets": "📱",
+    "Games": "🎮",
+    "Composition Agent": "📐",
+    "Lighting & Color Agent": "💡",
+    "Professional Tagger": "🏷",
 }
 
 _STYLE_SOURCES: Dict[str, Dict[str, str]] = {
@@ -336,8 +441,18 @@ def get_visible_style_keys(widget_name: str) -> List[str]:
     return [key for key in source.keys() if key and key != "None"]
 
 
+def get_style_prompt(style_key: str) -> str:
+    """Resolve a style display key to its underlying prompt string across all style libraries."""
+    if not style_key or style_key == "(None)":
+        return ""
+    for source in _STYLE_SOURCES.values():
+        if style_key in source:
+            return source[style_key]
+    return style_key
+
+
 def get_visible_agent_keys() -> List[str]:
-    return list(AGENTS.keys())
+    return [f"{AGENT_EMOJIS.get(k, '')} {k}" for k in AGENTS.keys()]
 
 
 def get_default_agent_key() -> str:
@@ -345,8 +460,11 @@ def get_default_agent_key() -> str:
 
     "Universal" gives a useful general-purpose analysis rather than the neutral
     None template, which is better as an explicit override than a default.
+    Includes emoji prefix to match get_visible_agent_keys() format.
     """
-    return "Universal" if "Universal" in AGENTS else NONE_AGENT_KEY
+    key = "Universal" if "Universal" in AGENTS else NONE_AGENT_KEY
+    emoji = AGENT_EMOJIS.get(key, "")
+    return f"{emoji} {key}" if emoji else key
 
 
 def first_or_default(values: List[str], default: str) -> str:
@@ -363,11 +481,12 @@ def default_detail_level(levels) -> str:
 def resolve_agent_key(value: Any) -> str:
     if not value or str(value).strip().lower() in ("none", "", "null"):
         return NONE_AGENT_KEY
-    key = str(value).strip()
-    if key in AGENTS:
-        return key
+    raw = str(value).strip()
     for k in AGENTS:
-        if k.lower() == key.lower():
+        if raw == k or raw.endswith(f" {k}"):
+            return k
+    for k in AGENTS:
+        if raw.lower() == k.lower() or raw.lower().endswith(f" {k.lower()}"):
             return k
     return NONE_AGENT_KEY
 

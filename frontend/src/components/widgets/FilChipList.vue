@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="T extends string">
 /**
  * Scrollable chip list with optional search box. Equivalent of the legacy
  * `chipList()` factory. Used by Optic Scanner for `photo_style`,
@@ -9,8 +9,7 @@ import { computed, ref } from "vue";
 
 const props = withDefaults(
   defineProps<{
-    options: string[];
-    modelValue?: string | null;
+    options: T[];
     searchable?: boolean;
     disabled?: boolean;
     placeholder?: string;
@@ -18,7 +17,7 @@ const props = withDefaults(
   { searchable: true, placeholder: "Search…" },
 );
 
-const emit = defineEmits<{ "update:modelValue": [value: string] }>();
+const modelValue = defineModel<T | null>({ required: true });
 
 const query = ref("");
 
@@ -28,9 +27,9 @@ const filtered = computed(() => {
   return props.options.filter((opt) => opt.toLowerCase().includes(q));
 });
 
-function select(value: string) {
+function select(value: T) {
   if (props.disabled) return;
-  if (value !== props.modelValue) emit("update:modelValue", value);
+  if (value !== modelValue.value) modelValue.value = value;
 }
 </script>
 

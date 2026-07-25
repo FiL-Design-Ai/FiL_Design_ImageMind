@@ -18,10 +18,12 @@
 | 3 | FiLProviderLoader | promoted | max_tokens/seed/response_format wiring, refresh_models, parse_response, +Seed UI (перенесён вперёд по запросу пользователя) |
 | 4 | FiLOpticScanner | promoted | temperature/max_tokens/rate_limit_ms из config, глобальный rate-limiter фикс (перенесён вперёд по запросу пользователя) |
 | 5 | FiLNeuroCleaner | promoted | рефакторинг: убрано 14 чекбоксов и Windows ctypes плацебо-код; добавлены 4 чистых режима clean_mode; компактный UI |
-| 6 | FiLBeforeAfterCompare | promoted | вьювер (6 режимов), ресайз превью |
 | 7 | FiLKSampler | promoted | сэмплинг |
 | 8 | FiLHighResFix | promoted | script для KSampler (пара с #6) |
 | 9 | FiLNoiseControl | promoted | новая нода (не из исходного списка), см. секцию ниже |
+| 10 | FiLImageDecomposer | promoted | разложение изображений/промптов на слои, None-resilience |
+| 11 | FiLStyleMixer | promoted | микширование стилей, None-resilience |
+| 12 | FiLColorWizard | promoted | авто-коррекция цвета, белая точка, LAB контраст, защита тонов кожи |
 
 ## Общий backlog (не привязан к одной ноде)
 

@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, Tuple
 
 from .data import (
     AGENTS,
@@ -45,8 +45,11 @@ MODEL_TYPE_GUIDANCE: Dict[str, str] = {
         "double quotes — this measurably improves text-rendering accuracy."
     ),
     "SDXL": (
-        "Target generator: SDXL. Write a comma-separated tag-style prompt suitable "
-        "for SDXL. Include quality cues if relevant."
+        "Target generator: SDXL. Write a full natural-language descriptive prompt "
+        "in connected prose — not comma-separated tags. Start with the main subject "
+        "and action, describe the scene and environment, then lighting and mood. "
+        "Include style and quality details. SDXL generates best from coherent "
+        "sentences, not tag lists."
     ),
     "Krea 2": (
         "Target generator: Krea 2. Write natural-language prose following: subject, "
@@ -93,9 +96,24 @@ class StyleManager:
         if not style_value or style_value in ("None", "none", ""):
             return "", ""
         source = _STYLE_SOURCES.get(style_widget, {})
-        prompt = source.get(style_value, "")
-        if prompt:
-            return style_value, prompt
+        # Split by | or comma in case multiple styles were selected
+        raw_keys = [k.strip() for k in style_value.split("|") if k.strip() and k.strip().lower() not in ("none", "")]
+        if not raw_keys:
+            return "", ""
+        matched_keys = []
+        matched_prompts = []
+        for k in raw_keys:
+            prompt = source.get(k, "")
+            if not prompt:
+                for src in _STYLE_SOURCES.values():
+                    if k in src:
+                        prompt = src[k]
+                        break
+            if prompt:
+                matched_keys.append(k)
+                matched_prompts.append(prompt)
+        if matched_prompts:
+            return " | ".join(matched_keys), "\n\n".join(matched_prompts)
         return "", ""
 
     def get_style_hint(self, widget_name: str) -> str:

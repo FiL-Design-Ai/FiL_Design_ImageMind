@@ -482,6 +482,27 @@ def test_latent_tiles_match_image_tile_count_and_size():
     assert latent_tiles["samples"].shape[2:4] == (th // 8, tw // 8)
 
 
+def test_latent_tiles_stay_one_per_tile_for_a_batched_latent():
+    """A batch of B latents used to yield tile_count * B slices.
+
+    `crop_tiles` documents that it tiles the first batch item only; the latent
+    path kept the whole batch, so image tile N no longer lined up with latent
+    tile N and FiLTileAssembly rejected the mismatched count.
+    """
+    import torch
+
+    batched = {"samples": torch.zeros(3, 4, 1024 // 8, 1024 // 8)}
+    result = FiLUpscaleTileCalc.execute(
+        image=image(1024, 1024), upscale_factor=1.0, tile_size=512, tile_overlap=64,
+        latent=batched,
+    )
+    tile_count = result[13]
+    tiles = result[1]
+    latent_tiles = result[19]
+    assert latent_tiles["samples"].shape[0] == tile_count
+    assert tiles.shape[0] == tile_count
+
+
 def test_raises_when_neither_image_nor_latent_connected():
     with pytest.raises(ValueError):
         FiLUpscaleTileCalc.execute()

@@ -57,6 +57,17 @@ const FIL_PALETTE_FALLOUT: FilPalette = {
   ok: "#8fbf3f",
 };
 
+const FIL_PALETTE_PIPBOY: FilPalette = {
+  accent: "#14b13b",
+  accentInk: "#0c190c",
+  panel: "#0a110a",
+  panelAlt: "#121e12",
+  text: "#4af626",
+  muted: "#2e7d32",
+  danger: "#d32f2f",
+  ok: "#14b13b",
+};
+
 /**
  * "Travelmate" — adapted from a Behance mobile-app reference (Liza Prymak,
  * TravelMate / Travel Mobile App UX/UI Design): acid-lime accent on a
@@ -78,13 +89,14 @@ const FIL_PALETTE_TRAVELMATE: FilPalette = {
   ok: "#3ed98c",
 };
 
-export type FilThemeName = "default" | "cyberpunk" | "fallout" | "travelmate";
+export type FilThemeName = "default" | "cyberpunk" | "fallout" | "travelmate" | "pipboy";
 
 const THEMES: Record<FilThemeName, FilPalette> = {
   default: FIL_PALETTE,
   cyberpunk: FIL_PALETTE_CYBERPUNK,
   fallout: FIL_PALETTE_FALLOUT,
   travelmate: FIL_PALETTE_TRAVELMATE,
+  pipboy: FIL_PALETTE_PIPBOY,
 };
 
 /**
@@ -124,6 +136,13 @@ const THEME_EFFECTS: Record<FilThemeName, string> = {
   border:1px solid rgba(212,160,23,0.2);
 }
 [data-fil-theme="fallout"] .comfy-node-header{text-shadow:0 0 4px rgba(212,160,23,0.55);}
+`,
+  pipboy: `
+[data-fil-theme="pipboy"] .fil-node-shell [class$="-root"]{
+  background-image:repeating-linear-gradient(0deg,rgba(0,0,0,0.2) 0px,rgba(0,0,0,0.2) 1px,transparent 1px,transparent 3px);
+  border:1px solid rgba(20,177,59,0.3);
+}
+[data-fil-theme="pipboy"] .comfy-node-header{text-shadow:0 0 4px rgba(20,177,59,0.75);}
 `,
   travelmate: `
 [data-fil-theme="travelmate"] .fil-node-shell [class$="-root"]{border:none;box-shadow:none;}

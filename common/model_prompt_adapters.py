@@ -24,10 +24,8 @@ import re
 from typing import Any, Dict, List, Optional, Tuple
 
 from .data import (
-    DETAIL_LEVELS,
     get_detail_info,
     get_effective_response_format,
-    get_model_prompt_max_words,
     get_model_prompt_rule,
     model_uses_flux_json_schema,
     model_uses_ideogram_json_schema,
@@ -516,7 +514,6 @@ def _extract_prompt_components(text: str) -> Dict[str, str]:
         "quality": ("quality", "8k", "4k", "highly detailed", "sharp focus", "masterpiece"),
         "mood": ("mood", "emotion", "feeling", "tone", "vibe"),
     }
-    lowered = text.lower()
     # Split into comma segments and bucket each.
     for segment in re.split(r"[,\n]+", text):
         seg = segment.strip()
@@ -570,10 +567,11 @@ def _render_prompt_components(components: Dict[str, List[str]], model_type: str)
         if style:
             labeled.append(f"Style: {style}")
         return ". ".join(labeled)
-    if model_type == "SDXL":
+    if model_type in ("SDXL", "Ideogram 4"):
         # SDXL (unlike SD1.5) reads best as full natural-language sentences,
         # not comma-separated label:value tags — official guidance is explicit
-        # that tag-style prompts underperform on SDXL.
+        # that tag-style prompts underperform on SDXL. Ideogram 4 also expects
+        # natural-language prose without comma-lists or field labels.
         lead = ", ".join(filter(None, (subject_action, composition, details, focal)))
         if scene_mood:
             lead = f"{lead} in {scene_mood}" if lead else scene_mood
@@ -583,7 +581,7 @@ def _render_prompt_components(components: Dict[str, List[str]], model_type: str)
         if tail:
             prose = f"{prose}, {tail}" if prose else tail
         return prose.strip()
-    # Z-Image Turbo, default: comma-joined.
+    # Z-Image Turbo, Krea 2, default: comma-joined.
     parts = [
         p for p in (scene_mood, subject_action, composition, details, focal, environment, lighting, style)
     ]

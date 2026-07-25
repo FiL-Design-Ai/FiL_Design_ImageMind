@@ -38,6 +38,8 @@ class WidgetSpec(BaseModel):
     values: list[str] | None = None
     columns: int | None = Field(None, description="Layout hint for chip grids.")
     searchable: bool | None = Field(None, description="Whether a chip list shows a search box.")
+    # STRING:
+    multiline: bool | None = Field(None, description="Whether string widget uses multiline textarea.")
     # NUMBER / SLIDER:
     min: float | None = None
     max: float | None = None

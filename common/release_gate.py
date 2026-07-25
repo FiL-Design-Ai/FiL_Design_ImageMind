@@ -29,7 +29,9 @@ RELEASE_NODES: set[str] = {
     "FiLProviderLoader",
     "FiLOpticScanner",
     "FiLNeuroCleaner",
-    "FiLBeforeAfterCompare",
+    "FiLImageDecomposer",
+    "FiLStyleMixer",
+    "FiLColorWizard",
 }
 
 _TRUTHY = {"1", "true", "yes", "on"}

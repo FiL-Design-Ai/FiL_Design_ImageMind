@@ -18,18 +18,18 @@ class FiLUpscaleTileCalc(io.ComfyNode):
             description="📐 FiL Upscale Tile Calc — computes optimal tile grid layout for upscaling. Supports auto-profile and manual grid.",
             inputs=[
                 io.Image.Input("image", optional=True,
-                                tooltip=_t("utc_image", "Input image to analyze. Optional if latent is connected instead — at least one of image/latent is required; source dimensions come from whichever is connected.")),
+                               tooltip=_t("utc_image", "Input image to analyze. Optional if latent is connected instead — at least one of image/latent is required; source dimensions come from whichever is connected.")),
                 io.UpscaleModel.Input("upscale_model", optional=True,
-                                       tooltip=_t("utc_upscale_model", "Optional ESRGAN-style model. When connected, the image output is actually upscaled through it (then resized to the tile-aligned target). When left unconnected, image is passed through unchanged and this node is calculator-only.")),
+                                      tooltip=_t("utc_upscale_model", "Optional ESRGAN-style model. When connected, the image output is actually upscaled through it (then resized to the tile-aligned target). When left unconnected, image is passed through unchanged and this node is calculator-only.")),
                 io.Latent.Input("latent", optional=True,
-                                 tooltip=_t("utc_latent", "Optional latent to resize/tile alongside (or instead of) the image. When connected, the latent output is resized (bislerp) to the tile-aligned target and latent_tiles gets one crop per tile. Can stand in for image entirely — at least one of image/latent is required.")),
+                                tooltip=_t("utc_latent", "Optional latent to resize/tile alongside (or instead of) the image. When connected, the latent output is resized (bislerp) to the tile-aligned target and latent_tiles gets one crop per tile. Can stand in for image entirely — at least one of image/latent is required.")),
                 io.Float.Input("upscale_factor", default=2.0, min=0.1, max=8.0, step=0.25, display_mode=io.NumberDisplay.slider, tooltip=_t("utc_factor", "Upscale multiplier.")),
                 io.Int.Input("tile_size", default=1024, min=64, max=2048, step=64, tooltip=_t("utc_tile_size", "Base tile size.")),
                 io.Int.Input("tile_overlap", default=64, min=0, max=512, step=8, tooltip=_t("utc_overlap", "Tile overlap.")),
                 io.Boolean.Input("auto_overlap", default=False, label_on="Auto ON", label_off="Auto OFF", advanced=True,
-                                  tooltip=_t("utc_auto_overlap", "Ignore tile_overlap and derive it automatically from the tile size (~12.5%, min 32px) instead — keeps overlap proportional when you change tile_size. No effect when Full Auto is on (it already derives its own overlap).")),
+                                 tooltip=_t("utc_auto_overlap", "Ignore tile_overlap and derive it automatically from the tile size (~12.5%, min 32px) instead — keeps overlap proportional when you change tile_size. No effect when Full Auto is on (it already derives its own overlap).")),
                 io.Boolean.Input("auto_mode", default=False, label_on="Full Auto", label_off="Manual Tiles", advanced=True,
-                                  tooltip=_t("utc_auto_mode", "Pick tile size/overlap automatically from the selected VRAM profile.")),
+                                 tooltip=_t("utc_auto_mode", "Pick tile size/overlap automatically from the selected VRAM profile.")),
                 io.Combo.Input("auto_profile", options=tile_calc.AUTO_PROFILES, default="Balanced", advanced=True,
                                tooltip=_t("utc_auto_profile", "VRAM/quality profile used when Full Auto is on.")),
                 io.Int.Input("manual_tile_cols", default=0, min=0, max=64, advanced=True,
@@ -37,9 +37,9 @@ class FiLUpscaleTileCalc(io.ComfyNode):
                 io.Int.Input("manual_tile_rows", default=0, min=0, max=64, advanced=True,
                              tooltip=_t("utc_manual_rows", "Force this many tile rows. 0 = compute from tile size.")),
                 io.Boolean.Input("non_square_tiles", default=False, label_on="Non-Square", label_off="Square", advanced=True,
-                                  tooltip=_t("utc_non_square", "Allow rectangular tiles instead of forcing square ones.")),
+                                 tooltip=_t("utc_non_square", "Allow rectangular tiles instead of forcing square ones.")),
                 io.Boolean.Input("auto_fix_thin_edges", default=False, label_on="Auto-fix ON", label_off="Auto-fix OFF", advanced=True,
-                                  tooltip=_t("utc_auto_fix_edges", "In Manual Tiles mode, shrink tile_size to the next standard size instead of just warning when the grid would leave a thin edge tile. Does not affect an explicit manual column/row grid.")),
+                                 tooltip=_t("utc_auto_fix_edges", "In Manual Tiles mode, shrink tile_size to the next standard size instead of just warning when the grid would leave a thin edge tile. Does not affect an explicit manual column/row grid.")),
             ],
             outputs=[
                 io.Image.Output(display_name="image", tooltip="Actually upscaled when upscale_model is connected, otherwise the input image passed through unchanged. Empty placeholder when no image is connected (latent-only mode)."),
@@ -250,7 +250,7 @@ class FiLUpscaleTileCalc(io.ComfyNode):
         mode_str = f"Manual{' + Full Auto' if auto_mode else ''}{' + Grid' if mg_act else ''}"
         info = (
             f"Tile Upscale Calculator v2\n"
-            f"Original: {ow}x{oh} ({ow*oh/1e6:.2f}MP) | Target: {aw}x{ah} ({aw*ah/1e6:.2f}MP)\n"
+            f"Original: {ow}x{oh} ({ow * oh / 1e6:.2f}MP) | Target: {aw}x{ah} ({aw * ah / 1e6:.2f}MP)\n"
             f"Scale: {actual_scale:.3f} | Mode: {mode_str}\n"
             f"Tiles: {tw}x{th} | Grid: {layout.tile_cols}x{layout.tile_rows}={layout.tile_count}\n"
             f"Overlap: {eff_overlap:g} | Padding: {tp} | MaskBlur: {mb} | Denoise: {denoise}\n"

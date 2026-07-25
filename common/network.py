@@ -2,7 +2,7 @@ import logging
 import random
 import threading
 import time
-from typing import Any, Dict, Iterable, Optional
+from typing import Any, Optional
 from urllib.parse import urlparse
 
 import requests
@@ -78,8 +78,6 @@ class HTTPClient:
                             time.sleep(retry_after_sec)
                         continue
                     response.raise_for_status()
-
-
                 return response
 
             except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as exc:

@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timezone
+
 
 from comfy_api.latest import io
 
@@ -28,7 +28,7 @@ class FiLProviderLoader(io.ComfyNode):
                 io.Combo.Input("model", options=["(loading...)"], default="(loading...)",
                                tooltip=t("tt_model", "Choose which model to use. If the list is empty, refresh it or check the provider account.")),
                 io.Boolean.Input("refresh_models", default=False, label_on="Refresh", label_off="Cached",
-                                  tooltip=t("tt_refresh", "Reload the model list. Use after adding a new model or API key.")),
+                                 tooltip=t("tt_refresh", "Reload the model list. Use after adding a new model or API key.")),
                 io.Float.Input("temperature", default=0.7, min=0.0, max=2.0, step=0.05, display_mode=io.NumberDisplay.slider, advanced=True,
                                tooltip=t("tt_temperature", "Sampling temperature — higher is more creative, lower is more deterministic.")),
                 io.Int.Input("max_tokens", default=0, min=0, max=65536, step=1, advanced=True,

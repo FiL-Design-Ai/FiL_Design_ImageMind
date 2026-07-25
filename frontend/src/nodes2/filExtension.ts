@@ -15,15 +15,13 @@
 import type { ComfyApp, ComfyExtension, ComfyNodeData } from "@/types/comfy";
 import { NODE_MODULES } from "@/nodes2/nodeRegistry";
 import { installHelpToolbar } from "@/nodes2/installers/helpToolbar";
-import { installRunButtonFx } from "@/nodes2/installers/runButtonFx";
-import { installToasts } from "@/nodes2/installers/toasts";
 import { installShortcuts } from "@/nodes2/installers/shortcuts";
 import { installGlobalScrollGuard } from "@/nodes2/installers/scrollGuard";
 import { filCommands, filKeybindings } from "@/composables/useShortcuts";
 import { installProviderManager } from "@/nodes2/installers/providerManager";
 import { ALL_SETTINGS } from "@/stores/settings/allSettings";
-import { applyStartupTheme } from "@/stores/settings/themeSettings";
 import { applyStartupLogLevel } from "@/stores/settings/loggingSettings";
+import { applyStartupTheme } from "@/stores/settings/themeSettings";
 import { readSetting } from "@/stores/settings/providerSettings";
 import { EXTENSION_NAME, LOG_TAG, ROUTE_PREFIX } from "@/constants/brand";
 
@@ -85,12 +83,10 @@ export function createFilExtension(app: ComfyApp): ComfyExtension {
       // All installers are isolated: a throw in one must not break others.
       const installers: Array<() => unknown> = [
         () => installHelpToolbar(app),
-        () => installRunButtonFx(app),
-        () => installToasts(),
         () => installShortcuts(app),
         () => installProviderManager(app),
-        () => applyStartupTheme((id, fallback) => readSetting(id, fallback, app)),
         () => applyStartupLogLevel((id, fallback) => readSetting(id, fallback, app)),
+        () => applyStartupTheme((id, fallback) => readSetting(id, fallback, app)),
       ];
       for (const install of installers) {
         try {
@@ -102,10 +98,7 @@ export function createFilExtension(app: ComfyApp): ComfyExtension {
     },
 
     getCustomWidgets(): Record<string, unknown> {
-      // ComfyUI passes the app here and merges the *returned* map into its custom
-      // widget registry. The previous version mutated `app.widgets` directly, but
-      // that property is getter-only on modern ComfyUI and threw on every load.
-      return { fil_compare: { serialize: false } };
+      return {};
     },
 
     async beforeRegisterNodeDef(nodeType: unknown, nodeData: ComfyNodeData): Promise<void> {

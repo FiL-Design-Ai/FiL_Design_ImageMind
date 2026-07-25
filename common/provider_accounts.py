@@ -70,6 +70,45 @@ def delete_api_key(provider: str) -> None:
         _save_auth_json(auth)
 
 
+def validate_base_url(provider: str, raw_url: str) -> str:
+    """Return a normalised ``base_url`` or raise ``ValueError``.
+
+    The stored ``base_url`` is where the provider's API key is later sent, so an
+    unvalidated value turns this setting into a key-exfiltration and SSRF sink.
+    Local providers legitimately point at loopback/LAN and carry no key, so only
+    remote (key-bearing) providers are held to https + non-private hosts.
+    """
+    import ipaddress
+    from urllib.parse import urlparse
+
+    clean = raw_url.strip().rstrip("/")
+    if not clean:
+        return ""
+
+    parsed = urlparse(clean)
+    if parsed.scheme not in ("http", "https"):
+        raise ValueError("base_url must start with http:// or https://")
+    if not parsed.hostname:
+        raise ValueError("base_url has no host")
+
+    if provider in LOCAL_PROVIDERS:
+        return clean
+
+    if parsed.scheme != "https":
+        raise ValueError("base_url must use https for a remote provider")
+
+    host = parsed.hostname.lower()
+    if host == "localhost" or host.endswith(".localhost"):
+        raise ValueError("base_url must not point at localhost for a remote provider")
+    try:
+        address = ipaddress.ip_address(host)
+    except ValueError:
+        return clean  # a hostname, not a literal IP
+    if address.is_private or address.is_loopback or address.is_link_local or address.is_reserved:
+        raise ValueError("base_url must not point at a private address for a remote provider")
+    return clean
+
+
 def save_provider_credentials(
     provider: str,
     *,
@@ -91,7 +130,7 @@ def save_provider_credentials(
         else:
             api.pop("account_id", None)
     if base_url is not None:
-        clean_url = base_url.strip().rstrip("/")
+        clean_url = validate_base_url(provider, base_url)
         if clean_url:
             api["base_url"] = clean_url
         else:

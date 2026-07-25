@@ -8,7 +8,6 @@ import FilNumberInput from "@/components/widgets/FilNumberInput.vue";
 
 const props = withDefaults(
   defineProps<{
-    modelValue: number;
     min: number;
     max: number;
     step?: number;
@@ -19,22 +18,26 @@ const props = withDefaults(
   { step: 0.05 },
 );
 
-const emit = defineEmits<{ "update:modelValue": [value: number] }>();
+const modelValue = defineModel<number>({ required: true });
 
-const clamped = computed(() => {
-  let v = props.modelValue;
-  if (v < props.min) v = props.min;
-  if (v > props.max) v = props.max;
-  return v;
+const clamped = computed({
+  get: () => {
+    let v = modelValue.value;
+    if (v < props.min) v = props.min;
+    if (v > props.max) v = props.max;
+    return v;
+  },
+  set: (val: number) => {
+    let v = val;
+    if (v < props.min) v = props.min;
+    if (v > props.max) v = props.max;
+    modelValue.value = v;
+  },
 });
 
 function onSlider(e: Event) {
   const n = Number((e.target as HTMLInputElement).value);
-  emit("update:modelValue", n);
-}
-
-function onNumber(n: number) {
-  emit("update:modelValue", n);
+  clamped.value = n;
 }
 </script>
 
@@ -54,13 +57,12 @@ function onNumber(n: number) {
         @input="onSlider"
       />
       <FilNumberInput
-        :model-value="clamped"
+        v-model="clamped"
         :min="min"
         :max="max"
         :step="step"
         :disabled="disabled"
         :aria-label="label"
-        @update:model-value="onNumber"
       />
     </div>
   </div>

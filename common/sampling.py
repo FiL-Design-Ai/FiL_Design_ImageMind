@@ -16,7 +16,7 @@ from __future__ import annotations
 from typing import Any
 
 
-def _prepare_noise(latent_image, seed: int, rng_source: str = "cpu"):
+def _prepare_noise(latent_image, seed: int, rng_source: str = "cpu", batch_inds=None):
     """Generate a noise tensor for ``latent_image``/``seed``.
 
     ``"cpu"`` delegates to ``comfy.sample.prepare_noise`` (ComfyUI's stock
@@ -25,11 +25,17 @@ def _prepare_noise(latent_image, seed: int, rng_source: str = "cpu"):
     A1111-consistent) noise pattern for the same seed. Only ever reads the
     public ``comfy.sample``/``comfy.model_management`` API — no monkeypatching
     of comfy internals.
+
+    ``batch_inds`` is the latent's ``batch_index`` list, as stock
+    ``common_ksampler`` passes it (nodes.py: ``prepare_noise(x, seed,
+    batch_inds)``). Dropping it made a latent coming out of LatentFromBatch /
+    RepeatLatentBatch receive different noise than the stock KSampler would
+    give it for the same seed.
     """
     import comfy.sample
 
     if rng_source != "gpu":
-        return comfy.sample.prepare_noise(latent_image, seed)
+        return comfy.sample.prepare_noise(latent_image, seed, batch_inds)
 
     import torch
     import comfy.model_management
@@ -175,9 +181,10 @@ def _sample_core(
         model, latent_image, latent.get("downscale_ratio_spacial"), latent.get("downscale_ratio_temporal"),
     )
 
-    noise = _prepare_noise(latent_image, seed, rng_source)
+    batch_inds = latent.get("batch_index")
+    noise = _prepare_noise(latent_image, seed, rng_source, batch_inds)
     if add_seed_noise and weight > 0:
-        variation = _prepare_noise(latent_image, variation_seed, rng_source)
+        variation = _prepare_noise(latent_image, variation_seed, rng_source, batch_inds)
         noise = _blend_noise(noise, variation, weight)
 
     # Build a KSampler to reuse its sigma calculation (same as common_ksampler).

@@ -238,13 +238,13 @@ ART_STYLES = {
         "lofi anime city melancholy, quiet urban background, soft evening light, muted colors, contemplative character, gentle grain, atmospheric perspective, nostalgic mood, subtle neon window glow, cinematic still frame, calm composition"
     ),
     "💻 ЦИФРОВАЯ/📼 Retro 90s Anime Cel": (
-        "retro 90s anime cel style, hand-painted background, clean cel shading, subtle film grain, vintage color palette, soft line art, nostalgic composition, analog texture, limited highlights, classic anime atmosphere"
+        "retro 90s anime cel animation style, hand-painted acrylic background with visible brush strokes, clean cel-shaded character with registration mark alignment, subtle film grain on acetate surface, limited EGA-era color palette, soft slightly misaligned line art, cel dust and micro-scratch texture, nostalgic composition, classic broadcast anime atmosphere without digital compositing polish."
     ),
     "💻 ЦИФРОВАЯ/🎀 Cute Pink Anime Portrait": (
-        "cute pink anime portrait, blush tones, glossy lips, soft pastel palette, clean anime eyes, smooth shading, sweet expression, heart or sparkle accents, beauty-focus composition, polished aesthetic illustration"
+        "cute pink anime portrait, warm blush diffusion across cheeks and nose, glossy lip highlights, soft pastel pink-white palette, clean large anime eyes with sparkle reflections, smooth cel-and-airbrush shading, sweet gentle expression, heart or ribbon decorative accents, close-up beauty crop, polished aesthetic illustration with kawaii warmth."
     ),
     "💻 ЦИФРОВАЯ/🐉 Fantasy Dragon Girl Anime": (
-        "fantasy dragon girl anime, horns or scales, glowing fantasy eyes, dynamic hair, ornate costume, magical energy effects, dramatic fantasy background, vibrant anime rendering, cinematic adventure mood"
+        "fantasy dragon girl anime, sculpted horn geometry, iridescent scale texture on shoulders or cheeks, glowing fantasy eye irises, wind-swept dynamic hair with colored undersection, ornate layered costume with metallic trim, magical particle or sigil energy effects, dramatic fantasy castle or crystal background, vibrant saturated anime rendering, cinematic adventure composition without realistic creature anatomy."
     ),
     "💻 ЦИФРОВАЯ/🚘 Night Street Car Cinematic": (
         "night street car digital illustration, car parked motionless in frame, glossy showroom-still body reflections, wet asphalt mirror sheen, moody quiet urban lighting, stylized headlight glow, dark city backdrop, polished automotive rendering, strong static perspective angle, premium car-magazine cinematic atmosphere"
@@ -253,16 +253,16 @@ ART_STYLES = {
         "sorceress neon ritual anime, glowing sigils, magical neon aura, anime beauty styling, dark ritual mood, electric purple-blue palette, atmospheric smoke, dramatic hand pose, occult-cyber fusion"
     ),
     "💻 ЦИФРОВАЯ/🎧 Moody Headphone Anime Girl": (
-        "moody headphone anime girl, soft urban lighting, intimate portrait crop, subtle neon accents, music-lofi atmosphere, relaxed expression, stylish contemporary design, gentle shading, calm melancholic vibe"
+        "moody headphone anime girl, over-ear headphones as focal prop, soft urban window or street-lamp lighting, intimate portrait crop, subtle neon accent rim light, music-lofi atmosphere, relaxed introspective expression, cozy night-city backdrop, gentle soft-shadow shading, calm melancholic vibe, study-break aesthetic without sharp action contrast."
     ),
     "💻 ЦИФРОВАЯ/🏁 Street Racing Anime Poster": (
-        "street racing anime poster, tuned car, motion energy, dramatic city lights, aggressive perspective, glossy reflections, speed-focused composition, anime action styling, neon night atmosphere, bold automotive attitude"
+        "street racing anime poster, tuned car at aggressive three-quarter angle, motion-energy speed lines, dramatic city-light bokeh background, low perspective tire-level crop, glossy candy-paint reflections, smoke-plume burnouts, speed-focused composition, anime action styling with cel-shaded highlights, neon night atmosphere, bold automotive attitude without realistic car-photo finish."
     ),
     "💻 ЦИФРОВАЯ/🍭 Soft Pastel Kawaii Car": (
-        "soft pastel kawaii car aesthetic, cute stylized automobile, candy color palette, glossy toy-like surfaces, charming atmosphere, playful composition, soft lighting, anime-inspired automotive illustration"
+        "soft pastel kawaii car aesthetic, round adorable micro-car silhouette, candy-mint body paint, glossy toy-like reflectivity, oversized headlight eyes, decal heart accents, pink cloud background, whipped-cream highlight shapes, playful tilt-shift depth, anime chibi vehicle proportions without realistic automotive paneling."
     ),
     "💻 ЦИФРОВАЯ/🏙️ Urban Fashion Editorial Anime": (
-        "urban fashion editorial anime, stylish streetwear, city background, polished anime face rendering, contemporary cool palette, magazine pose, clean composition, high-end urban illustration energy"
+        "urban fashion editorial anime, avant-garde streetwear layering, oversized silhouette, metallic fabric sheen, city-rooftop golden-hour backdrop, magazine crop composition, bold accessory focus, sharp anime face styling with editorial blank expression, high-contrast palette between garment and sky, polished vogue-level illustration finish."
     ),
     "💻 ЦИФРОВАЯ/🌫️ Atmospheric Sci-Fi Mist": (
         "atmospheric sci-fi mist digital concept art, dense fog layers, soft glowing lights, futuristic silhouette, low visibility depth, moody cinematic palette, volumetric haze, mysterious sci-fi environment, immersive atmosphere"
@@ -271,13 +271,13 @@ ART_STYLES = {
         "Neo-Tokyo anime adventure, dense futuristic city, vertical neon signs, rainy streets, anime protagonist, cinematic perspective, saturated signage, deep urban layers, action-ready atmosphere, cyberpunk storytelling frame"
     ),
     "💻 ЦИФРОВАЯ/📱 Phone Wallpaper Vertical Sci-Fi": (
-        "vertical phone wallpaper sci-fi, centered iconic subject, strong silhouette, high detail foreground, cinematic background, clean vertical composition, dramatic lighting, wallpaper-ready framing, high contrast accents, polished digital art"
+        "vertical phone wallpaper sci-fi layout, centered iconic subject filling 9:16 frame, strong readable silhouette against gradient sky, high detail foreground with tech surface texture, cinematic atmospheric background with depth layers, lock-screen compositional discipline, dramatic top-down or rim lighting, high contrast neon accents at edges, polished high-resolution digital art without cluttered background noise."
     ),
     "💻 ЦИФРОВАЯ/🎮 Anime Game Character Render": (
-        "anime game character render, polished character design, detailed costume, dynamic pose, clean silhouette, refined cel-and-paint shading, fantasy or sci-fi accessories, dramatic splash background, sharp focus, premium mobile game art"
+        "anime gacha-game character render, polished character design with distinct weapon or accessory silhouette, layered costume with fabric and armor material zones, dynamic combat or idle pose, clean silhouette break against splash background, refined cel-and-paint shading with emissive highlight accents, fantasy or sci-fi elemental accessories, dramatic skill-animation style background, sharp focus on face and weapon, premium mobile game splash art composition without illustration softness."
     ),
     "💻 ЦИФРОВАЯ/🧜 Ethereal Soft Fantasy Anime": (
-        "ethereal soft fantasy anime, gentle glow, flowing hair, delicate fabrics, magical particles, soft pastel lighting, painterly background, graceful pose, calm emotional atmosphere, luminous highlights, dreamy composition"
+        "ethereal soft fantasy anime, translucent fabric layers with light-bleed, flowing gradient hair with luminous tips, floating magical dust motes, soft pastel lavender-and-peach lighting, painterly watercolor-style background, graceful contrapposto pose with hand gesture, calm emotional expression with glossy eye highlights, atmospheric haze between subject and background, dreamy low-contrast composition without harsh shadow or neon saturation."
     ),
     "💻 ЦИФРОВАЯ/🗡️ Dark Samurai Cyber Anime": (
         "dark samurai cyber anime, katana silhouette, black tactical clothing, neon city background, rain particles, dramatic rim light, sharp angular pose, high contrast cel shading, futuristic warrior mood, cinematic action framing"
@@ -292,11 +292,11 @@ ART_STYLES = {
         "warning sign AI robot art, caution symbols, futuristic robot face, bold graphic composition, high contrast colors, tech poster layout, digital hazard aesthetic, neon accents, sharp typography-inspired shapes"
     ),
     "💻 ЦИФРОВАЯ/🖼️ Pinterest Vertical AI Art Mix": (
-        "Pinterest vertical AI art mix, striking vertical composition, high visual impact, polished digital rendering, dramatic lighting, stylish subject, cinematic depth, aesthetic color grading, clean focal point, highly shareable wallpaper mood"
+        "Pinterest vertical AI art mix, striking 9:16 portrait crop, bold centered subject silhouette, glossy polished digital skin texture, dramatic top-down or rim lighting, curated aesthetic color grading with teal-orange or pastel split, cinematic depth-of-field falloff, clean negative-space framing around focal point, social-media-optimized visual punch, premium wallpaper-ready composition without generic AI smoothness."
     ),
     # 🔬 СТИЛИЗАЦИЯ / STYLIZATION (Pinterest curated)
     "🔬 СТИЛИЗАЦИЯ/🖤 Dark Anime Witch Gothic": (
-        "dark anime witch aesthetic, gothic fantasy portrait, black lace, occult mood, candlelit shadows, deep purple and black palette, mysterious gaze, elegant silhouette, smoky atmosphere, magical particles, dramatic low key lighting, ornate details"
+        "dark anime witch aesthetic, gothic fantasy portrait, black lace veil and corset layering, occult altar background with candle glow, deep purple and black palette with single warm candlelight accent, mysterious direct gaze, elegant pointed silhouette with wide hat or cape, smoky incense haze, floating magical spark particles, dramatic low-key lighting with sharp shadow carve on face, ornate silver jewelry details without generic dark fantasy gloss."
     ),
     "🔬 СТИЛИЗАЦИЯ/🩸 Vampire Red Eye Anime Noir": (
         "vampire anime noir, glowing red eyes, pale skin, sharp fangs, dark glossy hair, crimson accents, seductive menace, high contrast face lighting, black background, cinematic shadows, intense eye focus, gothic elegance"
@@ -317,7 +317,7 @@ ART_STYLES = {
         "crimson gothic beauty digital portrait art, pale face, red-black palette, luxurious dark styling, velvet textures, seductive gothic elegance, dramatic portrait lighting, moody high contrast, rich atmospheric shadows"
     ),
     "🔬 СТИЛИЗАЦИЯ/🌠 Cosmic Dream Girl": (
-        "cosmic dream girl aesthetic, starfield glow, dreamy pastel nebula colors, ethereal feminine portrait, soft bloom, celestial particles, fantasy editorial styling, luminous skin, magical atmosphere"
+        "cosmic dream girl aesthetic, deep-space starfield backdrop, layered pastel nebula washes, ethereal feminine portrait with soft rim glow, floating stardust particles, celestial eye highlights, translucent fantasy fabrics with galaxy-print sheen, luminous skin refraction, astral body-glow halo, editorial fantasy styling without cluttered magical noise."
     ),
     "🔬 СТИЛИЗАЦИЯ/💿 Holographic Y2K Pop Star": (
         "holographic Y2K pop star, metallic makeup, futuristic fashion, glossy magazine styling, digital sparkle, chrome accessories, hyperpop color palette, club lighting, bold beauty composition, pop editorial energy"
@@ -326,28 +326,28 @@ ART_STYLES = {
         "alien fashion runway, avant-garde silhouette, extraterrestrial beauty styling, reflective fabrics, surreal couture design, dramatic catwalk lighting, futuristic editorial composition, high-fashion sci-fi atmosphere"
     ),
     "🔬 СТИЛИЗАЦИЯ/🏴 Black Armor Dark Fantasy": (
-        "black armor dark fantasy, ornate dark metal plating, heroic gothic stance, moody environment, deep shadows, sharp edge highlights, epic grim atmosphere, high detail fantasy concept rendering"
+        "black armor dark fantasy illustration, ornate gothic plate armor with filigree edges, heroic stance with broadsword or greatshield, moody castle-ruin or ash-waste environment, deep shadow pools with single rim-light edge, sharp metallic edge highlights on black metal, grim determined expression, high detail fantasy concept rendering with forged-metal texture, cinematic low-angle heroic framing without fantasy glitter or glow."
     ),
     "🔬 СТИЛИЗАЦИЯ/🕯️ Occult Black Magic Anime": (
-        "occult black magic anime, dark ritual symbols, candlelit shadows, black and gold palette, mysterious feminine figure, gothic magical energy, occult atmosphere, elegant anime rendering, dramatic mystical composition"
+        "occult black magic anime, dark ritual circle with drawn symbols on floor or wall, candlelit face shadows with single flame light source, black-gold-and-deep-red palette, mysterious feminine figure in ritual robe or elegant gothic dress, glowing arcane hand gesture, floating occult diagram particles, elegant anime line rendering, dramatic chiaroscuro composition without generic fantasy sparkle."
     ),
     "🔬 СТИЛИЗАЦИЯ/🕳️ Black Void High Contrast": (
         "black void high contrast digital art, isolated subject, deep negative space, razor-edged rim light, stark silhouette readability, minimal but dramatic composition, glossy highlights, intense visual focus"
     ),
     "🔬 СТИЛИЗАЦИЯ/🧱 Gritty Post-Apocalyptic Casual": (
-        "gritty post-apocalyptic digital character illustration, rugged clothing, dusty texture painting, worn urban decay, harsh survival mood, natural grime palette, muted earthy colors, grounded concept-art realism, cinematic wasteland styling"
+        "gritty post-apocalyptic digital character illustration, layered dirty textile folds, dust-caked boot and gear wear, chipped concrete urban rubble background, rusty metal prop accents, harsh survival grime texture, muted ochre-and-charcoal palette, sun-beaten skin detail, grounded concept-art realism, cinematic wasteland atmosphere without sci-fi gloss."
     ),
     "🔬 СТИЛИЗАЦИЯ/🔥 Red Smoke Dark Character": (
-        "red smoke dark character portrait illustration, black-red palette, dense smoke plumes, glowing ember atmosphere, ominous expression, dramatic face lighting, high contrast darkness, aggressive cinematic mood"
+        "red smoke dark character portrait illustration, black-red palette dominance, dense volumetric smoke plumes framing the face, glowing ember backlight, ominous low-angle gaze, dramatic face light with sharp shadow carve on cheekbones, high-contrast darkness, aggressive cinematic mood, particle-heavy atmosphere without clean studio lighting."
     ),
     "🔬 СТИЛИЗАЦИЯ/💎 Prismatic Neon Reflections": (
-        "prismatic neon reflections digital art, rainbow-split highlights, glossy surfaces, iridescent glass effects, dark cyber backdrop, refracted light shards, high contrast specular play, premium futuristic aesthetic"
+        "prismatic neon reflections digital art, rainbow-split specular highlights on dark glossy surfaces, faceted glass or crystal geometry with internal refraction, dark cyber backdrop with pin-spot light sources, refracted light shard patterns crossing the frame, high contrast between black environment and saturated spectral reflections, premium futuristic aesthetic without flat gradient or generic glow effects."
     ),
     "🔬 СТИЛИЗАЦИЯ/🪞 Glossy Black Latex Cyber": (
         "glossy black latex cyber digital art aesthetic, reflective black material, dramatic body contour highlights, neon accents, fetish-fashion sci-fi styling, dark editorial atmosphere, polished high contrast glamour"
     ),
     "🔬 СТИЛИЗАЦИЯ/🌸 Bloom Soft Girl Aesthetic": (
-        "bloom soft girl aesthetic, soft natural light, delicate face, pastel highlights, smooth skin rendering, gentle hair strands, dreamy background, clean composition, subtle sparkle, emotional warmth"
+        "bloom soft girl aesthetic, soft window-light fall across face, pastel-pink and lavender color wash, delicate freckle and glow detail, smooth translucent skin rendering, gentle wind-blown hair strands, dreamy out-of-focus floral background, clean minimalist composition, subtle lens-like sparkle highlights, emotional warmth expressed through relaxed features, analog-film light bleed, kawaii-soft portrait intimacy without hard contrast or shadow."
     ),
     # 💥 КОМИКС / COMIC (Pinterest curated)
     "💥 КОМИКС/🕷️ Symbiote Venom Comic Ink": (
@@ -357,7 +357,7 @@ ART_STYLES = {
         "aggressive comic style, heavy black ink lines, bold outlines, ink splatter, sharp jagged contours, exaggerated anatomy distortion, dynamic motion lines, extreme high contrast, neon gradient background, deep blacks, hard specular highlights, cel shading, chaotic composition, frame-breaking elements, splash art"
     ),
     "💥 КОМИКС/🧨 Dynamic Superhero Splash": (
-        "dynamic superhero splash art, exaggerated heroic foreshortening, comic-book impact, explosive pose, glossy musculature, dramatic rim light, saturated highlights, high-energy composition, cinematic action framing, powerful silhouette"
+        "dynamic superhero splash art, exaggerated heroic foreshortening, fist or weapon aimed at viewer, comic-book impact rings, explosive pose with cape-spread silhouette, glossy musculature with cel-shaded highlights, saturated primary-color palette, debris and speed-line energy burst, dramatic rim light separating figure from background, high-energy composition, bold cover-layout framing, powerful iconic silhouette without realistic anatomy constraints."
     ),
     # 🦾 КИБЕРПАНК / CYBERPUNK (Pinterest curated)
     "🦾 КИБЕРПАНК/🤖 Chrome Cyborg Hyperrealism": (
