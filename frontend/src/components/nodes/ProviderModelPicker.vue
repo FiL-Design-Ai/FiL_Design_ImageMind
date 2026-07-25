@@ -51,10 +51,22 @@ function setViewMode(mode: "list" | "grid") {
 // provider-dependent: local providers (ollama/lmstudio) only ever have "local"
 // models, remote ones split into free/paid.
 const TYPE_OPTIONS = ["all", "vision", "text"] as const;
-const TYPE_LABELS: Record<string, string> = { all: "All Types", vision: "👁 Vision", text: "📝 Text" };
-const TIER_LABELS: Record<string, string> = { all: "All Tiers", local: "💻 Local", free: "🆓 Free", paid: "💎 Paid" };
+const TYPE_LABELS: Record<string, string> = {
+  all: t("pmp_all_types", "All Types"),
+  vision: t("pmp_tag_vision_opt", "👁 Vision"),
+  text: t("pmp_tag_text_opt", "📝 Text"),
+};
+const TIER_LABELS: Record<string, string> = {
+  all: t("pmp_all_tiers", "All Tiers"),
+  local: t("pmp_tier_local", "💻 Local"),
+  free: t("pmp_tier_free", "🆓 Free"),
+  paid: t("pmp_tier_paid", "💎 Paid"),
+};
 const VIEW_OPTIONS = ["list", "grid"] as const;
-const VIEW_LABELS: Record<string, string> = { list: "☰ List", grid: "⊞ Tiles" };
+const VIEW_LABELS: Record<string, string> = {
+  list: t("pmp_view_list", "☰ List"),
+  grid: t("pmp_view_grid", "⊞ Tiles"),
+};
 
 const tierOptions = computed<string[]>(() =>
   selectedProvider.value === "ollama" || selectedProvider.value === "lmstudio"
@@ -156,7 +168,7 @@ function closeModal() {
   <FilModal
     :open="open"
     width="860px"
-    title="🔌 Choose Provider & Model"
+    :title="t('pmp_title', '🔌 Choose Provider &amp; Model')"
     @update:open="(v) => emit('update:open', v)"
     @close="closeModal"
   >
@@ -183,20 +195,20 @@ function closeModal() {
       <div class="provider-status-bar">
         <div class="status-info">
           <span class="provider-name">{{ PROVIDER_LABEL[selectedProvider] ?? selectedProvider }}</span>
-          <span v-if="isLoading" class="status-badge loading">⏳ Loading...</span>
+          <span v-if="isLoading" class="status-badge loading">⏳ {{ t('pmp_loading', 'Loading...') }}</span>
           <span v-else-if="probe && probe.status && probe.status !== 'available'" class="status-badge error">
             ⚠️ {{ probe.message || probe.status }}
           </span>
           <span v-else class="status-badge online">
-            ● Online ({{ currentModels.length }} {{ t('prov_models', 'models') }})
+            ● {{ t('pmp_online', 'Online') }} ({{ currentModels.length }} {{ t('prov_models', 'models') }})
           </span>
-          <span v-if="ageLabel" class="age-label">Updated: {{ ageLabel }}</span>
+          <span v-if="ageLabel" class="age-label">{{ t('pmp_updated', 'Updated') }}: {{ ageLabel }}</span>
         </div>
         <FilButton
           variant="sm"
-          label="↻ Refresh"
+          :label="t('pmp_refresh', '↻ Refresh')"
           :loading="isLoading"
-          title="Reload models list"
+          :title="t('tt_refresh', 'Reload models list')"
           @click="loadCurrentProviderModels(true)"
         />
       </div>
@@ -209,9 +221,15 @@ function closeModal() {
             v-model="searchQuery"
             type="text"
             class="search-input"
-            placeholder="Search models..."
+            :placeholder="t('pmp_search', 'Search models...')"
           />
-          <button v-if="searchQuery" class="clear-search" @click="searchQuery = ''">✕</button>
+          <button
+            v-if="searchQuery"
+            type="button"
+            class="clear-search"
+            :title="t('tt_clear_search', 'Clear search')"
+            @click="searchQuery = ''"
+          >✕</button>
         </div>
 
         <div class="filter-segments">
@@ -239,17 +257,23 @@ function closeModal() {
       <!-- Models List / Grid Container -->
       <div class="models-list-wrapper">
         <div v-if="isLoading && !currentModels.length" class="empty-state">
-          <FilInfo text="Loading models from provider..." />
+          <FilInfo :text="t('pmp_loading_provider', 'Loading models from provider...')" />
         </div>
         <div v-else-if="!filteredModels.length" class="empty-state">
-          <span>No models matching criteria</span>
+          <span>{{ t('pmp_no_match', 'No models matching criteria') }}</span>
         </div>
         <div v-else :class="['models-container', viewMode]">
-          <div
+          <!-- A real <button>, not a clickable <div>: the card is the primary
+               control in this dialog, and every other interactive element in the
+               codebase is a button, so keyboard users and screen readers were
+               the only ones locked out of picking a model. -->
+          <button
             v-for="m in filteredModels"
             :key="m"
+            type="button"
             class="model-card"
             :class="{ selected: m === selectedModel }"
+            :aria-pressed="m === selectedModel"
             @click="pickModel(m)"
           >
             <div class="model-main">
@@ -257,28 +281,29 @@ function closeModal() {
               <span class="model-name" :title="m">{{ m }}</span>
             </div>
             <div class="model-tags">
-              <span v-if="isVision(m)" class="tag vision">Vision</span>
-              <span v-else class="tag text">Text</span>
+              <span v-if="isVision(m)" class="tag vision">{{ t('pmp_tag_vision', 'Vision') }}</span>
+              <span v-else class="tag text">{{ t('pmp_tag_text', 'Text') }}</span>
               
-              <span v-if="getTier(m, selectedProvider) === 'local'" class="tag local">Local</span>
-              <span v-else-if="getTier(m, selectedProvider) === 'free'" class="tag free">Free</span>
-              <span v-else class="tag paid">Paid</span>
+              <span v-if="getTier(m, selectedProvider) === 'local'" class="tag local">{{ t('pmp_tag_local', 'Local') }}</span>
+              <span v-else-if="getTier(m, selectedProvider) === 'free'" class="tag free">{{ t('pmp_tag_free', 'Free') }}</span>
+              <span v-else class="tag paid">{{ t('pmp_tag_paid', 'Paid') }}</span>
             </div>
-          </div>
+          </button>
         </div>
       </div>
 
       <!-- Footer Buttons -->
       <div class="picker-footer">
         <div class="selection-summary">
-          <span v-if="selectedModel">Selected: <strong>{{ selectedModel }}</strong></span>
-          <span v-else class="muted">No model selected</span>
+          <span v-if="selectedModel">{{ t('pmp_selected', 'Selected') }}: <strong>{{ selectedModel }}</strong></span>
+          <span v-else class="muted">{{ t('pmp_none_selected', 'No model selected') }}</span>
         </div>
         <div class="footer-actions">
-          <FilButton label="Cancel" @click="closeModal" />
+          <FilButton :label="t('pmp_cancel', 'Cancel')" :title="t('pmp_cancel_tt', 'Close without changing the model')" @click="closeModal" />
           <FilButton
             variant="accent"
-            label="✔ Apply Selection"
+            :label="t('pmp_apply', '✔ Apply Selection')"
+            :title="t('pmp_apply_tt', 'Use the selected model')"
             :disabled="!selectedModel"
             @click="confirmSelection"
           />
@@ -470,6 +495,18 @@ function closeModal() {
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.12s ease;
+  /* Button resets — the card became a real <button> for keyboard access. */
+  width: 100%;
+  box-sizing: border-box;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.model-card:focus-visible {
+  outline: 2px solid var(--fil-accent);
+  outline-offset: -2px;
 }
 .model-card:hover {
   background: rgba(255, 255, 255, 0.07);
