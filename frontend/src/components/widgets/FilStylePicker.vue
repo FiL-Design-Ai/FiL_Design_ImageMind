@@ -255,7 +255,7 @@ function select(key: string) {
 }
 .fil-style-search-clear:hover {
   background: rgba(255, 75, 75, 0.3);
-  color: #ff6b6b;
+  color: var(--fil-danger, #ff6b6b);
 }
 .fil-style-grid {
   display: grid;
@@ -335,8 +335,8 @@ function select(key: string) {
   gap: 6px;
   padding: 6px;
   border-radius: 6px;
-  background: rgba(0, 240, 255, 0.06);
-  border: 1px solid rgba(0, 240, 255, 0.2);
+  background: color-mix(in srgb, var(--fil-accent, #00f0ff) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--fil-accent, #00f0ff) 20%, transparent);
 }
 .fil-style-chip {
   display: inline-flex;
@@ -345,7 +345,7 @@ function select(key: string) {
   padding: 3px 8px;
   border-radius: 999px;
   background: var(--fil-accent, #00f0ff);
-  color: #12151a;
+  color: var(--fil-accent-ink, #12151a);
   font-size: 11px;
   font-weight: 600;
 }
@@ -364,7 +364,7 @@ function select(key: string) {
   border-radius: 50%;
   border: none;
   background: rgba(0, 0, 0, 0.2);
-  color: #12151a;
+  color: var(--fil-accent-ink, #12151a);
   font-size: 12px;
   line-height: 1;
   cursor: pointer;
@@ -372,7 +372,7 @@ function select(key: string) {
   transition: background 0.08s, color 0.08s;
 }
 .fil-chip-remove:hover {
-  background: #ff4b4b;
+  background: var(--fil-danger, #ff4b4b);
   color: #ffffff;
 }
 </style>

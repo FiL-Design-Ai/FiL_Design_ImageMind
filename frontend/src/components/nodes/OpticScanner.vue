@@ -445,17 +445,17 @@ function newFixedSeed() {
 }
 .fil-style-tab-btn.active {
   background: var(--fil-accent, #00f0ff);
-  color: #12151a;
+  color: var(--fil-accent-ink, #12151a);
   border-color: var(--fil-accent, #00f0ff);
   font-weight: 700;
-  box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--fil-accent, #00f0ff) 30%, transparent);
 }
 .fil-tab-badge {
   font-size: 10px;
   color: #00ff88;
 }
 .fil-style-tab-btn.active .fil-tab-badge {
-  color: #12151a;
+  color: var(--fil-accent-ink, #12151a);
 }
 .fil-style-picker-body {
   min-height: 320px;
@@ -473,7 +473,7 @@ function newFixedSeed() {
   border-radius: 6px;
   border: 1px solid rgba(255, 75, 75, 0.3);
   background: rgba(255, 75, 75, 0.1);
-  color: #ff6b6b;
+  color: var(--fil-danger, #ff6b6b);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -481,7 +481,7 @@ function newFixedSeed() {
 }
 .fil-clear-styles-btn:hover {
   background: rgba(255, 75, 75, 0.25);
-  border-color: #ff4b4b;
+  border-color: var(--fil-danger, #ff4b4b);
   color: #ffffff;
 }
 
@@ -507,7 +507,7 @@ function newFixedSeed() {
 .fil-scanner-seed-pill.active { background: rgba(255, 255, 255, 0.16); border-color: rgba(255, 255, 255, 0.2); }
 .fil-scanner-seed-pill:focus-visible { outline: 2px solid var(--fil-accent); outline-offset: -2px; }
 .fil-scanner-seed-pill-accent {
-  background: var(--fil-accent); border-color: var(--fil-accent); color: #241206; font-weight: 700;
+  background: var(--fil-accent); border-color: var(--fil-accent); color: var(--fil-accent-ink, #241206); font-weight: 700;
 }
 .fil-scanner-seed-pill-accent:hover { filter: brightness(1.08); background: var(--fil-accent); }
 </style>
