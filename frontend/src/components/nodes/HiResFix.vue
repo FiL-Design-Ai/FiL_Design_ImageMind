@@ -232,7 +232,7 @@ function newFixedSeed() {
 .fil-hrf-seed-pill.active { background: rgba(255, 255, 255, 0.16); border-color: rgba(255, 255, 255, 0.2); }
 .fil-hrf-seed-pill:focus-visible { outline: 2px solid var(--fil-accent); outline-offset: -2px; }
 .fil-hrf-seed-pill-accent {
-  background: var(--fil-accent); border-color: var(--fil-accent); color: #241206; font-weight: 700;
+  background: var(--fil-accent); border-color: var(--fil-accent); color: var(--fil-accent-ink, #241206); font-weight: 700;
 }
 .fil-hrf-seed-pill-accent:hover { filter: brightness(1.08); background: var(--fil-accent); }
 </style>
