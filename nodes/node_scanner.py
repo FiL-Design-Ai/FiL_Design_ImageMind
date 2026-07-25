@@ -27,13 +27,13 @@ from ..common.data import (
 from ..common.io_types import FilDict, FilProviderConfig
 from ..common.localization import t
 from ..common.logic import PromptGenerator, StyleManager
+from ..common.data import get_effective_response_format
 from ..common.model_prompt_adapters import append_response_format_instruction, post_convert_prompt
-from ..common.processing import ImageProcessor, is_valid_model_name
 from ..common.models import ModelClient
-from ..common.processing import ImageProcessor, normalize_model_name
-from ..common.style_enforcer import StyleEnforcer
+from ..common.processing import ImageProcessor, is_valid_model_name, normalize_model_name
 from ..common.provider_resilience import is_timeout_error, sanitize_sensitive_data
 from ..common.provider_runtime import safe_provider_error
+from ..common.style_enforcer import StyleEnforcer
 
 _processor = ImageProcessor()
 _style_manager = StyleManager()
@@ -50,10 +50,10 @@ class FiLOpticScanner(io.ComfyNode):
             node_id="FiLOpticScanner",
             display_name="🕵️ Optic Scanner",
             category=f"{CATEGORY_ROOT}/LLM",
-            description=(
-                "👁️ Optic Scanner — analyzes images with LLM vision models and generates "
-                "optimized prompts for Z-Image, FLUX, QWEN, and SDXL generation models."
-            ),
+description=(
+            "👁️ Optic Scanner — analyzes images with LLM vision models and generates "
+            "optimized prompts for Z-Image, FLUX, SDXL, QWEN, Krea 2, and Ideogram 4."
+        ),
             inputs=[
                 FilProviderConfig.Input("config", tooltip=t("tt_config", "Config from Provider Loader node.")),
                 io.Combo.Input("agent", options=_AGENT_KEYS, default=get_default_agent_key(),
@@ -110,11 +110,11 @@ class FiLOpticScanner(io.ComfyNode):
 
     @classmethod
     def fingerprint_inputs(cls, config=None, agent="None", image=None, prompt="", negative_prompt="",
-                            detail_level="normal", language="ru", model_type="Auto/None",
-                            prompt_mode="Auto", photo_style="None", nsfw_photo_style="None",
-                            art_style="None", nsfw_art_style="None", custom_style="", seed=-1,
-                            response_format="text",
-                            **kwargs) -> Any:
+                           detail_level="normal", language="ru", model_type="Auto/None",
+                           prompt_mode="Auto", photo_style="None", nsfw_photo_style="None",
+                           art_style="None", nsfw_art_style="None", custom_style="", seed=-1,
+                           response_format="text",
+                           **kwargs) -> Any:
         image_key: Any = None
         if image is not None:
             try:
@@ -123,8 +123,14 @@ class FiLOpticScanner(io.ComfyNode):
                 # on re-execution), which spuriously invalidated the cache and
                 # made "Fixed" seed mode still re-call the LLM. Slice/flatten
                 # before `.cpu()` so this stays cheap even on large batches.
-                sample = image[0].flatten()[:256].cpu().numpy().tobytes()
-                image_key = (tuple(image.shape), hashlib.md5(sample).hexdigest())
+                # Every frame contributes, not just image[0]: execute() processes
+                # the whole batch, so hashing only the first frame returned a
+                # stale cached prompt whenever frames 2..N changed but frame 1
+                # stayed the same.
+                digest = hashlib.md5()
+                for frame in range(image.shape[0]):
+                    digest.update(image[frame].flatten()[:256].cpu().numpy().tobytes())
+                image_key = (tuple(image.shape), digest.hexdigest())
             except Exception:
                 image_key = id(image)
         return hash((
@@ -204,9 +210,9 @@ class FiLOpticScanner(io.ComfyNode):
 
             second_seed = seed + 1 if seed > 0 else -1
             stage2_user = _prompt_gen.build_stage2_user_prompt(
-                    description, prompt, detail_level=detail_level,
-                    model_type=model_type,
-                )
+                description, prompt, detail_level=detail_level,
+                model_type=model_type,
+            )
             stage2_user = append_response_format_instruction(stage2_user, model_type, response_format)
             try:
                 stage2_result = _model_client.generate(
@@ -268,8 +274,13 @@ class FiLOpticScanner(io.ComfyNode):
         # no widgets of its own for them, so they must come from `config`, not
         # from a hardcoded default (previously always 0.7/1024, config ignored).
         temperature = config.get("temperature", 0.7)
-        configured_max_tokens = config.get("max_tokens", 0)
-        max_tokens = configured_max_tokens if configured_max_tokens else 1024
+        raw_max_tokens = config.get("max_tokens")
+        if raw_max_tokens is None:
+            max_tokens = 1024
+        elif raw_max_tokens == 0:
+            max_tokens = None
+        else:
+            max_tokens = raw_max_tokens
         rate_limit_ms = config.get("rate_limit_ms", 100)
 
         if not model:
@@ -297,10 +308,8 @@ class FiLOpticScanner(io.ComfyNode):
             photo_style=photo_style, nsfw_photo_style=nsfw_photo_style,
             art_style=art_style, nsfw_art_style=nsfw_art_style,
         )
-        style_key = next(
-            (v for v in (photo_style, nsfw_photo_style, art_style, nsfw_art_style) if v and v != "None"),
-            "",
-        )
+        active_keys = [v for v in (photo_style, nsfw_photo_style, art_style, nsfw_art_style) if v and v != "None"]
+        style_key = " | ".join(active_keys) if active_keys else ""
         nsfw_active = bool(
             (nsfw_photo_style and nsfw_photo_style != "None")
             or (nsfw_art_style and nsfw_art_style != "None")
@@ -329,7 +338,8 @@ class FiLOpticScanner(io.ComfyNode):
             system_prompt = f"{system_prompt}\n\nCustom style override:\n{custom_style.strip()}"
 
         user_message = _prompt_gen.build_stage1_user_prompt(prompt, has_image)
-        user_message = append_response_format_instruction(user_message, model_type, response_format)
+        effective_format = get_effective_response_format(model_type, response_format)
+        user_message = append_response_format_instruction(user_message, model_type, effective_format)
 
         neg_clause = None
         try:
@@ -377,7 +387,7 @@ class FiLOpticScanner(io.ComfyNode):
                         nsfw_active=nsfw_active, style_kwargs=style_kwargs,
                         style_key=style_key, user_message=user_message,
                         images_b64=[b64], temperature=temperature, seed=seed,
-                        max_tokens=max_tokens, response_format=response_format,
+                        max_tokens=max_tokens, response_format=effective_format,
                         model_type=model_type, prompt=prompt,
                         effective_mode=effective_mode,
                         hybrid_timeout=hybrid_timeout,
@@ -401,7 +411,7 @@ class FiLOpticScanner(io.ComfyNode):
                     nsfw_active=nsfw_active, style_kwargs=style_kwargs,
                     style_key=style_key, user_message=user_message,
                     images_b64=images_b64, temperature=temperature, seed=seed,
-                    max_tokens=max_tokens, response_format=response_format,
+                    max_tokens=max_tokens, response_format=effective_format,
                     model_type=model_type, prompt=prompt,
                     effective_mode=effective_mode,
                     hybrid_timeout=hybrid_timeout,
@@ -500,5 +510,19 @@ class FiLOpticScanner(io.ComfyNode):
         if image_runs:
             meta_dict["image_runs"] = image_runs
         meta_json = json.dumps(meta_dict, ensure_ascii=False)
+
+        # A provider can answer 200 OK with nothing usable in it. That used to
+        # leave the node reporting success with an empty prompt, the only trace
+        # being `response_outcome.response_empty` — which itself is only filled
+        # in when a style contract was applied.
+        if not result.strip():
+            err_meta = dict(meta_dict)
+            err_meta.update({
+                "status": "error",
+                "message": "Модель вернула пустой ответ.",
+                "error_code": "EMPTY_RESPONSE",
+            })
+            err_msg = "⚠️ Ошибка: модель вернула пустой ответ. Попробуйте другую модель или измените промпт."
+            return io.NodeOutput(err_msg, json.dumps(err_meta, ensure_ascii=False), err_meta)
 
         return io.NodeOutput(result.strip(), meta_json, meta_dict)
