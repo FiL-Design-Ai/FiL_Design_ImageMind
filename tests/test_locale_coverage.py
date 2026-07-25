@@ -73,6 +73,20 @@ def test_locales_hold_the_same_key_set():
     )
 
 
+@pytest.mark.parametrize("locale_name", ["en.json", "ru.json"])
+def test_pluralized_keys_have_all_three_ru_forms(locale_name: str):
+    """`tPlural(base, ...)` in useI18n.ts reads `{base}_one/_few/_many`.
+
+    Russian needs all three (1 модель / 2 модели / 5 моделей); a flat
+    `t('prov_models', 'models')` previously read "1 моделей" for a single
+    model, which is grammatically wrong regardless of the fallback text.
+    """
+    locale = _locale(locale_name)
+    for base in ("prov_models",):
+        for suffix in ("_one", "_few", "_many"):
+            assert f"{base}{suffix}" in locale, f"{locale_name} missing {base}{suffix}"
+
+
 def test_russian_locale_is_actually_translated():
     """A ru value identical to its en value usually means it was never translated.
 

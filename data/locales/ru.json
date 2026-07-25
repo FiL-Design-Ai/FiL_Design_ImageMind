@@ -188,7 +188,6 @@
   "lbl_cn_strength": "💪 Сила",
   "lbl_cn_preproc": "🧪 Препроцессор",
   "utc_section_auto": "⚙️ Авто / дополнительно",
-  "prov_models": "моделей",
   "prov_loading_models": "Загрузка моделей…",
   "prov_models_updated": "Список моделей обновлён",
   "toast_close": "Закрыть",
@@ -267,5 +266,11 @@
   "cln_unload_vae": "🖼️ Выгрузить VAE",
   "cln_unload_control": "🎛️ Выгрузить ControlNet / адаптер",
   "sm_fusion_fast": "⚡ Быстрый стек",
-  "sm_fusion_smart": "🧬 Умная LLM-фузия"
+  "sm_fusion_smart": "🧬 Умная LLM-фузия",
+  "prov_models_one": "модель",
+  "prov_models_few": "модели",
+  "prov_models_many": "моделей",
+  "unit_seconds_short": "с",
+  "unit_minutes_short": "мин",
+  "unit_hours_short": "ч"
 }

@@ -121,14 +121,21 @@ export const useProviderStore = defineStore("fil/providers", () => {
     }
   }
 
-  function cachedAgeLabel(provider: string): string | null {
+  /**
+   * `t` is optional and defaults to the English suffix so callers that don't
+   * (yet) have a translator on hand keep working. Without it this returned
+   * "12s"/"5m"/"2h" verbatim inside otherwise-Russian panels — the unit letter
+   * never went through useI18n at all.
+   */
+  function cachedAgeLabel(provider: string, t?: (key: string, fallback: string) => string): string | null {
     const entry = modelsByProvider.value[provider];
     if (!entry?.cachedAt) return null;
+    const tr = t ?? ((_key: string, fallback: string) => fallback);
     const age = Date.now() - entry.cachedAt;
     const seconds = Math.floor(age / 1000);
-    if (seconds < 60) return `${seconds}s`;
-    if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
-    return `${Math.floor(seconds / 3600)}h`;
+    if (seconds < 60) return `${seconds}${tr("unit_seconds_short", "s")}`;
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}${tr("unit_minutes_short", "m")}`;
+    return `${Math.floor(seconds / 3600)}${tr("unit_hours_short", "h")}`;
   }
 
   async function probe(provider: string, model = ""): Promise<ProbeResponse | undefined> {

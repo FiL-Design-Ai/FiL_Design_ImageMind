@@ -25,7 +25,7 @@ const emit = defineEmits<{
 }>();
 
 const store = useProviderStore();
-const { t } = useI18n();
+const { t, tPlural } = useI18n();
 
 const selectedProvider = ref<string>(props.provider);
 const selectedModel = ref<string>(props.model);
@@ -115,7 +115,7 @@ const currentModels = computed(() => store.modelsFor(selectedProvider.value));
 const visionModels = computed(() => store.visionModelsFor(selectedProvider.value));
 const isLoading = computed(() => store.isLoading(selectedProvider.value));
 const probe = computed(() => store.probeState[selectedProvider.value]);
-const ageLabel = computed(() => store.cachedAgeLabel(selectedProvider.value));
+const ageLabel = computed(() => store.cachedAgeLabel(selectedProvider.value, t));
 
 function getTier(m: string, p: string): "local" | "free" | "paid" {
   if (p === "ollama" || p === "lmstudio") return "local";
@@ -200,7 +200,7 @@ function closeModal() {
             ⚠️ {{ probe.message || probe.status }}
           </span>
           <span v-else class="status-badge online">
-            ● {{ t('pmp_online', 'Online') }} ({{ currentModels.length }} {{ t('prov_models', 'models') }})
+            ● {{ t('pmp_online', 'Online') }} ({{ currentModels.length }} {{ tPlural('prov_models', currentModels.length, 'model', 'models', 'models') }})
           </span>
           <span v-if="ageLabel" class="age-label">{{ t('pmp_updated', 'Updated') }}: {{ ageLabel }}</span>
         </div>
