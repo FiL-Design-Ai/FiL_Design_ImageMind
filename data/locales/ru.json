@@ -272,5 +272,8 @@
   "prov_models_many": "моделей",
   "unit_seconds_short": "с",
   "unit_minutes_short": "мин",
-  "unit_hours_short": "ч"
+  "unit_hours_short": "ч",
+  "sd_no_last_seed": "Ещё не было предыдущего запуска с сидом",
+  "sd_aria_seed_value": "Значение seed",
+  "hrf_aria_seed_value": "Значение hires-seed"
 }

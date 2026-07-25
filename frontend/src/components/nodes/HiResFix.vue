@@ -107,7 +107,7 @@ function useLastSeed() {
   const w = node ? findFilWidget(node, "seed") : null;
   const last = w && Number.isFinite(Number(w.value)) ? Number(w.value) : props.state.lastRunSeed;
   if (last == null || !Number.isFinite(last)) {
-    toast.warning("No last-run seed recorded yet");
+    toast.warning(t("sd_no_last_seed", "No last-run seed recorded yet"));
     return;
   }
   seedValue.value = last;
@@ -166,7 +166,7 @@ function newFixedSeed() {
         class="fil-hrf-seed-field"
         :class="{ 'is-random': seedMode === 'random' }"
         :readonly="seedMode === 'random'"
-        aria-label="Hires seed value"
+        :aria-label="t('hrf_aria_seed_value', 'Hires seed value')"
         :title="seedMode === 'fixed' ? t('hrf_seed_locked', 'Locked hires seed') : t('hrf_seed_auto_random', 'Auto-random — a new hires seed is generated each run')"
         @input="(e) => (seedValue = Number((e.target as HTMLInputElement).value) || 0)"
       />

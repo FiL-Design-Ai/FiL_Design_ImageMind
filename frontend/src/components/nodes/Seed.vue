@@ -62,7 +62,7 @@ function useLast() {
   const w = node ? findFilWidget(node, "seed") : null;
   const last = w && Number.isFinite(Number(w.value)) ? Number(w.value) : props.state.lastRunSeed;
   if (last == null || !Number.isFinite(last)) {
-    toast.warning("No last-run seed recorded yet");
+    toast.warning(t("sd_no_last_seed", "No last-run seed recorded yet"));
     return;
   }
   seed.value = last;
@@ -98,7 +98,7 @@ const display = computed({
       class="fil-seed-display"
       :readonly="mode === 'random'"
       :title="mode === 'fixed' ? t('sd_locked', 'Locked seed') : t('sd_auto_random', 'Auto-random')"
-      aria-label="Seed value"
+      :aria-label="t('sd_aria_seed_value', 'Seed value')"
     />
     <div class="fil-seed-actions">
       <FilButton label="🔀" variant="standard" :title="t('sd_mode', 'Random generates a new seed each run.')" @click="setRandom" />
