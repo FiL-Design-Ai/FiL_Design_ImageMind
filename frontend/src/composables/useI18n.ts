@@ -39,10 +39,33 @@ function ensureLoaded(): void {
   loadPromise = loadTranslations(lang);
 }
 
+/** Russian has three plural forms (1 модель / 2 модели / 5 моделей), English has two. */
+function pluralRu(n: number, one: string, few: string, many: string): string {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return one;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
+  return many;
+}
+
 export function useI18n() {
   ensureLoaded();
   function t(key: string, fallback: string): string {
     return state.translations[key] ?? fallback;
   }
-  return { t, state: readonly(state) };
+  /**
+   * Count-aware text: reads `{key}_one` / `{key}_few` / `{key}_many` (falling
+   * back to the three fallback params), and applies Russian's mod-10/mod-100
+   * plural rule when the active locale is "ru". A flat `t(key, "models")` read
+   * "1 моделей" for a single model — grammatically wrong regardless of fallback
+   * text, since English only has singular/plural to begin with.
+   */
+  function tPlural(key: string, count: number, fallbackOne: string, fallbackFew: string, fallbackMany: string): string {
+    const one = state.translations[`${key}_one`] ?? fallbackOne;
+    const few = state.translations[`${key}_few`] ?? fallbackFew;
+    const many = state.translations[`${key}_many`] ?? fallbackMany;
+    if (state.lang === "ru") return pluralRu(count, one, few, many);
+    return count === 1 ? one : many;
+  }
+  return { t, tPlural, state: readonly(state) };
 }

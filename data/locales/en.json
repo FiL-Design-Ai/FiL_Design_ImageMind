@@ -188,7 +188,6 @@
   "lbl_cn_strength": "💪 Strength",
   "lbl_cn_preproc": "🧪 Preprocessor",
   "utc_section_auto": "⚙️ Auto / advanced",
-  "prov_models": "models",
   "prov_loading_models": "Loading models…",
   "prov_models_updated": "Models updated",
   "toast_close": "Close",
@@ -267,5 +266,11 @@
   "cln_unload_vae": "🖼️ Unload VAE",
   "cln_unload_control": "🎛️ Unload ControlNet / Adapter",
   "sm_fusion_fast": "⚡ Fast Stack",
-  "sm_fusion_smart": "🧬 Smart LLM Fusion"
+  "sm_fusion_smart": "🧬 Smart LLM Fusion",
+  "prov_models_one": "model",
+  "prov_models_few": "models",
+  "prov_models_many": "models",
+  "unit_seconds_short": "s",
+  "unit_minutes_short": "m",
+  "unit_hours_short": "h"
 }

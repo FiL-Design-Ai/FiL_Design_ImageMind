@@ -50,7 +50,7 @@ const state = props.state;
 
 const loading = computed(() => store.isLoading(provider.value));
 const probe = computed(() => store.probeState[provider.value]);
-const ageLabel = computed(() => store.cachedAgeLabel(provider.value));
+const ageLabel = computed(() => store.cachedAgeLabel(provider.value, t));
 
 let refreshTimer: ReturnType<typeof setInterval> | null = null;
 
