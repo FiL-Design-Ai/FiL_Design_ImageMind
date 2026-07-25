@@ -11,14 +11,96 @@ EXPECTED_IDS = {
     "FiLProviderLoader",
     "FiLOpticScanner",
     "FiLNeuroCleaner",
-    "FiLBeforeAfterCompare",
     "FiLUpscaleTileCalc",
     "FiLUpscaleSimple",
     "FiLTileAssembly",
     "FiLKSampler",
     "FiLHighResFix",
     "FiLNoiseControl",
+    "FiLImageDecomposer",
+    "FiLStyleMixer",
+    "FiLColorWizard",
 }
+
+
+def _all_node_ids(monkeypatch) -> set[str]:
+    """Node-ids of every node class, with the release gate bypassed."""
+    monkeypatch.setenv("FIL_RELEASE_ALL", "1")
+    package = importlib.import_module("FiL_Design_ImageMind")
+    ext = asyncio.run(package.comfy_entrypoint())
+    node_classes = asyncio.run(ext.get_node_list())
+    return {c.GET_SCHEMA().node_id for c in node_classes}
+
+
+def test_every_node_class_has_a_frontend_contract(monkeypatch):
+    """Guards the gap that shipped FiLColorWizard without a contract.
+
+    Derives both sides instead of comparing two hand-maintained lists, so a new
+    node cannot be registered while the frontend contract layer stays unaware.
+    """
+    from FiL_Design_ImageMind.common.contracts.registry import NODE_SCHEMAS
+
+    node_ids = _all_node_ids(monkeypatch)
+    contract_ids = set(NODE_SCHEMAS)
+
+    assert not node_ids - contract_ids, (
+        "node classes without a contract in common/contracts/registry.py: "
+        f"{sorted(node_ids - contract_ids)}"
+    )
+    assert not contract_ids - node_ids, (
+        "contracts for node ids that no node class defines: "
+        f"{sorted(contract_ids - node_ids)}"
+    )
+
+
+def test_contract_widgets_exist_in_the_node_schema(monkeypatch):
+    """Every contract widget must map to a real schema input (or be declared UI-only).
+
+    Caught a `seed` widget that stayed in the FiLProviderLoader contract after
+    the input was dropped from the node — the panel advertised a field the
+    backend could never receive.
+    """
+    from FiL_Design_ImageMind.common.contracts.registry import NODE_SCHEMAS, UI_ONLY_WIDGETS
+
+    monkeypatch.setenv("FIL_RELEASE_ALL", "1")
+    package = importlib.import_module("FiL_Design_ImageMind")
+    ext = asyncio.run(package.comfy_entrypoint())
+
+    stale: dict[str, list[str]] = {}
+    for node_class in asyncio.run(ext.get_node_list()):
+        schema = node_class.GET_SCHEMA()
+        contract = NODE_SCHEMAS.get(schema.node_id)
+        if contract is None:
+            continue
+        schema_inputs = {i.id for i in schema.inputs}
+        allowed = schema_inputs | UI_ONLY_WIDGETS.get(schema.node_id, set())
+        widgets = list(contract.inputs.required) + list(contract.inputs.optional)
+        unknown = sorted({w.name for w in widgets} - allowed)
+        if unknown:
+            stale[schema.node_id] = unknown
+
+    assert not stale, f"contract widgets with no matching schema input: {stale}"
+
+
+def test_every_node_class_has_a_frontend_module(monkeypatch):
+    """Every node id must have a `nodes2/nodes/*.ts` module wired into the registry."""
+    import re
+    from pathlib import Path
+
+    registry_ts = (
+        Path(__file__).resolve().parents[1] / "frontend" / "src" / "nodes2" / "nodeRegistry.ts"
+    )
+    source = registry_ts.read_text(encoding="utf-8")
+    imported = set(re.findall(r"import \{ (\w+) \} from \"@/nodes2/nodes/", source))
+    listed = set(re.findall(r"^  (\w+),$", source, flags=re.MULTILINE))
+
+    assert imported == listed, (
+        f"nodeRegistry.ts imports and module list disagree: {imported ^ listed}"
+    )
+    assert len(listed) == len(_all_node_ids(monkeypatch)), (
+        f"nodeRegistry.ts registers {len(listed)} modules for "
+        f"{len(_all_node_ids(monkeypatch))} node classes"
+    )
 
 
 def test_package_has_comfy_entrypoint():
@@ -57,17 +139,6 @@ def test_seed_passthrough():
     result = FiLSeed.execute(seed=0xFFFFFFFFFFFFFFFF)
     assert result[0] == 0xFFFFFFFFFFFFFFFF
 
-
-def test_compare_swap_keeps_output_order():
-    pytest = __import__("pytest")
-    torch = pytest.importorskip("torch")
-    from FiL_Design_ImageMind.nodes.node_compare import FiLBeforeAfterCompare
-
-    before = torch.zeros((1, 8, 8, 3))
-    after = torch.ones((1, 8, 8, 3))
-    result = FiLBeforeAfterCompare.execute(before, after, swap=True, resize_mode="Off", max_resolution=4096)
-    assert torch.equal(result[0], after)
-    assert torch.equal(result[1], before)
 
 
 def test_cleaner_passthrough_when_cleanup_disabled():
@@ -122,7 +193,7 @@ def test_scanner_rejects_non_vision_model_before_processing():
 def test_scanner_rejects_placeholder_model():
     from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner
 
-    assert FiLOpticScanner.validate_inputs(config={"provider": "ollama", "model": "(no models)"}) != True
+    assert FiLOpticScanner.validate_inputs(config={"provider": "ollama", "model": "(no models)"}) is not True
     result = FiLOpticScanner.execute(
         config={"provider": "ollama", "model": "(no models)"}, image=object()
     )
@@ -142,7 +213,7 @@ def test_scanner_empty_prompt_with_image_succeeds(monkeypatch):
 
     monkeypatch.setattr(_model_client, "generate", lambda **kwargs: "described image")
     monkeypatch.setattr(_processor, "process_batch", lambda img: (["img0"], 64, 64))
-    fake_image = [type("Frame", (), {"cpu": lambda self: self, "numpy": lambda self: type("N", (), {"tobytes": lambda b=b"x"*128: b"x"*128})()})()]
+    fake_image = [type("Frame", (), {"cpu": lambda self: self, "numpy": lambda self: type("N", (), {"tobytes": lambda b=b"x" * 128: b"x" * 128})()})()]
     result = FiLOpticScanner.execute(
         config={"provider": "ollama", "model": "qwen3-vl"}, prompt="", image=fake_image
     )
@@ -182,3 +253,42 @@ def test_scanner_response_format_json(monkeypatch):
     )
     assert "key" in result[0]
     assert "value" in result[0]
+
+
+def test_scanner_auth_error_hides_raw_exception_text(monkeypatch):
+    """A 401 from the provider must surface as the safe generic message from
+    safe_provider_error(), never the raw exception text (which can contain
+    the rejected key or other account details)."""
+    import requests
+    from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner, _model_client
+
+    def _boom(**kwargs):
+        resp = requests.Response()
+        resp.status_code = 401
+        raise requests.exceptions.HTTPError(
+            "401 Client Error: invalid api key 'sk-live-secretkey123' for url: "
+            "https://api.example.com/v1/chat",
+            response=resp,
+        )
+
+    monkeypatch.setattr(_model_client, "generate", _boom)
+    result = FiLOpticScanner.execute(
+        config={"provider": "ollama", "model": "qwen3"}, prompt="red sports car"
+    )
+    assert result[0] == "Ошибка: API-ключ отклонён провайдером."
+    assert "sk-live-secretkey123" not in result[0]
+    assert "sk-live-secretkey123" not in result[1]
+
+
+def test_scanner_non_vision_error_never_leaks_api_key():
+    """The 'image sent to a non-vision model' error path must not leak
+    config['api_key'] into the message, metadata_json, or metadata_dict."""
+    from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner
+
+    result = FiLOpticScanner.execute(
+        config={"provider": "ollama", "model": "plain-text-model", "api_key": "SECRET_KEY_123"},
+        image=object(),
+    )
+    assert "SECRET_KEY_123" not in result[0]
+    assert "SECRET_KEY_123" not in result[1]
+    assert "SECRET_KEY_123" not in str(result[2])
