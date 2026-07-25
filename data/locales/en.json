@@ -210,8 +210,6 @@
   "cw_temperature": "Temperature (Warm/Cool)",
   "cw_tint": "Tint (Green/Magenta)",
   "cw_preserve_skin": "🛡️ Preserve Skin Tones",
-  "cw_on": "ON",
-  "cw_off": "OFF",
   "sm_section_fusion": "🔀 Fusion Mode",
   "sm_fusion_tt": "Fast Stack just weights the descriptions. Smart Fusion asks the Vision LLM to synthesize one prompt.",
   "sm_none": "(None)",

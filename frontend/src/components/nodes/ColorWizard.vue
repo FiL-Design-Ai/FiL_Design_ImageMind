@@ -3,7 +3,7 @@
  * FiLColorWizard - Cyberpunk HUD panel for automatic color correction & quick presets.
  */
 import { computed } from "vue";
-import { FilSection, FilSegmented, FilSlider } from "@/components/widgets";
+import { FilSection, FilSegmented, FilSlider, FilToggle } from "@/components/widgets";
 import type { FilNodeState } from "@/nodes2/filState";
 import { findFilWidget } from "@/nodes2/util";
 import { NODE_CONTRACTS } from "@/api/contracts";
@@ -120,20 +120,14 @@ function applyPreset(preset: "warm" | "cool" | "skin" | "contrast") {
         :title="t('tt_cw_tint', 'Colour tint.')" />
     </div>
 
-    <!-- Skin Protection Toggle -->
-    <div class="fil-cw-toggle-row">
-      <span class="fil-cw-toggle-label">{{ t('cw_preserve_skin', '🛡️ Preserve Skin Tones') }}</span>
-      <button
-        type="button"
-        class="fil-cw-toggle-btn"
-        :class="{ active: preserveSkin }"
-        :title="t('tt_cw_preserve_skin', 'Preserve skin tones.')"
-        :aria-pressed="preserveSkin"
-        @click="preserveSkin = !preserveSkin"
-      >
-        {{ preserveSkin ? t('cw_on', 'ON') : t('cw_off', 'OFF') }}
-      </button>
-    </div>
+    <!-- Skin Protection Toggle — shared FilToggle, not a bespoke ON/OFF pill,
+         so it matches the switches in UpscaleTileCalc and HiResFix. -->
+    <FilToggle
+      :model-value="preserveSkin ? 'ON' : 'OFF'"
+      :label="t('cw_preserve_skin', '🛡️ Preserve Skin Tones')"
+      :title="t('tt_cw_preserve_skin', 'Preserve skin tones.')"
+      @update:model-value="(v: 'ON' | 'OFF') => (preserveSkin = v === 'ON')"
+    />
   </div>
 </template>
 
@@ -210,35 +204,4 @@ function applyPreset(preset: "warm" | "cool" | "skin" | "contrast") {
   gap: 6px;
 }
 
-.fil-cw-toggle-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 10px;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-.fil-cw-toggle-label {
-  font-size: 12px;
-  font-weight: 600;
-}
-.fil-cw-toggle-btn {
-  height: 24px;
-  padding: 0 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--fil-muted, #aaa);
-  font-size: 10px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.12s ease;
-}
-.fil-cw-toggle-btn.active {
-  background: var(--fil-accent, #00f0ff);
-  border-color: var(--fil-accent, #00f0ff);
-  color: var(--fil-accent-ink, #12151a);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--fil-accent, #00f0ff) 40%, transparent);
-}
 </style>
