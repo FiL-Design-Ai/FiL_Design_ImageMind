@@ -1,8 +1,9 @@
 """FiL_Design_ImageMind node-contract registry.
 
-Hand-curated contracts for every canonical node id. The list is small (7
-nodes) and the contracts describe the *frontend-visible* widget layer; the
-Python node classes still own `INPUT_TYPES()` for ComfyUI core.
+Hand-curated contracts for every canonical node id. The contracts describe the
+*frontend-visible* widget layer; the Python node classes still own their own
+`define_schema()` for ComfyUI core. Every node class must have an entry here —
+`tests/test_node_contracts.py` enforces that parity.
 
 When `pyproject.toml` and the per-node files are moved to `backend/` (Stage
 of the larger migration), this registry will be derived directly from the
@@ -16,6 +17,7 @@ from __future__ import annotations
 from typing import Any
 
 from ..brand import CATEGORY_ROOT, SETTINGS_PREFIX
+from ..color_correction import METHOD_KEYS as COLOR_METHOD_KEYS
 from ..config import PROVIDERS
 from ..data import (
     DETAIL_LEVELS,
@@ -105,16 +107,19 @@ _SEED = NodeContract(
     id="FiLSeed",
     title="♻️ Seed",
     category=f"{CATEGORY_ROOT}/Values",
-    description="Fixed or randomized seed with copy and reuse buttons.",
+    description="Fixed or randomized seed with reuse buttons.",
     min_size=(220, 180),
     family="value",
     inputs=NodeInputs(
         required=[
+            # `mode` and the two action buttons are frontend-only controls that
+            # Seed.vue renders by hand — the node's own schema has just `seed`.
+            # Listed in UI_ONLY_WIDGETS below so the contract/schema parity test
+            # accepts them.
             _segmented("mode", options=["random", "fixed"], default="random", label="Mode"),
             _int("seed", default=0, minv=0, maxv=999999999999, step=1, label="Seed"),
         ],
         optional=[
-            _bool("copy_to_clipboard", default=False, label="Copy seed", section="actions"),
             _bool("use_last_seed", default=False, label="Use last seed", section="actions"),
             _bool("new_fixed", default=False, label="New fixed random", section="actions"),
         ],
@@ -144,7 +149,6 @@ _PROVIDER = NodeContract(
             _slider("temperature", default=0.7, minv=0.0, maxv=2.0, step=0.05, label="Temperature"),
             _int("max_tokens", default=0, minv=0, maxv=65536, step=1, label="Max tokens"),
             _int("rate_limit_ms", default=100, minv=0, maxv=5000, step=10, label="Rate limit (ms)"),
-            _int("seed", default=-1, minv=-1, maxv=999999999999, label="Seed"),
             _int("max_image_side", default=1024, minv=128, maxv=4096, step=64, label="Max image side"),
         ],
     ),
@@ -255,31 +259,6 @@ _CLEANER = NodeContract(
         ],
     ),
     outputs=[NodeOutput(name="output", type="ANY")],
-)
-
-_COMPARE = NodeContract(
-    id="FiLBeforeAfterCompare",
-    title="🔄 Compare",
-    category=f"{CATEGORY_ROOT}/Image",
-    description="Before/after preview with optional output resizing.",
-    min_size=(320, 420),
-    family="image",
-    inputs=NodeInputs(
-        optional=[
-            _segmented("swap", options=["ON", "OFF"], default="OFF", label="Swap before/after"),
-            _segmented(
-                "resize_mode",
-                options=["Off", "Preview only", "Preview + output"],
-                default="Off",
-                label="Resize mode",
-            ),
-            _slider("max_resolution", default=4096, minv=256, maxv=8192, step=64, label="Max resolution"),
-        ],
-    ),
-    outputs=[
-        NodeOutput(name="before", type="IMAGE"),
-        NodeOutput(name="after", type="IMAGE"),
-    ],
 )
 
 _UPSCALE = NodeContract(
@@ -478,6 +457,89 @@ _NOISE_CONTROL = NodeContract(
     outputs=[NodeOutput(name="script", type="DICT")],
 )
 
+_DECOMPOSER = NodeContract(
+    id="FiLImageDecomposer",
+    title="👁️‍🗨️ Image Decomposer",
+    category=f"{CATEGORY_ROOT}/Analysis",
+    description="Decomposes image or prompt into Subject, Lighting, Composition, Style, and Full Prompt outputs.",
+    family="analysis",
+    min_size=(320, 240),
+    inputs=NodeInputs(
+        required=[
+            _string("prompt", default="", multiline=True, label="Description"),
+        ],
+        optional=[
+            _combo("language", values=LANGUAGES, default="English", label="Language"),
+        ],
+    ),
+    outputs=[
+        NodeOutput(name="subject", type="STRING"),
+        NodeOutput(name="lighting", type="STRING"),
+        NodeOutput(name="composition", type="STRING"),
+        NodeOutput(name="style", type="STRING"),
+        NodeOutput(name="full_prompt", type="STRING"),
+    ],
+)
+
+_STYLE_MIXER = NodeContract(
+    id="FiLStyleMixer",
+    title="🎛️ Style Mixer",
+    category=f"{CATEGORY_ROOT}/Styling",
+    description="Blends visual styles and reference images with weighted influence sliders and optional Vision LLM fusion.",
+    family="styling",
+    min_size=(320, 260),
+    inputs=NodeInputs(
+        required=[
+            _string("base_prompt", default="", multiline=True, label="Base Prompt"),
+            _chip_list("style_1", values=["(None)"] + get_visible_style_keys("photo_style") + get_visible_style_keys("art_style"), default="(None)", label="Style 1"),
+            _slider("weight_1", default=1.0, minv=0.0, maxv=1.0, step=0.05, label="Weight 1"),
+        ],
+        optional=[
+            _combo("fusion_mode", values=["Weighted Stack (Fast)", "Smart LLM Fusion (Gen-Mix)"], default="Weighted Stack (Fast)", label="Fusion Mode"),
+            _combo("img_focus_1", values=["Auto / General", "Style & Texture", "Color & Lighting", "Subject & Composition", "Mood & Atmosphere"], default="Auto / General", label="Image 1 Focus"),
+            _slider("img_weight_1", default=0.8, minv=0.0, maxv=1.0, step=0.05, label="Image 1 Weight"),
+            _combo("img_focus_2", values=["Auto / General", "Style & Texture", "Color & Lighting", "Subject & Composition", "Mood & Atmosphere"], default="Auto / General", label="Image 2 Focus"),
+            _slider("img_weight_2", default=0.6, minv=0.0, maxv=1.0, step=0.05, label="Image 2 Weight"),
+            _combo("img_focus_3", values=["Auto / General", "Style & Texture", "Color & Lighting", "Subject & Composition", "Mood & Atmosphere"], default="Auto / General", label="Image 3 Focus"),
+            _slider("img_weight_3", default=0.4, minv=0.0, maxv=1.0, step=0.05, label="Image 3 Weight"),
+            _combo("img_focus_4", values=["Auto / General", "Style & Texture", "Color & Lighting", "Subject & Composition", "Mood & Atmosphere"], default="Auto / General", label="Image 4 Focus"),
+            _slider("img_weight_4", default=0.2, minv=0.0, maxv=1.0, step=0.05, label="Image 4 Weight"),
+            _chip_list("style_2", values=["(None)"] + get_visible_style_keys("photo_style") + get_visible_style_keys("art_style"), default="(None)", label="Style 2"),
+            _slider("weight_2", default=0.5, minv=0.0, maxv=1.0, step=0.05, label="Weight 2"),
+            _chip_list("style_3", values=["(None)"] + get_visible_style_keys("photo_style") + get_visible_style_keys("art_style"), default="(None)", label="Style 3"),
+            _slider("weight_3", default=0.3, minv=0.0, maxv=1.0, step=0.05, label="Weight 3"),
+        ],
+    ),
+    outputs=[
+        NodeOutput(name="styled_prompt", type="STRING"),
+        NodeOutput(name="style_overlay", type="STRING"),
+    ],
+)
+
+_COLOR_WIZARD = NodeContract(
+    id="FiLColorWizard",
+    title="🎨 Color Wizard",
+    category=f"{CATEGORY_ROOT}/Image",
+    description="Automatically corrects image colours using white balance, LAB contrast enhancement, channel stretching, reference colour matching, and WB picker.",
+    family="image",
+    min_size=(300, 260),
+    inputs=NodeInputs(
+        required=[
+            _combo("method", values=COLOR_METHOD_KEYS, default="Full Auto", label="Method"),
+            _slider("strength", default=0.8, minv=0.0, maxv=1.0, step=0.05, label="Strength"),
+        ],
+        optional=[
+            _float("saturate", default=0.5, minv=0.0, maxv=5.0, step=0.1, label="Saturate", section="advanced"),
+            _slider("temperature", default=0.0, minv=-1.0, maxv=1.0, step=0.05, label="Temperature", section="advanced"),
+            _slider("tint", default=0.0, minv=-1.0, maxv=1.0, step=0.05, label="Tint", section="advanced"),
+            _bool("preserve_skin", default=False, label="Preserve skin", section="advanced"),
+        ],
+    ),
+    outputs=[
+        NodeOutput(name="image", type="IMAGE"),
+    ],
+)
+
 NODE_SCHEMAS: dict[str, NodeContract] = {
     contract.id: contract
     for contract in (
@@ -485,31 +547,33 @@ NODE_SCHEMAS: dict[str, NodeContract] = {
         _PROVIDER,
         _SCANNER,
         _CLEANER,
-        _COMPARE,
         _UPSCALE,
         _UPSCALE_SIMPLE,
         _TILE_ASSEMBLY,
         _KSAMPLER,
         _HIRESFIX,
         _NOISE_CONTROL,
+        _DECOMPOSER,
+        _STYLE_MIXER,
+        _COLOR_WIZARD,
     )
 }
 
 CANONICAL_IDS: tuple[str, ...] = tuple(NODE_SCHEMAS)
 
-assert set(CANONICAL_IDS) == {
-    "FiLSeed",
-    "FiLProviderLoader",
-    "FiLOpticScanner",
-    "FiLNeuroCleaner",
-    "FiLBeforeAfterCompare",
-    "FiLUpscaleTileCalc",
-    "FiLUpscaleSimple",
-    "FiLTileAssembly",
-    "FiLKSampler",
-    "FiLHighResFix",
-    "FiLNoiseControl",
-}, f"{CATEGORY_ROOT} contracts drift: node ids differ from common/node_registry.py"
+# Contract widgets that deliberately have no matching input in the node's
+# `define_schema()` — purely frontend controls rendered by the Vue panel.
+# Anything not listed here must exist in the schema; tests/test_node_contracts.py
+# enforces that, which is what caught a stale `seed` widget left on
+# FiLProviderLoader after the input was removed from the node.
+UI_ONLY_WIDGETS: dict[str, set[str]] = {
+    "FiLSeed": {"mode", "use_last_seed", "new_fixed"},
+}
+
+# NOTE: no hand-written id list guards this module any more. A duplicated list
+# here only ever compared two copies of the same file's content, which is how
+# FiLColorWizard shipped registered-but-contract-less. Parity against the actual
+# node classes is enforced by tests/test_node_contracts.py.
 
 
 def get_node_contract(node_id: str) -> NodeContract:

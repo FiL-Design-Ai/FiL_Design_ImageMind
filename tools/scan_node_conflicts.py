@@ -30,10 +30,15 @@ OUR_IDS = {
     "FiLProviderLoader",
     "FiLOpticScanner",
     "FiLNeuroCleaner",
-    "FiLBeforeAfterCompare",
     "FiLUpscaleTileCalc",
+    "FiLUpscaleSimple",
+    "FiLTileAssembly",
     "FiLKSampler",
     "FiLHighResFix",
+    "FiLNoiseControl",
+    "FiLImageDecomposer",
+    "FiLStyleMixer",
+    "FiLColorWizard",
 }
 
 

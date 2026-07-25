@@ -113,7 +113,11 @@ def crop_latent_tiles(latent, target_lw: int, target_lh: int, layout: TileLayout
     """
     import torch
 
-    samples = latent["samples"]
+    # First batch item only, mirroring `crop_tiles`. Keeping the whole batch
+    # here made `torch.cat(..., dim=0)` return tile_count * B slices instead of
+    # the documented one-slice-per-tile, so image tile N no longer paired with
+    # latent tile N (and FiLTileAssembly then rejected the count outright).
+    samples = latent["samples"][:1]
     tiles = []
     for sx, sy, ex, ey in layout.tile_rects:
         y0 = max(0, min(sy // 8, target_lh - 1))

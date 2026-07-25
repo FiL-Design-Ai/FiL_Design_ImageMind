@@ -36,8 +36,12 @@ export const scannerNode: NodeModule = {
     // exactly like any other string widget: drag a STRING output onto the field
     // and it converts in-place to an input socket. Their values are read by
     // ComfyUI directly from the native widget, not from the Vue state.
-    const hiddenWidgetNames = ["agent", "model_type", "detail_level", "language",
-      "prompt_mode", "response_format", "photo_style", "nsfw_photo_style", "art_style", "nsfw_art_style"];
+    const allWidgetNames = [
+      "prompt", "negative_prompt", "custom_style",
+      "agent", "model_type", "detail_level", "language",
+      "prompt_mode", "response_format", "photo_style", "nsfw_photo_style", "art_style", "nsfw_art_style",
+      "seed", "control_after_generate"
+    ];
 
     const originalCreated = p.onNodeCreated;
     p.onNodeCreated = function (this: unknown, ...args: unknown[]) {
@@ -46,26 +50,22 @@ export const scannerNode: NodeModule = {
 
       const initialValues: Record<string, unknown> = {};
       const initialNodeState: Record<string, unknown> = {};
-      for (const name of hiddenWidgetNames) {
+      for (const name of allWidgetNames) {
         const w = findFilWidget(node, name);
         if (!w) continue;
-        // See sanitizeWidgetValue(): resets `.value` itself (not just this
-        // display copy) if a stale legacy workflow save left it holding
-        // something other than a string (e.g. a shifted DOM-state object).
-        const value = sanitizeWidgetValue(w, "string", "");
+        const isNum = name === "seed";
+        const fallback = isNum ? -1 : "";
+        const value = sanitizeWidgetValue(w, isNum ? "number" : "string", fallback);
         initialValues[name] = value;
         initialNodeState[name] = value;
         (w as { hidden?: boolean }).hidden = true;
       }
-
-      const seedWidget = findFilWidget(node, "seed");
-      const controlWidget = findFilWidget(node, "control_after_generate");
-      const initialSeed = sanitizeWidgetValue(seedWidget, "number", -1);
-      if (seedWidget) (seedWidget as { hidden?: boolean }).hidden = true;
-      if (controlWidget) (controlWidget as { hidden?: boolean }).hidden = true;
-      initialValues.seed = initialSeed;
-      initialNodeState.seed = initialSeed;
       initialNodeState.seed_mode = "random";
+
+      // Also ensure any remaining native widgets are hidden to prevent canvas overlap
+      for (const w of ((node.widgets || []) as { hidden?: boolean }[])) {
+        w.hidden = true;
+      }
 
       const state = {
         nodeState: createSyncedNodeState(node, initialNodeState),
@@ -73,35 +73,30 @@ export const scannerNode: NodeModule = {
         ui: {},
         lastRunSeed: null,
       };
-      // Exposed so OpticScanner.vue can drive the hidden native seed/
-      // control_after_generate widgets directly (see HiResFix.vue) — the
-      // graphToPrompt extension hook this used to rely on doesn't fire on
-      // queue in this frontend version.
       Object.defineProperty(state, "node", { value: node, enumerable: false, configurable: true });
       node._filScannerSeedState = state;
 
-      addFilDomWidget(node, "fil_scanner_view", OpticScannerVue, { state, height: 460 });
+      addFilDomWidget(node, "fil_scanner_view", OpticScannerVue, { state, height: 580 });
       return result;
     };
 
-    // See provider.ts / sanitizeWidgetValue(): LiteGraph applies a loaded
-    // node's `widgets_values` (positional array) onto `node.widgets[i]`
-    // AFTER `onNodeCreated` runs, then calls `onConfigure` — so a workflow
-    // saved with an older version of this node's schema can silently
-    // overwrite the sanitized defaults set above. Re-sanitizing here is
-    // what actually prevents a stale/corrupted value reaching `execute()`.
     const originalConfigure = p.onConfigure;
     p.onConfigure = function (this: unknown, ...args: unknown[]) {
       const result = originalConfigure?.apply(this, args);
       const node = this as { widgets?: unknown[]; _filScannerSeedState?: { nodeState: Record<string, unknown> } };
       const state = node._filScannerSeedState;
       if (!state) return result;
-      for (const name of hiddenWidgetNames) {
+      for (const name of allWidgetNames) {
         const w = findFilWidget(node, name);
         if (!w) continue;
-        state.nodeState[name] = sanitizeWidgetValue(w, "string", "");
+        const isNum = name === "seed";
+        const fallback = isNum ? -1 : "";
+        state.nodeState[name] = sanitizeWidgetValue(w, isNum ? "number" : "string", fallback);
+        (w as { hidden?: boolean }).hidden = true;
       }
-      state.nodeState.seed = sanitizeWidgetValue(findFilWidget(node, "seed"), "number", -1);
+      for (const w of ((node.widgets || []) as { hidden?: boolean }[])) {
+        w.hidden = true;
+      }
       return result;
     };
 

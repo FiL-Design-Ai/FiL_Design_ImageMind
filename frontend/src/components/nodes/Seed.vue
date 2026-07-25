@@ -121,7 +121,7 @@ const display = computed({
  * into <head> AFTER the bundled component CSS, so on equal specificity it
  * would otherwise win by source order. `div.fil-seed-root[data-v-hash]`
  * is (0,2,1), which always wins deterministically. */
-div.fil-seed-root {
+div.fil-seed-root { width: 100%; box-sizing: border-box; min-width: 0;
   display: flex;
   flex-direction: row;
   align-items: center;

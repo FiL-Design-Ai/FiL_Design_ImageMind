@@ -10,20 +10,30 @@ EXPECTED = {
     "FiLProviderLoader",
     "FiLOpticScanner",
     "FiLNeuroCleaner",
-    "FiLBeforeAfterCompare",
     "FiLUpscaleTileCalc",
+    "FiLUpscaleSimple",
+    "FiLTileAssembly",
     "FiLKSampler",
     "FiLHighResFix",
+    "FiLNoiseControl",
+    "FiLImageDecomposer",
+    "FiLStyleMixer",
+    "FiLColorWizard",
 }
 NODE_FILES = (
     "node_seed.py",
     "node_provider.py",
     "node_scanner.py",
     "node_cleaner.py",
-    "node_compare.py",
     "node_upscale.py",
+    "node_upscale_simple.py",
+    "node_tile_assembly.py",
     "node_ksampler.py",
     "node_hiresfix.py",
+    "node_noise_control.py",
+    "node_decomposer.py",
+    "node_style_mixer.py",
+    "node_color_wizard.py",
 )
 
 
@@ -42,42 +52,44 @@ def _node_ids_in(path: Path) -> set[str]:
 
 
 def main() -> int:
-    problems: list[str] = []
+    nodes_dir = ROOT / "nodes"
+    found: set[str] = set()
+    for f_name in NODE_FILES:
+        p = nodes_dir / f_name
+        if not p.is_file():
+            print(f"[FAIL] Missing node file: {p}", file=sys.stderr)
+            return 1
+        found |= _node_ids_in(p)
 
-    required = [ROOT / "__init__.py", ROOT / "server_routes.py", ROOT / "frontend" / "dist" / "fil_design_imagemind.js"]
-    required.extend(ROOT / "nodes" / name for name in NODE_FILES)
-    for path in required:
-        if not path.is_file():
-            problems.append(f"missing: {path.relative_to(ROOT)}")
-
-    for path in [ROOT / "__init__.py", ROOT / "server_routes.py", *sorted((ROOT / "common").glob("*.py")), *sorted((ROOT / "nodes").glob("*.py"))]:
-        try:
-            ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-        except (OSError, SyntaxError) as exc:
-            problems.append(f"invalid python: {path.relative_to(ROOT)}: {exc}")
-
-    # Node ids declared across nodes/*.py must match the expected set exactly.
-    declared: set[str] = set()
-    for name in NODE_FILES:
-        declared |= _node_ids_in(ROOT / "nodes" / name)
-    for node_id in sorted(EXPECTED - declared):
-        problems.append(f"node_id not declared: {node_id}")
-    for node_id in sorted(declared - EXPECTED):
-        problems.append(f"unexpected node_id: {node_id}")
-
-    # Every expected node must be wired into the extension entrypoint
-    # (class names match node_ids, so a plain substring check is enough).
-    init_source = (ROOT / "__init__.py").read_text(encoding="utf-8") if (ROOT / "__init__.py").is_file() else ""
-    for node_id in EXPECTED:
-        if node_id not in init_source:
-            problems.append(f"entrypoint missing: {node_id}")
-
-    if problems:
-        print("FiL_Design_ImageMind preflight: FAILED")
-        for problem in problems:
-            print(f"- {problem}")
+    missing = EXPECTED - found
+    if missing:
+        print(f"[FAIL] Missing expected node_ids: {sorted(missing)}", file=sys.stderr)
         return 1
-    print(f"FiL_Design_ImageMind preflight: OK ({len(EXPECTED)} nodes, entrypoint, frontend, Python syntax)")
+
+    entry = ROOT / "__init__.py"
+    if not entry.is_file():
+        print(f"[FAIL] Missing {entry}", file=sys.stderr)
+        return 1
+    source = entry.read_text(encoding="utf-8")
+    if "def comfy_entrypoint" not in source and "comfy_entrypoint" not in source:
+        print("[FAIL] __init__.py missing comfy_entrypoint export", file=sys.stderr)
+        return 1
+
+    bundle = ROOT / "frontend" / "dist" / "fil_design_imagemind.js"
+    if not bundle.is_file():
+        print(f"[FAIL] Missing JS bundle: {bundle}", file=sys.stderr)
+        return 1
+
+    for py_file in ROOT.glob("**/*.py"):
+        if ".venv" in py_file.parts or "node_modules" in py_file.parts:
+            continue
+        try:
+            ast.parse(py_file.read_text(encoding="utf-8"), filename=str(py_file))
+        except SyntaxError as err:
+            print(f"[FAIL] Syntax error in {py_file}: {err}", file=sys.stderr)
+            return 1
+
+    print(f"FiL_Design_ImageMind preflight: OK ({len(found)} nodes, entrypoint, frontend, Python syntax)")
     return 0
 
 

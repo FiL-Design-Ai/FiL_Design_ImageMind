@@ -87,6 +87,10 @@ class ImageProcessor:
         batch, w, h = self.process_batch(image_tensor)
         return (batch[0], w, h) if batch else ("", 0, 0)
 
+    def tensor_to_base64(self, image_tensor: Any) -> str:
+        b64, _, _ = self.process_single(image_tensor)
+        return b64
+
 
 def normalize_model_name(model: str) -> str:
     if not model:

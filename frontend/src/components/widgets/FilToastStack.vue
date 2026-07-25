@@ -7,7 +7,7 @@
  * via CSS on dismiss. Mounted once at extension setup() and appended to
  * `document.body`.
  */
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted } from "vue";
 import { storeToRefs } from "pinia";
 import { useToastStore, type ToastItem } from "@/stores/toastStore";
 import { useI18n } from "@/composables/useI18n";
@@ -15,8 +15,6 @@ import { useI18n } from "@/composables/useI18n";
 const { t } = useI18n();
 const store = useToastStore();
 const { items } = storeToRefs(store);
-
-const root = ref<HTMLElement | null>(null);
 const timers = new Map<number, ReturnType<typeof setTimeout>>();
 
 const colorMap = {
@@ -61,7 +59,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="root" class="fil-toast-stack" role="status" aria-live="polite">
+  <div class="fil-toast-stack" role="status" aria-live="polite">
     <div
       v-for="item in visible"
       :key="item.id"

@@ -11,14 +11,14 @@ describe("FilIcon", () => {
   });
 
   it("applies size as inline style", () => {
-    const wrapper = mount(FilIcon, { props: { name: "menu", size: 20 } });
+    const wrapper = mount(FilIcon, { props: { name: "search", size: 20 } });
     const style = wrapper.attributes("style") || "";
     expect(style).toContain("width: 20px");
     expect(style).toContain("height: 20px");
   });
 
   it("adds a title attribute when provided", () => {
-    const wrapper = mount(FilIcon, { props: { name: "help", title: "Help" } });
+    const wrapper = mount(FilIcon, { props: { name: "info", title: "Help" } });
     expect(wrapper.attributes("title")).toBe("Help");
   });
 

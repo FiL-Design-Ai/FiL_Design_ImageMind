@@ -10,13 +10,15 @@ import { seedNode } from "@/nodes2/nodes/seed";
 import { providerNode } from "@/nodes2/nodes/provider";
 import { scannerNode } from "@/nodes2/nodes/scanner";
 import { cleanerNode } from "@/nodes2/nodes/cleaner";
-import { compareNode } from "@/nodes2/nodes/compare";
 import { upscaleNode } from "@/nodes2/nodes/upscale";
 import { upscaleSimpleNode } from "@/nodes2/nodes/upscale_simple";
 import { tileAssemblyNode } from "@/nodes2/nodes/tile_assembly";
 import { ksamplerNode } from "@/nodes2/nodes/ksampler";
 import { hiresfixNode } from "@/nodes2/nodes/hiresfix";
 import { noiseControlNode } from "@/nodes2/nodes/noise_control";
+import { decomposerNode } from "@/nodes2/nodes/decomposer";
+import { styleMixerNode } from "@/nodes2/nodes/style_mixer";
+import { colorWizardNode } from "@/nodes2/nodes/color_wizard";
 
 export interface NodeModule {
   id: string;
@@ -28,13 +30,15 @@ const modules: NodeModule[] = [
   providerNode,
   scannerNode,
   cleanerNode,
-  compareNode,
   upscaleNode,
   upscaleSimpleNode,
   tileAssemblyNode,
   ksamplerNode,
   hiresfixNode,
   noiseControlNode,
+  decomposerNode,
+  styleMixerNode,
+  colorWizardNode,
 ];
 
 export const NODE_MODULES: Record<string, NodeModule> = Object.fromEntries(

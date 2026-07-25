@@ -39,7 +39,6 @@ export const providerNode: NodeModule = {
       { name: "temperature", kind: "number" as const, fallback: 0.7 },
       { name: "max_tokens", kind: "number" as const, fallback: 0 },
       { name: "rate_limit_ms", kind: "number" as const, fallback: 100 },
-      { name: "seed", kind: "number" as const, fallback: -1 },
       { name: "max_image_side", kind: "number" as const, fallback: 1024 },
     ];
 
@@ -62,10 +61,11 @@ export const providerNode: NodeModule = {
       const initialTemperature = sanitizeWidgetValue(findFilWidget(node, "temperature"), "number", 0.7);
       const initialMaxTokens = sanitizeWidgetValue(findFilWidget(node, "max_tokens"), "number", 0);
       const initialRateLimit = sanitizeWidgetValue(findFilWidget(node, "rate_limit_ms"), "number", 100);
-      const initialSeed = sanitizeWidgetValue(findFilWidget(node, "seed"), "number", -1);
       const initialMaxImageSide = sanitizeWidgetValue(findFilWidget(node, "max_image_side"), "number", 1024);
 
-      for (const name of ["provider", "model", "refresh_models", "temperature", "max_tokens", "rate_limit_ms", "seed", "control_after_generate", "max_image_side"]) {
+      // `seed`/`control_after_generate` are gone from the node schema; keeping
+      // them here only re-created dead state on every node.
+      for (const name of ["provider", "model", "refresh_models", "temperature", "max_tokens", "rate_limit_ms", "max_image_side"]) {
         const w = findFilWidget(node, name);
         if (w) (w as { hidden?: boolean }).hidden = true;
       }
@@ -77,7 +77,6 @@ export const providerNode: NodeModule = {
           temperature: initialTemperature,
           max_tokens: initialMaxTokens,
           rate_limit_ms: initialRateLimit,
-          seed: initialSeed,
           max_image_side: initialMaxImageSide,
         }),
         initialValues: {
@@ -86,7 +85,6 @@ export const providerNode: NodeModule = {
           temperature: initialTemperature,
           max_tokens: initialMaxTokens,
           rate_limit_ms: initialRateLimit,
-          seed: initialSeed,
           max_image_side: initialMaxImageSide,
         },
         ui: {},
@@ -133,7 +131,7 @@ export const providerNode: NodeModule = {
       return originalRemoved?.apply(this, args);
     };
 
-    // Apply visual effects (Connection FX, Adaptive Title Color)
+    // Apply visual effects (Connection FX)
     applyFxComposables(nodeType as { prototype?: unknown });
   },
 };

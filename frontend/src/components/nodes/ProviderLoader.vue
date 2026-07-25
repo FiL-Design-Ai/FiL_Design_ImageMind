@@ -150,7 +150,7 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.fil-provider-root {
+.fil-provider-root { width: 100%; box-sizing: border-box; min-width: 0;
   display: flex; flex-direction: column; gap: var(--fil-node-gap); padding: var(--fil-node-pad);
   color: var(--fil-text, #e8edf3); font-family: ui-sans-serif, system-ui, sans-serif;
   min-width: 0;

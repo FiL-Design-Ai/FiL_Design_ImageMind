@@ -16,10 +16,6 @@
       "title": "🧹 Cleaner",
       "category": "🎨 FiL Design/Tools"
     },
-    "FiLBeforeAfterCompare": {
-      "title": "🔄 Compare",
-      "category": "🎨 FiL Design/Image"
-    },
     "FiLUpscaleTileCalc": {
       "title": "🔍 Upscaler Advanced",
       "category": "🎨 FiL Design/Image"
@@ -43,6 +39,18 @@
     "FiLNoiseControl": {
       "title": "🎛️ Noise Control",
       "category": "🎨 FiL Design/Sampling"
+    },
+    "FiLImageDecomposer": {
+      "title": "👁️‍🗨️ Image Decomposer",
+      "category": "🎨 FiL Design/Analysis"
+    },
+    "FiLStyleMixer": {
+      "title": "🎛️ Style Mixer",
+      "category": "🎨 FiL Design/Styling"
+    },
+    "FiLColorWizard": {
+      "title": "🎨 Color Wizard",
+      "category": "🎨 FiL Design/Image"
     }
   },
   "schemas": {
@@ -205,6 +213,19 @@
               "default": null,
               "description": "Whether a chip list shows a search box.",
               "title": "Searchable"
+            },
+            "multiline": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Whether string widget uses multiline textarea.",
+              "title": "Multiline"
             },
             "min": {
               "anyOf": [
@@ -552,6 +573,19 @@
               "description": "Whether a chip list shows a search box.",
               "title": "Searchable"
             },
+            "multiline": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Whether string widget uses multiline textarea.",
+              "title": "Multiline"
+            },
             "min": {
               "anyOf": [
                 {
@@ -897,6 +931,19 @@
               "default": null,
               "description": "Whether a chip list shows a search box.",
               "title": "Searchable"
+            },
+            "multiline": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Whether string widget uses multiline textarea.",
+              "title": "Multiline"
             },
             "min": {
               "anyOf": [
@@ -1244,340 +1291,7 @@
               "description": "Whether a chip list shows a search box.",
               "title": "Searchable"
             },
-            "min": {
-              "anyOf": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "default": null,
-              "title": "Min"
-            },
-            "max": {
-              "anyOf": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "default": null,
-              "title": "Max"
-            },
-            "step": {
-              "anyOf": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "default": null,
-              "title": "Step"
-            },
-            "units": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "default": null,
-              "title": "Units"
-            },
-            "options": {
-              "anyOf": [
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "default": null,
-              "title": "Options"
-            },
-            "section": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "default": null,
-              "title": "Section"
-            },
-            "visible_when": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "default": null,
-              "title": "Visible When"
-            },
-            "visible_when_value": {
-              "anyOf": [
-                {},
-                {
-                  "type": "null"
-                }
-              ],
-              "default": null,
-              "title": "Visible When Value"
-            }
-          },
-          "required": [
-            "name",
-            "kind"
-          ],
-          "title": "WidgetSpec",
-          "type": "object"
-        }
-      },
-      "additionalProperties": false,
-      "description": "Full frontend contract for a single FiL Design ImageMind node.",
-      "properties": {
-        "id": {
-          "title": "Id",
-          "type": "string"
-        },
-        "title": {
-          "title": "Title",
-          "type": "string"
-        },
-        "category": {
-          "title": "Category",
-          "type": "string"
-        },
-        "description": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Description"
-        },
-        "inputs": {
-          "$ref": "#/$defs/NodeInputs"
-        },
-        "outputs": {
-          "items": {
-            "$ref": "#/$defs/NodeOutput"
-          },
-          "title": "Outputs",
-          "type": "array"
-        },
-        "min_size": {
-          "anyOf": [
-            {
-              "maxItems": 2,
-              "minItems": 2,
-              "prefixItems": [
-                {
-                  "type": "integer"
-                },
-                {
-                  "type": "integer"
-                }
-              ],
-              "type": "array"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Min Size"
-        },
-        "family": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Family"
-        }
-      },
-      "required": [
-        "id",
-        "title",
-        "category"
-      ],
-      "title": "NodeContract",
-      "type": "object"
-    },
-    "FiLBeforeAfterCompare": {
-      "$defs": {
-        "NodeInputs": {
-          "additionalProperties": false,
-          "properties": {
-            "required": {
-              "items": {
-                "$ref": "#/$defs/WidgetSpec"
-              },
-              "title": "Required",
-              "type": "array"
-            },
-            "optional": {
-              "items": {
-                "$ref": "#/$defs/WidgetSpec"
-              },
-              "title": "Optional",
-              "type": "array"
-            },
-            "hidden": {
-              "items": {
-                "$ref": "#/$defs/WidgetSpec"
-              },
-              "title": "Hidden",
-              "type": "array"
-            }
-          },
-          "title": "NodeInputs",
-          "type": "object"
-        },
-        "NodeOutput": {
-          "additionalProperties": false,
-          "properties": {
-            "name": {
-              "title": "Name",
-              "type": "string"
-            },
-            "type": {
-              "enum": [
-                "INT",
-                "FLOAT",
-                "STRING",
-                "BOOLEAN",
-                "DICT",
-                "IMAGE",
-                "MASK",
-                "LATENT",
-                "ANY"
-              ],
-              "title": "Type",
-              "type": "string"
-            }
-          },
-          "required": [
-            "name",
-            "type"
-          ],
-          "title": "NodeOutput",
-          "type": "object"
-        },
-        "WidgetKind": {
-          "description": "Frontend rendering hint for a single widget.",
-          "enum": [
-            "combo",
-            "segmented",
-            "chip_grid",
-            "chip_list",
-            "number",
-            "slider",
-            "boolean",
-            "string",
-            "color",
-            "dict",
-            "custom"
-          ],
-          "title": "WidgetKind",
-          "type": "string"
-        },
-        "WidgetSpec": {
-          "additionalProperties": false,
-          "description": "A single widget on a node body.",
-          "properties": {
-            "name": {
-              "description": "Widget name; matches the ComfyUI INPUT_TYPES key.",
-              "title": "Name",
-              "type": "string"
-            },
-            "kind": {
-              "$ref": "#/$defs/WidgetKind"
-            },
-            "label": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "default": null,
-              "description": "Optional display label (defaults to the widget name).",
-              "title": "Label"
-            },
-            "default": {
-              "default": null,
-              "title": "Default"
-            },
-            "tooltip": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "default": null,
-              "title": "Tooltip"
-            },
-            "values": {
-              "anyOf": [
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "default": null,
-              "title": "Values"
-            },
-            "columns": {
-              "anyOf": [
-                {
-                  "type": "integer"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "default": null,
-              "description": "Layout hint for chip grids.",
-              "title": "Columns"
-            },
-            "searchable": {
+            "multiline": {
               "anyOf": [
                 {
                   "type": "boolean"
@@ -1587,8 +1301,8 @@
                 }
               ],
               "default": null,
-              "description": "Whether a chip list shows a search box.",
-              "title": "Searchable"
+              "description": "Whether string widget uses multiline textarea.",
+              "title": "Multiline"
             },
             "min": {
               "anyOf": [
@@ -1936,6 +1650,19 @@
               "description": "Whether a chip list shows a search box.",
               "title": "Searchable"
             },
+            "multiline": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Whether string widget uses multiline textarea.",
+              "title": "Multiline"
+            },
             "min": {
               "anyOf": [
                 {
@@ -2281,6 +2008,19 @@
               "default": null,
               "description": "Whether a chip list shows a search box.",
               "title": "Searchable"
+            },
+            "multiline": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Whether string widget uses multiline textarea.",
+              "title": "Multiline"
             },
             "min": {
               "anyOf": [
@@ -2628,6 +2368,19 @@
               "description": "Whether a chip list shows a search box.",
               "title": "Searchable"
             },
+            "multiline": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Whether string widget uses multiline textarea.",
+              "title": "Multiline"
+            },
             "min": {
               "anyOf": [
                 {
@@ -2973,6 +2726,19 @@
               "default": null,
               "description": "Whether a chip list shows a search box.",
               "title": "Searchable"
+            },
+            "multiline": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Whether string widget uses multiline textarea.",
+              "title": "Multiline"
             },
             "min": {
               "anyOf": [
@@ -3320,6 +3086,19 @@
               "description": "Whether a chip list shows a search box.",
               "title": "Searchable"
             },
+            "multiline": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Whether string widget uses multiline textarea.",
+              "title": "Multiline"
+            },
             "min": {
               "anyOf": [
                 {
@@ -3665,6 +3444,1096 @@
               "default": null,
               "description": "Whether a chip list shows a search box.",
               "title": "Searchable"
+            },
+            "multiline": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Whether string widget uses multiline textarea.",
+              "title": "Multiline"
+            },
+            "min": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Min"
+            },
+            "max": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Max"
+            },
+            "step": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Step"
+            },
+            "units": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Units"
+            },
+            "options": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Options"
+            },
+            "section": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Section"
+            },
+            "visible_when": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Visible When"
+            },
+            "visible_when_value": {
+              "anyOf": [
+                {},
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Visible When Value"
+            }
+          },
+          "required": [
+            "name",
+            "kind"
+          ],
+          "title": "WidgetSpec",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Full frontend contract for a single FiL Design ImageMind node.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "category": {
+          "title": "Category",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "inputs": {
+          "$ref": "#/$defs/NodeInputs"
+        },
+        "outputs": {
+          "items": {
+            "$ref": "#/$defs/NodeOutput"
+          },
+          "title": "Outputs",
+          "type": "array"
+        },
+        "min_size": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min Size"
+        },
+        "family": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Family"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "category"
+      ],
+      "title": "NodeContract",
+      "type": "object"
+    },
+    "FiLImageDecomposer": {
+      "$defs": {
+        "NodeInputs": {
+          "additionalProperties": false,
+          "properties": {
+            "required": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Required",
+              "type": "array"
+            },
+            "optional": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Optional",
+              "type": "array"
+            },
+            "hidden": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Hidden",
+              "type": "array"
+            }
+          },
+          "title": "NodeInputs",
+          "type": "object"
+        },
+        "NodeOutput": {
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "title": "Name",
+              "type": "string"
+            },
+            "type": {
+              "enum": [
+                "INT",
+                "FLOAT",
+                "STRING",
+                "BOOLEAN",
+                "DICT",
+                "IMAGE",
+                "MASK",
+                "LATENT",
+                "ANY"
+              ],
+              "title": "Type",
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "type"
+          ],
+          "title": "NodeOutput",
+          "type": "object"
+        },
+        "WidgetKind": {
+          "description": "Frontend rendering hint for a single widget.",
+          "enum": [
+            "combo",
+            "segmented",
+            "chip_grid",
+            "chip_list",
+            "number",
+            "slider",
+            "boolean",
+            "string",
+            "color",
+            "dict",
+            "custom"
+          ],
+          "title": "WidgetKind",
+          "type": "string"
+        },
+        "WidgetSpec": {
+          "additionalProperties": false,
+          "description": "A single widget on a node body.",
+          "properties": {
+            "name": {
+              "description": "Widget name; matches the ComfyUI INPUT_TYPES key.",
+              "title": "Name",
+              "type": "string"
+            },
+            "kind": {
+              "$ref": "#/$defs/WidgetKind"
+            },
+            "label": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional display label (defaults to the widget name).",
+              "title": "Label"
+            },
+            "default": {
+              "default": null,
+              "title": "Default"
+            },
+            "tooltip": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Tooltip"
+            },
+            "values": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Values"
+            },
+            "columns": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Layout hint for chip grids.",
+              "title": "Columns"
+            },
+            "searchable": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Whether a chip list shows a search box.",
+              "title": "Searchable"
+            },
+            "multiline": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Whether string widget uses multiline textarea.",
+              "title": "Multiline"
+            },
+            "min": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Min"
+            },
+            "max": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Max"
+            },
+            "step": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Step"
+            },
+            "units": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Units"
+            },
+            "options": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Options"
+            },
+            "section": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Section"
+            },
+            "visible_when": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Visible When"
+            },
+            "visible_when_value": {
+              "anyOf": [
+                {},
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Visible When Value"
+            }
+          },
+          "required": [
+            "name",
+            "kind"
+          ],
+          "title": "WidgetSpec",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Full frontend contract for a single FiL Design ImageMind node.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "category": {
+          "title": "Category",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "inputs": {
+          "$ref": "#/$defs/NodeInputs"
+        },
+        "outputs": {
+          "items": {
+            "$ref": "#/$defs/NodeOutput"
+          },
+          "title": "Outputs",
+          "type": "array"
+        },
+        "min_size": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min Size"
+        },
+        "family": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Family"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "category"
+      ],
+      "title": "NodeContract",
+      "type": "object"
+    },
+    "FiLStyleMixer": {
+      "$defs": {
+        "NodeInputs": {
+          "additionalProperties": false,
+          "properties": {
+            "required": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Required",
+              "type": "array"
+            },
+            "optional": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Optional",
+              "type": "array"
+            },
+            "hidden": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Hidden",
+              "type": "array"
+            }
+          },
+          "title": "NodeInputs",
+          "type": "object"
+        },
+        "NodeOutput": {
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "title": "Name",
+              "type": "string"
+            },
+            "type": {
+              "enum": [
+                "INT",
+                "FLOAT",
+                "STRING",
+                "BOOLEAN",
+                "DICT",
+                "IMAGE",
+                "MASK",
+                "LATENT",
+                "ANY"
+              ],
+              "title": "Type",
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "type"
+          ],
+          "title": "NodeOutput",
+          "type": "object"
+        },
+        "WidgetKind": {
+          "description": "Frontend rendering hint for a single widget.",
+          "enum": [
+            "combo",
+            "segmented",
+            "chip_grid",
+            "chip_list",
+            "number",
+            "slider",
+            "boolean",
+            "string",
+            "color",
+            "dict",
+            "custom"
+          ],
+          "title": "WidgetKind",
+          "type": "string"
+        },
+        "WidgetSpec": {
+          "additionalProperties": false,
+          "description": "A single widget on a node body.",
+          "properties": {
+            "name": {
+              "description": "Widget name; matches the ComfyUI INPUT_TYPES key.",
+              "title": "Name",
+              "type": "string"
+            },
+            "kind": {
+              "$ref": "#/$defs/WidgetKind"
+            },
+            "label": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional display label (defaults to the widget name).",
+              "title": "Label"
+            },
+            "default": {
+              "default": null,
+              "title": "Default"
+            },
+            "tooltip": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Tooltip"
+            },
+            "values": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Values"
+            },
+            "columns": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Layout hint for chip grids.",
+              "title": "Columns"
+            },
+            "searchable": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Whether a chip list shows a search box.",
+              "title": "Searchable"
+            },
+            "multiline": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Whether string widget uses multiline textarea.",
+              "title": "Multiline"
+            },
+            "min": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Min"
+            },
+            "max": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Max"
+            },
+            "step": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Step"
+            },
+            "units": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Units"
+            },
+            "options": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Options"
+            },
+            "section": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Section"
+            },
+            "visible_when": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Visible When"
+            },
+            "visible_when_value": {
+              "anyOf": [
+                {},
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Visible When Value"
+            }
+          },
+          "required": [
+            "name",
+            "kind"
+          ],
+          "title": "WidgetSpec",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Full frontend contract for a single FiL Design ImageMind node.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "category": {
+          "title": "Category",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "inputs": {
+          "$ref": "#/$defs/NodeInputs"
+        },
+        "outputs": {
+          "items": {
+            "$ref": "#/$defs/NodeOutput"
+          },
+          "title": "Outputs",
+          "type": "array"
+        },
+        "min_size": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min Size"
+        },
+        "family": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Family"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "category"
+      ],
+      "title": "NodeContract",
+      "type": "object"
+    },
+    "FiLColorWizard": {
+      "$defs": {
+        "NodeInputs": {
+          "additionalProperties": false,
+          "properties": {
+            "required": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Required",
+              "type": "array"
+            },
+            "optional": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Optional",
+              "type": "array"
+            },
+            "hidden": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Hidden",
+              "type": "array"
+            }
+          },
+          "title": "NodeInputs",
+          "type": "object"
+        },
+        "NodeOutput": {
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "title": "Name",
+              "type": "string"
+            },
+            "type": {
+              "enum": [
+                "INT",
+                "FLOAT",
+                "STRING",
+                "BOOLEAN",
+                "DICT",
+                "IMAGE",
+                "MASK",
+                "LATENT",
+                "ANY"
+              ],
+              "title": "Type",
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "type"
+          ],
+          "title": "NodeOutput",
+          "type": "object"
+        },
+        "WidgetKind": {
+          "description": "Frontend rendering hint for a single widget.",
+          "enum": [
+            "combo",
+            "segmented",
+            "chip_grid",
+            "chip_list",
+            "number",
+            "slider",
+            "boolean",
+            "string",
+            "color",
+            "dict",
+            "custom"
+          ],
+          "title": "WidgetKind",
+          "type": "string"
+        },
+        "WidgetSpec": {
+          "additionalProperties": false,
+          "description": "A single widget on a node body.",
+          "properties": {
+            "name": {
+              "description": "Widget name; matches the ComfyUI INPUT_TYPES key.",
+              "title": "Name",
+              "type": "string"
+            },
+            "kind": {
+              "$ref": "#/$defs/WidgetKind"
+            },
+            "label": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional display label (defaults to the widget name).",
+              "title": "Label"
+            },
+            "default": {
+              "default": null,
+              "title": "Default"
+            },
+            "tooltip": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Tooltip"
+            },
+            "values": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Values"
+            },
+            "columns": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Layout hint for chip grids.",
+              "title": "Columns"
+            },
+            "searchable": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Whether a chip list shows a search box.",
+              "title": "Searchable"
+            },
+            "multiline": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Whether string widget uses multiline textarea.",
+              "title": "Multiline"
             },
             "min": {
               "anyOf": [
@@ -3858,7 +4727,7 @@
       "id": "FiLSeed",
       "title": "♻️ Seed",
       "category": "🎨 FiL Design/Values",
-      "description": "Fixed or randomized seed with copy and reuse buttons.",
+      "description": "Fixed or randomized seed with reuse buttons.",
       "inputs": {
         "required": [
           {
@@ -3870,6 +4739,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -3891,6 +4761,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": 0,
             "max": 999999999999,
             "step": 1,
@@ -3903,24 +4774,6 @@
         ],
         "optional": [
           {
-            "name": "copy_to_clipboard",
-            "kind": "boolean",
-            "label": "Copy seed",
-            "default": false,
-            "tooltip": null,
-            "values": null,
-            "columns": null,
-            "searchable": null,
-            "min": null,
-            "max": null,
-            "step": null,
-            "units": null,
-            "options": null,
-            "section": "actions",
-            "visible_when": null,
-            "visible_when_value": null
-          },
-          {
             "name": "use_last_seed",
             "kind": "boolean",
             "label": "Use last seed",
@@ -3929,6 +4782,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -3947,6 +4801,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -3995,6 +4850,7 @@
             ],
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -4015,6 +4871,7 @@
             ],
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -4033,6 +4890,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -4053,6 +4911,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": 0,
             "max": 2,
             "step": 0.05,
@@ -4071,6 +4930,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": 0,
             "max": 65536,
             "step": 1,
@@ -4089,27 +4949,10 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": 0,
             "max": 5000,
             "step": 10,
-            "units": null,
-            "options": null,
-            "section": null,
-            "visible_when": null,
-            "visible_when_value": null
-          },
-          {
-            "name": "seed",
-            "kind": "number",
-            "label": "Seed",
-            "default": -1,
-            "tooltip": null,
-            "values": null,
-            "columns": null,
-            "searchable": null,
-            "min": -1,
-            "max": 999999999999,
-            "step": 1,
             "units": null,
             "options": null,
             "section": null,
@@ -4125,6 +4968,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": 128,
             "max": 4096,
             "step": 64,
@@ -4169,6 +5013,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -4187,6 +5032,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -4205,6 +5051,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -4223,6 +5070,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -4239,34 +5087,35 @@
             "name": "agent",
             "kind": "chip_grid",
             "label": null,
-            "default": "Universal",
+            "default": "🌐 Universal",
             "tooltip": null,
             "values": [
-              "None",
-              "Universal",
-              "Portrait",
-              "Products",
-              "Nature & Landscape",
-              "Art & Illustration",
-              "Ultra Detailed Expert",
-              "Cinematic Master",
-              "18+",
-              "Fashion",
-              "Animals",
-              "Character Performance Agent",
-              "Architecture",
-              "Interior",
-              "City",
-              "Transport",
-              "Food",
-              "Gadgets",
-              "Games",
-              "Composition Agent",
-              "Lighting & Color Agent",
-              "Professional Tagger"
+              "⚪ None",
+              "🌐 Universal",
+              "👤 Portrait",
+              "📦 Products",
+              "🌿 Nature & Landscape",
+              "🎨 Art & Illustration",
+              "🔬 Ultra Detailed Expert",
+              "🎬 Cinematic Master",
+              "🔞 18+",
+              "👗 Fashion",
+              "🐾 Animals",
+              "🎭 Character Performance Agent",
+              "🏛 Architecture",
+              "🪑 Interior",
+              "🌆 City",
+              "🚗 Transport",
+              "🍽 Food",
+              "📱 Gadgets",
+              "🎮 Games",
+              "📐 Composition Agent",
+              "💡 Lighting & Color Agent",
+              "🏷 Professional Tagger"
             ],
             "columns": 3,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -4293,6 +5142,7 @@
             ],
             "columns": 3,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -4317,6 +5167,7 @@
             ],
             "columns": 5,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -4338,6 +5189,7 @@
             ],
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -4356,6 +5208,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -4537,6 +5390,7 @@
             ],
             "columns": null,
             "searchable": true,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -4623,6 +5477,7 @@
             ],
             "columns": null,
             "searchable": true,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -4772,6 +5627,7 @@
             ],
             "columns": null,
             "searchable": true,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -4838,6 +5694,7 @@
             ],
             "columns": null,
             "searchable": true,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -4887,6 +5744,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -4905,6 +5763,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -4923,6 +5782,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -4941,6 +5801,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -4959,6 +5820,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -4984,94 +5846,6 @@
       ],
       "family": "tool"
     },
-    "FiLBeforeAfterCompare": {
-      "id": "FiLBeforeAfterCompare",
-      "title": "🔄 Compare",
-      "category": "🎨 FiL Design/Image",
-      "description": "Before/after preview with optional output resizing.",
-      "inputs": {
-        "required": [],
-        "optional": [
-          {
-            "name": "swap",
-            "kind": "segmented",
-            "label": "Swap before/after",
-            "default": "OFF",
-            "tooltip": null,
-            "values": null,
-            "columns": null,
-            "searchable": null,
-            "min": null,
-            "max": null,
-            "step": null,
-            "units": null,
-            "options": [
-              "ON",
-              "OFF"
-            ],
-            "section": null,
-            "visible_when": null,
-            "visible_when_value": null
-          },
-          {
-            "name": "resize_mode",
-            "kind": "segmented",
-            "label": "Resize mode",
-            "default": "Off",
-            "tooltip": null,
-            "values": null,
-            "columns": null,
-            "searchable": null,
-            "min": null,
-            "max": null,
-            "step": null,
-            "units": null,
-            "options": [
-              "Off",
-              "Preview only",
-              "Preview + output"
-            ],
-            "section": null,
-            "visible_when": null,
-            "visible_when_value": null
-          },
-          {
-            "name": "max_resolution",
-            "kind": "slider",
-            "label": "Max resolution",
-            "default": 4096,
-            "tooltip": null,
-            "values": null,
-            "columns": null,
-            "searchable": null,
-            "min": 256,
-            "max": 8192,
-            "step": 64,
-            "units": null,
-            "options": null,
-            "section": null,
-            "visible_when": null,
-            "visible_when_value": null
-          }
-        ],
-        "hidden": []
-      },
-      "outputs": [
-        {
-          "name": "before",
-          "type": "IMAGE"
-        },
-        {
-          "name": "after",
-          "type": "IMAGE"
-        }
-      ],
-      "min_size": [
-        320,
-        420
-      ],
-      "family": "image"
-    },
     "FiLUpscaleTileCalc": {
       "id": "FiLUpscaleTileCalc",
       "title": "🔍 Upscaler Advanced",
@@ -5088,6 +5862,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": 0.1,
             "max": 8,
             "step": 0.25,
@@ -5106,6 +5881,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": 64,
             "max": 2048,
             "step": 64,
@@ -5124,6 +5900,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": 0,
             "max": 512,
             "step": 8,
@@ -5144,6 +5921,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -5162,6 +5940,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -5180,6 +5959,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -5204,6 +5984,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": 0,
             "max": 64,
             "step": 1,
@@ -5222,6 +6003,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": 0,
             "max": 64,
             "step": 1,
@@ -5240,6 +6022,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -5258,6 +6041,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -5378,6 +6162,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": 0.1,
             "max": 8,
             "step": 0.25,
@@ -5396,6 +6181,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": 64,
             "max": 2048,
             "step": 64,
@@ -5414,6 +6200,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": 0,
             "max": 512,
             "step": 8,
@@ -5434,6 +6221,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -5452,6 +6240,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -5470,6 +6259,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -5494,6 +6284,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": 0,
             "max": 64,
             "step": 1,
@@ -5512,6 +6303,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": 0,
             "max": 64,
             "step": 1,
@@ -5530,6 +6322,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -5548,6 +6341,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -5626,6 +6420,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": 0,
             "max": 18446744073709552000,
             "step": 1,
@@ -5644,6 +6439,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": 1,
             "max": 10000,
             "step": 1,
@@ -5662,6 +6458,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": 0,
             "max": 100,
             "step": 0.1,
@@ -5682,6 +6479,7 @@
             ],
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -5702,6 +6500,7 @@
             ],
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -5720,6 +6519,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": 0,
             "max": 1,
             "step": 0.01,
@@ -5738,6 +6538,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": 0,
             "max": 100,
             "step": 0.01,
@@ -5756,6 +6557,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -5782,6 +6584,7 @@
             ],
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -5804,6 +6607,7 @@
             ],
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -5864,6 +6668,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -5888,6 +6693,7 @@
             ],
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -5912,6 +6718,7 @@
             ],
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -5932,6 +6739,7 @@
             ],
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -5953,6 +6761,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": 0.01,
             "max": 8,
             "step": 0.05,
@@ -5971,6 +6780,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -5989,6 +6799,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": 0,
             "max": 18446744073709552000,
             "step": 1,
@@ -6007,6 +6818,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": 1,
             "max": 10000,
             "step": 1,
@@ -6025,6 +6837,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": 0,
             "max": 1,
             "step": 0.01,
@@ -6043,6 +6856,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": 0,
             "max": 5,
             "step": 1,
@@ -6063,6 +6877,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -6083,6 +6898,7 @@
             ],
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -6101,6 +6917,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": 0,
             "max": 10,
             "step": 0.01,
@@ -6122,6 +6939,7 @@
             ],
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -6165,6 +6983,7 @@
             ],
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -6183,6 +7002,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": null,
             "max": null,
             "step": null,
@@ -6201,6 +7021,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": 0,
             "max": 18446744073709552000,
             "step": 1,
@@ -6219,6 +7040,7 @@
             "values": null,
             "columns": null,
             "searchable": null,
+            "multiline": null,
             "min": 0,
             "max": 1,
             "step": 0.01,
@@ -6243,6 +7065,1454 @@
         220
       ],
       "family": "sampling"
+    },
+    "FiLImageDecomposer": {
+      "id": "FiLImageDecomposer",
+      "title": "👁️‍🗨️ Image Decomposer",
+      "category": "🎨 FiL Design/Analysis",
+      "description": "Decomposes image or prompt into Subject, Lighting, Composition, Style, and Full Prompt outputs.",
+      "inputs": {
+        "required": [
+          {
+            "name": "prompt",
+            "kind": "string",
+            "label": "Description",
+            "default": "",
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "multiline": true,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          }
+        ],
+        "optional": [
+          {
+            "name": "language",
+            "kind": "combo",
+            "label": "Language",
+            "default": "English",
+            "tooltip": null,
+            "values": [
+              "en",
+              "ru"
+            ],
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          }
+        ],
+        "hidden": []
+      },
+      "outputs": [
+        {
+          "name": "subject",
+          "type": "STRING"
+        },
+        {
+          "name": "lighting",
+          "type": "STRING"
+        },
+        {
+          "name": "composition",
+          "type": "STRING"
+        },
+        {
+          "name": "style",
+          "type": "STRING"
+        },
+        {
+          "name": "full_prompt",
+          "type": "STRING"
+        }
+      ],
+      "min_size": [
+        320,
+        240
+      ],
+      "family": "analysis"
+    },
+    "FiLStyleMixer": {
+      "id": "FiLStyleMixer",
+      "title": "🎛️ Style Mixer",
+      "category": "🎨 FiL Design/Styling",
+      "description": "Blends visual styles and reference images with weighted influence sliders and optional Vision LLM fusion.",
+      "inputs": {
+        "required": [
+          {
+            "name": "base_prompt",
+            "kind": "string",
+            "label": "Base Prompt",
+            "default": "",
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "multiline": true,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "style_1",
+            "kind": "chip_list",
+            "label": "Style 1",
+            "default": "(None)",
+            "tooltip": null,
+            "values": [
+              "(None)",
+              "📷 КАМЕРЫ/📷 Disposable 90s",
+              "📷 КАМЕРЫ/📸 Polaroid 600",
+              "📷 КАМЕРЫ/📷 Hasselblad 70mm",
+              "📷 КАМЕРЫ/🕳️ Pinhole Obscura",
+              "📷 КАМЕРЫ/📹 CCTV surveillance",
+              "📷 КАМЕРЫ/🚓 Police Dashcam",
+              "📷 КАМЕРЫ/🎞️ Raw 35mm Photo",
+              "📐 МОДИФИКАТОРЫ/🛩️ Drone Photo",
+              "📐 МОДИФИКАТОРЫ/🔭 Ultra Wide 12mm",
+              "📐 МОДИФИКАТОРЫ/🌐 Fisheye Lens",
+              "📐 МОДИФИКАТОРЫ/📐 Dutch Angle",
+              "📐 МОДИФИКАТОРЫ/📹 GoPro POV Action",
+              "🎬 КИНО/🎞️ IMAX Production",
+              "🎬 КИНО/🌑 Film Noir",
+              "🎬 КИНО/🌈 Technicolor 50s",
+              "🎬 КИНО/📷 Anamorphic Wide",
+              "🎬 КИНО/🎬 Gangster Cinema",
+              "⏱️ ЗАХВАТ/💫 Motion Blur",
+              "⏱️ ЗАХВАТ/📸 Action Freeze",
+              "⏱️ ЗАХВАТ/🎞️ Slo-Mo Bullet Time",
+              "🕰️ РЕТРО/🎞️ Vintage 70s Portra",
+              "🕰️ РЕТРО/🪞 Daguerreotype",
+              "🕰️ РЕТРО/🧪 Wet Plate Collodion",
+              "🕰️ РЕТРО/🟤 Sepia Nostalgia",
+              "🕰️ РЕТРО/🎸 Rockabilly 50s",
+              "🕰️ РЕТРО/🎩 Gilded Gangster",
+              "🕰️ РЕТРО/🎬 Nostalgic 8mm",
+              "🏠 ИНТЕРЬЕР/🏭 Loft Industrial",
+              "🏠 ИНТЕРЬЕР/🌻 Provence Rustic",
+              "🏠 ИНТЕРЬЕР/🕉️ Boho Chic",
+              "🏠 ИНТЕРЬЕР/🌿 Eco-Style Design",
+              "🏠 ИНТЕРЬЕР/👑 Baroque Ornate",
+              "🏠 ИНТЕРЬЕР/⬜ Minimalism",
+              "🏠 ИНТЕРЬЕР/🏡 Country House",
+              "👗 ФЭШН/📸 Editorial Vogue",
+              "👗 ФЭШН/👤 Portrait Bokeh",
+              "👗 ФЭШН/✨ Glamour Glow",
+              "👗 ФЭШН/🖤 Chanel Aesthetic",
+              "👗 ФЭШН/💋 Pin-up Style",
+              "👗 ФЭШН/👔 Business Pro",
+              "👗 ФЭШН/👠 Fashion Runway",
+              "👗 ФЭШН/🛍️ Street Fashion",
+              "🏙️ СРЕДА/🌃 Cyberpunk Neon",
+              "🏙️ СРЕДА/🌧️ Rainy Neon Noir",
+              "🏙️ СРЕДА/🌫️ Foggy Neon Noir",
+              "🏙️ СРЕДА/🏚️ Dystopian Megacity",
+              "🏙️ СРЕДА/🧱 Urban Grunge",
+              "🏙️ СРЕДА/📷 Street Candid",
+              "🏙️ СРЕДА/🌅 Magic Hour",
+              "🏙️ СРЕДА/☔ Rain Monsoon Puddle",
+              "🏙️ СРЕДА/🇬🇧 London Smog",
+              "🏜️ ЖАНРЫ/🏔️ Пейзажный Landscape",
+              "🏜️ ЖАНРЫ/🦁 Nat Geo Scale",
+              "🏜️ ЖАНРЫ/🔬 Macro Micro-world",
+              "🏜️ ЖАНРЫ/🌌 Astro Cosmic",
+              "🏜️ ЖАНРЫ/✈️ Travel Adventure",
+              "🏜️ ЖАНРЫ/🪶 Ethnic Spirit",
+              "🏜️ ЖАНРЫ/🏜️ Saharan Mirage",
+              "📸 РЕПОРТАЖ/☕ Lifestyle Moment",
+              "📸 РЕПОРТАЖ/📋 Documentary Truth",
+              "📸 РЕПОРТАЖ/💼 Stock Quality",
+              "🧪 ЭФФЕКТЫ/🤖 Holographic HUD",
+              "🧪 ЭФФЕКТЫ/💡 Hard Rim Neon",
+              "🧪 ЭФФЕКТЫ/🎨 Chromatic Aberration",
+              "🧪 ЭФФЕКТЫ/💎 Prism Optical Fracture",
+              "🧪 ЭФФЕКТЫ/🌫️ Volumetric Tyndall Dust",
+              "🧪 ЭФФЕКТЫ/📼 Expired Chemical Leak",
+              "🧪 ЭФФЕКТЫ/☀️ High-Key Airy",
+              "🧪 ЭФФЕКТЫ/🌈 HDR Dynamic",
+              "🧪 ЭФФЕКТЫ/🕯️ Candlelit Mood",
+              "🧪 ЭФФЕКТЫ/🔴 Infrared Surreal",
+              "🦾 КИБЕРПАНК/📱 Sleek White Android",
+              "🦾 КИБЕРПАНК/🪞 Chrome Android",
+              "🦾 КИБЕРПАНК/💉 Wirehead Junkie",
+              "🦾 КИБЕРПАНК/🏢 Corpo-Cyborg",
+              "🦾 КИБЕРПАНК/🎖️ Military Cyborg",
+              "🦾 КИБЕРПАНК/⚔️ Cyber-Samurai",
+              "🦾 КИБЕРПАНК/🧬 Biomechanical Giger",
+              "🦾 КИБЕРПАНК/🧪 Biopunk Organic",
+              "🦾 КИБЕРПАНК/🌱 Solarpunk Hybrid",
+              "🦾 КИБЕРПАНК/💀 Post-Apoc Cyber",
+              "🦾 КИБЕРПАНК/🌃 Neon Cyberpunk City Rain",
+              "🦾 КИБЕРПАНК/🚗 JDM Neon Street Racer",
+              "🦾 КИБЕРПАНК/🌇 Electric Sunset Megacity",
+              "🦾 КИБЕРПАНК/🛰️ Holographic Interface Portrait",
+              "🦾 КИБЕРПАНК/🗡️ Dark Samurai Street",
+              "🦾 КИБЕРПАНК/🤖 Chrome Cyborg Hyperrealism",
+              "🦾 КИБЕРПАНК/🦾 Cybernetic Arm Close-Up",
+              "🦾 КИБЕРПАНК/🧠 Biomechanical Horror Realism",
+              "🦾 КИБЕРПАНК/🕶️ Teal Gold Cyber Noir Portrait",
+              "🦾 КИБЕРПАНК/🧬 Synthetic Skin Android Portrait",
+              "🦾 КИБЕРПАНК/🤍 White Android Minimal Studio",
+              "🦾 КИБЕРПАНК/🏭 Industrial Cyborg Portrait",
+              "🦾 КИБЕРПАНК/🫀 Bio-Mechanical Core",
+              "🦾 КИБЕРПАНК/🧩 Android Anatomy Cutaway",
+              "🦾 КИБЕРПАНК/🧡 Golden Mechanical Luxury",
+              "🦾 КИБЕРПАНК/🪦 Melancholic Robot Portrait",
+              "🦾 КИБЕРПАНК/🩻 X-Ray Cyber Radiograph",
+              "🦾 КИБЕРПАНК/💎 Prismatic Neon Reflections",
+              "🦾 КИБЕРПАНК/🪞 Molten Liquid Chrome Realism",
+              "🦾 КИБЕРПАНК/🌫️ Atmospheric Sci-Fi Mist",
+              "🧪 ЭФФЕКТЫ/📡 Тесла-катушка",
+              "🧪 ЭФФЕКТЫ/🪞 Зеркальный мир",
+              "🧪 ЭФФЕКТЫ/📺 CRT Scanlines",
+              "🧪 ЭФФЕКТЫ/🔦 Полицейский прожектор",
+              "🧪 ЭФФЕКТЫ/🌊 Цифровой муар",
+              "🧪 ЭФФЕКТЫ/🫧 Мыльные пузыри",
+              "🧪 ЭФФЕКТЫ/🕶️ Солнечное затмение",
+              "🧪 ЭФФЕКТЫ/📠 Факс-аппарат",
+              "🧪 ЭФФЕКТЫ/🟣 UV Fluorescence",
+              "🧪 ЭФФЕКТЫ/💥 High-Speed Shatter",
+              "🧪 ЭФФЕКТЫ/🎨 Light Painting",
+              "🧪 ЭФФЕКТЫ/👯 Double Exposure",
+              "🧪 ЭФФЕКТЫ/🌑 Silhouette Drama",
+              "🧪 ЭФФЕКТЫ/🧊 Absolute Zero",
+              "🧪 ЭФФЕКТЫ/⚒️ Forgemaster Heat",
+              "🧪 ЭФФЕКТЫ/🌡️ Thermal Imager",
+              "🧪 ЭФФЕКТЫ/☢️ X-Ray Radiograph",
+              "🧪 ЭФФЕКТЫ/🌊 Bioluminescence",
+              "🧪 ЭФФЕКТЫ/🎭 Hard Chiaroscuro",
+              "🧪 ЭФФЕКТЫ/🔬 Electron Micro",
+              "🗺️ СЦЕНЫ/🎪 Circus Big Top",
+              "🗺️ СЦЕНЫ/🛁 Bathroom Mirror",
+              "🗺️ СЦЕНЫ/🔮 Crystal Ball",
+              "🗺️ СЦЕНЫ/🖼️ Art Gallery",
+              "🗺️ СЦЕНЫ/🛒 Grocery Store",
+              "🗺️ СЦЕНЫ/🛩️ Airplane Window",
+              "🗺️ СЦЕНЫ/🎢 Amusement Park",
+              "🗺️ СЦЕНЫ/🌊 Ocean Wave",
+              "🗺️ СЦЕНЫ/🏊 Swimming Pool",
+              "🗺️ СЦЕНЫ/🏜️ Desert Road",
+              "🗺️ СЦЕНЫ/🍄 Fairy Forest",
+              "🗺️ СЦЕНЫ/🗿 Ancient Ruins",
+              "🗺️ СЦЕНЫ/🎹 Piano Studio",
+              "🗺️ СЦЕНЫ/🧖 Spa Towel",
+              "🗺️ СЦЕНЫ/📚 Library Shelf",
+              "🗺️ СЦЕНЫ/🪜 Construction Site",
+              "🗺️ СЦЕНЫ/🏚️ Abandoned Building",
+              "🗺️ СЦЕНЫ/🖤 Black Light Party",
+              "🗺️ СЦЕНЫ/🏮 Lantern Festival",
+              "🗺️ СЦЕНЫ/🔦 Flashlight Beam",
+              "🗺️ СЦЕНЫ/🏺 Pottery Studio",
+              "🗺️ СЦЕНЫ/🕯️ Candle Meditation",
+              "🗺️ СЦЕНЫ/🪴 Plant Nursery",
+              "🗺️ СЦЕНЫ/🎤 Recording Studio",
+              "🗺️ СЦЕНЫ/🧸 Cozy Bedroom",
+              "🗺️ СЦЕНЫ/🏗️ Skyscraper Edge",
+              "🗺️ СЦЕНЫ/🍳 Kitchen Morning",
+              "🗺️ СЦЕНЫ/⛺ Campfire Night",
+              "🗺️ СЦЕНЫ/🧗 Rock Climbing",
+              "🗺️ СЦЕНЫ/🛒 Vintage Store",
+              "🗺️ СЦЕНЫ/🌉 Golden Gate",
+              "🗺️ СЦЕНЫ/🛁 Rainy Window",
+              "🗺️ СЦЕНЫ/🪐 Neon Desert",
+              "🗺️ СЦЕНЫ/🥾 Hiking Trail",
+              "🗺️ СЦЕНЫ/🌾 Rice Terraces",
+              "🗺️ СЦЕНЫ/🛀 Floating Bath",
+              "🎨 ЖИВОПИСЬ/🖌️ Impasto Oil",
+              "🎨 ЖИВОПИСЬ/💧 Wet Watercolor",
+              "🎨 ЖИВОПИСЬ/🔪 Palette Knife",
+              "🎨 ЖИВОПИСЬ/🌸 Ghibli Inspired",
+              "🎨 ЖИВОПИСЬ/🗿 Classical Marble",
+              "🎨 ЖИВОПИСЬ/🎭 Baroque Drama",
+              "🎨 ЖИВОПИСЬ/🖼️ Renaissance",
+              "🎨 ЖИВОПИСЬ/🎪 Impressionist",
+              "🎨 ЖИВОПИСЬ/🖌️ Asian Ink",
+              "🎨 ЖИВОПИСЬ/🖌️ Sumi-e",
+              "✏️ ГРАФИКА/✏️ Pencil Sketch",
+              "✏️ ГРАФИКА/🖊️ Ink Illustration",
+              "✏️ ГРАФИКА/🖍️ Charcoal Drawing",
+              "✏️ ГРАФИКА/✏️ Graphite Study",
+              "✏️ ГРАФИКА/🖋️ Pen & Ink",
+              "💻 ЦИФРОВАЯ/👾 Pixel Art",
+              "💻 ЦИФРОВАЯ/📐 Vector Art",
+              "💻 ЦИФРОВАЯ/🎨 Digital Painting",
+              "💻 ЦИФРОВАЯ/🤖 AI Art Style",
+              "💻 ЦИФРОВАЯ/🌆 Concept Art",
+              "💻 ЦИФРОВАЯ/🏮 Anime Style",
+              "💻 ЦИФРОВАЯ/🗾 Manga Style",
+              "💻 ЦИФРОВАЯ/🎮 Game UI",
+              "💻 ЦИФРОВАЯ/🎲 Tabletop RPG",
+              "🏛️ ИСТОРИЯ/🏺 Ancient Egyptian",
+              "🏛️ ИСТОРИЯ/🏛️ Greek Classical",
+              "🏛️ ИСТОРИЯ/🗿 Roman Bust",
+              "🏛️ ИСТОРИЯ/🖼️ Medieval Icon",
+              "🏛️ ИСТОРИЯ/⚔️ Viking Art",
+              "🏛️ ИСТОРИЯ/🏰 Art Nouveau",
+              "🏛️ ИСТОРИЯ/🎭 Art Deco",
+              "🔬 СТИЛИЗАЦИЯ/🔍 Hyperrealism",
+              "🔬 СТИЛИЗАЦИЯ/🌫️ Vaporwave",
+              "🔬 СТИЛИЗАЦИЯ/🎲 Glitch Art",
+              "🔬 СТИЛИЗАЦИЯ/💎 Steampunk",
+              "🔬 СТИЛИЗАЦИЯ/🌸 Kawaii",
+              "🔬 СТИЛИЗАЦИЯ/🦋 Morbid",
+              "🔬 СТИЛИЗАЦИЯ/🔮 Mystical",
+              "🔬 СТИЛИЗАЦИЯ/🎪 Circus Noir",
+              "💥 КОМИКС/🎬 Dynamic Cel-Shaded",
+              "💥 КОМИКС/🎌 Manga Screen-tone",
+              "💥 КОМИКС/💥 Action Comic",
+              "💥 КОМИКС/📜 Comic Cover",
+              "💥 КОМИКС/🤖 Киберпанк-комикс",
+              "💥 КОМИКС/💡 Неон-комикс",
+              "💥 КОМИКС/💋 Пин-ап комикс",
+              "💥 КОМИКС/📼 Ретро-комикс",
+              "💥 КОМИКС/⚙️ Стимпанк-комикс",
+              "💥 КОМИКС/⚰️ Готический комикс",
+              "💥 КОМИКС/👑 Барокко-комикс",
+              "💥 КОМИКС/⚫ Блэк-энд-уайт",
+              "🦾 КИБЕРПАНК/🎮 Mecha Pilot",
+              "🦾 КИБЕРПАНК/⚛️ Nanopunk Swarm",
+              "🦾 КИБЕРПАНК/💉 Neon Tattoos",
+              "🦾 КИБЕРПАНК/🤖 Flesh-to-Steel Fusion",
+              "🦾 КИБЕРПАНК/💊 Neuro-Interface",
+              "🦾 КИБЕРПАНК/🩸 Bio-Corroded Tech",
+              "👾 ДИДЖИТАЛ/🏄 Vaporwave Cyber",
+              "👾 ДИДЖИТАЛ/👓 Anaglyph Red-Blue",
+              "👾 ДИДЖИТАЛ/🔆 Octane Render",
+              "👾 ДИДЖИТАЛ/🌅 Synthwave Art",
+              "👾 ДИДЖИТАЛ/💧 Molten Liquid Chrome",
+              "👾 ДИДЖИТАЛ/🖥️ Holographic UI",
+              "👾 ДИДЖИТАЛ/📺 Киберпоп",
+              "👾 ДИДЖИТАЛ/🎨 Коллаж-арт",
+              "👾 ДИДЖИТАЛ/🔀 Сегментация-арт",
+              "👾 ДИДЖИТАЛ/🎭 Постер-арт",
+              "👾 ДИДЖИТАЛ/🚗 Лоурайдер-арт",
+              "💻 ЦИФРОВАЯ/🌃 Neon Cyberpunk City Rain",
+              "💻 ЦИФРОВАЯ/🚗 Retro Anime JDM Car Wallpaper",
+              "💻 ЦИФРОВАЯ/🏍️ Anime Motorcycle Action Poster",
+              "💻 ЦИФРОВАЯ/🌇 Electric Sunset Sci-Fi Landscape",
+              "💻 ЦИФРОВАЯ/🔮 Crystal Overload Sci-Fi",
+              "💻 ЦИФРОВАЯ/🧊 Cold Blue Anime Macro",
+              "💻 ЦИФРОВАЯ/🌊 Soft Water Reflection Anime",
+              "💻 ЦИФРОВАЯ/🌌 Lofi Anime City Melancholy",
+              "💻 ЦИФРОВАЯ/📼 Retro 90s Anime Cel",
+              "💻 ЦИФРОВАЯ/🎀 Cute Pink Anime Portrait",
+              "💻 ЦИФРОВАЯ/🐉 Fantasy Dragon Girl Anime",
+              "💻 ЦИФРОВАЯ/🚘 Night Street Car Cinematic",
+              "💻 ЦИФРОВАЯ/🪄 Sorceress Neon Ritual Anime",
+              "💻 ЦИФРОВАЯ/🎧 Moody Headphone Anime Girl",
+              "💻 ЦИФРОВАЯ/🏁 Street Racing Anime Poster",
+              "💻 ЦИФРОВАЯ/🍭 Soft Pastel Kawaii Car",
+              "💻 ЦИФРОВАЯ/🏙️ Urban Fashion Editorial Anime",
+              "💻 ЦИФРОВАЯ/🌫️ Atmospheric Sci-Fi Mist",
+              "💻 ЦИФРОВАЯ/🌆 Neo-Tokyo Anime Adventure",
+              "💻 ЦИФРОВАЯ/📱 Phone Wallpaper Vertical Sci-Fi",
+              "💻 ЦИФРОВАЯ/🎮 Anime Game Character Render",
+              "💻 ЦИФРОВАЯ/🧜 Ethereal Soft Fantasy Anime",
+              "💻 ЦИФРОВАЯ/🗡️ Dark Samurai Cyber Anime",
+              "💻 ЦИФРОВАЯ/🛰️ Holographic Interface Portrait",
+              "💻 ЦИФРОВАЯ/🧩 Abstract Cyber Shape Design",
+              "💻 ЦИФРОВАЯ/🚨 Warning Sign AI Robot Art",
+              "💻 ЦИФРОВАЯ/🖼️ Pinterest Vertical AI Art Mix",
+              "🔬 СТИЛИЗАЦИЯ/🖤 Dark Anime Witch Gothic",
+              "🔬 СТИЛИЗАЦИЯ/🩸 Vampire Red Eye Anime Noir",
+              "🔬 СТИЛИЗАЦИЯ/🎭 Hyperpop Character Illustration",
+              "🔬 СТИЛИЗАЦИЯ/🦇 Gothic Dark Fantasy Portrait",
+              "🔬 СТИЛИЗАЦИЯ/🌹 Dark Floral Gothic Editorial",
+              "🔬 СТИЛИЗАЦИЯ/🫧 Iridescent Hologram Fashion",
+              "🔬 СТИЛИЗАЦИЯ/🧛 Crimson Gothic Beauty",
+              "🔬 СТИЛИЗАЦИЯ/🌠 Cosmic Dream Girl",
+              "🔬 СТИЛИЗАЦИЯ/💿 Holographic Y2K Pop Star",
+              "🔬 СТИЛИЗАЦИЯ/🛸 Alien Fashion Runway",
+              "🔬 СТИЛИЗАЦИЯ/🏴 Black Armor Dark Fantasy",
+              "🔬 СТИЛИЗАЦИЯ/🕯️ Occult Black Magic Anime",
+              "🔬 СТИЛИЗАЦИЯ/🕳️ Black Void High Contrast",
+              "🔬 СТИЛИЗАЦИЯ/🧱 Gritty Post-Apocalyptic Casual",
+              "🔬 СТИЛИЗАЦИЯ/🔥 Red Smoke Dark Character",
+              "🔬 СТИЛИЗАЦИЯ/💎 Prismatic Neon Reflections",
+              "🔬 СТИЛИЗАЦИЯ/🪞 Glossy Black Latex Cyber",
+              "🔬 СТИЛИЗАЦИЯ/🌸 Bloom Soft Girl Aesthetic",
+              "💥 КОМИКС/🕷️ Symbiote Venom Comic Ink",
+              "💥 КОМИКС/⚡ Aggressive Comic Ink Splash",
+              "💥 КОМИКС/🧨 Dynamic Superhero Splash",
+              "🦾 КИБЕРПАНК/🤖 Chrome Cyborg Hyperrealism",
+              "🦾 КИБЕРПАНК/🦾 Cybernetic Arm Concept Art",
+              "🦾 КИБЕРПАНК/🧠 Biomechanical Body Horror",
+              "🦾 КИБЕРПАНК/🕶️ Teal Gold Cyberpunk Noir Portrait",
+              "🦾 КИБЕРПАНК/🧬 Synthetic Skin Android Portrait",
+              "🦾 КИБЕРПАНК/🦾 White Android Minimal Portrait",
+              "🦾 КИБЕРПАНК/🩶 Industrial Female Cyborg Portrait",
+              "🦾 КИБЕРПАНК/🫀Bio-Mechanical Core Portrait",
+              "🦾 КИБЕРПАНК/🧬 Android Anatomy Cutaway",
+              "🦾 КИБЕРПАНК/🦋 Angelic Cyber Feminine",
+              "🦾 КИБЕРПАНК/🧡 Golden Mechanical Portrait",
+              "🦾 КИБЕРПАНК/🪦 Melancholic Robot Portrait",
+              "🦾 КИБЕРПАНК/🩻 X-Ray Skeleton Cyber Anime"
+            ],
+            "columns": null,
+            "searchable": true,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "weight_1",
+            "kind": "slider",
+            "label": "Weight 1",
+            "default": 1,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": 0,
+            "max": 1,
+            "step": 0.05,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          }
+        ],
+        "optional": [
+          {
+            "name": "fusion_mode",
+            "kind": "combo",
+            "label": "Fusion Mode",
+            "default": "Weighted Stack (Fast)",
+            "tooltip": null,
+            "values": [
+              "Weighted Stack (Fast)",
+              "Smart LLM Fusion (Gen-Mix)"
+            ],
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "img_focus_1",
+            "kind": "combo",
+            "label": "Image 1 Focus",
+            "default": "Auto / General",
+            "tooltip": null,
+            "values": [
+              "Auto / General",
+              "Style & Texture",
+              "Color & Lighting",
+              "Subject & Composition",
+              "Mood & Atmosphere"
+            ],
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "img_weight_1",
+            "kind": "slider",
+            "label": "Image 1 Weight",
+            "default": 0.8,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": 0,
+            "max": 1,
+            "step": 0.05,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "img_focus_2",
+            "kind": "combo",
+            "label": "Image 2 Focus",
+            "default": "Auto / General",
+            "tooltip": null,
+            "values": [
+              "Auto / General",
+              "Style & Texture",
+              "Color & Lighting",
+              "Subject & Composition",
+              "Mood & Atmosphere"
+            ],
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "img_weight_2",
+            "kind": "slider",
+            "label": "Image 2 Weight",
+            "default": 0.6,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": 0,
+            "max": 1,
+            "step": 0.05,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "img_focus_3",
+            "kind": "combo",
+            "label": "Image 3 Focus",
+            "default": "Auto / General",
+            "tooltip": null,
+            "values": [
+              "Auto / General",
+              "Style & Texture",
+              "Color & Lighting",
+              "Subject & Composition",
+              "Mood & Atmosphere"
+            ],
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "img_weight_3",
+            "kind": "slider",
+            "label": "Image 3 Weight",
+            "default": 0.4,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": 0,
+            "max": 1,
+            "step": 0.05,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "img_focus_4",
+            "kind": "combo",
+            "label": "Image 4 Focus",
+            "default": "Auto / General",
+            "tooltip": null,
+            "values": [
+              "Auto / General",
+              "Style & Texture",
+              "Color & Lighting",
+              "Subject & Composition",
+              "Mood & Atmosphere"
+            ],
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "img_weight_4",
+            "kind": "slider",
+            "label": "Image 4 Weight",
+            "default": 0.2,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": 0,
+            "max": 1,
+            "step": 0.05,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "style_2",
+            "kind": "chip_list",
+            "label": "Style 2",
+            "default": "(None)",
+            "tooltip": null,
+            "values": [
+              "(None)",
+              "📷 КАМЕРЫ/📷 Disposable 90s",
+              "📷 КАМЕРЫ/📸 Polaroid 600",
+              "📷 КАМЕРЫ/📷 Hasselblad 70mm",
+              "📷 КАМЕРЫ/🕳️ Pinhole Obscura",
+              "📷 КАМЕРЫ/📹 CCTV surveillance",
+              "📷 КАМЕРЫ/🚓 Police Dashcam",
+              "📷 КАМЕРЫ/🎞️ Raw 35mm Photo",
+              "📐 МОДИФИКАТОРЫ/🛩️ Drone Photo",
+              "📐 МОДИФИКАТОРЫ/🔭 Ultra Wide 12mm",
+              "📐 МОДИФИКАТОРЫ/🌐 Fisheye Lens",
+              "📐 МОДИФИКАТОРЫ/📐 Dutch Angle",
+              "📐 МОДИФИКАТОРЫ/📹 GoPro POV Action",
+              "🎬 КИНО/🎞️ IMAX Production",
+              "🎬 КИНО/🌑 Film Noir",
+              "🎬 КИНО/🌈 Technicolor 50s",
+              "🎬 КИНО/📷 Anamorphic Wide",
+              "🎬 КИНО/🎬 Gangster Cinema",
+              "⏱️ ЗАХВАТ/💫 Motion Blur",
+              "⏱️ ЗАХВАТ/📸 Action Freeze",
+              "⏱️ ЗАХВАТ/🎞️ Slo-Mo Bullet Time",
+              "🕰️ РЕТРО/🎞️ Vintage 70s Portra",
+              "🕰️ РЕТРО/🪞 Daguerreotype",
+              "🕰️ РЕТРО/🧪 Wet Plate Collodion",
+              "🕰️ РЕТРО/🟤 Sepia Nostalgia",
+              "🕰️ РЕТРО/🎸 Rockabilly 50s",
+              "🕰️ РЕТРО/🎩 Gilded Gangster",
+              "🕰️ РЕТРО/🎬 Nostalgic 8mm",
+              "🏠 ИНТЕРЬЕР/🏭 Loft Industrial",
+              "🏠 ИНТЕРЬЕР/🌻 Provence Rustic",
+              "🏠 ИНТЕРЬЕР/🕉️ Boho Chic",
+              "🏠 ИНТЕРЬЕР/🌿 Eco-Style Design",
+              "🏠 ИНТЕРЬЕР/👑 Baroque Ornate",
+              "🏠 ИНТЕРЬЕР/⬜ Minimalism",
+              "🏠 ИНТЕРЬЕР/🏡 Country House",
+              "👗 ФЭШН/📸 Editorial Vogue",
+              "👗 ФЭШН/👤 Portrait Bokeh",
+              "👗 ФЭШН/✨ Glamour Glow",
+              "👗 ФЭШН/🖤 Chanel Aesthetic",
+              "👗 ФЭШН/💋 Pin-up Style",
+              "👗 ФЭШН/👔 Business Pro",
+              "👗 ФЭШН/👠 Fashion Runway",
+              "👗 ФЭШН/🛍️ Street Fashion",
+              "🏙️ СРЕДА/🌃 Cyberpunk Neon",
+              "🏙️ СРЕДА/🌧️ Rainy Neon Noir",
+              "🏙️ СРЕДА/🌫️ Foggy Neon Noir",
+              "🏙️ СРЕДА/🏚️ Dystopian Megacity",
+              "🏙️ СРЕДА/🧱 Urban Grunge",
+              "🏙️ СРЕДА/📷 Street Candid",
+              "🏙️ СРЕДА/🌅 Magic Hour",
+              "🏙️ СРЕДА/☔ Rain Monsoon Puddle",
+              "🏙️ СРЕДА/🇬🇧 London Smog",
+              "🏜️ ЖАНРЫ/🏔️ Пейзажный Landscape",
+              "🏜️ ЖАНРЫ/🦁 Nat Geo Scale",
+              "🏜️ ЖАНРЫ/🔬 Macro Micro-world",
+              "🏜️ ЖАНРЫ/🌌 Astro Cosmic",
+              "🏜️ ЖАНРЫ/✈️ Travel Adventure",
+              "🏜️ ЖАНРЫ/🪶 Ethnic Spirit",
+              "🏜️ ЖАНРЫ/🏜️ Saharan Mirage",
+              "📸 РЕПОРТАЖ/☕ Lifestyle Moment",
+              "📸 РЕПОРТАЖ/📋 Documentary Truth",
+              "📸 РЕПОРТАЖ/💼 Stock Quality",
+              "🧪 ЭФФЕКТЫ/🤖 Holographic HUD",
+              "🧪 ЭФФЕКТЫ/💡 Hard Rim Neon",
+              "🧪 ЭФФЕКТЫ/🎨 Chromatic Aberration",
+              "🧪 ЭФФЕКТЫ/💎 Prism Optical Fracture",
+              "🧪 ЭФФЕКТЫ/🌫️ Volumetric Tyndall Dust",
+              "🧪 ЭФФЕКТЫ/📼 Expired Chemical Leak",
+              "🧪 ЭФФЕКТЫ/☀️ High-Key Airy",
+              "🧪 ЭФФЕКТЫ/🌈 HDR Dynamic",
+              "🧪 ЭФФЕКТЫ/🕯️ Candlelit Mood",
+              "🧪 ЭФФЕКТЫ/🔴 Infrared Surreal",
+              "🦾 КИБЕРПАНК/📱 Sleek White Android",
+              "🦾 КИБЕРПАНК/🪞 Chrome Android",
+              "🦾 КИБЕРПАНК/💉 Wirehead Junkie",
+              "🦾 КИБЕРПАНК/🏢 Corpo-Cyborg",
+              "🦾 КИБЕРПАНК/🎖️ Military Cyborg",
+              "🦾 КИБЕРПАНК/⚔️ Cyber-Samurai",
+              "🦾 КИБЕРПАНК/🧬 Biomechanical Giger",
+              "🦾 КИБЕРПАНК/🧪 Biopunk Organic",
+              "🦾 КИБЕРПАНК/🌱 Solarpunk Hybrid",
+              "🦾 КИБЕРПАНК/💀 Post-Apoc Cyber",
+              "🦾 КИБЕРПАНК/🌃 Neon Cyberpunk City Rain",
+              "🦾 КИБЕРПАНК/🚗 JDM Neon Street Racer",
+              "🦾 КИБЕРПАНК/🌇 Electric Sunset Megacity",
+              "🦾 КИБЕРПАНК/🛰️ Holographic Interface Portrait",
+              "🦾 КИБЕРПАНК/🗡️ Dark Samurai Street",
+              "🦾 КИБЕРПАНК/🤖 Chrome Cyborg Hyperrealism",
+              "🦾 КИБЕРПАНК/🦾 Cybernetic Arm Close-Up",
+              "🦾 КИБЕРПАНК/🧠 Biomechanical Horror Realism",
+              "🦾 КИБЕРПАНК/🕶️ Teal Gold Cyber Noir Portrait",
+              "🦾 КИБЕРПАНК/🧬 Synthetic Skin Android Portrait",
+              "🦾 КИБЕРПАНК/🤍 White Android Minimal Studio",
+              "🦾 КИБЕРПАНК/🏭 Industrial Cyborg Portrait",
+              "🦾 КИБЕРПАНК/🫀 Bio-Mechanical Core",
+              "🦾 КИБЕРПАНК/🧩 Android Anatomy Cutaway",
+              "🦾 КИБЕРПАНК/🧡 Golden Mechanical Luxury",
+              "🦾 КИБЕРПАНК/🪦 Melancholic Robot Portrait",
+              "🦾 КИБЕРПАНК/🩻 X-Ray Cyber Radiograph",
+              "🦾 КИБЕРПАНК/💎 Prismatic Neon Reflections",
+              "🦾 КИБЕРПАНК/🪞 Molten Liquid Chrome Realism",
+              "🦾 КИБЕРПАНК/🌫️ Atmospheric Sci-Fi Mist",
+              "🧪 ЭФФЕКТЫ/📡 Тесла-катушка",
+              "🧪 ЭФФЕКТЫ/🪞 Зеркальный мир",
+              "🧪 ЭФФЕКТЫ/📺 CRT Scanlines",
+              "🧪 ЭФФЕКТЫ/🔦 Полицейский прожектор",
+              "🧪 ЭФФЕКТЫ/🌊 Цифровой муар",
+              "🧪 ЭФФЕКТЫ/🫧 Мыльные пузыри",
+              "🧪 ЭФФЕКТЫ/🕶️ Солнечное затмение",
+              "🧪 ЭФФЕКТЫ/📠 Факс-аппарат",
+              "🧪 ЭФФЕКТЫ/🟣 UV Fluorescence",
+              "🧪 ЭФФЕКТЫ/💥 High-Speed Shatter",
+              "🧪 ЭФФЕКТЫ/🎨 Light Painting",
+              "🧪 ЭФФЕКТЫ/👯 Double Exposure",
+              "🧪 ЭФФЕКТЫ/🌑 Silhouette Drama",
+              "🧪 ЭФФЕКТЫ/🧊 Absolute Zero",
+              "🧪 ЭФФЕКТЫ/⚒️ Forgemaster Heat",
+              "🧪 ЭФФЕКТЫ/🌡️ Thermal Imager",
+              "🧪 ЭФФЕКТЫ/☢️ X-Ray Radiograph",
+              "🧪 ЭФФЕКТЫ/🌊 Bioluminescence",
+              "🧪 ЭФФЕКТЫ/🎭 Hard Chiaroscuro",
+              "🧪 ЭФФЕКТЫ/🔬 Electron Micro",
+              "🗺️ СЦЕНЫ/🎪 Circus Big Top",
+              "🗺️ СЦЕНЫ/🛁 Bathroom Mirror",
+              "🗺️ СЦЕНЫ/🔮 Crystal Ball",
+              "🗺️ СЦЕНЫ/🖼️ Art Gallery",
+              "🗺️ СЦЕНЫ/🛒 Grocery Store",
+              "🗺️ СЦЕНЫ/🛩️ Airplane Window",
+              "🗺️ СЦЕНЫ/🎢 Amusement Park",
+              "🗺️ СЦЕНЫ/🌊 Ocean Wave",
+              "🗺️ СЦЕНЫ/🏊 Swimming Pool",
+              "🗺️ СЦЕНЫ/🏜️ Desert Road",
+              "🗺️ СЦЕНЫ/🍄 Fairy Forest",
+              "🗺️ СЦЕНЫ/🗿 Ancient Ruins",
+              "🗺️ СЦЕНЫ/🎹 Piano Studio",
+              "🗺️ СЦЕНЫ/🧖 Spa Towel",
+              "🗺️ СЦЕНЫ/📚 Library Shelf",
+              "🗺️ СЦЕНЫ/🪜 Construction Site",
+              "🗺️ СЦЕНЫ/🏚️ Abandoned Building",
+              "🗺️ СЦЕНЫ/🖤 Black Light Party",
+              "🗺️ СЦЕНЫ/🏮 Lantern Festival",
+              "🗺️ СЦЕНЫ/🔦 Flashlight Beam",
+              "🗺️ СЦЕНЫ/🏺 Pottery Studio",
+              "🗺️ СЦЕНЫ/🕯️ Candle Meditation",
+              "🗺️ СЦЕНЫ/🪴 Plant Nursery",
+              "🗺️ СЦЕНЫ/🎤 Recording Studio",
+              "🗺️ СЦЕНЫ/🧸 Cozy Bedroom",
+              "🗺️ СЦЕНЫ/🏗️ Skyscraper Edge",
+              "🗺️ СЦЕНЫ/🍳 Kitchen Morning",
+              "🗺️ СЦЕНЫ/⛺ Campfire Night",
+              "🗺️ СЦЕНЫ/🧗 Rock Climbing",
+              "🗺️ СЦЕНЫ/🛒 Vintage Store",
+              "🗺️ СЦЕНЫ/🌉 Golden Gate",
+              "🗺️ СЦЕНЫ/🛁 Rainy Window",
+              "🗺️ СЦЕНЫ/🪐 Neon Desert",
+              "🗺️ СЦЕНЫ/🥾 Hiking Trail",
+              "🗺️ СЦЕНЫ/🌾 Rice Terraces",
+              "🗺️ СЦЕНЫ/🛀 Floating Bath",
+              "🎨 ЖИВОПИСЬ/🖌️ Impasto Oil",
+              "🎨 ЖИВОПИСЬ/💧 Wet Watercolor",
+              "🎨 ЖИВОПИСЬ/🔪 Palette Knife",
+              "🎨 ЖИВОПИСЬ/🌸 Ghibli Inspired",
+              "🎨 ЖИВОПИСЬ/🗿 Classical Marble",
+              "🎨 ЖИВОПИСЬ/🎭 Baroque Drama",
+              "🎨 ЖИВОПИСЬ/🖼️ Renaissance",
+              "🎨 ЖИВОПИСЬ/🎪 Impressionist",
+              "🎨 ЖИВОПИСЬ/🖌️ Asian Ink",
+              "🎨 ЖИВОПИСЬ/🖌️ Sumi-e",
+              "✏️ ГРАФИКА/✏️ Pencil Sketch",
+              "✏️ ГРАФИКА/🖊️ Ink Illustration",
+              "✏️ ГРАФИКА/🖍️ Charcoal Drawing",
+              "✏️ ГРАФИКА/✏️ Graphite Study",
+              "✏️ ГРАФИКА/🖋️ Pen & Ink",
+              "💻 ЦИФРОВАЯ/👾 Pixel Art",
+              "💻 ЦИФРОВАЯ/📐 Vector Art",
+              "💻 ЦИФРОВАЯ/🎨 Digital Painting",
+              "💻 ЦИФРОВАЯ/🤖 AI Art Style",
+              "💻 ЦИФРОВАЯ/🌆 Concept Art",
+              "💻 ЦИФРОВАЯ/🏮 Anime Style",
+              "💻 ЦИФРОВАЯ/🗾 Manga Style",
+              "💻 ЦИФРОВАЯ/🎮 Game UI",
+              "💻 ЦИФРОВАЯ/🎲 Tabletop RPG",
+              "🏛️ ИСТОРИЯ/🏺 Ancient Egyptian",
+              "🏛️ ИСТОРИЯ/🏛️ Greek Classical",
+              "🏛️ ИСТОРИЯ/🗿 Roman Bust",
+              "🏛️ ИСТОРИЯ/🖼️ Medieval Icon",
+              "🏛️ ИСТОРИЯ/⚔️ Viking Art",
+              "🏛️ ИСТОРИЯ/🏰 Art Nouveau",
+              "🏛️ ИСТОРИЯ/🎭 Art Deco",
+              "🔬 СТИЛИЗАЦИЯ/🔍 Hyperrealism",
+              "🔬 СТИЛИЗАЦИЯ/🌫️ Vaporwave",
+              "🔬 СТИЛИЗАЦИЯ/🎲 Glitch Art",
+              "🔬 СТИЛИЗАЦИЯ/💎 Steampunk",
+              "🔬 СТИЛИЗАЦИЯ/🌸 Kawaii",
+              "🔬 СТИЛИЗАЦИЯ/🦋 Morbid",
+              "🔬 СТИЛИЗАЦИЯ/🔮 Mystical",
+              "🔬 СТИЛИЗАЦИЯ/🎪 Circus Noir",
+              "💥 КОМИКС/🎬 Dynamic Cel-Shaded",
+              "💥 КОМИКС/🎌 Manga Screen-tone",
+              "💥 КОМИКС/💥 Action Comic",
+              "💥 КОМИКС/📜 Comic Cover",
+              "💥 КОМИКС/🤖 Киберпанк-комикс",
+              "💥 КОМИКС/💡 Неон-комикс",
+              "💥 КОМИКС/💋 Пин-ап комикс",
+              "💥 КОМИКС/📼 Ретро-комикс",
+              "💥 КОМИКС/⚙️ Стимпанк-комикс",
+              "💥 КОМИКС/⚰️ Готический комикс",
+              "💥 КОМИКС/👑 Барокко-комикс",
+              "💥 КОМИКС/⚫ Блэк-энд-уайт",
+              "🦾 КИБЕРПАНК/🎮 Mecha Pilot",
+              "🦾 КИБЕРПАНК/⚛️ Nanopunk Swarm",
+              "🦾 КИБЕРПАНК/💉 Neon Tattoos",
+              "🦾 КИБЕРПАНК/🤖 Flesh-to-Steel Fusion",
+              "🦾 КИБЕРПАНК/💊 Neuro-Interface",
+              "🦾 КИБЕРПАНК/🩸 Bio-Corroded Tech",
+              "👾 ДИДЖИТАЛ/🏄 Vaporwave Cyber",
+              "👾 ДИДЖИТАЛ/👓 Anaglyph Red-Blue",
+              "👾 ДИДЖИТАЛ/🔆 Octane Render",
+              "👾 ДИДЖИТАЛ/🌅 Synthwave Art",
+              "👾 ДИДЖИТАЛ/💧 Molten Liquid Chrome",
+              "👾 ДИДЖИТАЛ/🖥️ Holographic UI",
+              "👾 ДИДЖИТАЛ/📺 Киберпоп",
+              "👾 ДИДЖИТАЛ/🎨 Коллаж-арт",
+              "👾 ДИДЖИТАЛ/🔀 Сегментация-арт",
+              "👾 ДИДЖИТАЛ/🎭 Постер-арт",
+              "👾 ДИДЖИТАЛ/🚗 Лоурайдер-арт",
+              "💻 ЦИФРОВАЯ/🌃 Neon Cyberpunk City Rain",
+              "💻 ЦИФРОВАЯ/🚗 Retro Anime JDM Car Wallpaper",
+              "💻 ЦИФРОВАЯ/🏍️ Anime Motorcycle Action Poster",
+              "💻 ЦИФРОВАЯ/🌇 Electric Sunset Sci-Fi Landscape",
+              "💻 ЦИФРОВАЯ/🔮 Crystal Overload Sci-Fi",
+              "💻 ЦИФРОВАЯ/🧊 Cold Blue Anime Macro",
+              "💻 ЦИФРОВАЯ/🌊 Soft Water Reflection Anime",
+              "💻 ЦИФРОВАЯ/🌌 Lofi Anime City Melancholy",
+              "💻 ЦИФРОВАЯ/📼 Retro 90s Anime Cel",
+              "💻 ЦИФРОВАЯ/🎀 Cute Pink Anime Portrait",
+              "💻 ЦИФРОВАЯ/🐉 Fantasy Dragon Girl Anime",
+              "💻 ЦИФРОВАЯ/🚘 Night Street Car Cinematic",
+              "💻 ЦИФРОВАЯ/🪄 Sorceress Neon Ritual Anime",
+              "💻 ЦИФРОВАЯ/🎧 Moody Headphone Anime Girl",
+              "💻 ЦИФРОВАЯ/🏁 Street Racing Anime Poster",
+              "💻 ЦИФРОВАЯ/🍭 Soft Pastel Kawaii Car",
+              "💻 ЦИФРОВАЯ/🏙️ Urban Fashion Editorial Anime",
+              "💻 ЦИФРОВАЯ/🌫️ Atmospheric Sci-Fi Mist",
+              "💻 ЦИФРОВАЯ/🌆 Neo-Tokyo Anime Adventure",
+              "💻 ЦИФРОВАЯ/📱 Phone Wallpaper Vertical Sci-Fi",
+              "💻 ЦИФРОВАЯ/🎮 Anime Game Character Render",
+              "💻 ЦИФРОВАЯ/🧜 Ethereal Soft Fantasy Anime",
+              "💻 ЦИФРОВАЯ/🗡️ Dark Samurai Cyber Anime",
+              "💻 ЦИФРОВАЯ/🛰️ Holographic Interface Portrait",
+              "💻 ЦИФРОВАЯ/🧩 Abstract Cyber Shape Design",
+              "💻 ЦИФРОВАЯ/🚨 Warning Sign AI Robot Art",
+              "💻 ЦИФРОВАЯ/🖼️ Pinterest Vertical AI Art Mix",
+              "🔬 СТИЛИЗАЦИЯ/🖤 Dark Anime Witch Gothic",
+              "🔬 СТИЛИЗАЦИЯ/🩸 Vampire Red Eye Anime Noir",
+              "🔬 СТИЛИЗАЦИЯ/🎭 Hyperpop Character Illustration",
+              "🔬 СТИЛИЗАЦИЯ/🦇 Gothic Dark Fantasy Portrait",
+              "🔬 СТИЛИЗАЦИЯ/🌹 Dark Floral Gothic Editorial",
+              "🔬 СТИЛИЗАЦИЯ/🫧 Iridescent Hologram Fashion",
+              "🔬 СТИЛИЗАЦИЯ/🧛 Crimson Gothic Beauty",
+              "🔬 СТИЛИЗАЦИЯ/🌠 Cosmic Dream Girl",
+              "🔬 СТИЛИЗАЦИЯ/💿 Holographic Y2K Pop Star",
+              "🔬 СТИЛИЗАЦИЯ/🛸 Alien Fashion Runway",
+              "🔬 СТИЛИЗАЦИЯ/🏴 Black Armor Dark Fantasy",
+              "🔬 СТИЛИЗАЦИЯ/🕯️ Occult Black Magic Anime",
+              "🔬 СТИЛИЗАЦИЯ/🕳️ Black Void High Contrast",
+              "🔬 СТИЛИЗАЦИЯ/🧱 Gritty Post-Apocalyptic Casual",
+              "🔬 СТИЛИЗАЦИЯ/🔥 Red Smoke Dark Character",
+              "🔬 СТИЛИЗАЦИЯ/💎 Prismatic Neon Reflections",
+              "🔬 СТИЛИЗАЦИЯ/🪞 Glossy Black Latex Cyber",
+              "🔬 СТИЛИЗАЦИЯ/🌸 Bloom Soft Girl Aesthetic",
+              "💥 КОМИКС/🕷️ Symbiote Venom Comic Ink",
+              "💥 КОМИКС/⚡ Aggressive Comic Ink Splash",
+              "💥 КОМИКС/🧨 Dynamic Superhero Splash",
+              "🦾 КИБЕРПАНК/🤖 Chrome Cyborg Hyperrealism",
+              "🦾 КИБЕРПАНК/🦾 Cybernetic Arm Concept Art",
+              "🦾 КИБЕРПАНК/🧠 Biomechanical Body Horror",
+              "🦾 КИБЕРПАНК/🕶️ Teal Gold Cyberpunk Noir Portrait",
+              "🦾 КИБЕРПАНК/🧬 Synthetic Skin Android Portrait",
+              "🦾 КИБЕРПАНК/🦾 White Android Minimal Portrait",
+              "🦾 КИБЕРПАНК/🩶 Industrial Female Cyborg Portrait",
+              "🦾 КИБЕРПАНК/🫀Bio-Mechanical Core Portrait",
+              "🦾 КИБЕРПАНК/🧬 Android Anatomy Cutaway",
+              "🦾 КИБЕРПАНК/🦋 Angelic Cyber Feminine",
+              "🦾 КИБЕРПАНК/🧡 Golden Mechanical Portrait",
+              "🦾 КИБЕРПАНК/🪦 Melancholic Robot Portrait",
+              "🦾 КИБЕРПАНК/🩻 X-Ray Skeleton Cyber Anime"
+            ],
+            "columns": null,
+            "searchable": true,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "weight_2",
+            "kind": "slider",
+            "label": "Weight 2",
+            "default": 0.5,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": 0,
+            "max": 1,
+            "step": 0.05,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "style_3",
+            "kind": "chip_list",
+            "label": "Style 3",
+            "default": "(None)",
+            "tooltip": null,
+            "values": [
+              "(None)",
+              "📷 КАМЕРЫ/📷 Disposable 90s",
+              "📷 КАМЕРЫ/📸 Polaroid 600",
+              "📷 КАМЕРЫ/📷 Hasselblad 70mm",
+              "📷 КАМЕРЫ/🕳️ Pinhole Obscura",
+              "📷 КАМЕРЫ/📹 CCTV surveillance",
+              "📷 КАМЕРЫ/🚓 Police Dashcam",
+              "📷 КАМЕРЫ/🎞️ Raw 35mm Photo",
+              "📐 МОДИФИКАТОРЫ/🛩️ Drone Photo",
+              "📐 МОДИФИКАТОРЫ/🔭 Ultra Wide 12mm",
+              "📐 МОДИФИКАТОРЫ/🌐 Fisheye Lens",
+              "📐 МОДИФИКАТОРЫ/📐 Dutch Angle",
+              "📐 МОДИФИКАТОРЫ/📹 GoPro POV Action",
+              "🎬 КИНО/🎞️ IMAX Production",
+              "🎬 КИНО/🌑 Film Noir",
+              "🎬 КИНО/🌈 Technicolor 50s",
+              "🎬 КИНО/📷 Anamorphic Wide",
+              "🎬 КИНО/🎬 Gangster Cinema",
+              "⏱️ ЗАХВАТ/💫 Motion Blur",
+              "⏱️ ЗАХВАТ/📸 Action Freeze",
+              "⏱️ ЗАХВАТ/🎞️ Slo-Mo Bullet Time",
+              "🕰️ РЕТРО/🎞️ Vintage 70s Portra",
+              "🕰️ РЕТРО/🪞 Daguerreotype",
+              "🕰️ РЕТРО/🧪 Wet Plate Collodion",
+              "🕰️ РЕТРО/🟤 Sepia Nostalgia",
+              "🕰️ РЕТРО/🎸 Rockabilly 50s",
+              "🕰️ РЕТРО/🎩 Gilded Gangster",
+              "🕰️ РЕТРО/🎬 Nostalgic 8mm",
+              "🏠 ИНТЕРЬЕР/🏭 Loft Industrial",
+              "🏠 ИНТЕРЬЕР/🌻 Provence Rustic",
+              "🏠 ИНТЕРЬЕР/🕉️ Boho Chic",
+              "🏠 ИНТЕРЬЕР/🌿 Eco-Style Design",
+              "🏠 ИНТЕРЬЕР/👑 Baroque Ornate",
+              "🏠 ИНТЕРЬЕР/⬜ Minimalism",
+              "🏠 ИНТЕРЬЕР/🏡 Country House",
+              "👗 ФЭШН/📸 Editorial Vogue",
+              "👗 ФЭШН/👤 Portrait Bokeh",
+              "👗 ФЭШН/✨ Glamour Glow",
+              "👗 ФЭШН/🖤 Chanel Aesthetic",
+              "👗 ФЭШН/💋 Pin-up Style",
+              "👗 ФЭШН/👔 Business Pro",
+              "👗 ФЭШН/👠 Fashion Runway",
+              "👗 ФЭШН/🛍️ Street Fashion",
+              "🏙️ СРЕДА/🌃 Cyberpunk Neon",
+              "🏙️ СРЕДА/🌧️ Rainy Neon Noir",
+              "🏙️ СРЕДА/🌫️ Foggy Neon Noir",
+              "🏙️ СРЕДА/🏚️ Dystopian Megacity",
+              "🏙️ СРЕДА/🧱 Urban Grunge",
+              "🏙️ СРЕДА/📷 Street Candid",
+              "🏙️ СРЕДА/🌅 Magic Hour",
+              "🏙️ СРЕДА/☔ Rain Monsoon Puddle",
+              "🏙️ СРЕДА/🇬🇧 London Smog",
+              "🏜️ ЖАНРЫ/🏔️ Пейзажный Landscape",
+              "🏜️ ЖАНРЫ/🦁 Nat Geo Scale",
+              "🏜️ ЖАНРЫ/🔬 Macro Micro-world",
+              "🏜️ ЖАНРЫ/🌌 Astro Cosmic",
+              "🏜️ ЖАНРЫ/✈️ Travel Adventure",
+              "🏜️ ЖАНРЫ/🪶 Ethnic Spirit",
+              "🏜️ ЖАНРЫ/🏜️ Saharan Mirage",
+              "📸 РЕПОРТАЖ/☕ Lifestyle Moment",
+              "📸 РЕПОРТАЖ/📋 Documentary Truth",
+              "📸 РЕПОРТАЖ/💼 Stock Quality",
+              "🧪 ЭФФЕКТЫ/🤖 Holographic HUD",
+              "🧪 ЭФФЕКТЫ/💡 Hard Rim Neon",
+              "🧪 ЭФФЕКТЫ/🎨 Chromatic Aberration",
+              "🧪 ЭФФЕКТЫ/💎 Prism Optical Fracture",
+              "🧪 ЭФФЕКТЫ/🌫️ Volumetric Tyndall Dust",
+              "🧪 ЭФФЕКТЫ/📼 Expired Chemical Leak",
+              "🧪 ЭФФЕКТЫ/☀️ High-Key Airy",
+              "🧪 ЭФФЕКТЫ/🌈 HDR Dynamic",
+              "🧪 ЭФФЕКТЫ/🕯️ Candlelit Mood",
+              "🧪 ЭФФЕКТЫ/🔴 Infrared Surreal",
+              "🦾 КИБЕРПАНК/📱 Sleek White Android",
+              "🦾 КИБЕРПАНК/🪞 Chrome Android",
+              "🦾 КИБЕРПАНК/💉 Wirehead Junkie",
+              "🦾 КИБЕРПАНК/🏢 Corpo-Cyborg",
+              "🦾 КИБЕРПАНК/🎖️ Military Cyborg",
+              "🦾 КИБЕРПАНК/⚔️ Cyber-Samurai",
+              "🦾 КИБЕРПАНК/🧬 Biomechanical Giger",
+              "🦾 КИБЕРПАНК/🧪 Biopunk Organic",
+              "🦾 КИБЕРПАНК/🌱 Solarpunk Hybrid",
+              "🦾 КИБЕРПАНК/💀 Post-Apoc Cyber",
+              "🦾 КИБЕРПАНК/🌃 Neon Cyberpunk City Rain",
+              "🦾 КИБЕРПАНК/🚗 JDM Neon Street Racer",
+              "🦾 КИБЕРПАНК/🌇 Electric Sunset Megacity",
+              "🦾 КИБЕРПАНК/🛰️ Holographic Interface Portrait",
+              "🦾 КИБЕРПАНК/🗡️ Dark Samurai Street",
+              "🦾 КИБЕРПАНК/🤖 Chrome Cyborg Hyperrealism",
+              "🦾 КИБЕРПАНК/🦾 Cybernetic Arm Close-Up",
+              "🦾 КИБЕРПАНК/🧠 Biomechanical Horror Realism",
+              "🦾 КИБЕРПАНК/🕶️ Teal Gold Cyber Noir Portrait",
+              "🦾 КИБЕРПАНК/🧬 Synthetic Skin Android Portrait",
+              "🦾 КИБЕРПАНК/🤍 White Android Minimal Studio",
+              "🦾 КИБЕРПАНК/🏭 Industrial Cyborg Portrait",
+              "🦾 КИБЕРПАНК/🫀 Bio-Mechanical Core",
+              "🦾 КИБЕРПАНК/🧩 Android Anatomy Cutaway",
+              "🦾 КИБЕРПАНК/🧡 Golden Mechanical Luxury",
+              "🦾 КИБЕРПАНК/🪦 Melancholic Robot Portrait",
+              "🦾 КИБЕРПАНК/🩻 X-Ray Cyber Radiograph",
+              "🦾 КИБЕРПАНК/💎 Prismatic Neon Reflections",
+              "🦾 КИБЕРПАНК/🪞 Molten Liquid Chrome Realism",
+              "🦾 КИБЕРПАНК/🌫️ Atmospheric Sci-Fi Mist",
+              "🧪 ЭФФЕКТЫ/📡 Тесла-катушка",
+              "🧪 ЭФФЕКТЫ/🪞 Зеркальный мир",
+              "🧪 ЭФФЕКТЫ/📺 CRT Scanlines",
+              "🧪 ЭФФЕКТЫ/🔦 Полицейский прожектор",
+              "🧪 ЭФФЕКТЫ/🌊 Цифровой муар",
+              "🧪 ЭФФЕКТЫ/🫧 Мыльные пузыри",
+              "🧪 ЭФФЕКТЫ/🕶️ Солнечное затмение",
+              "🧪 ЭФФЕКТЫ/📠 Факс-аппарат",
+              "🧪 ЭФФЕКТЫ/🟣 UV Fluorescence",
+              "🧪 ЭФФЕКТЫ/💥 High-Speed Shatter",
+              "🧪 ЭФФЕКТЫ/🎨 Light Painting",
+              "🧪 ЭФФЕКТЫ/👯 Double Exposure",
+              "🧪 ЭФФЕКТЫ/🌑 Silhouette Drama",
+              "🧪 ЭФФЕКТЫ/🧊 Absolute Zero",
+              "🧪 ЭФФЕКТЫ/⚒️ Forgemaster Heat",
+              "🧪 ЭФФЕКТЫ/🌡️ Thermal Imager",
+              "🧪 ЭФФЕКТЫ/☢️ X-Ray Radiograph",
+              "🧪 ЭФФЕКТЫ/🌊 Bioluminescence",
+              "🧪 ЭФФЕКТЫ/🎭 Hard Chiaroscuro",
+              "🧪 ЭФФЕКТЫ/🔬 Electron Micro",
+              "🗺️ СЦЕНЫ/🎪 Circus Big Top",
+              "🗺️ СЦЕНЫ/🛁 Bathroom Mirror",
+              "🗺️ СЦЕНЫ/🔮 Crystal Ball",
+              "🗺️ СЦЕНЫ/🖼️ Art Gallery",
+              "🗺️ СЦЕНЫ/🛒 Grocery Store",
+              "🗺️ СЦЕНЫ/🛩️ Airplane Window",
+              "🗺️ СЦЕНЫ/🎢 Amusement Park",
+              "🗺️ СЦЕНЫ/🌊 Ocean Wave",
+              "🗺️ СЦЕНЫ/🏊 Swimming Pool",
+              "🗺️ СЦЕНЫ/🏜️ Desert Road",
+              "🗺️ СЦЕНЫ/🍄 Fairy Forest",
+              "🗺️ СЦЕНЫ/🗿 Ancient Ruins",
+              "🗺️ СЦЕНЫ/🎹 Piano Studio",
+              "🗺️ СЦЕНЫ/🧖 Spa Towel",
+              "🗺️ СЦЕНЫ/📚 Library Shelf",
+              "🗺️ СЦЕНЫ/🪜 Construction Site",
+              "🗺️ СЦЕНЫ/🏚️ Abandoned Building",
+              "🗺️ СЦЕНЫ/🖤 Black Light Party",
+              "🗺️ СЦЕНЫ/🏮 Lantern Festival",
+              "🗺️ СЦЕНЫ/🔦 Flashlight Beam",
+              "🗺️ СЦЕНЫ/🏺 Pottery Studio",
+              "🗺️ СЦЕНЫ/🕯️ Candle Meditation",
+              "🗺️ СЦЕНЫ/🪴 Plant Nursery",
+              "🗺️ СЦЕНЫ/🎤 Recording Studio",
+              "🗺️ СЦЕНЫ/🧸 Cozy Bedroom",
+              "🗺️ СЦЕНЫ/🏗️ Skyscraper Edge",
+              "🗺️ СЦЕНЫ/🍳 Kitchen Morning",
+              "🗺️ СЦЕНЫ/⛺ Campfire Night",
+              "🗺️ СЦЕНЫ/🧗 Rock Climbing",
+              "🗺️ СЦЕНЫ/🛒 Vintage Store",
+              "🗺️ СЦЕНЫ/🌉 Golden Gate",
+              "🗺️ СЦЕНЫ/🛁 Rainy Window",
+              "🗺️ СЦЕНЫ/🪐 Neon Desert",
+              "🗺️ СЦЕНЫ/🥾 Hiking Trail",
+              "🗺️ СЦЕНЫ/🌾 Rice Terraces",
+              "🗺️ СЦЕНЫ/🛀 Floating Bath",
+              "🎨 ЖИВОПИСЬ/🖌️ Impasto Oil",
+              "🎨 ЖИВОПИСЬ/💧 Wet Watercolor",
+              "🎨 ЖИВОПИСЬ/🔪 Palette Knife",
+              "🎨 ЖИВОПИСЬ/🌸 Ghibli Inspired",
+              "🎨 ЖИВОПИСЬ/🗿 Classical Marble",
+              "🎨 ЖИВОПИСЬ/🎭 Baroque Drama",
+              "🎨 ЖИВОПИСЬ/🖼️ Renaissance",
+              "🎨 ЖИВОПИСЬ/🎪 Impressionist",
+              "🎨 ЖИВОПИСЬ/🖌️ Asian Ink",
+              "🎨 ЖИВОПИСЬ/🖌️ Sumi-e",
+              "✏️ ГРАФИКА/✏️ Pencil Sketch",
+              "✏️ ГРАФИКА/🖊️ Ink Illustration",
+              "✏️ ГРАФИКА/🖍️ Charcoal Drawing",
+              "✏️ ГРАФИКА/✏️ Graphite Study",
+              "✏️ ГРАФИКА/🖋️ Pen & Ink",
+              "💻 ЦИФРОВАЯ/👾 Pixel Art",
+              "💻 ЦИФРОВАЯ/📐 Vector Art",
+              "💻 ЦИФРОВАЯ/🎨 Digital Painting",
+              "💻 ЦИФРОВАЯ/🤖 AI Art Style",
+              "💻 ЦИФРОВАЯ/🌆 Concept Art",
+              "💻 ЦИФРОВАЯ/🏮 Anime Style",
+              "💻 ЦИФРОВАЯ/🗾 Manga Style",
+              "💻 ЦИФРОВАЯ/🎮 Game UI",
+              "💻 ЦИФРОВАЯ/🎲 Tabletop RPG",
+              "🏛️ ИСТОРИЯ/🏺 Ancient Egyptian",
+              "🏛️ ИСТОРИЯ/🏛️ Greek Classical",
+              "🏛️ ИСТОРИЯ/🗿 Roman Bust",
+              "🏛️ ИСТОРИЯ/🖼️ Medieval Icon",
+              "🏛️ ИСТОРИЯ/⚔️ Viking Art",
+              "🏛️ ИСТОРИЯ/🏰 Art Nouveau",
+              "🏛️ ИСТОРИЯ/🎭 Art Deco",
+              "🔬 СТИЛИЗАЦИЯ/🔍 Hyperrealism",
+              "🔬 СТИЛИЗАЦИЯ/🌫️ Vaporwave",
+              "🔬 СТИЛИЗАЦИЯ/🎲 Glitch Art",
+              "🔬 СТИЛИЗАЦИЯ/💎 Steampunk",
+              "🔬 СТИЛИЗАЦИЯ/🌸 Kawaii",
+              "🔬 СТИЛИЗАЦИЯ/🦋 Morbid",
+              "🔬 СТИЛИЗАЦИЯ/🔮 Mystical",
+              "🔬 СТИЛИЗАЦИЯ/🎪 Circus Noir",
+              "💥 КОМИКС/🎬 Dynamic Cel-Shaded",
+              "💥 КОМИКС/🎌 Manga Screen-tone",
+              "💥 КОМИКС/💥 Action Comic",
+              "💥 КОМИКС/📜 Comic Cover",
+              "💥 КОМИКС/🤖 Киберпанк-комикс",
+              "💥 КОМИКС/💡 Неон-комикс",
+              "💥 КОМИКС/💋 Пин-ап комикс",
+              "💥 КОМИКС/📼 Ретро-комикс",
+              "💥 КОМИКС/⚙️ Стимпанк-комикс",
+              "💥 КОМИКС/⚰️ Готический комикс",
+              "💥 КОМИКС/👑 Барокко-комикс",
+              "💥 КОМИКС/⚫ Блэк-энд-уайт",
+              "🦾 КИБЕРПАНК/🎮 Mecha Pilot",
+              "🦾 КИБЕРПАНК/⚛️ Nanopunk Swarm",
+              "🦾 КИБЕРПАНК/💉 Neon Tattoos",
+              "🦾 КИБЕРПАНК/🤖 Flesh-to-Steel Fusion",
+              "🦾 КИБЕРПАНК/💊 Neuro-Interface",
+              "🦾 КИБЕРПАНК/🩸 Bio-Corroded Tech",
+              "👾 ДИДЖИТАЛ/🏄 Vaporwave Cyber",
+              "👾 ДИДЖИТАЛ/👓 Anaglyph Red-Blue",
+              "👾 ДИДЖИТАЛ/🔆 Octane Render",
+              "👾 ДИДЖИТАЛ/🌅 Synthwave Art",
+              "👾 ДИДЖИТАЛ/💧 Molten Liquid Chrome",
+              "👾 ДИДЖИТАЛ/🖥️ Holographic UI",
+              "👾 ДИДЖИТАЛ/📺 Киберпоп",
+              "👾 ДИДЖИТАЛ/🎨 Коллаж-арт",
+              "👾 ДИДЖИТАЛ/🔀 Сегментация-арт",
+              "👾 ДИДЖИТАЛ/🎭 Постер-арт",
+              "👾 ДИДЖИТАЛ/🚗 Лоурайдер-арт",
+              "💻 ЦИФРОВАЯ/🌃 Neon Cyberpunk City Rain",
+              "💻 ЦИФРОВАЯ/🚗 Retro Anime JDM Car Wallpaper",
+              "💻 ЦИФРОВАЯ/🏍️ Anime Motorcycle Action Poster",
+              "💻 ЦИФРОВАЯ/🌇 Electric Sunset Sci-Fi Landscape",
+              "💻 ЦИФРОВАЯ/🔮 Crystal Overload Sci-Fi",
+              "💻 ЦИФРОВАЯ/🧊 Cold Blue Anime Macro",
+              "💻 ЦИФРОВАЯ/🌊 Soft Water Reflection Anime",
+              "💻 ЦИФРОВАЯ/🌌 Lofi Anime City Melancholy",
+              "💻 ЦИФРОВАЯ/📼 Retro 90s Anime Cel",
+              "💻 ЦИФРОВАЯ/🎀 Cute Pink Anime Portrait",
+              "💻 ЦИФРОВАЯ/🐉 Fantasy Dragon Girl Anime",
+              "💻 ЦИФРОВАЯ/🚘 Night Street Car Cinematic",
+              "💻 ЦИФРОВАЯ/🪄 Sorceress Neon Ritual Anime",
+              "💻 ЦИФРОВАЯ/🎧 Moody Headphone Anime Girl",
+              "💻 ЦИФРОВАЯ/🏁 Street Racing Anime Poster",
+              "💻 ЦИФРОВАЯ/🍭 Soft Pastel Kawaii Car",
+              "💻 ЦИФРОВАЯ/🏙️ Urban Fashion Editorial Anime",
+              "💻 ЦИФРОВАЯ/🌫️ Atmospheric Sci-Fi Mist",
+              "💻 ЦИФРОВАЯ/🌆 Neo-Tokyo Anime Adventure",
+              "💻 ЦИФРОВАЯ/📱 Phone Wallpaper Vertical Sci-Fi",
+              "💻 ЦИФРОВАЯ/🎮 Anime Game Character Render",
+              "💻 ЦИФРОВАЯ/🧜 Ethereal Soft Fantasy Anime",
+              "💻 ЦИФРОВАЯ/🗡️ Dark Samurai Cyber Anime",
+              "💻 ЦИФРОВАЯ/🛰️ Holographic Interface Portrait",
+              "💻 ЦИФРОВАЯ/🧩 Abstract Cyber Shape Design",
+              "💻 ЦИФРОВАЯ/🚨 Warning Sign AI Robot Art",
+              "💻 ЦИФРОВАЯ/🖼️ Pinterest Vertical AI Art Mix",
+              "🔬 СТИЛИЗАЦИЯ/🖤 Dark Anime Witch Gothic",
+              "🔬 СТИЛИЗАЦИЯ/🩸 Vampire Red Eye Anime Noir",
+              "🔬 СТИЛИЗАЦИЯ/🎭 Hyperpop Character Illustration",
+              "🔬 СТИЛИЗАЦИЯ/🦇 Gothic Dark Fantasy Portrait",
+              "🔬 СТИЛИЗАЦИЯ/🌹 Dark Floral Gothic Editorial",
+              "🔬 СТИЛИЗАЦИЯ/🫧 Iridescent Hologram Fashion",
+              "🔬 СТИЛИЗАЦИЯ/🧛 Crimson Gothic Beauty",
+              "🔬 СТИЛИЗАЦИЯ/🌠 Cosmic Dream Girl",
+              "🔬 СТИЛИЗАЦИЯ/💿 Holographic Y2K Pop Star",
+              "🔬 СТИЛИЗАЦИЯ/🛸 Alien Fashion Runway",
+              "🔬 СТИЛИЗАЦИЯ/🏴 Black Armor Dark Fantasy",
+              "🔬 СТИЛИЗАЦИЯ/🕯️ Occult Black Magic Anime",
+              "🔬 СТИЛИЗАЦИЯ/🕳️ Black Void High Contrast",
+              "🔬 СТИЛИЗАЦИЯ/🧱 Gritty Post-Apocalyptic Casual",
+              "🔬 СТИЛИЗАЦИЯ/🔥 Red Smoke Dark Character",
+              "🔬 СТИЛИЗАЦИЯ/💎 Prismatic Neon Reflections",
+              "🔬 СТИЛИЗАЦИЯ/🪞 Glossy Black Latex Cyber",
+              "🔬 СТИЛИЗАЦИЯ/🌸 Bloom Soft Girl Aesthetic",
+              "💥 КОМИКС/🕷️ Symbiote Venom Comic Ink",
+              "💥 КОМИКС/⚡ Aggressive Comic Ink Splash",
+              "💥 КОМИКС/🧨 Dynamic Superhero Splash",
+              "🦾 КИБЕРПАНК/🤖 Chrome Cyborg Hyperrealism",
+              "🦾 КИБЕРПАНК/🦾 Cybernetic Arm Concept Art",
+              "🦾 КИБЕРПАНК/🧠 Biomechanical Body Horror",
+              "🦾 КИБЕРПАНК/🕶️ Teal Gold Cyberpunk Noir Portrait",
+              "🦾 КИБЕРПАНК/🧬 Synthetic Skin Android Portrait",
+              "🦾 КИБЕРПАНК/🦾 White Android Minimal Portrait",
+              "🦾 КИБЕРПАНК/🩶 Industrial Female Cyborg Portrait",
+              "🦾 КИБЕРПАНК/🫀Bio-Mechanical Core Portrait",
+              "🦾 КИБЕРПАНК/🧬 Android Anatomy Cutaway",
+              "🦾 КИБЕРПАНК/🦋 Angelic Cyber Feminine",
+              "🦾 КИБЕРПАНК/🧡 Golden Mechanical Portrait",
+              "🦾 КИБЕРПАНК/🪦 Melancholic Robot Portrait",
+              "🦾 КИБЕРПАНК/🩻 X-Ray Skeleton Cyber Anime"
+            ],
+            "columns": null,
+            "searchable": true,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "weight_3",
+            "kind": "slider",
+            "label": "Weight 3",
+            "default": 0.3,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": 0,
+            "max": 1,
+            "step": 0.05,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          }
+        ],
+        "hidden": []
+      },
+      "outputs": [
+        {
+          "name": "styled_prompt",
+          "type": "STRING"
+        },
+        {
+          "name": "style_overlay",
+          "type": "STRING"
+        }
+      ],
+      "min_size": [
+        320,
+        260
+      ],
+      "family": "styling"
+    },
+    "FiLColorWizard": {
+      "id": "FiLColorWizard",
+      "title": "🎨 Color Wizard",
+      "category": "🎨 FiL Design/Image",
+      "description": "Automatically corrects image colours using white balance, LAB contrast enhancement, channel stretching, reference colour matching, and WB picker.",
+      "inputs": {
+        "required": [
+          {
+            "name": "method",
+            "kind": "combo",
+            "label": "Method",
+            "default": "Full Auto",
+            "tooltip": null,
+            "values": [
+              "Full Auto",
+              "Gray World",
+              "White Patch",
+              "Channel Stretch",
+              "LAB Enhance"
+            ],
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "strength",
+            "kind": "slider",
+            "label": "Strength",
+            "default": 0.8,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": 0,
+            "max": 1,
+            "step": 0.05,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          }
+        ],
+        "optional": [
+          {
+            "name": "saturate",
+            "kind": "number",
+            "label": "Saturate",
+            "default": 0.5,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": 0,
+            "max": 5,
+            "step": 0.1,
+            "units": null,
+            "options": null,
+            "section": "advanced",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "temperature",
+            "kind": "slider",
+            "label": "Temperature",
+            "default": 0,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": -1,
+            "max": 1,
+            "step": 0.05,
+            "units": null,
+            "options": null,
+            "section": "advanced",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "tint",
+            "kind": "slider",
+            "label": "Tint",
+            "default": 0,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": -1,
+            "max": 1,
+            "step": 0.05,
+            "units": null,
+            "options": null,
+            "section": "advanced",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "preserve_skin",
+            "kind": "boolean",
+            "label": "Preserve skin",
+            "default": false,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "advanced",
+            "visible_when": null,
+            "visible_when_value": null
+          }
+        ],
+        "hidden": []
+      },
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE"
+        }
+      ],
+      "min_size": [
+        300,
+        260
+      ],
+      "family": "image"
     }
   },
   "settings_prefix": "FiL_Design_ImageMind."

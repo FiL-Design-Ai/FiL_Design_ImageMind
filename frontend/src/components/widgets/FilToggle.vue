@@ -6,25 +6,21 @@
  *
  * a11y: native <button role="switch">, Enter/Space toggle via click.
  */
-const props = withDefaults(
-  defineProps<{
-    modelValue: "ON" | "OFF";
-    label?: string;
-    title?: string;
-    disabled?: boolean;
-    /** Compact inline mode: no label|switch grid/full-width row — sizes to
-     * content so it can sit next to another field in the same row (e.g. an
-     * "Auto" toggle glued onto a number input). */
-    bare?: boolean;
-  }>(),
-  {},
-);
+const props = defineProps<{
+  label?: string;
+  title?: string;
+  disabled?: boolean;
+  /** Compact inline mode: no label|switch grid/full-width row — sizes to
+   * content so it can sit next to another field in the same row (e.g. an
+   * "Auto" toggle glued onto a number input). */
+  bare?: boolean;
+}>();
 
-const emit = defineEmits<{ "update:modelValue": ["ON" | "OFF"] }>();
+const modelValue = defineModel<"ON" | "OFF">({ required: true });
 
 function toggle() {
   if (props.disabled) return;
-  emit("update:modelValue", props.modelValue === "ON" ? "OFF" : "ON");
+  modelValue.value = modelValue.value === "ON" ? "OFF" : "ON";
 }
 </script>
 

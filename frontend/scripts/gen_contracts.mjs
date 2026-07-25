@@ -71,6 +71,7 @@ function renderFile(payload) {
   out.push("  values?: string[] | null;");
   out.push("  columns?: number | null;");
   out.push("  searchable?: boolean | null;");
+  out.push("  multiline?: boolean | null;");
   out.push("  min?: number | null;");
   out.push("  max?: number | null;");
   out.push("  step?: number | null;");

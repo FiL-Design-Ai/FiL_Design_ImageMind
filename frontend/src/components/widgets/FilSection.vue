@@ -10,20 +10,19 @@ import { computed } from "vue";
 const props = withDefaults(
   defineProps<{
     title: string;
-    modelValue?: boolean; // collapsed?
     collapsible?: boolean;
   }>(),
-  { collapsible: true, modelValue: false },
+  { collapsible: true },
 );
 
-const emit = defineEmits<{ "update:modelValue": [collapsed: boolean] }>();
+const modelValue = defineModel<boolean>({ default: false });
 
 function toggle() {
   if (!props.collapsible) return;
-  emit("update:modelValue", !props.modelValue);
+  modelValue.value = !modelValue.value;
 }
 
-const arrow = computed(() => (props.modelValue ? "▶" : "▼"));
+const arrow = computed(() => (modelValue.value ? "▶" : "▼"));
 </script>
 
 <template>

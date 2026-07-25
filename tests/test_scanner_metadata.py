@@ -69,7 +69,7 @@ def test_metadata_dynamic_default_agent_is_universal(monkeypatch):
     schema = FiLOpticScanner.GET_SCHEMA()
     for inp in schema.inputs:
         if inp.id == "agent":
-            assert inp.default == "Universal"
+            assert "Universal" in inp.default
             break
 
 

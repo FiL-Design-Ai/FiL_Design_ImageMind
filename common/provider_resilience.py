@@ -8,7 +8,8 @@ fallback / classification at the call boundary.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+import re
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
 import requests
@@ -18,7 +19,6 @@ from .config import (
     OPENROUTER_EXCLUDED_MODEL_PATTERNS,
     OPENROUTER_PREFERRED_VISION_MODELS,
     PROVIDERS,
-    get_config,
     get_provider_config,
 )
 from .network import HTTPClient
@@ -48,9 +48,6 @@ class RetryPolicy:
             "no_retry_statuses": set(self.no_retry_statuses),
             "retry_delay_base": self.retry_delay_base,
         }
-
-
-import re
 
 
 def sanitize_sensitive_data(text: str) -> str:
@@ -210,7 +207,12 @@ def get_openrouter_candidates(
     Falls back to OPENROUTER_PREFERRED_VISION_MODELS when the catalog is
     unavailable (e.g. offline) so the node still has something to try.
     """
-    api_key = (get_provider_config("openrouter") or {}).get("api_key") or ""
+    # get_api_key() reads auth.json (the Provider Manager UI) *and* the env vars;
+    # get_provider_config() only sees the env, so a UI-saved key was ignored here
+    # and the catalog silently degraded to the static fallback list.
+    from .provider_accounts import get_api_key
+
+    api_key = get_api_key("openrouter") or ""
     catalog, catalog_available = _fetch_openrouter_catalog(api_key)
     priority_rank = {name.lower(): idx for idx, name in enumerate(OPENROUTER_PREFERRED_VISION_MODELS)}
     preferred_clean = normalize_model_name(preferred_model).lower()

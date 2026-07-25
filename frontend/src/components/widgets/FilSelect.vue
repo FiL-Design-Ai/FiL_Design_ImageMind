@@ -1,39 +1,27 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="T extends string">
 /**
  * Native select with FiL_Design_ImageMind styling. Equivalent of the legacy
  * `createSelectInput()` factory. Used for finite enumerations where a chip
  * grid would be too loud (e.g. `language`).
  */
-import { computed } from "vue";
+defineProps<{
+  options: T[];
+  label?: string;
+  title?: string;
+  disabled?: boolean;
+}>();
 
-const props = withDefaults(
-  defineProps<{
-    options: string[];
-    modelValue: string;
-    label?: string;
-    title?: string;
-    disabled?: boolean;
-  }>(),
-  {},
-);
-
-const emit = defineEmits<{ "update:modelValue": [value: string] }>();
-
-const valueProxy = computed({
-  get: () => props.modelValue,
-  set: (v: string) => emit("update:modelValue", v),
-});
+const modelValue = defineModel<T>({ required: true });
 </script>
 
 <template>
   <div class="fil-w-select" :title="title">
     <label v-if="label" class="fil-w-select-label">{{ label }}</label>
     <select
-      v-model="valueProxy"
+      v-model="modelValue"
       class="fil-w-select-input"
       :disabled="disabled"
       :aria-label="label"
-      @change="(e) => emit('update:modelValue', (e.target as HTMLSelectElement).value)"
     >
       <option v-for="opt in options" :key="opt" :value="opt">{{ opt }}</option>
     </select>

@@ -48,7 +48,7 @@ function toggle(name: string, def: boolean) {
 </template>
 
 <style scoped>
-.fil-cleaner-root {
+.fil-cleaner-root { width: 100%; box-sizing: border-box; min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -108,4 +108,4 @@ function toggle(name: string, def: boolean) {
   font-size: 12px;
   font-weight: 500;
 }
-</style>
+</style>

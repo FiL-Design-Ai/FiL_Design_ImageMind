@@ -4,17 +4,17 @@ import FilIcon from "./FilIcon.vue";
 
 const props = withDefaults(
   defineProps<{
-    open?: boolean;
     title?: string;
     width?: string;
     closeOnEsc?: boolean;
     closeOnBackdrop?: boolean;
   }>(),
-  { open: false, closeOnEsc: true, closeOnBackdrop: true, width: "520px" },
+  { closeOnEsc: true, closeOnBackdrop: true, width: "520px" },
 );
 
+const open = defineModel<boolean>("open", { default: false });
+
 const emit = defineEmits<{
-  "update:open": [value: boolean];
   close: [];
 }>();
 
@@ -22,7 +22,7 @@ const modalRef = ref<HTMLElement | null>(null);
 const previousFocus = ref<HTMLElement | null>(null);
 
 function close() {
-  emit("update:open", false);
+  open.value = false;
   emit("close");
 }
 
@@ -69,7 +69,7 @@ function getFocusable(el: HTMLElement): HTMLElement[] {
 }
 
 watch(
-  () => props.open,
+  open,
   (isOpen) => {
     if (isOpen) {
       previousFocus.value = document.activeElement as HTMLElement;

@@ -106,7 +106,6 @@ class OpenAIStrategy(ModelStrategy):
         return {"Authorization": f"Bearer {api_key}"} if api_key else {}
 
     def build_payload(self, config, system, user, img=None, **kwargs):
-        provider = config.get("provider", "openrouter")
         model_name = normalize_model_name(config["model"])
 
         if system and user:
@@ -185,7 +184,7 @@ class GoogleStrategy(ModelStrategy):
         if seed is not None and seed >= 0:
             generation_config["seed"] = int(seed) % 2147483647
         max_tokens = kwargs.get("max_tokens", 0)
-        if max_tokens:
+        if max_tokens and max_tokens > 0:
             generation_config["maxOutputTokens"] = int(max_tokens)
         if kwargs.get("response_format") == "json":
             generation_config["responseMimeType"] = "application/json"
@@ -368,7 +367,6 @@ class ModelClient:
                     "Подождите ~1 минуту или увеличьте значение 'Rate limit' в Provider Loader."
                 ) from exc
             raise InferenceError(sanitize_sensitive_data(f"API call to {provider}/{model_name} failed: {exc}")) from exc
-
 
     def _log_cloud_failure(self, provider: str, model: str, exc: BaseException) -> None:
         """Classify and log a cloud provider failure without changing control flow."""

@@ -13,7 +13,6 @@ from FiL_Design_ImageMind.common.model_prompt_adapters import (
     build_response_format_instruction,
     convert_to_dit_format,
     format_for_flux_json,
-    post_convert_prompt,
 )
 
 
@@ -345,14 +344,14 @@ def test_detail_levels_affect_output_length():
 
     tiny_out, _ = convert_to_dit_format(prompt, "FLUX", "text", detail_level="tiny")
     normal_out, _ = convert_to_dit_format(prompt, "FLUX", "text", detail_level="normal")
-    extreme_out, _ = convert_to_dit_format(prompt, "FLUX", "text", detail_level="extreme")
+    ultra_out, _ = convert_to_dit_format(prompt, "FLUX", "text", detail_level="ultra")
 
     # Lengths should be proportional to detail level
     tiny_words = len(tiny_out.split())
     normal_words = len(normal_out.split())
-    extreme_words = len(extreme_out.split())
+    ultra_words = len(ultra_out.split())
 
-    assert tiny_words <= normal_words <= extreme_words
+    assert tiny_words <= normal_words <= ultra_words
 
 
 def test_sdxl_respects_detail_level():

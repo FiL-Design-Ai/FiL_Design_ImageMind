@@ -1,6 +1,6 @@
 /**
- * Apply visual effects (Connection FX, Run Button FX, Adaptive Title Color)
- * to a FiL_Design_ImageMind node during registration.
+ * Apply visual effects (Connection FX) to a FiL_Design_ImageMind node during
+ * registration.
  *
  * Called from each node's register() method to wire up the composables
  * that were previously in non-functional installers.
@@ -8,14 +8,6 @@
  * Gets app from globalThis.app (available at runtime after ComfyUI init).
  */
 import { useConnectionFx } from "@/composables/useConnectionFx";
-import { useAdaptiveTitleInk } from "@/composables/useAdaptiveTitleInk";
-
-interface LiteGraphNode {
-  id?: string | number;
-  color?: string;
-  onConnect?: (...args: unknown[]) => unknown;
-  onDisconnect?: (...args: unknown[]) => unknown;
-}
 
 /**
  * Apply all visual effect composables to a node.
@@ -26,20 +18,6 @@ export function applyFxComposables(proto: { prototype?: unknown }): void {
   if (!proto?.prototype) return;
 
   const p = proto.prototype as Record<string, unknown>;
-
-  // Patch onNodeCreated to initialize Adaptive Title Color
-  const origCreated = p.onNodeCreated as ((...args: unknown[]) => unknown) | undefined;
-  p.onNodeCreated = function (this: unknown, ...args: unknown[]) {
-    const result = origCreated?.apply(this, args);
-    const node = this as LiteGraphNode;
-
-    // Initialize Adaptive Title Color — ComfyUI will use luminance to set contrast
-    if (node.color) {
-      useAdaptiveTitleInk();
-    }
-
-    return result;
-  };
 
   // Patch onConnect to apply Connection FX connection event
   const origConnect = p.onConnect as ((...args: unknown[]) => unknown) | undefined;

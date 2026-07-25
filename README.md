@@ -47,10 +47,12 @@ branding and a "Prompt Chat" node that no longer exists in this node pack. -->
 | **🕵️ Optic Scanner** | `FiLOpticScanner` | Analyze images or expand text with LLM |
 | **⚡ KSampler** | `FiLKSampler` | Full sampler — every sampler/scheduler, passthrough, preview, HighRes-fix script |
 | **🔬 HighRes Fix** | `FiLHighResFix` | Latent/pixel upscale + re-sample script for KSampler |
+| **🎛️ Noise Control** | `FiLNoiseControl` | RNG source + seed-variation script for KSampler |
 | **♻️ Seed** | `FiLSeed` | Fixed or randomized seed with copy/reuse |
 | **🧹 Cleaner** | `FiLNeuroCleaner` | Selective VRAM, RAM, and cache cleanup |
-| **🔄 Compare** | `FiLBeforeAfterCompare` | Side-by-side image preview with swap |
-| **🔍 Upscaler** | `FiLUpscaleTileCalc` | Tile layout and denoise planning |
+| **🔍 Tile Calculator** | `FiLUpscaleTileCalc` | Tile layout and denoise planning for ultimate upscale |
+| **⚡ Simple Upscale** | `FiLUpscaleSimple` | Fast single-pass model/latent upscaling |
+| **🧩 Tile Assembly** | `FiLTileAssembly` | Assemble processed image tiles back into full resolution |
 
 ### Supported Providers
 
@@ -132,10 +134,12 @@ npx vitest run
 | **🕵️ Optic Scanner** | `FiLOpticScanner` | Анализ изображений или расширение текста |
 | **⚡ KSampler** | `FiLKSampler` | Полный сэмплер — все сэмплеры/планировщики, passthrough, превью, HighRes-скрипт |
 | **🔬 HighRes Fix** | `FiLHighResFix` | Скрипт латент/пиксельного апскейла и ре-сэмплинга для KSampler |
+| **🎛️ Noise Control** | `FiLNoiseControl` | Источник RNG + скрипт вариаций seed для KSampler |
 | **♻️ Seed** | `FiLSeed` | Фиксированное или случайное значение seed |
 | **🧹 Cleaner** | `FiLNeuroCleaner` | Выборочная очистка VRAM, RAM и кэша |
-| **🔄 Compare** | `FiLBeforeAfterCompare` | Сравнение изображений бок-о-бок |
-| **🔍 Upscaler** | `FiLUpscaleTileCalc` | Планирование тайлов и денойза |
+| **🔍 Tile Calculator** | `FiLUpscaleTileCalc` | Планирование сетки тайлов и денойза для тайлового апскейла |
+| **⚡ Simple Upscale** | `FiLUpscaleSimple` | Быстрый однопроходный апскейл через модель или латент |
+| **🧩 Tile Assembly** | `FiLTileAssembly` | Сборка обработанных тайлов обратно в полноразмерное изображение |
 
 ### Поддерживаемые провайдеры
 

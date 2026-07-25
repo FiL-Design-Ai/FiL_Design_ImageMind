@@ -72,7 +72,7 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
   if (!Object.getOwnPropertyDescriptor(p, "onResize")) {
     Object.defineProperty(p, "onResize", {
       get() {
-        if (this.hasOwnProperty("__filOnResize")) return this.__filOnResize;
+        if (Object.prototype.hasOwnProperty.call(this, "__filOnResize")) return this.__filOnResize;
         const parent = Object.getPrototypeOf(p);
         return parent ? parent.onResize : undefined;
       },

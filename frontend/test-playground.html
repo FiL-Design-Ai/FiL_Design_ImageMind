@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>E2E Test Playground</title>
+    <!-- Basic styles to emulate ComfyUI dark theme -->
+    <style>
+      body {
+        background-color: #1e1e1e;
+        color: #e0e0e0;
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        margin: 0;
+      }
+      #app {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #2b2b2b;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <!-- Load playground script -->
+    <script type="module" src="/tests/e2e/playground.ts"></script>
+  </body>
+</html>

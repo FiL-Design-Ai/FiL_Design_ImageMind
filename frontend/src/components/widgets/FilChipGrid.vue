@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="T extends string">
 /**
  * Chip grid — multi-column grid of pill chips. Equivalent of the legacy
  * `chipGrid()` factory in web/core/widgets.js. Used by Optic Scanner for
@@ -8,23 +8,22 @@ import { computed } from "vue";
 
 const props = withDefaults(
   defineProps<{
-    options: string[];
-    modelValue: string;
+    options: T[];
     columns?: number;
     disabled?: boolean;
   }>(),
   { columns: 3 },
 );
 
-const emit = defineEmits<{ "update:modelValue": [value: string] }>();
+const modelValue = defineModel<T>({ required: true });
 
 const gridStyle = computed(() => ({
   gridTemplateColumns: `repeat(${Math.max(1, props.columns)}, minmax(0, 1fr))`,
 }));
 
-function select(value: string) {
+function select(value: T) {
   if (props.disabled) return;
-  if (value !== props.modelValue) emit("update:modelValue", value);
+  if (value !== modelValue.value) modelValue.value = value;
 }
 </script>
 

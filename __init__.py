@@ -1,6 +1,5 @@
 """FiL Design ImageMind custom nodes for ComfyUI (V3 API)."""
 
-import os
 from typing import override
 
 from comfy_api.latest import ComfyExtension, io
@@ -18,25 +17,29 @@ class FiLExtension(ComfyExtension):
         from .nodes.node_provider import FiLProviderLoader
         from .nodes.node_scanner import FiLOpticScanner
         from .nodes.node_cleaner import FiLNeuroCleaner
-        from .nodes.node_compare import FiLBeforeAfterCompare
         from .nodes.node_upscale import FiLUpscaleTileCalc
         from .nodes.node_upscale_simple import FiLUpscaleSimple
         from .nodes.node_tile_assembly import FiLTileAssembly
         from .nodes.node_ksampler import FiLKSampler
         from .nodes.node_hiresfix import FiLHighResFix
         from .nodes.node_noise_control import FiLNoiseControl
+        from .nodes.node_decomposer import FiLImageDecomposer
+        from .nodes.node_style_mixer import FiLStyleMixer
+        from .nodes.node_color_wizard import FiLColorWizard
         return filter_release_nodes([
             FiLSeed,
             FiLProviderLoader,
             FiLOpticScanner,
             FiLNeuroCleaner,
-            FiLBeforeAfterCompare,
             FiLUpscaleTileCalc,
             FiLUpscaleSimple,
             FiLTileAssembly,
             FiLKSampler,
             FiLHighResFix,
             FiLNoiseControl,
+            FiLImageDecomposer,
+            FiLStyleMixer,
+            FiLColorWizard,
         ])
 
 

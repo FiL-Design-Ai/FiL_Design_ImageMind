@@ -26,41 +26,36 @@ logger = logging.getLogger(f"{BRAND}.API")
 _ROUTES_REGISTERED = False
 
 
-def save_compare_image(descriptor, *, temp_dir=None, output_dir=None):
-    if not isinstance(descriptor, dict) or descriptor.get("type") != "temp":
-        raise ValueError("invalid image descriptor")
-    filename = str(descriptor.get("filename", ""))
-    subfolder = str(descriptor.get("subfolder", ""))
-    if not filename or Path(filename).name != filename:
-        raise ValueError("invalid filename")
-    if Path(subfolder).is_absolute() or ".." in Path(subfolder).parts:
-        raise ValueError("invalid subfolder")
-    if Path(filename).suffix.lower() not in {".png", ".jpg", ".jpeg", ".webp"}:
-        raise ValueError("unsupported image type")
 
-    if temp_dir is None or output_dir is None:
-        import folder_paths
-        temp_dir = folder_paths.get_temp_directory()
-        output_dir = folder_paths.get_output_directory()
-    temp_root = Path(temp_dir).resolve()
-    source = (temp_root / subfolder / filename).resolve()
-    try:
-        source.relative_to(temp_root)
-    except ValueError as exc:
-        raise ValueError("image path escapes temp directory") from exc
-    if not source.is_file():
-        raise FileNotFoundError("temporary image not found")
 
-    target_root = (Path(output_dir).resolve() / OUTPUT_SUBFOLDER / "compare")
-    target_root.mkdir(parents=True, exist_ok=True)
-    stem, suffix = source.stem, source.suffix.lower()
-    target = target_root / f"{stem}{suffix}"
-    counter = 1
-    while target.exists():
-        target = target_root / f"{stem}_{counter:03d}{suffix}"
-        counter += 1
-    shutil.copy2(source, target)
-    return {"filename": target.name, "subfolder": f"{OUTPUT_SUBFOLDER}/compare", "type": "output"}
+def is_cross_site_request(origin: str, host: str) -> bool:
+    """True when a browser sent this request from a different site.
+
+    Only a mismatching `Origin` counts. A missing `Origin` (curl, scripts, most
+    same-origin GETs) is allowed through, so this blocks the browser attack —
+    a page on another site POSTing a hostile `base_url` and having the stored
+    API key delivered to it — without breaking non-browser callers.
+    """
+    if not origin or not host:
+        return False
+    from urllib.parse import urlparse
+
+    origin_host = (urlparse(origin).netloc or "").lower()
+    return bool(origin_host) and origin_host != host.lower()
+
+
+def _reject_cross_site(request) -> bool:
+    """Guard for mutating routes. Set FIL_ALLOW_CROSS_SITE=1 to disable."""
+    import os
+
+    if os.environ.get("FIL_ALLOW_CROSS_SITE", "").strip().lower() in ("1", "true", "yes", "on"):
+        return False
+    origin = request.headers.get("Origin", "")
+    host = request.headers.get("Host", "")
+    if is_cross_site_request(origin, host):
+        logger.warning("blocked cross-site request from origin %r to host %r", origin, host)
+        return True
+    return False
 
 
 def build_models_response(provider, force=False):
@@ -92,7 +87,12 @@ def apply_auth_payload(data):
             return {"error": "invalid account_id"}, 400
         if base_url is not None and not isinstance(base_url, str):
             return {"error": "invalid base_url"}, 400
-        save_provider_credentials(provider, key=key, account_id=account_id, base_url=base_url)
+        try:
+            save_provider_credentials(provider, key=key, account_id=account_id, base_url=base_url)
+        except ValueError as exc:
+            # Reason goes to the log only — responses never echo exception text.
+            logger.warning("rejected credentials for %s: %s", provider, exc)
+            return {"error": "invalid base_url"}, 400
         invalidate_model_cache(provider)
     return {"status": "saved", "accounts": get_safe_provider_accounts()}, 200
 
@@ -142,6 +142,8 @@ def register_routes():
 
     @server.routes.post(f"/{ROUTE_SLUG}/auth")
     async def save_auth(request):
+        if _reject_cross_site(request):
+            return web.json_response({"error": "cross-site request blocked"}, status=403)
         try:
             data = await request.json()
         except Exception:
@@ -151,6 +153,8 @@ def register_routes():
 
     @server.routes.post(f"/{ROUTE_SLUG}/provider_probe")
     async def provider_probe(request):
+        if _reject_cross_site(request):
+            return web.json_response({"error": "cross-site request blocked"}, status=403)
         try:
             data = await request.json()
         except Exception:
@@ -161,17 +165,6 @@ def register_routes():
             return web.json_response({"error": "unknown provider"}, status=404)
         return web.json_response(probe_provider(provider, model))
 
-    @server.routes.post(f"/{ROUTE_SLUG}/compare/save")
-    async def compare_save(request):
-        try:
-            data = await request.json()
-            saved = save_compare_image(data.get("image"))
-            return web.json_response({"status": "saved", "image": saved})
-        except (ValueError, FileNotFoundError):
-            return web.json_response({"error": "invalid image descriptor"}, status=400)
-        except Exception:
-            logger.warning("Compare output save failed")
-            return web.json_response({"error": "save failed"}, status=500)
 
     @server.routes.get(f"/{ROUTE_SLUG}/locale/{{lang}}")
     async def get_locale(request):

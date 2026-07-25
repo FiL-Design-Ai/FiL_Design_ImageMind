@@ -52,7 +52,7 @@ def test_refresh_models_false_never_touches_cache(monkeypatch):
 
 def test_validate_inputs_rejects_placeholders():
     assert node_provider.FiLProviderLoader.validate_inputs("qwen2.5:7b") is True
-    assert node_provider.FiLProviderLoader.validate_inputs("(loading...)") != True
-    assert node_provider.FiLProviderLoader.validate_inputs("(no models)") != True
-    assert node_provider.FiLProviderLoader.validate_inputs("") != True
+    assert node_provider.FiLProviderLoader.validate_inputs("(loading...)") is not True
+    assert node_provider.FiLProviderLoader.validate_inputs("(no models)") is not True
+    assert node_provider.FiLProviderLoader.validate_inputs("") is not True
 

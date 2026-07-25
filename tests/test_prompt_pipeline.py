@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from FiL_Design_ImageMind.common.data import get_visible_style_keys
 from FiL_Design_ImageMind.common.logic import (
-    MODEL_TYPE_GUIDANCE,
     PromptGenerator,
     build_model_type_guidance,
     negative_to_positive_clause,

@@ -15,28 +15,38 @@ from FiL_Design_ImageMind.common.contracts import (
 from FiL_Design_ImageMind.common.contracts.schema import NodeContract, WidgetKind
 from FiL_Design_ImageMind.common.brand import CATEGORY_ROOT
 
-CANONICAL = {
-    "FiLSeed",
-    "FiLProviderLoader",
-    "FiLOpticScanner",
-    "FiLNeuroCleaner",
-    "FiLBeforeAfterCompare",
-    "FiLUpscaleTileCalc",
-    "FiLUpscaleSimple",
-    "FiLTileAssembly",
-    "FiLKSampler",
-    "FiLHighResFix",
-    "FiLNoiseControl",
-}
+@pytest.fixture(scope="module")
+def canonical() -> set[str]:
+    """Node-ids taken from the node classes themselves — the single source of truth.
+
+    Derived rather than hand-listed: a hand-maintained copy here is exactly how
+    FiLColorWizard once shipped without a contract.
+    """
+    import asyncio
+    import importlib
+    import os
+
+    previous = os.environ.get("FIL_RELEASE_ALL")
+    os.environ["FIL_RELEASE_ALL"] = "1"
+    try:
+        package = importlib.import_module("FiL_Design_ImageMind")
+        ext = asyncio.run(package.comfy_entrypoint())
+        node_classes = asyncio.run(ext.get_node_list())
+        return {c.GET_SCHEMA().node_id for c in node_classes}
+    finally:
+        if previous is None:
+            os.environ.pop("FIL_RELEASE_ALL", None)
+        else:
+            os.environ["FIL_RELEASE_ALL"] = previous
 
 
-def test_canonical_ids_match_legacy_registry():
-    assert set(CANONICAL_IDS) == CANONICAL
+def test_canonical_ids_match_legacy_registry(canonical):
+    assert set(CANONICAL_IDS) == canonical
 
 
-def test_node_schemas_export_per_node_json_schema():
+def test_node_schemas_export_per_node_json_schema(canonical):
     schemas = get_node_schemas()
-    assert set(schemas) == CANONICAL
+    assert set(schemas) == canonical
     for node_id, schema in schemas.items():
         assert schema["type"] == "object"
         props = schema["properties"]
@@ -48,16 +58,16 @@ def test_node_schemas_export_per_node_json_schema():
         assert "outputs" in props
 
 
-def test_public_node_contracts_v2_payload_shape():
+def test_public_node_contracts_v2_payload_shape(canonical):
     payload = public_node_contracts_v2()
     assert set(payload) == {"node_ids", "schemas", "data", "settings_prefix"}
     assert payload["settings_prefix"] == "FiL_Design_ImageMind."
-    assert set(payload["node_ids"]) == CANONICAL
+    assert set(payload["node_ids"]) == canonical
     for node_id, info in payload["node_ids"].items():
         assert set(info) == {"title", "category"}
         assert info["category"].startswith(f"{CATEGORY_ROOT}/")
     # `data` carries the per-node model_dump() — needed by the TS generator.
-    assert set(payload["data"]) == CANONICAL
+    assert set(payload["data"]) == canonical
     for node_id, node_data in payload["data"].items():
         assert isinstance(node_data, dict)
         assert node_data["id"] == node_id
@@ -92,13 +102,6 @@ def test_seed_contract_has_random_fixed_segmented_and_int_seed():
     assert by_name["seed"].kind is WidgetKind.NUMBER
     assert by_name["seed"].min == 0
 
-
-def test_compare_contract_modes_match_engine():
-    contract = get_node_contract("FiLBeforeAfterCompare")
-    by_name = {w.name: w for w in contract.inputs.optional}
-    assert by_name["resize_mode"].options == ["Off", "Preview only", "Preview + output"]
-    assert by_name["swap"].kind is WidgetKind.SEGMENTED
-    assert by_name["max_resolution"].kind is WidgetKind.SLIDER
 
 
 def test_get_node_contract_raises_on_unknown_id():

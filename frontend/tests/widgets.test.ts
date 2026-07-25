@@ -5,6 +5,7 @@ import FilSegmented from "@/components/widgets/FilSegmented.vue";
 import FilChipGrid from "@/components/widgets/FilChipGrid.vue";
 import FilSection from "@/components/widgets/FilSection.vue";
 import FilInfo from "@/components/widgets/FilInfo.vue";
+import FilStylePicker from "@/components/widgets/FilStylePicker.vue";
 
 describe("FilButton", () => {
   it("emits click when not disabled", async () => {
@@ -102,5 +103,35 @@ describe("FilInfo", () => {
     const wrapper = mount(FilInfo, { props: { text: "saved", ok: true } });
     expect(wrapper.attributes("data-ok")).toBe("true");
     expect(wrapper.text()).toContain("saved");
+  });
+});
+
+describe("FilStylePicker", () => {
+  const mockStyles = [
+    "📷 CATEGORY/Style A",
+    "📷 CATEGORY/Style B",
+    "🎨 ART/Style C",
+  ];
+
+  it("handles single selection mode", async () => {
+    const wrapper = mount(FilStylePicker, {
+      props: { styles: mockStyles, modelValue: "None", multi: false },
+    });
+    const tiles = wrapper.findAll(".fil-style-tile");
+    expect(tiles).toHaveLength(3);
+    await tiles[0].trigger("click");
+    expect(wrapper.emitted("update:modelValue")).toEqual([["📷 CATEGORY/Style A"]]);
+  });
+
+  it("handles multi-selection mode by toggling styles", async () => {
+    const wrapper = mount(FilStylePicker, {
+      props: { styles: mockStyles, modelValue: "📷 CATEGORY/Style A", multi: true },
+    });
+    const tiles = wrapper.findAll(".fil-style-tile");
+    // Click 2nd style to add it to selection
+    await tiles[1].trigger("click");
+    expect(wrapper.emitted("update:modelValue")).toEqual([
+      ["📷 CATEGORY/Style A | 📷 CATEGORY/Style B"],
+    ]);
   });
 });

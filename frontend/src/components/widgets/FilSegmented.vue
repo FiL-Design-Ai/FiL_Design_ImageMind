@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="T extends string">
 /**
  * Segmented pill — Random/Fixed-style toggle. Equivalent of the legacy
  * `segmentedPill()` factory in web/core/widgets.js.
@@ -6,36 +6,30 @@
  * a11y: Tab/Shift+Tab move focus between buttons; Enter/Space activates;
  * ArrowLeft/ArrowRight move between options; `aria-pressed` reflects state.
  */
-import { computed, ref } from "vue";
+import { ref } from "vue";
 
-const props = withDefaults(
-  defineProps<{
-    options: string[];
-    modelValue: string;
-    label?: string;
-    title?: string;
-    disabled?: boolean;
-    /** Optional display override — maps the raw option value (what's
-     * emitted/stored) to a more expressive label (e.g. with an emoji), so
-     * call sites can stay visually descriptive without changing the
-     * underlying value contract with the backend. */
-    optionLabels?: Record<string, string>;
-  }>(),
-  {},
-);
+const props = defineProps<{
+  options: T[];
+  label?: string;
+  title?: string;
+  disabled?: boolean;
+  /** Optional display override — maps the raw option value (what's
+   * emitted/stored) to a more expressive label (e.g. with an emoji), so
+   * call sites can stay visually descriptive without changing the
+   * underlying value contract with the backend. */
+  optionLabels?: Record<string, string>;
+}>();
 
-const emit = defineEmits<{ "update:modelValue": [value: string] }>();
-
-const selected = computed(() => props.modelValue);
+const modelValue = defineModel<T>({ required: true });
 const buttonsRef = ref<HTMLButtonElement[]>([]);
 
 function optionLabel(opt: string): string {
   return props.optionLabels?.[opt] ?? opt;
 }
 
-function select(value: string) {
+function select(value: T) {
   if (props.disabled) return;
-  if (value !== selected.value) emit("update:modelValue", value);
+  if (value !== modelValue.value) modelValue.value = value;
 }
 
 function onKeydown(e: KeyboardEvent, index: number) {
@@ -64,10 +58,10 @@ function onKeydown(e: KeyboardEvent, index: number) {
         :ref="(el) => { if (el) buttonsRef[i] = el as HTMLButtonElement }"
         type="button"
         class="fil-w-seg"
-        :class="{ active: opt === selected }"
-        :aria-pressed="opt === selected"
+        :class="{ active: opt === modelValue }"
+        :aria-pressed="opt === modelValue"
         :disabled="disabled"
-        :tabindex="opt === selected ? 0 : -1"
+        :tabindex="opt === modelValue ? 0 : -1"
         @click="select(opt)"
         @keydown="onKeydown($event, i)"
       >

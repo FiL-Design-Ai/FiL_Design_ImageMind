@@ -81,17 +81,6 @@ export const HELP_DEFAULTS: Record<string, HelpDef> = {
       "Force = aggressive (may interrupt pending tasks).",
     ],
   },
-  FiLBeforeAfterCompare: {
-    id: "FiLBeforeAfterCompare",
-    title: "FiL Before/After Compare",
-    body: "Before/after/wipe/side-by-side/overlay/difference viewer for two images.",
-    bullets: [
-      "6 modes: before, after, wipe, side-by-side, overlay, difference.",
-      "Wipe drags the divider directly on the preview; overlay responds to the opacity slider.",
-      "Resize mode (in Settings) downscales the preview and, optionally, the output.",
-      "Save before / Save after write the current image to output/FiL_Design_ImageMind/compare.",
-    ],
-  },
   FiLUpscaleTileCalc: {
     id: "FiLUpscaleTileCalc",
     title: "FiL Upscale Tile Calc",

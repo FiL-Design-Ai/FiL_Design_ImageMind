@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /** FiLOpticScanner — image analysis / prompt expansion via LLM. */
-import { computed, reactive, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { FilChipGrid, FilChipList, FilSegmented, FilSection, FilButton, FilModal, FilStylePicker } from "@/components/widgets";
 import { toast } from "@/stores/toastStore";
 import { NODE_CONTRACTS, type WidgetSpec } from "@/api/contracts";
@@ -28,7 +28,6 @@ const SECTION_LABEL_KEYS: Record<string, [string, string]> = {
 // These fields stay as native LiteGraph widgets (not hidden in scanner.ts)
 // so ComfyUI's drag-to-connect works on them. They are excluded from the
 // Vue panel to avoid a duplicate — the native widget renders above the panel.
-const NATIVE_WIDGET_NAMES = new Set(["prompt", "negative_prompt", "custom_style"]);
 
 function sectionLabel(section: string): string {
   const entry = SECTION_LABEL_KEYS[section];
@@ -91,35 +90,57 @@ function formatFieldLabel(w: WidgetSpec): string {
   return emoji ? `${emoji} ${base}` : base;
 }
 
-// Ephemeral UI-only state (which style-picker modal is open) — not part of
-// node state, does not need to survive workflow save/load.
-const stylePickerOpen = reactive<Record<string, boolean>>({});
+const isUnifiedStylePickerOpen = ref<boolean>(false);
+const activeStyleTab = ref<string>("photo_style");
 
-// Category prefix so the two style buttons are visually distinct even
-// before anything is picked — previously both showed a bare "None"/"Нет"
-// with no way to tell Photo apart from Art without hovering the tooltip.
-const STYLE_CATEGORY: Record<string, { emoji: string; labelKey: string; labelFallback: string }> = {
-  photo_style: { emoji: "📷", labelKey: "scn_style_photo_label", labelFallback: "Photo" },
-  nsfw_photo_style: { emoji: "🔞", labelKey: "scn_style_nsfw_photo_label", labelFallback: "NSFW Photo" },
-  art_style: { emoji: "🎨", labelKey: "scn_style_art_label", labelFallback: "Art" },
-  nsfw_art_style: { emoji: "🔞", labelKey: "scn_style_nsfw_art_label", labelFallback: "NSFW Art" },
-};
+function parseDisplayStyles(value: string): string[] {
+  if (!value || value === "None") return [];
+  const parts = value.split("|").map((s) => s.trim()).filter((s) => s && s !== "None");
+  return parts.map((part) => {
+    const idx = part.indexOf("/");
+    const sub = idx === -1 ? part : part.slice(idx + 1);
+    return sub.replace(/^[\p{Emoji_Presentation}\p{Extended_Pictographic}\s]+/gu, "").trim();
+  });
+}
 
-function styleButtonLabel(name: string): string {
-  const category = STYLE_CATEGORY[name];
-  const prefix = category ? `${category.emoji} ${t(category.labelKey, category.labelFallback)}: ` : "";
-  const value = String(getValue(name, "None") || "None");
-  if (value === "None") return `${prefix}${t("scn_style_none", "None")}`;
-  const idx = value.indexOf("/");
-  const displayValue = idx === -1 ? value : value.slice(idx + 1);
-  return `${prefix}${displayValue}`;
+const activeStylesSummary = computed(() => {
+  const active: string[] = [];
+  const ps = parseDisplayStyles(String(getValue("photo_style", "None")));
+  const nps = parseDisplayStyles(String(getValue("nsfw_photo_style", "None")));
+  const as = parseDisplayStyles(String(getValue("art_style", "None")));
+  const nas = parseDisplayStyles(String(getValue("nsfw_art_style", "None")));
+
+  for (const s of ps) active.push(`📷 ${s}`);
+  for (const s of nps) active.push(`🔞 ${s}`);
+  for (const s of as) active.push(`🎨 ${s}`);
+  for (const s of nas) active.push(`🔞 ${s}`);
+
+  if (active.length === 0) return t("scn_style_button_none", "🎨 Style: None");
+  return active.join(" | ");
+});
+
+const styleTabs = [
+  { id: "photo_style", icon: "📷", labelKey: "scn_style_photo_label", fallback: "Photo" },
+  { id: "nsfw_photo_style", icon: "🔞", labelKey: "scn_style_nsfw_photo_label", fallback: "NSFW Photo" },
+  { id: "art_style", icon: "🎨", labelKey: "scn_style_art_label", fallback: "Art" },
+  { id: "nsfw_art_style", icon: "🔞", labelKey: "scn_style_nsfw_art_label", fallback: "NSFW Art" },
+];
+
+function getStyleValue(name: string): string {
+  return String(getValue(name, "None") || "None");
 }
-function openStylePicker(name: string) {
-  stylePickerOpen[name] = true;
+function setStyleValue(name: string, val: string) {
+  setValue(name, val);
 }
-function selectStyle(name: string, value: string) {
-  setValue(name, value);
-  stylePickerOpen[name] = false;
+function getStyleOptions(name: string): string[] {
+  const w = widgets.find((x) => x.name === name);
+  return w?.values || [];
+}
+function clearAllStyles() {
+  setValue("photo_style", "None");
+  setValue("nsfw_photo_style", "None");
+  setValue("art_style", "None");
+  setValue("nsfw_art_style", "None");
 }
 
 const grouped = computed(() => {
@@ -128,16 +149,7 @@ const grouped = computed(() => {
   return map;
 });
 
-// "styles" widgets render as paired rows (Photo/NSFW Photo, Art/NSFW Art)
-// instead of the generic one-widget-per-row layout — contract order
-// (registry.py) is photo_style, nsfw_photo_style, art_style, nsfw_art_style,
-// so consecutive pairs already line up correctly.
-const stylePairs = computed(() => {
-  const specs = grouped.value["styles"] || [];
-  const pairs: WidgetSpec[][] = [];
-  for (let i = 0; i < specs.length; i += 2) pairs.push(specs.slice(i, i + 2));
-  return pairs;
-});
+
 
 function getValue(name: string, fallback: unknown = ""): unknown {
   return props.state.nodeState[name] ?? props.state.initialValues[name] ?? fallback;
@@ -235,15 +247,84 @@ function newFixedSeed() {
         <!-- Skip native widgets — prompt/negative_prompt/custom_style are rendered
              by LiteGraph above the Vue panel and support drag-to-connect natively. -->
         <template v-for="w in specs" :key="w.name">
-          <div v-if="!NATIVE_WIDGET_NAMES.has(w.name)"
+          <!-- Inject Unified Style Picker above Response Format -->
+          <div v-if="w.name === 'response_format'" class="fil-w-row fil-single-style-block">
+            <div style="display: flex; gap: 4px; margin-bottom: 3px;">
+              <FilButton variant="full" :label="activeStylesSummary" @click="isUnifiedStylePickerOpen = true" style="flex: 2" />
+            </div>
+            <div style="display: flex; margin-bottom: 6px;">
+              <FilButton variant="standard" label="🧹 Clear Style" @click="clearAllStyles" style="flex: 1" />
+            </div>
+
+            <FilModal
+              :open="isUnifiedStylePickerOpen"
+              :title="t('scn_unified_style_title', '🎨 Style Selection')"
+              width="680px"
+              @update:open="(v: boolean) => (isUnifiedStylePickerOpen = v)"
+            >
+              <div class="fil-unified-style-modal">
+                <div class="fil-style-tab-bar">
+                  <button
+                    v-for="tab in styleTabs"
+                    :key="tab.id"
+                    type="button"
+                    class="fil-style-tab-btn"
+                    :class="{ active: activeStyleTab === tab.id, 'has-value': getStyleValue(tab.id) !== 'None' }"
+                    @click="activeStyleTab = tab.id"
+                  >
+                    <span class="fil-tab-icon">{{ tab.icon }}</span>
+                    <span class="fil-tab-title">{{ t(tab.labelKey, tab.fallback) }}</span>
+                    <span v-if="getStyleValue(tab.id) !== 'None'" class="fil-tab-badge">✓</span>
+                  </button>
+                </div>
+
+                <div class="fil-style-picker-body">
+                  <FilStylePicker
+                    :styles="getStyleOptions(activeStyleTab)"
+                    :model-value="getStyleValue(activeStyleTab)"
+                    :multi="true"
+                    @select="(v: string) => setStyleValue(activeStyleTab, v)"
+                  />
+                </div>
+
+                <div class="fil-style-modal-footer">
+                  <button
+                    type="button"
+                    class="fil-clear-styles-btn"
+                    @click="clearAllStyles"
+                  >
+                    {{ t("scn_clear_all_styles", "🗑️ Clear all styles") }}
+                  </button>
+                </div>
+              </div>
+            </FilModal>
+          </div>
+
+          <div
             v-show="section === '_' || section === 'prompt' || !isCollapsed(String(section))"
             class="fil-w-row" :title="widgetTooltip(w)">
-            <FilChipGrid v-if="w.kind === 'chip_grid'"
+            <textarea
+              v-if="w.name === 'prompt' || w.name === 'negative_prompt'"
+              :value="String(getValue(w.name, ''))"
+              class="fil-scanner-textarea"
+              :placeholder="formatFieldLabel(w)"
+              rows="2"
+              @input="(e) => setValue(w.name, (e.target as HTMLTextAreaElement).value)"
+            />
+            <input
+              v-else-if="w.name === 'custom_style'"
+              :value="String(getValue(w.name, ''))"
+              type="text"
+              class="fil-scanner-input"
+              :placeholder="formatFieldLabel(w)"
+              @input="(e) => setValue(w.name, (e.target as HTMLInputElement).value)"
+            />
+            <FilChipGrid v-else-if="w.kind === 'chip_grid'"
               :options="w.values || []" :model-value="String(getValue(w.name, ''))"
               :columns="w.columns ?? 3" @update:model-value="(v: string) => setValue(w.name, v)" />
             <FilChipList v-else-if="w.kind === 'chip_list'"
               :options="w.values || []" :model-value="(getValue(w.name, null) as string | null)"
-              :searchable="w.searchable ?? true" @update:model-value="(v: string) => setValue(w.name, v)" />
+              :searchable="w.searchable ?? true" @update:model-value="(v: string | null) => setValue(w.name, v)" />
             <FilSegmented v-else-if="w.kind === 'segmented'"
               :options="w.options || []" :model-value="String(getValue(w.name, ''))"
               :label="formatFieldLabel(w)" @update:model-value="(v: string) => setValue(w.name, v)" />
@@ -254,22 +335,7 @@ function newFixedSeed() {
       </div>
     </template>
 
-    <div class="fil-section-block">
-      <FilSection :title="sectionLabel('advanced')" :model-value="isCollapsed('advanced')"
-        @update:model-value="(v: boolean) => setCollapsed('advanced', v)" />
-      <div v-show="!isCollapsed('advanced')" class="fil-section-block">
-        <div v-for="(pair, idx) in stylePairs" :key="`style-pair-${idx}`" class="fil-style-pair-row">
-          <div v-for="w in pair" :key="w.name" class="fil-style-pair-item" :title="widgetTooltip(w)">
-            <FilButton variant="full" :label="styleButtonLabel(w.name)" @click="openStylePicker(w.name)" />
-            <FilModal :open="Boolean(stylePickerOpen[w.name])" :title="formatFieldLabel(w)" width="640px"
-              @update:open="(v: boolean) => (stylePickerOpen[w.name] = v)">
-              <FilStylePicker :styles="w.values || []" :model-value="String(getValue(w.name, 'None'))"
-                @select="(v: string) => selectStyle(w.name, v)" />
-            </FilModal>
-          </div>
-        </div>
-      </div>
-    </div>
+
 
     <div class="fil-scanner-seed-row">
       <input
@@ -310,8 +376,115 @@ function newFixedSeed() {
 }
 .fil-section-block { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
 .fil-w-row { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.fil-style-pair-row { display: flex; gap: 4px; min-width: 0; }
-.fil-style-pair-item { flex: 1; min-width: 0; }
+.fil-scanner-textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--fil-panel-alt, #171819);
+  border: 1px solid var(--fil-muted, #3a3d40);
+  border-radius: 6px;
+  color: var(--fil-text, #ddd);
+  font-family: inherit;
+  font-size: 12px;
+  resize: vertical;
+  outline: none;
+}
+.fil-scanner-textarea:focus {
+  border-color: var(--fil-accent, #00f0ff);
+}
+.fil-scanner-input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 7px 10px;
+  background: var(--fil-panel-alt, #171819);
+  border: 1px solid var(--fil-muted, #3a3d40);
+  border-radius: 6px;
+  color: var(--fil-text, #ddd);
+  font-family: inherit;
+  font-size: 12px;
+  outline: none;
+}
+.fil-scanner-input:focus {
+  border-color: var(--fil-accent, #00f0ff);
+}
+.fil-single-style-block { margin-top: 2px; }
+
+.fil-unified-style-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 0;
+}
+.fil-style-tab-bar {
+  display: flex;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.fil-style-tab-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 34px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--fil-muted, #9ca8b5);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+.fil-style-tab-btn:hover {
+  color: var(--fil-text, #ffffff);
+  background: rgba(255, 255, 255, 0.06);
+}
+.fil-style-tab-btn.active {
+  background: var(--fil-accent, #00f0ff);
+  color: #12151a;
+  border-color: var(--fil-accent, #00f0ff);
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+}
+.fil-tab-badge {
+  font-size: 10px;
+  color: #00ff88;
+}
+.fil-style-tab-btn.active .fil-tab-badge {
+  color: #12151a;
+}
+.fil-style-picker-body {
+  min-height: 320px;
+  max-height: 480px;
+  overflow-y: auto;
+}
+.fil-style-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 8px;
+}
+.fil-clear-styles-btn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 75, 75, 0.3);
+  background: rgba(255, 75, 75, 0.1);
+  color: #ff6b6b;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+.fil-clear-styles-btn:hover {
+  background: rgba(255, 75, 75, 0.25);
+  border-color: #ff4b4b;
+  color: #ffffff;
+}
+
 .fil-scanner-seed-row { display: flex; gap: 6px; min-width: 0; }
 .fil-scanner-seed-field {
   flex: 1.3; min-width: 0; box-sizing: border-box; height: 34px;

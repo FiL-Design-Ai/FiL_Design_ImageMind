@@ -20,7 +20,6 @@ export interface FilComboOption {
 const props = withDefaults(
   defineProps<{
     options: FilComboOption[];
-    modelValue: string;
     searchable?: boolean;
     placeholder?: string;
     disabled?: boolean;
@@ -30,7 +29,7 @@ const props = withDefaults(
   { searchable: false, placeholder: "Search…" },
 );
 
-const emit = defineEmits<{ "update:modelValue": [value: string] }>();
+const modelValue = defineModel<string>({ required: true });
 
 const open = ref(false);
 const query = ref("");
@@ -40,7 +39,7 @@ const panelRef = ref<HTMLElement | null>(null);
 const searchRef = ref<HTMLInputElement | null>(null);
 const panelStyle = ref<Record<string, string>>({});
 
-const selected = computed(() => props.options.find((o) => o.value === props.modelValue));
+const selected = computed(() => props.options.find((o) => o.value === modelValue.value));
 
 const filtered = computed(() => {
   if (!props.searchable || !query.value.trim()) return props.options;
@@ -84,7 +83,7 @@ function openPanel() {
   query.value = "";
   activeIndex.value = Math.max(
     0,
-    filtered.value.findIndex((o) => o.value === props.modelValue),
+    filtered.value.findIndex((o) => o.value === modelValue.value),
   );
   nextTick(() => {
     computePosition();
@@ -117,7 +116,7 @@ function toggle() {
 }
 
 function select(o: FilComboOption) {
-  emit("update:modelValue", o.value);
+  modelValue.value = o.value;
   close();
   triggerRef.value?.focus();
 }

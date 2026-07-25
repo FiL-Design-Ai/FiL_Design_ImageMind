@@ -2,14 +2,11 @@ import json
 import tempfile
 from pathlib import Path
 
-import pytest
-
 from FiL_Design_ImageMind.common.vision_smoke import (
     is_vision_capable,
     load_vision_smoke_results,
     result_key,
     vision_smoke_status_for_model,
-    VISION_AUTO_REJECT_STATUSES,
 )
 
 
