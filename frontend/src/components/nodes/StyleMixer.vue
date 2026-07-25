@@ -91,70 +91,105 @@ function formatStyleLabel(val: string, label: string): string {
   const display = idx === -1 ? val : val.slice(idx + 1);
   return `${label}: ${display}`;
 }
+
+// FilSection's arrow toggles a local, unbound ref when no v-model is passed —
+// clicking flipped the arrow with nothing underneath actually collapsing,
+// which read as broken next to every other panel (UpscaleTileCalc, ColorWizard,
+// HiResFix) where the same header really hides its section.
+function isCollapsed(section: string): boolean {
+  return Boolean((props.state.ui as Record<string, unknown>)[`collapsed_${section}`]);
+}
+function setCollapsed(section: string, collapsed: boolean) {
+  (props.state.ui as Record<string, unknown>)[`collapsed_${section}`] = collapsed;
+}
 </script>
 
 <template>
   <div class="fil-style-mixer-root">
     <!-- Fusion Mode -->
-    <FilSection :title="t('sm_section_fusion', '🔀 Fusion Mode')" />
-    <FilSegmented
-      v-model="fusionMode"
-      :options="fusionModes"
-      :option-labels="FUSION_LABELS"
-      :title="t('sm_fusion_tt', 'Fast Stack just weights the descriptions. Smart Fusion asks the Vision LLM to synthesize one prompt.')"
-    />
+    <FilSection :title="t('sm_section_fusion', '🔀 Fusion Mode')"
+      :model-value="isCollapsed('fusion')" @update:model-value="(v: boolean) => setCollapsed('fusion', v)" />
+    <template v-if="!isCollapsed('fusion')">
+      <FilSegmented
+        v-model="fusionMode"
+        :options="fusionModes"
+        :option-labels="FUSION_LABELS"
+        :title="t('sm_fusion_tt', 'Fast Stack just weights the descriptions. Smart Fusion asks the Vision LLM to synthesize one prompt.')"
+      />
+    </template>
 
     <!-- Style 1 -->
-    <FilSection :title="t('sm_section_style_1', '🎨 Primary Style (Style 1)')" />
-    <FilButton
-      variant="full"
-      :label="formatStyleLabel(style1, t('sm_style_1', 'Style 1'))"
-      @click="picker1Open = true"
-    />
-    <FilSlider v-model="weight1" :min="0" :max="1" :step="0.05" :label="t('sm_style_1_weight', 'Style 1 Weight')" />
-    <FilModal :open="picker1Open" :title="t('sm_pick_style_1', 'Select Primary Style 1')" width="680px" @update:open="(v) => (picker1Open = v)">
-      <FilStylePicker :styles="getStyleOptions('style_1')" :model-value="style1" @select="(v) => { style1 = v; picker1Open = false; }" />
-    </FilModal>
+    <FilSection :title="t('sm_section_style_1', '🎨 Primary Style (Style 1)')"
+      :model-value="isCollapsed('style1')" @update:model-value="(v: boolean) => setCollapsed('style1', v)" />
+    <template v-if="!isCollapsed('style1')">
+      <FilButton
+        variant="full"
+        :label="formatStyleLabel(style1, t('sm_style_1', 'Style 1'))"
+        @click="picker1Open = true"
+      />
+      <FilSlider v-model="weight1" :min="0" :max="1" :step="0.05" :label="t('sm_style_1_weight', 'Style 1 Weight')" />
+      <FilModal :open="picker1Open" :title="t('sm_pick_style_1', 'Select Primary Style 1')" width="680px" @update:open="(v) => (picker1Open = v)">
+        <FilStylePicker :styles="getStyleOptions('style_1')" :model-value="style1" @select="(v) => { style1 = v; picker1Open = false; }" />
+      </FilModal>
+    </template>
 
     <!-- Style 2 -->
-    <FilSection :title="t('sm_section_style_2', '🧪 Secondary Style (Style 2)')" />
-    <FilButton
-      variant="full"
-      :label="formatStyleLabel(style2, t('sm_style_2', 'Style 2'))"
-      @click="picker2Open = true"
-    />
-    <FilSlider v-model="weight2" :min="0" :max="1" :step="0.05" :label="t('sm_style_2_weight', 'Style 2 Weight')" />
-    <FilModal :open="picker2Open" :title="t('sm_pick_style_2', 'Select Secondary Style 2')" width="680px" @update:open="(v) => (picker2Open = v)">
-      <FilStylePicker :styles="getStyleOptions('style_2')" :model-value="style2" @select="(v) => { style2 = v; picker2Open = false; }" />
-    </FilModal>
+    <FilSection :title="t('sm_section_style_2', '🧪 Secondary Style (Style 2)')"
+      :model-value="isCollapsed('style2')" @update:model-value="(v: boolean) => setCollapsed('style2', v)" />
+    <template v-if="!isCollapsed('style2')">
+      <FilButton
+        variant="full"
+        :label="formatStyleLabel(style2, t('sm_style_2', 'Style 2'))"
+        @click="picker2Open = true"
+      />
+      <FilSlider v-model="weight2" :min="0" :max="1" :step="0.05" :label="t('sm_style_2_weight', 'Style 2 Weight')" />
+      <FilModal :open="picker2Open" :title="t('sm_pick_style_2', 'Select Secondary Style 2')" width="680px" @update:open="(v) => (picker2Open = v)">
+        <FilStylePicker :styles="getStyleOptions('style_2')" :model-value="style2" @select="(v) => { style2 = v; picker2Open = false; }" />
+      </FilModal>
+    </template>
 
     <!-- Style 3 -->
-    <FilSection :title="t('sm_section_style_3', '✨ Tertiary Style (Style 3)')" />
-    <FilButton
-      variant="full"
-      :label="formatStyleLabel(style3, t('sm_style_3', 'Style 3'))"
-      @click="picker3Open = true"
-    />
-    <FilSlider v-model="weight3" :min="0" :max="1" :step="0.05" :label="t('sm_style_3_weight', 'Style 3 Weight')" />
-    <FilModal :open="picker3Open" :title="t('sm_pick_style_3', 'Select Tertiary Style 3')" width="680px" @update:open="(v) => (picker3Open = v)">
-      <FilStylePicker :styles="getStyleOptions('style_3')" :model-value="style3" @select="(v) => { style3 = v; picker3Open = false; }" />
-    </FilModal>
+    <FilSection :title="t('sm_section_style_3', '✨ Tertiary Style (Style 3)')"
+      :model-value="isCollapsed('style3')" @update:model-value="(v: boolean) => setCollapsed('style3', v)" />
+    <template v-if="!isCollapsed('style3')">
+      <FilButton
+        variant="full"
+        :label="formatStyleLabel(style3, t('sm_style_3', 'Style 3'))"
+        @click="picker3Open = true"
+      />
+      <FilSlider v-model="weight3" :min="0" :max="1" :step="0.05" :label="t('sm_style_3_weight', 'Style 3 Weight')" />
+      <FilModal :open="picker3Open" :title="t('sm_pick_style_3', 'Select Tertiary Style 3')" width="680px" @update:open="(v) => (picker3Open = v)">
+        <FilStylePicker :styles="getStyleOptions('style_3')" :model-value="style3" @select="(v) => { style3 = v; picker3Open = false; }" />
+      </FilModal>
+    </template>
 
     <!-- Image Cards -->
-    <FilSection :title="t('sm_section_image_1', '🖼️ Image 1 Influence')" />
-    <FilSlider v-model="imgWeight1" :min="0" :max="1" :step="0.05" :label="t('sm_image_1_weight', 'Image 1 Weight')" />
+    <FilSection :title="t('sm_section_image_1', '🖼️ Image 1 Influence')"
+      :model-value="isCollapsed('image1')" @update:model-value="(v: boolean) => setCollapsed('image1', v)" />
+    <template v-if="!isCollapsed('image1')">
+      <FilSlider v-model="imgWeight1" :min="0" :max="1" :step="0.05" :label="t('sm_image_1_weight', 'Image 1 Weight')" />
+    </template>
 
-    <FilSection :title="t('sm_section_image_2', '🖼️ Image 2 Influence')" />
-    <FilSlider v-model="imgWeight2" :min="0" :max="1" :step="0.05" :label="t('sm_image_2_weight', 'Image 2 Weight')" />
+    <FilSection :title="t('sm_section_image_2', '🖼️ Image 2 Influence')"
+      :model-value="isCollapsed('image2')" @update:model-value="(v: boolean) => setCollapsed('image2', v)" />
+    <template v-if="!isCollapsed('image2')">
+      <FilSlider v-model="imgWeight2" :min="0" :max="1" :step="0.05" :label="t('sm_image_2_weight', 'Image 2 Weight')" />
+    </template>
 
     <template v-if="showImg3">
-      <FilSection :title="t('sm_section_image_3', '🖼️ Image 3 Influence')" />
-      <FilSlider v-model="imgWeight3" :min="0" :max="1" :step="0.05" :label="t('sm_image_3_weight', 'Image 3 Weight')" />
+      <FilSection :title="t('sm_section_image_3', '🖼️ Image 3 Influence')"
+        :model-value="isCollapsed('image3')" @update:model-value="(v: boolean) => setCollapsed('image3', v)" />
+      <template v-if="!isCollapsed('image3')">
+        <FilSlider v-model="imgWeight3" :min="0" :max="1" :step="0.05" :label="t('sm_image_3_weight', 'Image 3 Weight')" />
+      </template>
     </template>
 
     <template v-if="showImg4">
-      <FilSection :title="t('sm_section_image_4', '🖼️ Image 4 Influence')" />
-      <FilSlider v-model="imgWeight4" :min="0" :max="1" :step="0.05" :label="t('sm_image_4_weight', 'Image 4 Weight')" />
+      <FilSection :title="t('sm_section_image_4', '🖼️ Image 4 Influence')"
+        :model-value="isCollapsed('image4')" @update:model-value="(v: boolean) => setCollapsed('image4', v)" />
+      <template v-if="!isCollapsed('image4')">
+        <FilSlider v-model="imgWeight4" :min="0" :max="1" :step="0.05" :label="t('sm_image_4_weight', 'Image 4 Weight')" />
+      </template>
     </template>
   </div>
 </template>

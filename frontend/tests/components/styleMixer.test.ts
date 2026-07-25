@@ -85,3 +85,31 @@ describe("StyleMixer image slot reactivity", () => {
     expect(wrapper.text()).not.toContain("Image 4");
   });
 });
+
+describe("StyleMixer section collapse", () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+  });
+
+  it("actually hides a section's content when its header is clicked", async () => {
+    // FilSection has no default slot: without an explicit v-model binding its
+    // arrow toggles a local ref that nothing else reads, so the header looked
+    // clickable but collapsing did nothing. Confirmed live by clicking through
+    // a running ComfyUI instance — every other panel (UpscaleTileCalc,
+    // ColorWizard, HiResFix) really hides its section on the same click.
+    const node = makeNode();
+    const state = makeState(node);
+    const wrapper = mount(StyleMixerVue, { props: { state: state as never } });
+    await nextTick();
+
+    expect(wrapper.text()).toContain("Style 1 Weight");
+
+    const header = wrapper.findAll(".fil-w-section").find((h) => h.text().includes("Primary Style"));
+    expect(header).toBeTruthy();
+    await header!.trigger("click");
+    await nextTick();
+
+    expect(wrapper.text()).not.toContain("Style 1 Weight");
+    expect(state.ui.collapsed_style1).toBe(true);
+  });
+});
