@@ -281,3 +281,120 @@ def test_tiled_flag_reaches_all_decodes_and_encodes(monkeypatch):
     # "both" decode + CN hint decode; "both" encode — every one tiled.
     assert decode_calls == [True, True]
     assert encode_calls == [True]
+
+
+def test_apply_hiresfix_iterations_two_upscales_and_resamples_twice(monkeypatch):
+    """iterations=2 must run the upscale + resample loop body exactly twice, not once."""
+    upscale_calls: list = []
+    resample_calls: list = []
+
+    class _FakeLatentUpscaleBy:
+        def upscale(self, latent, upscaler, scale):
+            upscale_calls.append(latent["samples"])
+            return ({"samples": latent["samples"] + "_UP"},)
+
+    monkeypatch.setattr("nodes.LatentUpscaleBy", _FakeLatentUpscaleBy)
+    monkeypatch.setattr(
+        sampling, "sample_unified",
+        lambda m, **kw: resample_calls.append(kw) or {"samples": kw["latent"]["samples"] + "_SAMPLED"},
+    )
+
+    apply_hiresfix(
+        {"iterations": 2, "upscale_by": 2.0, "upscale_type": "latent"},
+        model="BASE", positive=None, negative=None, vae=None,
+        latent={"samples": "S0"}, base_seed=0, cfg=7.0, sampler_name="euler", scheduler="normal",
+    )
+    assert len(upscale_calls) == 2
+    assert len(resample_calls) == 2
+
+
+def test_apply_hiresfix_iteration_two_receives_iteration_one_output_not_original(monkeypatch):
+    """The latent produced by iteration 1's resample must be what iteration 2's
+    upscale consumes — not the pre-loop original latent fed into iteration 1."""
+    upscale_inputs: list = []
+
+    class _FakeLatentUpscaleBy:
+        def upscale(self, latent, upscaler, scale):
+            upscale_inputs.append(latent["samples"])
+            return ({"samples": latent["samples"] + "_UP"},)
+
+    monkeypatch.setattr("nodes.LatentUpscaleBy", _FakeLatentUpscaleBy)
+    monkeypatch.setattr(
+        sampling, "sample_unified",
+        lambda m, **kw: {"samples": kw["latent"]["samples"] + "_SAMPLED"},
+    )
+
+    apply_hiresfix(
+        {"iterations": 2, "upscale_by": 2.0, "upscale_type": "latent"},
+        model="BASE", positive=None, negative=None, vae=None,
+        latent={"samples": "S0"}, base_seed=0, cfg=7.0, sampler_name="euler", scheduler="normal",
+    )
+    assert upscale_inputs[0] == "S0"
+    assert upscale_inputs[1] == "S0_UP_SAMPLED"  # iteration 1's own resampled output
+    assert upscale_inputs[1] != "S0"
+
+
+def test_apply_hiresfix_own_seed_mode_uses_hires_seed_plus_iteration_index(monkeypatch):
+    """use_same_seed=False must feed seed=hires_seed + i to each iteration's
+    resample — the exact formula in apply_hiresfix (common/sampling.py)."""
+    seeds: list = []
+    _patch_pipeline(monkeypatch)
+    monkeypatch.setattr(
+        sampling, "sample_unified",
+        lambda m, **kw: seeds.append(kw["seed"]) or {"samples": "SAMPLED"},
+    )
+
+    apply_hiresfix(
+        {"iterations": 3, "upscale_by": 2.0, "upscale_type": "both", "pixel_upscaler": "x.pth",
+         "use_same_seed": False, "seed": 500},
+        model="BASE", positive=None, negative=None, vae="VAE",
+        latent={"samples": "S"}, base_seed=999, cfg=7.0, sampler_name="euler", scheduler="normal",
+    )
+    assert seeds == [500, 501, 502]
+
+
+def test_apply_hiresfix_same_seed_mode_uses_base_seed_not_hires_widget(monkeypatch):
+    """use_same_seed=True must feed the KSampler's base_seed to every
+    iteration — NOT the hires_seed widget value packed into hiresfix['seed']."""
+    seeds: list = []
+    _patch_pipeline(monkeypatch)
+    monkeypatch.setattr(
+        sampling, "sample_unified",
+        lambda m, **kw: seeds.append(kw["seed"]) or {"samples": "SAMPLED"},
+    )
+
+    apply_hiresfix(
+        {"iterations": 3, "upscale_by": 2.0, "upscale_type": "both", "pixel_upscaler": "x.pth",
+         "use_same_seed": True, "seed": 500},
+        model="BASE", positive=None, negative=None, vae="VAE",
+        latent={"samples": "S"}, base_seed=999, cfg=7.0, sampler_name="euler", scheduler="normal",
+    )
+    assert seeds == [999, 999, 999]
+
+
+def test_apply_hiresfix_latent_mode_never_touches_vae(monkeypatch):
+    """upscale_type='latent' must go through the latent upscaler only — no VAE
+    decode/encode round-trip like 'pixel'/'both' need."""
+    def _boom_decode(vae, latent, tiled=False):
+        raise AssertionError("_decode must not run in latent mode")
+
+    def _boom_encode(vae, image, tiled=False):
+        raise AssertionError("_encode must not run in latent mode")
+
+    monkeypatch.setattr(sampling, "_decode", _boom_decode)
+    monkeypatch.setattr(sampling, "_encode", _boom_encode)
+    monkeypatch.setattr(sampling, "sample_unified", lambda m, **kw: {"samples": "SAMPLED"})
+
+    class _FakeLatentUpscaleBy:
+        def upscale(self, latent, upscaler, scale):
+            return ({"samples": "UP"},)
+
+    monkeypatch.setattr("nodes.LatentUpscaleBy", _FakeLatentUpscaleBy)
+
+    result, warnings = apply_hiresfix(
+        {"iterations": 1, "upscale_by": 2.0, "upscale_type": "latent"},
+        model="BASE", positive=None, negative=None, vae=None,
+        latent={"samples": "S"}, base_seed=0, cfg=7.0, sampler_name="euler", scheduler="normal",
+    )
+    assert result == {"samples": "SAMPLED"}
+    assert warnings == []
