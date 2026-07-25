@@ -223,7 +223,7 @@ function useLastSeed() {
   const w = node ? findFilWidget(node, "seed") : null;
   const last = w && Number.isFinite(Number(w.value)) ? Number(w.value) : props.state.lastRunSeed;
   if (last == null || !Number.isFinite(last)) {
-    toast.warning("No last-run seed recorded yet");
+    toast.warning(t("sd_no_last_seed", "No last-run seed recorded yet"));
     return;
   }
   seedValue.value = last;
@@ -344,7 +344,7 @@ function newFixedSeed() {
           class="fil-scanner-seed-field"
           :class="{ 'is-random': seedMode === 'random' }"
           :readonly="seedMode === 'random'"
-          aria-label="Seed value"
+          :aria-label="t('sd_aria_seed_value', 'Seed value')"
           :title="seedMode === 'fixed' ? t('scn_seed_locked', 'Locked seed') : t('scn_seed_auto_random', 'Auto-random — a new seed is generated each run')"
           @input="(e) => (seedValue = Number((e.target as HTMLInputElement).value) || 0)"
         />

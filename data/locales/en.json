@@ -272,5 +272,8 @@
   "prov_models_many": "models",
   "unit_seconds_short": "s",
   "unit_minutes_short": "m",
-  "unit_hours_short": "h"
+  "unit_hours_short": "h",
+  "sd_no_last_seed": "No last-run seed recorded yet",
+  "sd_aria_seed_value": "Seed value",
+  "hrf_aria_seed_value": "Hires seed value"
 }
