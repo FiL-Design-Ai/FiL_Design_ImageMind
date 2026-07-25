@@ -43,6 +43,17 @@ export interface FilWidgetOptions<S extends object = Record<string, unknown>> {
   height: number;
   /** Optional onDraw callback (Compose draw on canvas every frame — keep cheap). */
   onDraw?: (ctx: CanvasRenderingContext2D, widget: unknown) => void;
+  /**
+   * Let the user drag the node *taller* than its content instead of having
+   * the height snapped straight back to the measured content height.
+   *
+   * The extra pixels are handed to the panel as an explicit host height, so
+   * a component whose layout has flexible rows (`flex: 1` textareas, see
+   * OpticScanner.vue) hands the slack to those rows. Off by default: for a
+   * panel with nothing stretchable in it the only visible result would be
+   * dead space below the content.
+   */
+  growable?: boolean;
 }
 
 export interface FilWidgetController<S extends object = Record<string, unknown>> {
@@ -167,32 +178,75 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
   // dead space below the panel. Measuring on every call is cheap
   // (`scrollHeight` read) and can't go stale.
   let currentHeight = opts.height;
+  // Growable mode only (see `opts.growable`): the panel's own content height
+  // versus the extra pixels the user dragged on top of it. `currentHeight`
+  // stays the sum of the two — that is the box ComfyUI lays the element out in.
+  let naturalHeight = opts.height;
+  let stretch = 0;
+  /** Set while this module writes `node.size`, so the hook below can tell its
+   * own writes apart from the user's. */
+  let applyingOwnSize = false;
   // Forward declaration on purpose: the closures just below capture `widget`,
   // but it can only be assigned once addDOMWidget() has returned further down.
   // eslint-disable-next-line prefer-const
   let widget: any;
 
+  const publishHeight = (): void => {
+    if (!widget) return;
+    // `height` became a getter-only accessor on BaseWidget in the ComfyUI
+    // frontend (seen on 1.47.10). Assigning it throws *inside* LiteGraph's
+    // draw loop, which aborts the frame — every FiL node then rendered as
+    // nothing at all. `computeSize()` is the supported channel and is what
+    // LiteGraph actually reads; only set `height` where it is still writable,
+    // for older frontends that rely on it.
+    if (isWritable(widget, "height")) {
+      (widget as { height?: number }).height = currentHeight;
+    }
+    widget.computeSize = () => [host.clientWidth || 380, currentHeight];
+  };
+
   const measureHeight = (): number => {
     const content = host.firstElementChild as HTMLElement | null;
     if (!content || content.clientHeight === 0) return currentHeight; // hidden (e.g. hideOnZoom) or not yet mounted
+    // In growable mode `host` carries an explicit height, so `scrollHeight`
+    // reports that box instead of the content's own minimum. The min-content
+    // re-measure lives in `syncNodeHeight()` (rate-limited — it costs a
+    // forced reflow), and this stays a plain read of the last result.
+    if (opts.growable) return currentHeight;
     // Rounded up to a 4px grid: sub-pixel/1-2px content jitter (font
     // metrics, locale-driven label width, etc.) otherwise reports a
     // slightly different height on every reload of the same workflow,
     // marking it dirty for no visible reason.
     currentHeight = Math.ceil(content.scrollHeight / 4) * 4;
-    if (widget) {
-      // `height` became a getter-only accessor on BaseWidget in the ComfyUI
-      // frontend (seen on 1.47.10). Assigning it throws *inside* LiteGraph's
-      // draw loop, which aborts the frame — every FiL node then rendered as
-      // nothing at all. `computeSize()` is the supported channel and is what
-      // LiteGraph actually reads; only set `height` where it is still writable,
-      // for older frontends that rely on it.
-      if (isWritable(widget, "height")) {
-        (widget as { height?: number }).height = currentHeight;
-      }
-      widget.computeSize = () => [host.clientWidth || 380, currentHeight];
-    }
+    naturalHeight = currentHeight;
+    publishHeight();
     return currentHeight;
+  };
+
+  /**
+   * Growable mode: re-measure the panel's min-content height and re-apply the
+   * user's extra pixels on top of it.
+   *
+   * The host has to lose its explicit height for one synchronous read to get
+   * at the content's own minimum — with the height in place the flexible rows
+   * have already absorbed the slack and `scrollHeight` just echoes the box
+   * back. Two forced reflows per call is why only `syncNodeHeight()` (a
+   * coalesced frame callback plus a 400ms poll) calls this, never `getHeight`.
+   */
+  const remeasureGrowable = (): boolean => {
+    const content = host.firstElementChild as HTMLElement | null;
+    if (!content || content.clientHeight === 0) return false;
+    const explicit = host.style.height;
+    host.style.height = "auto";
+    naturalHeight = Math.ceil(content.scrollHeight / 4) * 4;
+    host.style.height = explicit;
+    return true;
+  };
+
+  const applyStretch = (): void => {
+    currentHeight = naturalHeight + stretch;
+    host.style.height = `${currentHeight}px`;
+    publishHeight();
   };
 
   widget = n.addDOMWidget(name, "custom", host, {
@@ -226,6 +280,37 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
   const app = createApp(FilNodeShell, { root, state, comfyClass: n.comfyClass ?? "default" }).use(useActivePinia());
   app.mount(host);
 
+  // Growable mode: LiteGraph clamps a resize drag to `node.computeSize()`, and
+  // that number includes our widget's *stretched* height — so without this the
+  // node could only ever be dragged taller, never back down. Reporting the
+  // un-stretched minimum makes the drag floor the panel's real content height
+  // while the element itself stays as tall as the user dragged it.
+  if (opts.growable && typeof n.computeSize === "function" && typeof n.setSize === "function") {
+    const nativeComputeSize = n.computeSize.bind(n);
+    const nativeSetSize = n.setSize.bind(n);
+    /** Node height that exactly fits the panel's content, with no stretch. */
+    const unstretchedHeight = () => Math.max(0, nativeComputeSize()[1] - stretch);
+    n.computeSize = () => [nativeComputeSize()[0], unstretchedHeight()];
+    // Every height that doesn't come from us is somebody stating their intent:
+    // the user dragging the resize handle, "Resize to fit" (`setSize(
+    // computeSize())` → back to the content height), or a workflow being
+    // loaded. Reading the new stretch out *here* rather than in the polled
+    // sync below is what makes it stick: the canvas re-arranges the node on
+    // every frame using the widget's own height, so a shrink that isn't
+    // answered within the same tick is simply pushed back up on the next
+    // frame (reproduced live: the node refused to be dragged shorter).
+    n.setSize = (size: [number, number]) => {
+      if (!applyingOwnSize) {
+        stretch = Math.max(0, size[1] - unstretchedHeight());
+        applyStretch();
+        // `applyStretch()` has just republished the widget height, so the
+        // native computation is now the node box that matches it exactly.
+        size = [size[0], nativeComputeSize()[1]];
+      }
+      nativeSetSize(size);
+    };
+  }
+
   // `getHeight()` above is the source of truth for the node's own box size,
   // but LiteGraph only calls `computeSize()`/re-layouts on its own cadence
   // (draw loop, drag, etc.) — a mid-frame content change (collapsible
@@ -234,6 +319,10 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
   // actual content. Coalesced into one update per animation frame — a
   // section toggle can fire several layout passes in a row.
   function syncNodeHeight() {
+    if (opts.growable) {
+      syncGrowableNodeHeight();
+      return;
+    }
     measureHeight();
     if (!n.computeSize || !n.setSize || !n.size) return;
     const [currentWidth, currentSizeHeight] = n.size;
@@ -246,6 +335,41 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
     const targetHeight = Math.max(computedHeight, requiredTotalHeight, minH);
     if (targetWidth === currentWidth && Math.abs(targetHeight - currentSizeHeight) < 2) return;
     n.setSize([targetWidth, targetHeight]);
+    n.graph?.setDirtyCanvas?.(true, true);
+  }
+
+  // False until the first pass that actually measured the panel. Until then the
+  // node box is left alone: a workflow's saved height must not be overwritten
+  // with the initial estimate while the async component is still resolving.
+  let growableInitialized = false;
+
+  function syncGrowableNodeHeight() {
+    if (!remeasureGrowable()) return;
+    if (!n.computeSize || !n.setSize || !n.size) return;
+    const [currentWidth, currentSizeHeight] = n.size;
+    const [minW, minH] = n.minSize ?? [0, 0];
+    // `computeSize()` is patched above to report the un-stretched height, so
+    // this is the node box that exactly fits the panel's own content.
+    const baseHeight = Math.max(n.computeSize()[1], minH);
+    if (!growableInitialized) {
+      // A saved workflow restores `node.size` directly (no `setSize`), so the
+      // stretch the user left behind has to be read back from the box once.
+      stretch = Math.max(0, currentSizeHeight - baseHeight);
+      growableInitialized = true;
+    }
+    // Content-driven changes land here: collapsing a section shrinks the panel
+    // and, with `stretch` kept as its own number, the node box gives those
+    // pixels back instead of quietly widening the text fields.
+    applyStretch();
+    const targetWidth = Math.max(currentWidth, minW);
+    const targetHeight = baseHeight + stretch;
+    if (targetWidth === currentWidth && Math.abs(targetHeight - currentSizeHeight) < 2) return;
+    applyingOwnSize = true;
+    try {
+      n.setSize([targetWidth, targetHeight]);
+    } finally {
+      applyingOwnSize = false;
+    }
     n.graph?.setDirtyCanvas?.(true, true);
   }
 
