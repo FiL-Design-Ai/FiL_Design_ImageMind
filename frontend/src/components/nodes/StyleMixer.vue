@@ -7,8 +7,10 @@ import { FilSection, FilSlider, FilButton, FilModal, FilStylePicker, FilSegmente
 import type { FilNodeState } from "@/nodes2/filState";
 import { findFilWidget } from "@/nodes2/util";
 import { NODE_CONTRACTS } from "@/api/contracts";
+import { useI18n } from "@/composables/useI18n";
 
 const props = defineProps<{ state: FilNodeState }>();
+const { t } = useI18n();
 
 // Fusion modes come from the generated contract, never from a literal here: a
 // hand-typed label ("Vision LLM Blend (Smart)") is not a value FUSION_MODES in
@@ -78,7 +80,9 @@ function getStyleOptions(name: string): string[] {
 }
 
 function formatStyleLabel(val: string, label: string): string {
-  if (!val || val === "(None)" || val === "None") return `${label}: (None)`;
+  // Only the displayed text is translated — `val` stays the raw contract value
+  // that travels to the backend.
+  if (!val || val === "(None)" || val === "None") return `${label}: ${t('sm_none', '(None)')}`;
   const idx = val.indexOf("/");
   const display = idx === -1 ? val : val.slice(idx + 1);
   return `${label}: ${display}`;
@@ -88,64 +92,65 @@ function formatStyleLabel(val: string, label: string): string {
 <template>
   <div class="fil-style-mixer-root">
     <!-- Fusion Mode -->
-    <FilSection title="🔀 Fusion Mode" />
+    <FilSection :title="t('sm_section_fusion', '🔀 Fusion Mode')" />
     <FilSegmented
       v-model="fusionMode"
       :options="fusionModes"
       :option-labels="FUSION_LABELS"
+      :title="t('sm_fusion_tt', 'Fast Stack just weights the descriptions. Smart Fusion asks the Vision LLM to synthesize one prompt.')"
     />
 
     <!-- Style 1 -->
-    <FilSection title="🎨 Primary Style (Style 1)" />
+    <FilSection :title="t('sm_section_style_1', '🎨 Primary Style (Style 1)')" />
     <FilButton
       variant="full"
-      :label="formatStyleLabel(style1, 'Style 1')"
+      :label="formatStyleLabel(style1, t('sm_style_1', 'Style 1'))"
       @click="picker1Open = true"
     />
-    <FilSlider v-model="weight1" :min="0" :max="1" :step="0.05" label="Style 1 Weight" />
-    <FilModal :open="picker1Open" title="Select Primary Style 1" width="680px" @update:open="(v) => (picker1Open = v)">
+    <FilSlider v-model="weight1" :min="0" :max="1" :step="0.05" :label="t('sm_style_1_weight', 'Style 1 Weight')" />
+    <FilModal :open="picker1Open" :title="t('sm_pick_style_1', 'Select Primary Style 1')" width="680px" @update:open="(v) => (picker1Open = v)">
       <FilStylePicker :styles="getStyleOptions('style_1')" :model-value="style1" @select="(v) => { style1 = v; picker1Open = false; }" />
     </FilModal>
 
     <!-- Style 2 -->
-    <FilSection title="🧪 Secondary Style (Style 2)" />
+    <FilSection :title="t('sm_section_style_2', '🧪 Secondary Style (Style 2)')" />
     <FilButton
       variant="full"
-      :label="formatStyleLabel(style2, 'Style 2')"
+      :label="formatStyleLabel(style2, t('sm_style_2', 'Style 2'))"
       @click="picker2Open = true"
     />
-    <FilSlider v-model="weight2" :min="0" :max="1" :step="0.05" label="Style 2 Weight" />
-    <FilModal :open="picker2Open" title="Select Secondary Style 2" width="680px" @update:open="(v) => (picker2Open = v)">
+    <FilSlider v-model="weight2" :min="0" :max="1" :step="0.05" :label="t('sm_style_2_weight', 'Style 2 Weight')" />
+    <FilModal :open="picker2Open" :title="t('sm_pick_style_2', 'Select Secondary Style 2')" width="680px" @update:open="(v) => (picker2Open = v)">
       <FilStylePicker :styles="getStyleOptions('style_2')" :model-value="style2" @select="(v) => { style2 = v; picker2Open = false; }" />
     </FilModal>
 
     <!-- Style 3 -->
-    <FilSection title="✨ Tertiary Style (Style 3)" />
+    <FilSection :title="t('sm_section_style_3', '✨ Tertiary Style (Style 3)')" />
     <FilButton
       variant="full"
-      :label="formatStyleLabel(style3, 'Style 3')"
+      :label="formatStyleLabel(style3, t('sm_style_3', 'Style 3'))"
       @click="picker3Open = true"
     />
-    <FilSlider v-model="weight3" :min="0" :max="1" :step="0.05" label="Style 3 Weight" />
-    <FilModal :open="picker3Open" title="Select Tertiary Style 3" width="680px" @update:open="(v) => (picker3Open = v)">
+    <FilSlider v-model="weight3" :min="0" :max="1" :step="0.05" :label="t('sm_style_3_weight', 'Style 3 Weight')" />
+    <FilModal :open="picker3Open" :title="t('sm_pick_style_3', 'Select Tertiary Style 3')" width="680px" @update:open="(v) => (picker3Open = v)">
       <FilStylePicker :styles="getStyleOptions('style_3')" :model-value="style3" @select="(v) => { style3 = v; picker3Open = false; }" />
     </FilModal>
 
     <!-- Image Cards -->
-    <FilSection title="🖼️ Image 1 Influence" />
-    <FilSlider v-model="imgWeight1" :min="0" :max="1" :step="0.05" label="Image 1 Weight" />
+    <FilSection :title="t('sm_section_image_1', '🖼️ Image 1 Influence')" />
+    <FilSlider v-model="imgWeight1" :min="0" :max="1" :step="0.05" :label="t('sm_image_1_weight', 'Image 1 Weight')" />
 
-    <FilSection title="🖼️ Image 2 Influence" />
-    <FilSlider v-model="imgWeight2" :min="0" :max="1" :step="0.05" label="Image 2 Weight" />
+    <FilSection :title="t('sm_section_image_2', '🖼️ Image 2 Influence')" />
+    <FilSlider v-model="imgWeight2" :min="0" :max="1" :step="0.05" :label="t('sm_image_2_weight', 'Image 2 Weight')" />
 
     <template v-if="showImg3">
-      <FilSection title="🖼️ Image 3 Influence" />
-      <FilSlider v-model="imgWeight3" :min="0" :max="1" :step="0.05" label="Image 3 Weight" />
+      <FilSection :title="t('sm_section_image_3', '🖼️ Image 3 Influence')" />
+      <FilSlider v-model="imgWeight3" :min="0" :max="1" :step="0.05" :label="t('sm_image_3_weight', 'Image 3 Weight')" />
     </template>
 
     <template v-if="showImg4">
-      <FilSection title="🖼️ Image 4 Influence" />
-      <FilSlider v-model="imgWeight4" :min="0" :max="1" :step="0.05" label="Image 4 Weight" />
+      <FilSection :title="t('sm_section_image_4', '🖼️ Image 4 Influence')" />
+      <FilSlider v-model="imgWeight4" :min="0" :max="1" :step="0.05" :label="t('sm_image_4_weight', 'Image 4 Weight')" />
     </template>
   </div>
 </template>
@@ -155,8 +160,8 @@ function formatStyleLabel(val: string, label: string): string {
   width: 100%; box-sizing: border-box; min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 10px;
+  gap: var(--fil-node-gap);
+  padding: var(--fil-node-pad);
   color: var(--fil-text, #e8edf3);
   font-family: ui-sans-serif, system-ui, sans-serif;
 }

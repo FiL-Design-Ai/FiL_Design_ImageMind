@@ -12,12 +12,14 @@ interface Row {
   defaultOn: boolean;
 }
 
+// `name` is the backend widget id and must never be translated; only `label` is
+// display text.
 const rows: Row[] = [
-  { name: "clean_vram", label: "🧹 Flush GPU Cache", defaultOn: true },
-  { name: "unload_diffusion", label: "🌀 Unload Diffusion (FLUX/SD)", defaultOn: true },
-  { name: "unload_clip", label: "📎 Unload CLIP / Text Encoder", defaultOn: false },
-  { name: "unload_vae", label: "🖼️ Unload VAE", defaultOn: false },
-  { name: "unload_control", label: "🎛️ Unload ControlNet / Adapter", defaultOn: false },
+  { name: "clean_vram", label: t("cln_flush_vram", "🧹 Flush GPU Cache"), defaultOn: true },
+  { name: "unload_diffusion", label: t("cln_unload_diffusion", "🌀 Unload Diffusion (FLUX/SD)"), defaultOn: true },
+  { name: "unload_clip", label: t("cln_unload_clip", "📎 Unload CLIP / Text Encoder"), defaultOn: false },
+  { name: "unload_vae", label: t("cln_unload_vae", "🖼️ Unload VAE"), defaultOn: false },
+  { name: "unload_control", label: t("cln_unload_control", "🎛️ Unload ControlNet / Adapter"), defaultOn: false },
 ];
 
 function isOn(name: string, def: boolean): boolean {
@@ -51,8 +53,8 @@ function toggle(name: string, def: boolean) {
 .fil-cleaner-root { width: 100%; box-sizing: border-box; min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: var(--fil-node-pad, 8px);
+  gap: var(--fil-node-gap);
+  padding: var(--fil-node-pad);
   color: var(--fil-text, #e8edf3);
   font-family: ui-sans-serif, system-ui, sans-serif;
 }

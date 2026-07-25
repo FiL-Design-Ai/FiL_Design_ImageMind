@@ -7,8 +7,10 @@ import { FilSection, FilSegmented, FilSlider } from "@/components/widgets";
 import type { FilNodeState } from "@/nodes2/filState";
 import { findFilWidget } from "@/nodes2/util";
 import { NODE_CONTRACTS } from "@/api/contracts";
+import { useI18n } from "@/composables/useI18n";
 
 const props = defineProps<{ state: FilNodeState }>();
+const { t } = useI18n();
 
 // Methods come from the generated contract (backed by METHODS in
 // common/color_correction.py), never from literals here: "LAB Contrast" is not a
@@ -75,48 +77,61 @@ function applyPreset(preset: "warm" | "cool" | "skin" | "contrast") {
   <div class="fil-color-wizard-root">
     <!-- Quick Presets -->
     <div class="fil-cw-presets-block">
-      <div class="fil-cw-presets-title">⚡ Quick Presets</div>
+      <div class="fil-cw-presets-title">{{ t('cw_presets', '⚡ Quick Presets') }}</div>
       <div class="fil-cw-presets-grid">
-        <button type="button" class="fil-cw-preset-btn warm" title="Warm Sunny Tone" @click="applyPreset('warm')">
-          ☀️ Warm Sun
+        <button type="button" class="fil-cw-preset-btn warm"
+          :title="t('cw_preset_warm_tt', 'Warm Sunny Tone')" @click="applyPreset('warm')">
+          {{ t('cw_preset_warm', '☀️ Warm Sun') }}
         </button>
-        <button type="button" class="fil-cw-preset-btn cool" title="Cool Sci-Fi Cyberpunk Tone" @click="applyPreset('cool')">
-          🧊 Cool Sci-Fi
+        <button type="button" class="fil-cw-preset-btn cool"
+          :title="t('cw_preset_cool_tt', 'Cool Sci-Fi Cyberpunk Tone')" @click="applyPreset('cool')">
+          {{ t('cw_preset_cool', '🧊 Cool Sci-Fi') }}
         </button>
-        <button type="button" class="fil-cw-preset-btn skin" title="Natural Skin Preservation" @click="applyPreset('skin')">
-          👤 Skin Protect
+        <button type="button" class="fil-cw-preset-btn skin"
+          :title="t('cw_preset_skin_tt', 'Natural Skin Preservation')" @click="applyPreset('skin')">
+          {{ t('cw_preset_skin', '👤 Skin Protect') }}
         </button>
-        <button type="button" class="fil-cw-preset-btn contrast" title="Punchy LAB Contrast" @click="applyPreset('contrast')">
-          ⚡ Contrast
+        <button type="button" class="fil-cw-preset-btn contrast"
+          :title="t('cw_preset_contrast_tt', 'Punchy LAB Contrast')" @click="applyPreset('contrast')">
+          {{ t('cw_preset_contrast', '⚡ Contrast') }}
         </button>
       </div>
     </div>
 
     <!-- Algorithm Method -->
-    <FilSection title="⚙️ Method" />
+    <FilSection :title="t('cw_section_method', '⚙️ Method')" />
     <FilSegmented
       v-model="method"
       :options="methodOptions"
+      :title="t('tt_cw_method', 'Correction algorithm.')"
     />
 
     <!-- Adjustment Sliders -->
-    <FilSection title="🎛️ Adjustments" />
+    <FilSection :title="t('cw_section_adjust', '🎛️ Adjustments')" />
     <div class="fil-cw-slider-group">
-      <FilSlider v-model="strength" :min="0" :max="1" :step="0.05" label="Correction Strength" />
-      <FilSlider v-model="temperature" :min="-1" :max="1" :step="0.05" label="Temperature (Warm/Cool)" />
-      <FilSlider v-model="tint" :min="-1" :max="1" :step="0.05" label="Tint (Green/Magenta)" />
+      <FilSlider v-model="strength" :min="0" :max="1" :step="0.05"
+        :label="t('cw_strength', 'Correction Strength')"
+        :title="t('tt_cw_strength', 'Correction strength (0 = no change).')" />
+      <FilSlider v-model="temperature" :min="-1" :max="1" :step="0.05"
+        :label="t('cw_temperature', 'Temperature (Warm/Cool)')"
+        :title="t('tt_cw_temperature', 'Colour temperature.')" />
+      <FilSlider v-model="tint" :min="-1" :max="1" :step="0.05"
+        :label="t('cw_tint', 'Tint (Green/Magenta)')"
+        :title="t('tt_cw_tint', 'Colour tint.')" />
     </div>
 
     <!-- Skin Protection Toggle -->
     <div class="fil-cw-toggle-row">
-      <span class="fil-cw-toggle-label">🛡️ Preserve Skin Tones</span>
+      <span class="fil-cw-toggle-label">{{ t('cw_preserve_skin', '🛡️ Preserve Skin Tones') }}</span>
       <button
         type="button"
         class="fil-cw-toggle-btn"
         :class="{ active: preserveSkin }"
+        :title="t('tt_cw_preserve_skin', 'Preserve skin tones.')"
+        :aria-pressed="preserveSkin"
         @click="preserveSkin = !preserveSkin"
       >
-        {{ preserveSkin ? 'ON' : 'OFF' }}
+        {{ preserveSkin ? t('cw_on', 'ON') : t('cw_off', 'OFF') }}
       </button>
     </div>
   </div>
@@ -127,8 +142,8 @@ function applyPreset(preset: "warm" | "cool" | "skin" | "contrast") {
   width: 100%; box-sizing: border-box; min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 10px;
+  gap: var(--fil-node-gap);
+  padding: var(--fil-node-pad);
   color: var(--fil-text, #e8edf3);
   font-family: ui-sans-serif, system-ui, sans-serif;
 }
@@ -223,7 +238,7 @@ function applyPreset(preset: "warm" | "cool" | "skin" | "contrast") {
 .fil-cw-toggle-btn.active {
   background: var(--fil-accent, #00f0ff);
   border-color: var(--fil-accent, #00f0ff);
-  color: #12151a;
-  box-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+  color: var(--fil-accent-ink, #12151a);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--fil-accent, #00f0ff) 40%, transparent);
 }
 </style>
