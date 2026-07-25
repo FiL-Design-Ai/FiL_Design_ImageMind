@@ -12,6 +12,9 @@
  */
 import { computed, ref } from "vue";
 import { STYLE_PREVIEWS } from "@/generated/stylePreviews";
+import { useI18n } from "@/composables/useI18n";
+
+const { t } = useI18n();
 
 const props = withDefaults(
   defineProps<{
@@ -123,7 +126,7 @@ function select(key: string) {
         :class="{ active: activeCategory === ALL }"
         @click="activeCategory = ALL"
       >
-        All
+        {{ t('fsp_all_categories', 'All') }}
       </button>
       <button
         v-for="c in categories"
@@ -141,15 +144,15 @@ function select(key: string) {
         v-model="query"
         type="search"
         class="fil-style-search"
-        placeholder="Search styles…"
-        aria-label="Search styles"
+        :placeholder="t('fsp_search_placeholder', 'Search styles…')"
+        :aria-label="t('fsp_search_aria', 'Search styles')"
         spellcheck="false"
       />
       <button
         v-if="query.trim().length > 0"
         type="button"
         class="fil-style-search-clear"
-        title="Clear search"
+        :title="t('fsp_clear_search', 'Clear search')"
         @click="query = ''"
       >
         ×
