@@ -4,9 +4,40 @@ import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
 import { createSyncedNodeState, findFilWidget, sanitizeWidgetValue } from "@/nodes2/util";
+import { exposeWidgetInputSockets } from "@/nodes2/widgetInputSockets";
 import { applyFxComposables } from "@/nodes2/applyFxComposables";
 
 const OpticScannerVue = defineAsyncComponent(() => import("@/components/nodes/OpticScanner.vue"));
+
+/**
+ * Text fields that also accept a link from another node (a prompt builder, a
+ * "String" primitive, another Scanner's `prompt` output, …). Their sockets are
+ * re-exposed by `exposeWidgetInputSockets` — hiding the native widget hides its
+ * socket too — and OpticScanner.vue lines each dot up with its own field and
+ * greys the field out while a link drives it.
+ */
+export const SCANNER_TEXT_INPUTS = ["prompt", "negative_prompt", "custom_style"];
+
+/** Name of the DOM widget carrying the Vue panel. */
+const VIEW_WIDGET = "fil_scanner_view";
+
+/**
+ * Hide every native widget so nothing is drawn on the canvas behind the panel —
+ * except the panel's own DOM widget.
+ *
+ * LiteGraph's layout pass skips hidden widgets (`getLayoutWidgets()`), so
+ * hiding the panel widget drops the panel's height out of `node.computeSize()`.
+ * `onConfigure` runs *after* the DOM widget has been added, and the blanket
+ * loop this replaces caught it: a scanner restored from a saved workflow
+ * reported a 74px content height for a 1062px panel, and the box the user got
+ * was whatever the file happened to have saved (verified live on 1.47.10).
+ */
+function hideNativeWidgets(node: { widgets?: unknown[] }): void {
+  for (const w of ((node.widgets || []) as { name?: string; hidden?: boolean }[])) {
+    if (w.name === VIEW_WIDGET) continue;
+    w.hidden = true;
+  }
+}
 
 export const scannerNode: NodeModule = {
   id: "FiLOpticScanner",
@@ -31,11 +62,10 @@ export const scannerNode: NodeModule = {
     };
     const p = proto.prototype;
 
-    // `prompt`/`negative_prompt`/`custom_style` are kept as native LiteGraph
-    // widgets (NOT hidden) so ComfyUI's built-in drag-to-connect works on them
-    // exactly like any other string widget: drag a STRING output onto the field
-    // and it converts in-place to an input socket. Their values are read by
-    // ComfyUI directly from the native widget, not from the Vue state.
+    // Every native widget is hidden — the Vue panel renders all of them,
+    // including the three text fields, whose values reach `execute()` through
+    // the hidden widgets (createSyncedNodeState mirrors the panel onto them).
+    // The text fields' *sockets* are put back by exposeWidgetInputSockets().
     const allWidgetNames = [
       "prompt", "negative_prompt", "custom_style",
       "agent", "model_type", "detail_level", "language",
@@ -63,9 +93,7 @@ export const scannerNode: NodeModule = {
       initialNodeState.seed_mode = "random";
 
       // Also ensure any remaining native widgets are hidden to prevent canvas overlap
-      for (const w of ((node.widgets || []) as { hidden?: boolean }[])) {
-        w.hidden = true;
-      }
+      hideNativeWidgets(node);
 
       const state = {
         nodeState: createSyncedNodeState(node, initialNodeState),
@@ -76,7 +104,10 @@ export const scannerNode: NodeModule = {
       Object.defineProperty(state, "node", { value: node, enumerable: false, configurable: true });
       node._filScannerSeedState = state;
 
-      addFilDomWidget(node, "fil_scanner_view", OpticScannerVue, { state, height: 580 });
+      exposeWidgetInputSockets(node, SCANNER_TEXT_INPUTS);
+      // `growable`: the panel's prompt fields absorb whatever height the user
+      // drags past the content (see OpticScanner.vue's `.is-growable` rows).
+      addFilDomWidget(node, VIEW_WIDGET, OpticScannerVue, { state, height: 580, growable: true });
       return result;
     };
 
@@ -94,9 +125,10 @@ export const scannerNode: NodeModule = {
         state.nodeState[name] = sanitizeWidgetValue(w, isNum ? "number" : "string", fallback);
         (w as { hidden?: boolean }).hidden = true;
       }
-      for (const w of ((node.widgets || []) as { hidden?: boolean }[])) {
-        w.hidden = true;
-      }
+      hideNativeWidgets(node);
+      // A loaded workflow replaces `node.inputs` with its own saved array, so
+      // the `alwaysVisible` flags set at creation are gone by now.
+      exposeWidgetInputSockets(node, SCANNER_TEXT_INPUTS);
       return result;
     };
 

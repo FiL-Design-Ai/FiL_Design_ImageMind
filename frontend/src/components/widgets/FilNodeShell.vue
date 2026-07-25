@@ -21,5 +21,10 @@ defineProps<{ root: Component; state: Record<string, unknown>; comfyClass: strin
   position: relative;
   width: 100%;
   box-sizing: border-box;
+  /* Pass the host's height through to the node body. `growable` nodes (see
+   * domWidgetHost.ts) give the host an explicit pixel height so their panel can
+   * hand the spare space to flexible fields; everywhere else the host stays
+   * `height: auto`, where a percentage resolves to auto and this is inert. */
+  height: 100%;
 }
 </style>

@@ -8,6 +8,12 @@ export interface ComfyLikeWidget {
   options?: { values?: unknown[] };
   hidden?: boolean;
   /**
+   * Row offset inside the node body, in node-local pixels. LiteGraph's layout
+   * pass writes it for visible widgets; for hidden ones we write it ourselves
+   * to position their input sockets (see nodes2/widgetInputSockets.ts).
+   */
+  y?: number;
+  /**
    * Optional `computeSize` (LiteGraph widget layout callback). We keep it
    * around so visibility toggles can restore the original after hide.
    */

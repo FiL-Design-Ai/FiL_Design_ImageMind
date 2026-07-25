@@ -53,6 +53,8 @@
   "scn_unified_style_title": "🎨 Выбор визуального стиля",
   "scn_style_button_none": "Стиль: Не выбран",
   "scn_clear_all_styles": "🗑️ Очистить все стили",
+  "scn_field_linked": "🔗 Текст приходит из подключённого узла",
+  "scn_field_linked_tt": "Значение берётся из подключённого входа — отключите связь, чтобы вводить текст здесь.",
   "sd_random_label": "🔀 Случайный",
   "sd_mode": "Random создаёт новый seed при каждом запуске.",
   "sd_locked": "Зафиксированный seed",
@@ -275,5 +277,9 @@
   "unit_hours_short": "ч",
   "sd_no_last_seed": "Ещё не было предыдущего запуска с сидом",
   "sd_aria_seed_value": "Значение seed",
-  "hrf_aria_seed_value": "Значение hires-seed"
+  "hrf_aria_seed_value": "Значение hires-seed",
+  "fsp_search_placeholder": "Поиск стилей…",
+  "fsp_search_aria": "Поиск стилей",
+  "fsp_clear_search": "Очистить поиск",
+  "fsp_all_categories": "Все"
 }

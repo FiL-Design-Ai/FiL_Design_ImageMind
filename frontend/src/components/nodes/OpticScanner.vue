@@ -1,12 +1,13 @@
 <script setup lang="ts">
 /** FiLOpticScanner — image analysis / prompt expansion via LLM. */
-import { computed, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { FilChipGrid, FilChipList, FilSegmented, FilSection, FilButton, FilModal, FilStylePicker } from "@/components/widgets";
 import { toast } from "@/stores/toastStore";
 import { NODE_CONTRACTS, type WidgetSpec } from "@/api/contracts";
 import type { FilNodeState } from "@/nodes2/filState";
 import { useI18n } from "@/composables/useI18n";
 import { findFilWidget } from "@/nodes2/util";
+import { anchorWidgetInputSockets, readLinkedInputs } from "@/nodes2/widgetInputSockets";
 
 const props = defineProps<{ state: FilNodeState }>();
 const { t } = useI18n();
@@ -89,6 +90,64 @@ function formatFieldLabel(w: WidgetSpec): string {
     .replace(/\b\w/g, (ch) => ch.toUpperCase());
   return emoji ? `${emoji} ${base}` : base;
 }
+
+// ── Text fields that double as input sockets ─────────────────────────────
+// Each of these has a hidden native widget behind it, and hiding a widget hides
+// its input socket too — nodes2/scanner.ts puts the sockets back, and the dots
+// are lined up with the fields here so it is obvious which one feeds which.
+// While a link is attached the field is read-only: anything typed into it would
+// be silently overridden by the link when the prompt is queued.
+const TEXT_FIELD_NAMES = ["prompt", "negative_prompt", "custom_style"];
+/** Fields that absorb the height the user drags past the panel's content. */
+const GROWABLE_FIELD_NAMES = new Set(["prompt", "negative_prompt"]);
+
+const fieldEls: Record<string, HTMLElement | null> = {};
+
+function setFieldEl(name: string, el: unknown): void {
+  fieldEls[name] = (el as HTMLElement | null) ?? null;
+}
+
+function isTextField(name: string): boolean {
+  return TEXT_FIELD_NAMES.includes(name);
+}
+function isGrowable(name: string): boolean {
+  return GROWABLE_FIELD_NAMES.has(name);
+}
+const linkedFields = ref<Record<string, boolean>>({});
+
+function isLinked(name: string): boolean {
+  return Boolean(linkedFields.value[name]);
+}
+function fieldTooltip(w: WidgetSpec): string {
+  if (isLinked(w.name)) return t("scn_field_linked_tt", "Driven by the connected input — disconnect it to type here.");
+  return widgetTooltip(w);
+}
+
+// The socket dots have to follow the fields: they move whenever a section is
+// collapsed, the node is resized, or the panel is stretched. LiteGraph owns the
+// canvas draw loop and the link table, so a cheap poll is what keeps both the
+// dots and the "driven by a link" state in step — same rationale as the
+// backstop poll in domWidgetHost.ts. Nothing here re-renders unless something
+// actually changed: `anchorWidgetInputSockets` only re-arranges on a real move,
+// and the link map is only reassigned when a link came or went.
+function syncTextFieldSockets(): void {
+  const node = props.state.node;
+  if (!node) return;
+  anchorWidgetInputSockets(node, TEXT_FIELD_NAMES.map((name) => ({ name, el: fieldEls[name] })));
+  const linked = readLinkedInputs(node, TEXT_FIELD_NAMES);
+  if (TEXT_FIELD_NAMES.some((name) => linked[name] !== Boolean(linkedFields.value[name]))) {
+    linkedFields.value = linked;
+  }
+}
+
+let socketPoll = 0;
+onMounted(() => {
+  syncTextFieldSockets();
+  socketPoll = window.setInterval(syncTextFieldSockets, 300);
+});
+onBeforeUnmount(() => {
+  if (socketPoll) window.clearInterval(socketPoll);
+});
 
 const isUnifiedStylePickerOpen = ref<boolean>(false);
 const activeStyleTab = ref<string>("photo_style");
@@ -240,7 +299,8 @@ function newFixedSeed() {
 <template>
   <div class="fil-scanner-root">
     <template v-for="(specs, section) in grouped" :key="section">
-      <div v-if="section !== 'styles'" class="fil-section-block">
+      <div v-if="section !== 'styles'" class="fil-section-block"
+        :class="{ 'is-growable': section === 'prompt' }">
         <FilSection v-if="section !== '_' && section !== 'prompt'" :title="sectionLabel(String(section))"
           :model-value="isCollapsed(String(section))"
           @update:model-value="(v: boolean) => setCollapsed(String(section), v)" />
@@ -302,22 +362,19 @@ function newFixedSeed() {
 
           <div
             v-show="section === '_' || section === 'prompt' || !isCollapsed(String(section))"
-            class="fil-w-row" :title="widgetTooltip(w)">
+            class="fil-w-row"
+            :class="{ 'is-growable': isGrowable(w.name), 'is-linked': isTextField(w.name) && isLinked(w.name) }"
+            :title="isTextField(w.name) ? fieldTooltip(w) : widgetTooltip(w)">
             <textarea
-              v-if="w.name === 'prompt' || w.name === 'negative_prompt'"
+              v-if="w.name === 'prompt' || w.name === 'negative_prompt' || w.name === 'custom_style'"
+              :ref="(el) => setFieldEl(w.name, el)"
               :value="String(getValue(w.name, ''))"
               class="fil-scanner-textarea"
-              :placeholder="formatFieldLabel(w)"
+              :class="{ 'is-linked': isLinked(w.name) }"
+              :placeholder="isLinked(w.name) ? t('scn_field_linked', '🔗 Text comes from the connected node') : formatFieldLabel(w)"
+              :readonly="isLinked(w.name)"
               rows="2"
               @input="(e) => setValue(w.name, (e.target as HTMLTextAreaElement).value)"
-            />
-            <input
-              v-else-if="w.name === 'custom_style'"
-              :value="String(getValue(w.name, ''))"
-              type="text"
-              class="fil-scanner-input"
-              :placeholder="formatFieldLabel(w)"
-              @input="(e) => setValue(w.name, (e.target as HTMLInputElement).value)"
             />
             <FilChipGrid v-else-if="w.kind === 'chip_grid'"
               :options="w.values || []" :model-value="String(getValue(w.name, ''))"
@@ -373,12 +430,23 @@ function newFixedSeed() {
   display: flex; flex-direction: column; gap: var(--fil-node-gap); padding: var(--fil-node-pad);
   color: var(--fil-text, #e8edf3); font-family: ui-sans-serif, system-ui, sans-serif;
   width: 100%; box-sizing: border-box; min-width: 0;
+  /* `growable: true` in nodes2/scanner.ts gives the host an explicit height
+   * (content height + whatever the user dragged on top of it) — filling it
+   * here is what hands those extra pixels to the `.is-growable` rows below.
+   * With the host back at `height: auto` (any other node) a percentage height
+   * resolves to auto, so this is inert outside growable mode. */
+  height: 100%;
 }
 .fil-section-block { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+/* The prompt section and its two textareas share the node's spare height. */
+.fil-section-block.is-growable { flex: 1 1 auto; min-height: 0; }
 .fil-w-row { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.fil-w-row.is-growable { flex: 1 1 auto; min-height: 0; }
+.fil-w-row.is-growable > .fil-scanner-textarea { flex: 1 1 auto; height: auto; }
 .fil-scanner-textarea {
   box-sizing: border-box;
   width: 100%;
+  min-height: 48px;
   padding: 8px 10px;
   background: var(--fil-panel-alt, #171819);
   border: 1px solid var(--fil-muted, #3a3d40);
@@ -392,20 +460,13 @@ function newFixedSeed() {
 .fil-scanner-textarea:focus {
   border-color: var(--fil-accent, #00f0ff);
 }
-.fil-scanner-input {
-  box-sizing: border-box;
-  width: 100%;
-  padding: 7px 10px;
-  background: var(--fil-panel-alt, #171819);
-  border: 1px solid var(--fil-muted, #3a3d40);
-  border-radius: 6px;
-  color: var(--fil-text, #ddd);
-  font-family: inherit;
-  font-size: 12px;
-  outline: none;
-}
-.fil-scanner-input:focus {
+/* A link on the matching input socket wins over whatever is typed here, so the
+ * field reads as a display of that fact instead of an editable value. */
+.fil-scanner-textarea.is-linked {
+  border-style: dashed;
   border-color: var(--fil-accent, #00f0ff);
+  color: var(--fil-muted, #9ca8b5);
+  cursor: not-allowed;
 }
 .fil-single-style-block { margin-top: 2px; }
 

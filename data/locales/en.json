@@ -53,6 +53,8 @@
   "scn_unified_style_title": "🎨 Visual Style Selection",
   "scn_style_button_none": "Style: None",
   "scn_clear_all_styles": "🗑️ Clear all styles",
+  "scn_field_linked": "🔗 Text comes from the connected node",
+  "scn_field_linked_tt": "Driven by the connected input — disconnect it to type here.",
   "sd_random_label": "🔀 Random",
   "sd_mode": "Random generates a new seed each run.",
   "sd_locked": "Locked seed",
@@ -275,5 +277,9 @@
   "unit_hours_short": "h",
   "sd_no_last_seed": "No last-run seed recorded yet",
   "sd_aria_seed_value": "Seed value",
-  "hrf_aria_seed_value": "Hires seed value"
+  "hrf_aria_seed_value": "Hires seed value",
+  "fsp_search_placeholder": "Search styles…",
+  "fsp_search_aria": "Search styles",
+  "fsp_clear_search": "Clear search",
+  "fsp_all_categories": "All"
 }
