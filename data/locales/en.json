@@ -265,5 +265,7 @@
   "cln_unload_diffusion": "🌀 Unload Diffusion (FLUX/SD)",
   "cln_unload_clip": "📎 Unload CLIP / Text Encoder",
   "cln_unload_vae": "🖼️ Unload VAE",
-  "cln_unload_control": "🎛️ Unload ControlNet / Adapter"
+  "cln_unload_control": "🎛️ Unload ControlNet / Adapter",
+  "sm_fusion_fast": "⚡ Fast Stack",
+  "sm_fusion_smart": "🧬 Smart LLM Fusion"
 }

@@ -24,10 +24,14 @@ const fusionSpec =
 const fusionModes = computed<string[]>(() =>
   fusionSpec?.values?.length ? fusionSpec.values : ["Weighted Stack (Fast)"],
 );
-const FUSION_LABELS: Record<string, string> = {
-  "Weighted Stack (Fast)": "⚡ Fast Stack",
-  "Smart LLM Fusion (Gen-Mix)": "🧬 Smart LLM Fusion",
-};
+// Keys are the backend values and must stay verbatim; only the shown text is
+// translated. This has to be a computed, not a plain const: useI18n fetches the
+// dictionary asynchronously, so anything calling t() at <script setup> time
+// captures the English fallback and never updates.
+const FUSION_LABELS = computed<Record<string, string>>(() => ({
+  "Weighted Stack (Fast)": t("sm_fusion_fast", "⚡ Fast Stack"),
+  "Smart LLM Fusion (Gen-Mix)": t("sm_fusion_smart", "🧬 Smart LLM Fusion"),
+}));
 
 function createRef<T>(name: string, defaultValue: T) {
   return computed<T>({

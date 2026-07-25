@@ -51,22 +51,22 @@ function setViewMode(mode: "list" | "grid") {
 // provider-dependent: local providers (ollama/lmstudio) only ever have "local"
 // models, remote ones split into free/paid.
 const TYPE_OPTIONS = ["all", "vision", "text"] as const;
-const TYPE_LABELS: Record<string, string> = {
+const TYPE_LABELS = computed<Record<string, string>>(() => ({
   all: t("pmp_all_types", "All Types"),
   vision: t("pmp_tag_vision_opt", "👁 Vision"),
   text: t("pmp_tag_text_opt", "📝 Text"),
-};
-const TIER_LABELS: Record<string, string> = {
+}));
+const TIER_LABELS = computed<Record<string, string>>(() => ({
   all: t("pmp_all_tiers", "All Tiers"),
   local: t("pmp_tier_local", "💻 Local"),
   free: t("pmp_tier_free", "🆓 Free"),
   paid: t("pmp_tier_paid", "💎 Paid"),
-};
+}));
 const VIEW_OPTIONS = ["list", "grid"] as const;
-const VIEW_LABELS: Record<string, string> = {
+const VIEW_LABELS = computed<Record<string, string>>(() => ({
   list: t("pmp_view_list", "☰ List"),
   grid: t("pmp_view_grid", "⊞ Tiles"),
-};
+}));
 
 const tierOptions = computed<string[]>(() =>
   selectedProvider.value === "ollama" || selectedProvider.value === "lmstudio"
