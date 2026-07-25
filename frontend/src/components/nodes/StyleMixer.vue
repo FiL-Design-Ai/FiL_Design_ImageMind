@@ -1,0 +1,163 @@
+<script setup lang="ts">
+/**
+ * FiLStyleMixer - Cyberpunk HUD panel for mixing 3 style prompts & up to 4 image fusion cards.
+ */
+import { computed, ref } from "vue";
+import { FilSection, FilSlider, FilButton, FilModal, FilStylePicker, FilSegmented } from "@/components/widgets";
+import type { FilNodeState } from "@/nodes2/filState";
+import { findFilWidget } from "@/nodes2/util";
+import { NODE_CONTRACTS } from "@/api/contracts";
+
+const props = defineProps<{ state: FilNodeState }>();
+
+// Fusion modes come from the generated contract, never from a literal here: a
+// hand-typed label ("Vision LLM Blend (Smart)") is not a value FUSION_MODES in
+// nodes/node_style_mixer.py knows, so picking it wrote a string execute() never
+// matches — Smart fusion silently degraded to Weighted Stack, and the value is
+// not even a legal option for the COMBO input.
+const fusionContract = NODE_CONTRACTS["FiLStyleMixer"];
+const fusionSpec =
+  fusionContract?.inputs.required.find((i) => i.name === "fusion_mode") ||
+  fusionContract?.inputs.optional.find((i) => i.name === "fusion_mode");
+const fusionModes = computed<string[]>(() =>
+  fusionSpec?.values?.length ? fusionSpec.values : ["Weighted Stack (Fast)"],
+);
+const FUSION_LABELS: Record<string, string> = {
+  "Weighted Stack (Fast)": "⚡ Fast Stack",
+  "Smart LLM Fusion (Gen-Mix)": "🧬 Smart LLM Fusion",
+};
+
+function createRef<T>(name: string, defaultValue: T) {
+  return computed<T>({
+    get: () => (props.state.nodeState[name] as T) ?? defaultValue,
+    set: (val: T) => {
+      props.state.nodeState[name] = val;
+      const w = props.state.node ? findFilWidget(props.state.node, name) : null;
+      if (w) w.value = val;
+    },
+  });
+}
+
+const fusionMode = createRef<string>("fusion_mode", "Weighted Stack (Fast)");
+
+const style1 = createRef<string>("style_1", "(None)");
+const weight1 = createRef<number>("weight_1", 1.0);
+
+const style2 = createRef<string>("style_2", "(None)");
+const weight2 = createRef<number>("weight_2", 0.5);
+
+const style3 = createRef<string>("style_3", "(None)");
+const weight3 = createRef<number>("weight_3", 0.3);
+
+const imgWeight1 = createRef<number>("img_weight_1", 0.8);
+const imgWeight2 = createRef<number>("img_weight_2", 0.6);
+const imgWeight3 = createRef<number>("img_weight_3", 0.4);
+const imgWeight4 = createRef<number>("img_weight_4", 0.2);
+
+const picker1Open = ref(false);
+const picker2Open = ref(false);
+const picker3Open = ref(false);
+
+const slotVersion = computed(() => (props.state.ui as Record<string, unknown>).slotVersion ?? 0);
+
+function isSlotConnected(slotName: string): boolean {
+  void slotVersion.value;
+  const node = props.state.node as { _allInputs?: Array<{ name: string; link: number | null }> } | undefined;
+  if (!node?._allInputs) return false;
+  const slot = node._allInputs.find((s) => s.name === slotName);
+  return Boolean(slot && slot.link != null);
+}
+
+const showImg3 = computed(() => isSlotConnected("image_2"));
+const showImg4 = computed(() => isSlotConnected("image_3"));
+
+function getStyleOptions(name: string): string[] {
+  if (!props.state.node) return [];
+  const w = findFilWidget(props.state.node, name);
+  return (w?.options as { values?: string[] })?.values || (w as { values?: string[] })?.values || [];
+}
+
+function formatStyleLabel(val: string, label: string): string {
+  if (!val || val === "(None)" || val === "None") return `${label}: (None)`;
+  const idx = val.indexOf("/");
+  const display = idx === -1 ? val : val.slice(idx + 1);
+  return `${label}: ${display}`;
+}
+</script>
+
+<template>
+  <div class="fil-style-mixer-root">
+    <!-- Fusion Mode -->
+    <FilSection title="🔀 Fusion Mode" />
+    <FilSegmented
+      v-model="fusionMode"
+      :options="fusionModes"
+      :option-labels="FUSION_LABELS"
+    />
+
+    <!-- Style 1 -->
+    <FilSection title="🎨 Primary Style (Style 1)" />
+    <FilButton
+      variant="full"
+      :label="formatStyleLabel(style1, 'Style 1')"
+      @click="picker1Open = true"
+    />
+    <FilSlider v-model="weight1" :min="0" :max="1" :step="0.05" label="Style 1 Weight" />
+    <FilModal :open="picker1Open" title="Select Primary Style 1" width="680px" @update:open="(v) => (picker1Open = v)">
+      <FilStylePicker :styles="getStyleOptions('style_1')" :model-value="style1" @select="(v) => { style1 = v; picker1Open = false; }" />
+    </FilModal>
+
+    <!-- Style 2 -->
+    <FilSection title="🧪 Secondary Style (Style 2)" />
+    <FilButton
+      variant="full"
+      :label="formatStyleLabel(style2, 'Style 2')"
+      @click="picker2Open = true"
+    />
+    <FilSlider v-model="weight2" :min="0" :max="1" :step="0.05" label="Style 2 Weight" />
+    <FilModal :open="picker2Open" title="Select Secondary Style 2" width="680px" @update:open="(v) => (picker2Open = v)">
+      <FilStylePicker :styles="getStyleOptions('style_2')" :model-value="style2" @select="(v) => { style2 = v; picker2Open = false; }" />
+    </FilModal>
+
+    <!-- Style 3 -->
+    <FilSection title="✨ Tertiary Style (Style 3)" />
+    <FilButton
+      variant="full"
+      :label="formatStyleLabel(style3, 'Style 3')"
+      @click="picker3Open = true"
+    />
+    <FilSlider v-model="weight3" :min="0" :max="1" :step="0.05" label="Style 3 Weight" />
+    <FilModal :open="picker3Open" title="Select Tertiary Style 3" width="680px" @update:open="(v) => (picker3Open = v)">
+      <FilStylePicker :styles="getStyleOptions('style_3')" :model-value="style3" @select="(v) => { style3 = v; picker3Open = false; }" />
+    </FilModal>
+
+    <!-- Image Cards -->
+    <FilSection title="🖼️ Image 1 Influence" />
+    <FilSlider v-model="imgWeight1" :min="0" :max="1" :step="0.05" label="Image 1 Weight" />
+
+    <FilSection title="🖼️ Image 2 Influence" />
+    <FilSlider v-model="imgWeight2" :min="0" :max="1" :step="0.05" label="Image 2 Weight" />
+
+    <template v-if="showImg3">
+      <FilSection title="🖼️ Image 3 Influence" />
+      <FilSlider v-model="imgWeight3" :min="0" :max="1" :step="0.05" label="Image 3 Weight" />
+    </template>
+
+    <template v-if="showImg4">
+      <FilSection title="🖼️ Image 4 Influence" />
+      <FilSlider v-model="imgWeight4" :min="0" :max="1" :step="0.05" label="Image 4 Weight" />
+    </template>
+  </div>
+</template>
+
+<style scoped>
+.fil-style-mixer-root {
+  width: 100%; box-sizing: border-box; min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+  color: var(--fil-text, #e8edf3);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+</style>
