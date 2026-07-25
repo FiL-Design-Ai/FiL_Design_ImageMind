@@ -1,5 +1,6 @@
 <script setup lang="ts">
-/** FiLNeuroCleaner — toggle button list for VRAM & model cleanup targets. */
+/** FiLNeuroCleaner — toggle list for VRAM & model cleanup targets. */
+import { FilToggle } from "@/components/widgets";
 import type { FilNodeState } from "@/nodes2/filState";
 import { useI18n } from "@/composables/useI18n";
 
@@ -27,25 +28,22 @@ function isOn(name: string, def: boolean): boolean {
   return typeof v === "boolean" ? v : def;
 }
 
-function toggle(name: string, def: boolean) {
-  props.state.nodeState[name] = !isOn(name, def);
+function setOn(name: string, on: boolean) {
+  props.state.nodeState[name] = on;
 }
 </script>
 
 <template>
   <div class="fil-cleaner-root">
-    <button
+    <!-- Shared FilToggle rather than a bespoke row button: this node used to
+         draw its own switch, so it read differently from every other panel. -->
+    <FilToggle
       v-for="r in rows"
       :key="r.name"
-      type="button"
-      class="fil-cleaner-row"
-      :class="{ active: isOn(r.name, r.defaultOn) }"
-      :aria-pressed="isOn(r.name, r.defaultOn)"
-      @click="toggle(r.name, r.defaultOn)"
-    >
-      <span class="fil-cleaner-dot" />
-      <span class="fil-cleaner-label">{{ t(`nc_${r.name}`, r.label) }}</span>
-    </button>
+      :model-value="isOn(r.name, r.defaultOn) ? 'ON' : 'OFF'"
+      :label="r.label"
+      @update:model-value="(v: 'ON' | 'OFF') => setOn(r.name, v === 'ON')"
+    />
   </div>
 </template>
 
@@ -57,57 +55,5 @@ function toggle(name: string, def: boolean) {
   padding: var(--fil-node-pad);
   color: var(--fil-text, #e8edf3);
   font-family: ui-sans-serif, system-ui, sans-serif;
-}
-.fil-cleaner-row {
-  all: unset;
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  border-radius: var(--fil-field-radius, 6px);
-  border: 1px solid var(--fil-glass-border, rgba(255, 255, 255, 0.08));
-  background: var(--fil-glass-bg, rgba(255, 255, 255, 0.04));
-  cursor: pointer;
-  user-select: none;
-  transition: background 0.12s, border-color 0.12s;
-}
-.fil-cleaner-row:hover {
-  background: rgba(255, 255, 255, 0.08);
-}
-.fil-cleaner-row.active {
-  border-color: var(--fil-accent);
-  background: color-mix(in srgb, var(--fil-accent) 14%, transparent);
-}
-.fil-cleaner-dot {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  flex: none;
-  transition: border-color 0.12s, background 0.12s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.fil-cleaner-dot::after {
-  content: "✓";
-  font-size: 10px;
-  line-height: 1;
-  color: var(--fil-accent-ink, #fff);
-  opacity: 0;
-  transition: opacity 0.12s;
-}
-.fil-cleaner-row.active .fil-cleaner-dot {
-  background: var(--fil-accent);
-  border-color: var(--fil-accent);
-}
-.fil-cleaner-row.active .fil-cleaner-dot::after {
-  opacity: 1;
-}
-.fil-cleaner-label {
-  flex: 1;
-  font-size: 12px;
-  font-weight: 500;
 }
 </style>
