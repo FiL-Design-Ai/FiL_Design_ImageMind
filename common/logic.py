@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Tuple
+from typing import Any, Dict, Tuple
 
 from .data import (
     AGENTS,
@@ -145,6 +145,81 @@ class StyleManager:
         return "\n\n".join(parts)
 
 
+def compute_aspect_ratio_info(width: int, height: int) -> Dict[str, Any]:
+    """Calculate aspect ratio, orientation, and prompt guidance based on width and height."""
+    if width <= 0 or height <= 0:
+        return {"active": False, "ratio_str": "", "orientation": "", "guidance": ""}
+
+    ratio = width / height
+
+    ratios = [
+        (1.0, "1:1"),
+        (16 / 9, "16:9"),
+        (9 / 16, "9:16"),
+        (4 / 5, "4:5"),
+        (5 / 4, "5:4"),
+        (3 / 4, "3:4"),
+        (4 / 3, "4:3"),
+        (2 / 3, "2:3"),
+        (3 / 2, "3:2"),
+        (21 / 9, "21:9"),
+        (9 / 21, "9:21"),
+    ]
+    best_match = min(ratios, key=lambda r: abs(r[0] - ratio))
+    if abs(best_match[0] - ratio) < 0.08:
+        ratio_str = best_match[1]
+    else:
+        import math
+        gcd = math.gcd(width, height)
+        simplified_w = width // gcd
+        simplified_h = height // gcd
+        if simplified_w < 100 and simplified_h < 100:
+            ratio_str = f"{simplified_w}:{simplified_h}"
+        else:
+            ratio_str = f"{ratio:.2f}:1"
+
+    if ratio >= 2.0:
+        orientation = "Ultra-Wide"
+        guidance = (
+            f"Target image dimensions: {width}x{height} (Aspect Ratio ~{ratio_str}, Ultra-Wide horizontal). "
+            f"Emphasize a sweeping panoramic composition, broad horizontal spatial scope, expansive background environments, and balanced lateral details."
+        )
+    elif ratio > 1.08:
+        orientation = "Landscape"
+        guidance = (
+            f"Target image dimensions: {width}x{height} (Aspect Ratio ~{ratio_str}, Landscape horizontal). "
+            f"Emphasize wide cinematic framing, horizontal depth, side environmental context, and balanced widescreen elements."
+        )
+    elif ratio <= 0.5:
+        orientation = "Ultra-Tall"
+        guidance = (
+            f"Target image dimensions: {width}x{height} (Aspect Ratio ~{ratio_str}, Ultra-Tall vertical). "
+            f"Emphasize extreme vertical framing, tall architectural or natural structures, stacked vertical perspective, and high-to-low axis composition."
+        )
+    elif ratio < 0.92:
+        orientation = "Portrait"
+        guidance = (
+            f"Target image dimensions: {width}x{height} (Aspect Ratio ~{ratio_str}, Portrait vertical). "
+            f"Emphasize vertical composition, portrait or full-length subject framing, vertical lines, and focal depth along the vertical axis."
+        )
+    else:
+        orientation = "Square"
+        guidance = (
+            f"Target image dimensions: {width}x{height} (Aspect Ratio ~{ratio_str}, Square). "
+            f"Emphasize centered focal points, balanced framing, symmetrical elements, and compact spatial composition."
+        )
+
+    return {
+        "active": True,
+        "width": width,
+        "height": height,
+        "ratio": round(ratio, 3),
+        "ratio_str": ratio_str,
+        "orientation": orientation,
+        "guidance": guidance,
+    }
+
+
 class PromptGenerator:
     def __init__(self):
         self.style_manager = StyleManager()
@@ -155,6 +230,8 @@ class PromptGenerator:
         detail_level: str = "normal",
         language: str = "ru",
         model_type: str = "Auto/None",
+        width: int = 0,
+        height: int = 0,
         **style_kwargs,
     ) -> Tuple[str, str, str]:
         resolved_agent = resolve_agent_key(agent_key)
@@ -174,6 +251,11 @@ class PromptGenerator:
         system_parts = [agent_template, language_hint, detail_hint]
         if model_guidance:
             system_parts.append(model_guidance)
+
+        aspect_info = compute_aspect_ratio_info(width, height)
+        if aspect_info["active"]:
+            system_parts.append(aspect_info["guidance"])
+
         if style_block:
             system_parts.append(f"Style overlay:\n{style_block}")
 
@@ -207,6 +289,8 @@ class PromptGenerator:
         detail_level: str = "normal",
         language: str = "ru",
         model_type: str = "Auto/None",
+        width: int = 0,
+        height: int = 0,
         **style_kwargs,
     ) -> Dict[str, Dict[str, str]]:
         """Stage 1 = raw description (no style). Stage 2 = styled reformat.
@@ -219,14 +303,20 @@ class PromptGenerator:
         )
         style_block = self.style_manager.build_style_block(**style_kwargs)
 
+        aspect_info = compute_aspect_ratio_info(width, height)
+
         stage1_parts = [agent_template, language_hint, detail_hint]
         if model_guidance:
             stage1_parts.append(model_guidance)
+        if aspect_info["active"]:
+            stage1_parts.append(aspect_info["guidance"])
         stage1_prompt = "\n\n".join(stage1_parts)
 
         stage2_parts = [agent_template, language_hint, detail_hint]
         if model_guidance:
             stage2_parts.append(model_guidance)
+        if aspect_info["active"]:
+            stage2_parts.append(aspect_info["guidance"])
         if style_block:
             stage2_parts.append(f"Style overlay:\n{style_block}")
         stage2_prompt = "\n\n".join(stage2_parts)

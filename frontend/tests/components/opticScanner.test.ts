@@ -54,6 +54,20 @@ describe("OpticScanner.vue", () => {
     for (const row of growRows) expect(row.find("textarea.fil-scanner-textarea").exists()).toBe(true);
   });
 
+  // Target width/height drive the aspect-ratio guidance the backend appends to
+  // the system prompt (common/logic.py's compute_aspect_ratio_info). They are
+  // `optional` inputs, which the panel used to skip entirely, and they get their
+  // own section — "advanced" renders as the collapsed Style block here.
+  it("renders the target format fields in their own section", () => {
+    const wrapper = mount(OpticScannerVue, { props: { state: makeState() } });
+    const numbers = wrapper.findAll(".fil-w-numfield");
+    expect(numbers.length).toBe(2);
+    // Uppercasing is FilSection's own CSS, so the fallback reads as written.
+    expect(wrapper.text()).toContain("📐 Target format");
+    expect(wrapper.text()).toContain("Width");
+    expect(wrapper.text()).toContain("Height");
+  });
+
   // A link on the matching input socket overrides whatever is typed here, so a
   // linked field must not invite typing. The link state is read straight off the
   // node (see readLinkedInputs) — a `link` id on the input slot means connected.

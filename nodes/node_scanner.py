@@ -83,6 +83,10 @@ description=(
                              tooltip=t("tt_provider_seed", "Provider-side generation seed, if supported. -1 lets the provider pick one.")),
                 io.Combo.Input("response_format", options=["text", "json"], default="text", advanced=True,
                                tooltip=t("tt_response_format", "Ask the model to respond as plain text or as a JSON object.")),
+                io.Int.Input("width", default=0, min=0, max=16384, step=8, optional=True, advanced=True,
+                             tooltip=t("tt_width", "Target image width in pixels. Helps tailor prompt composition to aspect ratio if > 0.")),
+                io.Int.Input("height", default=0, min=0, max=16384, step=8, optional=True, advanced=True,
+                             tooltip=t("tt_height", "Target image height in pixels. Helps tailor prompt composition to aspect ratio if > 0.")),
             ],
             outputs=[
                 io.String.Output(display_name="prompt", tooltip="Generated prompt text."),
@@ -113,7 +117,7 @@ description=(
                            detail_level="normal", language="ru", model_type="Auto/None",
                            prompt_mode="Auto", photo_style="None", nsfw_photo_style="None",
                            art_style="None", nsfw_art_style="None", custom_style="", seed=-1,
-                           response_format="text",
+                           response_format="text", width=0, height=0,
                            **kwargs) -> Any:
         image_key: Any = None
         if image is not None:
@@ -139,7 +143,7 @@ description=(
             # `str(config)` already covers their contribution to the fingerprint.
             str(config), agent, prompt, negative_prompt, detail_level, language,
             model_type, prompt_mode, photo_style, nsfw_photo_style, art_style, nsfw_art_style, custom_style,
-            seed, response_format,
+            seed, response_format, width, height,
             image_key,
         ))
 
@@ -149,7 +153,8 @@ description=(
                       temperature, seed, max_tokens, response_format,
                       model_type, prompt, effective_mode, hybrid_timeout,
                       two_stage_timeout, agent_key="None", detail_level="normal",
-                      language="ru", rate_limit_ms=100, contract=None, enforcement=""):
+                      language="ru", rate_limit_ms=100, contract=None, enforcement="",
+                      width=0, height=0):
         fb = None
         if effective_mode == "Two-Stage" and style_block.strip():
             bundle = _prompt_gen.build_system_prompt_two_stage_bundle(
@@ -157,6 +162,8 @@ description=(
                 detail_level=detail_level,
                 language=language,
                 model_type=model_type,
+                width=width,
+                height=height,
                 **style_kwargs,
             )
             stage1_sys = bundle["stage1"]["prompt"]
@@ -265,7 +272,7 @@ description=(
                 detail_level="normal", language="ru", model_type="Auto/None",
                 prompt_mode="Auto", photo_style="None", nsfw_photo_style="None",
                 art_style="None", nsfw_art_style="None", custom_style="", seed=-1,
-                response_format="text",
+                response_format="text", width=0, height=0,
                 **kwargs) -> io.NodeOutput:
         t0 = datetime.now(timezone.utc)
         provider = config.get("provider", "ollama")
@@ -320,6 +327,8 @@ description=(
             detail_level=detail_level,
             language=language,
             model_type=model_type,
+            width=width,
+            height=height,
             **style_kwargs,
         )
 
@@ -395,6 +404,7 @@ description=(
                         agent_key=agent_key, detail_level=detail_level,
                         language=language, rate_limit_ms=rate_limit_ms,
                         contract=contract, enforcement=enforcement,
+                        width=width, height=height,
                     )
                     per_image_results.append(single_result)
                     image_runs.append({
@@ -419,6 +429,7 @@ description=(
                     agent_key=agent_key, detail_level=detail_level,
                     language=language, rate_limit_ms=rate_limit_ms,
                     contract=contract, enforcement=enforcement,
+                    width=width, height=height,
                 )
         except FiLError as exc:
             clean_msg = sanitize_sensitive_data(exc.message)
@@ -479,6 +490,9 @@ description=(
         }
 
         t1 = datetime.now(timezone.utc)
+        from ..common.logic import compute_aspect_ratio_info
+        aspect_info = compute_aspect_ratio_info(width, height)
+
         meta_dict = {
             "provider": provider,
             "model": model,
@@ -489,6 +503,12 @@ description=(
             "response_format": response_format,
             "style_applied": style_applied,
             "image_hash": image_hash,
+            "target_dimensions": {
+                "width": width,
+                "height": height,
+                "aspect_ratio": aspect_info["ratio_str"],
+                "orientation": aspect_info["orientation"],
+            } if aspect_info["active"] else None,
             "elapsed_seconds": (t1 - t0).total_seconds(),
             "timestamp": t0.isoformat(),
             "style_category": contract.get("category") if contract else "general",
