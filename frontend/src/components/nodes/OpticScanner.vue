@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /** FiLOpticScanner — image analysis / prompt expansion via LLM. */
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { FilChipGrid, FilChipList, FilSegmented, FilSection, FilButton, FilModal, FilStylePicker } from "@/components/widgets";
+import { FilChipGrid, FilChipList, FilSegmented, FilSection, FilButton, FilModal, FilStylePicker, FilNumberInput } from "@/components/widgets";
 import { toast } from "@/stores/toastStore";
 import { NODE_CONTRACTS, type WidgetSpec } from "@/api/contracts";
 import type { FilNodeState } from "@/nodes2/filState";
@@ -13,7 +13,10 @@ const props = defineProps<{ state: FilNodeState }>();
 const { t } = useI18n();
 
 const contract = NODE_CONTRACTS["FiLOpticScanner"];
-const widgets: WidgetSpec[] = contract?.inputs.required ?? [];
+const widgets: WidgetSpec[] = [
+  ...(contract?.inputs.required ?? []),
+  ...(contract?.inputs.optional ?? [])
+];
 
 // FilSection applies `text-transform: uppercase` itself, so these fallbacks
 // stay in normal case — the header still renders uppercase.
@@ -23,6 +26,7 @@ const SECTION_LABEL_KEYS: Record<string, [string, string]> = {
   model: ["scn_section_model", "🧠 Model"],
   output: ["scn_section_output", "📤 Output"],
   advanced: ["scn_section_advanced", "🎨 Style"],
+  format: ["scn_section_format", "📐 Target format"],
   actions: ["scn_section_actions", "⚡ Actions"],
 };
 
@@ -54,6 +58,8 @@ const WIDGET_TOOLTIP_KEYS: Record<string, string> = {
   seed: "tt_provider_seed",
   max_tokens: "tt_max_tokens",
   response_format: "tt_response_format",
+  width: "tt_width",
+  height: "tt_height",
 };
 
 function widgetTooltip(w: WidgetSpec): string {
@@ -80,6 +86,9 @@ const FIELD_EMOJIS: Record<string, string> = {
   seed: "🌱",
   max_tokens: "📊",
   image: "🖼️",
+  // width/height deliberately have none: ComfyUI's canvas font has no emoji
+  // glyph for ↔️/↕️ and draws an empty box instead. The 📐 section header
+  // carries the icon for both fields.
 };
 
 function formatFieldLabel(w: WidgetSpec): string {
@@ -97,18 +106,20 @@ function formatFieldLabel(w: WidgetSpec): string {
 // are lined up with the fields here so it is obvious which one feeds which.
 // While a link is attached the field is read-only: anything typed into it would
 // be silently overridden by the link when the prompt is queued.
-const TEXT_FIELD_NAMES = ["prompt", "negative_prompt", "custom_style"];
+const SOCKET_FIELD_NAMES = ["prompt", "negative_prompt", "custom_style", "width", "height"];
 /** Fields that absorb the height the user drags past the panel's content. */
 const GROWABLE_FIELD_NAMES = new Set(["prompt", "negative_prompt"]);
 
 const fieldEls: Record<string, HTMLElement | null> = {};
 
 function setFieldEl(name: string, el: unknown): void {
-  fieldEls[name] = (el as HTMLElement | null) ?? null;
+  // If `el` is a Vue component instance (like FilNumberInput), we need to extract its root DOM element
+  const node = el as any;
+  fieldEls[name] = (node?.$el instanceof HTMLElement ? node.$el : node) as HTMLElement | null;
 }
 
-function isTextField(name: string): boolean {
-  return TEXT_FIELD_NAMES.includes(name);
+function isSocketField(name: string): boolean {
+  return SOCKET_FIELD_NAMES.includes(name);
 }
 function isGrowable(name: string): boolean {
   return GROWABLE_FIELD_NAMES.has(name);
@@ -133,9 +144,9 @@ function fieldTooltip(w: WidgetSpec): string {
 function syncTextFieldSockets(): void {
   const node = props.state.node;
   if (!node) return;
-  anchorWidgetInputSockets(node, TEXT_FIELD_NAMES.map((name) => ({ name, el: fieldEls[name] })));
-  const linked = readLinkedInputs(node, TEXT_FIELD_NAMES);
-  if (TEXT_FIELD_NAMES.some((name) => linked[name] !== Boolean(linkedFields.value[name]))) {
+  anchorWidgetInputSockets(node, SOCKET_FIELD_NAMES.map((name) => ({ name, el: fieldEls[name] })));
+  const linked = readLinkedInputs(node, SOCKET_FIELD_NAMES);
+  if (SOCKET_FIELD_NAMES.some((name) => linked[name] !== Boolean(linkedFields.value[name]))) {
     linkedFields.value = linked;
   }
 }
@@ -176,6 +187,14 @@ const activeStylesSummary = computed(() => {
 
   if (active.length === 0) return t("scn_style_button_none", "🎨 Style: None");
   return active.join(" | ");
+});
+
+const activeStylesCount = computed(() => {
+  const ps = parseDisplayStyles(String(getValue("photo_style", "None")));
+  const nps = parseDisplayStyles(String(getValue("nsfw_photo_style", "None")));
+  const as = parseDisplayStyles(String(getValue("art_style", "None")));
+  const nas = parseDisplayStyles(String(getValue("nsfw_art_style", "None")));
+  return ps.length + nps.length + as.length + nas.length;
 });
 
 const styleTabs = [
@@ -310,7 +329,13 @@ function newFixedSeed() {
           <!-- Inject Unified Style Picker above Response Format -->
           <div v-if="w.name === 'response_format'" class="fil-w-row fil-single-style-block">
             <div style="display: flex; gap: 4px; margin-bottom: 3px;">
-              <FilButton variant="full" :label="activeStylesSummary" @click="isUnifiedStylePickerOpen = true" style="flex: 2" />
+              <button 
+                class="fil-style-picker-btn" 
+                :class="{ 'has-styles': activeStylesCount > 0 }" 
+                @click="isUnifiedStylePickerOpen = true"
+              >
+                {{ activeStylesSummary }}
+              </button>
             </div>
             <div style="display: flex; margin-bottom: 6px;">
               <FilButton variant="standard" label="🧹 Clear Style" @click="clearAllStyles" style="flex: 1" />
@@ -363,8 +388,8 @@ function newFixedSeed() {
           <div
             v-show="section === '_' || section === 'prompt' || !isCollapsed(String(section))"
             class="fil-w-row"
-            :class="{ 'is-growable': isGrowable(w.name), 'is-linked': isTextField(w.name) && isLinked(w.name) }"
-            :title="isTextField(w.name) ? fieldTooltip(w) : widgetTooltip(w)">
+            :class="{ 'is-growable': isGrowable(w.name), 'is-linked': isSocketField(w.name) && isLinked(w.name) }"
+            :title="isSocketField(w.name) ? fieldTooltip(w) : widgetTooltip(w)">
             <textarea
               v-if="w.name === 'prompt' || w.name === 'negative_prompt' || w.name === 'custom_style'"
               :ref="(el) => setFieldEl(w.name, el)"
@@ -385,6 +410,15 @@ function newFixedSeed() {
             <FilSegmented v-else-if="w.kind === 'segmented'"
               :options="w.options || []" :model-value="String(getValue(w.name, ''))"
               :label="formatFieldLabel(w)" @update:model-value="(v: string) => setValue(w.name, v)" />
+            <FilNumberInput v-else-if="w.name === 'width' || w.name === 'height'"
+              :ref="(el) => setFieldEl(w.name, el)"
+              :label="formatFieldLabel(w)"
+              :model-value="Number(getValue(w.name, 0))"
+              :min="w.min || 0" :max="w.max || 16384" :step="w.step || 8"
+              :disabled="isLinked(w.name)"
+              @update:model-value="(v: number) => setValue(w.name, v)"
+              :class="{ 'is-linked': isLinked(w.name) }"
+            />
             <FilChipGrid v-else :options="w.values || []" :model-value="String(getValue(w.name, ''))"
               :columns="w.columns ?? 3" @update:model-value="(v: string) => setValue(w.name, v)" />
           </div>
@@ -567,8 +601,45 @@ function newFixedSeed() {
 .fil-scanner-seed-pill:hover { background: rgba(255, 255, 255, 0.12); }
 .fil-scanner-seed-pill.active { background: rgba(255, 255, 255, 0.16); border-color: rgba(255, 255, 255, 0.2); }
 .fil-scanner-seed-pill:focus-visible { outline: 2px solid var(--fil-accent); outline-offset: -2px; }
-.fil-scanner-seed-pill-accent {
-  background: var(--fil-accent); border-color: var(--fil-accent); color: var(--fil-accent-ink, #241206); font-weight: 700;
+.fil-scanner-seed-pill.active { background: var(--fil-accent); color: var(--fil-accent-ink, #12151a); }
+.fil-scanner-seed-pill-accent { color: var(--fil-accent); }
+.fil-scanner-seed-pill-accent:hover { background: rgba(0, 240, 255, 0.1); }
+
+/* Cyberpunk Style Picker Button */
+.fil-style-picker-btn {
+  flex: 2;
+  box-sizing: border-box;
+  min-height: 36px;
+  border-radius: var(--fil-pill-radius, 6px);
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.08), rgba(255, 0, 255, 0.08));
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  color: var(--fil-text, #e8edf3);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.05);
 }
-.fil-scanner-seed-pill-accent:hover { filter: brightness(1.08); background: var(--fil-accent); }
+.fil-style-picker-btn:hover {
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.15), rgba(255, 0, 255, 0.15));
+  border-color: rgba(0, 240, 255, 0.5);
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.15);
+  color: #fff;
+}
+.fil-style-picker-btn.has-styles {
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(255, 0, 255, 0.2));
+  border: 1px solid rgba(0, 240, 255, 0.6);
+  color: #fff;
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.25), inset 0 0 8px rgba(255, 0, 255, 0.2);
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
+  animation: pulse-neon 2.5s infinite alternate;
+}
+@keyframes pulse-neon {
+  0% { box-shadow: 0 0 15px rgba(0, 240, 255, 0.2), inset 0 0 5px rgba(255, 0, 255, 0.15); }
+  100% { box-shadow: 0 0 25px rgba(0, 240, 255, 0.45), inset 0 0 15px rgba(255, 0, 255, 0.35); border-color: rgba(0, 240, 255, 0.9); }
+}
 </style>

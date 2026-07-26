@@ -16,7 +16,7 @@ const OpticScannerVue = defineAsyncComponent(() => import("@/components/nodes/Op
  * socket too — and OpticScanner.vue lines each dot up with its own field and
  * greys the field out while a link drives it.
  */
-export const SCANNER_TEXT_INPUTS = ["prompt", "negative_prompt", "custom_style"];
+export const SCANNER_TEXT_INPUTS = ["prompt", "negative_prompt", "custom_style", "width", "height"];
 
 /** Name of the DOM widget carrying the Vue panel. */
 const VIEW_WIDGET = "fil_scanner_view";
@@ -70,7 +70,7 @@ export const scannerNode: NodeModule = {
       "prompt", "negative_prompt", "custom_style",
       "agent", "model_type", "detail_level", "language",
       "prompt_mode", "response_format", "photo_style", "nsfw_photo_style", "art_style", "nsfw_art_style",
-      "seed", "control_after_generate"
+      "seed", "control_after_generate", "width", "height"
     ];
 
     const originalCreated = p.onNodeCreated;
@@ -83,8 +83,8 @@ export const scannerNode: NodeModule = {
       for (const name of allWidgetNames) {
         const w = findFilWidget(node, name);
         if (!w) continue;
-        const isNum = name === "seed";
-        const fallback = isNum ? -1 : "";
+        const isNum = name === "seed" || name === "width" || name === "height";
+        const fallback = name === "seed" ? -1 : isNum ? 0 : "";
         const value = sanitizeWidgetValue(w, isNum ? "number" : "string", fallback);
         initialValues[name] = value;
         initialNodeState[name] = value;
@@ -120,8 +120,8 @@ export const scannerNode: NodeModule = {
       for (const name of allWidgetNames) {
         const w = findFilWidget(node, name);
         if (!w) continue;
-        const isNum = name === "seed";
-        const fallback = isNum ? -1 : "";
+        const isNum = name === "seed" || name === "width" || name === "height";
+        const fallback = name === "seed" ? -1 : isNum ? 0 : "";
         state.nodeState[name] = sanitizeWidgetValue(w, isNum ? "number" : "string", fallback);
         (w as { hidden?: boolean }).hidden = true;
       }

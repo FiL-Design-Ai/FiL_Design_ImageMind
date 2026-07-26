@@ -64,7 +64,13 @@ export function exposeWidgetInputSockets(node: unknown, names: string[]): void {
     if (!slot) continue;
     slot.alwaysVisible = true;
     const w = findFilWidget(node, name);
-    if (w && typeof w.y !== "number") w.y = SLOT_PITCH * (row + 1);
+    // A stacking row per field, unconditionally: LiteGraph leaves `y` at 0 on
+    // widgets it never lays out (every widget here is hidden), so testing for
+    // "no y yet" would keep every socket on the node's top edge, one dot on top
+    // of the next. Only a field the panel can measure gets a better row, from
+    // `anchorWidgetInputSockets` — a field inside a collapsed section has no box
+    // to measure and keeps the row assigned here.
+    if (w) w.y = SLOT_PITCH * (row + 1);
     row += 1;
   }
   requestArrange(n);
