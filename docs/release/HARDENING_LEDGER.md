@@ -24,6 +24,13 @@
 | 10 | FiLImageDecomposer | promoted | разложение изображений/промптов на слои, None-resilience |
 | 11 | FiLStyleMixer | promoted | микширование стилей, None-resilience |
 | 12 | FiLColorWizard | promoted | авто-коррекция цвета, белая точка, LAB контраст, защита тонов кожи |
+| 13 | FiLSignalSwitch | promoted | новая нода (не из исходного списка), см. секцию ниже |
+
+**Выбывшая из списка:** `FiLBeforeAfterCompare` — нода удалена из пакета целиком (вместе с
+`/compare/save` и `output/*/compare/`), поэтому гейт до неё не дошёл. См. секцию 4.
+
+**Итог:** 14 нод в `RELEASE_NODES` = 14 нод в `nodes/` — гейт открыт полностью, фильтра больше нет.
+Оставлен в коде намеренно: следующая новая нода снова не попадёт в меню, пока не пройдёт чек-лист.
 
 ## Общий backlog (не привязан к одной ноде)
 
@@ -80,10 +87,11 @@ PDF через canvas-пиксели, т.к. подписи на референ�
   Проверено вживую через `getComputedStyle`: border/box-shadow/backdrop-filter → none, поле и кнопки
   свои рамки сохранили.
 - **Находки (не блокеры промоута, в общий backlog):**
-  - [ ] Контракт `FiLSeed` в `registry.py:111-117` объявляет входы `mode` (segmented) и
-    `copy_to_clipboard` (bool), которых НЕТ в реальной `node_seed.py` (только `seed`); «copy»-кнопки
-    в `Seed.vue` тоже нет. Контракт не потребляется UI (только OpticScanner читает контракты),
-    поэтому не блокер. → **изменить**: привести контракт FiLSeed к реальной схеме.
+  - [x] Контракт `FiLSeed` объявлял входы `mode` (segmented) и `copy_to_clipboard` (bool), которых
+    НЕТ в реальной `node_seed.py` (только `seed`). → **закрыто:** `copy_to_clipboard` выкинут (кнопки
+    копирования в `Seed.vue` нет), оставшиеся фронтовые контролы (`mode`, `use_last_seed`,
+    `new_fixed`) внесены в белый список `UI_ONLY_WIDGETS` (`common/contracts/registry.py:592`) —
+    паритет контракта и схемы теперь проверяется тестом `tests/test_node_contracts.py:77`.
 - **Тесты:** pytest зелёный (299), frontend build + vitest — см. прогон.
 - **Живой смоук:** требует поднятого ComfyUI (:8189) — reboot + добавить ноду, проверить ввод seed.
 
@@ -891,19 +899,24 @@ content-driven рост высоты обычно и так работал, но
   терминальной output-нодой (без `PreviewImage` после неё) —
   `execution_success`, `outputs["3"]["images"]` содержит реальный PNG.
 
-## 3. FiLNeuroCleaner
+## 3. FiLNeuroCleaner — promoted
 
-- **Статус:** todo
+- **Статус:** promoted (см. строку 5 в таблице промоута).
 - **Файлы:** `nodes/node_cleaner.py`, `components/nodes/NeuroCleaner.vue`, `nodes2/nodes/cleaner.ts`, contract, locale `nc_*`.
-- **Аудит:** разметить 8 `except` — оправданные best-effort vs маскирующие реальные ошибки.
-- **Находки:**
+- **Итог прохода:** схема упрощена — 14 чекбоксов и Windows-ctypes плацебо-код выкинуты, остались
+  явные тумблеры VRAM/типов моделей; нода перестала рапортовать успех, когда чистка не выполнялась
+  (коммит `0fd8a28`); панель переведена на общий `FilToggle`.
 
-## 4. FiLBeforeAfterCompare
+## 4. FiLBeforeAfterCompare — удалена из пакета
 
-- **Статус:** todo
-- **Файлы:** `nodes/node_compare.py`, `components/nodes/BeforeAfterCompare.vue`, `nodes2/nodes/compare.ts`, `nodes2/compareEngine.ts`, contract, locale `cmp_*`.
-- **Аудит:** path-traversal guard уже покрыт `test_api_security.py`.
-- **Находки:**
+- **Статус:** снята с промоута — ноды больше нет.
+- **Что удалено:** `nodes/node_compare.py`, `components/nodes/BeforeAfterCompare.vue`,
+  `nodes2/nodes/compare.ts`, `nodes2/compareEngine.ts`, contract, locale `cmp_*`, HTTP-маршрут
+  `/compare/save` и папка вывода `output/*/compare/`.
+- **Хвосты подчищены при подготовке релиза:** `frontend/src/api/client.ts` держал мёртвые
+  `saveCompareImage`/`CompareSaveResponse` (звали удалённый маршрут, не использовались нигде) —
+  убраны; стереофраза про `fil_compare` в шапке `nodes2/filExtension.ts` приведена к реальности
+  (`getCustomWidgets` возвращает пустой объект).
 
 ## 5. FiLProviderLoader — promoted
 
@@ -1280,3 +1293,48 @@ style_enforcer=_style_enforcer)` в `execute()`.
 - **Живой смоук:** `/object_info` на `comfyui-test` подтвердил регистрацию и
   схему сокетов; реальный `/prompt` не прогнан по той же причине, что и #6/#7
   (нет совместимого чекпоинта/CLIP на инстансе).
+
+## 10. FiLImageDecomposer — promoted
+
+- **Статус:** promoted.
+- **Файлы:** `nodes/node_decomposer.py`, `nodes2/nodes/decomposer.ts` (нативные виджеты ComfyUI,
+  своей Vue-панели нет — только стилизация узла), contract, locale.
+- **Итог прохода:** раскладывает изображение/промпт на `subject`/`lighting`/`composition`/`style`/
+  `full_prompt`; сделана None-resilience (пустой ответ провайдера больше не роняет ноду).
+- **Тесты:** `tests/test_decomposer_and_mixer.py`.
+
+## 11. FiLStyleMixer — promoted
+
+- **Статус:** promoted.
+- **Файлы:** `nodes/node_style_mixer.py`, `components/nodes/StyleMixer.vue`,
+  `components/widgets/FilStylePicker.vue`, `common/styles/*`, contract, locale.
+- **Итог прохода:** смешивание стилей и референсов с весами + опциональный Vision-LLM fusion;
+  тема активных плиток переведена на динамический `color-mix` (`b0afb6b`), поиск в style-picker
+  локализован, за ним подчищены последствия в самой ноде (`163af37`).
+- **Тесты:** `tests/test_decomposer_and_mixer.py`, `tests/test_multi_style.py`,
+  `tests/test_style_contract.py`, `frontend/tests/components/styleMixer.test.ts`.
+
+## 12. FiLColorWizard — promoted
+
+- **Статус:** promoted.
+- **Файлы:** `nodes/node_color_wizard.py`, `common/color_correction.py`,
+  `components/nodes/ColorWizard.vue`, `nodes2/nodes/color_wizard.ts`, contract, locale `cw_*`.
+- **Итог прохода:** авто-коррекция цвета (баланс белого, LAB-контраст, растяжка каналов,
+  подбор по референсу, WB-пипетка) с защитой тонов кожи; логика лежит в `common/`, нода тонкая.
+- **Тесты:** `tests/test_color_wizard.py`, `frontend/tests/components/colorWizard.test.ts`.
+
+## 13. FiLSignalSwitch — promoted (новая нода, не из исходного списка)
+
+- **Статус:** promoted (написана в параллельной сессии, коммит `a1d8ae4`).
+- **Файлы:** `nodes/node_switch.py` (40 строк), `components/nodes/Switch.vue`,
+  `nodes2/nodes/switch.ts`, contract, locale `tt_switch_*`.
+- **Что делает:** `AnyType`-вход + булев `enable`; ON — проброс значения как есть, OFF — `None`.
+  Задумана как глушилка ветки графа без перекоммутации проводов.
+- **Тесты:** `tests/test_switch.py` (схема, pass-through на dict/str/int, блокировка на OFF).
+- **Открытая находка (не блокер, поведение осознанное):**
+  - [ ] В положении OFF в сокет уходит `None` любого типа. Ошибку получит не Switch, а
+    даунстрим-нода, которая ждала LATENT/IMAGE — сообщение будет про неё, а не про выключенный
+    шлюз. Стоит решить на живом графе: оставить как есть (муть = ошибка ниже по потоку) или
+    отдавать заглушку нужного типа / гасить выполнение ветки.
+- **Живой смоук:** не прогонялся — нода приехала готовым коммитом уже после того, как остальные
+  ноды прошли свои проходы.

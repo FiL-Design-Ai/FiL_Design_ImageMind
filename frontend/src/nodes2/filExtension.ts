@@ -5,7 +5,7 @@
  *   - `name`
  *   - `settings` — declarative settings panel entries
  *   - `setup` — eager installers (toasts, connection FX, shortcuts, ...)
- *   - `getCustomWidgets` — register the `fil_compare` DOM widget type
+ *   - `getCustomWidgets` — kept for the ComfyUI contract; no custom types left
  *   - `beforeRegisterNodeDef` — dispatch into per-node registration modules
  *   - `graphToPrompt` — soft preflight warnings (e.g. OpticScanner missing config)
  *
