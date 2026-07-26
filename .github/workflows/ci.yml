@@ -60,6 +60,14 @@ jobs:
         working-directory: ComfyUI/custom_nodes/FiL_Design_ImageMind
         run: python -m pytest tests/ -v --tb=short -q
 
+      - name: Release preflight
+        working-directory: ComfyUI/custom_nodes/FiL_Design_ImageMind
+        run: python tools/preflight_check.py
+
+      - name: Scan for node-id conflicts
+        working-directory: ComfyUI/custom_nodes/FiL_Design_ImageMind
+        run: python tools/scan_node_conflicts.py
+
   test-frontend:
     runs-on: ubuntu-latest
 
@@ -76,6 +84,10 @@ jobs:
       - name: Install dependencies
         working-directory: frontend
         run: npm ci
+
+      - name: Lint
+        working-directory: frontend
+        run: npm run lint
 
       - name: Type check & build
         working-directory: frontend
