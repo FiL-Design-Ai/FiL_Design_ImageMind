@@ -82,6 +82,10 @@ UI → tests → contract → live smoke on a running ComfyUI).
   exposed (labels detached from their inputs on paired rows, panel overflow).
 - **`/health` reported version `2.0.0`** — it now serves `common.brand.VERSION`,
   which a test keeps in step with `pyproject.toml`.
+- **Cyber Switch emitted `None` when OFF**, so the node downstream ran anyway and
+  failed inside itself, naming the wrong node. It now returns ComfyUI's
+  `ExecutionBlocker`, which skips consumers silently and lets the rest of the
+  graph finish; an unconnected input blocks the same way.
 
 ## 4.0.0 (2026-07-05)
 
