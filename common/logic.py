@@ -4,8 +4,12 @@ from typing import Any, Dict, Tuple
 from .data import (
     AGENTS,
     NONE_AGENT_KEY,
+    NONE_FOCUS_KEY,
     NONE_AGENT_TEMPLATE,
+    TAGS_OUTPUT_INSTRUCTION,
+    TAGS_RESPONSE_FORMAT,
     _STYLE_SOURCES,
+    get_focus_template,
     model_uses_positive_constraints,
     resolve_agent_key,
 )
@@ -220,6 +224,30 @@ def compute_aspect_ratio_info(width: int, height: int) -> Dict[str, Any]:
     }
 
 
+TEXT_ONLY_INSTRUCTION = (
+    "NO IMAGE IS ATTACHED. The user text below is an idea to realize, not a picture to report on. "
+    "Expand it into a generation prompt: keep every element the user named, and fill in only the "
+    "concrete visual detail the idea implies — subject, setting, materials, light, framing. "
+    "Never refer to \"the image\" or phrase anything as observed."
+)
+
+_DETAIL_HINTS = {
+    "tiny": "Be extremely brief — 1-2 sentences.",
+    "short": "Keep description short — 2-4 sentences.",
+    "normal": "Write a balanced description.",
+    "detailed": "Write a detailed description with specific observations.",
+    "ultra": "Write an ultra-detailed technical description covering every visible element.",
+}
+
+
+def _detail_hint(detail_level: str) -> str:
+    return _DETAIL_HINTS.get(detail_level, _DETAIL_HINTS["normal"])
+
+
+def _wants_tags(response_format: str) -> bool:
+    return str(response_format or "").strip().lower() == TAGS_RESPONSE_FORMAT
+
+
 class PromptGenerator:
     def __init__(self):
         self.style_manager = StyleManager()
@@ -232,25 +260,28 @@ class PromptGenerator:
         model_type: str = "Auto/None",
         width: int = 0,
         height: int = 0,
+        focus_key: str = NONE_FOCUS_KEY,
+        has_image: bool = True,
+        response_format: str = "text",
         **style_kwargs,
     ) -> Tuple[str, str, str]:
         resolved_agent = resolve_agent_key(agent_key)
         agent_template = AGENTS.get(resolved_agent, NONE_AGENT_TEMPLATE)
         style_block = self.style_manager.build_style_block(**style_kwargs)
         language_hint = "Answer in Russian." if language == "ru" else "Answer in English."
-        detail_hints = {
-            "tiny": "Be extremely brief — 1-2 sentences.",
-            "short": "Keep description short — 2-4 sentences.",
-            "normal": "Write a balanced description.",
-            "detailed": "Write a detailed description with specific observations.",
-            "ultra": "Write an ultra-detailed technical description covering every visible element.",
-        }
-        detail_hint = detail_hints.get(detail_level, "Write a balanced description.")
+        detail_hint = _detail_hint(detail_level)
         model_guidance = build_model_type_guidance(model_type)
 
-        system_parts = [agent_template, language_hint, detail_hint]
+        system_parts = [agent_template]
+        if not has_image:
+            system_parts.append(TEXT_ONLY_INSTRUCTION)
+        system_parts += [language_hint, detail_hint]
         if model_guidance:
             system_parts.append(model_guidance)
+
+        focus_block = get_focus_template(focus_key)
+        if focus_block:
+            system_parts.append(focus_block)
 
         aspect_info = compute_aspect_ratio_info(width, height)
         if aspect_info["active"]:
@@ -258,6 +289,11 @@ class PromptGenerator:
 
         if style_block:
             system_parts.append(f"Style overlay:\n{style_block}")
+
+        # Last on purpose: the output shape has to win over any prose-shaped
+        # wording carried by the agent template or the style overlay.
+        if _wants_tags(response_format):
+            system_parts.append(TAGS_OUTPUT_INSTRUCTION)
 
         system_prompt = "\n\n".join(system_parts)
         return system_prompt, agent_template, style_block
@@ -273,15 +309,7 @@ class PromptGenerator:
         resolved_agent = resolve_agent_key(agent_key)
         agent_template = AGENTS.get(resolved_agent, NONE_AGENT_TEMPLATE)
         language_hint = "Answer in Russian." if language == "ru" else "Answer in English."
-        detail_hints = {
-            "tiny": "Be extremely brief — 1-2 sentences.",
-            "short": "Keep description short — 2-4 sentences.",
-            "normal": "Write a balanced description.",
-            "detailed": "Write a detailed description with specific observations.",
-            "ultra": "Write an ultra-detailed technical description covering every visible element.",
-        }
-        detail_hint = detail_hints.get(detail_level, "Write a balanced description.")
-        return agent_template, language_hint, detail_hint, build_model_type_guidance(model_type)
+        return agent_template, language_hint, _detail_hint(detail_level), build_model_type_guidance(model_type)
 
     def build_system_prompt_two_stage_bundle(
         self,
@@ -291,6 +319,9 @@ class PromptGenerator:
         model_type: str = "Auto/None",
         width: int = 0,
         height: int = 0,
+        focus_key: str = NONE_FOCUS_KEY,
+        has_image: bool = True,
+        response_format: str = "text",
         **style_kwargs,
     ) -> Dict[str, Dict[str, str]]:
         """Stage 1 = raw description (no style). Stage 2 = styled reformat.
@@ -304,21 +335,33 @@ class PromptGenerator:
         style_block = self.style_manager.build_style_block(**style_kwargs)
 
         aspect_info = compute_aspect_ratio_info(width, height)
+        focus_block = get_focus_template(focus_key)
 
-        stage1_parts = [agent_template, language_hint, detail_hint]
-        if model_guidance:
-            stage1_parts.append(model_guidance)
-        if aspect_info["active"]:
-            stage1_parts.append(aspect_info["guidance"])
+        def _stage_parts() -> list:
+            parts = [agent_template]
+            # Stage 2 never sees the image either way — it restyles stage 1's
+            # text — so the "no image attached" framing belongs to stage 1 only.
+            parts += [language_hint, detail_hint]
+            if model_guidance:
+                parts.append(model_guidance)
+            if focus_block:
+                parts.append(focus_block)
+            if aspect_info["active"]:
+                parts.append(aspect_info["guidance"])
+            return parts
+
+        stage1_parts = _stage_parts()
+        if not has_image:
+            stage1_parts.insert(1, TEXT_ONLY_INSTRUCTION)
         stage1_prompt = "\n\n".join(stage1_parts)
 
-        stage2_parts = [agent_template, language_hint, detail_hint]
-        if model_guidance:
-            stage2_parts.append(model_guidance)
-        if aspect_info["active"]:
-            stage2_parts.append(aspect_info["guidance"])
+        stage2_parts = _stage_parts()
         if style_block:
             stage2_parts.append(f"Style overlay:\n{style_block}")
+        # Only stage 2 produces the answer the user keeps, so the tag-shape
+        # override goes here — stage 1 stays prose for stage 2 to work from.
+        if _wants_tags(response_format):
+            stage2_parts.append(TAGS_OUTPUT_INSTRUCTION)
         stage2_prompt = "\n\n".join(stage2_parts)
 
         return {

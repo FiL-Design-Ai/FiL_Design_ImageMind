@@ -27,7 +27,9 @@ from ..data import (
     default_detail_level,
     first_or_default,
     get_default_agent_key,
+    get_default_focus_key,
     get_visible_agent_keys,
+    get_visible_focus_keys,
     get_visible_style_keys,
 )
 from .schema import NodeContract, NodeInputs, NodeOutput, WidgetKind, WidgetSpec
@@ -172,7 +174,7 @@ _SCANNER = NodeContract(
             _string("custom_style", section="prompt"),
             _segmented(
                 "response_format",
-                options=["text", "json"],
+                options=["text", "tags", "json"],
                 default="text",
                 section="prompt",
             ),
@@ -180,6 +182,15 @@ _SCANNER = NodeContract(
                 "agent",
                 values=get_visible_agent_keys(),
                 default=get_default_agent_key(),
+                columns=3,
+                section="agent",
+            ),
+            # Second axis: the craft layer to weigh heavier, composable with
+            # any subject agent above (see AGENT_FOCUSES in common/data.py).
+            _chip_grid(
+                "agent_focus",
+                values=get_visible_focus_keys(),
+                default=get_default_focus_key(),
                 columns=3,
                 section="agent",
             ),
@@ -557,6 +568,7 @@ _SWITCH = NodeContract(
         NodeOutput(name="output", type="ANY"),
     ],
 )
+
 
 NODE_SCHEMAS: dict[str, NodeContract] = {
     contract.id: contract

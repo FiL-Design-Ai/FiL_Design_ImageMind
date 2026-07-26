@@ -41,6 +41,7 @@ function sectionLabel(section: string): string {
 const WIDGET_TOOLTIP_KEYS: Record<string, string> = {
   config: "tt_config",
   agent: "tt_agent",
+  agent_focus: "tt_agent_focus",
   image: "tt_image",
   prompt: "tt_prompt",
   negative_prompt: "tt_neg_prompt",
@@ -70,6 +71,7 @@ const FIELD_EMOJIS: Record<string, string> = {
   custom_style: "✨",
   response_format: "📋",
   agent: "🕵️",
+  agent_focus: "🎯",
   model_type: "🧠",
   detail_level: "🔍",
   language: "🌐",

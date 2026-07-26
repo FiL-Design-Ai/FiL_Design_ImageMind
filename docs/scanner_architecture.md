@@ -106,7 +106,11 @@ Order: suggested sequence for the description
 
 - `get_visible_agent_keys()` — returns emoji-prefixed agent names for UI dropdown (`common/data.py:429`)
 - `resolve_agent_key(value)` — matches both clean and emoji-prefixed agent keys (`common/data.py:453`)
-- `get_default_agent_key()` — returns `"🌐 Universal"` (`common/data.py:433`)
+- `get_default_agent_key()` — returns `"⚪ None"`, the neutral describer (`common/data.py`)
+- `get_visible_focus_keys()` / `resolve_focus_key(value)` — the second axis, a craft-layer
+  overlay appended after the agent template (`AGENT_FOCUSES` in `common/data.py`)
+- `migrate_legacy_agent(value)` — maps an agent retired by the axis split onto
+  `(agent, focus, response_format)` so saved workflows keep their behaviour
 - `get_agent_output_mode(key)` — returns `"tags"` for Professional Tagger, `"prose"` for all others (`common/data.py:469`)
 
 ## Prompt Assembly

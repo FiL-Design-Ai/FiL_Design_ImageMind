@@ -645,6 +645,15 @@ def convert_to_dit_format(
     if not raw:
         return raw, base_meta
 
+    # Tag output (response_format="tags", formerly the Professional Tagger
+    # agent) is a deliberate output shape, so it is decided before any
+    # model_type/json branch. It used to be checked further down, past the
+    # FLUX/Ideogram/generic json branches — which meant asking for tags on a
+    # json-shaped target silently wrapped them into a schema and threw the
+    # requested format away, despite the comment there claiming otherwise.
+    if agent_output_mode == "tags":
+        return _normalize_prompt_ready_text(raw, max_words), {**base_meta, "mode": "tags_as_is"}
+
     # FLUX + json — 7-field schema.
     if model_uses_flux_json_schema(model_type, response_format):
         flux = format_for_flux_json(text)
@@ -696,12 +705,6 @@ def convert_to_dit_format(
     # Z-Image Turbo: only normalize, never restructure (per contract).
     if model_type == "Z-Image Turbo":
         return _normalize_prompt_ready_text(raw, max_words), {**base_meta, "mode": "normalize_only"}
-
-    # Tag-output agents (Professional Tagger) asked for a flat comma-tag list —
-    # restructuring into DiT-style sentences would silently discard the exact
-    # format the user picked that agent for, regardless of model_type.
-    if agent_output_mode == "tags":
-        return _normalize_prompt_ready_text(raw, max_words), {**base_meta, "mode": "tags_as_is"}
 
     force_restructure = model_type in {"QWEN", "SDXL"}
     needs_restructure = force_restructure or text_needs_dit_restructure(raw, model_type, max_words)

@@ -65,11 +65,12 @@ def test_metadata_style_category_general_without_style(monkeypatch):
     assert meta["style_category"] == "general"
 
 
-def test_metadata_dynamic_default_agent_is_universal(monkeypatch):
+def test_metadata_dynamic_default_agent_is_neutral(monkeypatch):
+    """The neutral describer is the default — it assumes nothing about the subject."""
     schema = FiLOpticScanner.GET_SCHEMA()
     for inp in schema.inputs:
         if inp.id == "agent":
-            assert "Universal" in inp.default
+            assert "None" in inp.default
             break
 
 
