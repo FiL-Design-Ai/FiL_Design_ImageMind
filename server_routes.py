@@ -7,7 +7,7 @@ import shutil
 from pathlib import Path
 from aiohttp import web
 
-from .common.brand import OUTPUT_SUBFOLDER, ROUTE_SLUG, BRAND
+from .common.brand import OUTPUT_SUBFOLDER, ROUTE_SLUG, BRAND, VERSION
 from .common.provider_runtime import fetch_models_with_status, invalidate_model_cache, probe_provider
 from .common.provider_accounts import (
     delete_provider_credentials,
@@ -113,7 +113,7 @@ def register_routes():
 
     @server.routes.get(f"/{ROUTE_SLUG}/health")
     async def health(request):
-        return web.json_response({"status": "ok", "version": "2.0.0"})
+        return web.json_response({"status": "ok", "version": VERSION})
 
     @server.routes.post(f"/{ROUTE_SLUG}/log_level")
     async def set_log_level_route(request):

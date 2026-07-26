@@ -45,3 +45,30 @@ def test_workflow_widget_values_match_serialized_widget_inputs():
                 if "widget" in item and item.get("type") != "IMAGEUPLOAD"
             ]
             assert len(node.get("widgets_values", [])) == len(widget_inputs)
+
+
+def test_reported_version_matches_pyproject():
+    """`/health` reports `common.brand.VERSION` — it must not drift from the package."""
+    from FiL_Design_ImageMind.common.brand import VERSION
+
+    pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    declared = re.search(r'^version\s*=\s*"([^"]+)"', pyproject, re.MULTILINE)
+    assert declared, "pyproject.toml has no version"
+    assert VERSION == declared.group(1)
+
+
+def test_readme_documents_every_registered_node():
+    """The GitHub landing page must list all node-ids the pack registers."""
+    import ast
+
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    node_ids: set[str] = set()
+    for path in (ROOT / "nodes").glob("node_*.py"):
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.keyword) and node.arg == "node_id":
+                if isinstance(node.value, ast.Constant) and isinstance(node.value.value, str):
+                    node_ids.add(node.value.value)
+    assert node_ids, "no node ids found"
+    missing = sorted(nid for nid in node_ids if nid not in readme)
+    assert not missing, f"README does not document: {missing}"
