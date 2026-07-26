@@ -18,7 +18,7 @@ A modern custom node pack for **ComfyUI** built on the V3 API. Seamlessly integr
 
 - 📸 **Image Analysis** — describe or analyze images with vision models
 - 💬 **Prompt Generation** — expand text prompts intelligently
-- 🔧 **Workflow Utilities** — VRAM cleanup, image comparison, upscale planning
+- 🔧 **Workflow Utilities** — VRAM cleanup, tiled upscale planning, colour correction
 - 🎯 **Multiple Providers** — local or cloud-based, your choice
 
 <!-- TODO: drop fresh screenshots into docs/images/ and reference them here, e.g.:
@@ -45,14 +45,18 @@ branding and a "Prompt Chat" node that no longer exists in this node pack. -->
 |------|----------|---------|
 | **🔌 Provider Loader** | `FiLProviderLoader` | Choose provider, model, and generation parameters |
 | **🕵️ Optic Scanner** | `FiLOpticScanner` | Analyze images or expand text with LLM |
+| **👁️‍🗨️ Image Decomposer** | `FiLImageDecomposer` | Split an image or prompt into subject, lighting, composition, style |
+| **🎛️ Style Mixer** | `FiLStyleMixer` | Blend visual styles and reference images with weighted influence |
 | **⚡ KSampler** | `FiLKSampler` | Full sampler — every sampler/scheduler, passthrough, preview, HighRes-fix script |
 | **🔬 HighRes Fix** | `FiLHighResFix` | Latent/pixel upscale + re-sample script for KSampler |
 | **🎛️ Noise Control** | `FiLNoiseControl` | RNG source + seed-variation script for KSampler |
-| **♻️ Seed** | `FiLSeed` | Fixed or randomized seed with copy/reuse |
-| **🧹 Cleaner** | `FiLNeuroCleaner` | Selective VRAM, RAM, and cache cleanup |
-| **🔍 Tile Calculator** | `FiLUpscaleTileCalc` | Tile layout and denoise planning for ultimate upscale |
-| **⚡ Simple Upscale** | `FiLUpscaleSimple` | Fast single-pass model/latent upscaling |
+| **🔍 Upscaler Advanced** | `FiLUpscaleTileCalc` | Tile layout, overlap, and denoise planning for tiled upscale |
+| **🔍 Upscaler Simple** | `FiLUpscaleSimple` | Same tiling panel, model upscale in, image + tiles out |
 | **🧩 Tile Assembly** | `FiLTileAssembly` | Assemble processed image tiles back into full resolution |
+| **🎨 Color Wizard** | `FiLColorWizard` | Auto colour correction — white balance, LAB contrast, channel stretch |
+| **♻️ Seed** | `FiLSeed` | Fixed or randomized seed with reuse buttons |
+| **🧹 Cleaner** | `FiLNeuroCleaner` | Selective VRAM, RAM, and cache cleanup |
+| **🔀 Cyber Switch** | `FiLSignalSwitch` | Any-type pass-through gate — mute a branch without rewiring |
 
 ### Supported Providers
 
@@ -110,7 +114,7 @@ npx vitest run
 
 - 📸 **Анализа изображений** — опишите или проанализируйте изображение моделями зрения
 - 💬 **Генерации промптов** — умное расширение текстовых подсказок
-- 🔧 **Утилит рабочего процесса** — очистка VRAM, сравнение изображений, планирование апскейла
+- 🔧 **Утилит рабочего процесса** — очистка VRAM, планирование тайлового апскейла, цветокоррекция
 - 🎯 **Множества провайдеров** — локальные или облачные, ваш выбор
 
 ### Быстрый старт
@@ -132,14 +136,18 @@ npx vitest run
 |------|----------|-----------|
 | **🔌 Provider Loader** | `FiLProviderLoader` | Выбор провайдера, модели и параметров генерации |
 | **🕵️ Optic Scanner** | `FiLOpticScanner` | Анализ изображений или расширение текста |
+| **👁️‍🗨️ Image Decomposer** | `FiLImageDecomposer` | Разбор изображения или промпта на субъект, свет, композицию, стиль |
+| **🎛️ Style Mixer** | `FiLStyleMixer` | Смешивание стилей и референсных изображений с весами влияния |
 | **⚡ KSampler** | `FiLKSampler` | Полный сэмплер — все сэмплеры/планировщики, passthrough, превью, HighRes-скрипт |
 | **🔬 HighRes Fix** | `FiLHighResFix` | Скрипт латент/пиксельного апскейла и ре-сэмплинга для KSampler |
 | **🎛️ Noise Control** | `FiLNoiseControl` | Источник RNG + скрипт вариаций seed для KSampler |
+| **🔍 Upscaler Advanced** | `FiLUpscaleTileCalc` | Планирование сетки тайлов, нахлёста и денойза для тайлового апскейла |
+| **🔍 Upscaler Simple** | `FiLUpscaleSimple` | Та же панель тайлинга, на входе модель апскейла, на выходе картинка и тайлы |
+| **🧩 Tile Assembly** | `FiLTileAssembly` | Сборка обработанных тайлов обратно в полноразмерное изображение |
+| **🎨 Color Wizard** | `FiLColorWizard` | Авто-коррекция цвета — баланс белого, LAB-контраст, растяжка каналов |
 | **♻️ Seed** | `FiLSeed` | Фиксированное или случайное значение seed |
 | **🧹 Cleaner** | `FiLNeuroCleaner` | Выборочная очистка VRAM, RAM и кэша |
-| **🔍 Tile Calculator** | `FiLUpscaleTileCalc` | Планирование сетки тайлов и денойза для тайлового апскейла |
-| **⚡ Simple Upscale** | `FiLUpscaleSimple` | Быстрый однопроходный апскейл через модель или латент |
-| **🧩 Tile Assembly** | `FiLTileAssembly` | Сборка обработанных тайлов обратно в полноразмерное изображение |
+| **🔀 Cyber Switch** | `FiLSignalSwitch` | Пропускной шлюз любого типа — глушит ветку графа без перекоммутации |
 
 ### Поддерживаемые провайдеры
 

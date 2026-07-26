@@ -1,6 +1,10 @@
 # Changelog
 
-## 1.0.0 (2026-07-17)
+## 1.0.0 (2026-07-26)
+
+First public release. Ships 14 nodes, each one taken through the hardening
+checklist in `docs/release/HARDENING_LEDGER.md` (audit → UX → functional fixes →
+UI → tests → contract → live smoke on a running ComfyUI).
 
 ### Breaking
 - **Project renamed: `FiL_LLM` → `FiL_Design_ImageMind`.** This is the first
@@ -12,21 +16,70 @@
 - **Node categories** — `FiL_LLM/*` → `🎨 FiL Design/*` in the ComfyUI
   node browser.
 - **REST API route prefix** — `/fil_llm/*` → `/fil_design_imagemind/*`
-  (health, models, providers, auth, provider_probe, compare/save, locale,
-  node_contracts).
+  (health, models, providers, auth, provider_probe, locale, node_contracts).
 - **Settings prefix** — `FiL_LLM.*` → `FiL_Design_ImageMind.*` ComfyUI
   settings keys.
 - **Frontend bundle** — `dist/fil_llm.js` → `dist/fil_design_imagemind.js`;
   Vite `base` now serves from `/extensions/FiL_Design_ImageMind/`.
 - **Python exception base class** — `FiLLLMError` → `FiLError`.
-- **Compare output folder** — saved images now land in
-  `output/FiL_Design_ImageMind/compare/` instead of `output/FiL_LLM/compare/`.
+- **`FiLBeforeAfterCompare` removed** — the node, its `/compare/save` route and
+  its `output/FiL_LLM/compare/` folder are gone; nothing replaces them in 1.0.0.
 
 ### Added
 - **`common/brand.py`** / **`frontend/src/constants/brand.ts`** — single
   source of truth for the brand token and its derived forms (category root,
   settings prefix, route slug, log tag), so future rebrands don't require a
   repo-wide string sweep.
+- **`🔍 Upscaler Simple` (`FiLUpscaleSimple`)** — the Advanced tiling panel with
+  a required upscale model and only the `image`/`tiles`/`latent`/`latent_tiles`
+  outputs. Delegates
+  100% of the geometry to `FiLUpscaleTileCalc`, so both nodes can never drift.
+- **`🧩 Tile Assembly` (`FiLTileAssembly`)** — stitches processed tiles back into
+  a full-resolution image using the layout the calculator produced.
+- **`🎛️ Noise Control` (`FiLNoiseControl`)** — RNG source (cpu/gpu) and seed
+  variation as a script for `FiLKSampler`, built on the public `comfy.sample`
+  API instead of patching the CFG denoiser.
+- **`🔀 Cyber Switch` (`FiLSignalSwitch`)** — any-type pass-through gate for
+  muting a branch of a graph without rewiring it.
+- **Upscaler inputs/outputs** — real `upscale_model` upscaling (not passthrough),
+  `latent` in with `latent`/`latent_tiles` out, cropped `tiles` preview,
+  `auto_overlap`, and `auto_fix_thin_edges`.
+- **KSampler** — `eta` (η) for ancestral/SDE samplers and `bongmath` controls.
+- **Settings** — working `Log level` setting and a fourth theme, *Travelmate*.
+- **`common/release_gate.py`** — staging gate that registers only node-ids listed
+  in `RELEASE_NODES`, so a new node stays out of the ComfyUI menu until it has
+  been through the checklist. `FIL_RELEASE_ALL=1` bypasses it.
+- **`tools/preflight_check.py` / `tools/scan_node_conflicts.py`** — static
+  release preflight and a scan for node-id collisions with other node packs.
+
+### Changed
+- **`FiLUpscaleTileCalc` display name → `🔍 Upscaler Advanced`** (`node_id`
+  unchanged, so saved workflows keep loading).
+- **Upscaler defaults** — `tile_size` 512 → 1024; the `overlap` output is a
+  FLOAT (was a truncated INT); the drawn tile-grid preview was replaced by the
+  real cropped `tiles` batch.
+- **`🧹 Cleaner` rebuilt** — 14 checkboxes and the Windows ctypes placebo code
+  replaced by explicit VRAM/model toggles.
+- **UI pass across every node** — compact `FilToggle` switches instead of
+  ON/OFF pill pairs, ▲/▼ steppers on numeric fields, themed panels, node height
+  that collapses to content, and node option lists read from the contract so a
+  panel can't offer a value the backend rejects.
+- **Full ru/en localization** — every panel, tooltip and toast goes through
+  `data/locales/*`; no hardcoded UI strings left.
+
+### Fixed
+- **`crop_latent_tiles` on 5D latents** — video-style `(B,C,T,H,W)` tensors from
+  some checkpoints made every tile below the first row collapse to zero elements
+  and crash the upscale chain.
+- **`tile_overlap` did nothing to the grid** — it only fed `mask_blur` and the
+  output socket; the layout stepped tile-to-tile with no overlap at all.
+- **`non_square_tiles` produced unbounded aspect ratios** — a tile now clamps at
+  1.5:1 instead of copying the whole image's proportions.
+- **Black bars on edge tiles** — the last tile shifts inward to stay full-size
+  instead of being zero-padded.
+- **Nodes reporting success when the work did not happen** (Cleaner and friends).
+- **Draw-loop exceptions** in the canvas overlay, plus the layout bugs running it
+  exposed (labels detached from their inputs on paired rows, panel overflow).
 
 ## 4.0.0 (2026-07-05)
 

@@ -57,11 +57,6 @@ export interface ImageDescriptor {
   type?: string;
 }
 
-export interface CompareSaveResponse {
-  status: "saved";
-  image: { filename: string; subfolder: string; type: string };
-}
-
 export interface NodeContractsPayload {
   node_ids: Record<string, { title: string; category: string }>;
   schemas: Record<string, unknown>;
@@ -138,7 +133,5 @@ export const providerApi = {
   probe: (provider: string, model = "") =>
     postJson<ProbeResponse>(`${ROUTE_PREFIX}/provider_probe`, { provider, model }),
   listProviders: () => getJson<{ providers: Record<string, string> }>(`${ROUTE_PREFIX}/providers`),
-  saveCompareImage: (image: unknown) =>
-    postJson<CompareSaveResponse>(`${ROUTE_PREFIX}/compare/save`, { image }),
   nodeContracts: () => getJson<NodeContractsPayload>(`${ROUTE_PREFIX}/node_contracts`),
 };

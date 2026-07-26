@@ -19,6 +19,7 @@ EXPECTED = {
     "FiLImageDecomposer",
     "FiLStyleMixer",
     "FiLColorWizard",
+    "FiLSignalSwitch",
 }
 NODE_FILES = (
     "node_seed.py",
@@ -34,6 +35,7 @@ NODE_FILES = (
     "node_decomposer.py",
     "node_style_mixer.py",
     "node_color_wizard.py",
+    "node_switch.py",
 )
 
 
