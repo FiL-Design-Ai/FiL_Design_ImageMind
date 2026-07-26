@@ -26,6 +26,7 @@ class FiLExtension(ComfyExtension):
         from .nodes.node_decomposer import FiLImageDecomposer
         from .nodes.node_style_mixer import FiLStyleMixer
         from .nodes.node_color_wizard import FiLColorWizard
+        from .nodes.node_switch import FiLSignalSwitch
         return filter_release_nodes([
             FiLSeed,
             FiLProviderLoader,
@@ -40,6 +41,7 @@ class FiLExtension(ComfyExtension):
             FiLImageDecomposer,
             FiLStyleMixer,
             FiLColorWizard,
+            FiLSignalSwitch,
         ])
 
 

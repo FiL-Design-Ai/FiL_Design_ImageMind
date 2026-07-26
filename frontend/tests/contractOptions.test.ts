@@ -27,6 +27,7 @@ const NODE_ID_BY_FILE: Record<string, string> = {
   "NeuroCleaner.vue": "FiLNeuroCleaner",
   "ProviderLoader.vue": "FiLProviderLoader",
   "Seed.vue": "FiLSeed",
+  "Switch.vue": "FiLSignalSwitch",
 };
 
 /**

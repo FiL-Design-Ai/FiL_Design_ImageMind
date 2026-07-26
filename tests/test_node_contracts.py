@@ -20,6 +20,7 @@ EXPECTED_IDS = {
     "FiLImageDecomposer",
     "FiLStyleMixer",
     "FiLColorWizard",
+    "FiLSignalSwitch",
 }
 
 

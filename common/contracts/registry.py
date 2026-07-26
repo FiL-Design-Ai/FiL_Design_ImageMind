@@ -547,6 +547,21 @@ _COLOR_WIZARD = NodeContract(
     ],
 )
 
+_SWITCH = NodeContract(
+    id="FiLSignalSwitch",
+    title="🔀 Cyber Switch",
+    category=f"{CATEGORY_ROOT}/Tools",
+    description="Universal signal pass-through toggle.",
+    inputs=NodeInputs(
+        required=[
+            _bool("enable", default=True, label="Enable", section="settings", tooltip="Toggle signal pass-through ON or OFF."),
+        ]
+    ),
+    outputs=[
+        NodeOutput(name="output", type="ANY"),
+    ],
+)
+
 NODE_SCHEMAS: dict[str, NodeContract] = {
     contract.id: contract
     for contract in (
@@ -563,6 +578,7 @@ NODE_SCHEMAS: dict[str, NodeContract] = {
         _DECOMPOSER,
         _STYLE_MIXER,
         _COLOR_WIZARD,
+        _SWITCH,
     )
 }
 

@@ -3937,6 +3937,45 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   ],
   "family": "image"
 },
+  "FiLSignalSwitch": {
+  "id": "FiLSignalSwitch",
+  "title": "🔀 Cyber Switch",
+  "category": "🎨 FiL Design/Tools",
+  "description": "Universal signal pass-through toggle.",
+  "inputs": {
+    "required": [
+      {
+        "name": "enable",
+        "kind": "boolean",
+        "label": "Enable",
+        "default": true,
+        "tooltip": "Toggle signal pass-through ON or OFF.",
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": "settings",
+        "visible_when": null,
+        "visible_when_value": null
+      }
+    ],
+    "optional": [],
+    "hidden": []
+  },
+  "outputs": [
+    {
+      "name": "output",
+      "type": "ANY"
+    }
+  ],
+  "min_size": null,
+  "family": null
+},
 };
 
 export type NodeId = keyof typeof NODE_CONTRACTS;

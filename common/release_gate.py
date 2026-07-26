@@ -32,6 +32,7 @@ RELEASE_NODES: set[str] = {
     "FiLImageDecomposer",
     "FiLStyleMixer",
     "FiLColorWizard",
+    "FiLSignalSwitch",
 }
 
 _TRUTHY = {"1", "true", "yes", "on"}
