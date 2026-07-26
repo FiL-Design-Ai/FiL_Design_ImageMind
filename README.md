@@ -172,7 +172,8 @@ target diffusion model. Prompt fields are resizable and also work as input socke
 | Input | Type | Default | Range / options |
 |---|---|---|---|
 | `config` | FilProviderConfig | — | from Provider Loader |
-| `agent` | COMBO | `🌐 Universal` | 22 options (incl. ⚪ None) — Portrait, Products, Nature, Art, Cinematic, Fashion, Animals, Architecture, Interior, City, Transport, Food, Gadgets, Games, Composition, Lighting & Color, Professional Tagger, 18+, … |
+| `agent` | COMBO | `⚪ None` | subject domain, 13 options — Portrait, Products, Nature & Landscape, Art & Illustration, Fashion, Animals, Architecture, Interior, City, Transport, Food, Games |
+| `agent_focus` | COMBO | `⚪ None` | craft layer laid over the agent — 📐 Composition, 💡 Lighting & Color, 🔬 Ultra Detail, 🎬 Cinematic |
 | `image` | IMAGE (optional) | — | leave empty for text-only mode |
 | `width` / `height` | INT socket (optional) | `0` | connection-only — wire the target resolution in from Empty Latent Image or a resolution picker; > 0 tailors the prompt to that aspect ratio |
 | `prompt` | STRING (optional) | `""` | your idea / seed text |
@@ -185,7 +186,7 @@ target diffusion model. Prompt fields are resizable and also work as input socke
 | `nsfw_photo_style` / `nsfw_art_style` | COMBO | `None` | separate 18+ catalogs |
 | `custom_style` | STRING (optional) | `""` | free-form style text, merged with the picks |
 | `seed` | INT | `-1` | -1 – 999999999999 (-1 = random) |
-| `response_format` | COMBO | `text` | text, json (json enables the Ideogram 4 JSON schema) |
+| `response_format` | COMBO | `text` | text, tags (flat comma list), json (enables the Ideogram 4 / FLUX JSON schema) |
 
 **Outputs:** `prompt` (STRING), `metadata_json` (STRING), `metadata_dict` (FilDict)
 
@@ -387,6 +388,45 @@ trimmed to the outputs most graphs actually use.
 
 </details>
 
+#### 🎨 FiL Design/Dataset
+
+<details>
+<summary><b>📚 LoRA Dataset Forge</b> — <code>FiLDatasetForge</code> — batch → training-ready LoRA dataset on disk</summary>
+
+One pass: aspect-ratio buckets at the target resolution, one LLM caption per frame, files written
+where kohya_ss / sd-scripts can read them.
+
+| Input | Type | Default | Notes |
+|---|---|---|---|
+| `image` | IMAGE | — | the whole batch; one file per frame |
+| `config` | FilProviderConfig (optional) | — | from 🔌 Provider Loader; only needed for LLM captions |
+| `captions` | STRING (optional) | — | manual captions split on a `---` line — takes Optic Scanner output as-is and skips the LLM |
+| `dataset_name` | STRING | `my_lora` | folder under `ComfyUI/output/datasets`, sanitized |
+| `trigger_word` | STRING | — | token that activates the LoRA, prepended to every caption |
+| `class_token` | STRING | — | `woman`, `car`, … — follows the trigger in captions and in the kohya folder name |
+| `base_resolution` | COMBO | `1024` | 512 – 1536; buckets are built around this area |
+| `layout` | COMBO | `kohya` | `kohya` → `img/<repeats>_<trigger> <class>/` + `dataset.toml`; `flat` → images next to captions |
+| `repeats` | INT | `10` | repeats per image per epoch |
+| `caption_mode` | COMBO | `natural` | `natural` (Flux/SDXL) · `tags` (SD 1.5/Pony) · `hybrid` · `none` |
+| `crop_mode` | COMBO | `center` | `entropy` crops toward the most detailed region instead |
+| `dry_run` | BOOLEAN | `false` | plan the whole run, write nothing |
+| `write_mode` | COMBO | `append` | `overwrite` deletes this node's image/caption pairs only — foreign files stay |
+| `caption_max_words`, `caption_language`, `dont_caption`, `caption_instruction` | | | caption shaping |
+| `bucket_step`, `caption_extension`, `image_format`, `jpg_quality`, `seed` | | | output details |
+
+**Outputs:** `preview` (bucketed frames letterboxed onto one square canvas), `report`,
+`dataset_path`, `manifest`.
+
+Captioning follows the rule that decides whether a LoRA generalizes: **describe what varies**
+(pose, clothing, background, lighting, camera angle, medium) and **never describe the invariant**
+— that belongs to the trigger word. List the invariants in `dont_caption` and the prompt forbids
+them explicitly.
+
+The node never upscales. Sources smaller than their bucket are still written, counted in
+`upscaled_count` and flagged in the report — run them through 🔍 Upscaler Simple first.
+
+</details>
+
 #### 🎨 FiL Design/Values · Tools
 
 <details>
@@ -442,7 +482,8 @@ is an RGB-specific interpolation and does not belong in latent space.
 ### Prompting system
 
 - **Agents** (21 + None) set the analysis lens — Portrait pulls facial and lighting detail, Products pulls
-  material and packaging detail, Professional Tagger emits tags rather than prose, and so on.
+  material and packaging detail, and so on. Tag output is `response_format = tags`, so it
+  composes with any agent instead of replacing it.
 - **Model profiles** rewrite the output for the target generator: Z-Image Turbo, FLUX, SDXL, QWEN,
   Krea 2, Ideogram 4. Rules live in `common/model_prompt_adapters.py`; the reasoning and sources are
   in [`docs/MODEL_PROMPTING_GUIDE.md`](docs/MODEL_PROMPTING_GUIDE.md) and
@@ -751,7 +792,8 @@ python_embeded\python.exe -m pip install -r ComfyUI\custom_nodes\FiL_Design_Imag
 | Вход | Тип | По умолчанию | Диапазон / опции |
 |---|---|---|---|
 | `config` | FilProviderConfig | — | от Provider Loader |
-| `agent` | COMBO | `🌐 Universal` | 22 варианта (включая ⚪ None) — Portrait, Products, Nature, Art, Cinematic, Fashion, Animals, Architecture, Interior, City, Transport, Food, Gadgets, Games, Composition, Lighting & Color, Professional Tagger, 18+, … |
+| `agent` | COMBO | `⚪ None` | предметная область, 13 вариантов — Portrait, Products, Nature & Landscape, Art & Illustration, Fashion, Animals, Architecture, Interior, City, Transport, Food, Games |
+| `agent_focus` | COMBO | `⚪ None` | акцент поверх агента — 📐 Composition, 💡 Lighting & Color, 🔬 Ultra Detail, 🎬 Cinematic |
 | `image` | IMAGE (опц.) | — | пусто = текстовый режим |
 | `width` / `height` | INT-сокет (опц.) | `0` | только соединением — целевое разрешение приходит от Empty Latent Image или пикера разрешений; при > 0 промпт подстраивается под эту пропорцию |
 | `prompt` | STRING (опц.) | `""` | ваша идея / затравка |
@@ -764,7 +806,7 @@ python_embeded\python.exe -m pip install -r ComfyUI\custom_nodes\FiL_Design_Imag
 | `nsfw_photo_style` / `nsfw_art_style` | COMBO | `None` | отдельные 18+ каталоги |
 | `custom_style` | STRING (опц.) | `""` | свой текст стиля, подмешивается к выбранным |
 | `seed` | INT | `-1` | -1 – 999999999999 (-1 = случайный) |
-| `response_format` | COMBO | `text` | text, json (json включает JSON-схему Ideogram 4) |
+| `response_format` | COMBO | `text` | text, tags (плоский список через запятую), json (включает JSON-схему Ideogram 4 / FLUX) |
 
 **Выходы:** `prompt` (STRING), `metadata_json` (STRING), `metadata_dict` (FilDict)
 
@@ -965,6 +1007,44 @@ python_embeded\python.exe -m pip install -r ComfyUI\custom_nodes\FiL_Design_Imag
 
 </details>
 
+#### 🎨 FiL Design/Dataset
+
+<details>
+<summary><b>📚 LoRA Dataset Forge</b> — <code>FiLDatasetForge</code> — батч → готовый датасет для LoRA на диске</summary>
+
+Один прогон: aspect-бакеты нужного разрешения, по одной подписи от LLM на кадр, файлы
+раскладываются так, как их ждёт kohya_ss / sd-scripts.
+
+| Вход | Тип | По умолчанию | Заметки |
+|---|---|---|---|
+| `image` | IMAGE | — | весь батч, один файл на кадр |
+| `config` | FilProviderConfig (опц.) | — | из 🔌 Provider Loader, нужен только для подписей от LLM |
+| `captions` | STRING (опц.) | — | ручные подписи через строку `---`; принимает вывод Optic Scanner как есть и отключает вызов LLM |
+| `dataset_name` | STRING | `my_lora` | папка внутри `ComfyUI/output/datasets`, имя санитизируется |
+| `trigger_word` | STRING | — | токен, активирующий LoRA; ставится в начало каждой подписи |
+| `class_token` | STRING | — | `woman`, `car`, … — идёт после триггера в подписях и в имени папки kohya |
+| `base_resolution` | COMBO | `1024` | 512 – 1536, бакеты строятся вокруг этой площади |
+| `layout` | COMBO | `kohya` | `kohya` → `img/<repeats>_<trigger> <class>/` + `dataset.toml`; `flat` → изображения рядом с подписями |
+| `repeats` | INT | `10` | повторов на изображение за эпоху |
+| `caption_mode` | COMBO | `natural` | `natural` (Flux/SDXL) · `tags` (SD 1.5/Pony) · `hybrid` · `none` |
+| `crop_mode` | COMBO | `center` | `entropy` режет в сторону самой детализированной области |
+| `dry_run` | BOOLEAN | `false` | посчитать весь прогон, ничего не записывая |
+| `write_mode` | COMBO | `append` | `overwrite` удаляет только пары изображение/подпись этой ноды — чужие файлы остаются |
+| `caption_max_words`, `caption_language`, `dont_caption`, `caption_instruction` | | | настройка подписей |
+| `bucket_step`, `caption_extension`, `image_format`, `jpg_quality`, `seed` | | | детали вывода |
+
+**Выходы:** `preview` (бакеты, вписанные в один квадратный холст), `report`, `dataset_path`,
+`manifest`.
+
+Каптионинг работает по правилу, от которого зависит, обобщится ли LoRA: **описываем то, что
+меняется** (поза, одежда, фон, свет, ракурс, медиум) и **не описываем инвариант** — он
+принадлежит триггер-слову. Перечисли инварианты в `dont_caption`, и промпт запретит их явно.
+
+Нода не апскейлит. Исходники меньше своего бакета всё равно записываются, считаются в
+`upscaled_count` и попадают в предупреждение отчёта — прогони их сначала через 🔍 Upscaler Simple.
+
+</details>
+
 #### 🎨 FiL Design/Values · Tools
 
 <details>
@@ -1021,7 +1101,8 @@ lanczos это RGB-специфичная интерполяция, в лате�
 ### Система промптинга
 
 - **Агенты** (21 + None) задают оптику анализа: Portrait вытягивает детали лица и света, Products —
-  материалы и упаковку, Professional Tagger отдаёт теги вместо прозы и т.д.
+  материалы и упаковку и т.д. Теги — это `response_format = tags`, он сочетается с любым
+  агентом, а не заменяет его.
 - **Профили моделей** переписывают вывод под целевой генератор: Z-Image Turbo, FLUX, SDXL, QWEN,
   Krea 2, Ideogram 4. Правила — в `common/model_prompt_adapters.py`, обоснование и источники — в
   [`docs/MODEL_PROMPTING_GUIDE.md`](docs/MODEL_PROMPTING_GUIDE.md) и

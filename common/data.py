@@ -19,6 +19,14 @@ DETAIL_LEVELS: Dict[str, Dict[str, Any]] = {
     "ultra": {"description": "Exhaustive ultra-detailed description.", "words": [500, 1200]},
 }
 
+TAGS_RESPONSE_FORMAT = "tags"
+
+TAGS_OUTPUT_INSTRUCTION = (
+    "OUTPUT MODE OVERRIDE: answer with flat comma-separated visual tags ordered by visual weight, "
+    "suitable for SDXL-style prompting — no prose, no sentences, no field labels, no markdown. "
+    "Example shape: \"cyberpunk street, neon signs, wet asphalt, holographic advertisement, rain, purple and blue lighting\"."
+)
+
 NONE_AGENT_KEY = "None"
 NONE_AGENT_TEMPLATE = (
     "PURPOSE: Neutral Visual Describer — clean objective description without agent-specific bias.\n"
@@ -184,7 +192,11 @@ def model_needs_prompt_post_conversion(
     effective = get_effective_response_format(model_type, response_format)
     if effective == "json":
         return True
-    if response_format != "text":
+    # "tags" is a text-shaped format, so it goes through the same gate as
+    # "text": convert_to_dit_format() short-circuits to the tag branch and
+    # normalizes/truncates, instead of the whole conversion being skipped and
+    # the raw model answer shipped unchecked.
+    if response_format not in ("text", TAGS_RESPONSE_FORMAT):
         return False
     return bool(get_model_prompt_rule(model_type).get("post_convert_text", False))
 
@@ -232,29 +244,22 @@ lm = get_localization_manager()
 
 AGENTS: Dict[str, str] = {
     NONE_AGENT_KEY: NONE_AGENT_TEMPLATE,
-    "Universal": (
-        "PURPOSE: Universal Agent — default mode for general image analysis.\n"
-        "FOCUS: main subject, action/state, composition, environment, lighting, style, mood.\n"
-        "CONCRETE: ground descriptions in observable physical traits.\n"
-        "IGNORE: unsupported backstory, intent, emotional narrative beyond visible expression.\n"
-        "OUTPUT MODE: prose paragraph, no labels, no markdown.\n"
-        "Order: subject → action → composition → environment → lighting → style → mood."
-    ),
     "Portrait": (
-        "PURPOSE: Portrait Agent — optimized for people and portrait photography.\n"
-        "FOCUS: hair (style, color, texture, condition), face (expression asymmetry, brow tension, nasolabial folds), gaze (direction, focus, eyelid coverage), pose (weight distribution, shoulder line), clothing (fit, fabric, drape, folds), skin (tone, texture, subdermal color, sheen, imperfections).\n"
-        "CONCRETE: describe physical facial markers — not emotion labels. \"subtle asymmetrical smile with nasolabial fold\" not \"happy\".\n"
-        "IGNORE: personality traits, emotional backstory, narrative intent.\n"
+        "PURPOSE: Portrait Agent — people, portrait photography, and how the subject carries themselves.\n"
+        "FOCUS: hair (style, color, texture, condition), face (expression asymmetry, brow tension, nasolabial folds), gaze (direction, focus stability, eyelid coverage), pose (weight distribution, shoulder line, hip/shoulder relationship), body language (hand and shoulder tension, action vector, momentum cues, static vs transitional energy), clothing (fit, fabric, drape, folds), skin (tone, texture, subdermal color, sheen, imperfections).\n"
+        "CONCRETE: describe physical markers, not emotion labels — \"left brow lower than right, shoulders rolled forward, knuckle tension, weight on back foot\" not \"nervous\".\n"
+        "IGNORE: personality traits, emotional backstory, narrative intent, psychological diagnosis.\n"
         "OUTPUT MODE: prose paragraph, no markdown.\n"
-        "Order: hair → face → gaze → pose → clothing → skin."
+        "Order: hair → face → gaze → pose → body language → clothing → skin."
     ),
     "Products": (
-        "PURPOSE: Products Agent — optimized for product and commercial photography.\n"
-        "FOCUS: object (shape, silhouette, proportion), material (surface, grain, finish, reflectivity), color (hue, saturation, evenness), branding (logo, text, typography), lighting (source count, direction, diffusion, highlights), reflections (specular, environmental wrap), background (surface, depth, isolation).\n"
-        "CONCRETE: describe physical properties as seen — \"brushed aluminum with visible linear grain\" not \"premium quality\".\n"
-        "IGNORE: value judgments (\"beautiful\", \"premium\", \"high-quality\"), usage scenarios, brand reputation.\n"
+        "PURPOSE: Products Agent — product, commercial, and device photography.\n"
+        "FOCUS: object (shape, silhouette, proportion), material (surface, grain, finish, reflectivity), color (hue, saturation, evenness), branding (logo, text, typography, signature hardware), lighting (source count, direction, diffusion, highlights), reflections (specular, environmental wrap), background (surface, depth, isolation).\n"
+        "FOR DEVICES: form factor, port and button layout, screen state and visible on-screen interface, chassis finish, wear at contact points, usage context (hand, desk, mount).\n"
+        "CONCRETE: describe physical properties as seen — \"brushed aluminum with visible linear grain\", \"anodized unibody, MagSafe and two USB-C on the left edge, lid closed\" not \"premium quality\".\n"
+        "IGNORE: value judgments (\"beautiful\", \"premium\", \"high-quality\"), performance specs, usage scenarios, brand reputation.\n"
         "OUTPUT MODE: prose paragraph, no markdown.\n"
-        "Order: object → material → color → lighting → reflections → background."
+        "Order: object → material → color → lighting → reflections → interface (if any) → background."
     ),
     "Nature & Landscape": (
         "PURPOSE: Nature & Landscape Agent — optimized for outdoor scenes and landscapes.\n"
@@ -272,30 +277,6 @@ AGENTS: Dict[str, str] = {
         "OUTPUT MODE: prose paragraph, no markdown.\n"
         "Order: medium → style → composition → subject → palette → technique → surface."
     ),
-    "Ultra Detailed Expert": (
-        "PURPOSE: Ultra Detailed Expert — extreme close attention to fine grain, texture, and surface realism.\n"
-        "FOCUS: micro details (pores, fibers, grain, cracks), surface texture (roughness, smoothness, pattern regularity), material wear (scratches, patina, oxidation, fraying, pilling), reflectance (specular vs diffuse, gloss level), translucency (subsurface scatter, edge light), fine materials (fabric weave, wood grain, stone veining, metal brushing).\n"
-        "CONCRETE: describe at the finest observable grain — \"worn denim with visible white weft threads, fading at knee creases, surface pilling, uneven indigo loss at seams\" not \"old jeans\".\n"
-        "IGNORE: general category labels, style, mood, composition overview.\n"
-        "OUTPUT MODE: prose paragraph, no markdown.\n"
-        "Order: surface → texture → micro details → wear → reflectance → translucency."
-    ),
-    "Cinematic Master": (
-        "PURPOSE: Cinematic Master — film-oriented analysis for storytelling frames.\n"
-        "FOCUS: camera angle (low, high, Dutch, eye-level), lens type (wide, tele, macro, anamorphic hints), depth of field (shallow, deep, rack focus), contrast (high/low key, lighting ratio), color grading (palette, LUT cues, split toning), atmosphere (haze, fog, bloom, grain), frame composition (rule of thirds, leading lines, negative space, symmetry).\n"
-        "CONCRETE: describe cinematographic techniques observable in the frame — \"shallow DoF with bokeh highlights, teal/orange grade, backlit haze, leading lines converging at upper third\" not \"looks like a movie\".\n"
-        "IGNORE: plot, character motivation, genre labels.\n"
-        "OUTPUT MODE: prose paragraph, no markdown.\n"
-        "Order: angle → lens → DoF → composition → grading → atmosphere → contrast."
-    ),
-    "18+": (
-        "PURPOSE: 18+ Agent — anatomical and sensual-scene precision without drift.\n"
-        "FOCUS: subject identity (age cues, body type, visible anatomy), pose (limb placement, weight distribution, contact points), clothing/coverage (type, fit, removal state, fabric tension), expression (gaze, mouth state, micro-tension), lighting (volume, shadow on body contours), context (setting, props, surface).\n"
-        "CONCRETE: describe anatomy and pose with clinical precision — \"trapezius engaged, arm raised above head, hip rotated 30° to camera, fabric pulled taut across ribs\" not \"sexy pose\".\n"
-        "IGNORE: subjective arousal language, narrative, value judgment.\n"
-        "OUTPUT MODE: prose paragraph, no markdown.\n"
-        "Order: subject → pose → clothing → expression → lighting → context."
-    ),
     "Fashion": (
         "PURPOSE: Fashion Agent — wardrobe, fabric, fit, and styling analysis.\n"
         "FOCUS: garments (type, silhouette, cut, layering), fabric (material, texture, weight, drape, sheen), colors (hue, pattern, print, color blocking), accessories (jewelry, bags, belts, shoes), silhouette (fit, tailoring, volume, hemline), brand cues (logo, monogram, signature hardware).\n"
@@ -311,14 +292,6 @@ AGENTS: Dict[str, str] = {
         "IGNORE: anthropomorphic emotion (\"sad eyes\", \"happy tail\"), human-like narrative.\n"
         "OUTPUT MODE: prose paragraph, no markdown.\n"
         "Order: species → build → coat → head → expression → environment."
-    ),
-    "Character Performance Agent": (
-        "PURPOSE: Character Performance Agent — emotion, action impulse, and alive presence for character subjects.\n"
-        "FOCUS: micro-expression (brow asymmetry, lip corner tension, orbicularis engagement), gaze (direction, focus stability, blink state), mouth/eyebrow tension (neutral vs engaged vs strained), shoulder/hand pressure (relaxed vs flexed vs posed), action vector (movement direction, momentum cues, limb position), weight shift (center of gravity, hip/shoulder relationship), pose energy (dynamic vs static vs transitional), camera interaction (direct eye contact, fourth-wall awareness).\n"
-        "CONCRETE: describe body language as physical signals — \"left eyebrow slightly lower than right, shoulders rolled forward, hands interlaced with visible knuckle tension, weight on back foot\" not \"nervous\".\n"
-        "IGNORE: psychological diagnosis, character backstory, narrative emotion labels (\"fear\", \"joy\").\n"
-        "OUTPUT MODE: prose paragraph, no markdown.\n"
-        "Order: expression → gaze → tension → pose → action vector → weight shift → energy."
     ),
     "Architecture": (
         "PURPOSE: Architecture Agent — structural truth and spatial clarity.\n"
@@ -360,14 +333,6 @@ AGENTS: Dict[str, str] = {
         "OUTPUT MODE: prose paragraph, no markdown.\n"
         "Order: dish → ingredients → plating → textures → colors → freshness → ambiance."
     ),
-    "Gadgets": (
-        "PURPOSE: Gadgets Agent — electronics and device description with screen/context logic.\n"
-        "FOCUS: device type (phone, laptop, tablet, wearable, peripheral), brand/model cues (logo, form factor, port layout), visible interface (screen content, UI elements, button state), materials (chassis, finish, texture, glass type), condition (scratches, wear, screen state, cable management), usage context (hands, desk, mount, studio, lifestyle).\n"
-        "CONCRETE: describe device as industrial object — \"silver MacBook Pro (M-series, 14\"), closed lid, MagSafe and two USB-C visible on left edge, anodized aluminum unibody with fine micro-abrasions at palm rest, sitting on white marble desktop with ambient LED strip behind\" not \"modern laptop\".\n"
-        "IGNORE: performance specs, brand loyalty, price/value judgment.\n"
-        "OUTPUT MODE: prose paragraph, no markdown.\n"
-        "Order: type → brand/model → materials → interface → condition → context."
-    ),
     "Games": (
         "PURPOSE: Games Agent — game scene, UI, and graphics-style interpretation.\n"
         "FOCUS: game type (FPS, RPG, racing, platformer, strategy), graphics style (realistic, stylized, pixel art, cel-shaded, low-poly), HUD/UI (health bar, minimap, ammo, score, menu), characters (model quality, rigging, costume, team colors), environment (level design, texture quality, lighting, draw distance), gameplay state (idle, action, menu, cutscene), platform cues (controller hints, touch controls, button prompts).\n"
@@ -376,54 +341,96 @@ AGENTS: Dict[str, str] = {
         "OUTPUT MODE: prose paragraph, no markdown.\n"
         "Order: type → graphics → environment → characters → UI → gameplay state."
     ),
-    "Composition Agent": (
-        "PURPOSE: Composition Agent — focus on composition, camera, framing, and space.\n"
-        "FOCUS: shot type (wide, medium, close-up, extreme close-up, macro), camera angle (high, low, Dutch, aerial, POV), crop/framing (tight, loose, headroom, noseroom, lead room), subject placement (center, rule of thirds, off-center, symmetry, negative space), depth of field (shallow, deep, focus plane, bokeh quality), perspective (linear, atmospheric, forced, isometric), lens cues (focal length feel, distortion, compression, anamorphic flare).\n"
-        "CONCRETE: describe photographic/cinematic framing decisions — \"low-angle medium-wide, subject placed on left third, strong leading line from lower right corner, deep focus with atmospheric perspective haze at horizon\" not \"nice composition\".\n"
-        "IGNORE: subject identity, narrative meaning, lighting unless it affects framing.\n"
-        "OUTPUT MODE: prose paragraph, no markdown.\n"
-        "Order: shot type → angle → framing → subject placement → DoF → perspective → lens cues."
-    ),
-    "Lighting & Color Agent": (
-        "PURPOSE: Lighting & Color Agent — prioritize light source, direction, contrast, palette, and atmosphere.\n"
-        "FOCUS: source (natural, artificial, mixed, practical, key/fill/rim count), direction (front, side, backlight, top, bottom, Rembrandt, split), contrast (ratio, hard vs soft, highlight rolloff, shadow density), palette (dominant hue, accent, complementary, monochrome, temperature), reflections (specular highlights, caustics, bounce light, fresnel), atmospheric effects (haze, fog, volumetric, bloom, lens flare, god rays).\n"
-        "CONCRETE: describe light as physical phenomenon — \"single hard key light at 45° camera-left, producing a defined triangular nose shadow (Rembrandt pattern), deep shadows with no fill, warm 3200K tungsten, thin rim light on hair from back-right\" not \"dramatic lighting\".\n"
-        "IGNORE: subject identity, compositional analysis, style/mood labels.\n"
-        "OUTPUT MODE: prose paragraph, no markdown.\n"
-        "Order: source → direction → contrast → palette → reflections → atmospheric effects."
-    ),
-    "Professional Tagger": (
-        "PURPOSE: Professional Tagger — convert the image into clean strongest-first visual tags.\n"
-        "FOCUS: subject, action, composition, details, environment, lighting, style, useful quality tags.\n"
-        "CONCRETE: output raw visual tokens with no prose — \"cyberpunk street, neon signs, wet asphalt, holographic advertisement, rain, purple and blue lighting, detailed, highly detailed\" not a sentence.\n"
-        "IGNORE: any prose, full sentences, field labels, markdown, commentary.\n"
-        "OUTPUT MODE: flat comma-separated tokens ordered by visual weight, suitable for SDXL-style prompting."
-    ),
 }
 
 AGENT_EMOJIS: Dict[str, str] = {
     NONE_AGENT_KEY: "⚪",
-    "Universal": "🌐",
     "Portrait": "👤",
     "Products": "📦",
     "Nature & Landscape": "🌿",
     "Art & Illustration": "🎨",
-    "Ultra Detailed Expert": "🔬",
-    "Cinematic Master": "🎬",
-    "18+": "🔞",
     "Fashion": "👗",
     "Animals": "🐾",
-    "Character Performance Agent": "🎭",
     "Architecture": "🏛",
     "Interior": "🪑",
     "City": "🌆",
     "Transport": "🚗",
     "Food": "🍽",
-    "Gadgets": "📱",
     "Games": "🎮",
-    "Composition Agent": "📐",
-    "Lighting & Color Agent": "💡",
-    "Professional Tagger": "🏷",
+}
+
+# ── Focus axis ─────────────────────────────────────────────────────────────
+# An agent answers "what is in the frame"; a focus answers "which craft layer
+# to weigh heavier while describing it". They used to share one dropdown, where
+# picking 📐 Composition meant giving up 🍽 Food — even though the two describe
+# different things and compose fine. A focus block is appended after the agent
+# template and never replaces it.
+NONE_FOCUS_KEY = "None"
+
+AGENT_FOCUSES: Dict[str, str] = {
+    NONE_FOCUS_KEY: "",
+    "Composition": (
+        "FOCUS OVERLAY — Composition: weigh framing and space above other layers.\n"
+        "COVER: shot type (wide, medium, close-up, macro), camera angle (high, low, Dutch, aerial, POV), "
+        "crop (tight, loose, headroom, lead room), subject placement (thirds, center, symmetry, negative space), "
+        "depth of field (shallow, deep, focus plane, bokeh), perspective (linear, atmospheric, forced, isometric), "
+        "lens cues (focal length feel, distortion, compression).\n"
+        "CONCRETE: \"low-angle medium-wide, subject on the left third, leading line from the lower right corner, deep focus\" not \"nice composition\"."
+    ),
+    "Lighting & Color": (
+        "FOCUS OVERLAY — Lighting & Color: weigh light and palette above other layers.\n"
+        "COVER: source (natural, artificial, mixed, practical, key/fill/rim count), direction (front, side, back, top, Rembrandt, split), "
+        "contrast (ratio, hard vs soft, highlight rolloff, shadow density), palette (dominant hue, accent, temperature), "
+        "reflections (specular highlights, caustics, bounce, fresnel), atmosphere (haze, volumetric, bloom, flare).\n"
+        "CONCRETE: \"single hard key at 45° camera-left, triangular nose shadow, no fill, 3200K tungsten, thin rim from back-right\" not \"dramatic lighting\"."
+    ),
+    "Ultra Detail": (
+        "FOCUS OVERLAY — Ultra Detail: describe surfaces at the finest observable grain.\n"
+        "COVER: micro details (pores, fibers, grain, cracks), texture (roughness, pattern regularity), "
+        "material wear (scratches, patina, oxidation, fraying, pilling), reflectance (specular vs diffuse, gloss level), "
+        "translucency (subsurface scatter, edge light), fine materials (fabric weave, wood grain, stone veining).\n"
+        "CONCRETE: \"worn denim with visible white weft threads, fading at knee creases, uneven indigo loss at seams\" not \"old jeans\".\n"
+        "This sharpens the agent's own subjects — it does not replace them, and it never overrides the style overlay or the target-format guidance."
+    ),
+    "Cinematic": (
+        "FOCUS OVERLAY — Cinematic: read the frame as a film still.\n"
+        "COVER: camera angle, lens character (wide, tele, macro, anamorphic hints), depth of field, "
+        "lighting ratio (high/low key), color grading (palette, LUT cues, split toning), "
+        "atmosphere (haze, fog, bloom, grain), frame geometry (thirds, leading lines, symmetry).\n"
+        "CONCRETE: \"shallow DoF with bokeh highlights, teal/orange grade, backlit haze, lines converging at the upper third\" not \"looks like a movie\".\n"
+        "IGNORE: plot, character motivation, genre labels."
+    ),
+}
+
+FOCUS_EMOJIS: Dict[str, str] = {
+    NONE_FOCUS_KEY: "⚪",
+    "Composition": "📐",
+    "Lighting & Color": "💡",
+    "Ultra Detail": "🔬",
+    "Cinematic": "🎬",
+}
+
+# ── Legacy agent migration ─────────────────────────────────────────────────
+# Agents that existed when a workflow was saved but are gone from the dropdown.
+# Each maps to (agent, focus, response_format) — `None` for a field means "leave
+# whatever the workflow already has". Without this table the old value silently
+# resolved to the neutral agent, quietly changing what a saved workflow produces.
+LEGACY_AGENT_MIGRATION: Dict[str, Tuple[Optional[str], Optional[str], Optional[str]]] = {
+    # Near-duplicate of the neutral describer.
+    "Universal": (NONE_AGENT_KEY, None, None),
+    # Folded into Portrait, which now carries the body-language cues.
+    "Character Performance Agent": ("Portrait", None, None),
+    # Folded into Products, which now covers screens and interfaces.
+    "Gadgets": ("Products", None, None),
+    # Adult framing is what the NSFW style presets are for.
+    "18+": (NONE_AGENT_KEY, None, None),
+    # Craft layers — now focuses, so they compose with any subject agent.
+    "Composition Agent": (None, "Composition", None),
+    "Lighting & Color Agent": (None, "Lighting & Color", None),
+    "Ultra Detailed Expert": (None, "Ultra Detail", None),
+    "Cinematic Master": (None, "Cinematic", None),
+    # An output shape, not a way of looking — now a response_format.
+    "Professional Tagger": (None, None, "tags"),
 }
 
 _STYLE_SOURCES: Dict[str, Dict[str, str]] = {
@@ -455,16 +462,59 @@ def get_visible_agent_keys() -> List[str]:
     return [f"{AGENT_EMOJIS.get(k, '')} {k}" for k in AGENTS.keys()]
 
 
-def get_default_agent_key() -> str:
-    """Return the recommended default agent for new scanner runs.
+def get_visible_focus_keys() -> List[str]:
+    return [f"{FOCUS_EMOJIS.get(k, '')} {k}" for k in AGENT_FOCUSES.keys()]
 
-    "Universal" gives a useful general-purpose analysis rather than the neutral
-    None template, which is better as an explicit override than a default.
-    Includes emoji prefix to match get_visible_agent_keys() format.
+
+def get_default_focus_key() -> str:
+    return f"{FOCUS_EMOJIS.get(NONE_FOCUS_KEY, '')} {NONE_FOCUS_KEY}".strip()
+
+
+def resolve_focus_key(value: Any) -> str:
+    """Strip the emoji prefix off a focus dropdown value, defaulting to None."""
+    if not value or str(value).strip().lower() in ("none", "", "null"):
+        return NONE_FOCUS_KEY
+    raw = str(value).strip()
+    for key in AGENT_FOCUSES:
+        if raw == key or raw.endswith(f" {key}"):
+            return key
+    for key in AGENT_FOCUSES:
+        if raw.lower() == key.lower() or raw.lower().endswith(f" {key.lower()}"):
+            return key
+    return NONE_FOCUS_KEY
+
+
+def get_focus_template(focus_key: str) -> str:
+    return AGENT_FOCUSES.get(resolve_focus_key(focus_key), "")
+
+
+def migrate_legacy_agent(value: Any) -> Tuple[Optional[str], Optional[str], Optional[str]]:
+    """Map a retired agent name onto the (agent, focus, response_format) axes.
+
+    Returns ``(None, None, None)`` for anything still in the dropdown, so the
+    caller can leave the workflow's own values untouched. See
+    LEGACY_AGENT_MIGRATION for why a silent fallback is not good enough.
     """
-    key = "Universal" if "Universal" in AGENTS else NONE_AGENT_KEY
-    emoji = AGENT_EMOJIS.get(key, "")
-    return f"{emoji} {key}" if emoji else key
+    if not value:
+        return (None, None, None)
+    raw = str(value).strip()
+    for legacy, mapped in LEGACY_AGENT_MIGRATION.items():
+        if raw == legacy or raw.endswith(f" {legacy}") or raw.lower().endswith(f" {legacy.lower()}"):
+            return mapped
+    return (None, None, None)
+
+
+def get_default_agent_key() -> str:
+    """Return the default agent for new scanner runs.
+
+    The neutral describer: it makes no assumption about what the image holds,
+    which is the right starting point now that every other agent is a specific
+    subject domain. (It also absorbed the old "Universal" agent, which said
+    almost the same thing in slightly different words.)
+    Includes the emoji prefix to match get_visible_agent_keys() format.
+    """
+    emoji = AGENT_EMOJIS.get(NONE_AGENT_KEY, "")
+    return f"{emoji} {NONE_AGENT_KEY}" if emoji else NONE_AGENT_KEY
 
 
 def first_or_default(values: List[str], default: str) -> str:
@@ -495,12 +545,16 @@ AGENT_OUTPUT_MODE_PROSE = "prose"
 AGENT_OUTPUT_MODE_TAGS = "tags"
 
 
-def get_agent_output_mode(agent_key: str) -> str:
-    """Return whether ``agent_key`` produces prose or a comma-tag list.
+def get_agent_output_mode(response_format: str = "text", agent_key: str = "") -> str:
+    """Return whether the run produces prose or a flat comma-tag list.
 
-    Only "Professional Tagger" asks for flat comma-separated tags — its
-    output must not be rewritten into sentences by the per-model_type DiT
-    restructuring step (convert_to_dit_format), which would otherwise
-    silently discard the tag format the user explicitly picked.
+    Tag output is a `response_format` now ("text" / "tags" / "json") rather
+    than a dedicated agent, so it composes with any subject agent instead of
+    replacing it. `agent_key` stays accepted for the retired "Professional
+    Tagger" value, which a saved workflow can still carry.
     """
-    return AGENT_OUTPUT_MODE_TAGS if agent_key == "Professional Tagger" else AGENT_OUTPUT_MODE_PROSE
+    if str(response_format).strip().lower() == TAGS_RESPONSE_FORMAT:
+        return AGENT_OUTPUT_MODE_TAGS
+    if agent_key and str(agent_key).strip().endswith("Professional Tagger"):
+        return AGENT_OUTPUT_MODE_TAGS
+    return AGENT_OUTPUT_MODE_PROSE

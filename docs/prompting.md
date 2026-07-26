@@ -112,72 +112,63 @@ Normalization rule:
 
 ## UI Agent System
 
-FiL_Design_ImageMind must expose exactly **21 visible UI agents + None**.
+The scanner splits "how to look at this" across three independent axes instead
+of one dropdown. They used to be a single list of 22 agents, where picking
+📐 Composition meant giving up 🍽 Food even though the two describe different
+things.
 
-`None` means no specialized mode selected.
+### `agent` — subject domain (what is in the frame)
 
-In `FiLOpticScanner`, visible agents resolve to stable internal agent profiles.
+`⚪ None` (the default) is the neutral describer: no assumption about the
+subject. The other twelve are subject domains:
 
-### English UI categories
+`👤 Portrait` · `📦 Products` · `🌿 Nature & Landscape` · `🎨 Art & Illustration` ·
+`👗 Fashion` · `🐾 Animals` · `🏛 Architecture` · `🪑 Interior` · `🌆 City` ·
+`🚗 Transport` · `🍽 Food` · `🎮 Games`
 
-1. `📸 General Core/🛑 None`
-2. `📸 General Core/🌐 Universal`
-3. `📸 General Core/📜 Ultra Detailed Expert`
-4. `🧬 Subjects & People/🧑‍🎤 Portrait`
-5. `🧬 Subjects & People/🔞 18+`
-6. `🧬 Subjects & People/👕 Fashion`
-7. `🧬 Subjects & People/🐱 Animals`
-8. `🧬 Subjects & People/🎭 Character Performance Agent`
-9. `🏙️ Places & Nature/🏛️ Architecture`
-10. `🏙️ Places & Nature/🌿 Nature`
-11. `🏙️ Places & Nature/🏠 Interior`
-12. `🏙️ Places & Nature/🌆 City`
-13. `🏙️ Places & Nature/🚗 Transport`
-14. `📦 Objects & Food/📦 Products`
-15. `📦 Objects & Food/🍔 Food`
-16. `📦 Objects & Food/📱 Gadgets`
-17. `📦 Objects & Food/🎮 Games`
-18. `🎨 Style & Cinematic/🎨 Art`
-19. `🎨 Style & Cinematic/🎬 Cinematic Master`
-20. `🎨 Style & Cinematic/📐 Composition Agent`
-21. `🎨 Style & Cinematic/💡 Lighting & Color Agent`
-22. `🛠️ Prompt Tools/🏷️ Professional Tagger`
+Portrait carries body language (action vector, weight shift, gesture pressure);
+Products covers devices, including screen state and visible interface.
 
-### Russian UI categories
+### `agent_focus` — craft layer (what to weigh heavier)
 
-1. `📸 Общие и база/🛑 Без агента`
-2. `📸 Общие и база/🌐 Универсальный`
-3. `📸 Общие и база/📜 Ультра Детальный Эксперт`
-4. `🧬 Субъекты и люди/🧑‍🎤 Портрет`
-5. `🧬 Субъекты и люди/🔞 18+`
-6. `🧬 Субъекты и люди/👕 Мода`
-7. `🧬 Субъекты и люди/🐱 Животные`
-8. `🧬 Субъекты и люди/🎭 Агент живого персонажа`
-9. `🏙️ Места и природа/🏛️ Архитектура`
-10. `🏙️ Места и природа/🌿 Природа`
-11. `🏙️ Места и природа/🏠 Интерьер`
-12. `🏙️ Места и природа/🌆 Город`
-13. `🏙️ Места и природа/🚗 Транспорт`
-14. `📦 Предметы и еда/📦 Товары`
-15. `📦 Предметы и еда/🍔 Еда`
-16. `📦 Предметы и еда/📱 Гаджеты`
-17. `📦 Предметы и еда/🎮 Игры`
-18. `🎨 Стиль и кино/🎨 Арт`
-19. `🎨 Стиль и кино/🎬 Кинематографический Мастер`
-20. `🎨 Стиль и кино/📐 Агент композиции`
-21. `🎨 Стиль и кино/💡 Агент света и цвета`
-22. `🛠️ Инструменты промпта/🏷️ Профессиональный Теггер`
+Appended after the agent template, never replacing it, so any focus composes
+with any domain — a cinematic read of a plate of food is one pick each.
 
-The count is **21 agents + None**: the first entry is `None`, the other 21 entries are active agent modes.
+`⚪ None` · `📐 Composition` · `💡 Lighting & Color` · `🔬 Ultra Detail` · `🎬 Cinematic`
 
-Compatibility rules:
+### `response_format` — output shape
 
-- old flat agent labels are accepted;
-- RU and EN flat labels are accepted;
-- RU and EN `Category/Agent` labels are accepted;
-- frontend migration may rewrite old flat labels to current category paths;
-- `Style Overlay Agent`, `Technical Lock Analyst`, `Prompt Engineer`, `Base Prompt Agent`, and `Model Adapter Agent` were removed as meta-agents that operate on an already-generated prompt rather than describing an image; unresolved legacy labels fall back to `None`;
-- backend `resolve_agent_key()` must return the stable flat runtime profile before prompt construction.
+`text` (prose) · `tags` (flat comma-separated tokens, SDXL-style) · `json`
+(model-specific schema for FLUX / Ideogram 4). `tags` is decided before any
+json branch, so asking for tags always returns tags.
+
+### Migration of saved workflows
+
+A workflow saved against the old single list keeps working — `migrate_legacy_agent()`
+maps the retired name onto the new axes, and an explicit pick of the user's
+always wins over the migrated one:
+
+| retired agent | becomes |
+|---|---|
+| `🌐 Universal` | `agent = None` (near-duplicate of the neutral describer) |
+| `🎭 Character Performance Agent` | `agent = Portrait` |
+| `📱 Gadgets` | `agent = Products` |
+| `🔞 18+` | `agent = None` — adult framing is what the NSFW style presets are for |
+| `📐 Composition Agent` | `agent_focus = Composition` |
+| `💡 Lighting & Color Agent` | `agent_focus = Lighting & Color` |
+| `🔬 Ultra Detailed Expert` | `agent_focus = Ultra Detail` |
+| `🎬 Cinematic Master` | `agent_focus = Cinematic` |
+| `🏷 Professional Tagger` | `response_format = tags` |
+
+Unresolved labels still fall back to `None`. `resolve_agent_key()` returns the
+stable flat runtime profile before prompt construction; `resolve_focus_key()`
+does the same for the focus axis.
+
+### Text-only runs
+
+With no image connected the system prompt carries an explicit "no image is
+attached" instruction: the agent expands the user's idea into a prompt instead
+of describing a picture that does not exist.
 
 ## Agent Output Contract
 
@@ -207,7 +198,7 @@ The pass must not:
 - exaggerate emotion beyond what the image supports;
 - break the locked core.
 
-`Character Performance Agent` is the strongest dedicated control for this behavior. It merges the previous `Emotion & Life Director` and `Action & Emotion Agent` roles into one clearer agent focused on character performance, micro-expression, gaze, body-language pressure, action vector, balance/weight transfer, gesture/contact, physical impulse, and captured-moment presence.
+`👤 Portrait` is the strongest dedicated control for this behavior. It absorbed the retired `Character Performance Agent` (itself a merge of the earlier `Emotion & Life Director` and `Action & Emotion Agent`), so one pick now covers micro-expression, gaze, body-language pressure, action vector, balance/weight transfer, gesture/contact, physical impulse, and captured-moment presence.
 
 Agent modes may:
 
@@ -375,7 +366,7 @@ The compiler may reorder or compress wording for the target model and may restyl
 
 ## Adult Scene Truth Pass
 
-When the `🔞 18+` agent or an NSFW style is active, FiL_Design_ImageMind adds an adult-scene truth pass:
+When an NSFW style is active (the retired `🔞 18+` agent folded into those presets), FiL_Design_ImageMind adds an adult-scene truth pass:
 
 - confirm adult-only subject framing;
 - suppress age ambiguity or childlike/teen-coded wording;

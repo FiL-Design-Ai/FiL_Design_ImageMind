@@ -26,11 +26,17 @@ def test_model_type_options_match_rules_keys():
     assert list(MODEL_PROMPT_RULES.keys()) == MODEL_TYPE_OPTIONS
 
 
-def test_professional_tagger_is_the_only_tags_output_agent():
-    assert get_agent_output_mode("Professional Tagger") == AGENT_OUTPUT_MODE_TAGS
-    assert get_agent_output_mode("Universal") == AGENT_OUTPUT_MODE_PROSE
-    assert get_agent_output_mode("None") == AGENT_OUTPUT_MODE_PROSE
-    assert get_agent_output_mode("Cinematic Master") == AGENT_OUTPUT_MODE_PROSE
+def test_tags_response_format_drives_the_output_mode():
+    """Tag output is a response_format now, so it composes with any agent."""
+    assert get_agent_output_mode("tags") == AGENT_OUTPUT_MODE_TAGS
+    assert get_agent_output_mode("text") == AGENT_OUTPUT_MODE_PROSE
+    assert get_agent_output_mode("json") == AGENT_OUTPUT_MODE_PROSE
+
+
+def test_retired_tagger_agent_still_yields_tags():
+    """A workflow saved before the split can still carry the old agent name."""
+    assert get_agent_output_mode("text", "🏷 Professional Tagger") == AGENT_OUTPUT_MODE_TAGS
+    assert get_agent_output_mode("text", "🍽 Food") == AGENT_OUTPUT_MODE_PROSE
 
 
 def test_every_rule_has_full_schema():

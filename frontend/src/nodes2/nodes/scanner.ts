@@ -68,7 +68,7 @@ export const scannerNode: NodeModule = {
     // The text fields' *sockets* are put back by exposeWidgetInputSockets().
     const allWidgetNames = [
       "prompt", "negative_prompt", "custom_style",
-      "agent", "model_type", "detail_level", "language",
+      "agent", "agent_focus", "model_type", "detail_level", "language",
       "prompt_mode", "response_format", "photo_style", "nsfw_photo_style", "art_style", "nsfw_art_style",
       "seed", "control_after_generate"
     ];

@@ -19,10 +19,14 @@ from ..common.data import (
     first_or_default,
     get_agent_output_mode,
     get_default_agent_key,
+    get_default_focus_key,
     get_visible_agent_keys,
+    get_visible_focus_keys,
     get_visible_style_keys,
+    migrate_legacy_agent,
     model_needs_prompt_post_conversion,
     resolve_agent_key,
+    resolve_focus_key,
 )
 from ..common.io_types import FilDict, FilProviderConfig
 from ..common.localization import t
@@ -41,6 +45,7 @@ _prompt_gen = PromptGenerator()
 _model_client = ModelClient()
 _style_enforcer = StyleEnforcer()
 _AGENT_KEYS = get_visible_agent_keys()
+_FOCUS_KEYS = get_visible_focus_keys()
 
 
 def _coerce_dimension(value: Any) -> int:
@@ -72,7 +77,9 @@ description=(
             inputs=[
                 FilProviderConfig.Input("config", tooltip=t("tt_config", "Config from Provider Loader node.")),
                 io.Combo.Input("agent", options=_AGENT_KEYS, default=get_default_agent_key(),
-                               tooltip=t("tt_agent", "Analysis focus mode.")),
+                               tooltip=t("tt_agent", "Subject domain — what is in the frame.")),
+                io.Combo.Input("agent_focus", options=_FOCUS_KEYS, default=get_default_focus_key(), advanced=True,
+                               tooltip=t("tt_agent_focus", "Craft layer to weigh heavier on top of the agent: composition, light, fine detail, or cinematic read.")),
                 io.Image.Input("image", optional=True, tooltip=t("tt_image", "Image(s) to analyze. If connected, sent to vision LLM. Otherwise the prompt text below is sent as standalone text input.")),
                 # `force_input`: sockets only, no widget behind them, so the target
                 # resolution comes from whatever already knows it in the graph
@@ -105,8 +112,8 @@ description=(
                                 tooltip=t("tt_custom_style", "Free-form style text appended after the preset style overlay, if any.")),
                 io.Int.Input("seed", default=-1, min=-1, max=999999999999, advanced=True,
                              tooltip=t("tt_provider_seed", "Provider-side generation seed, if supported. -1 lets the provider pick one.")),
-                io.Combo.Input("response_format", options=["text", "json"], default="text", advanced=True,
-                               tooltip=t("tt_response_format", "Ask the model to respond as plain text or as a JSON object.")),
+                io.Combo.Input("response_format", options=["text", "tags", "json"], default="text", advanced=True,
+                               tooltip=t("tt_response_format", "Output shape: prose text, flat comma-separated tags, or a JSON object.")),
             ],
             outputs=[
                 io.String.Output(display_name="prompt", tooltip="Generated prompt text."),
@@ -133,7 +140,7 @@ description=(
         return True
 
     @classmethod
-    def fingerprint_inputs(cls, config=None, agent="None", image=None, prompt="", negative_prompt="",
+    def fingerprint_inputs(cls, config=None, agent="None", agent_focus="None", image=None, prompt="", negative_prompt="",
                            detail_level="normal", language="ru", model_type="Auto/None",
                            prompt_mode="Auto", photo_style="None", nsfw_photo_style="None",
                            art_style="None", nsfw_art_style="None", custom_style="", seed=-1,
@@ -161,7 +168,7 @@ description=(
             # `temperature`/`max_tokens`/`rate_limit_ms` are sourced from `config`
             # at execute() time (see below) rather than being real widget inputs —
             # `str(config)` already covers their contribution to the fingerprint.
-            str(config), agent, prompt, negative_prompt, detail_level, language,
+            str(config), agent, agent_focus, prompt, negative_prompt, detail_level, language,
             model_type, prompt_mode, photo_style, nsfw_photo_style, art_style, nsfw_art_style, custom_style,
             seed, response_format, width, height,
             image_key,
@@ -174,7 +181,7 @@ description=(
                       model_type, prompt, effective_mode, hybrid_timeout,
                       two_stage_timeout, agent_key="None", detail_level="normal",
                       language="ru", rate_limit_ms=100, contract=None, enforcement="",
-                      width=0, height=0):
+                      width=0, height=0, focus_key="None", has_image=True):
         fb = None
         if effective_mode == "Two-Stage" and style_block.strip():
             bundle = _prompt_gen.build_system_prompt_two_stage_bundle(
@@ -184,6 +191,9 @@ description=(
                 model_type=model_type,
                 width=width,
                 height=height,
+                focus_key=focus_key,
+                has_image=has_image,
+                response_format=response_format,
                 **style_kwargs,
             )
             stage1_sys = bundle["stage1"]["prompt"]
@@ -288,7 +298,7 @@ description=(
         )
 
     @classmethod
-    def execute(cls, config, agent="None", image=None, prompt="", negative_prompt="",
+    def execute(cls, config, agent="None", agent_focus="None", image=None, prompt="", negative_prompt="",
                 detail_level="normal", language="ru", model_type="Auto/None",
                 prompt_mode="Auto", photo_style="None", nsfw_photo_style="None",
                 art_style="None", nsfw_art_style="None", custom_style="", seed=-1,
@@ -331,7 +341,20 @@ description=(
             err_meta = {"error_code": err.code, "message": message, "model": model}
             return io.NodeOutput(f"Ошибка: {message}", json.dumps(err_meta, ensure_ascii=False), err_meta)
 
+        # A workflow saved before the agent list was split into
+        # agent + focus + response_format can still carry a retired agent name.
+        # Map it onto the new axes instead of letting it fall back to the
+        # neutral agent, which would quietly change what that workflow produces.
+        legacy_agent, legacy_focus, legacy_format = migrate_legacy_agent(agent)
+        if legacy_agent is not None:
+            agent = legacy_agent
+        if legacy_focus is not None and resolve_focus_key(agent_focus) == "None":
+            agent_focus = legacy_focus
+        if legacy_format is not None and response_format == "text":
+            response_format = legacy_format
+
         agent_key = resolve_agent_key(agent)
+        focus_key = resolve_focus_key(agent_focus)
         style_kwargs = dict(
             photo_style=photo_style, nsfw_photo_style=nsfw_photo_style,
             art_style=art_style, nsfw_art_style=nsfw_art_style,
@@ -350,6 +373,9 @@ description=(
             model_type=model_type,
             width=width,
             height=height,
+            focus_key=focus_key,
+            has_image=has_image,
+            response_format=response_format,
             **style_kwargs,
         )
 
@@ -426,6 +452,7 @@ description=(
                         language=language, rate_limit_ms=rate_limit_ms,
                         contract=contract, enforcement=enforcement,
                         width=width, height=height,
+                        focus_key=focus_key, has_image=has_image,
                     )
                     per_image_results.append(single_result)
                     image_runs.append({
@@ -451,6 +478,7 @@ description=(
                     language=language, rate_limit_ms=rate_limit_ms,
                     contract=contract, enforcement=enforcement,
                     width=width, height=height,
+                    focus_key=focus_key, has_image=has_image,
                 )
         except FiLError as exc:
             clean_msg = sanitize_sensitive_data(exc.message)
@@ -473,7 +501,7 @@ description=(
                 detail_level=detail_level,
                 source_text=user_message,
                 style_enforcer=_style_enforcer,
-                agent_output_mode=get_agent_output_mode(agent_key),
+                agent_output_mode=get_agent_output_mode(response_format, agent_key),
             )
         else:
             convert_meta = {}
@@ -518,6 +546,7 @@ description=(
             "provider": provider,
             "model": model,
             "agent": agent_key,
+            "agent_focus": focus_key,
             "detail": detail_level,
             "model_type": model_type,
             "prompt_mode": effective_mode,

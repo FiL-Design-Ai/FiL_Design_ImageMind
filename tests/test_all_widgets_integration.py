@@ -29,9 +29,18 @@ def base_config():
 
 def test_widget_agent(monkeypatch, base_config):
     setup_mock(monkeypatch)
-    FiLOpticScanner.execute(config=base_config, prompt="test", agent="Universal")
+    FiLOpticScanner.execute(config=base_config, prompt="test", agent="🍽 Food")
     payload = global_payloads[-1]
-    assert "Universal Agent" in payload["system_prompt"]
+    assert "Food Agent" in payload["system_prompt"]
+
+
+def test_widget_agent_focus_composes_with_the_agent(monkeypatch, base_config):
+    """The focus is an overlay on top of the agent, not a replacement for it."""
+    setup_mock(monkeypatch)
+    FiLOpticScanner.execute(config=base_config, prompt="test", agent="🍽 Food", agent_focus="💡 Lighting & Color")
+    payload = global_payloads[-1]
+    assert "Food Agent" in payload["system_prompt"]
+    assert "FOCUS OVERLAY — Lighting & Color" in payload["system_prompt"]
 
 def test_widget_prompt_and_negative_prompt(monkeypatch, base_config):
     setup_mock(monkeypatch)
