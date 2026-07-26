@@ -19,6 +19,7 @@ import { noiseControlNode } from "@/nodes2/nodes/noise_control";
 import { decomposerNode } from "@/nodes2/nodes/decomposer";
 import { styleMixerNode } from "@/nodes2/nodes/style_mixer";
 import { colorWizardNode } from "@/nodes2/nodes/color_wizard";
+import { switchNode } from "@/nodes2/nodes/switch";
 
 export interface NodeModule {
   id: string;
@@ -39,6 +40,7 @@ const modules: NodeModule[] = [
   decomposerNode,
   styleMixerNode,
   colorWizardNode,
+  switchNode,
 ];
 
 export const NODE_MODULES: Record<string, NodeModule> = Object.fromEntries(
