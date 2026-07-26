@@ -1,6 +1,10 @@
 import pytest
+import requests
 from FiL_Design_ImageMind.common.logic import compute_aspect_ratio_info, PromptGenerator
+from FiL_Design_ImageMind.common.data import get_visible_style_keys
 from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner
+
+PHOTO_STYLE = get_visible_style_keys("photo_style")[0]
 
 
 def test_compute_aspect_ratio_info_disabled():
@@ -63,3 +67,133 @@ def test_optic_scanner_fingerprint_includes_dimensions():
     fp1 = FiLOpticScanner.fingerprint_inputs(config={"provider": "ollama", "model": "qwen"}, width=1024, height=1024)
     fp2 = FiLOpticScanner.fingerprint_inputs(config={"provider": "ollama", "model": "qwen"}, width=1024, height=1536)
     assert fp1 != fp2
+
+
+# ── Node level: the guidance has to survive every path to the provider ──────
+# The builder-level tests above only prove the string is assembled. These drive
+# FiLOpticScanner.execute() with a stubbed provider and assert on the system
+# prompt that actually reached it, per mode.
+
+def _dims_line(system_prompt: str) -> str:
+    return next((ln for ln in system_prompt.split("\n") if "Target image dimensions" in ln), "")
+
+
+def _run_scanner(stub_scanner_generate, generate, **kwargs):
+    stub_scanner_generate(generate)
+    return FiLOpticScanner.execute(
+        config={"provider": "ollama", "model": "llama3.2-vision"},
+        agent="None",
+        image=None,
+        prompt="a scene",
+        **kwargs,
+    )
+
+
+def test_hybrid_sends_dimensions(stub_scanner_generate):
+    calls = []
+
+    def fake_generate(**kw):
+        calls.append(kw)
+        return "generated prompt text"
+
+    _, _, meta = _run_scanner(stub_scanner_generate, fake_generate, width=1536, height=1024)
+
+    assert len(calls) == 1
+    assert "Target image dimensions: 1536x1024" in calls[0]["system_prompt"]
+    assert "Landscape horizontal" in calls[0]["system_prompt"]
+    assert meta["target_dimensions"] == {
+        "width": 1536, "height": 1024, "aspect_ratio": "3:2", "orientation": "Landscape",
+    }
+    assert "Target image dimensions" in meta["sent_prompt"]["system"]
+
+
+def test_two_stage_sends_dimensions_to_both_stages(stub_scanner_generate):
+    calls = []
+
+    def fake_generate(**kw):
+        calls.append(kw)
+        return "stage output long enough to pass the length guard"
+
+    _run_scanner(
+        stub_scanner_generate, fake_generate,
+        prompt_mode="Two-Stage", photo_style=PHOTO_STYLE, width=1024, height=1536,
+    )
+
+    assert len(calls) == 2, "expected a stage-1 and a stage-2 call"
+    for call in calls:
+        assert "Target image dimensions: 1024x1536" in call["system_prompt"]
+        assert "Portrait vertical" in call["system_prompt"]
+
+
+def test_timeout_fallback_keeps_dimensions(stub_scanner_generate):
+    calls = []
+
+    def fake_generate(**kw):
+        calls.append(kw)
+        if len(calls) == 1:
+            raise requests.exceptions.Timeout("stage 1 timed out")
+        return "hybrid fallback result"
+
+    _, _, meta = _run_scanner(
+        stub_scanner_generate, fake_generate,
+        prompt_mode="Two-Stage", photo_style=PHOTO_STYLE, width=2560, height=1080,
+    )
+
+    assert meta["fallback_reason"] == "two_stage_stage1_timeout"
+    # The hybrid retry must not be a bare prompt — it carries the same guidance.
+    assert "Target image dimensions: 2560x1080" in calls[-1]["system_prompt"]
+    assert "Ultra-Wide horizontal" in calls[-1]["system_prompt"]
+
+
+def test_batch_sends_dimensions_per_image(stub_scanner_generate):
+    import torch
+
+    calls = []
+
+    def fake_generate(**kw):
+        calls.append(kw)
+        return "per image prompt"
+
+    stub_scanner_generate(fake_generate)
+    FiLOpticScanner.execute(
+        config={"provider": "ollama", "model": "llama3.2-vision"},
+        agent="None",
+        image=torch.zeros(2, 8, 8, 3),
+        prompt="a scene",
+        width=1024, height=1024,
+    )
+
+    assert len(calls) == 2, "one call per image in the batch"
+    for call in calls:
+        assert "Target image dimensions: 1024x1024" in call["system_prompt"]
+        assert "Square" in call["system_prompt"]
+
+
+def test_unlinked_dimensions_add_no_guidance(stub_scanner_generate):
+    calls = []
+
+    def fake_generate(**kw):
+        calls.append(kw)
+        return "generated prompt text"
+
+    _, _, meta = _run_scanner(stub_scanner_generate, fake_generate)
+
+    assert _dims_line(calls[0]["system_prompt"]) == ""
+    assert meta["target_dimensions"] is None
+
+
+def test_linked_dimensions_are_sanitized(stub_scanner_generate):
+    """A link can hand over None or a float — neither may reach the guidance."""
+    calls = []
+
+    def fake_generate(**kw):
+        calls.append(kw)
+        return "generated prompt text"
+
+    _, _, meta_none = _run_scanner(stub_scanner_generate, fake_generate, width=None, height=None)
+    assert meta_none["target_dimensions"] is None
+
+    calls.clear()
+    _, _, meta_float = _run_scanner(stub_scanner_generate, fake_generate, width=1536.0, height=1024.0)
+    assert meta_float["target_dimensions"]["width"] == 1536
+    assert "Target image dimensions: 1536x1024" in calls[0]["system_prompt"]
