@@ -80,6 +80,8 @@ UI → tests → contract → live smoke on a running ComfyUI).
 - **Nodes reporting success when the work did not happen** (Cleaner and friends).
 - **Draw-loop exceptions** in the canvas overlay, plus the layout bugs running it
   exposed (labels detached from their inputs on paired rows, panel overflow).
+- **`/health` reported version `2.0.0`** — it now serves `common.brand.VERSION`,
+  which a test keeps in step with `pyproject.toml`.
 
 ## 4.0.0 (2026-07-05)
 
