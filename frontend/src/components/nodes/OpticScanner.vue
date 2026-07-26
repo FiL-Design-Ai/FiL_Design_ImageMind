@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /** FiLOpticScanner — image analysis / prompt expansion via LLM. */
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { FilChipGrid, FilChipList, FilSegmented, FilSection, FilButton, FilModal, FilStylePicker, FilNumberInput } from "@/components/widgets";
+import { FilChipGrid, FilChipList, FilSegmented, FilSection, FilButton, FilModal, FilStylePicker } from "@/components/widgets";
 import { toast } from "@/stores/toastStore";
 import { NODE_CONTRACTS, type WidgetSpec } from "@/api/contracts";
 import type { FilNodeState } from "@/nodes2/filState";
@@ -26,7 +26,6 @@ const SECTION_LABEL_KEYS: Record<string, [string, string]> = {
   model: ["scn_section_model", "🧠 Model"],
   output: ["scn_section_output", "📤 Output"],
   advanced: ["scn_section_advanced", "🎨 Style"],
-  format: ["scn_section_format", "📐 Target format"],
   actions: ["scn_section_actions", "⚡ Actions"],
 };
 
@@ -58,8 +57,6 @@ const WIDGET_TOOLTIP_KEYS: Record<string, string> = {
   seed: "tt_provider_seed",
   max_tokens: "tt_max_tokens",
   response_format: "tt_response_format",
-  width: "tt_width",
-  height: "tt_height",
 };
 
 function widgetTooltip(w: WidgetSpec): string {
@@ -86,9 +83,6 @@ const FIELD_EMOJIS: Record<string, string> = {
   seed: "🌱",
   max_tokens: "📊",
   image: "🖼️",
-  // width/height deliberately have none: ComfyUI's canvas font has no emoji
-  // glyph for ↔️/↕️ and draws an empty box instead. The 📐 section header
-  // carries the icon for both fields.
 };
 
 function formatFieldLabel(w: WidgetSpec): string {
@@ -106,16 +100,14 @@ function formatFieldLabel(w: WidgetSpec): string {
 // are lined up with the fields here so it is obvious which one feeds which.
 // While a link is attached the field is read-only: anything typed into it would
 // be silently overridden by the link when the prompt is queued.
-const SOCKET_FIELD_NAMES = ["prompt", "negative_prompt", "custom_style", "width", "height"];
+const SOCKET_FIELD_NAMES = ["prompt", "negative_prompt", "custom_style"];
 /** Fields that absorb the height the user drags past the panel's content. */
 const GROWABLE_FIELD_NAMES = new Set(["prompt", "negative_prompt"]);
 
 const fieldEls: Record<string, HTMLElement | null> = {};
 
 function setFieldEl(name: string, el: unknown): void {
-  // If `el` is a Vue component instance (like FilNumberInput), we need to extract its root DOM element
-  const node = el as any;
-  fieldEls[name] = (node?.$el instanceof HTMLElement ? node.$el : node) as HTMLElement | null;
+  fieldEls[name] = (el as HTMLElement | null) ?? null;
 }
 
 function isSocketField(name: string): boolean {
@@ -410,15 +402,6 @@ function newFixedSeed() {
             <FilSegmented v-else-if="w.kind === 'segmented'"
               :options="w.options || []" :model-value="String(getValue(w.name, ''))"
               :label="formatFieldLabel(w)" @update:model-value="(v: string) => setValue(w.name, v)" />
-            <FilNumberInput v-else-if="w.name === 'width' || w.name === 'height'"
-              :ref="(el) => setFieldEl(w.name, el)"
-              :label="formatFieldLabel(w)"
-              :model-value="Number(getValue(w.name, 0))"
-              :min="w.min || 0" :max="w.max || 16384" :step="w.step || 8"
-              :disabled="isLinked(w.name)"
-              @update:model-value="(v: number) => setValue(w.name, v)"
-              :class="{ 'is-linked': isLinked(w.name) }"
-            />
             <FilChipGrid v-else :options="w.values || []" :model-value="String(getValue(w.name, ''))"
               :columns="w.columns ?? 3" @update:model-value="(v: string) => setValue(w.name, v)" />
           </div>

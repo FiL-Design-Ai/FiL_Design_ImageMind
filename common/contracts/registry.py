@@ -234,13 +234,9 @@ _SCANNER = NodeContract(
                 section="styles",
             ),
         ],
-        optional=[
-            # Own section on purpose: the Scanner panel renders "advanced" as the
-            # collapsed-by-default Style block, which is no place for the target
-            # resolution driving the prompt's composition guidance.
-            _int("width", default=0, minv=0, maxv=16384, step=8, section="format"),
-            _int("height", default=0, minv=0, maxv=16384, step=8, section="format"),
-        ],
+        # `width`/`height` are deliberately absent: they are socket-only inputs
+        # (`force_input` in node_scanner.py), so there is no widget for the panel
+        # to render — the target resolution is wired in from the graph.
     ),
     outputs=[
         NodeOutput(name="prompt", type="STRING"),

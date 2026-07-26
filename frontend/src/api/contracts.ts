@@ -1038,46 +1038,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
         "visible_when_value": null
       }
     ],
-    "optional": [
-      {
-        "name": "width",
-        "kind": "number",
-        "label": null,
-        "default": 0,
-        "tooltip": null,
-        "values": null,
-        "columns": null,
-        "searchable": null,
-        "multiline": null,
-        "min": 0,
-        "max": 16384,
-        "step": 8,
-        "units": null,
-        "options": null,
-        "section": "format",
-        "visible_when": null,
-        "visible_when_value": null
-      },
-      {
-        "name": "height",
-        "kind": "number",
-        "label": null,
-        "default": 0,
-        "tooltip": null,
-        "values": null,
-        "columns": null,
-        "searchable": null,
-        "multiline": null,
-        "min": 0,
-        "max": 16384,
-        "step": 8,
-        "units": null,
-        "options": null,
-        "section": "format",
-        "visible_when": null,
-        "visible_when_value": null
-      }
-    ],
+    "optional": [],
     "hidden": []
   },
   "outputs": [

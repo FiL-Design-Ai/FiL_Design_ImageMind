@@ -43,6 +43,21 @@ _style_enforcer = StyleEnforcer()
 _AGENT_KEYS = get_visible_agent_keys()
 
 
+def _coerce_dimension(value: Any) -> int:
+    """Sanitize a linked width/height into a plain, non-negative int.
+
+    `width`/`height` are socket-only inputs, so their value is whatever the
+    upstream node produced: `None` when that node passed nothing through, or a
+    float from anything doing resolution math. `compute_aspect_ratio_info()`
+    compares against 0 and would raise on `None`.
+    """
+    try:
+        number = int(value)
+    except (TypeError, ValueError):
+        return 0
+    return number if number > 0 else 0
+
+
 class FiLOpticScanner(io.ComfyNode):
     @classmethod
     def define_schema(cls):
@@ -59,6 +74,15 @@ description=(
                 io.Combo.Input("agent", options=_AGENT_KEYS, default=get_default_agent_key(),
                                tooltip=t("tt_agent", "Analysis focus mode.")),
                 io.Image.Input("image", optional=True, tooltip=t("tt_image", "Image(s) to analyze. If connected, sent to vision LLM. Otherwise the prompt text below is sent as standalone text input.")),
+                # `force_input`: sockets only, no widget behind them, so the target
+                # resolution comes from whatever already knows it in the graph
+                # (Empty Latent Image's width/height, a resolution picker, …)
+                # instead of being retyped in the panel. Declared here so they sit
+                # with `config`/`image` at the top of the node.
+                io.Int.Input("width", default=0, min=0, max=16384, step=8, optional=True, force_input=True,
+                             tooltip=t("tt_width", "Target image width in pixels. Helps tailor prompt composition to aspect ratio if > 0.")),
+                io.Int.Input("height", default=0, min=0, max=16384, step=8, optional=True, force_input=True,
+                             tooltip=t("tt_height", "Target image height in pixels. Helps tailor prompt composition to aspect ratio if > 0.")),
                 io.String.Input("prompt", default="", multiline=True, optional=True, tooltip=t("tt_prompt", "User instruction or standalone text prompt. If image is connected, this becomes the instruction; without image, it is the full text input.")),
                 io.String.Input("negative_prompt", default="", multiline=True, optional=True, tooltip=t("tt_neg_prompt", "What to avoid in the generated prompt."), advanced=True),
                 io.Combo.Input("detail_level", options=list(DETAIL_LEVELS), default=default_detail_level(DETAIL_LEVELS), advanced=True,
@@ -83,10 +107,6 @@ description=(
                              tooltip=t("tt_provider_seed", "Provider-side generation seed, if supported. -1 lets the provider pick one.")),
                 io.Combo.Input("response_format", options=["text", "json"], default="text", advanced=True,
                                tooltip=t("tt_response_format", "Ask the model to respond as plain text or as a JSON object.")),
-                io.Int.Input("width", default=0, min=0, max=16384, step=8, optional=True, advanced=True,
-                             tooltip=t("tt_width", "Target image width in pixels. Helps tailor prompt composition to aspect ratio if > 0.")),
-                io.Int.Input("height", default=0, min=0, max=16384, step=8, optional=True, advanced=True,
-                             tooltip=t("tt_height", "Target image height in pixels. Helps tailor prompt composition to aspect ratio if > 0.")),
             ],
             outputs=[
                 io.String.Output(display_name="prompt", tooltip="Generated prompt text."),
@@ -275,6 +295,7 @@ description=(
                 response_format="text", width=0, height=0,
                 **kwargs) -> io.NodeOutput:
         t0 = datetime.now(timezone.utc)
+        width, height = _coerce_dimension(width), _coerce_dimension(height)
         provider = config.get("provider", "ollama")
         model = normalize_model_name(config.get("model", ""))
         # Provider Loader owns temperature/max_tokens/rate_limit_ms — Scanner has
