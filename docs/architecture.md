@@ -6,14 +6,17 @@
 
 Canonical node ids:
 
-- `FiLSeed`
-- `FiLProviderLoader`
-- `FiLOpticScanner`
-- `FiLNeuroCleaner`
-- `FiLBeforeAfterCompare`
-- `FiLUpscaleTileCalc`
+- `FiLProviderLoader`, `FiLOpticScanner` — LLM
+- `FiLImageDecomposer` — Analysis
+- `FiLStyleMixer` — Styling
+- `FiLKSampler`, `FiLHighResFix`, `FiLNoiseControl` — Sampling
+- `FiLUpscaleTileCalc`, `FiLUpscaleSimple`, `FiLTileAssembly`, `FiLColorWizard` — Image
+- `FiLSeed` — Values
+- `FiLNeuroCleaner`, `FiLSignalSwitch` — Tools
 
-Per-node help (previously only reachable via the standalone `FiLHelp` node) is now a small "?" badge mounted on every node (`FilNodeShell`/`FilNodeHelpBadge`), opening the same `helpStore`-backed popup for that node's `comfyClass`.
+`FiLBeforeAfterCompare` was removed in 1.0.0 along with its `/compare/save` route and output folder.
+
+Per-node help is a small "?" badge mounted on every node (`FilNodeShell`/`FilNodeHelpBadge`), opening the `helpStore`-backed popup for that node's `comfyClass`.
 
 This is a new public contract. Workflows created for the former backup implementation are not a compatibility target.
 
@@ -35,12 +38,12 @@ Optional engines (`common/style_engine/`) may be skipped at import time if the r
 - **`frontend/src/api/contracts.ts`** — auto-generated from Pydantic JSON Schema (`scripts/gen_contracts.mjs`).
 - **`frontend/src/api/client.ts`** — typed HTTP client for `/fil_design_imagemind/*` routes.
 - **`frontend/src/nodes2/domWidgetHost.ts`** — core `node.addDOMWidget()` harness that mounts Vue components.
-- **`frontend/src/nodes2/nodes/*.ts`** — 7 per-node registration modules using `addFilDomWidget`.
-- **`frontend/src/components/nodes/*.vue`** — 7 Vue node body components.
-- **`frontend/src/components/widgets/*.vue`** — design-system widgets (9 components).
-- **`frontend/src/stores/`** — Pinia stores: `toastStore`, `providerStore`, `compareStore`, `helpStore`.
+- **`frontend/src/nodes2/nodes/*.ts`** — 14 per-node registration modules using `addFilDomWidget`.
+- **`frontend/src/components/nodes/*.vue`** — Vue node bodies (9, plus the shared `ProviderModelPicker`). Nodes without a custom panel (Decomposer, Noise Control, Tile Assembly) use native ComfyUI widgets and only get node styling.
+- **`frontend/src/components/widgets/*.vue`** — design-system widgets (18 components).
+- **`frontend/src/stores/`** — Pinia stores: `toastStore`, `providerStore`, `helpStore` (+ `helpDefaults`).
 - **`frontend/src/stores/settings/`** — settings modules with `category: ["FiL_Design_ImageMind", ...]`.
-- **`frontend/src/composables/`** — composables: `useShortcuts`, `useConnectionFx`, `useRunButtonFx`, `useAdaptiveTitleInk`, `useColorPicker`, `icons.ts`.
+- **`frontend/src/composables/`** — composables: `useShortcuts`, `useConnectionFx`, `useRunButtonFx`, `useColorPicker`, `useI18n`, `scrollGuard`, `providerMeta`, `icons.ts`.
 
 ### UI patterns (v3)
 
@@ -67,18 +70,17 @@ Widget names and values come from Python Pydantic contracts. Frontend must not s
 
 Supported routes:
 
-- `GET /fil_design_imagemind/health`
+- `GET /fil_design_imagemind/health` — status + `common.brand.VERSION`
+- `POST /fil_design_imagemind/log_level`
 - `GET /fil_design_imagemind/providers`
 - `GET /fil_design_imagemind/models/{provider}`
 - `GET /fil_design_imagemind/auth`
 - `POST /fil_design_imagemind/auth`
 - `POST /fil_design_imagemind/provider_probe`
+- `GET /fil_design_imagemind/locale/{lang}`
 - `GET /fil_design_imagemind/node_contracts`
-- `POST /fil_design_imagemind/compare/save`
 
 `/fil_design_imagemind/node_contracts` is also consumed by the frontend `selfCheckNodeContracts()` hook.
-
-Compare save accepts only image descriptors produced in the ComfyUI temp directory. Paths are resolved under that directory and copied to a unique filename under `output/FiL_Design_ImageMind/compare`.
 
 Local credentials are stored in `data/auth.json`, which is ignored by Git. Responses replace keys with `***HIDDEN***`. Logs and provider errors must not contain credentials.
 
@@ -90,8 +92,9 @@ Use the embedded ComfyUI Python:
 python.exe -m compileall -q __init__.py server_routes.py common nodes tests tools
 python.exe -m pytest tests -q
 python.exe tools/preflight_check.py
+python.exe tools/scan_node_conflicts.py
 ```
 
-Run `npm run typecheck` and `npm test` under `frontend/`. Finally restart ComfyUI and verify all seven nodes under `FiL_Design_ImageMind/...`.
+Run `npm run typecheck` and `npm test` under `frontend/`. Finally restart ComfyUI and verify all fourteen nodes under `🎨 FiL Design/...`.
 
 Tests that require `torch` use `pytest.importorskip("torch")` so the suite stays green without the framework installed.

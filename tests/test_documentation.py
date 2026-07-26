@@ -11,11 +11,20 @@ CURRENT_TYPES = {"LoadImage", "FiLProviderLoader", "FiLOpticScanner"}
 REMOVED_TYPES = {
     "CyberDeckProviderLoader", "LLMServerLoaderPro", "OpticScanner",
     "PromptChat", "CyberSeed", "FiLDataSniffer",
+    "FiLBeforeAfterCompare", "FiLHelp",
 }
+# Pages that must describe the pack as it ships. `architecture.md` and the
+# changelog are deliberately excluded — they name removed nodes on purpose.
+USER_FACING = (
+    ROOT / "README.md",
+    ROOT / "docs" / "README.ru.md",
+    ROOT / "docs" / "getting-started.md",
+    ROOT / "docs" / "index.html",
+)
 
 
 def test_user_documentation_lists_only_current_nodes():
-    files = [ROOT / "README.md", ROOT / "docs" / "README.ru.md", ROOT / "docs" / "getting-started.md", *WORKFLOWS]
+    files = [*USER_FACING, *WORKFLOWS]
     combined = "\n".join(path.read_text(encoding="utf-8") for path in files)
     for removed in REMOVED_TYPES:
         assert not re.search(rf"(?<![A-Za-z0-9_]){re.escape(removed)}(?![A-Za-z0-9_])", combined)
@@ -57,11 +66,9 @@ def test_reported_version_matches_pyproject():
     assert VERSION == declared.group(1)
 
 
-def test_readme_documents_every_registered_node():
-    """The GitHub landing page must list all node-ids the pack registers."""
+def _registered_node_ids() -> set[str]:
     import ast
 
-    readme = (ROOT / "README.md").read_text(encoding="utf-8")
     node_ids: set[str] = set()
     for path in (ROOT / "nodes").glob("node_*.py"):
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
@@ -70,5 +77,13 @@ def test_readme_documents_every_registered_node():
                 if isinstance(node.value, ast.Constant) and isinstance(node.value.value, str):
                     node_ids.add(node.value.value)
     assert node_ids, "no node ids found"
-    missing = sorted(nid for nid in node_ids if nid not in readme)
-    assert not missing, f"README does not document: {missing}"
+    return node_ids
+
+
+def test_landing_pages_document_every_registered_node():
+    """README, the ru summary and the Pages site must list every shipped node."""
+    node_ids = _registered_node_ids()
+    for page in (ROOT / "README.md", ROOT / "docs" / "README.ru.md", ROOT / "docs" / "index.html"):
+        text = page.read_text(encoding="utf-8")
+        missing = sorted(nid for nid in node_ids if nid not in text)
+        assert not missing, f"{page.name} does not document: {missing}"

@@ -652,33 +652,73 @@
                         <tbody>
                             <tr>
                                 <td>🔌 Provider Loader<span class="node-id">FiLProviderLoader</span></td>
-                                <td><span class="tag">LLM/Provider</span></td>
+                                <td><span class="tag">LLM</span></td>
                                 <td>Choose provider, model, and generation parameters</td>
                             </tr>
                             <tr>
                                 <td>🕵️ Optic Scanner<span class="node-id">FiLOpticScanner</span></td>
-                                <td><span class="tag">LLM/Scanner</span></td>
-                                <td>Analyze images or expand text with LLM</td>
+                                <td><span class="tag">LLM</span></td>
+                                <td>Analyze images or expand text into a model-tuned prompt</td>
+                            </tr>
+                            <tr>
+                                <td>👁️‍🗨️ Image Decomposer<span class="node-id">FiLImageDecomposer</span></td>
+                                <td><span class="tag">Analysis</span></td>
+                                <td>Split an image or prompt into subject, lighting, composition, style</td>
+                            </tr>
+                            <tr>
+                                <td>🎛️ Style Mixer<span class="node-id">FiLStyleMixer</span></td>
+                                <td><span class="tag">Styling</span></td>
+                                <td>Blend styles and reference images with weighted influence</td>
+                            </tr>
+                            <tr>
+                                <td>⚡ KSampler<span class="node-id">FiLKSampler</span></td>
+                                <td><span class="tag">Sampling</span></td>
+                                <td>Full sampler with passthrough sockets, preview and scripts</td>
+                            </tr>
+                            <tr>
+                                <td>🔬 HighRes Fix<span class="node-id">FiLHighResFix</span></td>
+                                <td><span class="tag">Sampling</span></td>
+                                <td>Latent/pixel upscale + re-sample script for KSampler</td>
+                            </tr>
+                            <tr>
+                                <td>🎛️ Noise Control<span class="node-id">FiLNoiseControl</span></td>
+                                <td><span class="tag">Sampling</span></td>
+                                <td>RNG source and seed-variation script for KSampler</td>
+                            </tr>
+                            <tr>
+                                <td>🔍 Upscaler Advanced<span class="node-id">FiLUpscaleTileCalc</span></td>
+                                <td><span class="tag">Image</span></td>
+                                <td>Tile layout, overlap and denoise planning for tiled upscale</td>
+                            </tr>
+                            <tr>
+                                <td>🔍 Upscaler Simple<span class="node-id">FiLUpscaleSimple</span></td>
+                                <td><span class="tag">Image</span></td>
+                                <td>Same tiling panel — model upscale in, image and tiles out</td>
+                            </tr>
+                            <tr>
+                                <td>🧩 Tile Assembly<span class="node-id">FiLTileAssembly</span></td>
+                                <td><span class="tag">Image</span></td>
+                                <td>Feather processed tiles back into one full-resolution image</td>
+                            </tr>
+                            <tr>
+                                <td>🎨 Color Wizard<span class="node-id">FiLColorWizard</span></td>
+                                <td><span class="tag">Image</span></td>
+                                <td>Auto colour correction — white balance, LAB contrast, stretch</td>
                             </tr>
                             <tr>
                                 <td>♻️ Seed<span class="node-id">FiLSeed</span></td>
-                                <td><span class="tag">Values/Seed</span></td>
-                                <td>Fixed or randomized seed with copy/reuse</td>
+                                <td><span class="tag">Values</span></td>
+                                <td>Fixed or randomized seed with reuse buttons</td>
                             </tr>
                             <tr>
                                 <td>🧹 Cleaner<span class="node-id">FiLNeuroCleaner</span></td>
-                                <td><span class="tag">Tools/Cleaner</span></td>
-                                <td>Selective VRAM, RAM, and cache cleanup</td>
+                                <td><span class="tag">Tools</span></td>
+                                <td>Selective VRAM and model-cache cleanup</td>
                             </tr>
                             <tr>
-                                <td>🔄 Compare<span class="node-id">FiLBeforeAfterCompare</span></td>
-                                <td><span class="tag">Image/Compare</span></td>
-                                <td>Side-by-side image preview with swap</td>
-                            </tr>
-                            <tr>
-                                <td>🔍 Upscaler<span class="node-id">FiLUpscaleTileCalc</span></td>
-                                <td><span class="tag">Image/Upscale</span></td>
-                                <td>Tile layout and denoise planning</td>
+                                <td>🔀 Cyber Switch<span class="node-id">FiLSignalSwitch</span></td>
+                                <td><span class="tag">Tools</span></td>
+                                <td>Any-type pass-through gate — mute a branch without rewiring</td>
                             </tr>
                         </tbody>
                     </table>
