@@ -134,7 +134,7 @@ Building it by hand takes three nodes:
 
 1. **🔌 Provider Loader** — pick provider + model (hit *refresh* to pull the live model list).
 2. **🕵️ Optic Scanner** — wire `config` in, connect an `image` (or type into `prompt`), choose an
-   agent and a `model_type`, set `width`/`height` to your target resolution.
+   agent and a `model_type`, and wire your target `width`/`height` in (they are sockets, not fields).
 3. Wire `prompt` into your CLIP Text Encode and queue.
 
 ### Node reference
@@ -174,7 +174,7 @@ target diffusion model. Prompt fields are resizable and also work as input socke
 | `config` | FilProviderConfig | — | from Provider Loader |
 | `agent` | COMBO | `🌐 Universal` | 22 options (incl. ⚪ None) — Portrait, Products, Nature, Art, Cinematic, Fashion, Animals, Architecture, Interior, City, Transport, Food, Gadgets, Games, Composition, Lighting & Color, Professional Tagger, 18+, … |
 | `image` | IMAGE (optional) | — | leave empty for text-only mode |
-| `width` / `height` | INT (optional) | `0` | 0 – 16384, step 8 — target resolution; shapes the generated prompt |
+| `width` / `height` | INT socket (optional) | `0` | connection-only — wire the target resolution in from Empty Latent Image or a resolution picker; > 0 tailors the prompt to that aspect ratio |
 | `prompt` | STRING (optional) | `""` | your idea / seed text |
 | `negative_prompt` | STRING (optional) | `""` | passed through to the metadata |
 | `detail_level` | COMBO | `normal` | tiny, short, normal, detailed, ultra |
@@ -711,7 +711,7 @@ python_embeded\python.exe -m pip install -r ComfyUI\custom_nodes\FiL_Design_Imag
 
 1. **🔌 Provider Loader** — выбрать провайдера и модель (кнопка *refresh* тянет живой список).
 2. **🕵️ Optic Scanner** — подключить `config`, подать `image` (или писать в `prompt`), выбрать
-   агента и `model_type`, задать `width`/`height` под целевое разрешение.
+   агента и `model_type`, подать целевые `width`/`height` (это сокеты, а не поля панели).
 3. Вывод `prompt` — в CLIP Text Encode, и в очередь.
 
 ### Справочник по узлам
@@ -750,7 +750,7 @@ python_embeded\python.exe -m pip install -r ComfyUI\custom_nodes\FiL_Design_Imag
 | `config` | FilProviderConfig | — | от Provider Loader |
 | `agent` | COMBO | `🌐 Universal` | 22 варианта (включая ⚪ None) — Portrait, Products, Nature, Art, Cinematic, Fashion, Animals, Architecture, Interior, City, Transport, Food, Gadgets, Games, Composition, Lighting & Color, Professional Tagger, 18+, … |
 | `image` | IMAGE (опц.) | — | пусто = текстовый режим |
-| `width` / `height` | INT (опц.) | `0` | 0 – 16384, шаг 8 — целевое разрешение, влияет на формулировку промпта |
+| `width` / `height` | INT-сокет (опц.) | `0` | только соединением — целевое разрешение приходит от Empty Latent Image или пикера разрешений; при > 0 промпт подстраивается под эту пропорцию |
 | `prompt` | STRING (опц.) | `""` | ваша идея / затравка |
 | `negative_prompt` | STRING (опц.) | `""` | пробрасывается в метаданные |
 | `detail_level` | COMBO | `normal` | tiny, short, normal, detailed, ultra |
