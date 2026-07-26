@@ -1,5 +1,11 @@
-import pytest
+from comfy_execution.graph_utils import ExecutionBlocker
+
 from FiL_Design_ImageMind.nodes.node_switch import FiLSignalSwitch
+
+
+def _blocked(result) -> bool:
+    """True when the node asked ComfyUI to skip everything downstream."""
+    return len(result.args) == 1 and isinstance(result.args[0], ExecutionBlocker)
 
 
 def test_switch_schema():
@@ -23,10 +29,27 @@ def test_switch_pass_through_on():
     assert res_int.args == (1024,)
 
 
-def test_switch_block_off():
+def test_switch_off_blocks_downstream_instead_of_emitting_none():
+    """OFF must skip consumers, not hand them a None they will choke on."""
     dummy_image = {"type": "fake_image_tensor", "data": [1, 2, 3]}
-    res = FiLSignalSwitch.execute(input=dummy_image, enable=False)
-    assert res.args == (None,)
+    result = FiLSignalSwitch.execute(input=dummy_image, enable=False)
+    assert _blocked(result)
 
-    res_none = FiLSignalSwitch.execute(input=None, enable=False)
-    assert res_none.args == (None,)
+
+def test_switch_blocks_silently():
+    """A message would reach the user as an execution error; muting is not one."""
+    result = FiLSignalSwitch.execute(input="anything", enable=False)
+    assert result.args[0].message is None
+
+
+def test_switch_with_nothing_connected_blocks_too():
+    """`input` is optional, so an unwired ON switch would otherwise pass None."""
+    assert _blocked(FiLSignalSwitch.execute(input=None, enable=True))
+    assert _blocked(FiLSignalSwitch.execute(input=None, enable=False))
+
+
+def test_switch_passes_falsy_values_through():
+    """0 / "" / False are real signals — only a missing input blocks."""
+    for value in (0, "", False, []):
+        result = FiLSignalSwitch.execute(input=value, enable=True)
+        assert result.args == (value,), value

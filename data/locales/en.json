@@ -29,7 +29,7 @@
   "tt_width": "Target image width in pixels. Helps tailor prompt composition to aspect ratio if > 0.",
   "tt_height": "Target image height in pixels. Helps tailor prompt composition to aspect ratio if > 0.",
   "tt_switch_input": "Any incoming data signal (Image, Latent, Model, String, etc.).",
-  "tt_switch_enable": "ON (True) passes the input signal through. OFF (False) blocks the signal.",
+  "tt_switch_enable": "ON (True) passes the input signal through. OFF (False) skips every node downstream, leaving the rest of the graph to run.",
   "tt_max_image_side": "Images are downscaled so their longest side does not exceed this value.",
   "tt_provider_seed": "Provider-side generation seed, if supported. -1 lets the provider pick one.",
   "tt_node_help": "Help for this node",

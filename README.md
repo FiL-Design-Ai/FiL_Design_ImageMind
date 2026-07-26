@@ -409,8 +409,11 @@ trimmed to the outputs most graphs actually use.
 **Output:** `output` (ANY) — the same value that came in.
 
 **🔀 Cyber Switch** — `input` (ANY, optional) + `enable` BOOLEAN → `output` (ANY). ON forwards the
-value untouched; OFF emits `None`, which mutes a branch without rewiring it. Note that a downstream
-node receiving `None` where it expected a LATENT/IMAGE will be the one that errors, not the switch.
+value untouched. OFF returns ComfyUI's `ExecutionBlocker`, so every node downstream is **skipped**
+and the rest of the graph still runs — a muted SaveImage simply writes nothing instead of raising.
+The block is silent by design (a message would surface as an execution error, which muting is not).
+An unconnected `input` blocks the same way, so an unwired switch can't feed `None` into a node that
+expected a LATENT.
 
 </details>
 
@@ -985,8 +988,11 @@ python_embeded\python.exe -m pip install -r ComfyUI\custom_nodes\FiL_Design_Imag
 **Выход:** `output` (ANY) — то же значение, что пришло.
 
 **🔀 Cyber Switch** — `input` (ANY, опц.) + `enable` BOOLEAN → `output` (ANY). ON пробрасывает
-значение как есть, OFF отдаёт `None` — так глушится ветка графа без перекоммутации. Учтите: если
-даунстрим-нода ждала LATENT/IMAGE, а получила `None`, упадёт именно она, а не переключатель.
+значение как есть. OFF возвращает штатный `ExecutionBlocker` ComfyUI: все узлы ниже по потоку
+**пропускаются**, остальной граф считается как обычно — заглушенный SaveImage просто ничего не
+сохраняет, а не падает. Блокировка молчаливая намеренно (сообщение всплыло бы как ошибка
+выполнения, а глушение ветки — не ошибка). Неподключённый `input` блокирует так же, поэтому
+невыключенный, но и не подключённый шлюз не подсунет `None` ноде, которая ждала LATENT.
 
 </details>
 

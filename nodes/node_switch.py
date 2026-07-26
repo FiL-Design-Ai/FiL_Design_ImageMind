@@ -1,4 +1,6 @@
 from comfy_api.latest import io
+from comfy_execution.graph_utils import ExecutionBlocker
+
 from ..common.brand import CATEGORY_ROOT
 from ..common.localization import t
 
@@ -30,7 +32,7 @@ class FiLSignalSwitch(io.ComfyNode):
             outputs=[
                 io.AnyType.Output(
                     display_name="output",
-                    tooltip="The passed-through signal when ON, or None when OFF.",
+                    tooltip="The passed-through signal when ON. When OFF, everything downstream is skipped.",
                 ),
             ],
             search_aliases=["switch", "bypass", "toggle", "gate", "pass-through", "enable", "filter"],
@@ -38,6 +40,13 @@ class FiLSignalSwitch(io.ComfyNode):
 
     @classmethod
     def execute(cls, input=None, enable: bool = True, **_kwargs) -> io.NodeOutput:
-        if enable:
-            return io.NodeOutput(input)
-        return io.NodeOutput(None)
+        # Muting a branch means the nodes below must not run. Emitting ``None``
+        # would let them run and fail inside themselves ("NoneType has no
+        # attribute ...") — the error would name an unrelated node instead of
+        # the switch that was turned off. ``ExecutionBlocker(None)`` is
+        # ComfyUI's own mechanism for this: every consumer is skipped, silently
+        # (a message would surface as an execution error instead), and the rest
+        # of the graph still runs.
+        if not enable or input is None:
+            return io.NodeOutput(ExecutionBlocker(None))
+        return io.NodeOutput(input)
