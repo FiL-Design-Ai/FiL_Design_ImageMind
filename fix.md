@@ -10,28 +10,35 @@ was broken`` , then a sentence on the cause where it is not obvious.
 
 ## Unreleased (after 1.0.0)
 
-- **The global wheel listener is gone.** `nodes2/installers/scrollGuard.ts`,
-  which bound a capture-phase `wheel` handler to `window`, is deleted. Even
-  scoped to our own panels it meant a node pack sat ahead of every other
-  extension in the app on every wheel event. What remains is one listener on
-  the pack's own widget host, which never sees a wheel event outside a FiL
-  panel; it stops propagation only when the cursor is over a scrollable region
-  of ours, so an ancestor forwarder cannot zoom the canvas at the same time.
-  Modifiers (Ctrl/Meta/Alt/Shift) are left to whoever else wants them, and
-  `Wheel.Enabled` in settings turns even that off, live.
-- `410fc95` — the wheel guard silenced every other node pack. Superseded by the
-  removal above; kept here because the released 1.0.0 still has the old guard. Its listener has
-  to sit on `window` in the capture phase to beat ComfyUI's canvas forwarder,
-  but it consumed wheel events over *any* scrollable region, so other packs'
-  wheel-driven carousels, value tweaks and lazy loading never fired. It now
-  acts only inside `.fil-vue-host`; rescuing third-party widgets moved behind
-  the `ScrollGuard.ThirdPartyWidgets` setting (off by default), Alt/Shift join
-  Ctrl/Meta as gestures to leave alone, and the listener installs on the first
-  mounted FiL panel instead of at module import.
+None of this is in the registry yet — 1.0.0 was published from `d03b5e8` and
+the tag has not moved since. Anyone installing through ComfyUI Manager still
+gets the code as it was at that commit, the global wheel listener included.
+
+- `42cbcdb` — the provider panel asked for a Base URL on every card, including
+  the ones whose endpoint is fixed: a URL typed there could only break a
+  working setup. It now shows for the local servers, and for any provider that
+  already has a custom endpoint saved. Each card links to the page that issues
+  the credential (Cloudflare's account id link points at the dashboard, since
+  it is not on the token page).
+- `c714312` — **the window-level wheel listener is deleted.**
+  `nodes2/installers/scrollGuard.ts` bound a capture-phase `wheel` handler to
+  `window`, which put a node pack ahead of every other extension in the app on
+  every wheel event. What remains is one listener on the pack's own widget
+  host, so a wheel event outside a FiL panel never reaches our code at all; it
+  stops propagation only over a scrollable region of ours, keeping an ancestor
+  forwarder from zooming the canvas at the same time. Modifiers are left to
+  whoever else wants them. The three-way `ScrollGuard.Mode` added in `d03e9ec`
+  collapses to `Wheel.Enabled`, since "also handle other packs' widgets" was
+  the global listener's trick and left with it.
 - `410fc95` — `getHeight()` forced a layout on every frame. LiteGraph calls it
   from the draw loop and it read `scrollHeight` each time; it returns the
   cached height the ResizeObserver, settle loop and 400 ms poll already
   maintain — 2.5 measurements a second per node instead of 60.
+- `410fc95` — the wheel guard silenced every other node pack: it consumed wheel
+  events over *any* scrollable region, so other packs' wheel-driven carousels,
+  value tweaks and lazy loading never fired. Scoping it to `.fil-vue-host` was
+  the first fix; `c714312` then removed the listener outright. Listed because
+  the released 1.0.0 still carries the unscoped version.
 - `46b09dc` — the GitHub Pages landing page still showed `v1.1.0`, the version
   the release rolled back from. A test now pins every version string on the
   page to `pyproject.toml`.
@@ -39,11 +46,11 @@ was broken`` , then a sentence on the cause where it is not obvious.
   panels shot against the 1.0.0 UI, gallery in both language halves,
   `docs/images/` kept out of the registry archive.
 
-## 1.0.0 (published 2026-07-28)
+## 1.0.0 (tag `v1.0.0` = `d03b5e8`)
 
-Everything below is in the published 1.0.0. It was found between the release
-commit and the tag that actually shipped — mostly by CI, which had never passed
-because it could not run.
+Everything below is an ancestor of that tag, so it is in the published version.
+All of it was found between the release commit and the tag that actually
+shipped — mostly by CI, which until then had never been able to run the tests.
 
 - `d03b5e8`, `d83bab3`, `0a030a3` — publishing to the registry failed six times
   with a bare `exit 2`. `comfy node publish --token` with an empty value is a
