@@ -25,11 +25,13 @@ export type FilPaletteKey = keyof typeof FIL_PALETTE;
 export type FilPalette = Record<FilPaletteKey, string>;
 
 /**
- * Light-theme overrides, applied under `.comfy-theme-light` (per advanced
- * guide §19.1 — ComfyUI adds this class to the document root when the user
- * picks the light theme; default/no class is dark). Every Vue widget reads
+ * Palette for when ComfyUI itself is running a light color palette, detected by
+ * `detectComfyBase()` and applied by `renderTheme()`. Every Vue widget reads
  * colors through `var(--fil-*)`, never a hardcoded hex, so redefining these
- * here re-themes the whole extension without touching component CSS.
+ * re-themes the whole extension without touching component CSS.
+ *
+ * Applies to the "default" theme only — the five named themes are deliberate
+ * choices and keep their own colors on a light canvas.
  */
 const FIL_PALETTE_LIGHT: FilPalette = {
   accent: "#c9682c",
@@ -137,8 +139,32 @@ const THEMES: Record<FilThemeName, FilPalette> = {
  */
 export const ACTIVE_PALETTE: FilPalette = { ...FIL_PALETTE };
 
+let themeBaseEl: HTMLStyleElement | null = null;
 let themeVarsEl: HTMLStyleElement | null = null;
 let themeEffectsEl: HTMLStyleElement | null = null;
+
+/**
+ * The two axes that decide the palette, kept apart:
+ *  - `currentTheme` — what the user picked in our own Theme setting.
+ *  - `currentBase`  — whether ComfyUI itself is running light or dark.
+ *
+ * `FIL_PALETTE_LIGHT` only ever applies to the "default" theme. Picking
+ * Cyberpunk means Cyberpunk on a light canvas too; that is an explicit choice,
+ * not something to second-guess.
+ */
+let currentTheme: FilThemeName = "default";
+let currentBase: FilBaseTheme = "dark";
+
+export type FilBaseTheme = "light" | "dark";
+
+/**
+ * Which palette wins right now. Kept in one place so `applyFilTheme` and
+ * `applyFilBaseTheme` cannot drift apart.
+ */
+function resolvePalette(): FilPalette {
+  if (currentTheme === "default" && currentBase === "light") return FIL_PALETTE_LIGHT;
+  return THEMES[currentTheme] ?? FIL_PALETTE;
+}
 
 /**
  * `--fil-border` is emitted here, alongside the palette it derives from, rather
@@ -258,10 +284,16 @@ const SURFACE_VARS_LIGHT =
  *   fields, so a stack of mixed widgets lines up. `--fil-control-h-lg` (34px)
  *   is the deliberate exception for seed rows and icon buttons.
  *
- * Inject the FiL_Design_ImageMind CSS variables on `:root` exactly once, plus two extra
+ * Inject the FiL_Design_ImageMind CSS variables on `:root` exactly once, plus three extra
  * (initially empty) `<style>` tags reserved for runtime theme switching —
- * see `applyFilTheme()`. Safe to call from any module — duplicates are
- * skipped via an id guard.
+ * see `applyFilTheme()` and `applyFilBaseTheme()`. Safe to call from any module
+ * — duplicates are skipped via an id guard.
+ *
+ * Tag order matters and is the reason these are separate elements. All four
+ * write `:root`, so they have equal specificity and the last one in the head
+ * wins: base stylesheet → auto light/dark base → explicitly chosen theme →
+ * theme flourishes. That ordering is what lets Cyberpunk stay Cyberpunk on a
+ * light canvas while the default theme follows ComfyUI.
  */
 export function injectFilBrandVars(): void {
   if (typeof document === "undefined") return;
@@ -269,7 +301,9 @@ export function injectFilBrandVars(): void {
   const el = document.createElement("style");
   el.id = "fil-brand-vars";
   el.textContent = `:root{${paletteCssVars(FIL_PALETTE)}--fil-radius:8px;--fil-node-pad:6px 8px 14px 8px;--fil-node-gap:4px;--fil-row-pad:4px 6px;--fil-control-h:30px;--fil-control-h-lg:34px;--fil-input-border:rgba(240,138,69,0.35);${SURFACE_VARS_CYAN}${OVERLAY_VARS_DARK}}
-.comfy-theme-light{${paletteCssVars(FIL_PALETTE_LIGHT)}--fil-input-border:rgba(201,104,44,0.35);${SURFACE_VARS_LIGHT}${OVERLAY_VARS_LIGHT}}
+/* The light palette used to live here under a .comfy-theme-light selector. That
+ * class is absent on current ComfyUI builds, so the block never matched — it is
+ * emitted into the fil-theme-base tag now, driven by detectComfyBase(). */
 .comfy-multiline-input{border-color:var(--fil-input-border) !important;}
 /* Shared "Neo-Tactile" glass surface for every node body (scoped to the Vue
  * shell so it only hits node roots). Values live in the fil-surface and
@@ -284,6 +318,10 @@ export function injectFilBrandVars(): void {
 }`;
   document.head.appendChild(el);
 
+  themeBaseEl = document.createElement("style");
+  themeBaseEl.id = "fil-theme-base";
+  document.head.appendChild(themeBaseEl);
+
   themeVarsEl = document.createElement("style");
   themeVarsEl.id = "fil-theme-vars";
   document.head.appendChild(themeVarsEl);
@@ -291,6 +329,57 @@ export function injectFilBrandVars(): void {
   themeEffectsEl = document.createElement("style");
   themeEffectsEl.id = "fil-theme-effects";
   document.head.appendChild(themeEffectsEl);
+}
+
+/**
+ * Is ComfyUI itself currently light or dark?
+ *
+ * The `.comfy-theme-light` class this extension used to key the light palette
+ * off is not present on current ComfyUI builds — verified against a running
+ * 8188: switching `Comfy.ColorPalette` to a light palette changes
+ * `--bg-color`/`--fg-color` (written as an inline style on `<html>`) and adds no
+ * class anywhere, so the entire light block was dead code.
+ *
+ * Reading the luminance of `--bg-color` instead works for any palette, including
+ * third-party and user-made ones, which a hardcoded list of palette names would
+ * miss. Falls back to "dark" when the variable is missing or unparseable —
+ * that is the historical behaviour, so an unknown value cannot make things worse.
+ */
+export function detectComfyBase(): FilBaseTheme {
+  if (typeof document === "undefined") return "dark";
+  const raw = getComputedStyle(document.documentElement).getPropertyValue("--bg-color").trim();
+  const lum = relativeLuminance(raw);
+  if (lum == null) return "dark";
+  return lum > 0.4 ? "light" : "dark";
+}
+
+/** sRGB relative luminance per WCAG, or null if the color isn't a plain hex/rgb(). */
+function relativeLuminance(color: string): number | null {
+  let rgb: [number, number, number] | null = null;
+  const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(color);
+  if (hex) {
+    const h = hex[1].length === 3 ? hex[1].replace(/./g, (c) => c + c) : hex[1];
+    rgb = [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+  } else {
+    const m = /^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)/i.exec(color);
+    if (m) rgb = [Number(m[1]), Number(m[2]), Number(m[3])];
+  }
+  if (!rgb) return null;
+  const [r, g, b] = rgb.map((v) => {
+    const c = v / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+/**
+ * Follow ComfyUI's own light/dark mode. Only affects the "default" theme — see
+ * `resolvePalette`. Callers should pair this with `reapplyThemeToGraph`, since
+ * LiteGraph node title/body colors are JS properties, not CSS.
+ */
+export function applyFilBaseTheme(base: FilBaseTheme): void {
+  currentBase = base;
+  renderTheme();
 }
 
 /**
@@ -303,15 +392,39 @@ export function injectFilBrandVars(): void {
  * after calling this (invoked from `themeSettings.ts::onThemeChange`).
  */
 export function applyFilTheme(theme: FilThemeName): void {
-  const palette = THEMES[theme] ?? FIL_PALETTE;
-  Object.assign(ACTIVE_PALETTE, palette);
+  currentTheme = theme;
+  renderTheme();
+}
+
+/**
+ * Push `currentTheme` + `currentBase` into `ACTIVE_PALETTE` and the two style
+ * tags. Single writer, so the two setters above can never disagree about which
+ * palette is live.
+ */
+function renderTheme(): void {
+  Object.assign(ACTIVE_PALETTE, resolvePalette());
   if (typeof document === "undefined") return;
-  document.documentElement.dataset.filTheme = theme;
-  // `:root{...}` here has the same specificity as `.comfy-theme-light` in
-  // the base stylesheet but comes later in the DOM, so it wins the cascade
-  // regardless of whether ComfyUI's own light/dark toggle is active. Left
-  // empty for "default" so ComfyUI's own light theme (if active) governs
-  // unopposed.
-  if (themeVarsEl) themeVarsEl.textContent = theme === "default" ? "" : `:root{${paletteCssVars(palette)}}`;
-  if (themeEffectsEl) themeEffectsEl.textContent = THEME_EFFECTS[theme] ?? "";
+  document.documentElement.dataset.filTheme = currentTheme;
+  document.documentElement.dataset.filBase = currentBase;
+
+  // Light base: the light palette plus its surface and overlay tokens, which is
+  // what the dead `.comfy-theme-light` block used to carry.
+  //
+  // Gated on the light palette actually having won, not merely on ComfyUI being
+  // light. The tag below only overrides palette colors, not surfaces — so
+  // emitting this whenever the canvas was light left an explicitly chosen dark
+  // theme (Cyberpunk on a light ComfyUI) with light overlays and a white
+  // `--fil-inset`, i.e. a near-white field inside a near-black panel.
+  if (themeBaseEl) {
+    themeBaseEl.textContent =
+      resolvePalette() === FIL_PALETTE_LIGHT
+        ? `:root{${paletteCssVars(FIL_PALETTE_LIGHT)}--fil-input-border:rgba(201,104,44,0.35);${SURFACE_VARS_LIGHT}${OVERLAY_VARS_LIGHT}}`
+        : "";
+  }
+  // Left empty for "default" so the base tag above governs unopposed.
+  if (themeVarsEl) {
+    themeVarsEl.textContent =
+      currentTheme === "default" ? "" : `:root{${paletteCssVars(THEMES[currentTheme] ?? FIL_PALETTE)}}`;
+  }
+  if (themeEffectsEl) themeEffectsEl.textContent = THEME_EFFECTS[currentTheme] ?? "";
 }
