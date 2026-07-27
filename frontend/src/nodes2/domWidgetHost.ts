@@ -34,6 +34,7 @@ function isWritable(obj: object, prop: string): boolean {
 }
 import FilNodeShell from "@/components/widgets/FilNodeShell.vue";
 import { scrollRegionWantsWheel } from "@/composables/scrollGuard";
+import { installGlobalScrollGuard } from "@/nodes2/installers/scrollGuard";
 
 export interface FilWidgetOptions<S extends object = Record<string, unknown>> {
   /** Reactive state object passed to the Vue component as `state` prop. */
@@ -108,6 +109,10 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
     return null;
   }
 
+  // First FiL panel on the canvas is what arms the window-level wheel guard;
+  // it is a no-op on every later mount.
+  installGlobalScrollGuard();
+
   const host = document.createElement("div");
   host.className = "fil-vue-host";
   // Fill whatever width ComfyUI's own DOM-widget wrapper gives us, so the
@@ -168,15 +173,14 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
   // we Object.assign the payload into the reactive `state`.
   const state = reactive(opts.state) as S;
 
-  // `getHeight()` starts at the caller's initial estimate for the very first
-  // paint (before anything is mounted), then measures the live content on
-  // every subsequent call. LiteGraph polls `getHeight()` on its own draw
-  // loop, so this can't rely on a cached number kept in sync by a side
-  // channel — a ResizeObserver here was tried and silently stopped firing
-  // for some nodes (observed live: content height changed, callback never
-  // ran), leaving the node's box pinned at the stale initial estimate with
-  // dead space below the panel. Measuring on every call is cheap
-  // (`scrollHeight` read) and can't go stale.
+  // The height LiteGraph reads. It starts at the caller's initial estimate for
+  // the first paint (before anything is mounted) and is refreshed by
+  // `measureHeight()` from the ResizeObserver, the settle loop and the 400ms
+  // poll below — never from `getHeight()` itself. `getHeight()` is called from
+  // LiteGraph's draw loop, and measuring there means a forced reflow per frame
+  // per FiL node on the canvas. Measuring on every call was the original fix
+  // for a ResizeObserver that silently stopped firing for some nodes; the poll
+  // now covers that case, at 2.5 reads a second instead of 60.
   let currentHeight = opts.height;
   // Growable mode only (see `opts.growable`): the panel's own content height
   // versus the extra pixels the user dragged on top of it. `currentHeight`
@@ -269,7 +273,7 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
         }
       }
     },
-    getHeight: measureHeight,
+    getHeight: () => currentHeight,
     ...(opts.onDraw ? { onDraw: opts.onDraw } : {}),
   });
 
