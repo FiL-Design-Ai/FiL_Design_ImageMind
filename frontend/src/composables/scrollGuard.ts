@@ -43,12 +43,33 @@ export function scrollRegionWantsWheel(
   deltaY: number,
   stopAt: Element | null = null,
 ): boolean {
+  return findScrollableInChain(target, deltaX, deltaY, stopAt) !== null;
+}
+
+/** Class the DOM widget host tags its root with — the marker for "this
+ * scrollable area belongs to a FiL node", used to keep the window-level guard
+ * off other packs' widgets. */
+export const FIL_HOST_SELECTOR = ".fil-vue-host";
+
+/** True when the element sits inside a FiL node's mounted panel. */
+export function isInsideFilWidget(el: Element | null): boolean {
+  return Boolean(el?.closest?.(FIL_HOST_SELECTOR));
+}
+
+/** Same walk as `scrollRegionWantsWheel`, but returns the element that wants
+ * the wheel so the caller can decide whose widget it is. */
+export function findScrollableInChain(
+  target: EventTarget | null,
+  deltaX: number,
+  deltaY: number,
+  stopAt: Element | null = null,
+): Element | null {
   let el = target instanceof Element ? target : null;
   while (el && el !== stopAt) {
-    if (elementWantsWheel(el, deltaX, deltaY)) return true;
+    if (elementWantsWheel(el, deltaX, deltaY)) return el;
     el = el.parentElement;
   }
-  return false;
+  return null;
 }
 
 /**
@@ -66,12 +87,18 @@ export function findScrollableUnderPoint(
   y: number,
   deltaX: number,
   deltaY: number,
+  filOnly = false,
 ): Element | null {
   const contains = (el: Element): boolean => {
     const r = el.getBoundingClientRect();
     return r.width > 0 && r.height > 0 && x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
   };
+  // `:has()` would say this in one selector, but jsdom (the test environment)
+  // does not implement it, so the filter is spelled out.
+  const ours = (w: Element): boolean =>
+    w.matches(FIL_HOST_SELECTOR) || w.querySelector(FIL_HOST_SELECTOR) !== null;
   for (const widget of document.querySelectorAll(".dom-widget")) {
+    if (filOnly && !ours(widget)) continue;
     if (!contains(widget)) continue;
     if (elementWantsWheel(widget, deltaX, deltaY)) return widget;
     for (const el of widget.querySelectorAll("*")) {

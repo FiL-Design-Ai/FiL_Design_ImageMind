@@ -16,7 +16,6 @@ import type { ComfyApp, ComfyExtension, ComfyNodeData } from "@/types/comfy";
 import { NODE_MODULES } from "@/nodes2/nodeRegistry";
 import { installHelpToolbar } from "@/nodes2/installers/helpToolbar";
 import { installShortcuts } from "@/nodes2/installers/shortcuts";
-import { installGlobalScrollGuard } from "@/nodes2/installers/scrollGuard";
 import { installToasts } from "@/nodes2/installers/toasts";
 import { installRunButtonFx } from "@/nodes2/installers/runButtonFx";
 import { filCommands, filKeybindings } from "@/composables/useShortcuts";
@@ -29,11 +28,12 @@ import { EXTENSION_NAME, LOG_TAG, ROUTE_PREFIX } from "@/constants/brand";
 
 const NODE_CONTRACT_ENDPOINT = `${ROUTE_PREFIX}/node_contracts`;
 
-// Registered at module import (not in setup()) so our window capture-phase
-// wheel listener is bound before any other extension's setup hook can add
-// its own — stopImmediatePropagation only silences listeners registered
-// AFTER ours on the same target.
-installGlobalScrollGuard();
+// The wheel guard used to be installed here, at module import, to bind ahead
+// of every other extension's setup hook. It now installs on the first mounted
+// FiL widget instead (nodes2/domWidgetHost.ts): a capture-phase listener on
+// `window` outruns core's canvas-bound forwarder whenever it is added, and an
+// install whose graphs contain no FiL node has no business touching the wheel
+// at all.
 
 // Seed randomization for FiLSeed/FiLHighResFix/FiLOpticScanner used to be
 // resolved here via this `graphToPrompt` hook mutating the queued prompt.
