@@ -7,7 +7,7 @@
  * via CSS on dismiss. Mounted once at extension setup() and appended to
  * `document.body`.
  */
-import { computed, onBeforeUnmount, onMounted } from "vue";
+import { computed, onBeforeUnmount, watch } from "vue";
 import { storeToRefs } from "pinia";
 import { useToastStore, type ToastItem } from "@/stores/toastStore";
 import { useI18n } from "@/composables/useI18n";
@@ -16,6 +16,9 @@ const { t } = useI18n();
 const store = useToastStore();
 const { items } = storeToRefs(store);
 const timers = new Map<number, ReturnType<typeof setTimeout>>();
+// Hovered toasts: held out of the scheduler so the watcher below does not
+// hand a paused timer straight back when the next toast arrives.
+const paused = new Set<number>();
 
 const colorMap = {
   info: "var(--fil-muted)",
@@ -33,6 +36,7 @@ function schedule(item: ToastItem) {
 }
 
 function pause(item: ToastItem) {
+  paused.add(item.id);
   const t = timers.get(item.id);
   if (t) {
     clearTimeout(t);
@@ -41,6 +45,7 @@ function pause(item: ToastItem) {
 }
 
 function resume(item: ToastItem) {
+  paused.delete(item.id);
   if (!timers.has(item.id) && !item.sticky) schedule(item);
 }
 
@@ -49,12 +54,35 @@ function dismiss(item: ToastItem) {
 }
 
 const visible = computed(() => items.value);
-onMounted(() => {
-  for (const it of items.value) schedule(it);
-});
+
+// Timers follow the store, not the mount: the stack is mounted once at
+// setup() while empty, so scheduling only `onMounted` left every toast
+// pushed afterwards without a timer — i.e. non-sticky toasts never
+// auto-dismissed. `immediate` covers items already queued before mount.
+watch(
+  items,
+  (list) => {
+    const live = new Set(list.map((it) => it.id));
+    for (const id of [...timers.keys()]) {
+      if (!live.has(id)) {
+        clearTimeout(timers.get(id)!);
+        timers.delete(id);
+      }
+    }
+    for (const id of [...paused]) {
+      if (!live.has(id)) paused.delete(id);
+    }
+    for (const it of list) {
+      if (!timers.has(it.id) && !paused.has(it.id)) schedule(it);
+    }
+  },
+  { immediate: true, deep: true },
+);
+
 onBeforeUnmount(() => {
   for (const t of timers.values()) clearTimeout(t);
   timers.clear();
+  paused.clear();
 });
 </script>
 

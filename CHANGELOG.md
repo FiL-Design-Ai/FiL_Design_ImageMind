@@ -3,6 +3,22 @@
 ## Unreleased
 
 ### Fixed
+- **The toast stack was never mounted, and the run-header flash never armed.**
+  `installToasts()` and `installRunButtonFx()` existed, were correct, and had no
+  caller — both were absent from the installer list in `filExtension.ts`, which
+  the bundler confirmed by tree-shaking them out of `dist` entirely. Effects:
+  node headers never flashed while executing, `window.__filToast` (the hook the
+  Python side and the console bridge use) was undefined, and the Pinia fallback
+  in `toastStore.emit()` pushed into a store no component rendered — invisible
+  today only because ComfyUI always exposes `extensionManager.toast`, which
+  takes priority.
+- **Toasts pushed after mount never auto-dismissed.** With the stack mounted,
+  the second half of the bug surfaced: `FilToastStack` scheduled its dismiss
+  timers in `onMounted`, but it mounts once at `setup()` while the store is
+  empty, so every real toast arrived untimed and stayed on screen forever.
+  Timers now follow the store. Hover-to-pause is tracked explicitly so the
+  rescheduling pass cannot re-arm a toast the pointer is resting on, and items
+  promoted out of the overflow queue get their timer when they become visible.
 - **Contrast was certified against the wrong background in 1.1.0.** That pass
   measured every token against the palette's `panel`/`panelAlt`, but no widget
   sits on those: the node body is `--fil-surface-bg` (a 6% tint) over the color
