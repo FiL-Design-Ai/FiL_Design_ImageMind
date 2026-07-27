@@ -48,6 +48,19 @@ def test_switch_with_nothing_connected_blocks_too():
     assert _blocked(FiLSignalSwitch.execute(input=None, enable=False))
 
 
+def test_switch_on_without_input_says_why():
+    """ON + no signal is a misconfigured graph, not muting — blocking it mutely
+    leaves the user with a dead branch and nothing to go on."""
+    result = FiLSignalSwitch.execute(input=None, enable=True)
+    message = result.args[0].message
+    assert message and "input" in message
+
+
+def test_switch_off_stays_silent_even_without_input():
+    """OFF is deliberate: it must not report the missing input as a problem."""
+    assert FiLSignalSwitch.execute(input=None, enable=False).args[0].message is None
+
+
 def test_switch_passes_falsy_values_through():
     """0 / "" / False are real signals — only a missing input blocks."""
     for value in (0, "", False, []):
