@@ -40,6 +40,7 @@ jobs:
           cache: pip
           cache-dependency-path: |
             fil-design-imagemind-temp/requirements.txt
+            fil-design-imagemind-temp/requirements-dev.txt
             ComfyUI/requirements.txt
 
       - name: Install CPU-only PyTorch
@@ -49,7 +50,9 @@ jobs:
         run: pip install -r ComfyUI/requirements.txt
 
       - name: Install FiL_Design_ImageMind dependencies
-        run: pip install -r fil-design-imagemind-temp/requirements.txt
+        # requirements-dev.txt pulls in requirements.txt and the test runner;
+        # neither ComfyUI's requirements nor ours ship pytest.
+        run: pip install -r fil-design-imagemind-temp/requirements-dev.txt
 
       - name: Move FiL_Design_ImageMind into ComfyUI custom_nodes
         run: |
@@ -74,10 +77,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node 20
+      - name: Setup Node 22
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -95,4 +98,6 @@ jobs:
 
       - name: Run frontend tests
         working-directory: frontend
-        run: npx vitest run
+        # The github-actions reporter turns failures into annotations, which are
+        # readable on the run page without opening the raw log.
+        run: npx vitest run --reporter=default --reporter=github-actions
