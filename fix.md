@@ -10,12 +10,17 @@ was broken`` , then a sentence on the cause where it is not obvious.
 
 ## Unreleased (after 1.0.0)
 
-- `ScrollGuard.Mode` setting — a live off switch for everything the pack does
-  with the wheel, the window guard and the widget host's canvas forwarder
-  alike. `off` restores stock ComfyUI behaviour without a reload or a rebuild,
-  so the pack can be ruled out of a scroll conflict in one click. Modes are
-  `off` / `fil` (default, our panels only) / `all` (also other packs').
-- `410fc95` — the wheel guard silenced every other node pack. Its listener has
+- **The global wheel listener is gone.** `nodes2/installers/scrollGuard.ts`,
+  which bound a capture-phase `wheel` handler to `window`, is deleted. Even
+  scoped to our own panels it meant a node pack sat ahead of every other
+  extension in the app on every wheel event. What remains is one listener on
+  the pack's own widget host, which never sees a wheel event outside a FiL
+  panel; it stops propagation only when the cursor is over a scrollable region
+  of ours, so an ancestor forwarder cannot zoom the canvas at the same time.
+  Modifiers (Ctrl/Meta/Alt/Shift) are left to whoever else wants them, and
+  `Wheel.Enabled` in settings turns even that off, live.
+- `410fc95` — the wheel guard silenced every other node pack. Superseded by the
+  removal above; kept here because the released 1.0.0 still has the old guard. Its listener has
   to sit on `window` in the capture phase to beat ComfyUI's canvas forwarder,
   but it consumed wheel events over *any* scrollable region, so other packs'
   wheel-driven carousels, value tweaks and lazy loading never fired. It now

@@ -1,10 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import {
-  findScrollableInChain,
-  findScrollableUnderPoint,
-  isInsideFilWidget,
-} from "@/composables/scrollGuard";
-import { readScrollGuardMode } from "@/stores/settings/scrollGuardSettings";
+import { elementWantsWheel, scrollRegionWantsWheel } from "@/composables/scrollGuard";
+import { wheelHandlingEnabled } from "@/stores/settings/scrollGuardSettings";
 
 /** jsdom reports every layout box as 0, so the scroll geometry the predicates
  * read has to be defined per element. */
@@ -18,68 +14,52 @@ function scrollable(el: HTMLElement, { client = 100, scroll = 400, top = 50 } = 
   return el;
 }
 
-function atPoint(el: HTMLElement): HTMLElement {
-  el.getBoundingClientRect = () =>
-    ({ left: 0, top: 0, right: 200, bottom: 200, width: 200, height: 200 }) as DOMRect;
-  return el;
-}
-
-describe("scroll guard scoping", () => {
+describe("wheel-vs-scroll predicate", () => {
   beforeEach(() => {
     document.body.innerHTML = "";
   });
 
-  it("finds a scrollable region in the target's ancestor chain", () => {
+  it("claims the wheel for a region with room left to scroll", () => {
     const list = scrollable(document.createElement("div"));
-    const label = document.createElement("span");
-    list.appendChild(label);
     document.body.appendChild(list);
 
-    expect(findScrollableInChain(label, 0, 10)).toBe(list);
+    expect(elementWantsWheel(list, 0, 10)).toBe(true);
   });
 
-  it("ignores a region that has already hit its end stop", () => {
+  it("releases the wheel at the end stop, in that direction only", () => {
     const list = scrollable(document.createElement("div"), { top: 300 });
     document.body.appendChild(list);
 
-    expect(findScrollableInChain(list, 0, 10)).toBeNull();
-    expect(findScrollableInChain(list, 0, -10)).toBe(list);
+    expect(elementWantsWheel(list, 0, 10)).toBe(false);
+    expect(elementWantsWheel(list, 0, -10)).toBe(true);
   });
 
-  it("tells a FiL panel apart from another pack's widget", () => {
-    const ours = document.createElement("div");
-    ours.className = "fil-vue-host";
-    const inner = document.createElement("div");
-    ours.appendChild(inner);
-    const theirs = document.createElement("div");
-    document.body.append(ours, theirs);
+  it("walks the ancestor chain up to the host boundary", () => {
+    const outside = document.createElement("div");
+    const host = document.createElement("div");
+    const list = scrollable(document.createElement("div"));
+    const label = document.createElement("span");
+    list.appendChild(label);
+    host.appendChild(list);
+    outside.appendChild(host);
+    document.body.appendChild(outside);
 
-    expect(isInsideFilWidget(inner)).toBe(true);
-    expect(isInsideFilWidget(theirs)).toBe(false);
-    expect(isInsideFilWidget(null)).toBe(false);
+    expect(scrollRegionWantsWheel(label, 0, 10, outside)).toBe(true);
+    // The walk stops before `stopAt`, so a scrollable ancestor above the host
+    // is not the host's business.
+    expect(scrollRegionWantsWheel(host, 0, 10, host)).toBe(false);
   });
 
-  it("hit-tests only FiL widgets when scoped, all of them otherwise", () => {
-    const foreign = atPoint(document.createElement("div"));
-    foreign.className = "dom-widget";
-    scrollable(foreign);
-    document.body.appendChild(foreign);
+  it("ignores a plain element with no overflow", () => {
+    const plain = document.createElement("div");
+    document.body.appendChild(plain);
 
-    expect(findScrollableUnderPoint(10, 10, 0, 10, true)).toBeNull();
-    expect(findScrollableUnderPoint(10, 10, 0, 10, false)).toBe(foreign);
-
-    const mine = atPoint(document.createElement("div"));
-    mine.className = "dom-widget";
-    const host = atPoint(scrollable(document.createElement("div")));
-    host.className = "fil-vue-host";
-    mine.appendChild(host);
-    document.body.appendChild(mine);
-
-    expect(findScrollableUnderPoint(10, 10, 0, 10, true)).toBe(host);
+    expect(scrollRegionWantsWheel(plain, 0, 10)).toBe(false);
+    expect(scrollRegionWantsWheel(null, 0, 10)).toBe(false);
   });
 });
 
-describe("scroll guard mode", () => {
+describe("wheel handling setting", () => {
   const g = globalThis as unknown as { app?: unknown };
 
   function storedAs(value: unknown): void {
@@ -90,19 +70,11 @@ describe("scroll guard mode", () => {
     delete g.app;
   });
 
-  it("maps the settings labels onto modes", () => {
-    storedAs("Off — never touch the wheel");
-    expect(readScrollGuardMode()).toBe("off");
-    storedAs("FiL Design panels only");
-    expect(readScrollGuardMode()).toBe("fil");
-    storedAs("All node packs' widgets");
-    expect(readScrollGuardMode()).toBe("all");
-  });
-
-  it("accepts a raw value and falls back to the scoped default", () => {
-    storedAs("off");
-    expect(readScrollGuardMode()).toBe("off");
-    storedAs("something else entirely");
-    expect(readScrollGuardMode()).toBe("fil");
+  it("is on unless the user turned it off", () => {
+    expect(wheelHandlingEnabled()).toBe(true); // nothing stored
+    storedAs(true);
+    expect(wheelHandlingEnabled()).toBe(true);
+    storedAs(false);
+    expect(wheelHandlingEnabled()).toBe(false);
   });
 });
