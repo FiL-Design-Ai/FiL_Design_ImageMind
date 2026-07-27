@@ -6,6 +6,7 @@ import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
 import { createSyncedNodeState, findFilWidget, sanitizeWidgetValue } from "@/nodes2/util";
 import { exposeWidgetInputSockets } from "@/nodes2/widgetInputSockets";
 import { applyFxComposables } from "@/nodes2/applyFxComposables";
+import { installFilStatePersistence, restoreFilState } from "@/nodes2/statePersistence";
 
 const OpticScannerVue = defineAsyncComponent(() => import("@/components/nodes/OpticScanner.vue"));
 
@@ -103,6 +104,9 @@ export const scannerNode: NodeModule = {
       };
       Object.defineProperty(state, "node", { value: node, enumerable: false, configurable: true });
       node._filScannerSeedState = state;
+      // `widgets_values` is not a safe channel for this node — see
+      // nodes2/statePersistence.ts for what mangles it and why.
+      installFilStatePersistence(node, state);
 
       exposeWidgetInputSockets(node, SCANNER_TEXT_INPUTS);
       // `growable`: the panel's prompt fields absorb whatever height the user
@@ -114,7 +118,10 @@ export const scannerNode: NodeModule = {
     const originalConfigure = p.onConfigure;
     p.onConfigure = function (this: unknown, ...args: unknown[]) {
       const result = originalConfigure?.apply(this, args);
-      const node = this as { widgets?: unknown[]; _filScannerSeedState?: { nodeState: Record<string, unknown> } };
+      const node = this as {
+        widgets?: unknown[];
+        _filScannerSeedState?: { nodeState: Record<string, unknown>; ui: Record<string, unknown>; lastRunSeed?: number | null };
+      };
       const state = node._filScannerSeedState;
       if (!state) return result;
       for (const name of allWidgetNames) {
@@ -125,6 +132,11 @@ export const scannerNode: NodeModule = {
         state.nodeState[name] = sanitizeWidgetValue(w, isNum ? "number" : "string", fallback);
         (w as { hidden?: boolean }).hidden = true;
       }
+      // The widget values read above are the fallback for workflows saved
+      // before `fil_state` existed. When the key is there it wins: the
+      // positional array it is there to replace can arrive shifted, and a
+      // shifted value has already landed on every widget by this point.
+      restoreFilState(state, args[0]);
       hideNativeWidgets(node);
       // A loaded workflow replaces `node.inputs` with its own saved array, so
       // the `alwaysVisible` flags set at creation are gone by now.
