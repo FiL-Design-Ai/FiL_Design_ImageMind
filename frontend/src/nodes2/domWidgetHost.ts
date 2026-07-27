@@ -34,8 +34,7 @@ function isWritable(obj: object, prop: string): boolean {
 }
 import FilNodeShell from "@/components/widgets/FilNodeShell.vue";
 import { scrollRegionWantsWheel } from "@/composables/scrollGuard";
-import { installGlobalScrollGuard } from "@/nodes2/installers/scrollGuard";
-import { readScrollGuardMode } from "@/stores/settings/scrollGuardSettings";
+import { wheelHandlingEnabled } from "@/stores/settings/scrollGuardSettings";
 
 export interface FilWidgetOptions<S extends object = Record<string, unknown>> {
   /** Reactive state object passed to the Vue component as `state` prop. */
@@ -110,10 +109,6 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
     return null;
   }
 
-  // First FiL panel on the canvas is what arms the window-level wheel guard;
-  // it is a no-op on every later mount.
-  installGlobalScrollGuard();
-
   const host = document.createElement("div");
   host.className = "fil-vue-host";
   // Fill whatever width ComfyUI's own DOM-widget wrapper gives us, so the
@@ -151,14 +146,24 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
   // has room to scroll that way, in which case let it scroll normally instead
   // of hijacking the wheel for canvas zoom. `{ passive: false }` is required
   // for `preventDefault()` to actually suppress the host's own (non-)scroll.
+  //
+  // The listener is bound to `host`, so it only ever sees wheel events over a
+  // FiL panel; scrolling anywhere else in ComfyUI, other packs included, never
+  // reaches this code. A modifier means the gesture belongs to someone else
+  // (Ctrl/Meta is canvas zoom, Alt/Shift is what several packs use for
+  // wheel-driven value tweaks), and the whole thing can be switched off in
+  // settings.
   host.addEventListener(
     "wheel",
     (e: WheelEvent) => {
-      // `off` means the pack keeps its hands off the wheel completely, this
-      // forwarder included — the setting is the one place to rule us out of a
-      // scroll conflict.
-      if (readScrollGuardMode() === "off") return;
-      if (scrollRegionWantsWheel(e.target, e.deltaX, e.deltaY, host.parentElement)) return;
+      if (!wheelHandlingEnabled()) return;
+      if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
+      if (scrollRegionWantsWheel(e.target, e.deltaX, e.deltaY, host.parentElement)) {
+        // Native scroll handles it. Keep it from bubbling into an ancestor's
+        // forwarder, which would zoom the canvas at the same time.
+        e.stopPropagation();
+        return;
+      }
       const realCanvas = (globalThis as unknown as {
         app?: { canvas?: { canvas?: HTMLCanvasElement } };
       }).app?.canvas?.canvas;
