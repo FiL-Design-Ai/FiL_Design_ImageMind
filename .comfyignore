@@ -1,0 +1,47 @@
+# Files kept in git but left out of the Comfy Registry archive.
+# What ComfyUI actually loads is __init__.py, server_routes.py, common/,
+# nodes/, data/, requirements.txt and the built frontend/dist bundle.
+
+# Test suite and developer tooling
+tests/
+tools/
+scripts/
+requirements-dev.txt
+.flake8
+.pre-commit-config.yaml
+.github/
+.claude/
+.agents/
+.vscode/
+CLAUDE.md
+
+# Frontend sources — only frontend/dist ships. frontend/public is a
+# byte-for-byte duplicate of dist/style-previews, so shipping both doubles
+# 1.5 MB of preview images for nothing.
+frontend/src/
+frontend/public/
+frontend/tests/
+frontend/node_modules/
+frontend/scripts/
+frontend/package.json
+frontend/package-lock.json
+frontend/tsconfig.json
+frontend/vite.config.ts
+frontend/eslint.config.js
+frontend/playwright.config.ts
+frontend/index.html
+frontend/test-playground.html
+frontend/.gitignore
+
+# Documentation and the GitHub Pages site. docs/workflows/*.json stays — those
+# are ready-made graphs users load in ComfyUI.
+docs/ETA_GUIDE.md
+docs/MODEL_PROMPTING_GUIDE.md
+docs/_config.yml
+docs/architecture.md
+docs/auth.md
+docs/getting-started.md
+docs/index.html
+docs/prompting.md
+docs/styles.md
+docs/release/

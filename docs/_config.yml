@@ -3,8 +3,10 @@ title: FiL_Design_ImageMind
 description: AI-powered ComfyUI nodes for image analysis, prompt generation, and intelligent workflows
 url: https://fil-design-ai.github.io/FiL_Design_ImageMind
 
-# Theme (GitHub Pages default)
-theme: jekyll-default
+# Theme. `jekyll-default` is not a real theme — Jekyll failed every Pages build
+# with "The jekyll-default theme could not be found". index.html carries its own
+# styling, so this only has to be a name GitHub Pages actually supports.
+theme: jekyll-theme-primer
 
 # Plugins
 plugins:

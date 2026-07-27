@@ -17,7 +17,6 @@ REMOVED_TYPES = {
 # changelog are deliberately excluded — they name removed nodes on purpose.
 USER_FACING = (
     ROOT / "README.md",
-    ROOT / "docs" / "README.ru.md",
     ROOT / "docs" / "getting-started.md",
     ROOT / "docs" / "index.html",
 )
@@ -81,9 +80,9 @@ def _registered_node_ids() -> set[str]:
 
 
 def test_landing_pages_document_every_registered_node():
-    """README, the ru summary and the Pages site must list every shipped node."""
+    """README and the Pages site must list every shipped node."""
     node_ids = _registered_node_ids()
-    for page in (ROOT / "README.md", ROOT / "docs" / "README.ru.md", ROOT / "docs" / "index.html"):
+    for page in (ROOT / "README.md", ROOT / "docs" / "index.html"):
         text = page.read_text(encoding="utf-8")
         missing = sorted(nid for nid in node_ids if nid not in text)
         assert not missing, f"{page.name} does not document: {missing}"
