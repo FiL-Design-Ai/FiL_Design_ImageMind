@@ -10,6 +10,11 @@ was broken`` , then a sentence on the cause where it is not obvious.
 
 ## Unreleased (after 1.0.0)
 
+- `ScrollGuard.Mode` setting — a live off switch for everything the pack does
+  with the wheel, the window guard and the widget host's canvas forwarder
+  alike. `off` restores stock ComfyUI behaviour without a reload or a rebuild,
+  so the pack can be ruled out of a scroll conflict in one click. Modes are
+  `off` / `fil` (default, our panels only) / `all` (also other packs').
 - `410fc95` — the wheel guard silenced every other node pack. Its listener has
   to sit on `window` in the capture phase to beat ComfyUI's canvas forwarder,
   but it consumed wheel events over *any* scrollable region, so other packs'

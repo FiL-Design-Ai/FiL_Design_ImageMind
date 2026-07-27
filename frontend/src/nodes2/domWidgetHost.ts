@@ -35,6 +35,7 @@ function isWritable(obj: object, prop: string): boolean {
 import FilNodeShell from "@/components/widgets/FilNodeShell.vue";
 import { scrollRegionWantsWheel } from "@/composables/scrollGuard";
 import { installGlobalScrollGuard } from "@/nodes2/installers/scrollGuard";
+import { readScrollGuardMode } from "@/stores/settings/scrollGuardSettings";
 
 export interface FilWidgetOptions<S extends object = Record<string, unknown>> {
   /** Reactive state object passed to the Vue component as `state` prop. */
@@ -153,6 +154,10 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
   host.addEventListener(
     "wheel",
     (e: WheelEvent) => {
+      // `off` means the pack keeps its hands off the wheel completely, this
+      // forwarder included — the setting is the one place to rule us out of a
+      // scroll conflict.
+      if (readScrollGuardMode() === "off") return;
       if (scrollRegionWantsWheel(e.target, e.deltaX, e.deltaY, host.parentElement)) return;
       const realCanvas = (globalThis as unknown as {
         app?: { canvas?: { canvas?: HTMLCanvasElement } };

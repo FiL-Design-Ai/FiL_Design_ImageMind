@@ -1,9 +1,10 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   findScrollableInChain,
   findScrollableUnderPoint,
   isInsideFilWidget,
 } from "@/composables/scrollGuard";
+import { readScrollGuardMode } from "@/stores/settings/scrollGuardSettings";
 
 /** jsdom reports every layout box as 0, so the scroll geometry the predicates
  * read has to be defined per element. */
@@ -75,5 +76,33 @@ describe("scroll guard scoping", () => {
     document.body.appendChild(mine);
 
     expect(findScrollableUnderPoint(10, 10, 0, 10, true)).toBe(host);
+  });
+});
+
+describe("scroll guard mode", () => {
+  const g = globalThis as unknown as { app?: unknown };
+
+  function storedAs(value: unknown): void {
+    g.app = { extensionManager: { setting: { get: () => value } } };
+  }
+
+  afterEach(() => {
+    delete g.app;
+  });
+
+  it("maps the settings labels onto modes", () => {
+    storedAs("Off — never touch the wheel");
+    expect(readScrollGuardMode()).toBe("off");
+    storedAs("FiL Design panels only");
+    expect(readScrollGuardMode()).toBe("fil");
+    storedAs("All node packs' widgets");
+    expect(readScrollGuardMode()).toBe("all");
+  });
+
+  it("accepts a raw value and falls back to the scoped default", () => {
+    storedAs("off");
+    expect(readScrollGuardMode()).toBe("off");
+    storedAs("something else entirely");
+    expect(readScrollGuardMode()).toBe("fil");
   });
 });
