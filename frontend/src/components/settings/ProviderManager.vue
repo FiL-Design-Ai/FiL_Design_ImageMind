@@ -3,7 +3,13 @@ import { ref, onMounted } from "vue";
 import { useProviderStore, PROVIDER_LIST } from "@/stores/providerStore";
 import FilButton from "@/components/widgets/FilButton.vue";
 import FilIcon from "@/components/widgets/FilIcon.vue";
-import { PROVIDER_LABEL, PROVIDER_ICON } from "@/composables/providerMeta";
+import {
+  PROVIDER_LABEL,
+  PROVIDER_ICON,
+  PROVIDER_CREDENTIAL_LINK,
+  PROVIDER_ACCOUNT_LINK,
+  PROVIDER_EDITS_BASE_URL,
+} from "@/composables/providerMeta";
 
 const store = useProviderStore();
 
@@ -49,6 +55,15 @@ function fieldClass(field: string): Record<string, boolean> {
 
 function needsAccountId(pid: string): boolean {
   return pid === "cloudflare";
+}
+
+const credentialLink = PROVIDER_CREDENTIAL_LINK;
+const accountLink = PROVIDER_ACCOUNT_LINK;
+
+/** Local servers always; anyone else only if a custom endpoint is already
+ * saved, so an existing proxy setup does not become uneditable. */
+function showBaseUrl(pid: string): boolean {
+  return PROVIDER_EDITS_BASE_URL.has(pid) || Boolean(store.accounts[pid]?.base_url);
 }
 
 type PmStatus = "connected" | "configured" | "off";
@@ -172,7 +187,17 @@ const hasChanges = (pid: string) => {
       <template v-if="!isCollapsed(pid)">
       <div class="fil-pm-fields">
         <label class="fil-pm-field">
-          <span class="fil-pm-field-label">API Key</span>
+          <span class="fil-pm-field-head">
+            <span class="fil-pm-field-label">API Key</span>
+            <a
+              v-if="credentialLink[pid]"
+              class="fil-pm-link"
+              :href="credentialLink[pid]!.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              @click.stop
+            >{{ credentialLink[pid]!.label }} ↗</a>
+          </span>
           <input
             v-model="editing[pid].key"
             type="password"
@@ -183,7 +208,7 @@ const hasChanges = (pid: string) => {
           />
         </label>
 
-        <label class="fil-pm-field">
+        <label v-if="showBaseUrl(pid)" class="fil-pm-field">
           <span class="fil-pm-field-label">Base URL</span>
           <input
             v-model="editing[pid].base_url"
@@ -196,7 +221,17 @@ const hasChanges = (pid: string) => {
         </label>
 
         <label v-if="needsAccountId(pid)" class="fil-pm-field">
-          <span class="fil-pm-field-label">Account ID</span>
+          <span class="fil-pm-field-head">
+            <span class="fil-pm-field-label">Account ID</span>
+            <a
+              v-if="accountLink[pid]"
+              class="fil-pm-link"
+              :href="accountLink[pid]!.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              @click.stop
+            >{{ accountLink[pid]!.label }} ↗</a>
+          </span>
           <input
             v-model="editing[pid].account_id"
             type="text"
@@ -359,11 +394,30 @@ const hasChanges = (pid: string) => {
   flex-direction: column;
   gap: 3px;
 }
+.fil-pm-field-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .fil-pm-field-label {
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: rgba(255, 255, 255, 0.5);
+}
+
+.fil-pm-link {
+  font-size: 10px;
+  letter-spacing: 0.3px;
+  color: var(--fil-accent);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.fil-pm-link:hover {
+  text-decoration: underline;
 }
 .fil-pm-input {
   width: 100%;
