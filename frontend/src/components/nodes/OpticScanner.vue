@@ -482,7 +482,7 @@ function newFixedSeed() {
 .fil-style-tab-bar {
   display: flex;
   gap: 6px;
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--fil-inset);
   padding: 4px;
   border-radius: 8px;
   border: 1px solid var(--fil-border);
@@ -514,9 +514,11 @@ function newFixedSeed() {
   font-weight: 700;
   box-shadow: 0 0 10px color-mix(in srgb, var(--fil-accent) 30%, transparent);
 }
+/* "this tab has a selection" checkmark — `--fil-ok` is exactly that meaning,
+ * and the hardcoded #00ff88 clashed with every palette but cyberpunk. */
 .fil-tab-badge {
   font-size: 10px;
-  color: #00ff88;
+  color: var(--fil-ok);
 }
 .fil-style-tab-btn.active .fil-tab-badge {
   color: var(--fil-accent-ink);
@@ -535,30 +537,45 @@ function newFixedSeed() {
 .fil-clear-styles-btn {
   padding: 6px 12px;
   border-radius: 6px;
-  border: 1px solid rgba(255, 75, 75, 0.3);
-  background: rgba(255, 75, 75, 0.1);
+  border: 1px solid color-mix(in srgb, var(--fil-danger) 40%, transparent);
+  background: color-mix(in srgb, var(--fil-danger) 12%, transparent);
   color: var(--fil-danger);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.12s ease;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
 }
+/* Hover filled the button with red and set `color:#ffffff`, which is white text
+ * on a light-red wash in the light theme. Deepening the tint and keeping the
+ * label on `--fil-text` reads as "armed" without the contrast cliff. */
 .fil-clear-styles-btn:hover {
-  background: rgba(255, 75, 75, 0.25);
+  background: color-mix(in srgb, var(--fil-danger) 28%, transparent);
   border-color: var(--fil-danger);
-  color: #ffffff;
+  color: var(--fil-text);
+}
+.fil-clear-styles-btn:focus-visible {
+  outline: 2px solid var(--fil-accent);
+  outline-offset: 1px;
 }
 
 /* The seed row is FilSeedRow now — shared with HiResFix. */
 
-/* Cyberpunk Style Picker Button */
+/* Opens the style modal; `has-styles` means at least one style is selected.
+ *
+ * Was a fixed cyan→magenta gradient with a `pulse-neon` @keyframes animation on
+ * the active state. Two problems: the gradient ignored the theme entirely (it is
+ * cyan even under the orange default and the lime Travelmate), and the animation
+ * ran forever on every scanner in the graph — styles/brand.ts states the reason
+ * its own theme flourishes are static, "so they don't cost a continuous repaint
+ * on a graph with many nodes", and this rule was the exception to that rule.
+ * The selected state is now the accent, held still. */
 .fil-style-picker-btn {
   flex: 2;
   box-sizing: border-box;
-  min-height: 36px;
+  min-height: var(--fil-control-h-lg);
   border-radius: var(--fil-pill-radius);
-  background: linear-gradient(135deg, rgba(0, 240, 255, 0.08), rgba(255, 0, 255, 0.08));
-  border: 1px solid rgba(0, 240, 255, 0.2);
+  background: var(--fil-pill-bg);
+  border: 1px solid var(--fil-pill-border);
   color: var(--fil-text);
   font-family: inherit;
   font-size: 12px;
@@ -567,25 +584,22 @@ function newFixedSeed() {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 0 10px rgba(0, 240, 255, 0.05);
+  transition: background 0.12s, border-color 0.12s, box-shadow 0.12s;
 }
 .fil-style-picker-btn:hover {
-  background: linear-gradient(135deg, rgba(0, 240, 255, 0.15), rgba(255, 0, 255, 0.15));
-  border-color: rgba(0, 240, 255, 0.5);
-  box-shadow: 0 0 15px rgba(0, 240, 255, 0.15);
-  color: #fff;
+  background: var(--fil-surface-3);
+  border-color: var(--fil-accent);
+}
+.fil-style-picker-btn:focus-visible {
+  outline: 2px solid var(--fil-accent);
+  outline-offset: -2px;
 }
 .fil-style-picker-btn.has-styles {
-  background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(255, 0, 255, 0.2));
-  border: 1px solid rgba(0, 240, 255, 0.6);
-  color: #fff;
-  box-shadow: 0 0 20px rgba(0, 240, 255, 0.25), inset 0 0 8px rgba(255, 0, 255, 0.2);
-  text-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
-  animation: pulse-neon 2.5s infinite alternate;
+  background: color-mix(in srgb, var(--fil-accent) 20%, transparent);
+  border-color: var(--fil-accent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--fil-accent) 25%, transparent);
 }
-@keyframes pulse-neon {
-  0% { box-shadow: 0 0 15px rgba(0, 240, 255, 0.2), inset 0 0 5px rgba(255, 0, 255, 0.15); }
-  100% { box-shadow: 0 0 25px rgba(0, 240, 255, 0.45), inset 0 0 15px rgba(255, 0, 255, 0.35); border-color: rgba(0, 240, 255, 0.9); }
+.fil-style-picker-btn.has-styles:hover {
+  background: color-mix(in srgb, var(--fil-accent) 32%, transparent);
 }
 </style>
