@@ -76,10 +76,13 @@ const arrow = computed(() => (modelValue.value ? "▶" : "▼"));
   outline: 2px solid var(--fil-accent);
   outline-offset: -2px;
 }
+/* `--fil-accent-text`, not the raw accent: at 9px on the section row's own
+ * composited background the raw accent measured 2.38:1 on the light palette,
+ * below even the 3:1 a glyph needs. The pulled-back variant reads 3.97:1. */
 .fil-w-section-arrow {
   display: inline-block;
   width: 8px;
   font-size: 9px;
-  color: var(--fil-accent);
+  color: var(--fil-accent-text);
 }
 </style>
