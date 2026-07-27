@@ -3,8 +3,7 @@ import {
   findScrollableUnderPoint,
   isInsideFilWidget,
 } from "@/composables/scrollGuard";
-import { readSetting } from "@/stores/settings/providerSettings";
-import { SCROLL_GUARD_THIRD_PARTY } from "@/stores/settings/scrollGuardSettings";
+import { readScrollGuardMode } from "@/stores/settings/scrollGuardSettings";
 
 let installed = false;
 
@@ -30,8 +29,9 @@ let installed = false;
  *
  * - It only acts on scrollable areas inside our own panels
  *   (`.fil-vue-host`). Other packs' widgets are left alone unless the user
- *   opts in via the `ScrollGuard.ThirdPartyWidgets` setting, which trades
- *   their wheel handlers away for scrolling that works.
+ *   picks `all` in the `ScrollGuard.Mode` setting, which trades their wheel
+ *   handlers away for scrolling that works. `off` disables the guard
+ *   outright, live — the mode is read per event, so no reload is needed.
  * - Any modifier means the gesture belongs to someone else — Ctrl/Meta is
  *   canvas zoom (core's own `isCanvasGestureWheel`), Alt/Shift is the
  *   modifier several packs use for wheel-driven value tweaks.
@@ -50,7 +50,9 @@ export function installGlobalScrollGuard(): void {
     "wheel",
     (e: WheelEvent) => {
       if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
-      const thirdParty = readSetting(SCROLL_GUARD_THIRD_PARTY, false);
+      const mode = readScrollGuardMode();
+      if (mode === "off") return;
+      const thirdParty = mode === "all";
       const inChain = findScrollableInChain(e.target, e.deltaX, e.deltaY);
       if (inChain) {
         if (!thirdParty && !isInsideFilWidget(inChain)) return;
