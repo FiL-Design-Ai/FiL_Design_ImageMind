@@ -28,6 +28,7 @@ const NODE_ID_BY_FILE: Record<string, string> = {
   "ProviderLoader.vue": "FiLProviderLoader",
   "Seed.vue": "FiLSeed",
   "Switch.vue": "FiLSignalSwitch",
+  "DatasetForge.vue": "FiLDatasetForge",
 };
 
 /**

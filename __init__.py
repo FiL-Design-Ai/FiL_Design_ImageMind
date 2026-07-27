@@ -27,6 +27,7 @@ class FiLExtension(ComfyExtension):
         from .nodes.node_style_mixer import FiLStyleMixer
         from .nodes.node_color_wizard import FiLColorWizard
         from .nodes.node_switch import FiLSignalSwitch
+        from .nodes.node_dataset import FiLDatasetForge
         return filter_release_nodes([
             FiLSeed,
             FiLProviderLoader,
@@ -42,6 +43,7 @@ class FiLExtension(ComfyExtension):
             FiLStyleMixer,
             FiLColorWizard,
             FiLSignalSwitch,
+            FiLDatasetForge,
         ])
 
 

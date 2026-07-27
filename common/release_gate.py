@@ -33,6 +33,7 @@ RELEASE_NODES: set[str] = {
     "FiLStyleMixer",
     "FiLColorWizard",
     "FiLSignalSwitch",
+    "FiLDatasetForge",
 }
 
 _TRUTHY = {"1", "true", "yes", "on"}
