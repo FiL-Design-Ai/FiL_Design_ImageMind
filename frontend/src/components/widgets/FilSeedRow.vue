@@ -96,6 +96,12 @@ function onInput(e: Event) {
   box-sizing: border-box;
   height: var(--fil-control-h-lg);
   padding: 0 8px;
+  /* Same reasoning as FilSegmented: without this the Russian "Новый фикс."
+   * wrapped to two lines inside HiResFix's narrower node and pushed the row
+   * taller than the field beside it. Squeezed text truncates instead. */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   border-radius: var(--fil-pill-radius);
   border: 1px solid var(--fil-pill-border);
   background: var(--fil-pill-bg);
@@ -116,25 +122,29 @@ function onInput(e: Event) {
   outline: 2px solid var(--fil-accent);
   outline-offset: -2px;
 }
-/* Current mode. The scanner copy declared this twice — once with a white wash,
- * once with the accent — so the accent fill won but kept the white border from
- * the dead rule. One declaration, accent + matching ink. */
+/* Two levels of emphasis in one row, and they must not collide:
+ *   solid accent  = the mode this row is currently in ("Random")
+ *   accent outline = the primary action ("New fixed")
+ * Both were solid accent at first, which put two identical lime buttons side by
+ * side with nothing to say which was state and which was a button. The label
+ * stays `--fil-text` on the outlined variant rather than going accent-colored:
+ * accent as text measures 3.10:1 on the light palette and 4.19:1 on Pixaroma,
+ * under the 4.5:1 floor, while the border only has to clear 3:1.
+ *
+ * The scanner copy also declared `.active` twice — once with a white wash, once
+ * with the accent — so the fill won but inherited the dead rule's white border. */
 .fil-w-seedrow-pill.active {
   background: var(--fil-accent);
   border-color: var(--fil-accent);
   color: var(--fil-accent-ink);
 }
-/* Primary action ("New fixed"): the two copies disagreed — accent fill in
- * HiResFix, accent-colored text in the scanner. Fill wins; it is the only
- * button in the row that creates a value. */
 .fil-w-seedrow-pill.is-accent {
-  background: var(--fil-accent);
+  background: color-mix(in srgb, var(--fil-accent) 12%, transparent);
   border-color: var(--fil-accent);
-  color: var(--fil-accent-ink);
+  color: var(--fil-text);
   font-weight: 700;
 }
 .fil-w-seedrow-pill.is-accent:hover {
-  filter: brightness(1.08);
-  background: var(--fil-accent);
+  background: color-mix(in srgb, var(--fil-accent) 24%, transparent);
 }
 </style>
