@@ -1,6 +1,10 @@
 """FiL Design ImageMind custom nodes for ComfyUI (V3 API)."""
 
-from typing import override
+try:
+    from typing import override
+except ImportError:  # Python 3.10/3.11 — the decorator is documentation-only
+    def override(method):  # type: ignore[misc]
+        return method
 
 from comfy_api.latest import ComfyExtension, io
 
