@@ -9,6 +9,16 @@
  * accents measures 1.5–2.5:1, far under the 4.5:1 WCAG AA floor for the 11–13px
  * labels that use it. Each value below is the theme's own darkest surface tone
  * pushed to ≥4.5:1 against its accent — see the per-theme comments.
+ *
+ * IMPORTANT — how the ratios below were measured. Not against `panel`/`panelAlt`:
+ * a widget never sits on those directly. The node body is `--fil-surface-bg`
+ * (a 6% tint) over the color LiteGraph paints on its canvas, and rows stack
+ * `--fil-surface-1/2` on top of that, so the real backdrop is a good deal
+ * lighter. Measuring against the nominal palette values overstates contrast by
+ * roughly 0.5–1.0 and is how an earlier pass wrongly certified `muted` and
+ * `danger` as compliant. The figures here come from reading composited
+ * `getComputedStyle` values off a live graph — the segmented trough is the
+ * worst case for `muted`, a plain row for `danger`.
  */
 export const FIL_PALETTE = {
   accent: "#f08a45",
@@ -16,8 +26,8 @@ export const FIL_PALETTE = {
   panel: "#171b22",
   panelAlt: "#222934",
   text: "#e8edf3",
-  muted: "#9ca8b5",
-  danger: "#ef6666",
+  muted: "#a4afbb", // 4.65:1 in a segmented trough (#9ca8b5 read 4.29:1)
+  danger: "#f17575", // 4.74:1 on a panel row (#ef6666 read 4.25:1)
   ok: "#62c987",
 } as const;
 
@@ -39,8 +49,8 @@ const FIL_PALETTE_LIGHT: FilPalette = {
   panel: "#eef1f5",
   panelAlt: "#e2e6ec",
   text: "#1c2430",
-  muted: "#5b6572",
-  danger: "#b13a3a", // 4.74:1 on panelAlt; #c94b4b sat at 3.65:1
+  muted: "#48505d", // 6.16:1 in a segmented trough (#5b6572 read 3.44:1)
+  danger: "#a83737", // 4.73:1 on a panel row (#b13a3a read 4.37:1)
   ok: "#2a7046", // 4.78:1 on panelAlt; #3f8f5f sat at 3.16:1
 };
 
@@ -50,8 +60,8 @@ const FIL_PALETTE_CYBERPUNK: FilPalette = {
   panel: "#0a0e1a",
   panelAlt: "#131a2e",
   text: "#dff9ff",
-  muted: "#7a9cb5", // 6.65:1 on the panel; the old #5f7d94 sat at 4.44:1
-  danger: "#ff2e63",
+  muted: "#84a5bc", // 4.75:1 in a segmented trough (#7a9cb5 read 4.26:1)
+  danger: "#ff4373", // 4.72:1 on a panel row (#ff2e63 read 4.36:1)
   ok: "#00ff9f",
 };
 
@@ -61,8 +71,8 @@ const FIL_PALETTE_FALLOUT: FilPalette = {
   panel: "#1a1712",
   panelAlt: "#26221a",
   text: "#e8dcc0",
-  muted: "#a09272", // 5.83:1 on the panel; the old #8a7d5f sat at 4.41:1
-  danger: "#d96a4a", // 4.61:1 on panelAlt; #9a3324 sat at 2.17:1 — near-invisible
+  muted: "#b6a889", // 4.74:1 in a segmented trough (#a09272 read 3.63:1)
+  danger: "#dd795c", // 4.73:1 on a panel row; the original #9a3324 was 2.17:1
   ok: "#8fbf3f",
 };
 
@@ -72,8 +82,8 @@ const FIL_PALETTE_PIPBOY: FilPalette = {
   panel: "#0a110a",
   panelAlt: "#121e12",
   text: "#4af626",
-  muted: "#3fa845", // 6.29:1 on the panel; the old #2e7d32 sat at 3.73:1
-  danger: "#ef5350", // 4.94:1 on panelAlt; #d32f2f sat at 3.46:1
+  muted: "#41b83f", // 4.78:1 in a segmented trough (#3fa845 read 4.04:1)
+  danger: "#f05c59", // 4.74:1 on a panel row; the original #d32f2f was 3.46:1
   ok: "#14b13b",
 };
 
@@ -93,8 +103,8 @@ const FIL_PALETTE_TRAVELMATE: FilPalette = {
   panel: "#181916",
   panelAlt: "#232620",
   text: "#edf2e2",
-  muted: "#8b9483",
-  danger: "#ff5c72",
+  muted: "#a8b0a0", // 4.77:1 in a segmented trough (#8b9483 read 3.39:1)
+  danger: "#ff6479", // 4.81:1 on a panel row (#ff5c72 read 4.60:1)
   ok: "#3ed98c",
 };
 
@@ -105,7 +115,7 @@ const FIL_PALETTE_TRAVELMATE: FilPalette = {
  * `#d46060`). Sampled directly so a workflow mixing both node packs reads as
  * one system. `ok` isn't defined over there — picked `#4ade80` (10.3:1 on the
  * panel) to match the green ProviderManager already uses for a "connected"
- * status. `muted` sits at 5.05:1 here (Pixaroma's own text-dim), no bump needed.
+ * status.
  */
 const FIL_PALETTE_PIXAROMA: FilPalette = {
   accent: "#f66744",
@@ -113,8 +123,10 @@ const FIL_PALETTE_PIXAROMA: FilPalette = {
   panel: "#171718",
   panelAlt: "#242628",
   text: "#e0e0e0",
-  muted: "#888888",
-  danger: "#e07070", // 4.86:1 on panelAlt; #d46060 sat at 4.08:1
+  // Pixaroma's own --pxf-text-dim is #888; it needed lightening to clear AA
+  // once composited, so this departs from their brand by a few steps.
+  muted: "#acacac", // 4.65:1 in a segmented trough (#909090 read 3.31:1)
+  danger: "#e27777", // 4.62:1 on a panel row; Pixaroma's own #d46060 was 4.08:1
   ok: "#4ade80",
 };
 

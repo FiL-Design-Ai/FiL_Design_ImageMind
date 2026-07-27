@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- **Contrast was certified against the wrong background in 1.1.0.** That pass
+  measured every token against the palette's `panel`/`panelAlt`, but no widget
+  sits on those: the node body is `--fil-surface-bg` (a 6% tint) over the color
+  LiteGraph paints on its canvas, and rows stack `--fil-surface-1/2` on top, so
+  the real backdrop is materially lighter. Measuring the composited value off a
+  live graph instead showed `muted` at 3.31–4.29:1 and `danger` at 4.15–4.48:1
+  — under the 4.5:1 floor in six of seven palettes, worst of all Pixaroma's
+  labels at 3.31:1 inside a segmented trough. Both retuned per palette, hue
+  preserved (`muted` blended toward each theme's own text color, `danger`
+  toward white so it stays red). The section-collapse arrow also moved to
+  `--fil-accent-text`, having measured 2.38:1 on the light palette — below even
+  the 3:1 a glyph needs. Re-verified across 204 rendered elements in all seven
+  palettes on both a light and a dark ComfyUI: no element under its floor.
+
 ## 1.1.0 (2026-07-27)
 
 Adds the 15th node — 📚 LoRA Dataset Forge — and puts the design system through
@@ -36,9 +53,11 @@ mode fixed after finding it had never actually applied.
   two more, and both pairs had already drifted apart.
 
 ### Changed
-- **Every text token now passes WCAG AA on its own surfaces, in all seven
-  palettes.** Text painted on the accent (active segment, primary button,
-  active pill) was white in four themes and measured as low as 1.54:1 —
+- **Text tokens taken through WCAG AA in all seven palettes.** (The ratios
+  quoted below were measured against the palette's nominal surfaces; see the
+  Unreleased section, which corrects them against the composited backdrop a
+  widget actually sits on.) Text painted on the accent (active segment,
+  primary button, active pill) was white in four themes and as low as 1.54:1 —
   under the 4.5:1 floor for the 11–13px labels that use it; each theme now
   uses its own darkest tone, 4.9–10.8:1. The muted label color failed on its
   own panel in three themes and was raised to 5.8–6.7:1. `--fil-danger` and
