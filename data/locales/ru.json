@@ -37,6 +37,7 @@
   "tt_node_help": "Помощь по этой ноде",
   "scn_section_prompt": "📝 ПРОМПТ/ТЕКСТ",
   "scn_section_agent": "🕵️ АГЕНТ",
+  "scn_section_focus": "🎯 ФОКУС",
   "scn_section_model": "🧠 МОДЕЛЬ",
   "scn_section_output": "📤 ВЫВОД",
   "scn_section_styles": "СТИЛИ",
