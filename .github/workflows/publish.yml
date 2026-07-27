@@ -22,9 +22,12 @@ jobs:
       - name: Check the registry token is present
         env:
           TOKEN: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
+          # Names only — GitHub masks every secret value in logs and annotations.
+          AVAILABLE: ${{ toJSON(secrets) }}
         run: |
           if [ -z "$TOKEN" ]; then
-            echo "::error::REGISTRY_ACCESS_TOKEN is empty or not set for this repository."
+            NAMES=$(echo "$AVAILABLE" | grep -oE '"[^"]+":' | tr -d '":' | paste -sd, -)
+            echo "::error::REGISTRY_ACCESS_TOKEN is empty or not set. Secrets this run can see: ${NAMES:-none}"
             exit 1
           fi
           echo "Registry token is set."
