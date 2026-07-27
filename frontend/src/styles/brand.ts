@@ -3,9 +3,16 @@
  * Mirrors the legacy web/core/ui.js FIL_PALETTE so existing CSS variables
  * (`--fil-accent`, `--fil-panel`, ...) keep the same meaning.
  */
+/**
+ * `accentInk` is the text color painted ON the accent (active segment, primary
+ * button, active pill). It is deliberately dark in every theme: white on these
+ * accents measures 1.5–2.5:1, far under the 4.5:1 WCAG AA floor for the 11–13px
+ * labels that use it. Each value below is the theme's own darkest surface tone
+ * pushed to ≥4.5:1 against its accent — see the per-theme comments.
+ */
 export const FIL_PALETTE = {
   accent: "#f08a45",
-  accentInk: "#fff",
+  accentInk: "#241206", // 7.24:1 on #f08a45 (white was 2.49:1)
   panel: "#171b22",
   panelAlt: "#222934",
   text: "#e8edf3",
@@ -26,7 +33,7 @@ export type FilPalette = Record<FilPaletteKey, string>;
  */
 const FIL_PALETTE_LIGHT: FilPalette = {
   accent: "#c9682c",
-  accentInk: "#fff",
+  accentInk: "#1c1006", // 4.88:1 on #c9682c (white was 3.82:1)
   panel: "#eef1f5",
   panelAlt: "#e2e6ec",
   text: "#1c2430",
@@ -37,22 +44,22 @@ const FIL_PALETTE_LIGHT: FilPalette = {
 
 const FIL_PALETTE_CYBERPUNK: FilPalette = {
   accent: "#00e5ff",
-  accentInk: "#fff",
+  accentInk: "#04222b", // 10.76:1 on #00e5ff (white was 1.54:1 — worst of the set)
   panel: "#0a0e1a",
   panelAlt: "#131a2e",
   text: "#dff9ff",
-  muted: "#5f7d94",
+  muted: "#7a9cb5", // 6.65:1 on the panel; the old #5f7d94 sat at 4.44:1
   danger: "#ff2e63",
   ok: "#00ff9f",
 };
 
 const FIL_PALETTE_FALLOUT: FilPalette = {
   accent: "#d4a017",
-  accentInk: "#fff",
+  accentInk: "#1a1712", // 7.52:1 on #d4a017 (white was 2.38:1)
   panel: "#1a1712",
   panelAlt: "#26221a",
   text: "#e8dcc0",
-  muted: "#8a7d5f",
+  muted: "#a09272", // 5.83:1 on the panel; the old #8a7d5f sat at 4.41:1
   danger: "#9a3324",
   ok: "#8fbf3f",
 };
@@ -63,7 +70,7 @@ const FIL_PALETTE_PIPBOY: FilPalette = {
   panel: "#0a110a",
   panelAlt: "#121e12",
   text: "#4af626",
-  muted: "#2e7d32",
+  muted: "#3fa845", // 6.29:1 on the panel; the old #2e7d32 sat at 3.73:1
   danger: "#d32f2f",
   ok: "#14b13b",
 };
@@ -74,9 +81,9 @@ const FIL_PALETTE_PIPBOY: FilPalette = {
  * near-black surface. Colors sampled directly from that project's published
  * design-system swatches (accent D5FF40, dark surface 181916, neutral
  * C0C2B8); panelAlt/text/muted/danger/ok are derived to fit the existing
- * token roles since the reference doesn't define them. `accentInk` is dark
- * here (unlike every other theme's white) because white text on this lime
- * is unreadable — see the `--fil-accent-ink` usages this theme requires.
+ * token roles since the reference doesn't define them. This theme is where the
+ * dark `accentInk` convention started — white on this lime is unreadable —
+ * and the other palettes have since been measured and brought in line.
  */
 const FIL_PALETTE_TRAVELMATE: FilPalette = {
   accent: "#d5ff40",
@@ -112,8 +119,16 @@ export const ACTIVE_PALETTE: FilPalette = { ...FIL_PALETTE };
 let themeVarsEl: HTMLStyleElement | null = null;
 let themeEffectsEl: HTMLStyleElement | null = null;
 
+/**
+ * `--fil-border` is emitted here, alongside the palette it derives from, rather
+ * than once on `:root`. A `var()` inside a custom property is substituted where
+ * that property is *declared*, so a lone `:root` definition would freeze the
+ * default theme's muted into the border and never follow `.comfy-theme-light`
+ * if ComfyUI ever moves that class off the document root. Deriving from the
+ * literal keeps every palette block self-contained.
+ */
 function paletteCssVars(p: FilPalette): string {
-  return `--fil-accent:${p.accent};--fil-accent-ink:${p.accentInk};--fil-panel:${p.panel};--fil-panel-alt:${p.panelAlt};--fil-text:${p.text};--fil-muted:${p.muted};--fil-danger:${p.danger};--fil-ok:${p.ok};`;
+  return `--fil-accent:${p.accent};--fil-accent-ink:${p.accentInk};--fil-panel:${p.panel};--fil-panel-alt:${p.panelAlt};--fil-text:${p.text};--fil-muted:${p.muted};--fil-border:color-mix(in srgb,${p.muted} 55%,transparent);--fil-danger:${p.danger};--fil-ok:${p.ok};`;
 }
 
 /**
@@ -172,6 +187,27 @@ const SURFACE_VARS_CYAN =
   "--fil-pill-bg:rgba(255,255,255,0.06);" +
   "--fil-pill-border:rgba(0,150,200,0.4);";
 
+/**
+ * Neutral overlays used for "one step up from the panel" surfaces — section
+ * headers, segmented-control troughs, toggle tracks, inset fields. They used to
+ * be written inline as `rgba(255,255,255,0.04…0.16)` in a dozen components,
+ * which is why the light theme lost them: a white wash over an already-light
+ * panel is invisible, and `rgba(0,0,0,0.35)` inset fields turned dark text into
+ * dark-on-dark. As tokens they can flip polarity per theme — see
+ * `OVERLAY_VARS_LIGHT`, which tints with the light theme's ink instead.
+ */
+const OVERLAY_VARS_DARK =
+  "--fil-surface-1:rgba(255,255,255,0.04);" +
+  "--fil-surface-2:rgba(255,255,255,0.08);" +
+  "--fil-surface-3:rgba(255,255,255,0.14);" +
+  "--fil-inset:rgba(0,0,0,0.35);";
+
+const OVERLAY_VARS_LIGHT =
+  "--fil-surface-1:rgba(28,36,48,0.05);" +
+  "--fil-surface-2:rgba(28,36,48,0.09);" +
+  "--fil-surface-3:rgba(28,36,48,0.16);" +
+  "--fil-inset:rgba(255,255,255,0.6);";
+
 /** Light-theme surface: softer tint, same geometry. */
 const SURFACE_VARS_LIGHT =
   "--fil-surface-bg:rgba(70,130,170,0.08);" +
@@ -187,6 +223,17 @@ const SURFACE_VARS_LIGHT =
   "--fil-pill-border:rgba(40,120,160,0.35);";
 
 /**
+ * Token roles worth spelling out, since two of them look interchangeable and
+ * are not:
+ * - `--fil-muted` — *text* only (labels, hints, placeholders). Every palette
+ *   above keeps it ≥4.5:1 against its own `panel`.
+ * - `--fil-border` — field/control outlines. Derived from `--fil-muted` so it
+ *   tracks the theme, but knocked back to 55% opacity: the full-strength muted
+ *   that inputs used to borrow is a text weight and read as a heavy box.
+ * - `--fil-control-h` (30px) — the standard height for select/text/number
+ *   fields, so a stack of mixed widgets lines up. `--fil-control-h-lg` (34px)
+ *   is the deliberate exception for seed rows and icon buttons.
+ *
  * Inject the FiL_Design_ImageMind CSS variables on `:root` exactly once, plus two extra
  * (initially empty) `<style>` tags reserved for runtime theme switching —
  * see `applyFilTheme()`. Safe to call from any module — duplicates are
@@ -197,8 +244,8 @@ export function injectFilBrandVars(): void {
   if (document.getElementById("fil-brand-vars")) return;
   const el = document.createElement("style");
   el.id = "fil-brand-vars";
-  el.textContent = `:root{${paletteCssVars(FIL_PALETTE)}--fil-radius:8px;--fil-node-pad:6px 8px 14px 8px;--fil-node-gap:4px;--fil-row-pad:4px 6px;--fil-input-border:rgba(240,138,69,0.35);${SURFACE_VARS_CYAN}}
-.comfy-theme-light{${paletteCssVars(FIL_PALETTE_LIGHT)}--fil-input-border:rgba(201,104,44,0.35);${SURFACE_VARS_LIGHT}}
+  el.textContent = `:root{${paletteCssVars(FIL_PALETTE)}--fil-radius:8px;--fil-node-pad:6px 8px 14px 8px;--fil-node-gap:4px;--fil-row-pad:4px 6px;--fil-control-h:30px;--fil-control-h-lg:34px;--fil-input-border:rgba(240,138,69,0.35);${SURFACE_VARS_CYAN}${OVERLAY_VARS_DARK}}
+.comfy-theme-light{${paletteCssVars(FIL_PALETTE_LIGHT)}--fil-input-border:rgba(201,104,44,0.35);${SURFACE_VARS_LIGHT}${OVERLAY_VARS_LIGHT}}
 .comfy-multiline-input{border-color:var(--fil-input-border) !important;}
 /* Shared "Neo-Tactile" glass surface for every node body (scoped to the Vue
  * shell so it only hits node roots). Values live in the fil-surface and
@@ -210,7 +257,6 @@ export function injectFilBrandVars(): void {
   backdrop-filter:blur(var(--fil-surface-blur));
   box-shadow:var(--fil-surface-shadow);
   overflow:hidden;
-  padding-bottom:14px !important;
 }`;
   document.head.appendChild(el);
 

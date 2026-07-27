@@ -54,12 +54,12 @@ function select(value: T) {
 }
 .fil-w-chip {
   box-sizing: border-box;
-  background: var(--fil-panel-alt, #1d1d1d);
-  border: 1px solid var(--fil-muted, #444);
+  background: var(--fil-panel-alt);
+  border: 1px solid var(--fil-border);
   border-radius: 5px;
   padding: 6px 4px;
   font-size: 10px;
-  color: var(--fil-text, #ccc);
+  color: var(--fil-text);
   cursor: pointer;
   user-select: none;
   text-align: center;
@@ -74,10 +74,10 @@ function select(value: T) {
 }
 .fil-w-chip:hover:not(.disabled) {
   border-color: var(--fil-accent);
-  color: var(--fil-text, #fff);
+  color: var(--fil-text);
 }
 .fil-w-chip.active {
-  background: var(--fil-panel-alt, #1d1d1d);
+  background: var(--fil-panel-alt);
   color: var(--fil-accent);
   border-color: var(--fil-accent);
   font-weight: 500;

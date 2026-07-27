@@ -66,9 +66,9 @@ function onClick(e: MouseEvent) {
   box-sizing: border-box;
   padding: var(--fil-row-pad);
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  color: var(--fil-text, rgba(255, 255, 255, 0.85));
+  background: var(--fil-surface-1);
+  border: 1px solid var(--fil-border);
+  color: var(--fil-text);
   font-family: ui-sans-serif, system-ui, sans-serif;
   font-size: 12px;
   cursor: pointer;
@@ -86,7 +86,7 @@ function onClick(e: MouseEvent) {
 .fil-w-btn:hover:not(:disabled) {
   background: var(--fil-accent);
   border-color: var(--fil-accent);
-  color: var(--fil-accent-ink, #fff);
+  color: var(--fil-accent-ink);
 }
 .fil-w-btn:active {
   transform: translateY(1px);
@@ -98,14 +98,14 @@ function onClick(e: MouseEvent) {
 .fil-w-btn-accent {
   background: var(--fil-accent);
   border-color: var(--fil-accent);
-  color: var(--fil-accent-ink, #fff);
+  color: var(--fil-accent-ink);
 }
 .fil-w-btn-danger {
-  color: var(--fil-danger, #ef6666);
+  color: var(--fil-danger);
 }
 .fil-w-btn-danger:hover:not(:disabled) {
-  background: var(--fil-danger, #ef6666);
-  border-color: var(--fil-danger, #ef6666);
+  background: var(--fil-danger);
+  border-color: var(--fil-danger);
   color: #fff;
 }
 .fil-w-btn-sm {
@@ -128,8 +128,8 @@ function onClick(e: MouseEvent) {
 }
 .fil-w-btn.is-flashing,
 .fil-w-btn.is-flashing:hover {
-  background: var(--fil-ok, #62c987);
-  border-color: var(--fil-ok, #62c987);
+  background: var(--fil-ok);
+  border-color: var(--fil-ok);
   color: #fff;
 }
 .fil-w-btn.is-loading {

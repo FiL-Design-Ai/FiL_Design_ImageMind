@@ -1,7 +1,10 @@
 <script setup lang="ts">
 /** FiLOpticScanner — image analysis / prompt expansion via LLM. */
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { FilChipGrid, FilChipList, FilSegmented, FilSection, FilButton, FilModal, FilStylePicker } from "@/components/widgets";
+import {
+  FilChipGrid, FilChipList, FilSegmented, FilSection, FilButton, FilModal,
+  FilStylePicker, FilTextArea, FilSeedRow,
+} from "@/components/widgets";
 import { toast } from "@/stores/toastStore";
 import { NODE_CONTRACTS, type WidgetSpec } from "@/api/contracts";
 import type { FilNodeState } from "@/nodes2/filState";
@@ -109,8 +112,15 @@ const GROWABLE_FIELD_NAMES = new Set(["prompt", "negative_prompt"]);
 
 const fieldEls: Record<string, HTMLElement | null> = {};
 
+/**
+ * `el` is whatever Vue hands a template ref. For the FilTextArea fields that is
+ * the component instance, so unwrap `$el` — `anchorWidgetInputSockets` measures
+ * a real DOM node. FilTextArea is single-root and label-less here, so `$el` is
+ * the `<textarea>` itself, exactly what the raw `<textarea ref>` used to give.
+ */
 function setFieldEl(name: string, el: unknown): void {
-  fieldEls[name] = (el as HTMLElement | null) ?? null;
+  const node = (el as { $el?: unknown } | null)?.$el ?? el;
+  fieldEls[name] = (node as HTMLElement | null) ?? null;
 }
 
 function isSocketField(name: string): boolean {
@@ -385,16 +395,14 @@ function newFixedSeed() {
             class="fil-w-row"
             :class="{ 'is-growable': isGrowable(w.name), 'is-linked': isSocketField(w.name) && isLinked(w.name) }"
             :title="isSocketField(w.name) ? fieldTooltip(w) : widgetTooltip(w)">
-            <textarea
+            <FilTextArea
               v-if="w.name === 'prompt' || w.name === 'negative_prompt' || w.name === 'custom_style'"
               :ref="(el) => setFieldEl(w.name, el)"
-              :value="String(getValue(w.name, ''))"
-              class="fil-scanner-textarea"
-              :class="{ 'is-linked': isLinked(w.name) }"
+              :model-value="String(getValue(w.name, ''))"
+              :linked="isLinked(w.name)"
               :placeholder="isLinked(w.name) ? t('scn_field_linked', '🔗 Text comes from the connected node') : formatFieldLabel(w)"
-              :readonly="isLinked(w.name)"
-              rows="2"
-              @input="(e) => setValue(w.name, (e.target as HTMLTextAreaElement).value)"
+              :rows="2"
+              @update:model-value="(v: string) => setValue(w.name, v)"
             />
             <FilChipGrid v-else-if="w.kind === 'chip_grid'"
               :options="w.values || []" :model-value="String(getValue(w.name, ''))"
@@ -414,31 +422,26 @@ function newFixedSeed() {
 
 
 
-    <div class="fil-scanner-seed-row">
-      <input
-        :value="seedDisplay"
-          type="text"
-          class="fil-scanner-seed-field"
-          :class="{ 'is-random': seedMode === 'random' }"
-          :readonly="seedMode === 'random'"
-          :aria-label="t('sd_aria_seed_value', 'Seed value')"
-          :title="seedMode === 'fixed' ? t('scn_seed_locked', 'Locked seed') : t('scn_seed_auto_random', 'Auto-random — a new seed is generated each run')"
-          @input="(e) => (seedValue = Number((e.target as HTMLInputElement).value) || 0)"
-        />
-        <button type="button" class="fil-scanner-seed-pill" :class="{ active: seedMode === 'random' }"
-          :title="t('scn_seed_mode_tt', 'Random generates a new seed each run.')" @click="setRandomSeed">
-          {{ t('scn_seed_random', 'Random') }}
-        </button>
-        <button type="button" class="fil-scanner-seed-pill"
-          :title="props.state.lastRunSeed != null ? `${t('scn_seed_use_last_prefix', `Reuse the last run's seed:`)} ${props.state.lastRunSeed}` : t('scn_seed_use_last_tt', 'Reuse the seed from the last executed run.')"
-          @click="useLastSeed">
-          {{ t('scn_seed_use_last', 'Use last') }}
-        </button>
-        <button type="button" class="fil-scanner-seed-pill fil-scanner-seed-pill-accent"
-          :title="t('scn_seed_new_fixed_tt', 'Generate a new random fixed seed.')" @click="newFixedSeed">
-          {{ t('scn_seed_new_fixed', 'New fixed') }}
-        </button>
-    </div>
+    <FilSeedRow
+      :display="seedDisplay"
+      :mode="seedMode"
+      :field-aria-label="t('sd_aria_seed_value', 'Seed value')"
+      :field-title="seedMode === 'fixed' ? t('scn_seed_locked', 'Locked seed') : t('scn_seed_auto_random', 'Auto-random — a new seed is generated each run')"
+      :labels="{
+        random: t('scn_seed_random', 'Random'),
+        useLast: t('scn_seed_use_last', 'Use last'),
+        newFixed: t('scn_seed_new_fixed', 'New fixed'),
+      }"
+      :titles="{
+        random: t('scn_seed_mode_tt', 'Random generates a new seed each run.'),
+        useLast: props.state.lastRunSeed != null ? `${t('scn_seed_use_last_prefix', `Reuse the last run's seed:`)} ${props.state.lastRunSeed}` : t('scn_seed_use_last_tt', 'Reuse the seed from the last executed run.'),
+        newFixed: t('scn_seed_new_fixed_tt', 'Generate a new random fixed seed.'),
+      }"
+      @input-seed="(v: number) => (seedValue = v)"
+      @random="setRandomSeed"
+      @use-last="useLastSeed"
+      @new-fixed="newFixedSeed"
+    />
   </div>
 </template>
 
@@ -448,7 +451,7 @@ function newFixedSeed() {
  * layout here so every node stays in sync. */
 .fil-scanner-root {
   display: flex; flex-direction: column; gap: var(--fil-node-gap); padding: var(--fil-node-pad);
-  color: var(--fil-text, #e8edf3); font-family: ui-sans-serif, system-ui, sans-serif;
+  color: var(--fil-text); font-family: ui-sans-serif, system-ui, sans-serif;
   width: 100%; box-sizing: border-box; min-width: 0;
   /* `growable: true` in nodes2/scanner.ts gives the host an explicit height
    * (content height + whatever the user dragged on top of it) — filling it
@@ -462,32 +465,12 @@ function newFixedSeed() {
 .fil-section-block.is-growable { flex: 1 1 auto; min-height: 0; }
 .fil-w-row { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .fil-w-row.is-growable { flex: 1 1 auto; min-height: 0; }
-.fil-w-row.is-growable > .fil-scanner-textarea { flex: 1 1 auto; height: auto; }
-.fil-scanner-textarea {
-  box-sizing: border-box;
-  width: 100%;
-  min-height: 48px;
-  padding: 8px 10px;
-  background: var(--fil-panel-alt, #171819);
-  border: 1px solid var(--fil-muted, #3a3d40);
-  border-radius: 6px;
-  color: var(--fil-text, #ddd);
-  font-family: inherit;
-  font-size: 12px;
-  resize: vertical;
-  outline: none;
-}
-.fil-scanner-textarea:focus {
-  border-color: var(--fil-accent, #00f0ff);
-}
-/* A link on the matching input socket wins over whatever is typed here, so the
- * field reads as a display of that fact instead of an editable value. */
-.fil-scanner-textarea.is-linked {
-  border-style: dashed;
-  border-color: var(--fil-accent, #00f0ff);
-  color: var(--fil-muted, #9ca8b5);
-  cursor: not-allowed;
-}
+/* The field itself is FilTextArea (appearance and the linked/dashed state live
+ * there). `:deep` because the growable stretch is this node's business: the
+ * widget has no idea it is inside a resizable panel. `min-height` overrides the
+ * widget default — the prompt fields start taller than a generic one. */
+.fil-w-row :deep(.fil-w-textarea) { min-height: 48px; }
+.fil-w-row.is-growable :deep(.fil-w-textarea) { flex: 1 1 auto; height: auto; }
 .fil-single-style-block { margin-top: 2px; }
 
 .fil-unified-style-modal {
@@ -502,7 +485,7 @@ function newFixedSeed() {
   background: rgba(0, 0, 0, 0.3);
   padding: 4px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--fil-border);
 }
 .fil-style-tab-btn {
   flex: 1;
@@ -510,33 +493,33 @@ function newFixedSeed() {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  height: 34px;
+  height: var(--fil-control-h-lg);
   border-radius: 6px;
   border: 1px solid transparent;
   background: transparent;
-  color: var(--fil-muted, #9ca8b5);
+  color: var(--fil-muted);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.12s ease;
 }
 .fil-style-tab-btn:hover {
-  color: var(--fil-text, #ffffff);
-  background: rgba(255, 255, 255, 0.06);
+  color: var(--fil-text);
+  background: var(--fil-surface-2);
 }
 .fil-style-tab-btn.active {
-  background: var(--fil-accent, #00f0ff);
-  color: var(--fil-accent-ink, #12151a);
-  border-color: var(--fil-accent, #00f0ff);
+  background: var(--fil-accent);
+  color: var(--fil-accent-ink);
+  border-color: var(--fil-accent);
   font-weight: 700;
-  box-shadow: 0 0 10px color-mix(in srgb, var(--fil-accent, #00f0ff) 30%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--fil-accent) 30%, transparent);
 }
 .fil-tab-badge {
   font-size: 10px;
   color: #00ff88;
 }
 .fil-style-tab-btn.active .fil-tab-badge {
-  color: var(--fil-accent-ink, #12151a);
+  color: var(--fil-accent-ink);
 }
 .fil-style-picker-body {
   min-height: 320px;
@@ -546,7 +529,7 @@ function newFixedSeed() {
 .fil-style-modal-footer {
   display: flex;
   justify-content: flex-end;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--fil-border);
   padding-top: 8px;
 }
 .fil-clear-styles-btn {
@@ -554,7 +537,7 @@ function newFixedSeed() {
   border-radius: 6px;
   border: 1px solid rgba(255, 75, 75, 0.3);
   background: rgba(255, 75, 75, 0.1);
-  color: var(--fil-danger, #ff6b6b);
+  color: var(--fil-danger);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -562,44 +545,21 @@ function newFixedSeed() {
 }
 .fil-clear-styles-btn:hover {
   background: rgba(255, 75, 75, 0.25);
-  border-color: var(--fil-danger, #ff4b4b);
+  border-color: var(--fil-danger);
   color: #ffffff;
 }
 
-.fil-scanner-seed-row { display: flex; gap: 6px; min-width: 0; }
-.fil-scanner-seed-field {
-  flex: 1.3; min-width: 0; box-sizing: border-box; height: 34px;
-  background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--fil-pill-radius);
-  padding: 0 12px; color: var(--fil-text, #f2f2f2);
-  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
-  font-size: 13px; text-align: center; outline: none; transition: border-color .08s;
-}
-.fil-scanner-seed-field:focus { border-color: var(--fil-accent); }
-.fil-scanner-seed-field.is-random { color: var(--fil-muted, #9ca8b5); font-style: italic; }
-.fil-scanner-seed-pill {
-  flex: 1; min-width: 0; box-sizing: border-box; height: 34px; padding: 0 8px;
-  border-radius: var(--fil-pill-radius); border: 1px solid var(--fil-pill-border);
-  background: var(--fil-pill-bg); color: var(--fil-text, #e8edf3);
-  font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer;
-  transition: background .08s, border-color .08s, color .08s;
-  appearance: none; -webkit-appearance: none; outline: none;
-}
-.fil-scanner-seed-pill:hover { background: rgba(255, 255, 255, 0.12); }
-.fil-scanner-seed-pill.active { background: rgba(255, 255, 255, 0.16); border-color: rgba(255, 255, 255, 0.2); }
-.fil-scanner-seed-pill:focus-visible { outline: 2px solid var(--fil-accent); outline-offset: -2px; }
-.fil-scanner-seed-pill.active { background: var(--fil-accent); color: var(--fil-accent-ink, #12151a); }
-.fil-scanner-seed-pill-accent { color: var(--fil-accent); }
-.fil-scanner-seed-pill-accent:hover { background: rgba(0, 240, 255, 0.1); }
+/* The seed row is FilSeedRow now — shared with HiResFix. */
 
 /* Cyberpunk Style Picker Button */
 .fil-style-picker-btn {
   flex: 2;
   box-sizing: border-box;
   min-height: 36px;
-  border-radius: var(--fil-pill-radius, 6px);
+  border-radius: var(--fil-pill-radius);
   background: linear-gradient(135deg, rgba(0, 240, 255, 0.08), rgba(255, 0, 255, 0.08));
   border: 1px solid rgba(0, 240, 255, 0.2);
-  color: var(--fil-text, #e8edf3);
+  color: var(--fil-text);
   font-family: inherit;
   font-size: 12px;
   font-weight: 600;

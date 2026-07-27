@@ -20,16 +20,19 @@ withDefaults(
 .fil-w-info {
   font-size: 11px;
   line-height: 1.5;
-  color: rgba(255, 255, 255, 0.45);
+  /* Was a flat `rgba(255,255,255,0.45)`, which erased the line entirely on the
+   * light theme — and this widget carries DatasetForge's path preview and the
+   * "connect a provider" warning, so it has to survive every palette. */
+  color: var(--fil-muted);
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .fil-w-info[data-ok] {
-  color: var(--fil-ok, #62c987);
+  color: var(--fil-ok);
 }
 .fil-w-info[data-err] {
-  color: var(--fil-danger, #ef6666);
+  color: var(--fil-danger);
 }
 </style>

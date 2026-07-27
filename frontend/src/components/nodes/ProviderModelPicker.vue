@@ -318,7 +318,7 @@ function closeModal() {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  color: var(--fil-text, #e8edf3);
+  color: var(--fil-text);
 }
 
 .provider-tabs {
@@ -336,7 +336,7 @@ function closeModal() {
   border-radius: 8px;
   border: 1px solid var(--fil-pill-border);
   background: var(--fil-pill-bg);
-  color: var(--fil-muted, #9ca8b5);
+  color: var(--fil-muted);
   font-size: 12px;
   cursor: pointer;
   white-space: nowrap;
@@ -344,13 +344,13 @@ function closeModal() {
   transition: all 0.15s ease;
 }
 .tab-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--fil-text, #e8edf3);
+  background: var(--fil-surface-2);
+  color: var(--fil-text);
 }
 .tab-btn.active {
-  background: var(--fil-panel-alt, #222934);
-  border-color: var(--fil-accent, #f08a45);
-  color: var(--fil-accent, #f08a45);
+  background: var(--fil-panel-alt);
+  border-color: var(--fil-accent);
+  color: var(--fil-accent);
   font-weight: 600;
 }
 .tab-badge {
@@ -383,17 +383,17 @@ function closeModal() {
   border-radius: 4px;
 }
 .status-badge.online {
-  color: var(--fil-ok, #62c987);
+  color: var(--fil-ok);
 }
 .status-badge.loading {
-  color: var(--fil-accent, #f08a45);
+  color: var(--fil-accent);
 }
 .status-badge.error {
-  color: var(--fil-danger, #ef6666);
+  color: var(--fil-danger);
 }
 .age-label {
   font-size: 10px;
-  color: var(--fil-muted, #9ca8b5);
+  color: var(--fil-muted);
 }
 
 .filter-controls {
@@ -409,29 +409,29 @@ function closeModal() {
 .search-icon {
   position: absolute;
   left: 10px;
-  color: var(--fil-muted, #9ca8b5);
+  color: var(--fil-muted);
 }
 .search-input {
   width: 100%;
   box-sizing: border-box;
-  height: 32px;
+  height: var(--fil-control-h);
   padding: 6px 30px;
-  background: var(--fil-panel-alt, #171819);
-  border: 1px solid var(--fil-muted, #3a3d40);
-  border-radius: var(--fil-field-radius, 6px);
-  color: var(--fil-text, #e8edf3);
+  background: var(--fil-panel-alt);
+  border: 1px solid var(--fil-border);
+  border-radius: var(--fil-field-radius);
+  color: var(--fil-text);
   font-size: 12px;
   outline: none;
 }
 .search-input:focus {
-  border-color: var(--fil-accent, #f08a45);
+  border-color: var(--fil-accent);
 }
 .clear-search {
   position: absolute;
   right: 10px;
   background: none;
   border: none;
-  color: var(--fil-muted, #9ca8b5);
+  color: var(--fil-muted);
   cursor: pointer;
 }
 
@@ -449,9 +449,9 @@ function closeModal() {
 .models-list-wrapper {
   height: 320px;
   overflow-y: auto;
-  background: rgba(0, 0, 0, 0.15);
+  background: var(--fil-inset);
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--fil-border);
   padding: 8px;
 }
 .empty-state {
@@ -459,7 +459,7 @@ function closeModal() {
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: var(--fil-muted, #9ca8b5);
+  color: var(--fil-muted);
   font-size: 12px;
 }
 .models-container.list {
@@ -490,8 +490,8 @@ function closeModal() {
   justify-content: space-between;
   align-items: center;
   padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--fil-surface-1);
+  border: 1px solid var(--fil-border);
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.12s ease;
@@ -509,12 +509,12 @@ function closeModal() {
   outline-offset: -2px;
 }
 .model-card:hover {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.15);
+  background: var(--fil-surface-2);
+  border-color: var(--fil-border);
 }
 .model-card.selected {
   background: rgba(240, 138, 69, 0.15);
-  border-color: var(--fil-accent, #f08a45);
+  border-color: var(--fil-accent);
 }
 .model-main {
   display: flex;
@@ -546,14 +546,14 @@ function closeModal() {
 }
 .tag.vision {
   background: rgba(240, 138, 69, 0.15);
-  color: var(--fil-accent, #f08a45);
+  color: var(--fil-accent);
 }
 .tag.text,
 .tag.local,
 .tag.free,
 .tag.paid {
   background: var(--fil-pill-bg);
-  color: var(--fil-muted, #9ca8b5);
+  color: var(--fil-muted);
 }
 
 .picker-footer {
@@ -566,7 +566,7 @@ function closeModal() {
   font-size: 12px;
 }
 .selection-summary .muted {
-  color: var(--fil-muted, #9ca8b5);
+  color: var(--fil-muted);
 }
 .footer-actions {
   display: flex;

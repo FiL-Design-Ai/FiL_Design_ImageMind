@@ -3,7 +3,7 @@
  * Latent/pixel/controlnet fields show/hide reactively — this replaces the
  * widgethider.js behaviour of the original efficiency-nodes node. */
 import { computed, watch } from "vue";
-import { FilSlider, FilNumberInput, FilSelect, FilSegmented } from "@/components/widgets";
+import { FilSlider, FilNumberInput, FilSelect, FilSegmented, FilSeedRow } from "@/components/widgets";
 import { useI18n } from "@/composables/useI18n";
 import { toast } from "@/stores/toastStore";
 import { findFilWidget } from "@/nodes2/util";
@@ -159,31 +159,27 @@ function newFixedSeed() {
       :title="t('hrf_same_seed', 'Reuse the samplers seed for the hires pass.')"
       @update:model-value="(v) => (useSameSeed = v as 'ON' | 'OFF')" />
 
-    <div v-if="useSameSeed === 'OFF'" class="fil-hrf-seed-row">
-      <input
-        :value="seedDisplay"
-        type="text"
-        class="fil-hrf-seed-field"
-        :class="{ 'is-random': seedMode === 'random' }"
-        :readonly="seedMode === 'random'"
-        :aria-label="t('hrf_aria_seed_value', 'Hires seed value')"
-        :title="seedMode === 'fixed' ? t('hrf_seed_locked', 'Locked hires seed') : t('hrf_seed_auto_random', 'Auto-random — a new hires seed is generated each run')"
-        @input="(e) => (seedValue = Number((e.target as HTMLInputElement).value) || 0)"
-      />
-      <button type="button" class="fil-hrf-seed-pill" :class="{ active: seedMode === 'random' }"
-        :title="t('hrf_seed_mode_tt', 'Random generates a new hires seed each run.')" @click="setRandomSeed">
-        {{ t('hrf_seed_random', 'Random') }}
-      </button>
-      <button type="button" class="fil-hrf-seed-pill"
-        :title="props.state.lastRunSeed != null ? `${t('hrf_seed_use_last_prefix', `Reuse the last run's hires seed:`)} ${props.state.lastRunSeed}` : t('hrf_seed_use_last_tt', 'Reuse the hires seed from the last executed run.')"
-        @click="useLastSeed">
-        {{ t('hrf_seed_use_last', 'Use last') }}
-      </button>
-      <button type="button" class="fil-hrf-seed-pill fil-hrf-seed-pill-accent"
-        :title="t('hrf_seed_new_fixed_tt', 'Generate a new random fixed hires seed.')" @click="newFixedSeed">
-        {{ t('hrf_seed_new_fixed', 'New fixed') }}
-      </button>
-    </div>
+    <FilSeedRow
+      v-if="useSameSeed === 'OFF'"
+      :display="seedDisplay"
+      :mode="seedMode"
+      :field-aria-label="t('hrf_aria_seed_value', 'Hires seed value')"
+      :field-title="seedMode === 'fixed' ? t('hrf_seed_locked', 'Locked hires seed') : t('hrf_seed_auto_random', 'Auto-random — a new hires seed is generated each run')"
+      :labels="{
+        random: t('hrf_seed_random', 'Random'),
+        useLast: t('hrf_seed_use_last', 'Use last'),
+        newFixed: t('hrf_seed_new_fixed', 'New fixed'),
+      }"
+      :titles="{
+        random: t('hrf_seed_mode_tt', 'Random generates a new hires seed each run.'),
+        useLast: props.state.lastRunSeed != null ? `${t('hrf_seed_use_last_prefix', `Reuse the last run's hires seed:`)} ${props.state.lastRunSeed}` : t('hrf_seed_use_last_tt', 'Reuse the hires seed from the last executed run.'),
+        newFixed: t('hrf_seed_new_fixed_tt', 'Generate a new random fixed hires seed.'),
+      }"
+      @input-seed="(v: number) => (seedValue = v)"
+      @random="setRandomSeed"
+      @use-last="useLastSeed"
+      @new-fixed="newFixedSeed"
+    />
 
     <FilSegmented :options="['ON', 'OFF']" :option-labels="{ ON: '🕹️ ON', OFF: 'OFF' }" :model-value="useControlnet"
       :label="t('lbl_use_cn', '🕹️ Use ControlNet')"
@@ -207,32 +203,7 @@ function newFixedSeed() {
 /* Container surface comes from the shared `.fil-node-shell [class$="-root"]`
  * rule in styles/brand.ts — keep only layout here. */
 .fil-hrf-root { width: 100%; box-sizing: border-box; min-width: 0; display: flex; flex-direction: column; gap: var(--fil-node-gap); padding: var(--fil-node-pad);
-  color: var(--fil-text, #e8edf3); font-family: ui-sans-serif, system-ui, sans-serif; }
+  color: var(--fil-text); font-family: ui-sans-serif, system-ui, sans-serif; }
 
-/* Own-seed row — visually matches OpticScanner's bottom seed block. */
-.fil-hrf-seed-row { display: flex; gap: 6px; min-width: 0; }
-.fil-hrf-seed-field {
-  flex: 1.3; min-width: 0; box-sizing: border-box; height: 34px;
-  background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--fil-pill-radius);
-  padding: 0 12px; color: var(--fil-text, #f2f2f2);
-  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
-  font-size: 13px; text-align: center; outline: none; transition: border-color .08s;
-}
-.fil-hrf-seed-field:focus { border-color: var(--fil-accent); }
-.fil-hrf-seed-field.is-random { color: var(--fil-muted, #9ca8b5); font-style: italic; }
-.fil-hrf-seed-pill {
-  flex: 1; min-width: 0; box-sizing: border-box; height: 34px; padding: 0 8px;
-  border-radius: var(--fil-pill-radius); border: 1px solid var(--fil-pill-border);
-  background: var(--fil-pill-bg); color: var(--fil-text, #e8edf3);
-  font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer;
-  transition: background .08s, border-color .08s, color .08s;
-  appearance: none; -webkit-appearance: none; outline: none;
-}
-.fil-hrf-seed-pill:hover { background: rgba(255, 255, 255, 0.12); }
-.fil-hrf-seed-pill.active { background: rgba(255, 255, 255, 0.16); border-color: rgba(255, 255, 255, 0.2); }
-.fil-hrf-seed-pill:focus-visible { outline: 2px solid var(--fil-accent); outline-offset: -2px; }
-.fil-hrf-seed-pill-accent {
-  background: var(--fil-accent); border-color: var(--fil-accent); color: var(--fil-accent-ink, #241206); font-weight: 700;
-}
-.fil-hrf-seed-pill-accent:hover { filter: brightness(1.08); background: var(--fil-accent); }
+/* The own-seed row is FilSeedRow now — the same widget OpticScanner renders. */
 </style>

@@ -152,7 +152,7 @@ onUnmounted(() => {
 <style scoped>
 .fil-provider-root { width: 100%; box-sizing: border-box; min-width: 0;
   display: flex; flex-direction: column; gap: var(--fil-node-gap); padding: var(--fil-node-pad);
-  color: var(--fil-text, #e8edf3); font-family: ui-sans-serif, system-ui, sans-serif;
+  color: var(--fil-text); font-family: ui-sans-serif, system-ui, sans-serif;
   min-width: 0;
 }
 
@@ -163,10 +163,10 @@ onUnmounted(() => {
   width: 100%;
   box-sizing: border-box;
   padding: 8px 10px;
-  background: var(--fil-panel-alt, #171819);
+  background: var(--fil-panel-alt);
   border: 1px solid var(--fil-pill-border);
-  border-radius: var(--fil-field-radius, 8px);
-  color: var(--fil-text, #f2f2f2);
+  border-radius: var(--fil-field-radius);
+  color: var(--fil-text);
   cursor: pointer;
   text-align: left;
   transition: border-color 0.15s ease, background 0.15s ease;
@@ -174,7 +174,7 @@ onUnmounted(() => {
 }
 
 .picker-trigger-btn:hover {
-  border-color: var(--fil-accent, #f08a45);
+  border-color: var(--fil-accent);
   background: var(--fil-pill-bg);
 }
 
@@ -197,7 +197,7 @@ onUnmounted(() => {
   gap: 6px;
   font-weight: 600;
   font-size: 13px;
-  color: var(--fil-accent, #f08a45);
+  color: var(--fil-accent);
 }
 
 .open-icon {
@@ -205,7 +205,7 @@ onUnmounted(() => {
   background: var(--fil-pill-bg);
   padding: 2px 6px;
   border-radius: 4px;
-  color: var(--fil-text, #e8edf3);
+  color: var(--fil-text);
 }
 
 .trigger-model {
@@ -217,7 +217,7 @@ onUnmounted(() => {
 }
 
 .model-label {
-  color: var(--fil-muted, #9ca8b5);
+  color: var(--fil-muted);
   flex-shrink: 0;
 }
 

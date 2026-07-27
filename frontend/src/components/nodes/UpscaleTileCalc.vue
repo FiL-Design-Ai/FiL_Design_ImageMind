@@ -112,7 +112,7 @@ watch(() => props.state.nodeState, () => {}, { deep: true });
 /* Container surface comes from the shared `.fil-node-shell [class$="-root"]`
  * rule in styles/brand.ts — keep only layout here. */
 .fil-up-root { width: 100%; box-sizing: border-box; min-width: 0; display: flex; flex-direction: column; gap: var(--fil-node-gap); padding: var(--fil-node-pad);
-  color: var(--fil-text, #e8edf3); font-family: ui-sans-serif, system-ui, sans-serif; }
+  color: var(--fil-text); font-family: ui-sans-serif, system-ui, sans-serif; }
 /* Value columns capped, not 1fr: these fields only ever hold small integers
  * (0-2048), so letting them greedily fill available width just starved the
  * label columns and forced "Manual rows" onto its own line. */
@@ -121,5 +121,5 @@ watch(() => props.state.nodeState, () => {}, { deep: true });
  * Overlap field — auto-sized (~fits switch+short label), doesn't steal
  * space from the two fixed 64px value columns. */
 .fil-up-row-overlap { grid-template-columns: minmax(auto, max-content) 64px minmax(auto, max-content) 64px auto; }
-.fil-w-label { font-size: 11px; color: var(--fil-muted, rgba(255,255,255,0.55)); }
+.fil-w-label { font-size: 11px; color: var(--fil-muted); }
 </style>

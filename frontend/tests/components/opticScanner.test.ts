@@ -40,7 +40,7 @@ describe("OpticScanner.vue", () => {
   // (node_scanner.py), so it must not be clipped to a single line here.
   it("renders one textarea per text field", () => {
     const wrapper = mount(OpticScannerVue, { props: { state: makeState() } });
-    expect(wrapper.findAll("textarea.fil-scanner-textarea").length).toBe(3);
+    expect(wrapper.findAll("textarea.fil-w-textarea").length).toBe(3);
   });
 
   // The prompt textareas are what absorbs the height dragged past the panel's
@@ -51,7 +51,7 @@ describe("OpticScanner.vue", () => {
     expect(wrapper.findAll(".fil-section-block.is-growable").length).toBe(1);
     const growRows = wrapper.findAll(".fil-w-row.is-growable");
     expect(growRows.length).toBe(2);
-    for (const row of growRows) expect(row.find("textarea.fil-scanner-textarea").exists()).toBe(true);
+    for (const row of growRows) expect(row.find("textarea.fil-w-textarea").exists()).toBe(true);
   });
 
   // Target width/height are socket-only inputs (`force_input` in
@@ -74,7 +74,7 @@ describe("OpticScanner.vue", () => {
     };
     const wrapper = mount(OpticScannerVue, { props: { state: makeState({ node }) } });
     await nextTick();
-    const linked = wrapper.findAll("textarea.fil-scanner-textarea.is-linked");
+    const linked = wrapper.findAll("textarea.fil-w-textarea.is-linked");
     expect(linked.length).toBe(1);
     expect(linked[0].attributes("readonly")).toBeDefined();
   });

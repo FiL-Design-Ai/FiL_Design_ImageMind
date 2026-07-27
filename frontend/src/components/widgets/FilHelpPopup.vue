@@ -58,13 +58,13 @@ watch(currentDef, (def) => {
   margin: 0 0 12px;
   font-size: 16px;
   font-weight: 700;
-  color: var(--fil-text, rgba(255,255,255,0.9));
+  color: var(--fil-text);
 }
 .fil-help-body {
   margin: 0 0 12px;
   font-size: 13px;
   line-height: 1.6;
-  color: var(--fil-text-secondary, rgba(255,255,255,0.65));
+  color: var(--fil-muted);
 }
 .fil-help-bullet {
   display: flex;
@@ -72,7 +72,7 @@ watch(currentDef, (def) => {
   align-items: flex-start;
   margin-bottom: 6px;
   font-size: 13px;
-  color: var(--fil-text-secondary, rgba(255,255,255,0.65));
+  color: var(--fil-muted);
 }
 .fil-help-bullet > span { flex: 1; }
 .fil-help-table {
@@ -85,14 +85,14 @@ watch(currentDef, (def) => {
 .fil-help-table td {
   text-align: left;
   padding: 6px 10px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid var(--fil-border);
 }
 .fil-help-table th {
   font-weight: 600;
-  color: var(--fil-text, rgba(255,255,255,0.85));
+  color: var(--fil-text);
 }
 .fil-help-table td {
-  color: var(--fil-text-secondary, rgba(255,255,255,0.6));
+  color: var(--fil-muted);
 }
 .fil-help-code {
   background: rgba(0,0,0,0.3);
@@ -101,10 +101,10 @@ watch(currentDef, (def) => {
   margin-top: 10px;
   overflow-x: auto;
   font-size: 12px;
-  color: var(--fil-text-secondary, rgba(255,255,255,0.65));
+  color: var(--fil-muted);
 }
 .fil-help-empty {
-  color: var(--fil-text-secondary, rgba(255,255,255,0.4));
+  color: var(--fil-muted);
   font-size: 13px;
 }
 </style>

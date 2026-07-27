@@ -142,7 +142,7 @@ function applyPreset(preset: "warm" | "cool" | "skin" | "contrast") {
   flex-direction: column;
   gap: var(--fil-node-gap);
   padding: var(--fil-node-pad);
-  color: var(--fil-text, #e8edf3);
+  color: var(--fil-text);
   font-family: ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -152,13 +152,13 @@ function applyPreset(preset: "warm" | "cool" | "skin" | "contrast") {
   gap: 6px;
   padding: 8px 10px;
   background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--fil-border);
   border-radius: 8px;
 }
 .fil-cw-presets-title {
   font-size: 11px;
   font-weight: 700;
-  color: var(--fil-accent, #00f0ff);
+  color: var(--fil-accent);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -170,9 +170,9 @@ function applyPreset(preset: "warm" | "cool" | "skin" | "contrast") {
 .fil-cw-preset-btn {
   height: 28px;
   border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--fil-text, #ddd);
+  border: 1px solid var(--fil-border);
+  background: var(--fil-surface-1);
+  color: var(--fil-text);
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
@@ -182,8 +182,8 @@ function applyPreset(preset: "warm" | "cool" | "skin" | "contrast") {
   transition: all 0.12s ease;
 }
 .fil-cw-preset-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: var(--fil-accent, #00f0ff);
+  background: var(--fil-surface-3);
+  border-color: var(--fil-accent);
 }
 .fil-cw-preset-btn.warm:hover {
   border-color: #ffaa00;

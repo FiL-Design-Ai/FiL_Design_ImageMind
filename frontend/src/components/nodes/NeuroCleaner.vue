@@ -56,7 +56,7 @@ function setOn(name: string, on: boolean) {
   flex-direction: column;
   gap: var(--fil-node-gap);
   padding: var(--fil-node-pad);
-  color: var(--fil-text, #e8edf3);
+  color: var(--fil-text);
   font-family: ui-sans-serif, system-ui, sans-serif;
 }
 </style>
