@@ -6,6 +6,8 @@
 pytest>=8.0.0
 pytest-cov>=6.0.0
 pytest-asyncio>=0.23.0
+# Turns failures into GitHub annotations, readable without opening the raw log
+pytest-github-actions-annotate-failures>=0.2.0
 
 # Lint / format / type-check (mirrors .pre-commit-config.yaml)
 ruff>=0.4.10
