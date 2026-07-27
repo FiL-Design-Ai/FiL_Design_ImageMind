@@ -1419,3 +1419,28 @@ style_enforcer=_style_enforcer)` в `execute()`.
     таймаут провайдера (`models.py:262`), а не висит бесконечно.
 - **Тесты:** `tests/test_dataset_bucketing.py` (9), `tests/test_dataset_writer.py` (25),
   `tests/test_dataset_captioning.py` (9), `tests/test_node_dataset.py` (18) — 61 всего.
+
+- **Живой смоук:** реальная очередь на 8188 через `/prompt`, пять прогонов. Датасеты
+  писались в `d:/AI/Outputs/datasets` (у пользователя переопределён output-каталог, не
+  `ComfyUI/output`) и удалены после проверки.
+  1. `dry_run` + `caption_mode=none`, 720x1280 → бакет 768x1344, кроп `[0,11,768,1355]`,
+     `upscaled: true` (исходник меньше бакета) и предупреждение в отчёте. На диске после
+     прогона **ничего** — каталог `datasets` даже не создался.
+  2. Реальная запись, 2 кадра: раскладка `smoke_lora/img/10_ohwx bunny/`, оба PNG ровно
+     768x1344, сайдкары `.txt` с `ohwx bunny`, `dataset.toml` с корректными `image_dir` /
+     `num_repeats = 10` / `class_tokens`, `manifest.json` на месте.
+  3. `caption_mode=natural` через `google / gemini-3.5-flash-lite`: подпись пришла с
+     триггером впереди, `dont_caption = "her face"` соблюдён (лица в описании нет),
+     описано только изменяемое — поза, одежда, фон, свет, стиль. Отчёт назвал источник
+     `llm:google (gemini-3.5-flash-lite)`.
+  4. `write_mode=overwrite` поверх п.2 с подложенными чужими файлами (`notes.txt`,
+     `foreign_photo.png`, `foreign_photo.txt`): удалено ровно 4 своих файла, все три чужих
+     целы — владение по «имя + числовой стем» работает как задумано.
+  5. `layout=flat` + `image_format=jpg` (q92) + `caption_extension=.caption` +
+     `crop_mode=entropy` + ручные `captions`: файлы в корне датасета без `img/` и без
+     `dataset.toml` (он только для kohya), реальный JPEG, `caption_source=manual` — LLM
+     не вызывался. При `base_resolution=768` кадр 1.78 ушёл в 1024x576, площадь ≈ 768².
+- **Замечание по бакетингу (не баг):** один тензор `IMAGE` в ComfyUI хранит кадры
+  одинакового размера, поэтому за один прогон все кадры попадают в один бакет — `ImageBatch`
+  подгоняет второй кадр под первый. Разные бакеты в одном датасете набираются несколькими
+  прогонами с `write_mode=append`, для чего этот режим и нужен.
