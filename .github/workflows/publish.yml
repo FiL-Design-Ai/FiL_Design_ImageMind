@@ -21,7 +21,9 @@ jobs:
       # frontend has already been built, and the log needs a login to read.
       - name: Check the registry token is present
         env:
-          TOKEN: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
+          # The registry key was stored as FIL_DESIGN_IMAGEMIND; accept either
+          # name so the canonical one keeps working if it is ever added.
+          TOKEN: ${{ secrets.REGISTRY_ACCESS_TOKEN || secrets.FIL_DESIGN_IMAGEMIND }}
           # Names only — GitHub masks every secret value in logs and annotations.
           AVAILABLE: ${{ toJSON(secrets) }}
         run: |
@@ -48,4 +50,4 @@ jobs:
       - name: Publish Custom Node
         uses: Comfy-Org/publish-node-action@main
         with:
-          personal_access_token: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
+          personal_access_token: ${{ secrets.REGISTRY_ACCESS_TOKEN || secrets.FIL_DESIGN_IMAGEMIND }}
