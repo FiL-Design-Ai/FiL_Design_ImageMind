@@ -1,6 +1,11 @@
 # Changelog
 
-## Unreleased
+## 1.1.0 (2026-07-27)
+
+Adds the 15th node — 📚 LoRA Dataset Forge — and puts the design system through
+the same hardening checklist the nodes get: every color token measured against
+WCAG AA in all seven palettes, duplicated widget CSS consolidated, and the light
+mode fixed after finding it had never actually applied.
 
 ### Added
 - **📚 LoRA Dataset Forge (`FiLDatasetForge`)** — new node in `🎨 FiL Design/Dataset`.
@@ -39,9 +44,22 @@
   own panel in three themes and was raised to 5.8–6.7:1. `--fil-danger` and
   `--fil-ok` — which color error/ok lines, toasts, provider status and the
   destructive-button label — failed in four themes, worst of all Fallout's
-  dark rust at 2.17:1 on its own panel; all seven now clear 4.6:1. Contrast
+  dark rust at 2.17:1 on its own panel; all seven now clear 4.6:1. Finally,
+  nine rules used the raw accent as small *text* (active tab, selected combo
+  option, active chip, status badges, the presets title) where it sat at
+  3.10:1 on the light palette and 4.19:1 on Pixaroma — those moved to a new
+  `--fil-accent-text`, the accent pulled 35% toward the theme's own text
+  color, landing the set at 5.17–11.01:1 with the hue still readable. Icons
+  keep the raw accent; glyphs are non-text and only need 3:1. Contrast
   ratios are recorded next to the values in `styles/brand.ts` so the next
   edit can't quietly undo this.
+- **The seed row tells state from action.** Random / Use last / New fixed
+  used to render the current mode and the primary action as two identical
+  accent-filled buttons. Solid accent now means "this is the mode you are
+  in", an accent outline means "this button does something". `🔬 HighRes Fix`
+  also widened from 320 to 380px, since below that its seed captions were
+  clipped, and the Russian "Новый фикс." shortened to "Новый" to match the
+  one-word captions beside it.
 - **`🔀 Cyber Switch` follows the theme.** The ON/OFF button was a fixed
   emerald→sky / red→slate gradient with sky-500 and red-400 text, which
   matched no palette but its own. ON now tints with `--fil-ok`, OFF with
