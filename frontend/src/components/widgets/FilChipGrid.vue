@@ -78,7 +78,7 @@ function select(value: T) {
 }
 .fil-w-chip.active {
   background: var(--fil-panel-alt);
-  color: var(--fil-accent);
+  color: var(--fil-accent-text);
   border-color: var(--fil-accent);
   font-weight: 500;
   box-shadow: 0 0 8px color-mix(in srgb, var(--fil-accent) 55%, transparent);

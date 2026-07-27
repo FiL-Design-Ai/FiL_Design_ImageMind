@@ -2309,7 +2309,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     }
   ],
   "min_size": [
-    320,
+    380,
     300
   ],
   "family": "sampling"

@@ -175,7 +175,7 @@ function resolvePalette(): FilPalette {
  * literal keeps every palette block self-contained.
  */
 function paletteCssVars(p: FilPalette): string {
-  return `--fil-accent:${p.accent};--fil-accent-ink:${p.accentInk};--fil-panel:${p.panel};--fil-panel-alt:${p.panelAlt};--fil-text:${p.text};--fil-muted:${p.muted};--fil-border:color-mix(in srgb,${p.muted} 55%,transparent);--fil-danger:${p.danger};--fil-ok:${p.ok};`;
+  return `--fil-accent:${p.accent};--fil-accent-ink:${p.accentInk};--fil-accent-text:color-mix(in srgb,${p.accent} 65%,${p.text});--fil-panel:${p.panel};--fil-panel-alt:${p.panelAlt};--fil-text:${p.text};--fil-muted:${p.muted};--fil-border:color-mix(in srgb,${p.muted} 55%,transparent);--fil-danger:${p.danger};--fil-ok:${p.ok};`;
 }
 
 /**
@@ -280,6 +280,14 @@ const SURFACE_VARS_LIGHT =
  * - `--fil-border` — field/control outlines. Derived from `--fil-muted` so it
  *   tracks the theme, but knocked back to 55% opacity: the full-strength muted
  *   that inputs used to borrow is a text weight and read as a heavy box.
+ * - `--fil-accent` vs `--fil-accent-text` — the raw accent is a *fill and
+ *   outline* color. As small text on a panel it measures 3.10:1 on the light
+ *   palette and 4.19:1 on Pixaroma, under the 4.5:1 floor, so accent-colored
+ *   labels (active tab, selected option, status badge) use `--fil-accent-text`:
+ *   the accent pulled 35% toward the theme's own text color, which lands the
+ *   whole set at 5.17–11.01:1 while keeping the hue recognisable. Derived rather
+ *   than hand-listed so a future palette is safe without extra bookkeeping.
+ *   Icons stay on the raw accent — glyphs are non-text and only need 3:1.
  * - `--fil-control-h` (30px) — the standard height for select/text/number
  *   fields, so a stack of mixed widgets lines up. `--fil-control-h-lg` (34px)
  *   is the deliberate exception for seed rows and icon buttons.

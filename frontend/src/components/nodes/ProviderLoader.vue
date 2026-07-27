@@ -197,7 +197,7 @@ onUnmounted(() => {
   gap: 6px;
   font-weight: 600;
   font-size: 13px;
-  color: var(--fil-accent);
+  color: var(--fil-accent-text);
 }
 
 .open-icon {

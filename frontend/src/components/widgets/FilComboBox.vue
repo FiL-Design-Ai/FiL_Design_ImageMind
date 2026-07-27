@@ -254,7 +254,7 @@ onBeforeUnmount(() => {
   font-family: inherit; font-size: 12px; text-align: left; cursor: pointer; outline: none;
 }
 .fil-combo-option.active { background: var(--fil-surface-2); }
-.fil-combo-option.selected { color: var(--fil-accent); font-weight: 600; }
+.fil-combo-option.selected { color: var(--fil-accent-text); font-weight: 600; }
 .fil-combo-option-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .fil-combo-empty { padding: 10px; text-align: center; color: var(--fil-muted); font-size: 12px; }
 </style>
