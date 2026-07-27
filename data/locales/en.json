@@ -37,6 +37,7 @@
   "tt_node_help": "Help for this node",
   "scn_section_prompt": "📝 PROMPT/TEXT",
   "scn_section_agent": "🕵️ AGENT",
+  "scn_section_focus": "🎯 FOCUS",
   "scn_section_model": "🧠 MODEL",
   "scn_section_output": "📤 OUTPUT",
   "scn_section_styles": "STYLES",

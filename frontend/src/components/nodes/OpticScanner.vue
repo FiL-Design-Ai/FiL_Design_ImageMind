@@ -23,6 +23,7 @@ const widgets: WidgetSpec[] = [
 const SECTION_LABEL_KEYS: Record<string, [string, string]> = {
   prompt: ["scn_section_prompt", "📝 Prompt/Text"],
   agent: ["scn_section_agent", "🕵️ Agent"],
+  focus: ["scn_section_focus", "🎯 Focus"],
   model: ["scn_section_model", "🧠 Model"],
   output: ["scn_section_output", "📤 Output"],
   advanced: ["scn_section_advanced", "🎨 Style"],
@@ -233,10 +234,10 @@ function setValue(name: string, v: unknown) { props.state.nodeState[name] = v; }
 // here. Previously FilSection was passed a hardcoded `model-value="false"`
 // with no listener — the arrow looked clickable but toggling it did nothing.
 //
-// Agent/Output/Styles start collapsed on a fresh node (before the user has
-// ever toggled them) so the panel isn't cluttered on first drop; once a
+// Agent/Focus/Output/Styles start collapsed on a fresh node (before the user
+// has ever toggled them) so the panel isn't cluttered on first drop; once a
 // value is explicitly stored in `state.ui` it always wins over this default.
-const DEFAULT_COLLAPSED = new Set(["agent", "output", "advanced"]);
+const DEFAULT_COLLAPSED = new Set(["agent", "focus", "output", "advanced"]);
 
 function isCollapsed(section: string): boolean {
   const stored = (props.state.ui as Record<string, unknown>)[`collapsed_${section}`];
