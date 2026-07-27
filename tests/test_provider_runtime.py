@@ -105,6 +105,21 @@ def test_all_seven_providers_schema_and_fetching(monkeypatch):
     # Mock API key so cloud providers get beyond auth missing check
     monkeypatch.setattr("FiL_Design_ImageMind.common.provider_runtime.get_api_key", lambda p: "fake_key")
 
+    # Cloudflare's base URL is built from an account id that only exists in a
+    # developer's data/auth.json or CLOUDFLARE_ACCOUNT_ID — neither is in the
+    # repo, so without this the provider stops at "configured" on a clean
+    # checkout. The URLs feed FakeClient.get, which routes on their shape.
+    base_urls = {
+        "google": "https://generativelanguage.googleapis.com/v1beta",
+        "ollama": "http://127.0.0.1:11434",
+        "lmstudio": "http://127.0.0.1:1234/v1",
+        "cloudflare": "https://api.cloudflare.com/client/v4/accounts/test-account/ai/v1",
+    }
+    monkeypatch.setattr(
+        "FiL_Design_ImageMind.common.provider_runtime.get_provider_base_url",
+        lambda p: base_urls.get(p, "https://api.example.test/v1"),
+    )
+
     class FakeResponse:
         def __init__(self, prov):
             self.prov = prov
