@@ -31,13 +31,29 @@
   two more, and both pairs had already drifted apart.
 
 ### Changed
-- **Every palette now passes WCAG AA on its own surfaces.** Text painted on
-  the accent (active segment, primary button, active pill) was white in four
-  of the themes and measured as low as 1.54:1 — under the 4.5:1 floor for the
-  11–13px labels that use it. Each theme now uses its own darkest tone at
-  4.9–10.8:1. The muted label color failed on its own panel in three themes
-  and was raised to 5.8–6.7:1. Contrast ratios are recorded next to the
-  values in `styles/brand.ts` so the next edit can't quietly undo this.
+- **Every text token now passes WCAG AA on its own surfaces, in all seven
+  palettes.** Text painted on the accent (active segment, primary button,
+  active pill) was white in four themes and measured as low as 1.54:1 —
+  under the 4.5:1 floor for the 11–13px labels that use it; each theme now
+  uses its own darkest tone, 4.9–10.8:1. The muted label color failed on its
+  own panel in three themes and was raised to 5.8–6.7:1. `--fil-danger` and
+  `--fil-ok` — which color error/ok lines, toasts, provider status and the
+  destructive-button label — failed in four themes, worst of all Fallout's
+  dark rust at 2.17:1 on its own panel; all seven now clear 4.6:1. Contrast
+  ratios are recorded next to the values in `styles/brand.ts` so the next
+  edit can't quietly undo this.
+- **`🔀 Cyber Switch` follows the theme.** The ON/OFF button was a fixed
+  emerald→sky / red→slate gradient with sky-500 and red-400 text, which
+  matched no palette but its own. ON now tints with `--fil-ok`, OFF with
+  `--fil-danger`. The label stays `--fil-text` rather than the state color:
+  measured across the palettes, `--fil-danger` as text on its own tint runs
+  1.96–4.04:1, so the state is carried by the fill, the border and the word
+  itself, which already reads ON or OFF.
+- **Optic Scanner's style button stopped animating.** Its selected state ran
+  a `pulse-neon` @keyframes loop forever, on every scanner in the graph —
+  `styles/brand.ts` keeps its own theme flourishes static for exactly that
+  reason. The cyan→magenta gradient (cyan even under the orange default and
+  the lime Travelmate) is now the accent, held still.
 - **`--fil-muted` is text-only; field outlines come from `--fil-border`.** The
   two roles shared one token, so neither could be adjusted without dragging
   the other. Overlay surfaces (section headers, segmented troughs, toggle

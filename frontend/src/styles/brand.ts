@@ -38,8 +38,8 @@ const FIL_PALETTE_LIGHT: FilPalette = {
   panelAlt: "#e2e6ec",
   text: "#1c2430",
   muted: "#5b6572",
-  danger: "#c94b4b",
-  ok: "#3f8f5f",
+  danger: "#b13a3a", // 4.74:1 on panelAlt; #c94b4b sat at 3.65:1
+  ok: "#2a7046", // 4.78:1 on panelAlt; #3f8f5f sat at 3.16:1
 };
 
 const FIL_PALETTE_CYBERPUNK: FilPalette = {
@@ -60,7 +60,7 @@ const FIL_PALETTE_FALLOUT: FilPalette = {
   panelAlt: "#26221a",
   text: "#e8dcc0",
   muted: "#a09272", // 5.83:1 on the panel; the old #8a7d5f sat at 4.41:1
-  danger: "#9a3324",
+  danger: "#d96a4a", // 4.61:1 on panelAlt; #9a3324 sat at 2.17:1 — near-invisible
   ok: "#8fbf3f",
 };
 
@@ -71,7 +71,7 @@ const FIL_PALETTE_PIPBOY: FilPalette = {
   panelAlt: "#121e12",
   text: "#4af626",
   muted: "#3fa845", // 6.29:1 on the panel; the old #2e7d32 sat at 3.73:1
-  danger: "#d32f2f",
+  danger: "#ef5350", // 4.94:1 on panelAlt; #d32f2f sat at 3.46:1
   ok: "#14b13b",
 };
 
@@ -112,7 +112,7 @@ const FIL_PALETTE_PIXAROMA: FilPalette = {
   panelAlt: "#242628",
   text: "#e0e0e0",
   muted: "#888888",
-  danger: "#d46060",
+  danger: "#e07070", // 4.86:1 on panelAlt; #d46060 sat at 4.08:1
   ok: "#4ade80",
 };
 
