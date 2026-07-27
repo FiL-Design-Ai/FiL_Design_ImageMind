@@ -17,6 +17,8 @@ import { NODE_MODULES } from "@/nodes2/nodeRegistry";
 import { installHelpToolbar } from "@/nodes2/installers/helpToolbar";
 import { installShortcuts } from "@/nodes2/installers/shortcuts";
 import { installGlobalScrollGuard } from "@/nodes2/installers/scrollGuard";
+import { installToasts } from "@/nodes2/installers/toasts";
+import { installRunButtonFx } from "@/nodes2/installers/runButtonFx";
 import { filCommands, filKeybindings } from "@/composables/useShortcuts";
 import { installProviderManager } from "@/nodes2/installers/providerManager";
 import { ALL_SETTINGS } from "@/stores/settings/allSettings";
@@ -82,9 +84,11 @@ export function createFilExtension(app: ComfyApp): ComfyExtension {
     async setup() {
       // All installers are isolated: a throw in one must not break others.
       const installers: Array<() => unknown> = [
+        () => installToasts(),
         () => installHelpToolbar(app),
         () => installShortcuts(app),
         () => installProviderManager(app),
+        () => installRunButtonFx(app),
         () => applyStartupLogLevel((id, fallback) => readSetting(id, fallback, app)),
         () => applyStartupTheme((id, fallback) => readSetting(id, fallback, app)),
       ];
