@@ -14,11 +14,13 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "useDefineForClassFields": true,
-    "baseUrl": ".",
+    // No `baseUrl`: it is deprecated in TypeScript 6 and gone in 7. Without it,
+    // `paths` resolve relative to this file's directory, which is what these
+    // entries already assumed.
     "paths": {
-      "@/*": ["src/*"],
-      "/scripts/app.js": ["src/types/comfyAppModule.ts"],
-      "/scripts/api.js": ["src/types/comfyApiModule.ts"]
+      "@/*": ["./src/*"],
+      "/scripts/app.js": ["./src/types/comfyAppModule.ts"],
+      "/scripts/api.js": ["./src/types/comfyApiModule.ts"]
     },
     "types": ["vite/client", "node"]
   },

@@ -61,7 +61,9 @@ function hsvToRgb(h: number, s: number, v: number): [number, number, number] {
   const c = v * s;
   const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
   const m = v - c;
-  let [r, g, b] = [0, 0, 0];
+  // No initializer: the chain below ends in `else`, so every path assigns and
+  // a starting [0,0,0] was dead (eslint 10's no-useless-assignment spots it).
+  let r: number, g: number, b: number;
   if (h < 60) [r, g, b] = [c, x, 0];
   else if (h < 120) [r, g, b] = [x, c, 0];
   else if (h < 180) [r, g, b] = [0, c, x];
