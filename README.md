@@ -5,7 +5,7 @@
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776ab?style=flat-square&logo=python)](https://www.python.org/)
 [![ComfyUI 0.3.60+](https://img.shields.io/badge/ComfyUI-0.3.60%2B-00cc00?style=flat-square)](https://github.com/comfyanonymous/ComfyUI)
 [![V3 API](https://img.shields.io/badge/ComfyUI_API-V3-7c5cff?style=flat-square)](https://docs.comfy.org/custom-nodes/backend/lifecycle)
-[![Nodes](https://img.shields.io/badge/Nodes-14-f08a45?style=flat-square)](#node-reference)
+[![Nodes](https://img.shields.io/badge/Nodes-15-f08a45?style=flat-square)](#node-reference)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 
 [English](#english) · [Русский](#русский)
@@ -139,7 +139,7 @@ Building it by hand takes three nodes:
 
 ### Node reference
 
-All 14 nodes, grouped by category. Ranges below are the real schema limits.
+All 15 nodes, grouped by category. Ranges below are the real schema limits.
 
 #### 🎨 FiL Design/LLM
 
@@ -762,7 +762,7 @@ python_embeded\python.exe -m pip install -r ComfyUI\custom_nodes\FiL_Design_Imag
 
 ### Справочник по узлам
 
-Все 14 узлов по категориям. Диапазоны ниже — реальные пределы схемы.
+Все 15 узлов по категориям. Диапазоны ниже — реальные пределы схемы.
 
 #### 🎨 FiL Design/LLM
 
