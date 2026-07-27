@@ -12,6 +12,21 @@ for path in (str(COMFY_ROOT), str(CUSTOM_NODES_ROOT)):
     if path not in sys.path:
         sys.path.insert(0, path)
 
+# comfy.model_management picks its device at import time and starts from
+# CPUState.GPU — nothing probes torch.cuda.is_available(), it only steps down to
+# CPU when `--cpu` was parsed. So on a machine without CUDA every call reaching
+# get_torch_device() dies with "Torch not compiled with CUDA enabled", which is
+# what the CPU-only CI runners hit in test_hiresfix. Pin CPU before any comfy
+# module loads. enable_args_parsing(False) keeps comfy's parser off pytest's
+# argv, which it would otherwise try to consume once ComfyUI's root `nodes`
+# module turns parsing on.
+import comfy.options  # noqa: E402
+
+comfy.options.enable_args_parsing(False)
+from comfy.cli_args import args as _comfy_args  # noqa: E402
+
+_comfy_args.cpu = True
+
 
 @pytest.fixture(autouse=True)
 def _clear_model_cache():
