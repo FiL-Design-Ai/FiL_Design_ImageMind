@@ -1,5 +1,5 @@
 import type { ComfyExtensionSettings } from "@/types/comfy";
-import { applyFilTheme, type FilThemeName } from "@/styles/brand";
+import { applyFilBaseTheme, applyFilTheme, detectComfyBase, type FilThemeName } from "@/styles/brand";
 import { reapplyThemeToGraph } from "@/nodes2/nodeStyle";
 import { SETTINGS_CATEGORY } from "@/constants/brand";
 
@@ -40,8 +40,38 @@ export const THEME_SETTINGS: ComfyExtensionSettings[] = [
   },
 ];
 
+/**
+ * Re-checks ComfyUI's own light/dark mode and, when it flipped, re-themes.
+ * Exported for the observer below and reused at startup.
+ */
+function syncBaseTheme(): void {
+  applyFilBaseTheme(detectComfyBase());
+  const app = (globalThis as unknown as { app?: unknown }).app;
+  if (app) reapplyThemeToGraph(app);
+}
+
+/**
+ * ComfyUI writes its palette as inline custom properties on `<html>` (there is
+ * no class to hook — see `detectComfyBase`), so the only reliable signal that
+ * the user switched palettes is that style attribute changing. Cheap: the
+ * callback only re-renders when the computed base actually flipped, and palette
+ * switches are a human-speed event.
+ */
+function watchComfyBaseTheme(): void {
+  if (typeof MutationObserver === "undefined" || typeof document === "undefined") return;
+  let last = detectComfyBase();
+  new MutationObserver(() => {
+    const now = detectComfyBase();
+    if (now === last) return;
+    last = now;
+    syncBaseTheme();
+  }).observe(document.documentElement, { attributes: true, attributeFilter: ["style", "class"] });
+}
+
 /** Applies the currently-saved theme at startup (onChange only fires on *future* changes, not the initial load). */
 export function applyStartupTheme(readSetting: <T>(id: string, fallback: T) => T): void {
   const stored = readSetting<string>("FiL_Design_ImageMind.Theme", "Default");
+  applyFilBaseTheme(detectComfyBase());
   applyFilTheme(THEME_VALUE_TO_NAME[stored] ?? "default");
+  watchComfyBaseTheme();
 }

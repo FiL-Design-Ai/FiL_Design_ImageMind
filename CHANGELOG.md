@@ -64,12 +64,21 @@
   of mixed widgets used to step 30/32/34px.
 
 ### Fixed
-- **Light theme was partly unreadable.** Overlay surfaces were hardcoded as
-  white at 4–16% opacity, invisible over an already-light panel; `FilSection`'s
-  hover set `color:#fff` on that light background; inset fields used
-  `rgba(0,0,0,0.35)`, putting the light theme's dark text on a dark field; and
-  `FilInfo` — which carries the Dataset Forge path preview and the "connect a
-  provider" warning — was a flat white and vanished entirely.
+- **The light palette never applied at all.** It was keyed off a
+  `.comfy-theme-light` class that current ComfyUI builds do not add — verified
+  against a running instance: switching to a light color palette changes
+  `--bg-color`/`--fg-color` as inline styles on `<html>` and adds no class
+  anywhere. Node panels therefore stayed dark whatever ComfyUI did. The mode is
+  now derived from the luminance of ComfyUI's own `--bg-color`, which also
+  covers third-party and hand-made palettes that no list of names would catch,
+  and a `MutationObserver` picks up palette switches live. Only the *default*
+  theme follows it — picking Cyberpunk means Cyberpunk on a light canvas too.
+- **Light-palette rendering, now that it runs.** Overlay surfaces were
+  hardcoded as white at 4–16% opacity, invisible over an already-light panel;
+  `FilSection`'s hover set `color:#fff` on that light background; inset fields
+  used `rgba(0,0,0,0.35)`, putting dark text on a dark field; and `FilInfo` —
+  which carries the Dataset Forge path preview and the "connect a provider"
+  warning — was a flat white and vanished entirely.
 - **Three CSS variables were referenced but never defined** (`--fil-success`,
   `--fil-warning`, `--fil-text-secondary`), so five rules in `FilHelpPopup` and
   the provider status colors silently rendered hardcoded fallbacks and ignored
