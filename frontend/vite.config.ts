@@ -96,7 +96,9 @@ export default defineConfig(({ command }) => ({
         // import(...))`, which Rollup would otherwise split into separate
         // hashed chunk files. Keep the single-file-bundle design (simpler to
         // serve/reason about from ComfyUI's WEB_DIRECTORY) by inlining them.
-        inlineDynamicImports: true,
+        // `inlineDynamicImports` was renamed in Rollup 4 / Vite 8 and warns on
+        // the old spelling.
+        codeSplitting: false,
       },
     },
   },
