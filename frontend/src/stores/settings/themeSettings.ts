@@ -9,6 +9,7 @@ const THEME_VALUE_TO_NAME: Record<string, FilThemeName> = {
   Fallout: "fallout",
   Pipboy: "pipboy",
   "FiL Green": "travelmate",
+  Pixaroma: "pixaroma",
 };
 
 /**
@@ -32,9 +33,9 @@ export const THEME_SETTINGS: ComfyExtensionSettings[] = [
     name: "Node theme",
     type: "combo",
     defaultValue: "Default",
-    options: ["Default", "Cyberpunk", "Fallout", "Pipboy", "FiL Green"],
+    options: ["Default", "Cyberpunk", "Fallout", "Pipboy", "FiL Green", "Pixaroma"],
     category: [SETTINGS_CATEGORY, "Appearance", "Theme"],
-    tooltip: "Recolors every FiL_Design_ImageMind node panel and adds a small themed flourish (neon glow for Cyberpunk, a CRT scanline texture for Pipboy and Fallout, acid-lime glow for Travelmate). Applies instantly, no reload.",
+    tooltip: "Recolors every FiL_Design_ImageMind node panel and adds a small themed flourish (neon glow for Cyberpunk, a CRT scanline texture for Pipboy and Fallout, acid-lime glow for Travelmate). Pixaroma matches the ComfyUI-Pixaroma node pack's own colors. Applies instantly, no reload.",
     onChange: onThemeChange,
   },
 ];

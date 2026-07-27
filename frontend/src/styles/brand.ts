@@ -96,7 +96,27 @@ const FIL_PALETTE_TRAVELMATE: FilPalette = {
   ok: "#3ed98c",
 };
 
-export type FilThemeName = "default" | "cyberpunk" | "fallout" | "travelmate" | "pipboy";
+/**
+ * "Pixaroma" — matches the sibling custom_nodes/ComfyUI-Pixaroma pack's own
+ * brand (js/framework/theme.mjs: `--pxf-accent:#f66744` on `--pxf-bg-dark:
+ * #171718`/`--pxf-bg-panel:#242628`, text `#e0e0e0`, dim text `#888`, danger
+ * `#d46060`). Sampled directly so a workflow mixing both node packs reads as
+ * one system. `ok` isn't defined over there — picked `#4ade80` (10.3:1 on the
+ * panel) to match the green ProviderManager already uses for a "connected"
+ * status. `muted` sits at 5.05:1 here (Pixaroma's own text-dim), no bump needed.
+ */
+const FIL_PALETTE_PIXAROMA: FilPalette = {
+  accent: "#f66744",
+  accentInk: "#1a0d08", // 6.28:1 on #f66744 (white was 3.03:1)
+  panel: "#171718",
+  panelAlt: "#242628",
+  text: "#e0e0e0",
+  muted: "#888888",
+  danger: "#d46060",
+  ok: "#4ade80",
+};
+
+export type FilThemeName = "default" | "cyberpunk" | "fallout" | "travelmate" | "pipboy" | "pixaroma";
 
 const THEMES: Record<FilThemeName, FilPalette> = {
   default: FIL_PALETTE,
@@ -104,6 +124,7 @@ const THEMES: Record<FilThemeName, FilPalette> = {
   fallout: FIL_PALETTE_FALLOUT,
   travelmate: FIL_PALETTE_TRAVELMATE,
   pipboy: FIL_PALETTE_PIPBOY,
+  pixaroma: FIL_PALETTE_PIXAROMA,
 };
 
 /**
@@ -165,6 +186,9 @@ const THEME_EFFECTS: Record<FilThemeName, string> = {
 [data-fil-theme="travelmate"] .fil-combo-trigger.open,
 [data-fil-theme="travelmate"] .fil-combo-trigger:focus-visible{box-shadow:0 0 6px var(--fil-accent),0 0 14px var(--fil-accent);}
 `,
+  // Pixaroma's own editor chrome is flat panels, no glow/scanline texture —
+  // matching that means no flourish here, same as "default".
+  pixaroma: "",
 };
 
 /**
