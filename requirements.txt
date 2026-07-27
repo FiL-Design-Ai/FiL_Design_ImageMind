@@ -4,3 +4,6 @@ aiohttp>=3.9.0
 PyYAML>=6.0.1
 Pillow>=10.0.0
 numpy>=1.26.0
+# common/contracts/schema.py builds its models on pydantic. ComfyUI installs it
+# too, but the pack must not rely on a dependency it never declares.
+pydantic>=2.0

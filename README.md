@@ -86,6 +86,10 @@ On a portable/embedded ComfyUI install, use its interpreter for the requirements
 python_embeded\python.exe -m pip install -r ComfyUI\custom_nodes\FiL_Design_ImageMind\requirements.txt
 ```
 
+On Windows, `install_requirements.bat` in the pack folder does that step for you:
+it finds ComfyUI's own Python (`python_embeded`, `venv` or `.venv`), installs the
+requirements into it and verifies the imports.
+
 Restart ComfyUI. The nodes appear under **🎨 FiL Design/** in the node browser
 (`LLM`, `Analysis`, `Styling`, `Sampling`, `Image`, `Values`, `Tools`).
 
@@ -708,6 +712,10 @@ pip install -r FiL_Design_ImageMind/requirements.txt
 ```bash
 python_embeded\python.exe -m pip install -r ComfyUI\custom_nodes\FiL_Design_ImageMind\requirements.txt
 ```
+
+В Windows этот шаг делает `install_requirements.bat` из папки пака: он сам находит
+Python самого ComfyUI (`python_embeded`, `venv` или `.venv`), ставит туда зависимости
+и проверяет импорты.
 
 Перезапустите ComfyUI. Узлы появятся в разделе **🎨 FiL Design/** (`LLM`, `Analysis`, `Styling`,
 `Sampling`, `Image`, `Values`, `Tools`).
