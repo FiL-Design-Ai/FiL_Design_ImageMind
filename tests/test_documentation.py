@@ -65,6 +65,17 @@ def test_reported_version_matches_pyproject():
     assert VERSION == declared.group(1)
 
 
+def test_landing_page_version_matches_pyproject():
+    """The Pages footer shipped `v1.1.0` after the release settled on 1.0.0."""
+    pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    declared = re.search(r'^version\s*=\s*"([^"]+)"', pyproject, re.MULTILINE).group(1)
+
+    page = (ROOT / "docs" / "index.html").read_text(encoding="utf-8")
+    shown = re.findall(r"v(\d+\.\d+\.\d+)", page)
+    assert shown, "docs/index.html shows no version"
+    assert set(shown) == {declared}, f"landing page shows {sorted(set(shown))}, package is {declared}"
+
+
 def _registered_node_ids() -> set[str]:
     import ast
 
