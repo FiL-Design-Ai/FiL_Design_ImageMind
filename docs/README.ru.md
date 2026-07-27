@@ -34,6 +34,7 @@ FiL_Design_ImageMind 1.0.0 — набор узлов ComfyUI (V3 API) для п�
 | 🔍 Upscaler Simple | `FiLUpscaleSimple` | Image | Та же панель тайлинга: модель на входе, картинка и тайлы на выходе. |
 | 🧩 Tile Assembly | `FiLTileAssembly` | Image | Сборка обработанных тайлов обратно с растушёвкой по нахлёсту. |
 | 🎨 Color Wizard | `FiLColorWizard` | Image | Авто-цветокоррекция: баланс белого, LAB-контраст, растяжка каналов. |
+| 📚 LoRA Dataset Forge | `FiLDatasetForge` | Dataset | Батч → бакеты нужного разрешения, подписи от LLM и готовая папка датасета на диске. |
 | ♻️ Seed | `FiLSeed` | Values | Фиксированный или случайный seed с кнопками повтора. |
 | 🧹 Cleaner | `FiLNeuroCleaner` | Tools | Выборочная очистка VRAM и выгрузка моделей. |
 | 🔀 Cyber Switch | `FiLSignalSwitch` | Tools | Пропускной шлюз любого типа: глушит ветку графа без перекоммутации. |

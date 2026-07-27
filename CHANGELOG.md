@@ -1,5 +1,27 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- **📚 LoRA Dataset Forge (`FiLDatasetForge`)** — new node in `🎨 FiL Design/Dataset`.
+  Takes an image batch and writes a training-ready LoRA dataset in one pass:
+  kohya-style aspect-ratio buckets around the chosen base resolution
+  (512 – 1536, step 64), one LLM caption per frame through 🔌 Provider Loader,
+  and either the `kohya` layout (`<name>/img/<repeats>_<trigger> <class>/` plus
+  an sd-scripts `dataset.toml`) or a `flat` image+caption folder. Always writes
+  a `manifest.json` recording per-frame bucket, crop box, caption and hash.
+  - Caption prompts encode the rule that decides whether a LoRA generalizes:
+    describe what varies, never describe the invariant named in `dont_caption` —
+    that belongs to the trigger word.
+  - `dry_run` plans the whole run without touching disk; `write_mode=overwrite`
+    deletes only the image/caption pairs this node owns, leaving foreign files
+    in the folder alone.
+  - No upscaling: sources smaller than their bucket are still written but
+    counted in `upscaled_count` and flagged in the report.
+- **`common/dataset/`** — `bucketing` (bucket math, cover-resize, center/entropy
+  crop), `captioning` (prompts, normalisation, per-frame batch loop) and
+  `writer` (layouts, sidecars, TOML, manifest, path sanitisation).
+
 ## 1.0.0 (2026-07-26)
 
 First public release. Ships 14 nodes, each one taken through the hardening

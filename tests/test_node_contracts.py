@@ -21,6 +21,7 @@ EXPECTED_IDS = {
     "FiLStyleMixer",
     "FiLColorWizard",
     "FiLSignalSwitch",
+    "FiLDatasetForge",
 }
 
 
