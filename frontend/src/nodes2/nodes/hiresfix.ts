@@ -32,7 +32,12 @@ export const hiresfixNode: NodeModule = {
       // always wins via Math.max in domWidgetHost.ts, so a buffer above it
       // here would just be dead space at the bottom. Width is the actual
       // reason this floor exists (computeSize()'s own width guess ignores it).
-      minSize: [320, 300],
+      //
+      // 380, not 320: the own-seed row is a readout plus three pills, and the
+      // Russian captions ("Случайно", "Прошлый", "Новый фикс.") need ~370px
+      // before FilSeedRow starts truncating them. Nodes saved narrower are
+      // widened to this floor on load.
+      minSize: [380, 300],
       family: "sampling",
       description: "Latent/pixel upscale + re-sample settings, packed into a script for FiLKSampler.",
       badges: [{ text: "hires", color: "#bb9af7", text_color: "#0b0e14" }],

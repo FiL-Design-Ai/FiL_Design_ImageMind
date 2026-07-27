@@ -350,7 +350,7 @@ function closeModal() {
 .tab-btn.active {
   background: var(--fil-panel-alt);
   border-color: var(--fil-accent);
-  color: var(--fil-accent);
+  color: var(--fil-accent-text);
   font-weight: 600;
 }
 .tab-badge {
@@ -386,7 +386,7 @@ function closeModal() {
   color: var(--fil-ok);
 }
 .status-badge.loading {
-  color: var(--fil-accent);
+  color: var(--fil-accent-text);
 }
 .status-badge.error {
   color: var(--fil-danger);
@@ -546,7 +546,7 @@ function closeModal() {
 }
 .tag.vision {
   background: rgba(240, 138, 69, 0.15);
-  color: var(--fil-accent);
+  color: var(--fil-accent-text);
 }
 .tag.text,
 .tag.local,

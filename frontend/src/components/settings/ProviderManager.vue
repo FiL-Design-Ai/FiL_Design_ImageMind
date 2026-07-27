@@ -294,7 +294,7 @@ const hasChanges = (pid: string) => {
   cursor: pointer;
 }
 .fil-pm-header--clickable:hover .fil-pm-name {
-  color: var(--fil-accent);
+  color: var(--fil-accent-text);
 }
 .fil-pm-chevron {
   display: inline-flex;
@@ -343,7 +343,7 @@ const hasChanges = (pid: string) => {
   color: var(--fil-ok);
 }
 .fil-pm-status--configured {
-  color: var(--fil-accent);
+  color: var(--fil-accent-text);
 }
 .fil-pm-status--off {
   color: var(--fil-muted);

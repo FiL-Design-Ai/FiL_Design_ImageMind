@@ -428,7 +428,10 @@ _HIRESFIX = NodeContract(
     title="🔬 HighRes Fix",
     category=f"{CATEGORY_ROOT}/Sampling",
     description="Packs latent/pixel upscale + re-sample settings into a script.",
-    min_size=(320, 300),
+    # 380, not 320: the own-seed row is a readout plus three pills, and the
+    # Russian captions need ~370px before FilSeedRow starts truncating them.
+    # Keep in step with nodes2/nodes/hiresfix.ts — test_ui_presentation guards it.
+    min_size=(380, 300),
     family="sampling",
     inputs=NodeInputs(
         required=[

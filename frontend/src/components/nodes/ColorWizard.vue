@@ -158,7 +158,7 @@ function applyPreset(preset: "warm" | "cool" | "skin" | "contrast") {
 .fil-cw-presets-title {
   font-size: 11px;
   font-weight: 700;
-  color: var(--fil-accent);
+  color: var(--fil-accent-text);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
