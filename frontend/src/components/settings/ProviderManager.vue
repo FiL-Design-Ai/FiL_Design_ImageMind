@@ -273,8 +273,8 @@ const hasChanges = (pid: string) => {
   padding: 4px 0;
 }
 .fil-pm-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--fil-surface-1);
+  border: 1px solid var(--fil-border);
   border-radius: 8px;
   padding: 12px;
 }
@@ -294,7 +294,7 @@ const hasChanges = (pid: string) => {
   cursor: pointer;
 }
 .fil-pm-header--clickable:hover .fil-pm-name {
-  color: var(--fil-accent, #7c5cfc);
+  color: var(--fil-accent);
 }
 .fil-pm-chevron {
   display: inline-flex;
@@ -315,7 +315,7 @@ const hasChanges = (pid: string) => {
 .fil-pm-name {
   font-weight: 600;
   font-size: 14px;
-  color: var(--fil-text, #f2f2f2);
+  color: var(--fil-text);
 }
 .fil-pm-disp {
   font-size: 11px;
@@ -340,13 +340,13 @@ const hasChanges = (pid: string) => {
   box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 22%, transparent);
 }
 .fil-pm-status--connected {
-  color: var(--fil-success, #4ade80);
+  color: var(--fil-ok);
 }
 .fil-pm-status--configured {
-  color: var(--fil-warning, #fbbf24);
+  color: var(--fil-accent);
 }
 .fil-pm-status--off {
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--fil-muted);
 }
 .fil-pm-fields {
   display: flex;
@@ -369,11 +369,11 @@ const hasChanges = (pid: string) => {
   width: 100%;
   box-sizing: border-box;
   height: 32px;
-  background: var(--fil-panel-alt, #171819);
-  border: 1px solid var(--fil-muted, #3a3d40);
+  background: var(--fil-panel-alt);
+  border: 1px solid var(--fil-border);
   border-radius: 6px;
   padding: 7px 8px;
-  color: var(--fil-text, #f2f2f2);
+  color: var(--fil-text);
   font-family: ui-monospace, monospace;
   font-size: 13px;
   outline: none;
@@ -383,7 +383,7 @@ const hasChanges = (pid: string) => {
   border-color: var(--fil-accent);
 }
 .fil-pm-input.fil-pm-has-val {
-  border-color: var(--fil-muted, #555);
+  border-color: var(--fil-border);
 }
 .fil-pm-actions {
   display: flex;
@@ -400,7 +400,7 @@ const hasChanges = (pid: string) => {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  background: rgba(255, 255, 255, 0.07);
+  background: var(--fil-surface-2);
   border-radius: 4px;
   padding: 2px 6px;
   font-size: 11px;
@@ -413,7 +413,7 @@ const hasChanges = (pid: string) => {
 }
 .fil-pm-err {
   font-size: 11px;
-  color: var(--fil-danger, #ef6666);
+  color: var(--fil-danger);
   margin-top: 4px;
 }
 .fil-pm-age {

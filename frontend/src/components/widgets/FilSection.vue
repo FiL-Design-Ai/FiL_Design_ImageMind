@@ -46,8 +46,8 @@ const arrow = computed(() => (modelValue.value ? "▶" : "▼"));
   padding: var(--fil-row-pad);
   border: none;
   border-radius: 5px;
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--fil-muted, rgba(255, 255, 255, 0.7));
+  background: var(--fil-surface-1);
+  color: var(--fil-muted);
   font-family: inherit;
   font-size: 11px;
   font-weight: 600;
@@ -64,9 +64,10 @@ const arrow = computed(() => (modelValue.value ? "▶" : "▼"));
   align-items: center;
   gap: 6px;
 }
+/* `color: #fff` here was white-on-white once the light theme was in play. */
 .fil-w-section:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
+  background: var(--fil-surface-2);
+  color: var(--fil-text);
 }
 .fil-w-section:disabled {
   cursor: default;

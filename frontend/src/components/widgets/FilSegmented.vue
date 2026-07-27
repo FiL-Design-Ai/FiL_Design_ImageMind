@@ -76,13 +76,13 @@ function onKeydown(e: KeyboardEvent, index: number) {
   display: grid;
   grid-template-columns: minmax(auto, max-content) minmax(60px, 1fr);
   align-items: center;
-  gap: var(--fil-node-gap, 6px);
+  gap: var(--fil-node-gap);
   width: 100%;
 }
 .fil-w-segmented-label {
   grid-column: 1;
   font-size: 11px;
-  color: var(--fil-muted, rgba(255, 255, 255, 0.55));
+  color: var(--fil-muted);
   font-family: inherit;
 }
 .fil-w-pill {
@@ -90,7 +90,7 @@ function onKeydown(e: KeyboardEvent, index: number) {
   display: flex;
   gap: 0;
   min-width: 0;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--fil-surface-2);
   border-radius: 7px;
   padding: 3px;
 }
@@ -115,7 +115,7 @@ function onKeydown(e: KeyboardEvent, index: number) {
   background: transparent;
   font-family: inherit;
   font-size: 12px;
-  color: var(--fil-muted, rgba(255, 255, 255, 0.55));
+  color: var(--fil-muted);
   cursor: pointer;
   user-select: none;
   appearance: none;
@@ -124,11 +124,11 @@ function onKeydown(e: KeyboardEvent, index: number) {
   transition: background 0.08s, color 0.08s;
 }
 .fil-w-seg:hover:not(.active) {
-  color: var(--fil-text, rgba(255, 255, 255, 0.85));
+  color: var(--fil-text);
 }
 .fil-w-seg.active {
   background: var(--fil-accent);
-  color: var(--fil-accent-ink, #fff);
+  color: var(--fil-accent-ink);
   font-weight: 500;
 }
 .fil-w-seg:focus-visible {

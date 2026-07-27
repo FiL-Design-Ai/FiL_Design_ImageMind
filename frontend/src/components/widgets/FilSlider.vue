@@ -73,13 +73,13 @@ function onSlider(e: Event) {
   display: grid;
   grid-template-columns: minmax(auto, max-content) minmax(60px, 1fr);
   align-items: center;
-  gap: var(--fil-node-gap, 6px);
+  gap: var(--fil-node-gap);
   width: 100%;
 }
 .fil-w-slider-label {
   grid-column: 1;
   font-size: 11px;
-  color: var(--fil-muted, rgba(255, 255, 255, 0.55));
+  color: var(--fil-muted);
   font-family: inherit;
 }
 .fil-w-slider-row {

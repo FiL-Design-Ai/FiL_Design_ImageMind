@@ -33,25 +33,25 @@ const modelValue = defineModel<T>({ required: true });
   display: grid;
   grid-template-columns: minmax(auto, max-content) minmax(60px, 1fr);
   align-items: center;
-  gap: var(--fil-node-gap, 6px);
+  gap: var(--fil-node-gap);
   width: 100%;
 }
 .fil-w-select-label {
   grid-column: 1;
   font-size: 11px;
-  color: var(--fil-muted, rgba(255, 255, 255, 0.55));
+  color: var(--fil-muted);
   font-family: inherit;
 }
 .fil-w-select-input {
   grid-column: 2;
   width: 100%;
   box-sizing: border-box;
-  height: 30px;
-  background: var(--fil-panel-alt, #171819);
-  border: 1px solid var(--fil-muted, #3a3d40);
+  height: var(--fil-control-h);
+  background: var(--fil-panel-alt);
+  border: 1px solid var(--fil-border);
   border-radius: 6px;
   padding: 5px 8px;
-  color: var(--fil-text, #f2f2f2);
+  color: var(--fil-text);
   font-family: inherit;
   font-size: 12px;
   outline: none;

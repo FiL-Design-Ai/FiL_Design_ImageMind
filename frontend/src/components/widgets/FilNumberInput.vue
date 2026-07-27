@@ -156,7 +156,7 @@ function bump(direction: number) {
   display: grid;
   grid-template-columns: minmax(auto, max-content) minmax(60px, 1fr);
   align-items: center;
-  gap: var(--fil-node-gap, 6px);
+  gap: var(--fil-node-gap);
   width: 100%;
 }
 /* No label passed (paired-row / FilSlider readout usage): collapse to a
@@ -168,7 +168,7 @@ function bump(direction: number) {
 .fil-w-numfield-label {
   grid-column: 1;
   font-size: 11px;
-  color: var(--fil-muted, rgba(255, 255, 255, 0.55));
+  color: var(--fil-muted);
   font-family: inherit;
 }
 /* grid-column: 2 only makes sense inside this component's OWN label|input
@@ -189,12 +189,12 @@ function bump(direction: number) {
 .fil-w-num {
   width: 100%;
   box-sizing: border-box;
-  height: 32px;
-  background: var(--fil-panel-alt, #171819);
-  border: 1px solid var(--fil-muted, #3a3d40);
+  height: var(--fil-control-h);
+  background: var(--fil-panel-alt);
+  border: 1px solid var(--fil-border);
   border-radius: 6px;
   padding: 7px 20px 7px 8px;
-  color: var(--fil-text, #f2f2f2);
+  color: var(--fil-text);
   font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
   font-size: 14px;
   text-align: left;
@@ -219,7 +219,7 @@ function bump(direction: number) {
   width: 17px;
   display: flex;
   flex-direction: column;
-  border-left: 1px solid var(--fil-muted, #3a3d40);
+  border-left: 1px solid var(--fil-border);
   overflow: hidden;
   border-radius: 0 5px 5px 0;
 }
@@ -231,7 +231,7 @@ function bump(direction: number) {
   justify-content: center;
   border: none;
   background: transparent;
-  color: var(--fil-muted, rgba(255, 255, 255, 0.55));
+  color: var(--fil-muted);
   font-size: 7px;
   line-height: 1;
   cursor: pointer;
@@ -239,11 +239,11 @@ function bump(direction: number) {
   transition: color 0.08s, background 0.08s;
 }
 .fil-w-num-btn:last-child {
-  border-top: 1px solid var(--fil-muted, #3a3d40);
+  border-top: 1px solid var(--fil-border);
 }
 .fil-w-num-btn:hover:not(:disabled) {
   color: var(--fil-accent);
-  background: rgba(255, 255, 255, 0.07);
+  background: var(--fil-surface-2);
 }
 .fil-w-num-btn:disabled {
   opacity: 0.3;

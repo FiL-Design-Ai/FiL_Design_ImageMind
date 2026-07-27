@@ -216,45 +216,45 @@ onBeforeUnmount(() => {
 <style scoped>
 .fil-combo {
   display: grid; grid-template-columns: minmax(auto, max-content) minmax(60px, 1fr);
-  align-items: center; gap: var(--fil-node-gap, 6px); width: 100%;
+  align-items: center; gap: var(--fil-node-gap); width: 100%;
 }
-.fil-combo-label { grid-column: 1; font-size: 11px; color: var(--fil-muted, rgba(255, 255, 255, 0.55)); font-family: inherit; }
+.fil-combo-label { grid-column: 1; font-size: 11px; color: var(--fil-muted); font-family: inherit; }
 .fil-combo-trigger {
   grid-column: 2;
-  width: 100%; box-sizing: border-box; height: 30px;
+  width: 100%; box-sizing: border-box; height: var(--fil-control-h);
   display: flex; align-items: center; gap: 6px;
-  background: var(--fil-panel-alt, #171819); border: 1px solid var(--fil-muted, #3a3d40); border-radius: 6px;
-  padding: 5px 8px; color: var(--fil-text, #f2f2f2); font-family: inherit; font-size: 12px;
+  background: var(--fil-panel-alt); border: 1px solid var(--fil-border); border-radius: 6px;
+  padding: 5px 8px; color: var(--fil-text); font-family: inherit; font-size: 12px;
   outline: none; cursor: pointer; text-align: left; appearance: none; -webkit-appearance: none;
 }
 .fil-combo-trigger.open, .fil-combo-trigger:focus-visible { border-color: var(--fil-accent); outline: 2px solid var(--fil-accent); outline-offset: 1px; }
 .fil-combo-trigger.disabled { opacity: 0.5; cursor: default; }
 .fil-combo-trigger-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.fil-combo-chevron { font-size: 9px; color: var(--fil-muted, rgba(255, 255, 255, 0.5)); flex-shrink: 0; }
+.fil-combo-chevron { font-size: 9px; color: var(--fil-muted); flex-shrink: 0; }
 .fil-combo-badge {
   flex-shrink: 0; font-size: 9px; line-height: 1; padding: 2px 5px; border-radius: 999px;
-  background: var(--fil-accent); color: var(--fil-accent-ink, #fff); font-weight: 600;
+  background: var(--fil-accent); color: var(--fil-accent-ink); font-weight: 600;
 }
 .fil-combo-panel {
   position: fixed; z-index: 10001; box-sizing: border-box;
-  background: var(--fil-panel, #1e1e2e); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 8px;
+  background: var(--fil-panel); border: 1px solid var(--fil-border); border-radius: 8px;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4); display: flex; flex-direction: column; overflow: hidden;
   padding: 6px;
 }
 .fil-combo-search {
   box-sizing: border-box; width: 100%; margin-bottom: 6px; padding: 6px 8px;
-  background: var(--fil-panel-alt, #171819); border: 1px solid var(--fil-muted, #3a3d40); border-radius: 5px;
-  color: var(--fil-text, #ddd); font-family: inherit; font-size: 12px; outline: none;
+  background: var(--fil-panel-alt); border: 1px solid var(--fil-border); border-radius: 5px;
+  color: var(--fil-text); font-family: inherit; font-size: 12px; outline: none;
 }
 .fil-combo-search:focus { border-color: var(--fil-accent); }
 .fil-combo-list { display: flex; flex-direction: column; gap: 2px; max-height: 240px; overflow-y: auto; }
 .fil-combo-option {
   display: flex; align-items: center; gap: 6px; width: 100%; box-sizing: border-box;
-  padding: 6px 8px; border-radius: 5px; border: none; background: transparent; color: var(--fil-text, #ddd);
+  padding: 6px 8px; border-radius: 5px; border: none; background: transparent; color: var(--fil-text);
   font-family: inherit; font-size: 12px; text-align: left; cursor: pointer; outline: none;
 }
-.fil-combo-option.active { background: rgba(255, 255, 255, 0.08); }
+.fil-combo-option.active { background: var(--fil-surface-2); }
 .fil-combo-option.selected { color: var(--fil-accent); font-weight: 600; }
 .fil-combo-option-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.fil-combo-empty { padding: 10px; text-align: center; color: var(--fil-muted, #666); font-size: 12px; }
+.fil-combo-empty { padding: 10px; text-align: center; color: var(--fil-muted); font-size: 12px; }
 </style>

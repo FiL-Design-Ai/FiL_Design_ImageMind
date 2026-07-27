@@ -194,9 +194,9 @@ function select(key: string) {
   box-sizing: border-box;
   padding: 5px 10px;
   border-radius: 999px;
-  border: 1px solid var(--fil-muted, rgba(255, 255, 255, 0.2));
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--fil-text, rgba(255, 255, 255, 0.8));
+  border: 1px solid var(--fil-border);
+  background: var(--fil-surface-1);
+  color: var(--fil-text);
   font-size: 11px;
   cursor: pointer;
   user-select: none;
@@ -211,7 +211,7 @@ function select(key: string) {
 .fil-style-cat.active {
   background: var(--fil-accent);
   border-color: var(--fil-accent);
-  color: var(--fil-accent-ink, #fff);
+  color: var(--fil-accent-ink);
   font-weight: 500;
 }
 .fil-style-cat:focus-visible {
@@ -226,10 +226,10 @@ function select(key: string) {
   box-sizing: border-box;
   width: 100%;
   padding: 7px 28px 7px 10px;
-  background: var(--fil-panel-alt, #171819);
-  border: 1px solid var(--fil-muted, #3a3d40);
+  background: var(--fil-panel-alt);
+  border: 1px solid var(--fil-border);
   border-radius: 6px;
-  color: var(--fil-text, #ddd);
+  color: var(--fil-text);
   font-family: inherit;
   font-size: 12px;
   outline: none;
@@ -246,7 +246,7 @@ function select(key: string) {
   height: 18px;
   border-radius: 50%;
   border: none;
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--fil-surface-3);
   color: #bbb;
   font-size: 13px;
   line-height: 1;
@@ -258,7 +258,7 @@ function select(key: string) {
 }
 .fil-style-search-clear:hover {
   background: rgba(255, 75, 75, 0.3);
-  color: var(--fil-danger, #ff6b6b);
+  color: var(--fil-danger);
 }
 .fil-style-grid {
   display: grid;
@@ -276,9 +276,9 @@ function select(key: string) {
   gap: 6px;
   padding: 8px 6px;
   border-radius: 8px;
-  border: 1px solid var(--fil-muted, rgba(255, 255, 255, 0.14));
-  background: var(--fil-panel-alt, #1d1d1d);
-  color: var(--fil-text, #ccc);
+  border: 1px solid var(--fil-border);
+  background: var(--fil-panel-alt);
+  color: var(--fil-text);
   cursor: pointer;
   user-select: none;
   appearance: none;
@@ -288,7 +288,7 @@ function select(key: string) {
 }
 .fil-style-tile:hover {
   border-color: var(--fil-accent);
-  color: var(--fil-text, #fff);
+  color: var(--fil-text);
 }
 .fil-style-tile.active {
   border-color: var(--fil-accent);
@@ -302,7 +302,7 @@ function select(key: string) {
   width: 100%;
   aspect-ratio: 1;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--fil-surface-1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -328,7 +328,7 @@ function select(key: string) {
   grid-column: 1 / -1;
   padding: 20px;
   text-align: center;
-  color: var(--fil-muted, #666);
+  color: var(--fil-muted);
   font-size: 12px;
 }
 
@@ -338,8 +338,8 @@ function select(key: string) {
   gap: 6px;
   padding: 6px;
   border-radius: 6px;
-  background: color-mix(in srgb, var(--fil-accent, #00f0ff) 6%, transparent);
-  border: 1px solid color-mix(in srgb, var(--fil-accent, #00f0ff) 20%, transparent);
+  background: color-mix(in srgb, var(--fil-accent) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--fil-accent) 20%, transparent);
 }
 .fil-style-chip {
   display: inline-flex;
@@ -347,8 +347,8 @@ function select(key: string) {
   gap: 4px;
   padding: 3px 8px;
   border-radius: 999px;
-  background: var(--fil-accent, #00f0ff);
-  color: var(--fil-accent-ink, #12151a);
+  background: var(--fil-accent);
+  color: var(--fil-accent-ink);
   font-size: 11px;
   font-weight: 600;
 }
@@ -367,7 +367,7 @@ function select(key: string) {
   border-radius: 50%;
   border: none;
   background: rgba(0, 0, 0, 0.2);
-  color: var(--fil-accent-ink, #12151a);
+  color: var(--fil-accent-ink);
   font-size: 12px;
   line-height: 1;
   cursor: pointer;
@@ -375,7 +375,7 @@ function select(key: string) {
   transition: background 0.08s, color 0.08s;
 }
 .fil-chip-remove:hover {
-  background: var(--fil-danger, #ff4b4b);
+  background: var(--fil-danger);
   color: #ffffff;
 }
 </style>

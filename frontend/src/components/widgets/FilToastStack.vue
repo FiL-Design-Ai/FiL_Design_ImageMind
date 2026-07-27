@@ -18,10 +18,10 @@ const { items } = storeToRefs(store);
 const timers = new Map<number, ReturnType<typeof setTimeout>>();
 
 const colorMap = {
-  info: "var(--fil-muted, #9ca8b5)",
-  success: "var(--fil-ok, #62c987)",
-  warning: "var(--fil-accent, #f08a45)",
-  error: "var(--fil-danger, #ef6666)",
+  info: "var(--fil-muted)",
+  success: "var(--fil-ok)",
+  warning: "var(--fil-accent)",
+  error: "var(--fil-danger)",
 };
 
 function schedule(item: ToastItem) {
@@ -105,9 +105,9 @@ onBeforeUnmount(() => {
   gap: 10px;
   padding: 10px 12px;
   border-radius: 8px;
-  background: var(--fil-panel, #171b22);
-  color: var(--fil-text, #e8edf3);
-  border: 1px solid var(--fil-panel-alt, #2a3041);
+  background: var(--fil-panel);
+  color: var(--fil-text);
+  border: 1px solid var(--fil-panel-alt);
   border-left: 3px solid var(--toast-color, var(--fil-muted));
   box-shadow: 0 6px 22px rgba(0, 0, 0, 0.42);
   font: 12.5px/1.45 system-ui, sans-serif;
@@ -131,13 +131,13 @@ onBeforeUnmount(() => {
   cursor: pointer;
   padding: 4px 8px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--fil-surface-2);
   color: inherit;
   border: none;
   font: inherit;
   transition: background 0.12s;
 }
-.fil-toast-action:hover { background: rgba(255, 255, 255, 0.14); }
+.fil-toast-action:hover { background: var(--fil-surface-3); }
 .fil-toast-close {
   flex: none;
   align-self: flex-start;

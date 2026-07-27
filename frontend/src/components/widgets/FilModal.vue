@@ -135,8 +135,8 @@ onBeforeUnmount(() => {
 .fil-modal-panel {
   width: 90%;
   max-height: 80vh;
-  background: var(--fil-panel, #1e1e2e);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--fil-panel);
+  border: 1px solid var(--fil-border);
   border-radius: 10px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   display: flex;
@@ -148,12 +148,12 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--fil-border);
 }
 .fil-modal-title {
   font-size: 14px;
   font-weight: 600;
-  color: var(--fil-text, rgba(255, 255, 255, 0.85));
+  color: var(--fil-text);
 }
 .fil-modal-close {
   display: inline-flex;
@@ -164,13 +164,13 @@ onBeforeUnmount(() => {
   border-radius: 6px;
   border: none;
   background: transparent;
-  color: var(--fil-muted, rgba(255, 255, 255, 0.5));
+  color: var(--fil-muted);
   cursor: pointer;
   transition: background 0.08s, color 0.08s;
 }
 .fil-modal-close:hover {
   background: rgba(255, 255, 255, 0.08);
-  color: var(--fil-text, rgba(255, 255, 255, 0.85));
+  color: var(--fil-text);
 }
 .fil-modal-body {
   flex: 1;

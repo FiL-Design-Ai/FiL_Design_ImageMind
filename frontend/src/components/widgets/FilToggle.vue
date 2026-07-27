@@ -47,13 +47,13 @@ function toggle() {
   display: grid;
   grid-template-columns: minmax(auto, max-content) minmax(60px, 1fr);
   align-items: center;
-  gap: var(--fil-node-gap, 6px);
+  gap: var(--fil-node-gap);
   width: 100%;
 }
 .fil-w-toggle-label {
   grid-column: 1;
   font-size: 11px;
-  color: var(--fil-muted, rgba(255, 255, 255, 0.55));
+  color: var(--fil-muted);
   font-family: inherit;
 }
 .fil-w-toggle.bare {
@@ -74,7 +74,7 @@ function toggle() {
   box-sizing: border-box;
   border: none;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.14);
+  background: var(--fil-surface-3);
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;

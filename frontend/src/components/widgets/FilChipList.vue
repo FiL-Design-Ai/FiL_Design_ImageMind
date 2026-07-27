@@ -78,10 +78,10 @@ function select(value: T) {
   box-sizing: border-box;
   width: 100%;
   padding: 5px 8px;
-  background: var(--fil-panel-alt, #171819);
-  border: 1px solid var(--fil-muted, #3a3d40);
+  background: var(--fil-panel-alt);
+  border: 1px solid var(--fil-border);
   border-radius: 5px;
-  color: var(--fil-text, #ddd);
+  color: var(--fil-text);
   font-family: inherit;
   font-size: 11px;
   outline: none;
@@ -105,7 +105,7 @@ function select(value: T) {
   width: 5px;
 }
 .fil-w-chip-scroll::-webkit-scrollbar-thumb {
-  background: var(--fil-muted, #555);
+  background: var(--fil-muted);
   border-radius: 3px;
 }
 .fil-w-chip-scroll::-webkit-scrollbar-track {
@@ -113,12 +113,12 @@ function select(value: T) {
 }
 .fil-w-chip {
   box-sizing: border-box;
-  background: var(--fil-panel-alt, #1d1d1d);
-  border: 1px solid var(--fil-muted, #444);
+  background: var(--fil-panel-alt);
+  border: 1px solid var(--fil-border);
   border-radius: 5px;
   padding: 6px 4px;
   font-size: 10px;
-  color: var(--fil-text, #ccc);
+  color: var(--fil-text);
   cursor: pointer;
   user-select: none;
   text-align: center;
@@ -133,11 +133,11 @@ function select(value: T) {
 }
 .fil-w-chip:hover:not(.disabled) {
   border-color: var(--fil-accent);
-  color: var(--fil-text, #fff);
+  color: var(--fil-text);
 }
 .fil-w-chip.active {
   background: var(--fil-accent);
-  color: var(--fil-accent-ink, #fff);
+  color: var(--fil-accent-ink);
   border-color: var(--fil-accent);
   font-weight: 500;
 }
@@ -152,7 +152,7 @@ function select(value: T) {
 .fil-w-chip-empty {
   padding: 8px;
   text-align: center;
-  color: var(--fil-muted, #666);
+  color: var(--fil-muted);
   font-size: 11px;
 }
 </style>
