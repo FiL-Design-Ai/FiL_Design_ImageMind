@@ -21,6 +21,50 @@
 - **`common/dataset/`** — `bucketing` (bucket math, cover-resize, center/entropy
   crop), `captioning` (prompts, normalisation, per-frame batch loop) and
   `writer` (layouts, sidecars, TOML, manifest, path sanitisation).
+- **Sixth theme, *Pixaroma*** — matches the `ComfyUI-Pixaroma` node pack's own
+  brand colors, so a graph mixing both packs reads as one system instead of
+  two. Flat panels, no glow or scanline, because that is what their editor
+  chrome looks like.
+- **Shared field widgets** — `FilTextInput` (single-line), `FilTextArea`
+  (multi-line) and `FilSeedRow` (seed readout + Random/Use last/New fixed).
+  The textarea CSS had been pasted into two components and the seed row into
+  two more, and both pairs had already drifted apart.
+
+### Changed
+- **Every palette now passes WCAG AA on its own surfaces.** Text painted on
+  the accent (active segment, primary button, active pill) was white in four
+  of the themes and measured as low as 1.54:1 — under the 4.5:1 floor for the
+  11–13px labels that use it. Each theme now uses its own darkest tone at
+  4.9–10.8:1. The muted label color failed on its own panel in three themes
+  and was raised to 5.8–6.7:1. Contrast ratios are recorded next to the
+  values in `styles/brand.ts` so the next edit can't quietly undo this.
+- **`--fil-muted` is text-only; field outlines come from `--fil-border`.** The
+  two roles shared one token, so neither could be adjusted without dragging
+  the other. Overlay surfaces (section headers, segmented troughs, toggle
+  tracks, inset fields) moved to `--fil-surface-1/2/3` and `--fil-inset`,
+  which is what lets the light theme flip their polarity.
+- **Uniform control heights** — `--fil-control-h` (30px) for text/select/number
+  fields, `--fil-control-h-lg` (34px) for seed rows and icon buttons. A stack
+  of mixed widgets used to step 30/32/34px.
+
+### Fixed
+- **Light theme was partly unreadable.** Overlay surfaces were hardcoded as
+  white at 4–16% opacity, invisible over an already-light panel; `FilSection`'s
+  hover set `color:#fff` on that light background; inset fields used
+  `rgba(0,0,0,0.35)`, putting the light theme's dark text on a dark field; and
+  `FilInfo` — which carries the Dataset Forge path preview and the "connect a
+  provider" warning — was a flat white and vanished entirely.
+- **Three CSS variables were referenced but never defined** (`--fil-success`,
+  `--fil-warning`, `--fil-text-secondary`), so five rules in `FilHelpPopup` and
+  the provider status colors silently rendered hardcoded fallbacks and ignored
+  the active theme.
+- **`🔀 Cyber Switch` now says why it blocked.** ON with nothing connected
+  returned the same silent blocker as a deliberate OFF, leaving a dead branch
+  and no explanation. OFF stays silent; ON without a signal reports it on the
+  node. This also surfaces an upstream output that never reached the cache.
+- **`🕵️ Optic Scanner` focus section** had no localized label (it fell through
+  to a raw uppercased `FOCUS` in every language) and stayed expanded on a fresh
+  node while its siblings collapsed.
 
 ## 1.0.0 (2026-07-26)
 

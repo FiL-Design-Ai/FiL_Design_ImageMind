@@ -46,7 +46,7 @@ into `frontend/dist`. It covers four areas:
 | 🧠 **LLM & vision** | Seven providers (local and cloud), 21 analysis agents, model-specific prompt profiles for Z-Image, FLUX, SDXL, QWEN, Krea 2 and Ideogram 4 |
 | 🖼️ **Image pipeline** | Tile-grid planning with real overlap maths, model upscaling, per-tile crops in pixel *and* latent space, feathered re-assembly, automatic colour correction |
 | 🎛️ **Sampling** | A full KSampler with every sampler/scheduler, passthrough sockets, built-in preview, plus HighRes-fix and Noise-Control scripts |
-| 🎨 **UI** | Every node draws a real Vue panel — five themes, full ru/en localization, compact toggles, numeric steppers, contract-driven option lists |
+| 🎨 **UI** | Every node draws a real Vue panel — six themes, full ru/en localization, compact toggles, numeric steppers, contract-driven option lists |
 
 **Design rules the pack follows:** node files stay thin (schema + orchestration) while the logic
 lives in `common/`; the widget contract in `common/contracts/` is the single source of truth and is
@@ -516,9 +516,11 @@ The **Providers** tab in the same panel manages accounts and API keys (stored in
 
 ### Themes, shortcuts, localization
 
-**Themes** (applied live, no reload): `Default`, `Cyberpunk`, `Fallout`, `Pipboy`, `FiL Green`.
+**Themes** (applied live, no reload): `Default`, `Cyberpunk`, `Fallout`, `Pipboy`, `FiL Green`,
+`Pixaroma` (matches the ComfyUI-Pixaroma pack's colors, for graphs that mix both).
 All node panels read the same CSS variables, including `--fil-accent-ink` for text on accent
-backgrounds, so a light-accent theme stays readable.
+backgrounds, so a light-accent theme stays readable. Every palette is checked against WCAG AA
+on its own surfaces — the measured ratios sit next to the values in `styles/brand.ts`.
 
 **Shortcuts:** `Shift + ?` opens the cheat sheet, `/` focuses search. Toggle them off in Settings.
 
@@ -667,7 +669,7 @@ Further reading: [architecture](docs/architecture.md) ·
 | 🧠 **LLM и зрение** | Семь провайдеров (локальные и облачные), 21 агент анализа, профили промптов под Z-Image, FLUX, SDXL, QWEN, Krea 2 и Ideogram 4 |
 | 🖼️ **Работа с изображением** | Планирование сетки тайлов с честной математикой нахлёста, апскейл моделью, реальные кропы тайлов в пиксельном *и* латентном пространстве, сборка с растушёвкой, авто-цветокоррекция |
 | 🎛️ **Сэмплинг** | Полноценный KSampler со всеми сэмплерами/планировщиками, passthrough-сокетами и встроенным превью, плюс скрипты HighRes Fix и Noise Control |
-| 🎨 **Интерфейс** | У каждого узла настоящая Vue-панель — пять тем, полная ru/en локализация, компактные тумблеры, степперы у числовых полей, списки опций из контракта |
+| 🎨 **Интерфейс** | У каждого узла настоящая Vue-панель — шесть тем, полная ru/en локализация, компактные тумблеры, степперы у числовых полей, списки опций из контракта |
 
 **Правила, которым следует пакет:** файлы нод тонкие (схема + оркестрация), логика живёт в
 `common/`; контракт виджетов в `common/contracts/` — единственный источник истины, из него
@@ -1136,8 +1138,11 @@ lanczos это RGB-специфичная интерполяция, в лате�
 ### Темы, горячие клавиши, локализация
 
 **Темы** (применяются на лету, без перезагрузки): `Default`, `Cyberpunk`, `Fallout`, `Pipboy`,
-`FiL Green`. Все панели читают одни и те же CSS-переменные, включая `--fil-accent-ink` для текста
-на акцентном фоне — поэтому тема со светлым акцентом остаётся читаемой.
+`FiL Green`, `Pixaroma` (повторяет цвета пака ComfyUI-Pixaroma — для графов, где смешаны оба).
+Все панели читают одни и те же CSS-переменные, включая `--fil-accent-ink` для текста
+на акцентном фоне — поэтому тема со светлым акцентом остаётся читаемой. Каждая палитра проверена
+по WCAG AA на своих же поверхностях, измеренные коэффициенты лежат рядом со значениями
+в `styles/brand.ts`.
 
 **Горячие клавиши:** `Shift + ?` — шпаргалка, `/` — фокус в поиск. Отключаются в настройках.
 

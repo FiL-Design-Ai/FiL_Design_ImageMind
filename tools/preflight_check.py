@@ -20,6 +20,7 @@ EXPECTED = {
     "FiLStyleMixer",
     "FiLColorWizard",
     "FiLSignalSwitch",
+    "FiLDatasetForge",
 }
 NODE_FILES = (
     "node_seed.py",
@@ -36,6 +37,7 @@ NODE_FILES = (
     "node_style_mixer.py",
     "node_color_wizard.py",
     "node_switch.py",
+    "node_dataset.py",
 )
 
 
