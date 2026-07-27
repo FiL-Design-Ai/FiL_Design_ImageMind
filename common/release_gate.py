@@ -1,4 +1,4 @@
-"""Release staging gate for the 1.0.0 hardening pass.
+"""Release staging gate for the hardening pass — nodes join the ComfyUI menu only after clearing the checklist.
 
 During hardening we re-introduce nodes one at a time. Only node-ids listed in
 ``RELEASE_NODES`` are registered with ComfyUI; every other node is hidden from
