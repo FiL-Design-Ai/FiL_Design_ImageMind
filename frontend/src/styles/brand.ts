@@ -182,9 +182,9 @@ function resolvePalette(): FilPalette {
  * `--fil-border` is emitted here, alongside the palette it derives from, rather
  * than once on `:root`. A `var()` inside a custom property is substituted where
  * that property is *declared*, so a lone `:root` definition would freeze the
- * default theme's muted into the border and never follow `.comfy-theme-light`
- * if ComfyUI ever moves that class off the document root. Deriving from the
- * literal keeps every palette block self-contained.
+ * default theme's muted into the border and keep it there through every later
+ * palette swap. Deriving from the literal keeps each palette block
+ * self-contained, so a re-emit is all a theme change needs.
  */
 function paletteCssVars(p: FilPalette): string {
   return `--fil-accent:${p.accent};--fil-accent-ink:${p.accentInk};--fil-accent-text:color-mix(in srgb,${p.accent} 65%,${p.text});--fil-panel:${p.panel};--fil-panel-alt:${p.panelAlt};--fil-text:${p.text};--fil-muted:${p.muted};--fil-border:color-mix(in srgb,${p.muted} 55%,transparent);--fil-danger:${p.danger};--fil-ok:${p.ok};`;
