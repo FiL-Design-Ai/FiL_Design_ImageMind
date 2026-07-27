@@ -10,9 +10,7 @@
 
 [English](#english) · [Русский](#русский)
 
-<!-- SCREENSHOT — hero shot of a full graph.
-     Drop the file at docs/images/hero.png and replace this comment with:
-     ![FiL Design ImageMind](docs/images/hero.png) -->
+![FiL Design ImageMind](docs/images/hero.png)
 
 ---
 
@@ -548,18 +546,37 @@ The pack registers these routes on the ComfyUI server (prefix from `common/brand
 
 ### Screenshots
 
-<!-- SCREENSHOTS — drop files into docs/images/ and swap each placeholder for the image line shown.
-     Suggested set (any subset is fine):
-       docs/images/optic-scanner.png    ![Optic Scanner](docs/images/optic-scanner.png)
-       docs/images/upscaler.png         ![Upscaler Advanced](docs/images/upscaler.png)
-       docs/images/ksampler.png         ![KSampler](docs/images/ksampler.png)
-       docs/images/style-mixer.png      ![Style Mixer](docs/images/style-mixer.png)
-       docs/images/color-wizard.png     ![Color Wizard](docs/images/color-wizard.png)
-       docs/images/themes.png           ![Themes](docs/images/themes.png)
-       docs/images/settings.png         ![Settings](docs/images/settings.png)
--->
+**LLM**
 
-_Screenshots are being prepared — the panels shown in older images predate the 1.0.0 UI pass._
+| Provider Loader | Optic Scanner | Image Decomposer |
+|---|---|---|
+| ![Provider Loader](docs/images/provider-loader.png) | ![Optic Scanner](docs/images/optic-scanner.png) | ![Image Decomposer](docs/images/image-decomposer.png) |
+
+**Styling and analysis**
+
+| Style Mixer | Color Wizard | LoRA Dataset Forge |
+|---|---|---|
+| ![Style Mixer](docs/images/style-mixer.png) | ![Color Wizard](docs/images/color-wizard.png) | ![LoRA Dataset Forge](docs/images/dataset-forge.png) |
+
+**Sampling** — Noise Control feeds HighRes Fix, which feeds the sampler's `script` socket.
+
+![Noise Control, HighRes Fix and KSampler](docs/images/ksampler.png)
+
+**Upscaling**
+
+| Upscaler Advanced | Upscaler Simple | Tile Assembly |
+|---|---|---|
+| ![Upscaler Advanced](docs/images/upscaler.png) | ![Upscaler Simple](docs/images/upscaler-simple.png) | ![Tile Assembly](docs/images/tile-assembly.png) |
+
+**Values and tools**
+
+| Seed | Cyber Switch | Cleaner |
+|---|---|---|
+| ![Seed](docs/images/seed.png) | ![Cyber Switch](docs/images/cyber-switch.png) | ![Cleaner](docs/images/cleaner.png) |
+
+**Provider settings** — keys are stored in `data/auth.json` and shown redacted.
+
+![Provider settings](docs/images/settings.png)
 
 ### Troubleshooting
 
@@ -657,6 +674,7 @@ Further reading: [architecture](docs/architecture.md) ·
 - [Настройки](#настройки)
 - [Темы, горячие клавиши, локализация](#темы-горячие-клавиши-локализация)
 - [HTTP API](#http-api-1)
+- [Скриншоты](#скриншоты)
 - [Решение проблем](#решение-проблем)
 - [Разработка](#разработка)
 - [Структура проекта](#структура-проекта)
@@ -1171,6 +1189,40 @@ lanczos это RGB-специфичная интерполяция, в лате�
 | POST | `/fil_design_imagemind/provider_probe` | тестовый round-trip к провайдеру/модели |
 | GET | `/fil_design_imagemind/locale/{lang}` | бандл локали |
 | GET | `/fil_design_imagemind/node_contracts` | контракты виджетов, из которых рисуется фронтенд |
+
+### Скриншоты
+
+**LLM**
+
+| Provider Loader | Optic Scanner | Image Decomposer |
+|---|---|---|
+| ![Provider Loader](docs/images/provider-loader.png) | ![Optic Scanner](docs/images/optic-scanner.png) | ![Image Decomposer](docs/images/image-decomposer.png) |
+
+**Стилизация и анализ**
+
+| Style Mixer | Color Wizard | LoRA Dataset Forge |
+|---|---|---|
+| ![Style Mixer](docs/images/style-mixer.png) | ![Color Wizard](docs/images/color-wizard.png) | ![LoRA Dataset Forge](docs/images/dataset-forge.png) |
+
+**Сэмплинг** — Noise Control отдаёт скрипт в HighRes Fix, тот — в сокет `script` сэмплера.
+
+![Noise Control, HighRes Fix и KSampler](docs/images/ksampler.png)
+
+**Апскейл**
+
+| Upscaler Advanced | Upscaler Simple | Tile Assembly |
+|---|---|---|
+| ![Upscaler Advanced](docs/images/upscaler.png) | ![Upscaler Simple](docs/images/upscaler-simple.png) | ![Tile Assembly](docs/images/tile-assembly.png) |
+
+**Значения и утилиты**
+
+| Seed | Cyber Switch | Cleaner |
+|---|---|---|
+| ![Seed](docs/images/seed.png) | ![Cyber Switch](docs/images/cyber-switch.png) | ![Cleaner](docs/images/cleaner.png) |
+
+**Настройки провайдеров** — ключи хранятся в `data/auth.json` и показываются скрытыми.
+
+![Настройки провайдеров](docs/images/settings.png)
 
 ### Решение проблем
 

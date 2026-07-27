@@ -41,6 +41,7 @@ docs/_config.yml
 docs/architecture.md
 docs/auth.md
 docs/getting-started.md
+docs/images/
 docs/index.html
 docs/prompting.md
 docs/styles.md
