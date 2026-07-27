@@ -1,6 +1,6 @@
 # Model Prompting Guide - Complete Reference
 
-> **Historical snapshot — last updated 2026-07-08.** This is a research/reference document, not the runtime contract. The canonical, code-synced source of truth is [prompting.md](prompting.md); the implementation lives in `common/model_prompt_adapters.py`. Re-verified against fresh official sources on 2026-07-10 — no drift found here beyond what's noted in [MODEL_PROMPTING_OFFICIAL.md](MODEL_PROMPTING_OFFICIAL.md).
+> **Historical snapshot — last updated 2026-07-08.** This is a research/reference document, not the runtime contract. The canonical, code-synced source of truth is [prompting.md](prompting.md); the implementation lives in `common/model_prompt_adapters.py`. Re-verified against fresh official sources on 2026-07-10 — each model section below includes an "Official guidance" subsection with the vendor-sourced correction and its citation.
 
 This guide covers prompting recommendations for each of the 7 supported image generation models in Optic Scanner.
 
@@ -111,6 +111,18 @@ User input → Z-Image Turbo → API
 
 ### Overview
 Specialized 7-field JSON schema for precise composition control.
+
+### Official guidance
+
+Per Black Forest Labs' own prompting guide:
+
+- **No negative prompts.** FLUX does not support them — describe what you want, never what to avoid. Negative instructions ("no blur", "avoid dark colors") are silently ignored.
+- **Structured prompting unlocks the model's power**: lead with the subject, use hex codes (`#RRGGBB`) for exact colors, use JSON for complex multi-element scenes, and follow a hierarchical information architecture.
+- **Up to 10 reference images** are supported in a single generation.
+- Camera specifications and detailed lighting descriptions both improve photorealism.
+- Best plain-text structure: `[Subject], [detailed description], shot with [camera specs], [lighting description], [style/aesthetic], [colors in hex or names]`.
+
+Source: [FLUX Prompting Guide — Black Forest Labs](https://docs.bfl.ml/guides/prompting_summary).
 
 ### When to Use
 - Need camera/lens specifications
@@ -334,6 +346,18 @@ Camera: 35mm lens, f/2.0, eye level
 ### Overview
 Forces semantic restructuring of all prompts for maximum clarity.
 
+### Official guidance
+
+Per Stable Diffusion Art's SDXL guide:
+
+- **Not SD1.5 — tag-based prompts don't work.** `"cyberpunk, neon, android, city, night, photorealistic"` underperforms `"A cyberpunk android standing in a neon city at night"`. SDXL understands natural language; write full sentences, either as descriptive prose or as a Subject/Action/Location/Aesthetic breakdown.
+- **Negative prompts should stay minimal**: major style conflicts (`cartoon`, when aiming for photorealistic) and specific unwanted elements (`watermark`, `text`). Avoid vague terms like "ugly" or "bad quality".
+- **Keyword weights are supported**: `(word:1.1)` = +10% emphasis, `(word:1.2)` = +20%, `(word:1.5)` = +50%.
+- **Resolution**: 1024×1024 is the trained sweet spot; 768×1024 / 1024×768 are flexible; unusual values like 900×900 reduce quality.
+- **Length**: 2-4 sentences is the sweet spot — longer adds detail but risks confusion, shorter is faster but less controllable.
+
+Source: [SDXL Best Practices — Stable Diffusion Art](https://stable-diffusion-art.com/sdxl-prompts/).
+
 ### When to Use
 - Complex scenes that need decomposition
 - Semantic clarity is priority
@@ -459,6 +483,20 @@ COLOR: #FFD700 #8B4513 #FFFFFF
 
 ### Overview
 Like SDXL but with additional quality enhancements and validation.
+
+### Official guidance
+
+An earlier Qwen Image guide recommended compressing prompts to 1-3 sentences. That recommendation is superseded: current 2026 vendor/official guides for Qwen Image 2512 (fal.ai, Civitai, apiyi.com) instead recommend **structured sections** — Subject / Pose / Clothing / Camera / Environment / Lighting / Mood — using the full available token budget rather than compressing. This matches what `docs/prompting.md` and `common/model_prompt_adapters.py` already implement (labeled Scene/Subject/Composition/... clauses).
+
+What still holds from official guidance:
+
+- **Quote on-image text.** `"HELLO WORLD" sign with blue neon` measurably beats the unquoted form (65% → 96% text accuracy in vendor testing).
+- **Semantic/categorized structure beats narrative-only prompts** by roughly 30% precision in vendor testing (`Subject: ... / Environment: ... / Lighting: ... / Mood: ...`).
+- **Negative prompts work** and give a measured ~15% satisfaction improvement when used properly (e.g. `blurry, low quality, distorted, deformed, oversaturated, watermark`).
+- **Golden config**: CFG scale 4.5, 50 steps, for the best quality/speed tradeoff. For precision work (product shots, text-heavy scenes): CFG 5-7, 50-75 steps.
+- **Anti-patterns**: contradictory styles ("photorealistic oil painting" — pick one), vague descriptors ("beautiful", "amazing" — no signal), and needlessly long prompts that waste token budget without adding signal.
+
+Source: [Qwen Image 2512 Prompt Practical Guide](https://help.apiyi.com/en/qwen-image-2512-prompt-guide-test-cases-en.html).
 
 ### When to Use
 - Quality is more important than speed
@@ -601,6 +639,22 @@ COMPOSITION: Centered around main control console
 ### Overview
 Minimal processing for natural, conversational prompting.
 
+### Official guidance
+
+Per Krea AI's own guide, exploratory prompting is the recommended default approach, not just a fallback:
+
+1. Start intentionally vague.
+2. Use the first generations as research.
+3. Find a direction you like, then narrow from there — work like an art director: start broad, home in.
+
+Word count guidelines: **5-20 words** for exploration (intentionally vague), **30-80 words** for controlled generation, **80-140 words** for complex scenes. Add detail only if needed — basic subject + light cue + mood word first, technical steering words second, composition/style/references only if still needed. Technical words that reliably steer output: "shallow depth of field", "golden hour", "shot on 35mm", "bokeh background", "soft natural lighting".
+
+Krea 2's **style transfer** is a distinguishing feature: reference images can transfer palette, lines (composition), texture, lighting, or composition onto a new scene.
+
+Other carried-over rules: put on-image text in quotes (`"HELLO" sign in neon`, not `HELLO sign in neon`); prefer natural-language clauses over comma-separated tags; avoid over-engineering — too many instructions add noise rather than control.
+
+Source: [Krea 2 Prompting Guide](https://fal.ai/learn/tools/krea-2-prompting-guide).
+
 ### When to Use
 - You prefer natural language prompts
 - Speed is critical (fastest option)
@@ -700,10 +754,9 @@ Optimized for Ideogram 4's native API (plain-text mode).
 - Native API integration
 
 ### Note on JSON Schema
-- **Legacy**: Ideogram once used specialized JSON
-- **Current**: Public API uses plain-text (more flexible)
-- **Support**: Full JSON schema available if needed
-- **Recommendation**: Use plain-text mode for simplicity
+- **Default (text mode)**: targets the hosted API (`docs.ideogram.ai`), which runs Magic Prompt server-side to expand plain text — more flexible, recommended for simplicity.
+- **JSON mode** (`response_format="json"`): produces the canonical structured caption object (below), required — not just optional — for the open-weights `ideogram-oss/ideogram4` model. That model was trained exclusively on structured JSON captions; its own docs state that plain text sent directly to the raw model will not work and will likely trigger a safety warning.
+- **Recommendation**: use plain-text mode for the hosted API; use JSON mode when the downstream target is the raw/self-hosted model.
 
 ### Text Mode
 Optimizes prompts for Ideogram 4.
@@ -748,33 +801,116 @@ Hex colors work in plain-text mode.
 Neon colors: magenta (#FF00FF), cyan (#00FFFF), deep space blue (#0A0E27)
 ```
 
-### JSON Mode
-Generates generic JSON schema (not Ideogram-specific).
-
-```json
-{
-  "prompt": "A neon cyberpunk scene with chrome androids..."
-}
-```
-
 ### Performance
 - ~3ms per prompt
 - Efficient plain-text optimization
 - Good for real-time use
 
-### Advanced: Enabling Legacy JSON Mode
+### JSON Mode: Canonical Caption Schema
 
-If you need Ideogram's canonical JSON schema (rarely used):
+Setting `response_format="json"` (with `model_type="Ideogram 4"`) produces the canonical Ideogram 4 JSON caption via `adapt_ideogram4_caption`, not a generic passthrough wrapper:
 
-```python
-# Set up for JSON prompting
-result = convert_to_dit_format(
-    prompt,
-    "Ideogram 4",
-    response_format="json",
-    # Additional params would enable legacy JSON
-)
+```json
+{
+  "high_level_description": "50-word max scene summary",
+  "style_description": {
+    "aesthetics": "mood and style terms",
+    "lighting": "lighting description",
+    "photo": "photography technique (if photo_style selected)",
+    "medium": "photograph or illustration",
+    "color_palette": ["#RRGGBB", "#RRGGBB", ...]
+  },
+  "compositional_deconstruction": {
+    "background": "environmental context and spatial setting",
+    "elements": [
+      {
+        "type": "obj",
+        "desc": "element description (60 words max)",
+        "bbox": [y1, x1, y2, x2],
+        "color_palette": ["#RRGGBB", ...]
+      },
+      {
+        "type": "text",
+        "text": "visible text in the composition",
+        "desc": "description of text element",
+        "bbox": [y1, x1, y2, x2],
+        "color_palette": ["#RRGGBB", ...]
+      }
+    ]
+  }
+}
 ```
+
+#### Field details
+
+- **`high_level_description`** — string, 50 words max, overall scene summary. Example: `"A cyberpunk android with neon implants standing in a rain-soaked megacity alley at night"`.
+- **`style_description`** — `aesthetics` (mood/style/tone), `lighting` (sources, shadows, quality), `photo` (photo_style only — technique and optics), `medium` (must be `"photograph"` or `"illustration"`), `color_palette` (see below).
+- **`compositional_deconstruction`** — `background` (environmental context, not an element) plus an `elements` array. Each element has `type` (`"obj"` or `"text"`), `desc` (60 words max), `text` (text type only — the actual visible text), optional `bbox`, optional `color_palette`.
+
+#### Bounding box (bbox) format
+
+- Format: `[y1, x1, y2, x2]`, all integers in `[0, 1000]`, where `(0,0)` is top-left and `(1000,1000)` is bottom-right.
+- Requirements: `y1 < y2`, `x1 < x2`, minimum size 2×2 (`y2-y1 >= 2`, `x2-x1 >= 2`).
+- Examples: full image `[0, 0, 1000, 1000]`; top-left quadrant `[0, 0, 500, 500]`; center region `[250, 250, 750, 750]`; left half `[0, 0, 1000, 500]`.
+
+#### Color palette format
+
+- Only valid format is `#RRGGBB` (case-insensitive input, normalized to uppercase). `red`, `#RGB`, `#RRGGBBAA`, `rgb(255,0,0)`, and non-hex characters are all silently rejected.
+- Limits: 16 colors max in `style_description.color_palette`, 5 colors max per `element.color_palette`.
+- Duplicate colors (case-insensitive) are deduplicated; first occurrence and order are preserved.
+
+#### Using JSON mode in Optic Scanner
+
+1. Set `response_format` to `"json"`.
+2. Select `model_type: "Ideogram 4"`.
+3. Choose a `photo_style` or `art_style`.
+4. Provide either an image (for analysis) or a prompt text (for expansion).
+
+The node's three outputs stay the same as any other run: `prompt` (the structured JSON string), `metadata_json`, `metadata_dict`.
+
+#### Best practices for JSON mode
+
+- **Semantic decomposition**: break complex scenes into logical elements (foreground character, background architecture, a `"text"` element for a sign) rather than one monolithic description.
+- **bbox precision only where it matters**: reserve bounding boxes for elements whose position you actually want to control.
+- **Color consistency**: pick palettes that reinforce the style — e.g. cyberpunk uses neon magenta/cyan/red plus dark neutrals; vintage uses warm/faded/sepia tones.
+- **Descriptive precision**: element `desc` fields should carry material, texture, and lighting detail, not just object names.
+- **Quoted literals become text elements automatically**: quoted text in the source prompt (e.g. `A sign reading 'HELLO'`) is injected as a `"text"` element in `elements`.
+
+#### Validation checklist
+
+- Top-level keys match `high_level_description`, `style_description`, `compositional_deconstruction`.
+- All bbox values are integers in `[0, 1000]` with `y1 < y2` and `x1 < x2`.
+- All colors are `#RRGGBB` uppercase; style palette ≤16 colors, element palettes ≤5 colors each.
+- Element `type` is `"obj"` or `"text"` only; text elements have a non-empty `text` field.
+- All invalid data is silently dropped (fail-open) rather than raising — bbox out of range, inverted bbox, and bad hex colors are the most common causes of a color/element silently disappearing.
+
+#### Example: cyberpunk android
+
+```json
+{
+  "high_level_description": "A sleek chrome android with neon implants in a rain-soaked cyberpunk megacity at night",
+  "style_description": {
+    "aesthetics": "neon, futuristic, dystopian",
+    "lighting": "neon glow with deep shadows",
+    "photo": "sharp, hyper-detailed, professional",
+    "medium": "photograph",
+    "color_palette": ["#FF00FF", "#00FFFF", "#FF0000", "#0A0E27"]
+  },
+  "compositional_deconstruction": {
+    "background": "rain-soaked neon-lit megacity streets with holographic signs",
+    "elements": [
+      {
+        "type": "obj",
+        "desc": "chrome android head with glowing LED eyes and neon circuitry",
+        "bbox": [150, 250, 750, 850],
+        "color_palette": ["#FF00FF", "#00FFFF", "#C0C0C0"]
+      }
+    ]
+  }
+}
+```
+
+Functions involved: `adapt_ideogram4_caption()`, `_normalize_bbox()`, `_normalize_palette()`, `_normalize_element()`.
 
 ---
 
@@ -894,6 +1030,17 @@ Choose your model based on:
 5. **No processing** → Auto/None
 
 All models are production-ready and handle edge cases gracefully.
+
+---
+
+## Sources
+
+Vendor documentation cited in the "Official guidance" subsections above:
+
+- [FLUX Prompting Guide — Black Forest Labs](https://docs.bfl.ml/guides/prompting_summary)
+- [Qwen Image 2512 Prompt Practical Guide](https://help.apiyi.com/en/qwen-image-2512-prompt-guide-test-cases-en.html)
+- [Krea 2 Prompting Guide](https://fal.ai/learn/tools/krea-2-prompting-guide)
+- [SDXL Best Practices — Stable Diffusion Art](https://stable-diffusion-art.com/sdxl-prompts/)
 
 ---
 

@@ -486,10 +486,10 @@ is an RGB-specific interpolation and does not belong in latent space.
   composes with any agent instead of replacing it.
 - **Model profiles** rewrite the output for the target generator: Z-Image Turbo, FLUX, SDXL, QWEN,
   Krea 2, Ideogram 4. Rules live in `common/model_prompt_adapters.py`; the reasoning and sources are
-  in [`docs/MODEL_PROMPTING_GUIDE.md`](docs/MODEL_PROMPTING_GUIDE.md) and
-  [`docs/MODEL_PROMPTING_OFFICIAL.md`](docs/MODEL_PROMPTING_OFFICIAL.md).
-- **Ideogram 4 JSON schema** activates only when `response_format="json"` —
-  [`docs/IDEOGRAM4_JSON_PROMPTING.md`](docs/IDEOGRAM4_JSON_PROMPTING.md).
+  in [`docs/MODEL_PROMPTING_GUIDE.md`](docs/MODEL_PROMPTING_GUIDE.md), including an "Official guidance"
+  subsection per model.
+- **Ideogram 4 JSON schema** activates only when `response_format="json"` — see
+  [`docs/MODEL_PROMPTING_GUIDE.md#7-ideogram-4---plain-text-optimization`](docs/MODEL_PROMPTING_GUIDE.md#7-ideogram-4---plain-text-optimization).
 - **Prompt modes:** `Hybrid` is a single enriched call; `Two-Stage` analyses first, then writes the
   prompt from that analysis, falling back to stage 1 if stage 2 comes back too short; `Auto` picks
   between them.
@@ -624,7 +624,7 @@ FiL_Design_ImageMind/
 ```
 
 Further reading: [architecture](docs/architecture.md) ·
-[scanner internals](docs/scanner_architecture.md) · [getting started](docs/getting-started.md) ·
+[scanner internals](docs/architecture.md#optic-scanner-architecture) · [getting started](docs/getting-started.md) ·
 [auth](docs/auth.md) · [prompting](docs/prompting.md) · [styles](docs/styles.md) ·
 [eta guide](docs/ETA_GUIDE.md) · [changelog](CHANGELOG.md)
 
@@ -1107,10 +1107,10 @@ lanczos это RGB-специфичная интерполяция, в лате�
   агентом, а не заменяет его.
 - **Профили моделей** переписывают вывод под целевой генератор: Z-Image Turbo, FLUX, SDXL, QWEN,
   Krea 2, Ideogram 4. Правила — в `common/model_prompt_adapters.py`, обоснование и источники — в
-  [`docs/MODEL_PROMPTING_GUIDE.md`](docs/MODEL_PROMPTING_GUIDE.md) и
-  [`docs/MODEL_PROMPTING_OFFICIAL.md`](docs/MODEL_PROMPTING_OFFICIAL.md).
-- **JSON-схема Ideogram 4** включается только при `response_format="json"` —
-  [`docs/IDEOGRAM4_JSON_PROMPTING.md`](docs/IDEOGRAM4_JSON_PROMPTING.md).
+  [`docs/MODEL_PROMPTING_GUIDE.md`](docs/MODEL_PROMPTING_GUIDE.md), включая раздел "Official guidance"
+  для каждой модели.
+- **JSON-схема Ideogram 4** включается только при `response_format="json"` — см.
+  [`docs/MODEL_PROMPTING_GUIDE.md#7-ideogram-4---plain-text-optimization`](docs/MODEL_PROMPTING_GUIDE.md#7-ideogram-4---plain-text-optimization).
 - **Режимы промпта:** `Hybrid` — один обогащённый вызов; `Two-Stage` — сначала анализ, затем промпт
   по этому анализу, с откатом на первую стадию, если вторая вернула слишком короткий текст; `Auto`
   выбирает между ними.
@@ -1230,7 +1230,7 @@ FiL_Design_ImageMind/
 └── tools/                 # preflight и скан конфликтов
 ```
 
-Дальше: [архитектура](docs/architecture.md) · [внутренности сканера](docs/scanner_architecture.md) ·
+Дальше: [архитектура](docs/architecture.md) · [внутренности сканера](docs/architecture.md#optic-scanner-architecture) ·
 [getting started](docs/getting-started.md) · [авторизация](docs/auth.md) ·
 [промптинг](docs/prompting.md) · [стили](docs/styles.md) · [гайд по eta](docs/ETA_GUIDE.md) ·
 [changelog](CHANGELOG.md)

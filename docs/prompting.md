@@ -295,7 +295,7 @@ Runtime diagnostics for Two-Stage are derived from the exact Stage 1 and Stage 2
 - Ideogram's own Magic Prompt feature (server-side) handles further enhancement; the tool does not build a structured caption object
 - literal on-image text is put in quotes
 - supports a real `negative_prompt` field (standard negative-prompt policy, not positive-constraint reframing)
-- this text-mode default targets the hosted Ideogram API (`docs.ideogram.ai`), where Magic Prompt runs server-side on plain text. The open-weights `ideogram-oss/ideogram4` model was trained exclusively on structured JSON captions — passing it plain text directly is documented to fail/trigger a safety warning. If the downstream consumer is the raw self-hosted model rather than the hosted API, use `response_format: json` (see [IDEOGRAM4_JSON_PROMPTING.md](IDEOGRAM4_JSON_PROMPTING.md)), which the adapter already supports via `adapt_ideogram4_caption`.
+- this text-mode default targets the hosted Ideogram API (`docs.ideogram.ai`), where Magic Prompt runs server-side on plain text. The open-weights `ideogram-oss/ideogram4` model was trained exclusively on structured JSON captions — passing it plain text directly is documented to fail/trigger a safety warning. If the downstream consumer is the raw self-hosted model rather than the hosted API, use `response_format: json` (see [MODEL_PROMPTING_GUIDE.md](MODEL_PROMPTING_GUIDE.md#7-ideogram-4---plain-text-optimization)), which the adapter already supports via `adapt_ideogram4_caption`.
 
 ### Z-Image Turbo
 
