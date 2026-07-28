@@ -5,6 +5,14 @@ from unittest.mock import patch
 from FiL_Design_ImageMind.common.logic import StyleManager
 from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner
 
+from executor_harness import as_the_executor_calls_it
+
+# The scanner reports per-image progress through `cls.hidden.unique_id`,
+# which only the clone the executor prepares carries — calling
+# `FiLOpticScanner.execute()` straight from a test does not have it.
+# See tests/executor_harness.py.
+_execute = as_the_executor_calls_it(FiLOpticScanner)
+
 
 def test_style_manager_resolves_multiple_styles():
     sm = StyleManager()
@@ -28,7 +36,7 @@ def test_optic_scanner_execute_with_multiple_styles(mock_generate):
         "max_tokens": 1024,
     }
     
-    out = FiLOpticScanner.execute(
+    out = _execute(
         config=config,
         prompt="A futuristic street scene",
         photo_style="📷 КАМЕРЫ/📷 Disposable 90s | 📷 КАМЕРЫ/📸 Polaroid 600",

@@ -5,6 +5,14 @@ import requests
 from FiL_Design_ImageMind.common.data import get_visible_style_keys
 from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner
 
+from executor_harness import as_the_executor_calls_it
+
+# The scanner reports per-image progress through `cls.hidden.unique_id`,
+# which only the clone the executor prepares carries — calling
+# `FiLOpticScanner.execute()` straight from a test does not have it.
+# See tests/executor_harness.py.
+_execute = as_the_executor_calls_it(FiLOpticScanner)
+
 PHOTO_STYLE = get_visible_style_keys("photo_style")[0]
 
 
@@ -22,7 +30,7 @@ def test_stage1_timeout_falls_back_to_hybrid(stub_scanner_generate):
         return "a serene mountain lake, cinematic"
 
     stub_scanner_generate(fake_generate)
-    result, meta_json, meta_dict = FiLOpticScanner.execute(
+    result, meta_json, meta_dict = _execute(
         config=_basic_config(),
         agent="None",
         image=None,
@@ -47,7 +55,7 @@ def test_stage2_timeout_falls_back_to_hybrid(stub_scanner_generate):
         return "styled hybrid result"
 
     stub_scanner_generate(fake_generate)
-    result, meta_json, meta_dict = FiLOpticScanner.execute(
+    result, meta_json, meta_dict = _execute(
         config=_basic_config(),
         agent="None",
         image=None,
@@ -70,7 +78,7 @@ def test_stage2_empty_returns_stage1(stub_scanner_generate):
         return "   "
 
     stub_scanner_generate(fake_generate)
-    result, meta_json, meta_dict = FiLOpticScanner.execute(
+    result, meta_json, meta_dict = _execute(
         config=_basic_config(),
         agent="None",
         image=None,
@@ -91,7 +99,7 @@ def test_non_timeout_error_does_not_fallback(stub_scanner_generate):
         raise requests.exceptions.HTTPError("400 bad request")
 
     stub_scanner_generate(fake_generate)
-    result, meta_json, meta_dict = FiLOpticScanner.execute(
+    result, meta_json, meta_dict = _execute(
         config=_basic_config(),
         agent="None",
         image=None,
@@ -113,7 +121,7 @@ def test_hybrid_mode_no_fallback_logic(stub_scanner_generate):
         return "single hybrid result"
 
     stub_scanner_generate(fake_generate)
-    result, _meta_json, meta_dict = FiLOpticScanner.execute(
+    result, _meta_json, meta_dict = _execute(
         config=_basic_config(),
         agent="None",
         image=None,

@@ -7,9 +7,16 @@ import json
 import pytest
 import torch
 
+from executor_harness import as_the_executor_calls_it
+
 from FiL_Design_ImageMind.common.dataset import writer
 from FiL_Design_ImageMind.nodes import node_dataset
 from FiL_Design_ImageMind.nodes.node_dataset import FiLDatasetForge
+
+# The node reads `cls.hidden.unique_id` to report captioning progress, which
+# only exists on the clone the executor prepares. Calling `FiLDatasetForge
+# .execute()` directly would not have it — see the harness docstring.
+_execute = as_the_executor_calls_it(FiLDatasetForge)
 
 CONFIG = {"provider": "ollama", "model": "qwen3-vl", "max_image_side": 512, "rate_limit_ms": 0}
 
@@ -63,7 +70,7 @@ def test_writes_bucketed_pairs_toml_and_manifest(local_root, stub_client):
     stub_client(["red car at night", "blue car in fog", "green car in snow"])
     image = _stack([(1024, 1024)] * 3)
 
-    preview, report, dataset_path, manifest = FiLDatasetForge.execute(
+    preview, report, dataset_path, manifest = _execute(
         image=image, config=CONFIG, dataset_name="test_ds",
         trigger_word="ohwx", class_token="car", base_resolution="512", repeats=10,
     )
@@ -86,7 +93,7 @@ def test_mixed_aspects_land_in_different_buckets(local_root, stub_client):
     stub_client()
     written_sizes = []
     for size in [(1024, 1024), (1920, 1080), (1080, 1920)]:
-        _, _, _, manifest = FiLDatasetForge.execute(
+        _, _, _, manifest = _execute(
             image=_stack([size]), config=CONFIG, dataset_name="mixed",
             base_resolution="512", trigger_word="ohwx",
         )
@@ -99,7 +106,7 @@ def test_mixed_aspects_land_in_different_buckets(local_root, stub_client):
 
 def test_dry_run_reports_the_plan_without_writing_anything(local_root, stub_client):
     stub_client()
-    _, report, _, manifest = FiLDatasetForge.execute(
+    _, report, _, manifest = _execute(
         image=_stack([(768, 768)] * 2), config=CONFIG, dataset_name="planned",
         base_resolution="512", dry_run=True,
     )
@@ -112,7 +119,7 @@ def test_dry_run_reports_the_plan_without_writing_anything(local_root, stub_clie
 
 def test_manual_captions_skip_the_llm_entirely(local_root, stub_client):
     client = stub_client()
-    _, _, _, manifest = FiLDatasetForge.execute(
+    _, _, _, manifest = _execute(
         image=_stack([(512, 512)] * 2), config=CONFIG, dataset_name="manual_ds",
         captions="first shot\n\n---\n\nsecond shot", trigger_word="ohwx",
         base_resolution="512", layout="flat",
@@ -124,7 +131,7 @@ def test_manual_captions_skip_the_llm_entirely(local_root, stub_client):
 
 
 def test_caption_mode_none_needs_no_provider_at_all(local_root):
-    _, _, _, manifest = FiLDatasetForge.execute(
+    _, _, _, manifest = _execute(
         image=_stack([(512, 512)]), dataset_name="trigger_only", caption_mode="none",
         trigger_word="ohwx", class_token="woman", base_resolution="512", layout="flat",
     )
@@ -136,7 +143,7 @@ def test_caption_mode_none_needs_no_provider_at_all(local_root):
 def test_append_continues_numbering_across_runs(local_root, stub_client):
     stub_client()
     for _ in range(2):
-        FiLDatasetForge.execute(
+        _execute(
             image=_stack([(512, 512)]), config=CONFIG, dataset_name="grow",
             base_resolution="512", layout="flat", write_mode="append",
         )
@@ -146,9 +153,9 @@ def test_append_continues_numbering_across_runs(local_root, stub_client):
 def test_append_manifest_describes_the_whole_dataset_not_just_the_last_batch(local_root, stub_client):
     stub_client()
     kwargs = dict(config=CONFIG, dataset_name="cumulative", base_resolution="512", layout="flat")
-    FiLDatasetForge.execute(image=_stack([(512, 512)] * 2), **kwargs)
+    _execute(image=_stack([(512, 512)] * 2), **kwargs)
 
-    _, report, _, manifest = FiLDatasetForge.execute(image=_stack([(512, 512)]), **kwargs)
+    _, report, _, manifest = _execute(image=_stack([(512, 512)]), **kwargs)
 
     assert manifest["image_count"] == 3
     assert [item["file"] for item in manifest["items"]] == ["00001.png", "00002.png", "00003.png"]
@@ -161,9 +168,9 @@ def test_append_manifest_describes_the_whole_dataset_not_just_the_last_batch(loc
 def test_overwrite_manifest_forgets_the_deleted_run(local_root, stub_client):
     stub_client()
     kwargs = dict(config=CONFIG, dataset_name="fresh", base_resolution="512", layout="flat")
-    FiLDatasetForge.execute(image=_stack([(512, 512)] * 3), **kwargs)
+    _execute(image=_stack([(512, 512)] * 3), **kwargs)
 
-    _, _, _, manifest = FiLDatasetForge.execute(
+    _, _, _, manifest = _execute(
         image=_stack([(512, 512)]), write_mode="overwrite", **kwargs
     )
     assert manifest["image_count"] == 1
@@ -172,9 +179,9 @@ def test_overwrite_manifest_forgets_the_deleted_run(local_root, stub_client):
 def test_overwrite_restarts_numbering_and_clears_old_pairs(local_root, stub_client):
     stub_client()
     kwargs = dict(config=CONFIG, dataset_name="reset", base_resolution="512", layout="flat")
-    FiLDatasetForge.execute(image=_stack([(512, 512)] * 3), **kwargs)
+    _execute(image=_stack([(512, 512)] * 3), **kwargs)
 
-    _, report, _, manifest = FiLDatasetForge.execute(
+    _, report, _, manifest = _execute(
         image=_stack([(512, 512)]), write_mode="overwrite", **kwargs
     )
 
@@ -185,7 +192,7 @@ def test_overwrite_restarts_numbering_and_clears_old_pairs(local_root, stub_clie
 
 def test_upscaled_frames_are_flagged_not_silently_accepted(local_root, stub_client):
     stub_client()
-    _, report, _, manifest = FiLDatasetForge.execute(
+    _, report, _, manifest = _execute(
         image=_stack([(256, 256)]), config=CONFIG, dataset_name="tiny",
         base_resolution="1024", layout="flat",
     )
@@ -211,7 +218,7 @@ def test_cancel_stops_the_batch_instead_of_running_it_to_the_end(local_root, stu
     monkeypatch.setattr(node_dataset, "_raise_if_interrupted", fake_interrupt)
 
     with pytest.raises(KeyboardInterrupt):
-        FiLDatasetForge.execute(
+        _execute(
             image=_stack([(512, 512)] * 6), config=CONFIG, dataset_name="cancelled",
             base_resolution="512", layout="flat",
         )
@@ -227,7 +234,7 @@ def test_preview_is_capped_well_below_the_training_resolution(local_root, stub_c
     Uncapped, a 40-image 1024² set would be ~500 MB on this output alone.
     """
     stub_client()
-    preview, _, _, manifest = FiLDatasetForge.execute(
+    preview, _, _, manifest = _execute(
         image=_stack([(1024, 1024)] * 2), config=CONFIG, dataset_name="big",
         base_resolution="1536", layout="flat",
     )
@@ -238,7 +245,7 @@ def test_preview_is_capped_well_below_the_training_resolution(local_root, stub_c
 
 
 def test_missing_image_is_a_clean_error(local_root):
-    preview, report, dataset_path, manifest = FiLDatasetForge.execute(image=None)
+    preview, report, dataset_path, manifest = _execute(image=None)
 
     assert manifest["error_code"] == "NO_IMAGE"
     assert report.startswith("❌")
@@ -247,7 +254,7 @@ def test_missing_image_is_a_clean_error(local_root):
 
 
 def test_captioning_without_a_provider_explains_the_three_ways_out(local_root):
-    _, report, _, manifest = FiLDatasetForge.execute(
+    _, report, _, manifest = _execute(
         image=_stack([(512, 512)]), dataset_name="no_cfg", base_resolution="512",
     )
 
@@ -257,7 +264,7 @@ def test_captioning_without_a_provider_explains_the_three_ways_out(local_root):
 
 
 def test_non_vision_model_is_rejected_before_any_file_is_written(local_root):
-    _, report, _, manifest = FiLDatasetForge.execute(
+    _, report, _, manifest = _execute(
         image=_stack([(512, 512)]), config={"provider": "ollama", "model": "plain-text-model"},
         dataset_name="no_vision", base_resolution="512",
     )
@@ -284,7 +291,7 @@ def test_fingerprint_changes_with_pixels_and_with_widgets():
 
 def test_hostile_dataset_name_cannot_escape_the_datasets_root(local_root, stub_client):
     stub_client()
-    _, _, dataset_path, _ = FiLDatasetForge.execute(
+    _, _, dataset_path, _ = _execute(
         image=_stack([(512, 512)]), config=CONFIG, dataset_name="../../pwned",
         base_resolution="512", layout="flat",
     )

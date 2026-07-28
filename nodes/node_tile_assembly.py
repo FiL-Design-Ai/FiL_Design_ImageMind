@@ -45,12 +45,17 @@ class FiLTileAssembly(io.ComfyNode):
         )
 
     @classmethod
-    def execute(cls, tiles, layout, prompt=None, extra_pnginfo=None, unique_id=None) -> io.NodeOutput:
+    def execute(cls, tiles, layout) -> io.NodeOutput:
         image = tile_calc.assemble_tiles(tiles, layout)
         ui_data: dict = {"images": []}
         if _preview_saver is not None:
             try:
-                saved = _preview_saver.save_images(image, "fil.tileassembly", prompt, extra_pnginfo)
+                # Hidden values reach a V3 node through `cls.hidden` only; as
+                # parameters they stayed None and the preview went to disk with
+                # no workflow embedded in it.
+                saved = _preview_saver.save_images(
+                    image, "fil.tileassembly", cls.hidden.prompt, cls.hidden.extra_pnginfo,
+                )
                 ui_data["images"] = saved["ui"]["images"]
             except Exception:
                 pass
