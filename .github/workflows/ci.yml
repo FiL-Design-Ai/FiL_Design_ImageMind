@@ -190,34 +190,19 @@ jobs:
         working-directory: ComfyUI/custom_nodes/FiL_Design_ImageMind/frontend
         run: npx playwright install --with-deps chromium
 
+      # ComfyUI is started by the config's `webServer`, not by a step here: a
+      # background process started in one step and used in the next is an
+      # assumption about the runner, and it is the one thing in this job that
+      # could not be checked without pushing. Playwright already does this
+      # properly — it waits for the URL, pipes the server's output on failure,
+      # and tears it down after.
+      #
       # The committed `frontend/dist` is served as-is: that is the bundle a
       # user installing from the registry actually gets. The build job above
       # is what proves it still matches the source.
-      - name: Start ComfyUI
-        working-directory: ComfyUI
-        run: |
-          python main.py --cpu --port 8188 --listen 127.0.0.1 > comfyui.log 2>&1 &
-          for i in $(seq 1 90); do
-            if curl -sf http://127.0.0.1:8188/ > /dev/null; then
-              echo "ComfyUI is up after ${i}s"
-              exit 0
-            fi
-            sleep 1
-          done
-          echo "ComfyUI did not start in 90s"
-          cat comfyui.log
-          exit 1
-
       - name: Run the ComfyUI smoke suite
         working-directory: ComfyUI/custom_nodes/FiL_Design_ImageMind/frontend
-        env:
-          COMFY_URL: http://127.0.0.1:8188
         run: npx playwright test -c playwright.comfy.config.ts
-
-      - name: Show the ComfyUI log on failure
-        if: failure()
-        working-directory: ComfyUI
-        run: cat comfyui.log
 
       - name: Upload smoke report
         if: failure()
