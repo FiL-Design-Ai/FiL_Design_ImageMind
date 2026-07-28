@@ -15,10 +15,15 @@ function makeApp() {
   const ours = document.createElement("div");
   const foreign = document.createElement("div");
   return {
-    canvas: { nodeEls: { 1: ours, 2: foreign } },
+    canvas: { nodeEls: { 1: ours, 2: foreign, "3:1": ours } },
     graph: {
-      getNodeById: (id: number) =>
-        id === 1 ? { comfyClass: "FiLNeuroCleaner" } : { comfyClass: "KSampler" },
+      // Keyed like LiteGraph's own map: numeric ids, plus the composite string a
+      // node inside a subgraph is addressed by.
+      getNodeById: (id: number | string) => {
+        if (id === 1 || id === "3:1") return { comfyClass: "FiLNeuroCleaner" };
+        if (id === 2) return { comfyClass: "KSampler" };
+        return null;
+      },
     },
     _els: { ours, foreign },
   };
@@ -71,5 +76,15 @@ describe("run highlight", () => {
     settings[RUN_FX_MODE] = MODE_OFF;
     startNodeRun(app as never, 1);
     expect(isRunning(app._els.ours)).toBe(false);
+  });
+});
+
+describe("subgraph ids", () => {
+  it("recognises a node addressed by a composite id", () => {
+    const app = makeApp();
+    // `Number("3:1")` is NaN — coercing first would look the node up as NaN,
+    // find nothing, and skip our own node in "FiL nodes only" mode.
+    startNodeRun(app as never, "3:1");
+    expect(isRunning(app._els.ours)).toBe(true);
   });
 });

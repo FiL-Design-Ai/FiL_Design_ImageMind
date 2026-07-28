@@ -20,7 +20,10 @@ export interface ProviderAccount {
   /** Environment variable this provider reads, for the "comes from env" hint. */
   env_var?: string;
   account_id?: string | null;
+  /** Effective endpoint — for a local provider this is the default when nothing was saved. */
   base_url?: string | null;
+  /** What the user actually saved; empty when they never set one. */
+  stored_base_url?: string | null;
 }
 
 /** POST /fil_design_imagemind/auth request-body shape (the only place a key is sent). */

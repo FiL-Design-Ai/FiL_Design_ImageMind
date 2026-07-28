@@ -47,32 +47,27 @@ class FiLNeuroCleaner(_io.ComfyNode):
 
     @classmethod
     def fingerprint_inputs(cls, **kwargs) -> Any:
-        if kwargs.get("clean_vram") or _resolve_unload(kwargs.get("unload_models", True), kwargs):
+        if kwargs.get("clean_vram") or kwargs.get("unload_models", True):
             return time.time()
         return 0.0
 
+    # There is no reading the four switches this replaced. ComfyUI's
+    # `get_input_data()` copies an input into the call only when it is a link or
+    # still declared in the schema (execution.py) — a widget input that was
+    # dropped never reaches `execute()`, whatever the prompt carries. What a
+    # saved workflow does get is the frontend's positional mapping of
+    # `widgets_values`, which lands the old `unload_diffusion` value on
+    # `unload_models`: the nearest thing to the old behaviour, since diffusion
+    # was the switch that actually decided whether anything was unloaded.
     @classmethod
     def execute(cls, clean_vram=True, unload_models=True, anything=None,
                 unique_id=None, extra_pnginfo=None, **kwargs) -> _io.NodeOutput:
-        if _resolve_unload(unload_models, kwargs):
+        if unload_models:
             _unload_all_models()
         if clean_vram:
             _clear_vram()
 
         return _io.NodeOutput(anything)
-
-
-# Workflows saved before the four per-category switches collapsed into one still
-# send them by name through the API format. They never selected as precisely as
-# they promised, so any of them set means "unload".
-_LEGACY_UNLOAD_INPUTS = ("unload_diffusion", "unload_clip", "unload_vae", "unload_control")
-
-
-def _resolve_unload(unload_models, kwargs) -> bool:
-    legacy = [k for k in _LEGACY_UNLOAD_INPUTS if k in kwargs]
-    if legacy:
-        return any(bool(kwargs[k]) for k in legacy)
-    return bool(unload_models)
 
 
 def _get_model_management():

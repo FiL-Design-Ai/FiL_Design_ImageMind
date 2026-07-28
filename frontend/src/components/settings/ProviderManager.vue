@@ -63,7 +63,16 @@ const accountLink = PROVIDER_ACCOUNT_LINK;
 /** Local servers always; anyone else only if a custom endpoint is already
  * saved, so an existing proxy setup does not become uneditable. */
 function showBaseUrl(pid: string): boolean {
-  return PROVIDER_EDITS_BASE_URL.has(pid) || Boolean(store.accounts[pid]?.base_url);
+  return PROVIDER_EDITS_BASE_URL.has(pid) || Boolean(store.accounts[pid]?.stored_base_url);
+}
+
+/**
+ * Local servers take no API key: `fetch_models_with_status` sends an auth
+ * header only for providers outside LOCAL_PROVIDERS, so anything typed in that
+ * field for Ollama or LM Studio is saved and never used again.
+ */
+function showApiKey(pid: string): boolean {
+  return !store.accounts[pid]?.local;
 }
 
 /**
@@ -107,7 +116,9 @@ function keyPlaceholder(pid: string): string {
 function hasStoredCredentials(pid: string): boolean {
   const acct = store.accounts[pid];
   if (!acct) return false;
-  return acct.key_source === "file" || Boolean(acct.account_id) || (!acct.local && Boolean(acct.base_url));
+  // `base_url` is the effective endpoint and is never empty for a local
+  // provider, so `stored_base_url` is what says the user saved one.
+  return acct.key_source === "file" || Boolean(acct.account_id) || Boolean(acct.stored_base_url);
 }
 
 function deleteHint(pid: string): string {
@@ -240,7 +251,7 @@ const hasChanges = (pid: string) => {
 
       <template v-if="!isCollapsed(pid)">
       <div class="fil-pm-fields">
-        <label class="fil-pm-field">
+        <label v-if="showApiKey(pid)" class="fil-pm-field">
           <span class="fil-pm-field-head">
             <span class="fil-pm-field-label">API Key</span>
             <!-- Which key is in play, not just that one exists: eight dots said
@@ -269,7 +280,18 @@ const hasChanges = (pid: string) => {
         </label>
 
         <label v-if="showBaseUrl(pid)" class="fil-pm-field">
-          <span class="fil-pm-field-label">Base URL</span>
+          <span class="fil-pm-field-head">
+            <span class="fil-pm-field-label">Base URL</span>
+            <!-- Local servers have no key field to carry their link. -->
+            <a
+              v-if="!showApiKey(pid) && credentialLink[pid]"
+              class="fil-pm-link"
+              :href="credentialLink[pid]!.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              @click.stop
+            >{{ credentialLink[pid]!.label }} ↗</a>
+          </span>
           <input
             v-model="editing[pid].base_url"
             type="text"

@@ -13,8 +13,12 @@ ComfyUI than a node pack should. Nothing here changes what the nodes produce.
   model's name and its nested submodules' names were matched as one string, and
   `modelpatcher`, the wrapper around every model in ComfyUI, counted as a
   diffusion marker, so anything unrecognised was unloaded as diffusion whatever
-  the other switches said. Saved workflows keep working: any of the four set
-  means "unload".
+  the other switches said. A workflow loaded in the UI carries its old
+  `unload_diffusion` value onto the new switch, since `widgets_values` maps
+  positionally. A saved API-format prompt cannot: ComfyUI passes only inputs
+  that are links or still in the schema, so the three remaining names are
+  dropped and the node runs on its defaults — check the switch after updating
+  if you had unloading turned off.
 - **⚡ KSampler**: `latent_image` → `latent`, `optional_vae` → `vae`, matching
   the outputs they pair with. Workflows addressing them by the old names in the
   API format still load.

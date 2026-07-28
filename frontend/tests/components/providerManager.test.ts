@@ -30,7 +30,7 @@ describe("ProviderManager fields", () => {
 
   it("offers Base URL for a local server", async () => {
     const wrapper = await mountWith({
-      ollama: { display_name: "Ollama", local: true, configured: true, account_id: "", base_url: "http://127.0.0.1:11434" },
+      ollama: { display_name: "Ollama", local: true, configured: true, account_id: "", base_url: "http://127.0.0.1:11434", stored_base_url: "" },
     });
     expect(fieldLabels(wrapper, "Ollama")).toContain("Base URL");
   });
@@ -44,7 +44,7 @@ describe("ProviderManager fields", () => {
 
   it("keeps Base URL visible when one was already saved", async () => {
     const wrapper = await mountWith({
-      openai: { display_name: "OpenAI API", local: false, configured: true, account_id: "", base_url: "https://proxy.internal/v1" },
+      openai: { display_name: "OpenAI API", local: false, configured: true, account_id: "", base_url: "https://proxy.internal/v1", stored_base_url: "https://proxy.internal/v1" },
     });
     expect(fieldLabels(wrapper, "OpenAI")).toContain("Base URL");
   });
@@ -108,5 +108,46 @@ describe("ProviderManager delete", () => {
       },
     });
     expect(deleteButton(wrapper, "Groq").attributes("disabled")).toBeUndefined();
+  });
+});
+
+describe("ProviderManager local servers", () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+  });
+
+  it("drops the API key field — a local server never receives one", async () => {
+    const wrapper = await mountWith({
+      ollama: {
+        display_name: "Ollama", local: true, configured: true, account_id: "",
+        base_url: "http://127.0.0.1:11434", stored_base_url: "",
+      },
+    });
+    const labels = fieldLabels(wrapper, "Ollama");
+    expect(labels).not.toContain("API Key");
+    expect(labels).toContain("Base URL");
+    // The download link moves onto the row that survives.
+    expect(wrapper.find('a[href="https://ollama.com/download"]').exists()).toBe(true);
+  });
+
+  it("offers Delete once a custom endpoint was saved, not for the default", async () => {
+    const def = await mountWith({
+      ollama: {
+        display_name: "Ollama", local: true, configured: true, account_id: "",
+        base_url: "http://127.0.0.1:11434", stored_base_url: "",
+      },
+    });
+    const button = (w: typeof def) =>
+      w.findAll(".fil-pm-card").find((c) => c.text().includes("Ollama"))!
+        .findAll("button").find((b) => b.text().includes("Delete"))!;
+    expect(button(def).attributes("disabled")).toBeDefined();
+
+    const custom = await mountWith({
+      ollama: {
+        display_name: "Ollama", local: true, configured: true, account_id: "",
+        base_url: "http://10.0.0.5:11434", stored_base_url: "http://10.0.0.5:11434",
+      },
+    });
+    expect(button(custom).attributes("disabled")).toBeUndefined();
   });
 });

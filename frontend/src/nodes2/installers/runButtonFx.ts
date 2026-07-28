@@ -29,9 +29,14 @@ export function installRunButtonFx(app: ComfyApp): void {
 
   api.addEventListener("executing", (event: Event) => {
     const detail = (event as CustomEvent).detail;
-    // Older core sends the bare node id; newer wraps it as `{ node }`.
+    // Older core sends the bare node id; newer wraps it as `{ node, display_node }`.
+    // `node` is the execution id, which for an expanded or subgraph node is a
+    // composite like "5:2" — no such node exists on the canvas. `display_node`
+    // is the one the user sees and the one `canvas.nodeEls` is keyed by, so it
+    // is what the pulse has to follow.
     const nodeId = detail && typeof detail === "object"
-      ? (detail as { node?: string | number | null }).node
+      ? (detail as { display_node?: string | number | null; node?: string | number | null }).display_node
+        ?? (detail as { node?: string | number | null }).node
       : detail;
     if (typeof nodeId === "string" || typeof nodeId === "number") {
       startNodeRun(app as never, nodeId);

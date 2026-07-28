@@ -32,13 +32,19 @@ export const FIL_RUN_FX_CSS = `
 
 interface CanvasApp {
   canvas?: { nodeEls?: Record<string | number, HTMLElement> };
-  graph?: { getNodeById?: (id: number) => { comfyClass?: string; type?: string } | null };
+  graph?: { getNodeById?: (id: number | string) => { comfyClass?: string; type?: string } | null };
 }
 
 let marked: HTMLElement | null = null;
 
 function isOurNode(app: CanvasApp, nodeId: string | number): boolean {
-  const node = app.graph?.getNodeById?.(Number(nodeId));
+  const lookup = app.graph?.getNodeById;
+  if (!lookup) return false;
+  // Numeric ids are the common case, but a node inside a subgraph is addressed
+  // by a composite string ("5:2") that `Number()` turns into NaN. Try the id as
+  // given before coercing.
+  const numeric = Number(nodeId);
+  const node = lookup(nodeId) ?? (Number.isNaN(numeric) ? null : lookup(numeric));
   const id = node?.comfyClass ?? node?.type ?? "";
   return id.startsWith("FiL");
 }
