@@ -66,6 +66,60 @@ function showBaseUrl(pid: string): boolean {
   return PROVIDER_EDITS_BASE_URL.has(pid) || Boolean(store.accounts[pid]?.base_url);
 }
 
+/**
+ * What the API-key field should say about the key already in place.
+ *
+ * The backend sends a masked key (`sk-…4f2a`) plus where it came from, because
+ * a key can also arrive from an environment variable or config.yaml — and a
+ * panel that only said "configured" gave no way to tell which account was
+ * actually answering, or that the key was not this panel's to delete.
+ */
+function keyState(pid: string): { kind: string; label: string; hint: string } | null {
+  const acct = store.accounts[pid];
+  if (!acct || acct.local) return null;
+  const hint = acct.key_hint ?? "";
+  switch (acct.key_source) {
+    case "file":
+      return { kind: "file", label: hint, hint: "Key saved in data/auth.json — Delete removes it." };
+    case "env":
+      return { kind: "env", label: `${hint} · env`, hint: `Key comes from the ${acct.env_var} environment variable, not from this panel. Saving one here overrides it.` };
+    case "config":
+      return { kind: "env", label: `${hint} · config.yaml`, hint: `Key comes from ${acct.env_var} in config.yaml, not from this panel. Saving one here overrides it.` };
+    default:
+      return { kind: "none", label: "no key", hint: "No API key for this provider yet." };
+  }
+}
+
+function keyPlaceholder(pid: string): string {
+  const state = keyState(pid);
+  if (!state || state.kind === "none") return "sk-...";
+  return `${state.label} — type to replace`;
+}
+
+/**
+ * Delete only removes what this panel wrote to `data/auth.json`.
+ *
+ * `configured` is also true for a key the shell or config.yaml supplies, and
+ * the button used to go by that: it deleted nothing, the badge still read
+ * `· env` afterwards, and the provider stayed configured — a control that
+ * pretended to work.
+ */
+function hasStoredCredentials(pid: string): boolean {
+  const acct = store.accounts[pid];
+  if (!acct) return false;
+  return acct.key_source === "file" || Boolean(acct.account_id) || (!acct.local && Boolean(acct.base_url));
+}
+
+function deleteHint(pid: string): string {
+  if (hasStoredCredentials(pid)) return "Remove this provider's saved credentials from data/auth.json.";
+  const source = store.accounts[pid]?.key_source;
+  if (source === "env" || source === "config") {
+    const where = source === "env" ? `the ${store.accounts[pid]?.env_var} environment variable` : "config.yaml";
+    return `Nothing to delete here — the key comes from ${where}. Remove it there, or save your own key above to override it.`;
+  }
+  return "Nothing saved for this provider yet.";
+}
+
 type PmStatus = "connected" | "configured" | "off";
 
 // Derives the header badge state. A successful probe or a non-empty model
@@ -189,6 +243,12 @@ const hasChanges = (pid: string) => {
         <label class="fil-pm-field">
           <span class="fil-pm-field-head">
             <span class="fil-pm-field-label">API Key</span>
+            <!-- Which key is in play, not just that one exists: eight dots said
+                 nothing about whether the right account was saved, or whether
+                 the key even came from this panel rather than the shell. -->
+            <span v-if="keyState(pid)" class="fil-pm-keyhint" :class="`is-${keyState(pid)!.kind}`" :title="keyState(pid)!.hint">
+              {{ keyState(pid)!.label }}
+            </span>
             <a
               v-if="credentialLink[pid]"
               class="fil-pm-link"
@@ -203,7 +263,7 @@ const hasChanges = (pid: string) => {
             type="password"
             class="fil-pm-input"
             :class="fieldClass(editing[pid].key)"
-            :placeholder="store.accounts[pid]?.configured ? '•••••••• (saved)' : 'sk-...'"
+            :placeholder="keyPlaceholder(pid)"
             @keydown.enter="doSave(pid)"
           />
         </label>
@@ -255,7 +315,8 @@ const hasChanges = (pid: string) => {
         <FilButton
           variant="danger"
           label="Delete"
-          :disabled="!store.accounts[pid]?.configured && !store.accounts[pid]?.base_url"
+          :disabled="!hasStoredCredentials(pid)"
+          :title="deleteHint(pid)"
           @click="doDelete(pid)"
         />
         <FilButton
@@ -406,6 +467,33 @@ const hasChanges = (pid: string) => {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: rgba(255, 255, 255, 0.5);
+}
+
+/* The masked key sits next to the field label: monospace so the tail is easy to
+   compare against the dashboard that issued it. */
+.fil-pm-keyhint {
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+.fil-pm-keyhint.is-file {
+  background: color-mix(in srgb, var(--fil-ok) 16%, transparent);
+  color: var(--fil-text);
+}
+/* A key from the shell or config.yaml is not this panel's to delete — worth
+   looking different from one saved here. */
+.fil-pm-keyhint.is-env {
+  background: color-mix(in srgb, var(--fil-accent) 18%, transparent);
+  color: var(--fil-text);
+}
+.fil-pm-keyhint.is-none {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--fil-muted);
+  font-family: inherit;
 }
 
 .fil-pm-link {

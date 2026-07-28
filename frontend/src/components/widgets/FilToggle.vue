@@ -67,7 +67,10 @@ function toggle() {
 }
 .fil-w-switch {
   grid-column: 2;
-  justify-self: start;
+  /* Pinned to the right edge of the row, the way a settings row reads. With
+     `start` the switch floated just past the end of the label, so short labels
+     left it stranded mid-row with dead space beside it. */
+  justify-self: end;
   width: 36px;
   height: 20px;
   padding: 2px;

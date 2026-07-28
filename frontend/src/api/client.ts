@@ -13,6 +13,12 @@ export interface ProviderAccount {
   display_name?: string;
   local?: boolean;
   configured?: boolean;
+  /** Masked key for display — `sk-…4f2a`. Never the key itself. */
+  key_hint?: string;
+  /** Where that key came from: this panel, the environment, config.yaml, or nowhere. */
+  key_source?: "file" | "env" | "config" | "none";
+  /** Environment variable this provider reads, for the "comes from env" hint. */
+  env_var?: string;
   account_id?: string | null;
   base_url?: string | null;
 }

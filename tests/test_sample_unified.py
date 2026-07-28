@@ -126,8 +126,8 @@ def test_noise_control_forwarded_to_base_sample_call(monkeypatch):
     noise_control = {"rng_source": "gpu", "add_seed_noise": True, "seed": 99, "weight": 0.3}
     FiLKSampler.execute(
         model="MODEL", seed=1, steps=1, cfg=7.0, sampler_name="euler", scheduler="normal",
-        positive="P", negative="N", latent_image={"samples": "L"},
-        vae_decode="false", optional_vae=None,
+        positive="P", negative="N", latent={"samples": "L"},
+        vae_decode="false", vae=None,
         script={"noise_control": noise_control},
     )
     assert captured.get("noise_control") == noise_control

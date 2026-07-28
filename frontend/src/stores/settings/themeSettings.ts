@@ -34,7 +34,9 @@ export const THEME_SETTINGS: ComfyExtensionSettings[] = [
     type: "combo",
     defaultValue: "Default",
     options: ["Default", "Cyberpunk", "Fallout", "Pipboy", "FiL Green", "Pixaroma"],
-    category: [SETTINGS_CATEGORY, "Appearance", "Theme"],
+    // Two levels like every other setting here — a third one ("Theme") put this
+    // single entry behind an extra heading of its own.
+    category: [SETTINGS_CATEGORY, "Appearance"],
     tooltip: "Recolors every FiL_Design_ImageMind node panel and adds a small themed flourish (neon glow for Cyberpunk, a CRT scanline texture for Pipboy and Fallout, acid-lime glow for Travelmate). Pixaroma matches the ComfyUI-Pixaroma node pack's own colors. Applies instantly, no reload.",
     onChange: onThemeChange,
   },

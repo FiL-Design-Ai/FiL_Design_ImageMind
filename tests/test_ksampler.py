@@ -32,9 +32,9 @@ def test_is_output_node_for_preview():
     assert schema.is_output_node is True
 
 
-def test_optional_vae_and_script_are_optional():
+def test_vae_and_script_are_optional():
     inputs = _inputs_by_id(FiLKSampler.GET_SCHEMA())
-    assert inputs["optional_vae"].optional is True
+    assert inputs["vae"].optional is True
     assert inputs["script"].optional is True
 
 
@@ -58,8 +58,8 @@ def test_ksampler_passes_tiled_to_hiresfix(monkeypatch):
 
     FiLKSampler.execute(
         model="MODEL", seed=1, steps=1, cfg=7.0, sampler_name="euler", scheduler="normal",
-        positive="P", negative="N", latent_image={"samples": "L"},
-        vae_decode="true (tiled)", optional_vae="VAE",
+        positive="P", negative="N", latent={"samples": "L"},
+        vae_decode="true (tiled)", vae="VAE",
         script={"hiresfix": {"iterations": 1}},
     )
     assert captured.get("tiled") is True
@@ -75,8 +75,8 @@ def test_vae_decode_false_returns_placeholder_image(monkeypatch):
 
     result = FiLKSampler.execute(
         model="MODEL", seed=1, steps=1, cfg=7.0, sampler_name="euler", scheduler="normal",
-        positive="P", negative="N", latent_image={"samples": "L"},
-        vae_decode="false", optional_vae=None,
+        positive="P", negative="N", latent={"samples": "L"},
+        vae_decode="false", vae=None,
     )
     assert tuple(result[5].shape) == (1, 1, 1, 3)
 
@@ -91,8 +91,8 @@ def test_missing_vae_forces_decode_off_even_if_widget_says_true(monkeypatch):
 
     result = FiLKSampler.execute(
         model="MODEL", seed=1, steps=1, cfg=7.0, sampler_name="euler", scheduler="normal",
-        positive="P", negative="N", latent_image={"samples": "L"},
-        vae_decode="true", optional_vae=None,
+        positive="P", negative="N", latent={"samples": "L"},
+        vae_decode="true", vae=None,
     )
     assert tuple(result[5].shape) == (1, 1, 1, 3)
 
@@ -107,7 +107,7 @@ def test_script_without_hiresfix_key_is_a_noop(monkeypatch):
 
     result = FiLKSampler.execute(
         model="MODEL", seed=1, steps=1, cfg=7.0, sampler_name="euler", scheduler="normal",
-        positive="P", negative="N", latent_image={"samples": "L"},
+        positive="P", negative="N", latent={"samples": "L"},
         vae_decode="false", script={"other": 1},
     )
     assert result[3] == {"samples": "BASE"}

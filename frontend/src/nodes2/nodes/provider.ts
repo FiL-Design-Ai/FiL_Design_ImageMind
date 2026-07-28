@@ -5,6 +5,7 @@ import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
 import { createSyncedNodeState, findFilWidget, sanitizeWidgetValue } from "@/nodes2/util";
 import { applyFxComposables } from "@/nodes2/applyFxComposables";
+import { defaultProviderId } from "@/stores/settings/mindSettings";
 
 const ProviderLoaderVue = defineAsyncComponent(() => import("@/components/nodes/ProviderLoader.vue"));
 
@@ -56,7 +57,13 @@ export const providerNode: NodeModule = {
       // This pass alone only covers *freshly created* nodes though — see
       // the `onConfigure` hook below for why loaded/pasted nodes need a
       // second pass.
-      const initialProvider = sanitizeWidgetValue(findFilWidget(node, "provider"), "string", "ollama");
+      // A new node starts on the provider chosen in Settings. Nodes arriving
+      // from a workflow pass through here too, but LiteGraph's configure()
+      // applies their saved widget values immediately afterwards, and the
+      // onConfigure hook below re-reads them — so their own provider wins.
+      const initialProvider = defaultProviderId();
+      const providerWidget = findFilWidget(node, "provider");
+      if (providerWidget) (providerWidget as { value?: unknown }).value = initialProvider;
       const initialModel = sanitizeWidgetValue(findFilWidget(node, "model"), "string", "(loading...)");
       const initialTemperature = sanitizeWidgetValue(findFilWidget(node, "temperature"), "number", 0.7);
       const initialMaxTokens = sanitizeWidgetValue(findFilWidget(node, "max_tokens"), "number", 0);

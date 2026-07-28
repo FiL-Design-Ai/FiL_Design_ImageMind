@@ -19,11 +19,22 @@ class FiLNeuroCleaner(_io.ComfyNode):
             category=f"{CATEGORY_ROOT}/Tools",
             description="🧹 FiL Neuro Cleaner — flushes GPU VRAM and offloads loaded models to prevent Out-Of-Memory errors.",
             inputs=[
-                _io.Boolean.Input("clean_vram", default=True, label_on="Cache ON", label_off="Cache OFF", tooltip=_t("nc_clean_vram", "Flush GPU CUDA cache.")),
-                _io.Boolean.Input("unload_diffusion", default=True, label_on="Diffusion", label_off="Keep", tooltip=_t("nc_unload_diffusion", "Unload diffusion models (FLUX/SD).")),
-                _io.Boolean.Input("unload_clip", default=False, label_on="CLIP", label_off="Keep", tooltip=_t("nc_unload_clip", "Unload CLIP/text encoders.")),
-                _io.Boolean.Input("unload_vae", default=False, label_on="VAE", label_off="Keep", tooltip=_t("nc_unload_vae", "Unload VAE models.")),
-                _io.Boolean.Input("unload_control", default=False, label_on="ControlNet", label_off="Keep", tooltip=_t("nc_unload_control", "Unload ControlNet/IP-Adapter models.")),
+                # The switch labels go through _t() unlike everywhere else in the
+                # pack: this node's panel used to be a localized Vue component,
+                # and dropping to native widgets must not quietly turn it
+                # English-only.
+                _io.Boolean.Input(
+                    "clean_vram", default=True,
+                    label_on=_t("nc_clean_vram_on", "Flush cache"),
+                    label_off=_t("nc_clean_vram_off", "Keep cache"),
+                    tooltip=_t("nc_clean_vram", "Flush GPU CUDA cache."),
+                ),
+                _io.Boolean.Input(
+                    "unload_models", default=True,
+                    label_on=_t("nc_unload_models_on", "Unload models"),
+                    label_off=_t("nc_unload_models_off", "Keep models"),
+                    tooltip=_t("nc_unload_models", "Unload every model ComfyUI currently holds in memory."),
+                ),
                 _io.AnyType.Input("anything", optional=True),
             ],
             outputs=[
@@ -36,30 +47,32 @@ class FiLNeuroCleaner(_io.ComfyNode):
 
     @classmethod
     def fingerprint_inputs(cls, **kwargs) -> Any:
-        if kwargs.get("clean_vram") or kwargs.get("unload_diffusion") or kwargs.get("unload_clip") or kwargs.get("unload_vae") or kwargs.get("unload_control"):
+        if kwargs.get("clean_vram") or _resolve_unload(kwargs.get("unload_models", True), kwargs):
             return time.time()
         return 0.0
 
     @classmethod
-    def execute(cls, clean_vram=True, unload_diffusion=True, unload_clip=False,
-                unload_vae=False, unload_control=False, anything=None,
+    def execute(cls, clean_vram=True, unload_models=True, anything=None,
                 unique_id=None, extra_pnginfo=None, **kwargs) -> _io.NodeOutput:
-        selected = set()
-        if unload_diffusion:
-            selected.add("diffusion")
-        if unload_clip:
-            selected.add("clip")
-        if unload_vae:
-            selected.add("vae")
-        if unload_control:
-            selected.add("control")
-
-        if selected:
-            _unload_models(selected)
+        if _resolve_unload(unload_models, kwargs):
+            _unload_all_models()
         if clean_vram:
             _clear_vram()
 
         return _io.NodeOutput(anything)
+
+
+# Workflows saved before the four per-category switches collapsed into one still
+# send them by name through the API format. They never selected as precisely as
+# they promised, so any of them set means "unload".
+_LEGACY_UNLOAD_INPUTS = ("unload_diffusion", "unload_clip", "unload_vae", "unload_control")
+
+
+def _resolve_unload(unload_models, kwargs) -> bool:
+    legacy = [k for k in _LEGACY_UNLOAD_INPUTS if k in kwargs]
+    if legacy:
+        return any(bool(kwargs[k]) for k in legacy)
+    return bool(unload_models)
 
 
 def _get_model_management():
@@ -70,78 +83,38 @@ def _get_model_management():
         return None
 
 
-def _get_prompt_server():
-    try:
-        from server import PromptServer
-        return PromptServer
-    except Exception:
-        return None
+def _unload_all_models():
+    """Drop everything ComfyUI holds loaded.
 
-
-def _model_class_names(loaded_model):
-    names = []
-    candidates = [loaded_model, getattr(loaded_model, "model", None)]
-    model = getattr(loaded_model, "model", None)
-    candidates.extend([
-        getattr(model, "model", None), getattr(model, "diffusion_model", None),
-        getattr(model, "first_stage_model", None), getattr(model, "cond_stage_model", None),
-    ])
-    try:
-        candidates.append(loaded_model.real_model())
-    except Exception:
-        pass
-    for c in candidates:
-        if c is None:
-            continue
-        try:
-            names.append(c.__class__.__name__)
-        except Exception:
-            pass
-    return names
-
-
-def _classify_loaded_model(loaded_model):
-    text = " ".join(_model_class_names(loaded_model)).lower()
-    if any(t in text for t in ("lora", "loha", "lokr", "lowrank")):
-        return "lora"
-    if any(t in text for t in ("controlnet", "control", "adapter", "ipadapter")):
-        return "control"
-    if any(t in text for t in ("vae", "autoencoder", "firststage")):
-        return "vae"
-    if any(t in text for t in ("clip", "text", "t5", "bert", "llama", "encoder")):
-        return "clip"
-    if any(t in text for t in ("unet", "diffusion", "dit", "flux", "modelpatcher")):
-        return "diffusion"
-    return "other"
-
-
-def _unload_models(selected):
+    This used to sort the loaded models into diffusion / clip / vae / control by
+    matching class names, and unload only the chosen kinds. The sorting could not
+    be trusted: the names of a model and of its nested submodules were matched as
+    one string, and `modelpatcher` — the wrapper around *every* model in ComfyUI —
+    counted as a diffusion marker, so anything unrecognised was unloaded as
+    diffusion regardless of the other switches.
+    """
     mm = _get_model_management()
     if mm is None:
         return
-    loaded = list(getattr(mm, "current_loaded_models", []) or [])
-    if not loaded:
+    if not list(getattr(mm, "current_loaded_models", []) or []):
         return
-    keep = []
-    for m in loaded:
-        category = _classify_loaded_model(m)
-        if category in selected:
-            continue
-        keep.append(m)
-    if keep != loaded:
-        device = mm.get_torch_device()
-        mm.free_memory(1e30, device, keep_loaded=keep)
+    try:
+        mm.unload_all_models()
+    except Exception:
+        mm.free_memory(1e30, mm.get_torch_device(), keep_loaded=[])
 
 
 def _clear_vram():
+    """Return cached allocator blocks to the driver, keeping models loaded.
+
+    This also used to raise the prompt queue's `free_memory` flag, which ComfyUI
+    answers with `unload_all_models()` plus a reset of the execution cache (see
+    main.py). That made the cache switch unload models too, so the two switches
+    on the panel did the same thing by different routes.
+    """
     mm = _get_model_management()
-    if mm:
-        gc.collect()
-        mm.soft_empty_cache()
-    ps = _get_prompt_server()
-    if ps:
-        try:
-            ps.instance.prompt_queue.set_flag("free_memory", True)
-        except Exception:
-            pass
+    if mm is None:
+        return
+    gc.collect()
+    mm.soft_empty_cache()
 

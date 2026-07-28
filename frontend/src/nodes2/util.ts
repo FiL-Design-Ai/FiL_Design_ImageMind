@@ -77,6 +77,9 @@ export function sanitizeWidgetValue<T>(
   w: ComfyLikeWidget | undefined,
   kind: "number" | "boolean" | "string",
   fallback: T,
+  /** Skip the console warning where a shifted array is expected and a later
+   * pass restores the real value anyway — see scanner.ts's `fil_state` path. */
+  quiet = false,
 ): T {
   if (!w) return fallback;
   const v = w.value;
@@ -85,10 +88,11 @@ export function sanitizeWidgetValue<T>(
     (kind === "boolean" && typeof v === "boolean") ||
     (kind === "string" && typeof v === "string");
   if (ok) return v as T;
+  w.value = fallback;
+  if (quiet) return fallback;
   console.warn(
     `[FiL_Design_ImageMind] widget "${w.name}" had a corrupted value (expected ${kind}) — resetting to default. ` +
     "This usually means the workflow was saved with an older version of this node.",
   );
-  w.value = fallback;
   return fallback;
 }

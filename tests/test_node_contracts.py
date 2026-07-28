@@ -147,7 +147,7 @@ def test_cleaner_passthrough_when_cleanup_disabled():
     from FiL_Design_ImageMind.nodes.node_cleaner import FiLNeuroCleaner
 
     marker = object()
-    result = FiLNeuroCleaner.execute(clean_vram=False, clean_ram=False, anything=marker)
+    result = FiLNeuroCleaner.execute(clean_vram=False, unload_models=False, anything=marker)
     assert result[0] is marker
 
 

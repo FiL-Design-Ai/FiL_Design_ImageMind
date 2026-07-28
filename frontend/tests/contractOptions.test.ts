@@ -24,7 +24,6 @@ const NODE_ID_BY_FILE: Record<string, string> = {
   "OpticScanner.vue": "FiLOpticScanner",
   "UpscaleTileCalc.vue": "FiLUpscaleTileCalc",
   "HiResFix.vue": "FiLHighResFix",
-  "NeuroCleaner.vue": "FiLNeuroCleaner",
   "ProviderLoader.vue": "FiLProviderLoader",
   "Seed.vue": "FiLSeed",
   "Switch.vue": "FiLSignalSwitch",

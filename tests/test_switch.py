@@ -29,23 +29,18 @@ def test_switch_pass_through_on():
     assert res_int.args == (1024,)
 
 
-def test_switch_off_blocks_downstream_instead_of_emitting_none():
-    """OFF must skip consumers, not hand them a None they will choke on."""
+def test_switch_off_emits_none():
+    """OFF empties the wire instead of skipping the branch: consumers that only
+    wanted this signal on an optional input still get to run."""
     dummy_image = {"type": "fake_image_tensor", "data": [1, 2, 3]}
     result = FiLSignalSwitch.execute(input=dummy_image, enable=False)
-    assert _blocked(result)
+    assert result.args == (None,)
+    assert not _blocked(result)
 
 
-def test_switch_blocks_silently():
-    """A message would reach the user as an execution error; muting is not one."""
-    result = FiLSignalSwitch.execute(input="anything", enable=False)
-    assert result.args[0].message is None
-
-
-def test_switch_with_nothing_connected_blocks_too():
+def test_switch_with_nothing_connected_blocks_on_only():
     """`input` is optional, so an unwired ON switch would otherwise pass None."""
     assert _blocked(FiLSignalSwitch.execute(input=None, enable=True))
-    assert _blocked(FiLSignalSwitch.execute(input=None, enable=False))
 
 
 def test_switch_on_without_input_says_why():
@@ -56,9 +51,9 @@ def test_switch_on_without_input_says_why():
     assert message and "input" in message
 
 
-def test_switch_off_stays_silent_even_without_input():
-    """OFF is deliberate: it must not report the missing input as a problem."""
-    assert FiLSignalSwitch.execute(input=None, enable=False).args[0].message is None
+def test_switch_off_without_input_is_still_just_none():
+    """OFF is deliberate: an input it was never going to read is not a problem."""
+    assert FiLSignalSwitch.execute(input=None, enable=False).args == (None,)
 
 
 def test_switch_passes_falsy_values_through():

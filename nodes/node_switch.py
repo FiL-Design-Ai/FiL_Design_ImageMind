@@ -15,7 +15,7 @@ class FiLSignalSwitch(io.ComfyNode):
             description=(
                 "🔀 Cyber Switch — universal signal pass-through toggle. Accepts any data type "
                 "(Image, Latent, Model, Clip, String, Int, Float, etc.) and passes it through "
-                "when ON, or blocks transmission when OFF."
+                "when ON, or outputs nothing (`None`) when OFF."
             ),
             inputs=[
                 io.AnyType.Input(
@@ -26,13 +26,17 @@ class FiLSignalSwitch(io.ComfyNode):
                 io.Boolean.Input(
                     "enable",
                     default=True,
-                    tooltip=t("tt_switch_enable", "ON (True) passes the input signal through. OFF (False) blocks the signal."),
+                    tooltip=t(
+                        "tt_switch_enable",
+                        "ON (True) passes the input signal through. OFF (False) sends `None` downstream, "
+                        "and the rest of the graph keeps running.",
+                    ),
                 ),
             ],
             outputs=[
                 io.AnyType.Output(
                     display_name="output",
-                    tooltip="The passed-through signal when ON. When OFF, everything downstream is skipped.",
+                    tooltip="The passed-through signal when ON. When OFF, `None` goes out instead.",
                 ),
             ],
             search_aliases=["switch", "bypass", "toggle", "gate", "pass-through", "enable", "filter"],
@@ -40,15 +44,14 @@ class FiLSignalSwitch(io.ComfyNode):
 
     @classmethod
     def execute(cls, input=None, enable: bool = True, **_kwargs) -> io.NodeOutput:
-        # Muting a branch means the nodes below must not run. Emitting ``None``
-        # would let them run and fail inside themselves ("NoneType has no
-        # attribute ...") — the error would name an unrelated node instead of
-        # the switch that was turned off. ``ExecutionBlocker(None)`` is
-        # ComfyUI's own mechanism for this: every consumer is skipped, silently
-        # (a message would surface as an execution error instead), and the rest
-        # of the graph still runs.
+        # OFF hands ``None`` down the wire rather than ``ExecutionBlocker``. The
+        # blocker skips the *whole* branch, which also takes out consumers that
+        # only wanted this signal on an optional input — they should still run,
+        # just without it. Price of the choice: a node that needs a real
+        # LATENT/IMAGE will now raise inside itself, naming itself rather than
+        # the switch that was turned off.
         if not enable:
-            return io.NodeOutput(ExecutionBlocker(None))
+            return io.NodeOutput(None)
         # ON with nothing on `input` is not muting — it is a misconfigured
         # graph, and blocking it silently is undiagnosable: the branch below
         # simply never runs and nothing anywhere says why. The message turns it

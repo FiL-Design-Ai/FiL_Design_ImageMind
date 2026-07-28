@@ -56,7 +56,7 @@ class FiLKSampler(io.ComfyNode):
                                tooltip=t("ks_scheduler", "Noise schedule.")),
                 io.Conditioning.Input("positive", tooltip=t("ks_positive", "Positive conditioning.")),
                 io.Conditioning.Input("negative", tooltip=t("ks_negative", "Negative conditioning.")),
-                io.Latent.Input("latent_image", tooltip=t("ks_latent", "Latent to denoise.")),
+                io.Latent.Input("latent", tooltip=t("ks_latent", "Latent to denoise.")),
                 io.Float.Input("denoise", default=1.0, min=0.0, max=1.0, step=0.01,
                                tooltip=t("ks_denoise", "Denoise strength (1.0 = full).")),
                 io.Float.Input("eta", default=1.0, min=0.0, max=100.0, step=0.01,
@@ -67,7 +67,7 @@ class FiLKSampler(io.ComfyNode):
                                tooltip=t("ks_preview", "How the live sampling preview is rendered.")),
                 io.Combo.Input("vae_decode", options=_VAE_DECODE, default="true",
                                tooltip=t("ks_vae_decode", "Decode the result to an IMAGE preview/output. Needs a VAE.")),
-                io.Vae.Input("optional_vae", optional=True,
+                io.Vae.Input("vae", optional=True,
                              tooltip=t("ks_vae", "VAE for decoding the preview/output image.")),
                 FilHiresScript.Input("script", optional=True,
                                      tooltip=t("ks_script", "Optional FiL HighRes-fix script to run after sampling.")),
@@ -106,12 +106,19 @@ class FiLKSampler(io.ComfyNode):
 
     @classmethod
     def execute(cls, model, seed, steps, cfg, sampler_name, scheduler, positive, negative,
-                latent_image, denoise=1.0, eta=1.0, bongmath=True, preview_method="auto", vae_decode="true",
-                optional_vae=None, script=None,
-                prompt=None, extra_pnginfo=None) -> io.NodeOutput:
+                latent=None, denoise=1.0, eta=1.0, bongmath=True, preview_method="auto", vae_decode="true",
+                vae=None, script=None,
+                prompt=None, extra_pnginfo=None, **kwargs) -> io.NodeOutput:
         from ..common.sampling import sample_unified
 
-        vae = optional_vae
+        # `latent_image`/`optional_vae` were renamed to match the outputs they
+        # pair with. Workflows saved against the old names address inputs by
+        # name in the API format, so keep accepting them.
+        if latent is None:
+            latent = kwargs.get("latent_image")
+        if vae is None:
+            vae = kwargs.get("optional_vae")
+
         if vae is None:
             vae_decode = "false"
         # Tiled VAE is an OOM guard for big upscales; it applies to the hires
@@ -131,7 +138,7 @@ class FiLKSampler(io.ComfyNode):
             latent = sample_unified(
                 model, seed=seed, steps=steps, cfg=cfg,
                 sampler_name=sampler_name, scheduler=scheduler,
-                positive=positive, negative=negative, latent=latent_image,
+                positive=positive, negative=negative, latent=latent,
                 denoise=denoise, noise_control=noise_control, eta=eta,
                 bongmath=bongmath,
             )

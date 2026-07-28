@@ -5,9 +5,7 @@
 export { default as FilButton } from "./FilButton.vue";
 export { default as FilChipGrid } from "./FilChipGrid.vue";
 export { default as FilChipList } from "./FilChipList.vue";
-export { default as FilColorPicker } from "./FilColorPicker.vue";
 export { default as FilComboBox, type FilComboOption } from "./FilComboBox.vue";
-export { default as FilHelpPopup } from "./FilHelpPopup.vue";
 export { default as FilIcon } from "./FilIcon.vue";
 export { default as FilInfo } from "./FilInfo.vue";
 export { default as FilModal } from "./FilModal.vue";

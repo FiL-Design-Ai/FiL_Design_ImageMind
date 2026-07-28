@@ -14,11 +14,8 @@
  */
 import type { ComfyApp, ComfyExtension, ComfyNodeData } from "@/types/comfy";
 import { NODE_MODULES } from "@/nodes2/nodeRegistry";
-import { installHelpToolbar } from "@/nodes2/installers/helpToolbar";
-import { installShortcuts } from "@/nodes2/installers/shortcuts";
 import { installToasts } from "@/nodes2/installers/toasts";
 import { installRunButtonFx } from "@/nodes2/installers/runButtonFx";
-import { filCommands, filKeybindings } from "@/composables/useShortcuts";
 import { installProviderManager } from "@/nodes2/installers/providerManager";
 import { ALL_SETTINGS } from "@/stores/settings/allSettings";
 import { applyStartupLogLevel } from "@/stores/settings/loggingSettings";
@@ -75,18 +72,16 @@ export function createFilExtension(app: ComfyApp): ComfyExtension {
     // even if a later installer throws.
     settings: ALL_SETTINGS,
 
-    // Declarative shortcuts — modern ComfyUI registers these through its
-    // native command palette / keybinding system. The keydown fallback in
-    // installShortcuts only kicks in when this API is unavailable.
-    commands: filCommands,
-    keybindings: filKeybindings,
+    // No `commands`/`keybindings`: the pack registered Shift+? for a keyboard
+    // cheatsheet and `/` for the node search. Both were removed along with the
+    // help popup they drove — ComfyUI's own keybinding settings are where a
+    // user expects to bind those, and a node pack claiming global keys is a
+    // conflict waiting to happen.
 
     async setup() {
       // All installers are isolated: a throw in one must not break others.
       const installers: Array<() => unknown> = [
         () => installToasts(),
-        () => installHelpToolbar(app),
-        () => installShortcuts(app),
         () => installProviderManager(app),
         () => installRunButtonFx(app),
         () => applyStartupLogLevel((id, fallback) => readSetting(id, fallback, app)),
