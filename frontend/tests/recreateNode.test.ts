@@ -207,3 +207,20 @@ describe("patchRecreateMenuItem", () => {
     expect(fix.callback).toBe(first);
   });
 });
+
+describe("recreateNode fidelity", () => {
+  it("carries a bypassed node's mode over", () => {
+    const graph = makeGraph();
+    const old = makeNode("FiLSeed");
+    old.mode = 4; // bypass
+    old.title = "seeds";
+    graph.add(old);
+    const fresh = makeNode("FiLSeed");
+
+    const result = recreateNode(old, litegraphMaking(fresh));
+
+    expect(result).toBe(fresh);
+    expect(fresh.mode).toBe(4);
+    expect(fresh.title).toBe("seeds");
+  });
+});

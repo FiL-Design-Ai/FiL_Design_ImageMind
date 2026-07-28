@@ -217,6 +217,11 @@ def get_safe_provider_accounts() -> Dict[str, Dict[str, Any]]:
             "env_var": ENV_VAR_BY_PROVIDER.get(provider, ""),
             "account_id": str(api.get("account_id", "")) if provider == "cloudflare" else "",
             "base_url": get_provider_base_url(provider) if local else str(api.get("base_url", "")),
+            # `base_url` above is the *effective* endpoint, which for a local
+            # provider is never empty — it falls back to the default localhost
+            # URL. Only this one says whether the user actually saved anything,
+            # which is what "is there something to delete" has to go by.
+            "stored_base_url": str(api.get("base_url", "")),
         }
     return result
 

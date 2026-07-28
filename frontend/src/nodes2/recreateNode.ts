@@ -40,6 +40,8 @@ interface GraphNode {
   title?: string;
   color?: string;
   bgcolor?: string;
+  /** LiteGraph execution mode — 0 always, 2 muted, 4 bypassed. */
+  mode?: number;
   pos?: [number, number];
   size?: [number, number];
   flags?: Record<string, unknown>;
@@ -155,6 +157,10 @@ export function recreateNode(node: GraphNode, litegraph?: unknown): GraphNode | 
   if (node.title !== undefined) fresh.title = node.title;
   if (node.color !== undefined) fresh.color = node.color;
   if (node.bgcolor !== undefined) fresh.bgcolor = node.bgcolor;
+  // Mute and bypass live in `mode`, not in `flags`. Without this a repaired
+  // node comes back active, and the branch the user had switched off starts
+  // running again on the next queue.
+  if (node.mode !== undefined) fresh.mode = node.mode;
   if (node.flags) fresh.flags = { ...node.flags };
   if (node.properties) fresh.properties = { ...node.properties };
 

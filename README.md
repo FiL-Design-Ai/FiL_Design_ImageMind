@@ -447,7 +447,9 @@ The node never upscales. Sources smaller than their bucket are still written, co
 
 Earlier versions offered four per-kind switches (diffusion / CLIP / VAE / ControlNet). They sorted
 the loaded models by matching class names and could not do it reliably, so unloading is now all or
-nothing. Workflows saved with the old switches keep working: any of them set means "unload".
+nothing. A workflow opened in the UI carries its old `unload_diffusion` value onto `unload_models`
+(widget values map positionally); a saved API-format prompt falls back to the defaults, because
+ComfyUI only passes inputs that are still in the schema.
 
 **Output:** `output` (ANY) — the same value that came in.
 
@@ -1095,7 +1097,10 @@ Python самого ComfyUI (`python_embeded`, `venv` или `.venv`), став�
 
 Раньше тумблеров было четыре — по видам моделей (diffusion / CLIP / VAE / ControlNet). Они
 сортировали загруженные модели по именам классов и делали это ненадёжно, поэтому выгрузка теперь
-только целиком. Старые воркфлоу продолжают работать: любой из прежних тумблеров включён — выгружаем.
+только целиком. Воркфлоу, открытый в интерфейсе, переносит прежнее значение `unload_diffusion` на
+`unload_models` (значения виджетов сопоставляются по порядку); сохранённый промпт в API-формате —
+нет: ComfyUI передаёт только входы, которые остались в схеме, так что нода возьмёт значения по
+умолчанию. Если выгрузка была выключена, проверьте тумблер после обновления.
 
 **Выход:** `output` (ANY) — то же значение, что пришло.
 
