@@ -143,11 +143,13 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
   // assembled list. Checked against the docs and the bundled frontend; the
   // console currently warns about `getCanvasMenuOptions` only.
   //
-  // Dropping it is the real exit, and it is not ours to take yet:
-  // `comfyui-manager/js/node_fixer.js` still patches this the classic way and
-  // still copies links with `src_node.connect(slot, dest.id, input.name)`, the
-  // shape that throws before its own `graph.remove(old)`. Fix that upstream and
-  // this whole accessor goes with it. Until then, the risk is known and quiet:
+  // Dropping it is the real exit, and it is not ours to take: the bug is in
+  // `comfyui-manager/js/node_fixer.js`, which still patches this the classic
+  // way and still copies links with `src_node.connect(slot, dest.id,
+  // input.name)` — the shape that throws before its own `graph.remove(old)`.
+  // Repairing other packs is out of scope for this one, so this stays until
+  // they fix it, and then the whole accessor goes. Meanwhile the risk is known
+  // and quiet:
   // when the legacy path is removed the repair stops running and Manager's
   // "Fix node (recreate)" is broken again for our nodes — nothing of ours
   // throws. `tests/nodeStyleMenu.test.ts` is what holds the behaviour.
