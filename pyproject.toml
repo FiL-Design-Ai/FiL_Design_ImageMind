@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "FiL_Design_ImageMind"
-version = "1.0.0"
+version = "1.0.1"
 description = "FiL Design ImageMind nodes for ComfyUI — image understanding and prompt generation (V3 API)."
 readme = "README.md"
 requires-python = ">=3.10"
