@@ -4,6 +4,10 @@ import FilModal from "@/components/widgets/FilModal.vue";
 import FilSegmented from "@/components/widgets/FilSegmented.vue";
 import FilSlider from "@/components/widgets/FilSlider.vue";
 import FilChipGrid from "@/components/widgets/FilChipGrid.vue";
+import FilChipList from "@/components/widgets/FilChipList.vue";
+import FilTextInput from "@/components/widgets/FilTextInput.vue";
+import FilToggle from "@/components/widgets/FilToggle.vue";
+import { elementWantsWheel, scrollRegionWantsWheel } from "@/composables/scrollGuard";
 
 // Registry of available components for testing
 const components: Record<string, Component> = {
@@ -11,13 +15,31 @@ const components: Record<string, Component> = {
   FilSegmented,
   FilSlider,
   FilChipGrid,
+  FilChipList,
+  FilTextInput,
+  FilToggle,
 };
+
+// The wheel predicate reads `getComputedStyle().overflowY` and live scroll
+// geometry, none of which jsdom has — its unit tests define those per element
+// by hand, which only proves the logic agrees with the numbers the test made
+// up. Exposed here so a browser can answer the question with real layout.
+window.scrollGuard = { elementWantsWheel, scrollRegionWantsWheel };
 
 declare global {
   interface Window {
     mountComponent: (name: string, props: any) => void;
     unmountComponent: () => void;
     lastEmittedModelValue: any;
+    scrollGuard: {
+      elementWantsWheel: (el: Element, deltaX: number, deltaY: number) => boolean;
+      scrollRegionWantsWheel: (
+        target: EventTarget | null,
+        deltaX: number,
+        deltaY: number,
+        stopAt?: Element | null,
+      ) => boolean;
+    };
   }
 }
 
