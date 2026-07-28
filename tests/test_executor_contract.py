@@ -15,11 +15,21 @@ import inspect
 
 import pytest
 
-from executor_harness import LINK_VALUE, executor_call, node_classes, wired_prompt
+from executor_harness import (
+    LINK_VALUE,
+    declares,
+    executor_call,
+    node_classes,
+    validate_call,
+    wired_prompt,
+)
 
 
 NODE_CLASSES = node_classes()
 NODE_IDS = sorted(NODE_CLASSES)
+
+VALIDATING_IDS = [node_id for node_id in NODE_IDS if declares(NODE_CLASSES[node_id], "validate_inputs")]
+FINGERPRINTING_IDS = [node_id for node_id in NODE_IDS if declares(NODE_CLASSES[node_id], "fingerprint_inputs")]
 
 
 def _declared_parameters(node_class: type) -> dict[str, inspect.Parameter]:
@@ -177,3 +187,138 @@ def test_a_socket_renamed_out_of_the_schema_still_arrives_when_wired():
     assert call.kwargs["latent_image"] is LINK_VALUE
     assert "latent" not in call.kwargs
     inspect.signature(node_class.execute).bind(**call.kwargs)
+
+
+# ── The other two entry points ──────────────────────────────────────────────
+#
+# `execute()` is not the only thing ComfyUI calls into. Validation and cache
+# fingerprinting are assembled by separate code paths with their own rules, and
+# both were unchecked — the same blind spot that let the Cleaner shim through,
+# one function over.
+
+
+@pytest.mark.parametrize("node_id", VALIDATING_IDS)
+def test_validation_binds_to_what_the_executor_filters_in(node_id):
+    """Validation is handed a filtered call, not the one `execute()` gets.
+
+    ComfyUI reads the signature and passes only the inputs it names; a
+    parameter that names nothing in the schema is simply never filled.
+    """
+    node_class = NODE_CLASSES[node_id]
+    call = validate_call(node_class)
+    validate_inputs = node_class.validate_inputs
+
+    try:
+        inspect.signature(validate_inputs).bind(**call.kwargs)
+    except TypeError as exc:
+        pytest.fail(f"{node_id}.validate_inputs() cannot take the executor's call: {exc}")
+
+
+@pytest.mark.parametrize("node_id", VALIDATING_IDS)
+def test_validation_answers_either_true_or_a_reason(node_id):
+    """`True`, or a sentence the user can act on. Never anything else.
+
+    execution.py treats every non-`True` return as a failure, and puts the
+    return value itself in the message it shows. So a function that falls off
+    the end returning `None` blocks the queue with "Custom validation failed"
+    and no way to tell what is wrong — which is the same failure as returning
+    `False`, only harder to spot in the source.
+
+    Rejecting a default prompt is legitimate: a node may genuinely need
+    configuring first, as the Provider Loader does. What is not legitimate is
+    rejecting it without saying why.
+    """
+    node_class = NODE_CLASSES[node_id]
+    call = validate_call(node_class)
+
+    result = node_class.validate_inputs(**call.kwargs)
+
+    if result is not True:
+        assert isinstance(result, str) and result.strip(), (
+            f"{node_id}.validate_inputs() returned {result!r}; a rejection has to "
+            "be a message explaining what to fix"
+        )
+
+
+def test_the_provider_loader_rejects_its_own_placeholder_model():
+    """The one node that deliberately fails validation until it is configured.
+
+    `model`'s schema carries a static `(loading...)` placeholder — the real list
+    only exists once the frontend has fetched it — so naming `model` here opts
+    it out of ComfyUI's built-in COMBO membership check. That makes this
+    function the only thing standing between the placeholder and a run that
+    would fail much later, with a much worse message.
+    """
+    node_class = NODE_CLASSES["FiLProviderLoader"]
+    call = validate_call(node_class)
+
+    result = node_class.validate_inputs(**call.kwargs)
+
+    assert isinstance(result, str) and "Provider Loader" in result
+
+
+@pytest.mark.parametrize("node_id", VALIDATING_IDS)
+def test_validation_sees_a_wired_socket_as_none(node_id):
+    """Nothing has run yet, so a link has no value to hand over.
+
+    Validation happens before execution and is assembled without an execution
+    list, so every wired input arrives as `None` however the graph is built.
+    Validation logic that inspects the *contents* of a wired input can never
+    run — it has to be written for `None`, or live in `execute()`.
+    """
+    node_class = NODE_CLASSES[node_id]
+    prompt = wired_prompt(node_class)
+    wired = [name for name, value in prompt.items() if value == ["upstream", 0]]
+    if not wired:
+        pytest.skip(f"{node_id} has no socket-only inputs")
+
+    call = validate_call(node_class, prompt)
+
+    for name in wired:
+        if name in call.kwargs:
+            assert call.kwargs[name] is None, (
+                f"{node_id}: {name} is a link, and validation runs before "
+                f"anything produced it — got {call.kwargs[name]!r}"
+            )
+
+
+@pytest.mark.parametrize("node_id", FINGERPRINTING_IDS)
+def test_fingerprinting_binds_to_the_executors_call(node_id):
+    """The cache fingerprint is assembled like `execute()` but without links.
+
+    A mismatch here does not crash the run: execution.py catches it, logs a
+    warning and fingerprints the node as NaN — which marks it permanently
+    dirty, so it re-runs on every queue forever.
+    """
+    node_class = NODE_CLASSES[node_id]
+    call = executor_call(node_class, resolve_links=False)
+    fingerprint_inputs = node_class.fingerprint_inputs
+
+    try:
+        inspect.signature(fingerprint_inputs).bind(**call.kwargs)
+    except TypeError as exc:
+        pytest.fail(f"{node_id}.fingerprint_inputs() cannot take the executor's call: {exc}")
+
+
+@pytest.mark.parametrize("node_id", FINGERPRINTING_IDS)
+def test_fingerprinting_names_no_parameter_the_executor_never_fills(node_id):
+    """Same rule as `execute()`, and the same temptation.
+
+    Hidden values reach a V3 node through `cls.hidden`; a `unique_id`
+    parameter here would collect `None` and quietly make the fingerprint a
+    constant.
+    """
+    node_class = NODE_CLASSES[node_id]
+    call = executor_call(node_class, resolve_links=False)
+
+    variadic = (inspect.Parameter.VAR_KEYWORD, inspect.Parameter.VAR_POSITIONAL)
+    named = {
+        name for name, parameter in inspect.signature(node_class.fingerprint_inputs).parameters.items()
+        if parameter.kind not in variadic
+    }
+
+    unfilled = named - set(call.kwargs)
+    assert not unfilled, (
+        f"{node_id}.fingerprint_inputs() takes {sorted(unfilled)}, which the "
+        "executor never passes"
+    )
