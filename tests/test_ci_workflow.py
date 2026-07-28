@@ -67,11 +67,34 @@ def steps() -> list[tuple[str, dict]]:
     ]
 
 
-def test_the_workflow_parses_and_has_the_three_jobs():
+def test_the_workflow_has_the_jobs_it_is_meant_to():
+    """Named rather than counted, so a job cannot quietly disappear.
+
+    Deleting a job is a decision; making the list agree with reality afterwards
+    is how that decision gets recorded.
+    """
     jobs = workflow()["jobs"]
-    assert set(jobs) == {"test-python", "test-frontend", "smoke-comfyui"}
+    assert set(jobs) == {
+        "test-python",
+        "test-frontend",
+        "smoke-comfyui",
+        "smoke-with-neighbours",
+    }
     for name, job in jobs.items():
         assert job["steps"], f"{name} has no steps"
+
+
+def test_only_the_neighbours_job_is_allowed_to_fail():
+    """`continue-on-error` on anything else would hide a real break.
+
+    The neighbours are cloned unpinned, so they can break on their own schedule
+    and must not block a release. Every other job is a gate.
+    """
+    tolerated = {
+        name for name, job in workflow()["jobs"].items()
+        if job.get("continue-on-error")
+    }
+    assert tolerated == {"smoke-with-neighbours"}
 
 
 def test_every_working_directory_exists():
@@ -158,7 +181,7 @@ def test_every_action_is_pinned_to_a_major_version():
     assert not unpinned, "action without a version:\n" + "\n".join(unpinned)
 
 
-@pytest.mark.parametrize("job_name", ["test-python", "smoke-comfyui"])
+@pytest.mark.parametrize("job_name", ["test-python", "smoke-comfyui", "smoke-with-neighbours"])
 def test_the_pack_is_moved_into_a_comfyui_tree_before_it_is_used(job_name):
     """The pack has to import as `FiL_Design_ImageMind` under `custom_nodes`.
 

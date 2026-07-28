@@ -211,3 +211,100 @@ jobs:
           name: smoke-report
           path: ComfyUI/custom_nodes/FiL_Design_ImageMind/frontend/playwright-report/
           retention-days: 7
+
+  # The same suite, with company. Almost every defect that reached a user came
+  # from another pack being installed, and the job above runs on a ComfyUI where
+  # this pack is the only guest — the one arrangement no user has.
+  #
+  # These three earned their place: cg-use-everywhere patches
+  # `getExtraMenuOptions` the classic way and once made our wrapper recurse until
+  # every context menu in the app died; ComfyUI-Manager ships the broken "Fix node
+  # (recreate)" our menu pass exists to repair; rgthree-comfy patches widely and
+  # blocks other extensions it disagrees with.
+  #
+  # Failures are read through this pack's own tag, so a neighbour breaking itself
+  # does not fail us — the point is our nodes surviving the company, not policing
+  # theirs. `continue-on-error` because the neighbours are unpinned: they can
+  # break on their own schedule, and that must not block a release.
+  smoke-with-neighbours:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    steps:
+      - name: Checkout FiL_Design_ImageMind
+        uses: actions/checkout@v4
+        with:
+          path: fil-design-imagemind-temp
+
+      - name: Checkout ComfyUI
+        uses: actions/checkout@v4
+        with:
+          repository: comfyanonymous/ComfyUI
+          path: ComfyUI
+          fetch-depth: 1
+          filter: blob:none
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            fil-design-imagemind-temp/requirements.txt
+            ComfyUI/requirements.txt
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: fil-design-imagemind-temp/frontend/package-lock.json
+
+      - name: Install CPU-only PyTorch
+        run: pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Install ComfyUI dependencies
+        run: pip install -r ComfyUI/requirements.txt
+
+      - name: Install FiL_Design_ImageMind dependencies
+        run: pip install -r fil-design-imagemind-temp/requirements.txt
+
+      - name: Move FiL_Design_ImageMind into ComfyUI custom_nodes
+        run: |
+          mkdir -p ComfyUI/custom_nodes
+          mv fil-design-imagemind-temp ComfyUI/custom_nodes/FiL_Design_ImageMind
+
+      - name: Install the neighbours
+        working-directory: ComfyUI/custom_nodes
+        # A neighbour's own dependencies are best-effort: if one fails to
+        # install, ComfyUI skips that pack and the run still says something
+        # about the ones that loaded.
+        run: |
+          git clone --depth 1 https://github.com/chrisgoringe/cg-use-everywhere.git
+          git clone --depth 1 https://github.com/Comfy-Org/ComfyUI-Manager.git
+          git clone --depth 1 https://github.com/rgthree/rgthree-comfy.git
+          for pack in cg-use-everywhere ComfyUI-Manager rgthree-comfy; do
+            if [ -f "$pack/requirements.txt" ]; then
+              pip install -r "$pack/requirements.txt" || echo "::warning::$pack dependencies failed to install"
+            fi
+          done
+
+      - name: Install frontend dependencies
+        working-directory: ComfyUI/custom_nodes/FiL_Design_ImageMind/frontend
+        run: npm ci
+
+      - name: Install Playwright browser
+        working-directory: ComfyUI/custom_nodes/FiL_Design_ImageMind/frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Run the ComfyUI smoke suite
+        working-directory: ComfyUI/custom_nodes/FiL_Design_ImageMind/frontend
+        run: npx playwright test -c playwright.comfy.config.ts
+
+      - name: Upload smoke report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-with-neighbours-report
+          path: ComfyUI/custom_nodes/FiL_Design_ImageMind/frontend/playwright-report/
+          retention-days: 7
