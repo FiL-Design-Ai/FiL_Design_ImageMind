@@ -92,18 +92,22 @@ jobs:
         working-directory: frontend
         run: npm run lint
 
-      - name: Type check & build
-        working-directory: frontend
-        run: npm run build
-
       # `frontend/dist` is committed — ComfyUI loads it through WEB_DIRECTORY
       # and the registry publish ships whatever is in git. A source change
       # without a rebuild ships the old bundle, and every other check here
       # would still pass.
-      # Scoped to the bundle, not the sourcemap: the map is the likelier of the
-      # two to differ over something that does not change what ships.
-      - name: Check the committed bundle matches the source
-        run: git diff --exit-code -- frontend/dist/fil_design_imagemind.js
+      #
+      # Before the build, not after: the build records the hash, so checking
+      # afterwards would only compare the build against itself. This runs
+      # against the checkout, which is the question — did the bundle in this
+      # commit come from the sources in this commit.
+      - name: Check the committed bundle was built from the committed sources
+        working-directory: frontend
+        run: npm run check:bundle
+
+      - name: Type check & build
+        working-directory: frontend
+        run: npm run build
 
       - name: Run frontend tests
         working-directory: frontend
