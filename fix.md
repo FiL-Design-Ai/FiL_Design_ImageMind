@@ -8,12 +8,51 @@ bug can be traced to the commit that closed it.
 Add an entry when you fix something. Format: `` `hash` — one line saying what
 was broken`` , then a sentence on the cause where it is not obvious.
 
-## Unreleased (after 1.0.0)
+## 1.0.1
 
-None of this is in the registry yet — 1.0.0 was published from `d03b5e8` and
-the tag has not moved since. Anyone installing through ComfyUI Manager still
-gets the code as it was at that commit, the global wheel listener included.
-
+- `86b4c0e` — **the 400 ms layout poll per widget is gone, and so is the reflow
+  per frame.** The ResizeObserver it backed up was watching `host`, whose box
+  stops following the content as soon as ComfyUI's `h-full` or `applyStretch()`
+  pins it, while the measurement read the panel's `scrollHeight` — the observer
+  was never "silently failing", it was watching the wrong element. The panel
+  itself is observed now, with a MutationObserver for the async component's
+  arrival and one for content changes inside a pinned growable box.
+- `86b4c0e` — **context menus died with "Maximum call stack size exceeded"**
+  wherever cg-use-everywhere was installed. Extensions patch
+  `getExtraMenuOptions` by reading it, storing it and reassigning; our wrapper
+  read the previous handler late, so what they had stored resolved to their own
+  function and the two called each other. The handler is captured on read now.
+- `86b4c0e` — **ComfyUI-Manager's "Fix node (recreate)" left two nodes stacked.**
+  It adds the fresh node before copying links and copies them with a call shape
+  LiteGraph dropped, so it throws before its own `graph.remove(old)`. Repaired
+  in place by `nodes2/recreateNode.ts`, which reconnects by slot index and
+  unwinds the new node if anything fails.
+- `86b4c0e` — **🧹 Cleaner's four per-kind switches could not do what they
+  promised.** Loaded models were sorted by matching class names, with a model's
+  own name and its submodules' matched as one string and `modelpatcher` — the
+  wrapper around every model in ComfyUI — counting as a diffusion marker, so
+  anything unrecognised was unloaded as diffusion. Its "flush cache" switch also
+  raised the queue's `free_memory` flag, which ComfyUI answers with
+  `unload_all_models()`, so both switches did the same thing. One `unload_models`
+  switch now, old workflows still honoured.
+- `86b4c0e` — **Style Mixer lost every wire into it on reload.** `configure()`
+  replaces `node.inputs` with fresh slot objects carrying the links, and the
+  hidden-slot filter handed LiteGraph the stale copies parked in `_allInputs`.
+  Links are folded back in by name, and `target_slot` re-stamped after hiding.
+- `86b4c0e` — **the connection-toast setting was unreachable**: never added to
+  `allSettings.ts`, so ComfyUI never registered the id and every read returned
+  the fallback — which was `true` while the declaration said `false`.
+- `86b4c0e` — **Default LLM Provider could not be set to OpenAI**: the option
+  list was hand-written and had drifted from the provider registry.
+- `86b4c0e` — every `readSetting` call logged a deprecation warning, from
+  passing a fallback into an API that takes the default from the registration.
+- `86b4c0e` — Delete in the provider panel was offered for keys it cannot
+  remove: `configured` is true for a key from the environment or config.yaml,
+  while the button only clears `data/auth.json`.
+- `86b4c0e` — three orphaned features removed with the code behind them: the
+  global `wheel` listener, the `Shift+?` / `/` keybindings with their help
+  popup, and a colour picker that was never wired into a menu. 36 unreferenced
+  locale keys and the docs describing all of it went too.
 - `42cbcdb` — the provider panel asked for a Base URL on every card, including
   the ones whose endpoint is fixed: a URL typed there could only break a
   working setup. It now shows for the local servers, and for any provider that
@@ -45,6 +84,10 @@ gets the code as it was at that commit, the global wheel listener included.
 - `939d37c` — the README's screenshot placeholders were never filled. Fifteen
   panels shot against the 1.0.0 UI, gallery in both language halves,
   `docs/images/` kept out of the registry archive.
+
+Everything above ships in 1.0.1. Until that tag is pushed, ComfyUI Manager
+still serves 1.0.0 — the code as it stood at `d03b5e8`, global wheel listener
+and all.
 
 ## 1.0.0 (tag `v1.0.0` = `d03b5e8`)
 

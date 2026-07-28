@@ -1,5 +1,73 @@
 # Changelog
 
+## 1.0.1 (2026-07-28)
+
+Repairs to 1.0.0, plus the removal of three features that reached further into
+ComfyUI than a node pack should. Nothing here changes what the nodes produce.
+
+### Breaking
+
+- **🧹 Cleaner**: the four per-kind switches (`unload_diffusion`, `unload_clip`,
+  `unload_vae`, `unload_control`) are one `unload_models` switch. They sorted
+  loaded models by matching class names, and could not do it reliably — a
+  model's name and its nested submodules' names were matched as one string, and
+  `modelpatcher`, the wrapper around every model in ComfyUI, counted as a
+  diffusion marker, so anything unrecognised was unloaded as diffusion whatever
+  the other switches said. Saved workflows keep working: any of the four set
+  means "unload".
+- **⚡ KSampler**: `latent_image` → `latent`, `optional_vae` → `vae`, matching
+  the outputs they pair with. Workflows addressing them by the old names in the
+  API format still load.
+- **Keyboard shortcuts are gone.** The pack claimed `Shift+?` and `/` globally
+  through the commands API. Global keys belong to ComfyUI's own keybinding
+  settings, not to one of sixty installed packs. The per-node help popup they
+  opened went with them; node documentation lives in this repository.
+- **Settings removed**: `RequestTimeout` and `AutoCleanVRAM` were never read by
+  anything — timeouts come from `config.yaml` and per-provider defaults, and
+  VRAM cleanup is the Cleaner node's job. `RunButton.Enabled` /
+  `RunButton.AnimationDuration` were never registered with ComfyUI.
+
+### Fixed
+
+- **The global wheel listener is gone.** A capture-phase `wheel` handler on
+  `window`, installed at import, put this pack ahead of every other extension
+  for every wheel event in the application — other packs' wheel-driven
+  carousels, value tweaks and lazy loading never fired. What remains is one
+  listener on the pack's own widget host, which never sees an event outside a
+  FiL panel, and `Wheel.Enabled` switches even that off.
+- **Node panels no longer poll the layout.** Each mounted widget ran a 400 ms
+  `setInterval` and measured `scrollHeight` from LiteGraph's draw loop — a
+  forced reflow per frame per node. The ResizeObserver it was compensating for
+  was watching `host`, whose box stops following the content as soon as
+  anything pins it; observing the panel itself removed both the timer and the
+  per-frame measurement.
+- **Context menus no longer break other extensions.** `getExtraMenuOptions` is
+  wrapped through an accessor that captures the previous handler on read, so an
+  extension patching it the usual way cannot end up calling itself — with
+  cg-use-everywhere installed, every context menu died on "Maximum call stack
+  size exceeded". ComfyUI-Manager's "Fix node (recreate)" is repaired in place:
+  its own version leaves the old node stacked under the new one whenever any
+  input is connected.
+- **Style Mixer kept its wires** across a reload, and the panel state survives a
+  shifted `widgets_values` array.
+- **Connection toasts** were declared with a default of `false`, read with a
+  fallback of `true`, and never registered with ComfyUI — so the fallback was
+  the only value anyone got.
+- **Default LLM Provider** could not be set to OpenAI: the option list was
+  hand-written and had drifted from the provider registry.
+- Reading any setting logged a deprecation warning on every call.
+
+### Added
+
+- **Provider panel**: each card links to the page that issues the credential,
+  and shows the masked key together with where it came from — this panel,
+  an environment variable, or `config.yaml`. Delete is offered only for what
+  the panel itself saved. The Base URL field appears for the local servers and
+  for anyone with a custom endpoint already saved, instead of on every card.
+- **Running node highlight** (`RunFx.Mode`): the header pulses for as long as
+  the node executes, instead of a 400 ms flash. Covers this pack's nodes by
+  default, optionally all of them.
+
 ## 1.0.0 (2026-07-28)
 
 First public release. Ships 15 nodes under `🎨 FiL Design/*`, each one taken
