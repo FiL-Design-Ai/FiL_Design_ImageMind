@@ -6,7 +6,8 @@
   "description": "Vue 3 + TypeScript frontend for the FiL Design ImageMind ComfyUI custom node pack.",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build",
+    "build": "vue-tsc --noEmit && vite build && node scripts/sourceHash.mjs --write",
+    "check:bundle": "node scripts/sourceHash.mjs --check",
     "typecheck": "vue-tsc --noEmit",
     "preview": "vite preview",
     "test": "vitest run",

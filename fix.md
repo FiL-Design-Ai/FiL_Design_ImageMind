@@ -80,7 +80,13 @@ And two checks for the gap that let all of the above through:
 - `d295067` — **a stale `frontend/dist` shipped silently.** It is committed and
   it is what the registry publishes, so a source change without a rebuild sends
   users the old bundle while every other check passes. CI now fails on the
-  mismatch.
+  mismatch. The first version of that check rebuilt in CI and compared the
+  result byte for byte, which quietly required a Linux build to reproduce a
+  Windows one — a promise nobody had made, and one this project has no reason
+  to need. Replaced: the build records a hash of what it was built *from*
+  (`src`, `vite.config.ts`, `package-lock.json`, line endings normalised) and CI
+  recomputes it from the checkout. Same guarantee, no assumption about
+  toolchains agreeing across platforms.
 
 ## 1.0.1
 
