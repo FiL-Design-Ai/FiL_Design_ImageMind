@@ -213,6 +213,59 @@ test.describe("the pack in a real ComfyUI", () => {
     expect(errors.ours, errorReport(errors, "errors while building the graph")).toEqual([]);
   });
 
+  test("builds a context menu on every node", async ({ page }) => {
+    /**
+     * The check the console filter cannot make.
+     *
+     * Our accessor on `getExtraMenuOptions` once recursed against a pack that
+     * patches it the classic way, and every context menu in the app died with
+     * "Maximum call stack size exceeded" (86b4c0e). That failure carries no tag
+     * of ours — and LiteGraph wraps the assembler in a try/catch that turns it
+     * into a `console.error` — so nothing about it looks like our fault from
+     * the outside. Calling the assembler directly is the only way to see it.
+     *
+     * Worth most with other packs installed, which is what the neighbours job
+     * is for; on a bare ComfyUI it still guards the accessor itself.
+     */
+    const errors = collectErrors(page);
+    await page.goto("/");
+    await openBlankWorkflow(page);
+
+    const result = await page.evaluate(async () => {
+      const ids = Object.keys(window.LiteGraph.registered_node_types).filter((id) => id.startsWith("FiL"));
+      for (const [column, id] of ids.entries()) {
+        const node = window.LiteGraph.createNode(id) as { pos: [number, number] } | null;
+        if (node) {
+          node.pos = [60 + (column % 5) * 460, 60 + Math.floor(column / 5) * 700];
+          window.app.graph.add(node);
+        }
+      }
+      for (let i = 0; i < 40; i++) await new Promise((r) => requestAnimationFrame(r));
+
+      const canvas = (window.app as unknown as {
+        canvas: { getNodeMenuOptions(node: unknown): unknown[] };
+      }).canvas;
+
+      const failed: Array<{ id: string; error: string }> = [];
+      const empty: string[] = [];
+      for (const node of window.app.graph._nodes as Array<{ comfyClass?: string }>) {
+        const id = node.comfyClass ?? "?";
+        try {
+          const options = canvas.getNodeMenuOptions(node);
+          if (!Array.isArray(options) || options.length === 0) empty.push(id);
+        } catch (error) {
+          failed.push({ id, error: String(error) });
+        }
+      }
+      return { failed, empty, checked: window.app.graph._nodes.length };
+    });
+
+    expect(result.failed, `menu assembly threw: ${JSON.stringify(result.failed)}`).toEqual([]);
+    expect(result.empty, `nodes whose menu came back empty: ${result.empty.join(", ")}`).toEqual([]);
+    expect(result.checked).toBe(EXPECTED_NODE_COUNT);
+    expect(errors.ours, errorReport(errors, "errors while building menus")).toEqual([]);
+  });
+
   test("serialises and reloads the graph with its wires intact", async ({ page }) => {
     // The Style Mixer lost every wire into it on reload, because its hidden-slot
     // filter handed LiteGraph the stale slots it had parked (86b4c0e). Nothing
