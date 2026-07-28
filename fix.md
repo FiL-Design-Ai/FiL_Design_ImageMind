@@ -12,8 +12,8 @@ was broken`` , then a sentence on the cause where it is not obvious.
 
 Found by `tests/test_executor_contract.py`, which is new: it asks ComfyUI's own
 `execution.py` what a node is passed instead of calling `execute()` directly and
-assuming. Every item below is the same defect — a parameter the executor never
-fills, read as if it were live. Hashes go in when these commit.
+assuming. Every item below is `f7c85c1`, and every one is the same defect — a
+parameter the executor never fills, read as if it were live.
 
 - **KSampler and Tile Assembly saved previews with no workflow in them.** Both
   read `prompt` and `extra_pnginfo` as parameters and handed them to the preview
@@ -38,21 +38,21 @@ fills, read as if it were live. Hashes go in when these commit.
 
 On the frontend, the same gap in a different form:
 
-- **The end-to-end suite has never run anywhere but a developer's machine.** It
-  was in the repo before 1.0.0 and no workflow invoked it. `playwright.config.ts`
-  now starts the dev server itself through `webServer`, so the suite is one
-  command, and CI runs it after vitest with the report kept as an artifact on
-  failure.
-- **`frontend/tests/fakes/comfyHost.ts`** is one stand-in for the host, replacing
-  the node and `app` shapes four test files each invented separately. It carries
-  only behaviours the pack has actually been burned by, each naming the commit
-  that established it.
-- Two of those behaviours had no test at all, and both are repairs from this
-  release that nothing was holding in place: the run highlight following
-  `display_node` rather than the execution id, and every settings id declared
-  under `src/stores/settings/` reaching `ALL_SETTINGS`. Verified by putting each
-  defect back and watching the new tests fail.
-- **`domWidgetHost.ts` was 500 lines and one function.** It is now the
+- `1dc551d` — **the end-to-end suite has never run anywhere but a developer's
+  machine.** It was in the repo before 1.0.0 and no workflow invoked it.
+  `playwright.config.ts` now starts the dev server itself through `webServer`,
+  so the suite is one command, and CI runs it after vitest with the report kept
+  as an artifact on failure.
+- `dc873c0` — **`frontend/tests/fakes/comfyHost.ts`** is one stand-in for the
+  host, replacing the node and `app` shapes four test files each invented
+  separately. It carries only behaviours the pack has actually been burned by,
+  each naming the commit that established it.
+- `dc873c0` — two of those behaviours had no test at all, and both are repairs
+  from this release that nothing was holding in place: the run highlight
+  following `display_node` rather than the execution id, and every settings id
+  declared under `src/stores/settings/` reaching `ALL_SETTINGS`. Verified by
+  putting each defect back and watching the new tests fail.
+- `143d5dc` — **`domWidgetHost.ts` was 500 lines and one function.** It is now the
   composition root only, with the parts in `nodes2/host/`: `hostElement`,
   `wheelForwarding`, `stateBridge`, `heightModel`, `nodeSizeSync`, `observers`.
   No behaviour was meant to change, and 13 characterization tests written
@@ -60,6 +60,27 @@ On the frontend, the same gap in a different form:
   caught the single change that did slip in (publishing the caller's height
   estimate to the widget at attach time, which shifted what the first resize
   drag computed as stretch).
+- `3a0752e` — a panel dragged to 200px of stretch settled at 192 after its
+  content changed, live in ComfyUI. The split above was the obvious suspect and
+  is not: the pre-split file is kept as a fixture and driven through the same
+  sequence, and both produce identical numbers at every step. The 8px does not
+  reproduce in jsdom at all, so it comes from something only the real host does
+  — most likely LiteGraph writing back a size of its own after a resize.
+  Cosmetic, stable once it happens, and older than the split. Left alone.
+
+And two checks for the gap that let all of the above through:
+
+- `d295067` — **nothing ever opened these nodes in a real ComfyUI.** The Python
+  suite proves a node's logic, the component suite proves a widget in isolation,
+  and between them sat every defect a user actually reported. The smoke suite
+  puts all 15 nodes on one canvas against a running instance and checks that the
+  backend's nodes reach the live frontend, that each panel renders with a real
+  height, and that a graph survives serialize + reload with its wires — the
+  Style Mixer regression from `86b4c0e`.
+- `d295067` — **a stale `frontend/dist` shipped silently.** It is committed and
+  it is what the registry publishes, so a source change without a rebuild sends
+  users the old bundle while every other check passes. CI now fails on the
+  mismatch.
 
 ## 1.0.1
 
