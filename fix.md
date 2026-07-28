@@ -8,6 +8,59 @@ bug can be traced to the commit that closed it.
 Add an entry when you fix something. Format: `` `hash` — one line saying what
 was broken`` , then a sentence on the cause where it is not obvious.
 
+## Unreleased
+
+Found by `tests/test_executor_contract.py`, which is new: it asks ComfyUI's own
+`execution.py` what a node is passed instead of calling `execute()` directly and
+assuming. Every item below is the same defect — a parameter the executor never
+fills, read as if it were live. Hashes go in when these commit.
+
+- **KSampler and Tile Assembly saved previews with no workflow in them.** Both
+  read `prompt` and `extra_pnginfo` as parameters and handed them to the preview
+  saver. A V3 node receives hidden values through `cls.hidden` and never as
+  arguments, so both were always `None` and the PNG went to disk without the
+  workflow to drag back into ComfyUI. They read `cls.hidden` now.
+- **Optic Scanner never showed progress while scanning a batch**, and could not
+  have: `unique_id` came from `kwargs`, where a hidden value does not appear, so
+  the per-image call was skipped every time. The call it skipped was broken too
+  — `io.execution` is not part of `comfy_api.latest.io`, and the `set_progress`
+  that does exist is a coroutine that synchronous callback could not await. Both
+  nodes now declare `Hidden.unique_id` and report through `comfy.utils.
+  ProgressBar`, which is synchronous and no-ops outside a running server.
+- **Dataset Forge's captioning progress bar** was dead the same way, down to the
+  same two causes.
+- Cleaner's `execute()` took `unique_id` and `extra_pnginfo` that nothing read
+  and nothing filled; they and the `hidden` declaration behind them are gone.
+- Node-level tests now call through `tests/executor_harness.py`, which prepares
+  the class clone the way the executor does. Calling `NodeClass.execute()`
+  straight from a test is what let all of the above pass for so long: it is not
+  how the node is ever called in the app.
+
+On the frontend, the same gap in a different form:
+
+- **The end-to-end suite has never run anywhere but a developer's machine.** It
+  was in the repo before 1.0.0 and no workflow invoked it. `playwright.config.ts`
+  now starts the dev server itself through `webServer`, so the suite is one
+  command, and CI runs it after vitest with the report kept as an artifact on
+  failure.
+- **`frontend/tests/fakes/comfyHost.ts`** is one stand-in for the host, replacing
+  the node and `app` shapes four test files each invented separately. It carries
+  only behaviours the pack has actually been burned by, each naming the commit
+  that established it.
+- Two of those behaviours had no test at all, and both are repairs from this
+  release that nothing was holding in place: the run highlight following
+  `display_node` rather than the execution id, and every settings id declared
+  under `src/stores/settings/` reaching `ALL_SETTINGS`. Verified by putting each
+  defect back and watching the new tests fail.
+- **`domWidgetHost.ts` was 500 lines and one function.** It is now the
+  composition root only, with the parts in `nodes2/host/`: `hostElement`,
+  `wheelForwarding`, `stateBridge`, `heightModel`, `nodeSizeSync`, `observers`.
+  No behaviour was meant to change, and 13 characterization tests written
+  against the old implementation went across the split unedited — one of them
+  caught the single change that did slip in (publishing the caller's height
+  estimate to the widget at attach time, which shifted what the first resize
+  drag computed as stretch).
+
 ## 1.0.1
 
 - `86b4c0e` — **the 400 ms layout poll per widget is gone, and so is the reflow
