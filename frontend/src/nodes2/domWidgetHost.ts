@@ -185,12 +185,12 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
 
   // The height LiteGraph reads. It starts at the caller's initial estimate for
   // the first paint (before anything is mounted) and is refreshed by
-  // `measureHeight()` from the ResizeObserver, the settle loop and the 400ms
-  // poll below — never from `getHeight()` itself. `getHeight()` is called from
-  // LiteGraph's draw loop, and measuring there means a forced reflow per frame
-  // per FiL node on the canvas. Measuring on every call was the original fix
-  // for a ResizeObserver that silently stopped firing for some nodes; the poll
-  // now covers that case, at 2.5 reads a second instead of 60.
+  // `measureHeight()` from the observers and the settle loop below — never from
+  // `getHeight()` itself. `getHeight()` is called from LiteGraph's draw loop,
+  // and measuring there means a forced reflow per frame per FiL node on the
+  // canvas. Measuring on every call was the original workaround for a
+  // ResizeObserver watching the wrong element; the observers below watch the
+  // panel itself, so a measurement happens when the content actually changes.
   let currentHeight = opts.height;
   // Growable mode only (see `opts.growable`): the panel's own content height
   // versus the extra pixels the user dragged on top of it. `currentHeight`
@@ -245,7 +245,7 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
    * at the content's own minimum — with the height in place the flexible rows
    * have already absorbed the slack and `scrollHeight` just echoes the box
    * back. Two forced reflows per call is why only `syncNodeHeight()` (a
-   * coalesced frame callback plus a 400ms poll) calls this, never `getHeight`.
+   * coalesced frame callback) calls this, never `getHeight`.
    */
   const remeasureGrowable = (): boolean => {
     const content = host.firstElementChild as HTMLElement | null;
@@ -308,7 +308,7 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
     // Every height that doesn't come from us is somebody stating their intent:
     // the user dragging the resize handle, "Resize to fit" (`setSize(
     // computeSize())` → back to the content height), or a workflow being
-    // loaded. Reading the new stretch out *here* rather than in the polled
+    // loaded. Reading the new stretch out *here* rather than in the deferred
     // sync below is what makes it stick: the canvas re-arranges the node on
     // every frame using the widget's own height, so a shrink that isn't
     // answered within the same tick is simply pushed back up on the next
@@ -388,14 +388,64 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
   }
 
   let resizeFrame = 0;
-  const resizeObserver = new ResizeObserver(() => {
+  const scheduleSync = (): void => {
     if (resizeFrame) return;
     resizeFrame = requestAnimationFrame(() => {
       resizeFrame = 0;
       syncNodeHeight();
     });
-  });
+  };
+  const resizeObserver = new ResizeObserver(scheduleSync);
+  // `host` only reports width reliably. Its *height* stops tracking content the
+  // moment something pins the box — ComfyUI's own `h-full` class and its
+  // DOM-widget repositioning, or `applyStretch()` in growable mode — and then
+  // the panel simply overflows it: `measureHeight()` sees the growth through
+  // `scrollHeight`, the observer sees a border-box that never moved. That is
+  // the "observer silently stops firing" this module used to poll around.
   resizeObserver.observe(host);
+
+  // The panel's own root is the one element here sized by its content, so it is
+  // what actually has to be observed. It arrives late: the node modules pass a
+  // `defineAsyncComponent`, so `FilNodeShell` renders its wrapper synchronously
+  // but the panel inside it only lands once the chunk resolves.
+  const shell = host.firstElementChild;
+  let panelRoot: Element | null = null;
+  const observePanelRoot = (): boolean => {
+    const panel = shell?.firstElementChild;
+    if (!panel || panel === panelRoot) return Boolean(panelRoot);
+    panelRoot = panel;
+    resizeObserver.observe(panel);
+    scheduleSync();
+    return true;
+  };
+
+  // Waits for the panel to mount, then stops. Skipped entirely when the panel
+  // is already there (a plain, non-async component).
+  let arrivalObserver: MutationObserver | null = null;
+  if (shell && !observePanelRoot()) {
+    arrivalObserver = new MutationObserver(() => {
+      if (!observePanelRoot()) return;
+      arrivalObserver?.disconnect();
+      arrivalObserver = null;
+    });
+    arrivalObserver.observe(shell, { childList: true });
+  }
+
+  // Growable panels need a second, permanent signal: inside a height pinned by
+  // `applyStretch()`, a section collapsing moves no border-box anywhere, so
+  // neither observer above would ever fire. A DOM or class change is the only
+  // evidence the content minimum moved — this is the case the poll was really
+  // covering, now driven by the event instead of by a timer.
+  let growObserver: MutationObserver | null = null;
+  if (opts.growable && shell) {
+    growObserver = new MutationObserver(scheduleSync);
+    growObserver.observe(shell, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["class", "style"],
+    });
+  }
 
   // `root` is normally a `defineAsyncComponent(...)` (see nodes2/nodes/*.ts):
   // it resolves and mounts its real content *after* `app.mount(host)` above
@@ -409,22 +459,20 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
     if (settleFrames-- > 0) requestAnimationFrame(settleLoop);
   })();
 
-  // Belt-and-suspenders backstop: the ResizeObserver above is the primary
-  // mechanism, but it's been observed live to silently stop firing for some
-  // nodes (reproduced: FiLNeuroCleaner stuck at 522px tall for 738px of real
-  // content, indefinitely — computeSize() itself already reported the
-  // correct number, only the ResizeObserver-triggered setSize() never ran a
-  // second time). A cheap low-frequency poll for the widget's whole lifetime
-  // guarantees eventual correctness even when the observer flakes out —
-  // syncNodeHeight()'s own early-return (`Math.abs(...) < 2`) makes the
-  // no-op case near-free.
-  const pollInterval = setInterval(syncNodeHeight, 400);
+  // A 400ms `setInterval(syncNodeHeight)` used to run here for the widget's
+  // whole lifetime, as a backstop against the observer "silently stopping" —
+  // the symptom being a node stuck at 522px against 738px of real content.
+  // The observer was not flaking: it was watching `host`, whose box stops
+  // following the content as soon as anything pins it, while the measurement
+  // read the panel's `scrollHeight`. Observing the panel itself closes that
+  // gap, so the timer is gone.
 
   const controller: FilWidgetController<S> = { widget, host, app, state, unmount };
   function unmount(this: FilWidgetController<S>) {
     resizeObserver.disconnect();
+    arrivalObserver?.disconnect();
+    growObserver?.disconnect();
     if (resizeFrame) cancelAnimationFrame(resizeFrame);
-    clearInterval(pollInterval);
     try {
       this.app.unmount();
     } catch (err) {

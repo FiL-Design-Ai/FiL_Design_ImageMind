@@ -25,27 +25,3 @@ test.describe("FilModal", () => {
     expect(lastValue).toBe(false);
   });
 });
-
-test.describe("FilColorPicker", () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto("test-playground.html");
-  });
-
-  test("opens popup and selects color", async ({ page }) => {
-    await page.evaluate(() => {
-      window.mountComponent("FilColorPicker", {
-        modelValue: "#ff0000"
-      });
-    });
-
-    const picker = page.locator(".fil-color-picker");
-    await expect(picker).toBeVisible();
-
-    const hexInput = page.locator("input[type=text].fil-cp-hex-input");
-    await hexInput.fill("#00ff00");
-    await hexInput.press("Enter");
-
-    const lastValue = await page.evaluate(() => window.lastEmittedModelValue);
-    expect(lastValue).toBe("#00ff00");
-  });
-});

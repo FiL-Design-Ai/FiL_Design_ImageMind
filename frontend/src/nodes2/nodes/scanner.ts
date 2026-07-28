@@ -6,7 +6,7 @@ import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
 import { createSyncedNodeState, findFilWidget, sanitizeWidgetValue } from "@/nodes2/util";
 import { exposeWidgetInputSockets } from "@/nodes2/widgetInputSockets";
 import { applyFxComposables } from "@/nodes2/applyFxComposables";
-import { installFilStatePersistence, restoreFilState } from "@/nodes2/statePersistence";
+import { FIL_STATE_KEY, installFilStatePersistence, restoreFilState } from "@/nodes2/statePersistence";
 
 const OpticScannerVue = defineAsyncComponent(() => import("@/components/nodes/OpticScanner.vue"));
 
@@ -124,12 +124,18 @@ export const scannerNode: NodeModule = {
       };
       const state = node._filScannerSeedState;
       if (!state) return result;
+      // With `fil_state` present, the values read here are thrown away by
+      // restoreFilState() below, and a shifted positional array is the very
+      // thing `fil_state` exists to survive — so warning about it would fire on
+      // every load of a perfectly good workflow. Without the key, the values
+      // below are all there is, and a bad one is worth saying out loud.
+      const hasFilState = Boolean((args[0] as Record<string, unknown> | undefined)?.[FIL_STATE_KEY]);
       for (const name of allWidgetNames) {
         const w = findFilWidget(node, name);
         if (!w) continue;
         const isNum = name === "seed";
         const fallback = isNum ? -1 : "";
-        state.nodeState[name] = sanitizeWidgetValue(w, isNum ? "number" : "string", fallback);
+        state.nodeState[name] = sanitizeWidgetValue(w, isNum ? "number" : "string", fallback, hasFilState);
         (w as { hidden?: boolean }).hidden = true;
       }
       // The widget values read above are the fallback for workflows saved

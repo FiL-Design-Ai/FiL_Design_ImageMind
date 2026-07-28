@@ -8,8 +8,20 @@
 import { computed, watch } from "vue";
 import type { FilNodeState } from "@/nodes2/filState";
 import { findFilWidget } from "@/nodes2/util";
+import { useI18n } from "@/composables/useI18n";
 
 const props = defineProps<{ state: FilNodeState }>();
+const { t } = useI18n();
+
+// This panel was the only one with no hover text at all. The wording is the
+// same key the backend puts on the native `enable` widget's tooltip, so both
+// paths say the same thing in the same language.
+const hint = computed(() =>
+  t(
+    "tt_switch_enable",
+    "ON passes the input signal through. OFF sends `None` downstream, and the rest of the graph keeps running.",
+  ),
+);
 
 const enable = computed({
   get: () => Boolean(props.state.nodeState.enable ?? true),
@@ -43,6 +55,8 @@ watch(
       type="button"
       class="fil-switch-btn"
       :class="{ 'is-on': enable, 'is-off': !enable }"
+      :title="hint"
+      :aria-label="hint"
       @click="toggle"
     >
       <span class="fil-switch-text">{{ enable ? "ON" : "OFF" }}</span>

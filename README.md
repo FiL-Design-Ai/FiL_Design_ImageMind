@@ -25,7 +25,7 @@
 - [Tiled upscale pipeline](#tiled-upscale-pipeline)
 - [Prompting system](#prompting-system)
 - [Settings](#settings)
-- [Themes, shortcuts, localization](#themes-shortcuts-localization)
+- [Themes and localization](#themes-and-localization)
 - [HTTP API](#http-api)
 - [Screenshots](#screenshots)
 - [Troubleshooting](#troubleshooting)
@@ -253,13 +253,13 @@ stack to the vision model for a coherent rewrite and needs `config`.
 | `sampler_name` | COMBO | `euler` | every sampler ComfyUI exposes (loaded lazily at schema time) |
 | `scheduler` | COMBO | `simple` | simple, sgm_uniform, karras, exponential, ddim_uniform, beta, … |
 | `positive` / `negative` | CONDITIONING | — | |
-| `latent_image` | LATENT | — | |
+| `latent` | LATENT | — | |
 | `denoise` | FLOAT | `1.0` | |
 | `eta` (η) | FLOAT | `1.0` | ancestral/SDE samplers only — see [`docs/ETA_GUIDE.md`](docs/ETA_GUIDE.md) |
 | `bongmath` | BOOLEAN | `true` | |
 | `preview_method` | COMBO | `auto` | auto, latent2rgb, taesd, vae_decoded_only, none |
 | `vae_decode` | COMBO | `true` | true, true (tiled), false |
-| `optional_vae` | VAE (optional) | — | connection-only |
+| `vae` | VAE (optional) | — | connection-only |
 | `script` | FilHiresScript (optional) | — | HighRes Fix and/or Noise Control |
 
 **Outputs:** `model`, `positive`, `negative`, `latent`, `vae`, `image` — the five passthroughs let
@@ -437,25 +437,26 @@ The node never upscales. Sources smaller than their bucket are still written, co
 **♻️ Seed** — `seed` INT (0 – 2⁶⁴-1) → `SEED` INT. Panel is one row: the value plus 🔀 randomize,
 ♻️ reuse last, 🎲 new fixed random. Typing digits switches it to fixed and applies the value.
 
-**🧹 Cleaner** — explicit toggles, no guesswork:
+**🧹 Cleaner** — two switches, each doing exactly what it says:
 
 | Input | Type | Default |
 |---|---|---|
-| `clean_vram` | BOOLEAN | `true` |
-| `unload_diffusion` | BOOLEAN | `true` |
-| `unload_clip` | BOOLEAN | `false` |
-| `unload_vae` | BOOLEAN | `false` |
-| `unload_control` | BOOLEAN | `false` |
+| `clean_vram` | BOOLEAN | `true` — flush the CUDA cache, leaving loaded models alone |
+| `unload_models` | BOOLEAN | `true` — unload every model ComfyUI holds; the next run reloads them |
 | `anything` | ANY (optional) | — passthrough, so you can insert it anywhere in a chain |
+
+Earlier versions offered four per-kind switches (diffusion / CLIP / VAE / ControlNet). They sorted
+the loaded models by matching class names and could not do it reliably, so unloading is now all or
+nothing. Workflows saved with the old switches keep working: any of them set means "unload".
 
 **Output:** `output` (ANY) — the same value that came in.
 
 **🔀 Cyber Switch** — `input` (ANY, optional) + `enable` BOOLEAN → `output` (ANY). ON forwards the
-value untouched. OFF returns ComfyUI's `ExecutionBlocker`, so every node downstream is **skipped**
-and the rest of the graph still runs — a muted SaveImage simply writes nothing instead of raising.
-The block is silent by design (a message would surface as an execution error, which muting is not).
-An unconnected `input` blocks the same way, so an unwired switch can't feed `None` into a node that
-expected a LATENT.
+value untouched. OFF puts `None` on the wire and the graph below **keeps running** — which is the
+point: a consumer that took this signal on an *optional* input still executes, just without it. A
+node that needed a real LATENT/IMAGE will of course raise on the `None`, and the error will name
+that node rather than the switch. ON with nothing connected is a different case — a misconfigured
+graph, not muting — and it returns an `ExecutionBlocker` carrying a message that says so.
 
 </details>
 
@@ -505,26 +506,28 @@ is an RGB-specific interpolation and does not belong in latent space.
 | Setting | Key | Default |
 |---|---|---|
 | Default LLM Provider | `FiL_Design_ImageMind.DefaultProvider` | `Ollama` |
-| Request Timeout (seconds) | `FiL_Design_ImageMind.RequestTimeout` | `60` |
-| Auto VRAM cleanup on completion | `FiL_Design_ImageMind.AutoCleanVRAM` | `false` |
-| Language | `FiL_Design_ImageMind.Language` | `en` |
+| Language of FiL panels | `FiL_Design_ImageMind.Language` | `en` |
 | Log level | `FiL_Design_ImageMind.Logging.Level` | `WARNING` |
 | Node theme | `FiL_Design_ImageMind.Theme` | `Default` |
-| Keyboard shortcuts | `FiL_Design_ImageMind.Shortcuts.Enabled` | `true` |
+| Wheel scrolling in FiL Design panels | `FiL_Design_ImageMind.Wheel.Enabled` | `true` |
 | Show connection toasts | `FiL_Design_ImageMind.ConnectionFX.ShowToasts` | `false` |
-| Run button effects / duration | `FiL_Design_ImageMind.RunButton.*` | `true` / `Normal` |
+| Highlight the running node | `FiL_Design_ImageMind.RunFx.Mode` | `FiL nodes only` |
+
+Every setting listed here is registered with ComfyUI and read by the code. Earlier entries that are
+gone: `RequestTimeout` and `AutoCleanVRAM` were never read by anything (timeouts come from
+`config.yaml` / per-provider defaults, and VRAM cleanup is the 🧹 Cleaner node's job); the
+`RunButton.*` pair was never registered, and its 400 ms flash is now the `RunFx.Mode` pulse above;
+`Shortcuts.Enabled` went with the keyboard shortcuts themselves.
 
 The **Providers** tab in the same panel manages accounts and API keys (stored in `data/auth.json`).
 
-### Themes, shortcuts, localization
+### Themes and localization
 
 **Themes** (applied live, no reload): `Default`, `Cyberpunk`, `Fallout`, `Pipboy`, `FiL Green`,
 `Pixaroma` (matches the ComfyUI-Pixaroma pack's colors, for graphs that mix both).
 All node panels read the same CSS variables, including `--fil-accent-ink` for text on accent
 backgrounds, so a light-accent theme stays readable. Every palette is checked against WCAG AA
 on its own surfaces — the measured ratios sit next to the values in `styles/brand.ts`.
-
-**Shortcuts:** `Shift + ?` opens the cheat sheet, `/` focuses search. Toggle them off in Settings.
 
 **Localization:** English and Russian, complete — panels, tooltips, toasts and node help all come
 from `data/locales/{en,ru}.json`, and a test enforces key coverage.
@@ -672,7 +675,7 @@ Further reading: [architecture](docs/architecture.md) ·
 - [Конвейер тайлового апскейла](#конвейер-тайлового-апскейла)
 - [Система промптинга](#система-промптинга)
 - [Настройки](#настройки)
-- [Темы, горячие клавиши, локализация](#темы-горячие-клавиши-локализация)
+- [Темы и локализация](#темы-и-локализация)
 - [HTTP API](#http-api-1)
 - [Скриншоты](#скриншоты)
 - [Решение проблем](#решение-проблем)
@@ -899,13 +902,13 @@ Python самого ComfyUI (`python_embeded`, `venv` или `.venv`), став�
 | `sampler_name` | COMBO | `euler` | все сэмплеры ComfyUI (список грузится лениво при построении схемы) |
 | `scheduler` | COMBO | `simple` | simple, sgm_uniform, karras, exponential, ddim_uniform, beta, … |
 | `positive` / `negative` | CONDITIONING | — | |
-| `latent_image` | LATENT | — | |
+| `latent` | LATENT | — | |
 | `denoise` | FLOAT | `1.0` | |
 | `eta` (η) | FLOAT | `1.0` | только ancestral/SDE — см. [`docs/ETA_GUIDE.md`](docs/ETA_GUIDE.md) |
 | `bongmath` | BOOLEAN | `true` | |
 | `preview_method` | COMBO | `auto` | auto, latent2rgb, taesd, vae_decoded_only, none |
 | `vae_decode` | COMBO | `true` | true, true (tiled), false |
-| `optional_vae` | VAE (опц.) | — | только соединением |
+| `vae` | VAE (опц.) | — | только соединением |
 | `script` | FilHiresScript (опц.) | — | HighRes Fix и/или Noise Control |
 
 **Выходы:** `model`, `positive`, `negative`, `latent`, `vae`, `image` — пять passthrough-выходов
@@ -1082,25 +1085,26 @@ Python самого ComfyUI (`python_embeded`, `venv` или `.venv`), став�
 🔀 рандом, ♻️ повторить прошлый, 🎲 новый фиксированный. Ввод цифр переключает в режим fixed и
 применяет значение.
 
-**🧹 Cleaner** — явные тумблеры, без догадок:
+**🧹 Cleaner** — два тумблера, каждый делает ровно то, что написано:
 
 | Вход | Тип | По умолчанию |
 |---|---|---|
-| `clean_vram` | BOOLEAN | `true` |
-| `unload_diffusion` | BOOLEAN | `true` |
-| `unload_clip` | BOOLEAN | `false` |
-| `unload_vae` | BOOLEAN | `false` |
-| `unload_control` | BOOLEAN | `false` |
+| `clean_vram` | BOOLEAN | `true` — сбросить кэш CUDA, загруженные модели не трогать |
+| `unload_models` | BOOLEAN | `true` — выгрузить все модели, что держит ComfyUI; следующий запуск загрузит их заново |
 | `anything` | ANY (опц.) | — passthrough, чтобы вставлять узел в любое место цепочки |
+
+Раньше тумблеров было четыре — по видам моделей (diffusion / CLIP / VAE / ControlNet). Они
+сортировали загруженные модели по именам классов и делали это ненадёжно, поэтому выгрузка теперь
+только целиком. Старые воркфлоу продолжают работать: любой из прежних тумблеров включён — выгружаем.
 
 **Выход:** `output` (ANY) — то же значение, что пришло.
 
 **🔀 Cyber Switch** — `input` (ANY, опц.) + `enable` BOOLEAN → `output` (ANY). ON пробрасывает
-значение как есть. OFF возвращает штатный `ExecutionBlocker` ComfyUI: все узлы ниже по потоку
-**пропускаются**, остальной граф считается как обычно — заглушенный SaveImage просто ничего не
-сохраняет, а не падает. Блокировка молчаливая намеренно (сообщение всплыло бы как ошибка
-выполнения, а глушение ветки — не ошибка). Неподключённый `input` блокирует так же, поэтому
-невыключенный, но и не подключённый шлюз не подсунет `None` ноде, которая ждала LATENT.
+значение как есть. OFF кладёт на выход `None`, и граф ниже **продолжает считаться** — ради этого всё
+и сделано: нода, которая брала сигнал в *опциональный* вход, отработает и без него. Нода, которой
+нужен настоящий LATENT/IMAGE, на `None` разумеется упадёт, и в ошибке будет её имя, а не имя
+выключенного шлюза. ON без подключённого входа — другой случай: это не глушение, а неправильно
+собранный граф, и он возвращает `ExecutionBlocker` с текстом, который об этом говорит.
 
 </details>
 
@@ -1150,18 +1154,22 @@ lanczos это RGB-специфичная интерполяция, в лате�
 | Настройка | Ключ | По умолчанию |
 |---|---|---|
 | Default LLM Provider | `FiL_Design_ImageMind.DefaultProvider` | `Ollama` |
-| Request Timeout (seconds) | `FiL_Design_ImageMind.RequestTimeout` | `60` |
-| Auto VRAM cleanup on completion | `FiL_Design_ImageMind.AutoCleanVRAM` | `false` |
-| Language | `FiL_Design_ImageMind.Language` | `en` |
+| Language of FiL panels | `FiL_Design_ImageMind.Language` | `en` |
 | Log level | `FiL_Design_ImageMind.Logging.Level` | `WARNING` |
 | Node theme | `FiL_Design_ImageMind.Theme` | `Default` |
-| Keyboard shortcuts | `FiL_Design_ImageMind.Shortcuts.Enabled` | `true` |
+| Wheel scrolling in FiL Design panels | `FiL_Design_ImageMind.Wheel.Enabled` | `true` |
 | Show connection toasts | `FiL_Design_ImageMind.ConnectionFX.ShowToasts` | `false` |
-| Run button effects / duration | `FiL_Design_ImageMind.RunButton.*` | `true` / `Normal` |
+| Highlight the running node | `FiL_Design_ImageMind.RunFx.Mode` | `FiL nodes only` |
+
+Все перечисленные настройки зарегистрированы в ComfyUI и реально читаются кодом. Убранные записи:
+`RequestTimeout` и `AutoCleanVRAM` не читались нигде (таймауты берутся из `config.yaml` и дефолтов
+провайдеров, а очистка VRAM — задача ноды 🧹 Cleaner); пара `RunButton.*` не была зарегистрирована,
+её вспышка заменена пульсацией `RunFx.Mode` выше; `Shortcuts.Enabled` ушла вместе с самими
+горячими клавишами.
 
 Вкладка **Providers** в той же панели управляет аккаунтами и ключами (хранятся в `data/auth.json`).
 
-### Темы, горячие клавиши, локализация
+### Темы и локализация
 
 **Темы** (применяются на лету, без перезагрузки): `Default`, `Cyberpunk`, `Fallout`, `Pipboy`,
 `FiL Green`, `Pixaroma` (повторяет цвета пака ComfyUI-Pixaroma — для графов, где смешаны оба).
@@ -1169,8 +1177,6 @@ lanczos это RGB-специфичная интерполяция, в лате�
 на акцентном фоне — поэтому тема со светлым акцентом остаётся читаемой. Каждая палитра проверена
 по WCAG AA на своих же поверхностях, измеренные коэффициенты лежат рядом со значениями
 в `styles/brand.ts`.
-
-**Горячие клавиши:** `Shift + ?` — шпаргалка, `/` — фокус в поиск. Отключаются в настройках.
 
 **Локализация:** английский и русский, полностью — панели, тултипы, тосты и справка по узлам берутся
 из `data/locales/{en,ru}.json`, покрытие ключей проверяется тестом.

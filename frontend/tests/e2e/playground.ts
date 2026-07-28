@@ -1,7 +1,6 @@
 import { createApp, defineComponent, h, type Component } from "vue";
 import { createPinia } from "pinia";
 import FilModal from "@/components/widgets/FilModal.vue";
-import FilColorPicker from "@/components/widgets/FilColorPicker.vue";
 import FilSegmented from "@/components/widgets/FilSegmented.vue";
 import FilSlider from "@/components/widgets/FilSlider.vue";
 import FilChipGrid from "@/components/widgets/FilChipGrid.vue";
@@ -9,7 +8,6 @@ import FilChipGrid from "@/components/widgets/FilChipGrid.vue";
 // Registry of available components for testing
 const components: Record<string, Component> = {
   FilModal,
-  FilColorPicker,
   FilSegmented,
   FilSlider,
   FilChipGrid,

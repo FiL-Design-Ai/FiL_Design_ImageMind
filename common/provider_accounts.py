@@ -30,25 +30,60 @@ def _save_auth_json(data: Dict[str, Any]) -> None:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 
+ENV_VAR_BY_PROVIDER = {
+    "openai": "OPENAI_API_KEY", "google": "GOOGLE_API_KEY", "groq": "GROQ_API_KEY",
+    "openrouter": "OPENROUTER_API_KEY", "cloudflare": "CLOUDFLARE_API_TOKEN",
+}
+
+
 def get_api_key(provider: str) -> Optional[str]:
+    key, _ = get_api_key_with_source(provider)
+    return key
+
+
+def get_api_key_with_source(provider: str) -> tuple[Optional[str], str]:
+    """The key plus where it came from: ``file``, ``env``, ``config`` or ``none``.
+
+    A key can arrive from three places, and the settings panel used to say only
+    "configured" — leaving no way to tell a key saved here from one the shell
+    happens to export, which is exactly the confusion when the wrong account
+    answers.
+    """
     config_inst = get_config()
     auth = _load_auth_json()
     provider_data = auth.get(provider, {})
     api_section = provider_data.get("api", {})
     key = api_section.get("key") or provider_data.get("key")
     if key:
-        return key
+        return key, "file"
 
-    env_var_map = {
-        "openai": "OPENAI_API_KEY", "google": "GOOGLE_API_KEY", "groq": "GROQ_API_KEY",
-        "openrouter": "OPENROUTER_API_KEY", "cloudflare": "CLOUDFLARE_API_TOKEN",
-    }
-    env_key = env_var_map.get(provider)
+    env_key = ENV_VAR_BY_PROVIDER.get(provider)
     if env_key:
         import os
-        return os.environ.get(env_key) or config_inst.get(env_key)
+        from_env = os.environ.get(env_key)
+        if from_env:
+            return from_env, "env"
+        from_config = config_inst.get(env_key)
+        if from_config:
+            return from_config, "config"
 
-    return None
+    return None, "none"
+
+
+def mask_api_key(key: Optional[str]) -> str:
+    """A key rendered for display: enough to recognise, not enough to reuse.
+
+    Keeps the provider prefix (``sk-``, ``gsk_``, …) and the last four
+    characters, the convention every key-issuing dashboard uses. Anything too
+    short to mask safely is shown as dots only.
+    """
+    if not key:
+        return ""
+    # Below this, 3 + 4 visible characters would be most of the key. Real
+    # provider keys run 30-100+; anything this short is a placeholder anyway.
+    if len(key) < 20:
+        return "•" * 8
+    return f"{key[:3]}…{key[-4:]}"
 
 
 def set_api_key(provider: str, key: str) -> None:
@@ -170,10 +205,16 @@ def get_safe_provider_accounts() -> Dict[str, Dict[str, Any]]:
     for provider, definition in PROVIDERS.items():
         api = stored.get(provider, {}).get("api", {})
         local = provider in LOCAL_PROVIDERS
+        key, source = get_api_key_with_source(provider)
         result[provider] = {
             "display_name": definition.display_name,
             "local": local,
-            "configured": local or bool(get_api_key(provider)),
+            "configured": local or bool(key),
+            # The masked key and its origin, so the panel can show *which* key is
+            # in play rather than just that one exists.
+            "key_hint": mask_api_key(key),
+            "key_source": source,
+            "env_var": ENV_VAR_BY_PROVIDER.get(provider, ""),
             "account_id": str(api.get("account_id", "")) if provider == "cloudflare" else "",
             "base_url": get_provider_base_url(provider) if local else str(api.get("base_url", "")),
         }

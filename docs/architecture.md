@@ -16,7 +16,7 @@ Canonical node ids:
 
 `FiLBeforeAfterCompare` was removed in 1.0.0 along with its `/compare/save` route and output folder.
 
-Per-node help is a small "?" badge mounted on every node (`FilNodeShell`/`FilNodeHelpBadge`), opening the `helpStore`-backed popup for that node's `comfyClass`.
+Node documentation lives in this repository, not in the canvas: the "?" badge, its `helpStore` registry and the popup they opened were removed after 1.0.0. Tooltips on the widgets themselves come from `data/locales/{en,ru}.json` through the Python schemas.
 
 This is a new public contract. Workflows created for the former backup implementation are not a compatibility target.
 
@@ -38,12 +38,12 @@ Optional engines (`common/style_engine/`) may be skipped at import time if the r
 - **`frontend/src/api/contracts.ts`** — auto-generated from Pydantic JSON Schema (`scripts/gen_contracts.mjs`).
 - **`frontend/src/api/client.ts`** — typed HTTP client for `/fil_design_imagemind/*` routes.
 - **`frontend/src/nodes2/domWidgetHost.ts`** — core `node.addDOMWidget()` harness that mounts Vue components.
-- **`frontend/src/nodes2/nodes/*.ts`** — 14 per-node registration modules using `addFilDomWidget`.
-- **`frontend/src/components/nodes/*.vue`** — Vue node bodies (9, plus the shared `ProviderModelPicker`). Nodes without a custom panel (Decomposer, Noise Control, Tile Assembly) use native ComfyUI widgets and only get node styling.
-- **`frontend/src/components/widgets/*.vue`** — design-system widgets (18 components).
-- **`frontend/src/stores/`** — Pinia stores: `toastStore`, `providerStore`, `helpStore` (+ `helpDefaults`).
-- **`frontend/src/stores/settings/`** — settings modules with `category: ["FiL_Design_ImageMind", ...]`.
-- **`frontend/src/composables/`** — composables: `useShortcuts`, `useConnectionFx`, `useRunButtonFx`, `useColorPicker`, `useI18n`, `scrollGuard`, `providerMeta`, `icons.ts`.
+- **`frontend/src/nodes2/nodes/*.ts`** — one registration module per node (15).
+- **`frontend/src/components/nodes/*.vue`** — Vue node bodies (9, plus the shared `ProviderModelPicker`). Nodes whose panel is a handful of plain widgets (Cleaner, Decomposer, Noise Control, Tile Assembly, KSampler) use native ComfyUI widgets and only get node styling — a DOM widget there costs the whole browser-vs-LiteGraph layout reconciliation for nothing.
+- **`frontend/src/components/widgets/*.vue`** — design-system widgets (19 components).
+- **`frontend/src/stores/`** — Pinia stores: `toastStore`, `providerStore`.
+- **`frontend/src/stores/settings/`** — settings modules, all aggregated in `allSettings.ts`.
+- **`frontend/src/composables/`** — `useConnectionFx`, `useRunButtonFx`, `useI18n`, `scrollGuard`, `providerMeta`, `icons.ts`.
 
 ### UI patterns (v3)
 
@@ -51,18 +51,18 @@ Optional engines (`common/style_engine/`) may be skipped at import time if the r
 - **Widget API**: `node.addDOMWidget(name, "custom", el, {hideOnZoom, getValue, setValue, getHeight, onDraw})`. Each node component receives a single `state: FilNodeState` prop for reactive binding.
 - **Design system**: CSS variables on `:root` (`--fil-accent`, `--fil-panel`, `--fil-text`, `--fil-radius`, …), injected at app boot. Scoped styles per component — no global leakage.
 - **Icon system**: `src/composables/icons.ts` exports `ICONS` map (Lucide-style inline SVGs) and `icon(name)` helper. `<FilIcon>` renders via `v-html`.
-- **Help popup**: `<FilHelpPopup>` wraps `<FilModal>` (Teleport + focus trap + Esc). Content from `helpStore` registry (dynamically populated from `helpDefaults.ts`).
-- **Color picker**: `<FilColorPicker>` grid of 20 preset swatches + `useColorPicker` composable registering `getExtraMenuOptions`.
+- **Modal**: `<FilModal>` (Teleport + focus trap + Esc) — used by the provider manager. The help popup and the colour picker that also used it were removed after 1.0.0.
+- **Context menu**: `registerStyledNode` wraps `getExtraMenuOptions` through an accessor, so the wrapper stays outermost whatever order extensions register in, and repairs ComfyUI-Manager's "Fix node (recreate)" entry (`nodes2/recreateNode.ts`) instead of adding items of its own.
 - **Toast**: routes through `extensionManager.toast` when available, falls back to Pinia `<FilToastStack>`.
 - **Settings**: `readSetting<T>(id, fallback)` helper uses `extensionManager.setting.get` with `app.ui.settings.getSettingValue` fallback.
-- **Shortcuts**: `installShortcuts(app)` registers declarative `commands`/`keybindings`/`menuCommands` (advanced guide §11, §12.3) with fallback keydown handler.
-- **Effects**: `useConnectionFx` (accent pulse via canvas node element box-shadow), `useRunButtonFx` (header flash on queue), `useAdaptiveTitleInk` (luminance-based contrast).
+- **Keyboard**: none. The pack registered `Shift+?` and `/` through the commands API until 1.0.0; global keys belong to ComfyUI's own keybinding settings, not to a node pack.
+- **Effects**: `useConnectionFx` (connection toasts), `useRunButtonFx` (CSS pulse on the header of the node the `executing` event names, cleared when the queue drains), `useAdaptiveTitleInk` (luminance-based contrast).
 - **State persistence**: workflow serialised via `addDOMWidget` getValue/setValue. Legacy `fil_ui_compare_*` keys preserved exactly.
 
 ### Settings (v3)
 
 ComfyUI settings registered by FiL_Design_ImageMind (under `["FiL_Design_ImageMind", …]` categories):
-- See `frontend/src/stores/settings/*.ts` for the full list (connection FX, run button, shortcuts, title ink, provider manager).
+- Every module in `frontend/src/stores/settings/` is aggregated in `allSettings.ts`, which is the array handed to ComfyUI. A settings file that is not in that array declares an id ComfyUI never registers, so every read of it returns the fallback — which is exactly how the connection-FX toggle spent 1.0.0.
 
 Widget names and values come from Python Pydantic contracts. Frontend must not silently change serialized values.
 

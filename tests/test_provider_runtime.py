@@ -23,6 +23,38 @@ def test_credentials_are_saved_redacted_and_deleted(tmp_path, monkeypatch):
     assert "openai" not in provider_accounts.read_auth()
 
 
+def test_key_hint_shows_enough_to_recognise_and_no_more(tmp_path, monkeypatch):
+    from FiL_Design_ImageMind.common import provider_accounts
+
+    path = tmp_path / "auth.json"
+    monkeypatch.setattr(provider_accounts, "AUTH_JSON_PATH", path)
+    key = "sk-proj-0123456789abcdefghijklmnop"
+    provider_accounts.save_provider_credentials("openai", key=key)
+
+    public = provider_accounts.get_safe_provider_accounts()["openai"]
+    assert public["key_hint"] == "sk-…mnop"
+    assert public["key_source"] == "file"
+    # The masked form must not be a usable fragment of the real key.
+    assert key not in json.dumps(public)
+    assert key[3:-4] not in json.dumps(public)
+
+    # A short value reveals nothing at all.
+    assert provider_accounts.mask_api_key("sk-short") == "•" * 8
+    assert provider_accounts.mask_api_key(None) == ""
+
+
+def test_key_hint_reports_an_environment_key_as_not_ours(tmp_path, monkeypatch):
+    from FiL_Design_ImageMind.common import provider_accounts
+
+    monkeypatch.setattr(provider_accounts, "AUTH_JSON_PATH", tmp_path / "auth.json")
+    monkeypatch.setenv("GROQ_API_KEY", "gsk_env0123456789abcdefghijkl")
+
+    public = provider_accounts.get_safe_provider_accounts()["groq"]
+    assert public["key_source"] == "env"
+    assert public["env_var"] == "GROQ_API_KEY"
+    assert public["configured"] is True
+
+
 def test_missing_cloud_key_does_not_make_network_request(monkeypatch):
     from FiL_Design_ImageMind.common import provider_runtime
 

@@ -1,74 +1,62 @@
 /**
- * Run button visual feedback per advanced guide §16.4 — flashes a node's
- * title/header area with a brief accent-colour pulse when it's queued.
- * Wired up via `installRunButtonFx` (nodes2/installers/runButtonFx.ts),
- * which calls `flashNodeRun` below directly from the queue hook — there's
- * no per-node `beforeRegisterNodeDef` registration step needed.
+ * Marks the node the queue is currently executing.
+ *
+ * This used to be a one-shot 400ms flash fired when a node started, which was
+ * over before you could look at it and said nothing about how long the node ran.
+ * It now pulses for as long as the node is actually executing: `startNodeRun`
+ * marks a node, `stopNodeRun` clears the previous one, and the queue draining
+ * clears the last.
+ *
+ * The animation itself lives in CSS (see FIL_RUN_FX_CSS) so the browser owns the
+ * timing — no timers, no per-frame work on our side.
  */
+import { runFxEnabled, runFxCoversEveryNode } from "@/stores/settings/runFxSettings";
 
-/**
- * Get animation duration from global settings.
- */
-function getAnimationDuration(): number {
-  const g = globalThis as unknown as {
-    app?: {
-      extensionManager?: {
-        setting?: { get?: (id: string, fallback?: string) => string };
-      };
-    };
-    ui?: { settings?: { getSettingValue?: (id: string, fallback?: string) => string } };
-  };
+const RUNNING_CLASS = "fil-node-running";
 
-  const settingId = "FiL_Design_ImageMind.RunButton.AnimationDuration";
-  const duration =
-    g.app?.extensionManager?.setting?.get?.(settingId, "Normal") ??
-    (globalThis as unknown as { app?: { ui?: { settings?: { getSettingValue?: (i: string, f?: string) => string } } } })
-      .app?.ui?.settings?.getSettingValue?.(settingId, "Normal") ??
-    "Normal";
+export const FIL_RUN_FX_CSS = `
+@keyframes fil-run-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 transparent; }
+  50% { box-shadow: 0 0 10px 2px var(--fil-accent, #7c3aed); }
+}
+.${RUNNING_CLASS} .comfy-node-header, .${RUNNING_CLASS}.comfy-node-header {
+  animation: fil-run-pulse 1.1s ease-in-out infinite;
+  border-radius: inherit;
+}
+@media (prefers-reduced-motion: reduce) {
+  .${RUNNING_CLASS} .comfy-node-header, .${RUNNING_CLASS}.comfy-node-header {
+    animation: none;
+    box-shadow: 0 0 8px 1px var(--fil-accent, #7c3aed);
+  }
+}`;
 
-  const durations: Record<string, number> = { Fast: 200, Normal: 400, Slow: 600 };
-  return durations[String(duration)] || 400;
+interface CanvasApp {
+  canvas?: { nodeEls?: Record<string | number, HTMLElement> };
+  graph?: { getNodeById?: (id: number) => { comfyClass?: string; type?: string } | null };
 }
 
-/**
- * Flash the node header. Call after `app.queuePrompt` for the node.
- * Duration is configurable via FiL_Design_ImageMind.RunButton.AnimationDuration setting.
- */
-export function flashNodeRun(
-  app: { canvas?: { nodeEls?: Record<string | number, HTMLElement> } },
-  nodeId: string | number,
-): void {
-  // Check if effects are enabled
-  const g = globalThis as unknown as {
-    app?: {
-      extensionManager?: {
-        setting?: { get?: (id: string, fallback?: unknown) => unknown };
-      };
-    };
-    ui?: { settings?: { getSettingValue?: (id: string, fallback?: unknown) => unknown } };
-  };
+let marked: HTMLElement | null = null;
 
-  const isEnabled =
-    g.app?.extensionManager?.setting?.get?.("FiL_Design_ImageMind.RunButton.Enabled", true) ??
-    (globalThis as unknown as { app?: { ui?: { settings?: { getSettingValue?: (i: string, f?: unknown) => unknown } } } })
-      .app?.ui?.settings?.getSettingValue?.("FiL_Design_ImageMind.RunButton.Enabled", true) ??
-    true;
+function isOurNode(app: CanvasApp, nodeId: string | number): boolean {
+  const node = app.graph?.getNodeById?.(Number(nodeId));
+  const id = node?.comfyClass ?? node?.type ?? "";
+  return id.startsWith("FiL");
+}
 
-  if (!isEnabled) return;
+/** Clear the pulse from whichever node currently carries it. */
+export function stopNodeRun(): void {
+  marked?.classList.remove(RUNNING_CLASS);
+  marked = null;
+}
+
+/** Pulse `nodeId`'s header until the next call. */
+export function startNodeRun(app: CanvasApp, nodeId: string | number): void {
+  stopNodeRun();
+  if (!runFxEnabled()) return;
+  if (!runFxCoversEveryNode() && !isOurNode(app, nodeId)) return;
 
   const el = app?.canvas?.nodeEls?.[nodeId];
   if (!el) return;
-
-  const header = el.querySelector<HTMLElement>(".comfy-node-header");
-  if (!header) return;
-
-  const duration = getAnimationDuration();
-  const originalBg = header.style.background;
-  const transitionTime = Math.max(60, duration * 0.3); // 30% of duration for transition
-
-  header.style.transition = `background ${transitionTime}ms ease`;
-  header.style.background = "var(--fil-accent, #7c3aed)";
-  setTimeout(() => {
-    header.style.background = originalBg;
-  }, duration);
+  el.classList.add(RUNNING_CLASS);
+  marked = el;
 }

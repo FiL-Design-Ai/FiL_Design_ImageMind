@@ -77,3 +77,36 @@ describe("ProviderManager fields", () => {
     expect(wrapper.find('a[href="https://dash.cloudflare.com/"]').exists()).toBe(true);
   });
 });
+
+describe("ProviderManager delete", () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+  });
+
+  function deleteButton(wrapper: ReturnType<typeof mount>, provider: string) {
+    const card = wrapper.findAll(".fil-pm-card").find((c) => c.text().includes(provider))!;
+    return card.findAll("button").find((b) => b.text().includes("Delete"))!;
+  }
+
+  it("stays disabled for a key the environment supplies", async () => {
+    const wrapper = await mountWith({
+      groq: {
+        display_name: "Groq", local: false, configured: true, account_id: "", base_url: "",
+        key_hint: "gsk…4f2a", key_source: "env", env_var: "GROQ_API_KEY",
+      },
+    });
+    const button = deleteButton(wrapper, "Groq");
+    expect(button.attributes("disabled")).toBeDefined();
+    expect(button.attributes("title")).toContain("GROQ_API_KEY");
+  });
+
+  it("is offered for a key this panel saved", async () => {
+    const wrapper = await mountWith({
+      groq: {
+        display_name: "Groq", local: false, configured: true, account_id: "", base_url: "",
+        key_hint: "gsk…4f2a", key_source: "file", env_var: "GROQ_API_KEY",
+      },
+    });
+    expect(deleteButton(wrapper, "Groq").attributes("disabled")).toBeUndefined();
+  });
+});

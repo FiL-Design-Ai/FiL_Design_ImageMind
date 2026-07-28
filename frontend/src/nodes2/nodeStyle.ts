@@ -5,7 +5,7 @@
  * `web/core/node_style.js` contract.
  */
 import { ACTIVE_PALETTE } from "@/styles/brand";
-import { getColorMenuItems } from "@/composables/useColorPicker";
+import { patchRecreateMenuItem } from "@/nodes2/recreateNode";
 
 export interface StyledNodeOptions {
   minSize?: [number, number];
@@ -129,20 +129,47 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
     ctx.fill();
   };
 
-  // "Change color…" context-menu item (useColorPicker.ts) — previously
-  // built (FilColorPicker.vue + getColorMenuItems()) but never actually
-  // wired into any node's getExtraMenuOptions, so the feature never
-  // appeared anywhere. Added here once, on the shared styling hook, covers
-  // every FiL node instead of repeating this in each per-node module.
-  const originalMenuOptions = p.getExtraMenuOptions;
-  p.getExtraMenuOptions = function (this: unknown, ...args: unknown[]) {
-    const result = originalMenuOptions?.apply(this, args);
-    const options = args[1] as unknown[] | undefined;
-    if (Array.isArray(options)) {
-      options.push(null, ...getColorMenuItems(this as { color?: string; properties?: Record<string, unknown> }));
-    }
-    return result;
-  };
+  // Everything another extension adds to the menu has to already be in the
+  // array before we can repair an entry, and extension registration order is
+  // not ours to choose. An accessor keeps our pass on the outside whichever way
+  // it goes: whatever is assigned later lands in `current`, and the getter
+  // hands out that value wrapped. It only rewrites a foreign entry's callback —
+  // no menu items of its own, so nothing is added twice when wrappers nest.
+  //
+  // `inner` MUST be captured when the property is *read*, not read again when
+  // the wrapper runs. Extensions patch this the classic way:
+  //
+  //   const original = node.getExtraMenuOptions;      // reads our getter
+  //   node.getExtraMenuOptions = function (...) { original.apply(this, …) };
+  //
+  // With a late read, the `original` they captured would resolve to whatever
+  // `current` holds *now* — which is their own function — and the two call each
+  // other forever. Reproduced live with cg-use-everywhere: every context menu
+  // died with "Maximum call stack size exceeded". Capturing on read makes the
+  // chain strictly older-than, so it terminates. The result is cached per
+  // `current` so repeated reads hand back the same function object.
+  type MenuFn = (...a: unknown[]) => unknown;
+  let current = p.getExtraMenuOptions as MenuFn | undefined;
+  let wrapped: MenuFn | undefined;
+  let wrappedFor: MenuFn | undefined;
+  Object.defineProperty(p, "getExtraMenuOptions", {
+    configurable: true,
+    get() {
+      if (wrapped && wrappedFor === current) return wrapped;
+      const inner = current;
+      wrappedFor = current;
+      wrapped = function (this: unknown, ...args: unknown[]) {
+        const result = inner?.apply(this, args);
+        const options = args[1] as unknown[] | undefined;
+        if (Array.isArray(options)) patchRecreateMenuItem(this as Parameters<typeof patchRecreateMenuItem>[0], options);
+        return result;
+      };
+      return wrapped;
+    },
+    set(value: MenuFn) {
+      current = value;
+    },
+  });
 }
 
 /**

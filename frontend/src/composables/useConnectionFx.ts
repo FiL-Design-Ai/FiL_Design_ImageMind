@@ -4,23 +4,14 @@
  * Handles connection/disconnection toasts.
  */
 import { toast } from "@/stores/toastStore";
+import { readSetting } from "@/stores/settings/providerSettings";
+import { SHOW_CONNECTION_TOASTS } from "@/stores/settings/connectionFxSettings";
 
+// The setting was declared with a default of false but read with a fallback of
+// true, and it was never registered with ComfyUI — so the fallback was the only
+// value anyone ever got. Registered now, and both ends agree on false.
 function shouldShowToasts(): boolean {
-  const g = globalThis as unknown as {
-    app?: {
-      extensionManager?: {
-        setting?: { get?: (id: string, fallback?: unknown) => unknown };
-      };
-    };
-    ui?: { settings?: { getSettingValue?: (id: string, fallback?: unknown) => unknown } };
-  };
-
-  return Boolean(
-    g.app?.extensionManager?.setting?.get?.("FiL_Design_ImageMind.ConnectionFX.ShowToasts", true) ??
-      (globalThis as unknown as { app?: { ui?: { settings?: { getSettingValue?: (i: string, f?: unknown) => unknown } } } })
-        .app?.ui?.settings?.getSettingValue?.("FiL_Design_ImageMind.ConnectionFX.ShowToasts", true) ??
-        true,
-  );
+  return readSetting<boolean>(SHOW_CONNECTION_TOASTS, false) === true;
 }
 
 export function useConnectionFx() {
