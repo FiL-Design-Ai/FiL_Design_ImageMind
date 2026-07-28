@@ -136,6 +136,22 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
   // hands out that value wrapped. It only rewrites a foreign entry's callback —
   // no menu items of its own, so nothing is added twice when wrappers nest.
   //
+  // ComfyUI deprecated this in favour of an extension-level `getNodeMenuItems`,
+  // and that replacement cannot express what this does: the frontend collects
+  // hooks with `invokeExtensions("getNodeMenuItems", node).flat()`, so an
+  // extension may contribute items and nothing else — there is no hook over the
+  // assembled list. Checked against the docs and the bundled frontend; the
+  // console currently warns about `getCanvasMenuOptions` only.
+  //
+  // Dropping it is the real exit, and it is not ours to take yet:
+  // `comfyui-manager/js/node_fixer.js` still patches this the classic way and
+  // still copies links with `src_node.connect(slot, dest.id, input.name)`, the
+  // shape that throws before its own `graph.remove(old)`. Fix that upstream and
+  // this whole accessor goes with it. Until then, the risk is known and quiet:
+  // when the legacy path is removed the repair stops running and Manager's
+  // "Fix node (recreate)" is broken again for our nodes — nothing of ours
+  // throws. `tests/nodeStyleMenu.test.ts` is what holds the behaviour.
+  //
   // `inner` MUST be captured when the property is *read*, not read again when
   // the wrapper runs. Extensions patch this the classic way:
   //
