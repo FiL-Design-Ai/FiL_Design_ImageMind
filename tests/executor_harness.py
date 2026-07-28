@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import asyncio
 import importlib
+import inspect
 import os
 from dataclasses import dataclass
 from typing import Any
@@ -105,6 +106,51 @@ def wired_prompt(node_class: type) -> dict[str, Any]:
     return inputs
 
 
+def declares(node_class: type, method: str) -> bool:
+    """True when the node defines `method` itself rather than inheriting the base.
+
+    Uses ComfyUI's own check, which is what decides whether the executor calls
+    it at all: a node that does not override it is skipped entirely.
+    """
+    return execution.first_real_override(node_class, method) is not None
+
+
+def validate_call(
+    node_class: type,
+    inputs: dict[str, Any] | None = None,
+    *,
+    unique_id: str = "1",
+    received_types: dict[str, Any] | None = None,
+) -> ExecutorCall:
+    """Assemble the call ComfyUI would make into `node_class.validate_inputs()`.
+
+    Validation does not get the same call `execute()` does. It reads the
+    signature and passes only the inputs it names — everything else is dropped,
+    unless the function takes `**kwargs`, which opts it back into all of them.
+    `input_types` is special-cased and filled with the types actually wired.
+
+    Mirrors `validate_inputs()` in execution.py.
+    """
+    call = executor_call(node_class, inputs, unique_id=unique_id, resolve_links=False)
+
+    validate_function = execution.first_real_override(node_class, "validate_inputs")
+    if validate_function is None:
+        return ExecutorCall(kwargs={}, missing=call.missing, hidden=call.hidden)
+
+    argspec = inspect.getfullargspec(validate_function)
+    named = set(argspec.args)
+    takes_kwargs = argspec.varkw is not None
+
+    filtered = {
+        name: value for name, value in call.kwargs.items()
+        if takes_kwargs or name in named
+    }
+    if "input_types" in named:
+        filtered["input_types"] = received_types or {}
+
+    return ExecutorCall(kwargs=filtered, missing=call.missing, hidden=call.hidden)
+
+
 def hidden_values(node_class: type, unique_id: str = "1") -> dict[io.Hidden, Any]:
     """What `get_input_data()` puts in the hidden holder for this node.
 
@@ -139,8 +185,16 @@ def executor_call(
     unique_id: str = "1",
     link_value: Any = LINK_VALUE,
     extra_data: dict[str, Any] | None = None,
+    resolve_links: bool = True,
 ) -> ExecutorCall:
-    """Assemble the call ComfyUI would make into `node_class.execute()`."""
+    """Assemble the call ComfyUI would make into `node_class.execute()`.
+
+    `resolve_links=False` is the shape the other two entry points get: both
+    `validate_inputs` and `fingerprint_inputs` are assembled without an
+    execution list, so a wired input arrives as `None` rather than as whatever
+    the upstream node produced. Nothing has run yet at that point — there is no
+    output to hand over.
+    """
     if inputs is None:
         inputs = wired_prompt(node_class)
 
@@ -148,7 +202,7 @@ def executor_call(
         inputs,
         node_class,
         unique_id,
-        execution_list=_ExecutionList(link_value),
+        execution_list=_ExecutionList(link_value) if resolve_links else None,
         dynprompt=None,
         extra_data=extra_data or {},
     )
