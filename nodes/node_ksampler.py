@@ -107,8 +107,7 @@ class FiLKSampler(io.ComfyNode):
     @classmethod
     def execute(cls, model, seed, steps, cfg, sampler_name, scheduler, positive, negative,
                 latent=None, denoise=1.0, eta=1.0, bongmath=True, preview_method="auto", vae_decode="true",
-                vae=None, script=None,
-                prompt=None, extra_pnginfo=None, **kwargs) -> io.NodeOutput:
+                vae=None, script=None, **kwargs) -> io.NodeOutput:
         from ..common.sampling import sample_unified
 
         # `latent_image`/`optional_vae` were renamed to match the outputs they
@@ -169,7 +168,13 @@ class FiLKSampler(io.ComfyNode):
             image = _decode(vae, latent, tiled=tiled)
             if _preview_saver is not None:
                 try:
-                    saved = _preview_saver.save_images(image, "fil.ksampler", prompt, extra_pnginfo)
+                    # Through `cls.hidden`, not parameters: the V3 executor
+                    # never passes a hidden value as an argument, so `prompt`
+                    # and `extra_pnginfo` were always None here and the saved
+                    # preview carried no workflow.
+                    saved = _preview_saver.save_images(
+                        image, "fil.ksampler", cls.hidden.prompt, cls.hidden.extra_pnginfo,
+                    )
                     ui_data["images"] = saved["ui"]["images"]
                 except Exception:
                     pass

@@ -2,10 +2,16 @@ from __future__ import annotations
 
 import pytest
 
+from executor_harness import as_the_executor_calls_it
+
 from FiL_Design_ImageMind.common import tile_calc
 from FiL_Design_ImageMind.nodes import node_tile_assembly
 from FiL_Design_ImageMind.nodes.node_tile_assembly import FiLTileAssembly
 from FiL_Design_ImageMind.nodes.node_upscale import FiLUpscaleTileCalc
+
+# The preview is saved with the workflow read off `cls.hidden`, which only the
+# executor's class clone carries — see the harness docstring.
+_execute = as_the_executor_calls_it(FiLTileAssembly)
 
 
 def image(width=320, height=192, value=0.0):
@@ -35,7 +41,7 @@ def test_execute_delegates_to_assemble_tiles(monkeypatch):
 
     monkeypatch.setattr(tile_calc, "assemble_tiles", _fake_assemble)
     monkeypatch.setattr(node_tile_assembly, "_preview_saver", None)
-    result = FiLTileAssembly.execute(tiles="TILES", layout={"rects": []})
+    result = _execute(tiles="TILES", layout={"rects": []})
     assert result[0] == "ASSEMBLED"
     assert captured == {"tiles": "TILES", "layout": {"rects": []}}
 
@@ -43,14 +49,20 @@ def test_execute_delegates_to_assemble_tiles(monkeypatch):
 def test_execute_populates_preview_ui_images(monkeypatch):
     monkeypatch.setattr(tile_calc, "assemble_tiles", lambda tiles, layout: "ASSEMBLED")
 
+    seen = {}
+
     class _FakePreviewSaver:
         def save_images(self, image, prefix, prompt, extra_pnginfo):
             assert image == "ASSEMBLED"
+            seen["prompt"] = prompt
             return {"ui": {"images": [{"filename": "fake.png"}]}}
 
     monkeypatch.setattr(node_tile_assembly, "_preview_saver", _FakePreviewSaver())
-    result = FiLTileAssembly.execute(tiles="TILES", layout={"rects": []})
+    result = _execute(tiles="TILES", layout={"rects": []})
     assert result.ui["images"] == [{"filename": "fake.png"}]
+    # Taken as a parameter it was always None, and the PNG went out with no
+    # workflow to drag back into ComfyUI.
+    assert seen["prompt"] is not None
 
 
 def test_execute_survives_preview_saver_failure(monkeypatch):
@@ -61,7 +73,7 @@ def test_execute_survives_preview_saver_failure(monkeypatch):
             raise RuntimeError("disk full")
 
     monkeypatch.setattr(node_tile_assembly, "_preview_saver", _BoomPreviewSaver())
-    result = FiLTileAssembly.execute(tiles="TILES", layout={"rects": []})
+    result = _execute(tiles="TILES", layout={"rects": []})
     assert result[0] == "ASSEMBLED"
     assert result.ui["images"] == []
 

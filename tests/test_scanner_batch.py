@@ -6,6 +6,14 @@ import types
 from FiL_Design_ImageMind.nodes import node_scanner
 from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner
 
+from executor_harness import as_the_executor_calls_it
+
+# The scanner reports per-image progress through `cls.hidden.unique_id`,
+# which only the clone the executor prepares carries — calling
+# `FiLOpticScanner.execute()` straight from a test does not have it.
+# See tests/executor_harness.py.
+_execute = as_the_executor_calls_it(FiLOpticScanner)
+
 
 CONFIG = {"provider": "ollama", "model": "qwen3-vl"}
 
@@ -51,21 +59,21 @@ def _setup(monkeypatch, generate_responses):
 def test_single_image_no_image_runs(monkeypatch):
     _setup(monkeypatch, ["single result"])
     img = _fake_image_tensor(1)
-    _, _, meta = FiLOpticScanner.execute(CONFIG, image=img, prompt="describe")
+    _, _, meta = _execute(config=CONFIG, image=img, prompt="describe")
     assert "image_runs" not in meta
 
 
 def test_single_image_returns_prompt(monkeypatch):
     _setup(monkeypatch, ["single result"])
     img = _fake_image_tensor(1)
-    prompt, _, _ = FiLOpticScanner.execute(CONFIG, image=img, prompt="describe")
+    prompt, _, _ = _execute(config=CONFIG, image=img, prompt="describe")
     assert prompt == "single result"
 
 
 def test_multi_image_produces_image_runs(monkeypatch):
     _setup(monkeypatch, ["caption A", "caption B"])
     img = _fake_image_tensor(2)
-    _, _, meta = FiLOpticScanner.execute(CONFIG, image=img, prompt="describe")
+    _, _, meta = _execute(config=CONFIG, image=img, prompt="describe")
     assert "image_runs" in meta
     assert len(meta["image_runs"]) == 2
     assert meta["image_runs"][0]["index"] == 0
@@ -76,7 +84,7 @@ def test_multi_image_produces_image_runs(monkeypatch):
 def test_multi_image_results_joined_with_separator(monkeypatch):
     _setup(monkeypatch, ["caption A", "caption B"])
     img = _fake_image_tensor(2)
-    prompt, _, _ = FiLOpticScanner.execute(CONFIG, image=img, prompt="describe")
+    prompt, _, _ = _execute(config=CONFIG, image=img, prompt="describe")
     assert "caption A" in prompt
     assert "caption B" in prompt
     assert "---" in prompt

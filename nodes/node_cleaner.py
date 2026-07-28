@@ -42,7 +42,6 @@ class FiLNeuroCleaner(_io.ComfyNode):
             ],
             is_output_node=True,
             search_aliases=["cleaner", "VRAM", "memory", "unload", "cache", "flush"],
-            hidden=[_io.Hidden.unique_id, _io.Hidden.extra_pnginfo],
         )
 
     @classmethod
@@ -60,8 +59,7 @@ class FiLNeuroCleaner(_io.ComfyNode):
     # `unload_models`: the nearest thing to the old behaviour, since diffusion
     # was the switch that actually decided whether anything was unloaded.
     @classmethod
-    def execute(cls, clean_vram=True, unload_models=True, anything=None,
-                unique_id=None, extra_pnginfo=None, **kwargs) -> _io.NodeOutput:
+    def execute(cls, clean_vram=True, unload_models=True, anything=None, **kwargs) -> _io.NodeOutput:
         if unload_models:
             _unload_all_models()
         if clean_vram:
