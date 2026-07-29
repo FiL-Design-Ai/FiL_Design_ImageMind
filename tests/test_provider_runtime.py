@@ -591,3 +591,64 @@ def test_a_truncated_answer_carries_the_spend_it_reported():
         assert exc.spent == 298
     else:
         raise AssertionError("a truncated answer must raise")
+
+
+def test_a_half_finished_answer_is_truncation_not_a_result():
+    """Text plus `finish_reason: length` means cut off mid-sentence.
+
+    Found live on 2026-07-29: `gemini-3.6-flash` answered "Red circle, green"
+    at max_tokens=200 and the pack passed those three words downstream as the
+    finished prompt, because the truncation check sat *after* the early return
+    for non-empty content. A reasoning model made it worse — cut inside its own
+    `<think>` block, it handed the scanner an unfinished internal monologue.
+
+    Both strategies are checked here: they had the same shape and the same bug.
+    """
+    from FiL_Design_ImageMind.common.models import (
+        GoogleStrategy,
+        OpenAIStrategy,
+        TruncatedAnswerError,
+    )
+
+    openai_payload = {
+        "choices": [{"finish_reason": "length", "message": {"content": "Red circle, green"}}],
+        "usage": {"completion_tokens": 200},
+    }
+    try:
+        OpenAIStrategy(http_client=None, rate_limiter=None).parse_response(openai_payload)
+    except TruncatedAnswerError as exc:
+        assert exc.partial == "Red circle, green"
+        assert exc.spent == 200
+    else:
+        raise AssertionError("a half-finished OpenAI-shaped answer must raise, not return")
+
+    google_payload = {
+        "candidates": [
+            {"finishReason": "MAX_TOKENS", "content": {"parts": [{"text": "Red circle, green"}]}}
+        ],
+        "usageMetadata": {"candidatesTokenCount": 8, "thoughtsTokenCount": 192},
+    }
+    try:
+        GoogleStrategy(http_client=None, rate_limiter=None).parse_response(google_payload)
+    except TruncatedAnswerError as exc:
+        assert exc.partial == "Red circle, green"
+    else:
+        raise AssertionError("a half-finished Gemini answer must raise, not return")
+
+
+def test_a_complete_answer_is_still_returned_untouched():
+    """The truncation check must not swallow ordinary answers.
+
+    Reordering the `finish_reason` test in front of the return is exactly the
+    kind of change that could start rejecting good replies, so the normal path
+    is pinned alongside the broken one.
+    """
+    from FiL_Design_ImageMind.common.models import GoogleStrategy, OpenAIStrategy
+
+    openai_ok = {"choices": [{"finish_reason": "stop", "message": {"content": " a red circle "}}]}
+    assert OpenAIStrategy(http_client=None, rate_limiter=None).parse_response(openai_ok) == "a red circle"
+
+    google_ok = {
+        "candidates": [{"finishReason": "STOP", "content": {"parts": [{"text": "a red circle"}]}}]
+    }
+    assert GoogleStrategy(http_client=None, rate_limiter=None).parse_response(google_ok) == "a red circle"

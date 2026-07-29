@@ -23,7 +23,7 @@ logger = logging.getLogger(f"{BRAND}.Models")
 
 
 class TruncatedAnswerError(InferenceError):
-    """The provider answered, but the token budget ran out before any text.
+    """The provider answered, but the token budget ran out before it finished.
 
     Its own class rather than a message match: the caller retries on exactly
     this case, and a retry triggered by a string in an error text would fire on
@@ -31,11 +31,21 @@ class TruncatedAnswerError(InferenceError):
 
     `spent` is what the provider reported burning on that attempt — the size of
     the next budget follows from it instead of from a guess.
+
+    `partial` is whatever text did arrive before the cut. It used to be that
+    only a *completely* empty answer raised this, and a half-finished one was
+    returned as if it were whole: on 2026-07-29 `gemini-3.6-flash` answered
+    "Red circle, green" at max_tokens=200 and the pack passed those three words
+    downstream as the finished prompt. A reasoning model made it worse — cut
+    inside its own `<think>` block, it handed the scanner its internal
+    monologue with the unclosed tag stripped off. Both are truncation and both
+    belong on the retry ladder.
     """
 
-    def __init__(self, message: str, spent: int = 0):
+    def __init__(self, message: str, spent: int = 0, partial: str = ""):
         super().__init__(message)
         self.spent = int(spent or 0)
+        self.partial = partial or ""
 
 
 # What a retry gets when the first budget was spent before a single visible
@@ -217,23 +227,27 @@ class OpenAIStrategy(ModelStrategy):
             raise InferenceError(f"Provider returned an error: {error}")
         choices = data.get("choices") or []
         if choices:
-            content = choices[0].get("message", {}).get("content", "")
-            if content:
-                return content.strip()
-            # An empty answer that stopped on `length` is not a missing answer:
-            # the model was cut off mid-thought. Reasoning models hit this
-            # first, spending the whole budget before the visible reply starts
-            # — `gpt-oss-20b` at max_tokens=16 returns 13 reasoning tokens and
-            # `content: None`. Dumping the raw payload as "no response" sent
-            # that user looking for a network fault that was never there.
+            content = (choices[0].get("message", {}).get("content", "") or "").strip()
+            # `length` is checked before the text is handed back, not after it
+            # turns out to be empty. Reasoning models hit the empty case first,
+            # spending the whole budget before the visible reply starts —
+            # `gpt-oss-20b` at max_tokens=16 returns 13 reasoning tokens and
+            # `content: None`. But the same flag on a *non-empty* answer means
+            # the model was cut off mid-sentence, and returning that as the
+            # finished text is worse than the empty case: nothing downstream can
+            # tell a clipped prompt from a short one.
             if choices[0].get("finish_reason") == "length":
                 usage = data.get("usage") or {}
                 reasoning = (usage.get("completion_tokens_details") or {}).get("reasoning_tokens") or 0
                 detail = f" ({reasoning} of them on reasoning)" if reasoning else ""
+                where = "mid-answer" if content else "before it produced any text"
                 raise TruncatedAnswerError(
-                    f"The model hit the max_tokens limit{detail} before it produced any text — raise max_tokens.",
+                    f"The model hit the max_tokens limit{detail} and stopped {where} — raise max_tokens.",
                     spent=usage.get("completion_tokens") or reasoning,
+                    partial=content,
                 )
+            if content:
+                return content
         # A few OpenAI-compatible providers reply with a bare `content`/`response`
         # field instead of the `choices` shape — accept those, but never fall
         # back to dumping the raw payload as if it were the model's answer.
@@ -285,18 +299,23 @@ class GoogleStrategy(ModelStrategy):
         if candidates:
             parts = candidates[0].get("content", {}).get("parts", [])
             text = "".join(p.get("text", "") for p in parts)
-            if text:
-                return text
-            # Gemini spells the same truncation `MAX_TOKENS`, and its thinking
-            # models spend the budget the same way.
+            # Gemini spells the same truncation `MAX_TOKENS`, its thinking
+            # models spend the budget the same way, and — same as the
+            # OpenAI-shaped providers — the flag is read before the text is
+            # handed back, so a half-finished answer climbs the ladder instead
+            # of passing for a whole one.
             if candidates[0].get("finishReason") == "MAX_TOKENS":
                 usage = data.get("usageMetadata") or {}
                 thoughts = usage.get("thoughtsTokenCount") or 0
                 detail = f" ({thoughts} of them on thinking)" if thoughts else ""
+                where = "mid-answer" if text else "before it produced any text"
                 raise TruncatedAnswerError(
-                    f"The model hit the max_tokens limit{detail} before it produced any text — raise max_tokens.",
+                    f"The model hit the max_tokens limit{detail} and stopped {where} — raise max_tokens.",
                     spent=usage.get("candidatesTokenCount") or thoughts,
+                    partial=text,
                 )
+            if text:
+                return text
         raise InferenceError(f"Could not find a response in provider payload: {data!r}")
 
 
@@ -363,17 +382,20 @@ class ModelClient:
                 try:
                     return _send_once(current_model, budget)
                 except TruncatedAnswerError as exc:
-                    # The model answered — it just spent every token thinking.
-                    # A bigger budget is the only lever that works on every
-                    # provider: Groq refuses the reasoning knob on most of its
-                    # models, and Cloudflare accepts it without effect.
+                    # The model answered — it just ran out of budget, either
+                    # before the first visible character or in the middle of a
+                    # sentence. A bigger budget is the only lever that works on
+                    # every provider: Groq refuses the reasoning knob on most of
+                    # its models, and Cloudflare accepts it without effect.
                     if position == len(ladder) - 1:
                         raise
                     ladder[position + 1] = _next_budget(ladder[position + 1], exc.spent)
                     logger.warning(
-                        "[%s] '%s' produced no text within %s tokens (spent %s); retrying at %s.",
+                        "[%s] '%s' was cut off at %s tokens (spent %s, %s produced); retrying at %s.",
                         provider.upper(), current_model, budget or "provider default",
-                        exc.spent or "unreported", ladder[position + 1],
+                        exc.spent or "unreported",
+                        f"{len(exc.partial)} chars" if exc.partial else "no text",
+                        ladder[position + 1],
                     )
 
         def _send_once(current_model: str, budget: int):
