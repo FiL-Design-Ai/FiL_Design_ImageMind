@@ -67,6 +67,30 @@ On the frontend, the same gap in a different form:
   reproduce in jsdom at all, so it comes from something only the real host does
   — most likely LiteGraph writing back a size of its own after a resize.
   Cosmetic, stable once it happens, and older than the split. Left alone.
+- **and it was neither cosmetic nor the host.** Asked properly — a growable
+  panel driven in a real ComfyUI by `tests/smoke/stretchDrift.spec.ts` — the
+  loss is ~40px and it repeats on *every* workflow load: +200 comes back as
+  +162, then +122, until the panel sits on its content. The two guesses above
+  are both wrong, and the reason they survived is that neither was ever put to
+  the host: a content change alone does not move the stretch by a pixel (proven
+  in the same file, both synthetically and by dragging the resize grip with the
+  mouse), so the sequence everyone was reasoning about could not have produced
+  the report in the first place.
+  The cause is our arithmetic. On the first sync the stretch is recovered as
+  "box minus content height", and the content height was read from the widget
+  before the fresh measurement was published to it — so it was still the
+  caller's estimate (`scanner.ts` guesses 580 for a panel that measures 540).
+  The gap between guess and measurement was charged to the user's drag, once
+  per load. `nodeSizeSync.ts` now publishes before it reads, and takes the
+  stretch only from a box a saved workflow restored (`onConfigure`), never from
+  a fresh node's estimate-derived one. Optic Scanner is the only growable node,
+  so nothing else could have been affected; the other fourteen never enter that
+  branch.
+  The characterization test that cleared the split has been retired with its
+  fixture — it asserted the new code matches the old, which is now deliberately
+  false. `tests/stretchDrift.test.ts` pins the repaired behaviour instead,
+  including three reloads in a row, and the node box now follows a content
+  change in the same pass rather than one step behind.
 
 And two checks for the gap that let all of the above through:
 

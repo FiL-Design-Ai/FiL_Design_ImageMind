@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { installRunButtonFx } from "@/nodes2/installers/runButtonFx";
 import { RUN_FX_SETTINGS } from "@/stores/settings/runFxSettings";
 import { ALL_SETTINGS } from "@/stores/settings/allSettings";
-import { createApp, createNode, type FakeApp } from "./fakes/comfyHost";
+import { createApp, createNode, progressState, type FakeApp } from "./fakes/comfyHost";
 
 /**
  * The seam between the pack and ComfyUI, tested through the host rather than
@@ -13,7 +13,9 @@ import { createApp, createNode, type FakeApp } from "./fakes/comfyHost";
  * in went unnoticed; nothing covered settings registration at all.
  */
 
-const isRunning = (el: HTMLElement) => el.classList.contains("fil-node-running");
+/** `addNodeEl` returns the node root; the mark lands on its title bar. */
+const isRunning = (root: HTMLElement) =>
+  root.classList.contains("fil-node-running") || !!root.querySelector(".fil-node-running");
 
 let app: FakeApp;
 
@@ -26,13 +28,16 @@ beforeEach(() => {
 
 afterEach(() => {
   delete (globalThis as unknown as { app?: unknown }).app;
+  // `addNodeEl` puts the node in the document, so it has to come back out.
+  document.body.innerHTML = "";
 });
 
 describe("the executing event", () => {
   it("pulses the node the canvas knows, not the one the queue names", () => {
     // `node` is the execution id — inside a subgraph a composite like "5:2",
-    // which is not on the canvas at all. `display_node` is what `nodeEls` is
-    // keyed by, and following the wrong one meant no node ever lit up (3c8c888).
+    // which is not on the canvas at all. `display_node` is the id the canvas
+    // and `[data-node-id]` use, and following the wrong one meant no node ever
+    // lit up (3c8c888).
     const node = createNode({ comfyClass: "FiLNeuroCleaner" });
     const el = app.addNodeEl(5, node);
     installRunButtonFx(app as never);
@@ -96,6 +101,81 @@ describe("the executing event", () => {
     app.api.emit("executing", { node: "9", display_node: 9 });
 
     expect(isRunning(el)).toBe(false);
+  });
+});
+
+/**
+ * `executing` names one node; a real run has several going at once. The event
+ * that says so is `progress_state`, and the pack did not listen to it — which
+ * is why a live run with "4 nodes running" lit exactly one.
+ */
+describe("the progress_state event", () => {
+  it("marks every node core reports as running", () => {
+    const first = createNode({ comfyClass: "FiLNeuroCleaner" });
+    const second = createNode({ comfyClass: "FiLSeed" });
+    const firstEl = app.addNodeEl(1, first);
+    const secondEl = app.addNodeEl(2, second);
+    installRunButtonFx(app as never);
+
+    app.api.emit("progress_state", progressState([
+      { id: 1, state: "running" },
+      { id: 2, state: "running" },
+    ]));
+
+    expect(isRunning(firstEl)).toBe(true);
+    expect(isRunning(secondEl)).toBe(true);
+  });
+
+  it("drops a node the moment core calls it finished", () => {
+    const node = createNode({ comfyClass: "FiLNeuroCleaner" });
+    const el = app.addNodeEl(1, node);
+    installRunButtonFx(app as never);
+
+    app.api.emit("progress_state", progressState([{ id: 1, state: "running" }]));
+    app.api.emit("progress_state", progressState([{ id: 1, state: "finished" }]));
+
+    expect(isRunning(el)).toBe(false);
+  });
+
+  it("stops letting executing shrink the set once progress_state is in play", () => {
+    // Both events fire on a live run, and `executing` arrives one id per burst.
+    // Honouring its ids after progress_state has spoken would collapse four
+    // running nodes back down to whichever one came last.
+    const first = createNode({ comfyClass: "FiLNeuroCleaner" });
+    const second = createNode({ comfyClass: "FiLSeed" });
+    const firstEl = app.addNodeEl(1, first);
+    const secondEl = app.addNodeEl(2, second);
+    installRunButtonFx(app as never);
+
+    app.api.emit("progress_state", progressState([
+      { id: 1, state: "running" },
+      { id: 2, state: "running" },
+    ]));
+    app.api.emit("executing", "2");
+
+    expect(isRunning(firstEl)).toBe(true);
+    expect(isRunning(secondEl)).toBe(true);
+  });
+
+  it("still ends on the closing executing: null", () => {
+    const node = createNode({ comfyClass: "FiLNeuroCleaner" });
+    const el = app.addNodeEl(1, node);
+    installRunButtonFx(app as never);
+
+    app.api.emit("progress_state", progressState([{ id: 1, state: "running" }]));
+    app.api.emit("executing", null);
+
+    expect(isRunning(el)).toBe(false);
+  });
+
+  it("marks the subgraph box for a node running inside one", () => {
+    const box = createNode({ comfyClass: "FiLOpticScanner" });
+    const el = app.addNodeEl(30, box);
+    installRunButtonFx(app as never);
+
+    app.api.emit("progress_state", progressState([{ id: "30:24", state: "running" }]));
+
+    expect(isRunning(el)).toBe(true);
   });
 });
 

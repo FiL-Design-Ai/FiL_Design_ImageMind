@@ -4,9 +4,17 @@ import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
 import { createSyncedNodeState, findFilWidget, sanitizeWidgetValue } from "@/nodes2/util";
+import { exposeWidgetInputSockets, installWidgetSocketSync } from "@/nodes2/widgetInputSockets";
 import { applyFxComposables } from "@/nodes2/applyFxComposables";
 
 const UpscaleVue = defineAsyncComponent(() => import("@/components/nodes/UpscaleTileCalc.vue"));
+
+/**
+ * Widgets that may also be driven from the graph. The Vue panel hides the
+ * native widget, which hides its input slot with it — `exposeWidgetInputSockets`
+ * gives the slot a row and a visible dot back.
+ */
+export const UPSCALE_SOCKET_INPUTS = ["upscale_factor", "tile_size", "tile_overlap"];
 
 export const upscaleNode: NodeModule = {
   id: "FiLUpscaleTileCalc",
@@ -80,6 +88,7 @@ export const upscaleNode: NodeModule = {
       const state = { nodeState: createSyncedNodeState(node, initialNodeState), initialValues, ui: {} };
       node._filUpscaleState = state;
       addFilDomWidget(node, "fil_upscale_view", UpscaleVue, { state, height: 420 });
+      exposeWidgetInputSockets(this, UPSCALE_SOCKET_INPUTS);
       return result;
     };
 
@@ -104,6 +113,7 @@ export const upscaleNode: NodeModule = {
       for (const name of Object.keys(comboDefaults)) {
         state.nodeState[name] = sanitizeWidgetValue(findFilWidget(node, name), "string", comboDefaults[name]);
       }
+      exposeWidgetInputSockets(this, UPSCALE_SOCKET_INPUTS);
       return result;
     };
 
@@ -114,6 +124,7 @@ export const upscaleNode: NodeModule = {
     };
 
     // Apply visual effects (Connection FX, Adaptive Title Color)
+    installWidgetSocketSync(p, UPSCALE_SOCKET_INPUTS, "_filUpscaleState");
     applyFxComposables(nodeType as { prototype?: unknown });
   },
 };

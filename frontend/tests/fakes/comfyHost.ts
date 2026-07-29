@@ -39,6 +39,14 @@ export interface FakeNode {
   flags: Record<string, unknown>;
   graph: { links: Record<number, { target_slot?: number }> };
   size: [number, number];
+  /**
+   * Core's own stroke registry, seeded exactly as `LGraphNode`'s constructor
+   * plus `setupStrokeStyles(this)` seed it (frontend 1.47.10): `error` and
+   * `selected` from the constructor, then `running` — a flat `#0f0`, lineWidth
+   * 3 — and `dragOver`. `drawNode` strokes every entry that returns a shape,
+   * which is what makes this the seam a canvas-rendered highlight has to use.
+   */
+  strokeStyles: Record<string, (() => { color: string; lineWidth: number } | undefined) | undefined>;
   configure(serialized: Record<string, unknown>): void;
   setSize(size: [number, number]): void;
   computeSize(): [number, number];
@@ -81,6 +89,12 @@ export function createNode(spec: FakeNodeSpec = {}): FakeNode {
     flags: {},
     graph: { links: {} },
     size: [380, 320],
+    strokeStyles: {
+      error: () => undefined,
+      selected: () => undefined,
+      running: () => ({ color: "#0f0", lineWidth: 3 }),
+      dragOver: () => undefined,
+    },
 
     configure(serialized: Record<string, unknown>): void {
       const inputs = serialized.inputs as FakeSlot[] | undefined;
@@ -113,6 +127,42 @@ export function createNode(spec: FakeNodeSpec = {}): FakeNode {
 /** Node modes, as LiteGraph numbers them. */
 export const NODE_MODE = { ALWAYS: 0, NEVER: 2, BYPASS: 4 } as const;
 
+export interface ProgressEntry {
+  id: string | number;
+  state: "running" | "finished" | "error";
+  /** `display_node_id`, when core resolves an expanded node to another one. */
+  display?: string | number;
+}
+
+/**
+ * A `progress_state` payload, built the way `comfy_execution/progress.py` does:
+ * every non-pending node keyed by its execution id, each carrying `state`,
+ * `node_id`, `display_node_id` and `parent_node_id`. Pending nodes are dropped
+ * by the server, so they are not representable here either.
+ *
+ * This is the event that reports *all* running nodes at once — a live run does
+ * execute several in parallel, which the one-id-at-a-time `executing` event
+ * cannot express.
+ */
+export function progressState(entries: ProgressEntry[], promptId = "p1"): Record<string, unknown> {
+  const nodes: Record<string, unknown> = {};
+  for (const entry of entries) {
+    const id = String(entry.id);
+    const cut = id.indexOf(":");
+    nodes[id] = {
+      value: 0,
+      max: 1,
+      state: entry.state,
+      node_id: id,
+      prompt_id: promptId,
+      display_node_id: entry.display ?? id,
+      parent_node_id: cut > 0 ? id.slice(0, cut) : null,
+      real_node_id: id,
+    };
+  }
+  return { prompt_id: promptId, nodes };
+}
+
 interface FakeApi {
   addEventListener(type: string, cb: (event: Event) => void): void;
   /** Fire an event at the listeners the pack registered, the way core does. */
@@ -121,7 +171,13 @@ interface FakeApi {
 
 export interface FakeApp {
   api: FakeApi;
-  canvas: { nodeEls: Record<string | number, HTMLElement> };
+  /**
+   * `setDirty` and nothing else. The pack spent two releases reading
+   * `canvas.nodeEls[id]`, a map core has never had — and the previous version of
+   * this fake defined it, so every test agreed with the mistake. A DOM-rendered
+   * node is found in the document by `[data-node-id]`; see `addNodeEl`.
+   */
+  canvas: { setDirty(foreground: boolean, background?: boolean): void; dirtyCount: number };
   graph: {
     _nodes: FakeNode[];
     getNodeById(id: string | number): FakeNode | null;
@@ -135,7 +191,13 @@ export interface FakeApp {
   unregisteredSettingReads: string[];
   registerSetting(id: string, defaultValue: unknown): void;
   setSetting(id: string, value: unknown): void;
-  /** DOM element standing in for a node on the canvas, keyed as `nodeEls` is. */
+  /**
+   * A node as the Vue renderer puts it in the document: a root carrying
+   * `data-node-id`, with a `.lg-node-header` title bar inside it. Returns the
+   * root. Only meaningful with `Comfy.VueNodes.Enabled` on — under the default
+   * canvas renderer a node has no DOM at all, which is why `createNode` carries
+   * `strokeStyles` for the other half of the story.
+   */
   addNodeEl(id: string | number, node?: FakeNode): HTMLElement;
 }
 
@@ -172,12 +234,25 @@ export function createApp(options: FakeAppOptions = {}): FakeApp {
       },
     },
 
-    canvas: { nodeEls: {} },
+    canvas: {
+      dirtyCount: 0,
+      setDirty() {
+        app.canvas.dirtyCount += 1;
+      },
+    },
 
     graph: {
       _nodes: nodes,
-      getNodeById(id) {
-        return nodes.find((node) => String(node.id) === String(id)) ?? null;
+      /**
+       * Reads through `this`, exactly as LiteGraph's own
+       * `getNodeById(id) { return this._nodes_by_id[id] }` does. Closing over
+       * `nodes` instead would let a detached `const lookup = graph.getNodeById`
+       * keep working here while it throws in a browser — which is what the run
+       * highlight did, and ComfyApi swallows the exception with a console
+       * warning, so it stayed invisible until it was tried on a live graph.
+       */
+      getNodeById(this: { _nodes: FakeNode[] }, id) {
+        return this._nodes.find((node) => String(node.id) === String(id)) ?? null;
       },
     },
 
@@ -219,13 +294,19 @@ export function createApp(options: FakeAppOptions = {}): FakeApp {
     },
 
     addNodeEl(id, node) {
-      const el = document.createElement("div");
-      app.canvas.nodeEls[id] = el;
+      const root = document.createElement("div");
+      root.dataset.nodeId = String(id);
+      const header = document.createElement("div");
+      header.className = "lg-node-header";
+      root.appendChild(header);
+      // In the document, not detached: the pack finds the node with
+      // `document.querySelector`, exactly as it has to without a `nodeEls` map.
+      document.body.appendChild(root);
       if (node) {
         node.id = id;
         if (!nodes.includes(node)) nodes.push(node);
       }
-      return el;
+      return root;
     },
   };
 
@@ -244,6 +325,8 @@ export interface FakeWidgetNode {
   minSize: [number, number];
   computeSize(): [number, number];
   setSize(size: [number, number]): void;
+  /** Restore a saved box, the way LiteGraph's `configure()` does. */
+  configure(serialized: { size?: [number, number] }): void;
   addDOMWidget(name: string, type: string, element: HTMLElement, options: DomWidgetOptions): FakeWidget;
   graph: { setDirtyCanvas(): void };
   /** What the last `addDOMWidget` call was given — the widget contract itself. */
@@ -303,6 +386,14 @@ export function createWidgetNode(spec: FakeWidgetNodeSpec = {}): FakeWidgetNode 
     setSize(size) {
       node.sizes.push([...size] as [number, number]);
       node.size = [...size] as [number, number];
+    },
+    // A workflow load writes the saved box straight onto the node — no
+    // `setSize`, which is why the growable host cannot see it as a resize and
+    // has to recover the stretch from `onConfigure` instead. Assigning `size`
+    // here without announcing it is the whole point of this method.
+    configure(serialized) {
+      if (serialized.size) node.size = [...serialized.size] as [number, number];
+      (node.onConfigure as ((info: unknown) => void) | undefined)?.call(node, serialized);
     },
     addDOMWidget(name, _type, _element, options) {
       node.widgetOptions = options;

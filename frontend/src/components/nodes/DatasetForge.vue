@@ -12,11 +12,19 @@ import {
   FilNumberInput, FilToggle, FilInfo,
 } from "@/components/widgets";
 import type { FilComboOption } from "@/components/widgets";
+import { useWidgetSockets } from "@/composables/useWidgetSockets";
+import { DATASET_SOCKET_INPUTS } from "@/nodes2/nodes/dataset";
 import type { FilNodeState } from "@/nodes2/filState";
 import { useI18n } from "@/composables/useI18n";
 
 const props = defineProps<{ state: FilNodeState }>();
 const { t } = useI18n();
+
+// Fields that can also be driven from the graph: the dot is lined up with its
+// field, and a wired field goes read-only — a link wins over anything typed.
+const { setFieldEl, isLinked } = useWidgetSockets(props.state, DATASET_SOCKET_INPUTS);
+const linkedTip = (name: string, own: string) =>
+  isLinked(name) ? t("fld_linked_tt", "Driven by the connected input — disconnect it to edit here.") : own;
 
 function getValue(name: string, fallback: unknown = ""): unknown {
   return props.state.nodeState[name] ?? props.state.initialValues[name] ?? fallback;
@@ -144,12 +152,12 @@ function setCollapsed(section: string, collapsed: boolean) {
 <template>
   <div class="fil-ds-root">
     <FilSection :title="t('dsp_section_identity', '1️⃣ Who / what is this')" :collapsible="false" />
-    <FilTextInput v-model="datasetName" :label="t('dsp_label_dataset_name', '🏷️ Dataset name')"
-      :title="t('ds_name', '')" placeholder="my_lora" />
-    <FilTextInput v-model="triggerWord" :label="t('dsp_label_trigger', '🔑 Trigger word')"
-      :title="t('ds_trigger', '')" placeholder="ohwx" />
-    <FilTextInput v-model="classToken" :label="t('dsp_label_class', '🧍 Class')"
-      :title="t('ds_class', '')" placeholder="woman" />
+    <FilTextInput :ref="(el: unknown) => setFieldEl('dataset_name', el)" :disabled="isLinked('dataset_name')" v-model="datasetName" :label="t('dsp_label_dataset_name', '🏷️ Dataset name')"
+      :title="linkedTip('dataset_name', t('ds_name', ''))" placeholder="my_lora" />
+    <FilTextInput :ref="(el: unknown) => setFieldEl('trigger_word', el)" :disabled="isLinked('trigger_word')" v-model="triggerWord" :label="t('dsp_label_trigger', '🔑 Trigger word')"
+      :title="linkedTip('trigger_word', t('ds_trigger', ''))" placeholder="ohwx" />
+    <FilTextInput :ref="(el: unknown) => setFieldEl('class_token', el)" :disabled="isLinked('class_token')" v-model="classToken" :label="t('dsp_label_class', '🧍 Class')"
+      :title="linkedTip('class_token', t('ds_class', ''))" placeholder="woman" />
     <FilInfo :text="`${t('dsp_preview_folder', '📁 Will create:')} ${folderPreview}`" />
 
     <FilSection :title="t('dsp_section_format', '2️⃣ File format')" :collapsible="false" />
@@ -158,7 +166,7 @@ function setCollapsed(section: string, collapsed: boolean) {
     <FilSegmented v-model="layout" :options="['kohya', 'flat']"
       :option-labels="{ kohya: t('dsp_opt_layout_kohya', '🗂️ kohya'), flat: t('dsp_opt_layout_flat', '📄 Flat') }"
       :label="t('dsp_label_layout', '📦 Layout')" :title="t('ds_layout', '')" />
-    <FilNumberInput v-model="repeats" :min="1" :max="1000" :step="1" :label="t('dsp_label_repeats', '🔁 Repeats')" :title="t('ds_repeats', '')" />
+    <FilNumberInput :ref="(el: unknown) => setFieldEl('repeats', el)" :disabled="isLinked('repeats')" v-model="repeats" :min="1" :max="1000" :step="1" :label="t('dsp_label_repeats', '🔁 Repeats')" :title="linkedTip('repeats', t('ds_repeats', ''))" />
     <FilSegmented v-model="cropMode" :options="['center', 'entropy']"
       :option-labels="{ center: t('dsp_opt_crop_center', '🎯 Center'), entropy: t('dsp_opt_crop_entropy', '🔬 Detail') }"
       :label="t('dsp_label_crop', '✂️ Crop')" :title="t('ds_crop_mode', '')" />
@@ -178,17 +186,17 @@ function setCollapsed(section: string, collapsed: boolean) {
       <FilNumberInput v-model="captionMaxWords" :min="4" :max="400" :step="5"
         :label="t('dsp_label_caption_words', '📏 Max words')" :title="t('ds_caption_words', '')" />
     </template>
-    <FilTextArea v-model="manualCaptions" :title="t('ds_captions', '')"
+    <FilTextArea :ref="(el: unknown) => setFieldEl('captions', el)" :disabled="isLinked('captions')" v-model="manualCaptions" :title="linkedTip('captions', t('ds_captions', ''))"
       :label="t('dsp_label_manual_captions', '📋 Manual captions (optional)')"
       :placeholder="t('dsp_ph_manual_captions', 'One per image, separated by a line with ---. Skips the LLM when filled.')" />
     <template v-if="captionMode !== 'none'">
       <FilSection :title="t('dsp_section_caption_tuning', '🎛️ Caption tuning')"
         :model-value="isCollapsed('caption_tuning')" @update:model-value="(v: boolean) => setCollapsed('caption_tuning', v)" />
       <template v-if="!isCollapsed('caption_tuning')">
-        <FilTextArea v-model="dontCaption" :title="t('ds_dont_caption', '')"
+        <FilTextArea :ref="(el: unknown) => setFieldEl('dont_caption', el)" :disabled="isLinked('dont_caption')" v-model="dontCaption" :title="linkedTip('dont_caption', t('ds_dont_caption', ''))"
           :label="t('dsp_label_dont_caption', '🚫 Never mention')"
           :placeholder="t('dsp_ph_dont_caption', 'her face, red hair — belongs to the trigger word')" />
-        <FilTextArea v-model="captionInstruction" :title="t('ds_caption_instruction', '')"
+        <FilTextArea :ref="(el: unknown) => setFieldEl('caption_instruction', el)" :disabled="isLinked('caption_instruction')" v-model="captionInstruction" :title="linkedTip('caption_instruction', t('ds_caption_instruction', ''))"
           :label="t('dsp_label_caption_instruction', '💬 Extra instruction')" />
       </template>
     </template>
@@ -209,7 +217,7 @@ function setCollapsed(section: string, collapsed: boolean) {
         :option-labels="{ png: 'PNG', jpg: 'JPG' }" :label="t('dsp_label_image_format', '🖼️ File format')" :title="t('ds_image_format', '')" />
       <FilNumberInput v-if="imageFormat === 'jpg'" v-model="jpgQuality" :min="50" :max="100" :step="1"
         :label="t('dsp_label_jpg_quality', '🎚️ JPG quality')" :title="t('ds_jpg_quality', '')" />
-      <FilNumberInput v-model="seed" :min="-1" :max="999999999999" :step="1" :label="t('dsp_label_seed', '🌱 Caption seed')" :title="t('ds_seed', '')" />
+      <FilNumberInput :ref="(el: unknown) => setFieldEl('seed', el)" :disabled="isLinked('seed')" v-model="seed" :min="-1" :max="999999999999" :step="1" :label="t('dsp_label_seed', '🌱 Caption seed')" :title="linkedTip('seed', t('ds_seed', ''))" />
     </template>
   </div>
 </template>

@@ -4,12 +4,20 @@ import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
 import { createSyncedNodeState, findFilWidget, sanitizeWidgetValue } from "@/nodes2/util";
+import { exposeWidgetInputSockets, installWidgetSocketSync } from "@/nodes2/widgetInputSockets";
 import { applyFxComposables } from "@/nodes2/applyFxComposables";
 
 // Same tiling widget panel as FiLUpscaleTileCalc (upscale.ts) — Simple only
 // differs in a required upscale_model input and trimmed outputs, so the Vue
 // panel is reused as-is.
 const UpscaleVue = defineAsyncComponent(() => import("@/components/nodes/UpscaleTileCalc.vue"));
+
+/**
+ * Widgets that may also be driven from the graph. The Vue panel hides the
+ * native widget, which hides its input slot with it — `exposeWidgetInputSockets`
+ * gives the slot a row and a visible dot back.
+ */
+export const UPSCALE_SIMPLE_SOCKET_INPUTS = ["upscale_factor", "tile_size", "tile_overlap"];
 
 export const upscaleSimpleNode: NodeModule = {
   id: "FiLUpscaleSimple",
@@ -77,6 +85,7 @@ export const upscaleSimpleNode: NodeModule = {
       const state = { nodeState: createSyncedNodeState(node, initialNodeState), initialValues, ui: {} };
       node._filUpscaleState = state;
       addFilDomWidget(node, "fil_upscale_simple_view", UpscaleVue, { state, height: 420 });
+      exposeWidgetInputSockets(this, UPSCALE_SIMPLE_SOCKET_INPUTS);
       return result;
     };
 
@@ -97,6 +106,7 @@ export const upscaleSimpleNode: NodeModule = {
       for (const name of Object.keys(comboDefaults)) {
         state.nodeState[name] = sanitizeWidgetValue(findFilWidget(node, name), "string", comboDefaults[name]);
       }
+      exposeWidgetInputSockets(this, UPSCALE_SIMPLE_SOCKET_INPUTS);
       return result;
     };
 
@@ -106,6 +116,7 @@ export const upscaleSimpleNode: NodeModule = {
       return originalRemoved?.apply(this, args);
     };
 
+    installWidgetSocketSync(p, UPSCALE_SIMPLE_SOCKET_INPUTS, "_filUpscaleState");
     applyFxComposables(nodeType as { prototype?: unknown });
   },
 };

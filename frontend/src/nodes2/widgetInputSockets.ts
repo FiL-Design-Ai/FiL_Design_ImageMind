@@ -114,6 +114,29 @@ export function anchorWidgetInputSockets(node: unknown, anchors: WidgetSocketAnc
 }
 
 /** `true` for every named input that currently has a link attached. */
+/**
+ * Keep a node's widget sockets in step with the graph.
+ *
+ * Wires up `onConnectionsChange` once per node type: re-exposes the sockets and
+ * bumps `ui.linkVersion` on the panel state. Connecting a wire changes nothing
+ * in the panel's DOM, so the observers in `useWidgetSockets` cannot see it —
+ * this counter is the signal they watch.
+ *
+ * @param stateKey property the node module parks its panel state on
+ *                 (`_filHiResFixState`, …).
+ */
+export function installWidgetSocketSync(prototype: unknown, names: string[], stateKey: string): void {
+  const p = prototype as { onConnectionsChange?: (...a: unknown[]) => unknown };
+  const original = p.onConnectionsChange;
+  p.onConnectionsChange = function (this: unknown, ...args: unknown[]) {
+    const result = original?.apply(this, args);
+    exposeWidgetInputSockets(this, names);
+    const state = (this as Record<string, unknown>)[stateKey] as { ui?: Record<string, unknown> } | undefined;
+    if (state?.ui) state.ui.linkVersion = ((state.ui.linkVersion as number) ?? 0) + 1;
+    return result;
+  };
+}
+
 export function readLinkedInputs(node: unknown, names: string[]): Record<string, boolean> {
   const n = node as NodeLike;
   const linked: Record<string, boolean> = {};

@@ -76,9 +76,14 @@ export interface ComfyApp {
   api?: {
     addEventListener?: (type: string, cb: (event: Event) => void) => void;
   };
-  /** LiteGraph canvas; `nodeEls` maps node id → its DOM element for DOM nodes. */
+  /**
+   * LiteGraph canvas. `setDirty(foreground, background?)` is how a repaint is
+   * requested — there is no map of node id → DOM element on it (the pack
+   * assumed a `nodeEls` for two releases; nothing in core has ever had one).
+   * DOM-rendered nodes are found in the document by `[data-node-id]`.
+   */
   canvas?: {
-    nodeEls?: Record<string | number, HTMLElement>;
+    setDirty?: (foreground: boolean, background?: boolean) => void;
   };
   /** Present on modern ComfyUI — its existence signals the native commands API. */
   extensionManager?: unknown;
