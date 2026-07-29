@@ -194,11 +194,19 @@ function paletteCssVars(p: FilPalette): string {
  * Subtle, static (no @keyframes) per-theme flourishes so they don't cost a
  * continuous repaint on a graph with many nodes — a one-time box-shadow/
  * background-image, not an animation loop.
+ *
+ * The title-bar rules key off `.lg-node-header`, which is what the Vue renderer
+ * names it (frontend 1.47.10). They used to say `.comfy-node-header`, a class
+ * no shipped frontend has ever emitted — the same wrong guess that kept the run
+ * highlight from ever firing, see `composables/useRunButtonFx.ts`. Under the
+ * default canvas renderer (`Comfy.VueNodes.Enabled: false`) a node has no DOM
+ * at all, so these stay inert there by nature; the node-body rules below are on
+ * our own Vue shell and apply either way.
  */
 const THEME_EFFECTS: Record<FilThemeName, string> = {
   default: "",
   cyberpunk: `
-[data-fil-theme="cyberpunk"] .comfy-node-header{box-shadow:0 0 12px var(--fil-accent);}
+[data-fil-theme="cyberpunk"] .lg-node-header{box-shadow:0 0 12px var(--fil-accent);}
 [data-fil-theme="cyberpunk"] .fil-w-seg.active,
 [data-fil-theme="cyberpunk"] .fil-combo-trigger.open,
 [data-fil-theme="cyberpunk"] .fil-combo-trigger:focus-visible{box-shadow:0 0 6px var(--fil-accent),0 0 14px var(--fil-accent);}
@@ -209,14 +217,14 @@ const THEME_EFFECTS: Record<FilThemeName, string> = {
   background-image:repeating-linear-gradient(0deg,rgba(0,0,0,0.12) 0px,rgba(0,0,0,0.12) 1px,transparent 1px,transparent 3px);
   border:1px solid rgba(212,160,23,0.2);
 }
-[data-fil-theme="fallout"] .comfy-node-header{text-shadow:0 0 4px rgba(212,160,23,0.55);}
+[data-fil-theme="fallout"] .lg-node-header{text-shadow:0 0 4px rgba(212,160,23,0.55);}
 `,
   pipboy: `
 [data-fil-theme="pipboy"] .fil-node-shell [class$="-root"]{
   background-image:repeating-linear-gradient(0deg,rgba(0,0,0,0.2) 0px,rgba(0,0,0,0.2) 1px,transparent 1px,transparent 3px);
   border:1px solid rgba(20,177,59,0.3);
 }
-[data-fil-theme="pipboy"] .comfy-node-header{text-shadow:0 0 4px rgba(20,177,59,0.75);}
+[data-fil-theme="pipboy"] .lg-node-header{text-shadow:0 0 4px rgba(20,177,59,0.75);}
 `,
   travelmate: `
 [data-fil-theme="travelmate"] .fil-node-shell [class$="-root"]{border:none;box-shadow:none;}
@@ -224,9 +232,49 @@ const THEME_EFFECTS: Record<FilThemeName, string> = {
 [data-fil-theme="travelmate"] .fil-combo-trigger.open,
 [data-fil-theme="travelmate"] .fil-combo-trigger:focus-visible{box-shadow:0 0 6px var(--fil-accent),0 0 14px var(--fil-accent);}
 `,
-  // Pixaroma's own editor chrome is flat panels, no glow/scanline texture —
-  // matching that means no flourish here, same as "default".
-  pixaroma: "",
+  /**
+   * Pixaroma marks a chosen control by *filling* it with the accent — every
+   * selected state in their framework does it the same way (`.pxf-pill.active`,
+   * `.pxf-tool-btn.active`, `.pxf-ratio-btn.active`, `.pxf-btn.active`: accent
+   * background, accent border, white label). Our default skin instead leaves
+   * the chip dark and rings it in accent with a glow, which is the single
+   * loudest reason a graph mixing both packs did not read as one system.
+   *
+   * `:root[data-fil-theme=…]`, not the bare attribute the other themes use.
+   * These rules override declarations that come from a component's own
+   * `<style scoped>`, which carries a `[data-v-…]` attribute and so ties on
+   * specificity; a tie would be settled by document order, and the order of the
+   * bundle's injected CSS tag versus ours is a build detail no rule should
+   * depend on. `:root` breaks the tie outright. The rules above only *add*
+   * properties their components never set, so they are safe as they are.
+   */
+  pixaroma: `
+:root[data-fil-theme="pixaroma"] .fil-node-shell [class$="-root"]{backdrop-filter:none;}
+:root[data-fil-theme="pixaroma"] .fil-w-chip.active,
+:root[data-fil-theme="pixaroma"] .fil-style-tab-btn.active,
+:root[data-fil-theme="pixaroma"] .fil-style-picker-btn.has-styles{
+  background:var(--fil-accent);
+  border-color:var(--fil-accent);
+  color:var(--fil-accent-ink);
+  box-shadow:none;
+}
+:root[data-fil-theme="pixaroma"] .fil-style-picker-btn.has-styles:hover{
+  background:color-mix(in srgb,var(--fil-accent) 85%,#000);
+}
+/* Their section headings (.pxf-panel-title) are bare 9px uppercase accent
+ * labels over the panel, not a filled row — the fill is what made our sections
+ * look like buttons next to theirs. */
+:root[data-fil-theme="pixaroma"] .fil-w-section{
+  background:transparent;
+  color:var(--fil-accent-text);
+  font-size:9px;
+  letter-spacing:0.06em;
+}
+:root[data-fil-theme="pixaroma"] .fil-w-section:hover:not(:disabled){
+  background:var(--fil-surface-1);
+  color:var(--fil-accent-text);
+}
+`,
 };
 
 /**
@@ -248,6 +296,45 @@ const SURFACE_VARS_CYAN =
   "--fil-pill-radius:17px;" +
   "--fil-pill-bg:rgba(255,255,255,0.06);" +
   "--fil-pill-border:rgba(0,150,200,0.4);";
+
+/**
+ * Pixaroma's chrome is opaque and flat, and the default "Neo-Tactile" surface
+ * is the opposite of it on every axis: their panels are solid `#171718` with a
+ * hairline `#3a3d40` border, 3–5px radii and `#111` inset fields, and nothing
+ * in their framework blurs or drops a shadow. Ours is a translucent cyan wash,
+ * a 20px radius, a 10px backdrop blur and a shadow. Palette alone could never
+ * close that gap — picking the theme recolored the accent and still left our
+ * own glass panel sitting in a Pixaroma workflow.
+ *
+ * `--fil-border`/`--fil-input-border` are palette-derived and get overridden
+ * here too: `--fil-muted` at 55% lands around #6b6b6b on their panel, a good
+ * deal heavier than the hairline they draw. Emitted after `paletteCssVars()`
+ * in the same block, so the later declaration wins.
+ */
+const SURFACE_VARS_PIXAROMA =
+  "--fil-surface-bg:#171718;" +
+  "--fil-surface-border:#2a2c2e;" +
+  "--fil-surface-radius:8px;" +
+  "--fil-surface-blur:0px;" +
+  "--fil-surface-shadow:none;" +
+  "--fil-glass-bg:#111111;" +
+  "--fil-glass-border:#3a3d40;" +
+  "--fil-field-radius:4px;" +
+  "--fil-pill-radius:5px;" +
+  "--fil-pill-bg:#1e2022;" +
+  "--fil-pill-border:#3a3d40;" +
+  "--fil-border:#3a3d40;" +
+  "--fil-input-border:#3a3d40;";
+
+/**
+ * Per-theme surface overrides, appended after the palette for the chosen theme.
+ * A theme absent here keeps the base `SURFACE_VARS_CYAN` geometry and only
+ * swaps colors, which is what every theme did before Pixaroma needed its own
+ * shape as well as its own palette.
+ */
+const THEME_SURFACES: Partial<Record<FilThemeName, string>> = {
+  pixaroma: SURFACE_VARS_PIXAROMA,
+};
 
 /**
  * Neutral overlays used for "one step up from the panel" surfaces — section
@@ -444,7 +531,9 @@ function renderTheme(): void {
   // Left empty for "default" so the base tag above governs unopposed.
   if (themeVarsEl) {
     themeVarsEl.textContent =
-      currentTheme === "default" ? "" : `:root{${paletteCssVars(THEMES[currentTheme] ?? FIL_PALETTE)}}`;
+      currentTheme === "default"
+        ? ""
+        : `:root{${paletteCssVars(THEMES[currentTheme] ?? FIL_PALETTE)}${THEME_SURFACES[currentTheme] ?? ""}}`;
   }
   if (themeEffectsEl) themeEffectsEl.textContent = THEME_EFFECTS[currentTheme] ?? "";
 }
