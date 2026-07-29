@@ -5,8 +5,59 @@ from __future__ import annotations
 import re
 from typing import Any, Callable, Dict
 
-from .rules import CAMERA_OVERRIDE_PROFILES, CATEGORY_DETECTION_PRIORITY, CATEGORY_PATTERNS
+from .rules import (
+    CAMERA_OVERRIDE_PROFILES,
+    CATEGORY_DETECTION_PRIORITY,
+    CATEGORY_FORBIDDEN,
+    CATEGORY_PATTERNS,
+)
 from .text import _keyword_in_text
+
+# Categories whose own rules forbid the word "photograph" — `comic` rewrites it
+# to "illustration" and demands "sequential/comic graphic language", `art` turns
+# it into a painting. Derived from the rules rather than listed by hand, so a
+# new category with the same posture is covered the day it is added.
+_ANTI_PHOTOGRAPHIC = frozenset(
+    category
+    for category, forbidden in CATEGORY_FORBIDDEN.items()
+    for word in forbidden
+    if word in ("photo", "photograph", "photorealistic", "camera")
+)
+
+
+def _photo_library_texts() -> frozenset[str]:
+    """Every style string the photo libraries ship, lowercased.
+
+    Detection reads free text and cannot see which library a style came from.
+    That is how ten entries of the photo library ended up in categories that
+    strip photography out of the prompt: `Cybernetic Arm Close-Up` resolved to
+    `oil_painting`, `Electron Micro` and `Thermal Imager` to `comic`. The
+    library itself is the missing evidence, so it is consulted here.
+    """
+    from ..styles.nsfw_photo import NSFW_PHOTO_STYLES
+    from ..styles.photo import PHOTO_STYLES
+
+    return frozenset(
+        text.strip().lower()
+        for library in (PHOTO_STYLES, NSFW_PHOTO_STYLES)
+        for text in library.values()
+        if text
+    )
+
+
+_photo_texts_cache: frozenset[str] | None = None
+
+
+def _is_photo_library_style(style_lower: str) -> bool:
+    global _photo_texts_cache
+    if _photo_texts_cache is None:
+        try:
+            _photo_texts_cache = _photo_library_texts()
+        except Exception:
+            # A broken import must not take category detection down with it —
+            # the guard is a correction, not a prerequisite.
+            _photo_texts_cache = frozenset()
+    return style_lower.strip() in _photo_texts_cache
 
 
 def detect_style_category(style_text: str, category_cache: Dict[str, str] | None = None) -> str:
@@ -47,6 +98,12 @@ def detect_style_category(style_text: str, category_cache: Dict[str, str] | None
             continue
         keywords = CATEGORY_PATTERNS.get(category, [])
         if any(_keyword_in_text(style_lower, kw) for kw in keywords):
+            # A style out of the photo library must never land somewhere that
+            # rewrites "photograph" into "illustration". The keyword match is a
+            # guess over free text; library membership is a fact, so it wins.
+            if category in _ANTI_PHOTOGRAPHIC and _is_photo_library_style(style_lower):
+                cache[style_lower] = "photo"
+                return "photo"
             cache[style_lower] = category
             return category
 
