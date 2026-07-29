@@ -4,9 +4,17 @@ import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
 import { createSyncedNodeState, findFilWidget, sanitizeWidgetValue } from "@/nodes2/util";
+import { exposeWidgetInputSockets, installWidgetSocketSync } from "@/nodes2/widgetInputSockets";
 import { applyFxComposables } from "@/nodes2/applyFxComposables";
 
 const ColorWizardVue = defineAsyncComponent(() => import("@/components/nodes/ColorWizard.vue"));
+
+/**
+ * Widgets that may also be driven from the graph. The Vue panel hides the
+ * native widget, which hides its input slot with it — `exposeWidgetInputSockets`
+ * gives the slot a row and a visible dot back.
+ */
+export const COLOR_WIZARD_SOCKET_INPUTS = ["strength", "saturate", "temperature", "tint"];
 
 const hiddenWidgetNames = [
   "method",
@@ -65,6 +73,7 @@ export const colorWizardNode: NodeModule = {
       (node as any)._filColorWizardState = state;
 
       addFilDomWidget(node, "fil_color_wizard_view", ColorWizardVue, { state, height: 320 });
+      exposeWidgetInputSockets(this, COLOR_WIZARD_SOCKET_INPUTS);
       return res;
     };
 
@@ -82,6 +91,7 @@ export const colorWizardNode: NodeModule = {
           state.nodeState[name] = sanitizeWidgetValue(w, expectedType, fallback);
         }
       }
+      exposeWidgetInputSockets(this, COLOR_WIZARD_SOCKET_INPUTS);
       return res;
     };
 
@@ -91,6 +101,7 @@ export const colorWizardNode: NodeModule = {
       return origRemoved?.apply(this, args);
     };
 
+    installWidgetSocketSync(p, COLOR_WIZARD_SOCKET_INPUTS, "_filColorWizardState");
     applyFxComposables(nodeType as { prototype?: unknown });
   },
 };
