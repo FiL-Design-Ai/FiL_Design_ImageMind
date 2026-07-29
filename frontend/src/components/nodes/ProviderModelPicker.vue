@@ -30,22 +30,38 @@ const { t, tPlural } = useI18n();
 const selectedProvider = ref<string>(props.provider);
 const selectedModel = ref<string>(props.model);
 const searchQuery = ref<string>("");
-const typeFilter = ref<"all" | "vision" | "text">("all");
-const tierFilter = ref<"all" | "free" | "paid" | "local">("all");
+const typeFilter = ref<"all" | "vision" | "text">(
+  (localStorage.getItem("fil_model_picker_type_filter") as "all" | "vision" | "text") || "all"
+);
+const tierFilter = ref<"all" | "free" | "paid" | "local">(
+  (localStorage.getItem("fil_model_picker_tier_filter") as "all" | "free" | "paid" | "local") || "all"
+);
 
 const STORAGE_KEY_VIEW = "fil_model_picker_view_mode";
+const STORAGE_KEY_TYPE = "fil_model_picker_type_filter";
+const STORAGE_KEY_TIER = "fil_model_picker_tier_filter";
 const viewMode = ref<"list" | "grid">(
   (localStorage.getItem(STORAGE_KEY_VIEW) as "list" | "grid") || "list"
 );
 
-function setViewMode(mode: "list" | "grid") {
-  viewMode.value = mode;
+function remember(key: string, value: string) {
   try {
-    localStorage.setItem(STORAGE_KEY_VIEW, mode);
+    localStorage.setItem(key, value);
   } catch {
     // ignore storage quota/security restriction
   }
 }
+
+function setViewMode(mode: "list" | "grid") {
+  viewMode.value = mode;
+  remember(STORAGE_KEY_VIEW, mode);
+}
+
+// The filters survive closing the picker, the way the view mode already did.
+// They used to be wiped on every open, so a user who narrowed the 367-model
+// OpenRouter list to free vision models had to redo it each time.
+watch(typeFilter, (v) => remember(STORAGE_KEY_TYPE, v));
+watch(tierFilter, (v) => remember(STORAGE_KEY_TIER, v));
 
 // Filter option sets + labels for the FilSegmented controls. Tier options are
 // provider-dependent: local providers (ollama/lmstudio) only ever have "local"
@@ -80,9 +96,11 @@ watch(
     if (isOpen) {
       selectedProvider.value = props.provider || "ollama";
       selectedModel.value = props.model || "";
+      // Search is per-visit — a leftover query silently hiding every model is
+      // worse than retyping it. The segmented filters are visible on screen,
+      // so they can safely persist.
       searchQuery.value = "";
-      typeFilter.value = "all";
-      tierFilter.value = "all";
+      if (!tierOptions.value.includes(tierFilter.value)) tierFilter.value = "all";
       void loadCurrentProviderModels();
     }
   }
@@ -99,9 +117,10 @@ async function loadCurrentProviderModels(force = false) {
 function switchProvider(p: string) {
   selectedProvider.value = p;
   searchQuery.value = "";
-  // Reset tier filter: the available tiers change per provider (local vs
-  // free/paid), so a stale selection could otherwise filter everything out.
-  tierFilter.value = "all";
+  // Drop the tier only when the new provider has no such tier — local
+  // providers offer "local" and nothing else, so a kept "free" would filter
+  // the list down to nothing. A tier that still exists is left alone.
+  if (!tierOptions.value.includes(tierFilter.value)) tierFilter.value = "all";
   const models = store.modelsFor(p);
   if (models.length > 0) {
     selectedModel.value = models[0];

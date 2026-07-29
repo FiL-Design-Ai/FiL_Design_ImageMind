@@ -37,12 +37,13 @@ onMounted(async () => {
       account_id: acct?.account_id ?? "",
     };
   }
-  // Silently probe already-configured providers so the header badge reflects
-  // real reachability the moment the panel opens, without the user clicking
-  // Probe on each card. Fire-and-forget — each updates its own badge.
+  // Load the model lists of already-configured providers so the cards are
+  // populated the moment the panel opens. Listing only — probing here would
+  // bill a completion against every configured account on every open, and it
+  // is the user's click on Probe that asks for that.
   for (const pid of PROVIDER_LIST) {
     const acct = store.accounts[pid];
-    if (acct?.configured || acct?.local || acct?.base_url) void doProbe(pid);
+    if (acct?.configured || acct?.local || acct?.base_url) void doLoadModels(pid, false);
   }
 });
 
@@ -133,14 +134,14 @@ function deleteHint(pid: string): string {
 
 type PmStatus = "connected" | "configured" | "off";
 
-// Derives the header badge state. A successful probe or a non-empty model
-// list is proof the provider actually responds ("connected"); a saved key /
-// local base_url means it's set up but unverified ("configured").
+// Derives the header badge state. Only a successful probe counts as
+// "connected", because only the probe generates: a model list proves the
+// catalogue is readable and nothing more, and an OpenAI key with no billing
+// lists 76 models and then refuses every completion. A saved key / local
+// base_url means it's set up but unverified ("configured").
 function providerStatus(pid: string): PmStatus {
   const acct = store.accounts[pid];
-  const entry = store.modelsByProvider[pid];
-  const hasModels = (entry?.list.length ?? 0) > 0 && !entry?.error;
-  if (store.probeState[pid]?.status === "available" || probedOk.value[pid] || hasModels) {
+  if (store.probeState[pid]?.status === "available" || probedOk.value[pid]) {
     return "connected";
   }
   if (acct?.configured || acct?.local || acct?.base_url) return "configured";
@@ -193,10 +194,12 @@ async function doProbe(pid: string) {
   }
 }
 
-async function doLoadModels(pid: string) {
+// `force` bypasses the store's TTL: the button means "re-ask the provider",
+// while the load on panel open is happy with a fresh cache.
+async function doLoadModels(pid: string, force = true) {
   loadingModels.value[pid] = true;
   try {
-    await store.loadModels(pid, true);
+    await store.loadModels(pid, force);
   } finally {
     loadingModels.value[pid] = false;
   }
@@ -254,12 +257,10 @@ const hasChanges = (pid: string) => {
         <label v-if="showApiKey(pid)" class="fil-pm-field">
           <span class="fil-pm-field-head">
             <span class="fil-pm-field-label">API Key</span>
-            <!-- Which key is in play, not just that one exists: eight dots said
-                 nothing about whether the right account was saved, or whether
-                 the key even came from this panel rather than the shell. -->
-            <span v-if="keyState(pid)" class="fil-pm-keyhint" :class="`is-${keyState(pid)!.kind}`" :title="keyState(pid)!.hint">
-              {{ keyState(pid)!.label }}
-            </span>
+            <!-- The masked key lives in the input's own placeholder; a chip
+                 repeating it beside the label showed the same `AQ.…ilyg`
+                 twice. Which account is in play still matters, so the source
+                 moved into the field's tooltip rather than disappearing. -->
             <a
               v-if="credentialLink[pid]"
               class="fil-pm-link"
@@ -275,6 +276,7 @@ const hasChanges = (pid: string) => {
             class="fil-pm-input"
             :class="fieldClass(editing[pid].key)"
             :placeholder="keyPlaceholder(pid)"
+            :title="keyState(pid)?.hint"
             @keydown.enter="doSave(pid)"
           />
         </label>
@@ -489,33 +491,6 @@ const hasChanges = (pid: string) => {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: rgba(255, 255, 255, 0.5);
-}
-
-/* The masked key sits next to the field label: monospace so the tail is easy to
-   compare against the dashboard that issued it. */
-.fil-pm-keyhint {
-  margin-left: 6px;
-  padding: 1px 6px;
-  border-radius: 999px;
-  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
-  font-size: 10px;
-  letter-spacing: 0;
-  white-space: nowrap;
-}
-.fil-pm-keyhint.is-file {
-  background: color-mix(in srgb, var(--fil-ok) 16%, transparent);
-  color: var(--fil-text);
-}
-/* A key from the shell or config.yaml is not this panel's to delete — worth
-   looking different from one saved here. */
-.fil-pm-keyhint.is-env {
-  background: color-mix(in srgb, var(--fil-accent) 18%, transparent);
-  color: var(--fil-text);
-}
-.fil-pm-keyhint.is-none {
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--fil-muted);
-  font-family: inherit;
 }
 
 .fil-pm-link {

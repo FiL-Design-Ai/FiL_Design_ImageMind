@@ -92,6 +92,11 @@ frontend/node_modules/
 # frontend/dist/ is intentionally committed: ComfyUI loads it via
 # WEB_DIRECTORY and the Comfy Registry publish ships whatever is in git.
 
+# Playwright output — traces, screenshots and the HTML report of the last run
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
+
 # Local auth/credentials
 data/auth.json
 data/auth.json.backup-*
