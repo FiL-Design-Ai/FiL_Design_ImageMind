@@ -25,21 +25,20 @@ PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 CUSTOM_NODES_ROOT = PACKAGE_ROOT.parent
 OUR_PACK = PACKAGE_ROOT.name
 
-OUR_IDS = {
-    "FiLSeed",
-    "FiLProviderLoader",
-    "FiLOpticScanner",
-    "FiLNeuroCleaner",
-    "FiLUpscaleTileCalc",
-    "FiLUpscaleSimple",
-    "FiLTileAssembly",
-    "FiLKSampler",
-    "FiLHighResFix",
-    "FiLNoiseControl",
-    "FiLImageDecomposer",
-    "FiLStyleMixer",
-    "FiLColorWizard",
-}
+def _our_ids() -> set[str]:
+    """Our own node ids, read from our own sources.
+
+    Conflict detection never used this — it matches on the pack directory name,
+    so every id we register has always been covered. The list only feeds the
+    "none of our N ids collide" line, and a hand-kept copy drifted: it still
+    said 13 on 2026-07-29, two releases after FiLSignalSwitch and
+    FiLDatasetForge shipped. A count that reports fewer nodes than exist reads
+    like a gap in the scan, which is worse than no count at all.
+    """
+    ids: set[str] = set()
+    for py in (PACKAGE_ROOT / "nodes").glob("*.py"):
+        ids |= _ids_in_source(py.read_text(encoding="utf-8", errors="ignore"))
+    return ids
 
 
 def _ids_in_source(source: str) -> set[str]:
@@ -100,7 +99,7 @@ def main() -> int:
         for nid, packs in sorted(our_conflicts.items()):
             print(f"  {nid}: {', '.join(sorted(packs))}")
     else:
-        print(f"\n[OK] none of our {len(OUR_IDS)} ids collide with any other pack.")
+        print(f"\n[OK] none of our {len(_our_ids())} ids collide with any other pack.")
 
     if duplicates:
         others = {n: p for n, p in duplicates.items() if n not in our_conflicts}

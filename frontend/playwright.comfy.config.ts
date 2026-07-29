@@ -11,8 +11,24 @@ import { defineConfig, devices } from "@playwright/test";
  * see a node that fails to register or a panel that never mounts.
  *
  * `COMFY_URL` overrides the default for a locally running instance.
+ * `COMFY_PYTHON` overrides the interpreter used to start one.
  */
 const BASE_URL = process.env.COMFY_URL ?? "http://127.0.0.1:8188";
+
+// Bare `python` is right in CI, where the workflow installs ComfyUI's
+// requirements into the runner's interpreter. It is wrong on a portable install
+// — ComfyUI-Easy-Install and the standalone builds keep their dependencies in
+// `python_embeded`, and the system `python` has none of them. On 2026-07-29 that
+// made this suite unrunnable locally: `main.py` died on `No module named
+// 'sqlalchemy'` before the server ever came up, so the one suite that exercises
+// the host seam could not be run on the very machine whose ComfyUI version the
+// seam is written against.
+//
+//   COMFY_PYTHON=E:\...\python_embeded\python.exe npm run test:smoke
+//
+// Simpler still: start ComfyUI yourself and run the suite — `reuseExistingServer`
+// below points it at whatever is already listening.
+const PYTHON = process.env.COMFY_PYTHON ?? "python";
 
 export default defineConfig({
   testDir: "./tests/smoke",
@@ -36,7 +52,7 @@ export default defineConfig({
   // spawns its own if nothing answers. In CI nothing is listening, so it starts
   // one; if something is, that is a misconfigured runner and should fail loudly.
   webServer: {
-    command: "python main.py --cpu --port 8188 --listen 127.0.0.1",
+    command: `"${PYTHON}" main.py --cpu --port 8188 --listen 127.0.0.1`,
     // Relative to this config file: frontend → pack → custom_nodes → ComfyUI.
     cwd: "../../..",
     url: BASE_URL,
