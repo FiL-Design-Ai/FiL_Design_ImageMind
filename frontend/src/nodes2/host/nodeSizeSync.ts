@@ -9,6 +9,8 @@ export interface SizableNode {
   setSize?: (s: [number, number]) => void;
   size?: [number, number];
   minSize?: [number, number];
+  /** LiteGraph calls this at the end of `configure()`, with the serialized node. */
+  onConfigure?: (info: { size?: [number, number] | { 1?: number } }) => void;
 }
 
 export interface NodeSizeSync {
@@ -44,6 +46,16 @@ export function createNodeSizeSync(
   // node box is left alone: a workflow's saved height must not be overwritten
   // with the initial estimate while the async component is still resolving.
   let initialized = false;
+  /**
+   * The node height a saved workflow restored, or null on a node the user just
+   * dropped on the canvas.
+   *
+   * The stretch has to be recovered from the box exactly once, on the first
+   * sync — and only a restored box carries one. A fresh node's box is whatever
+   * LiteGraph computed from the caller's height estimate, which is not a
+   * measurement of anything and must not be charged to the user as stretch.
+   */
+  let configuredHeight: number | null = null;
 
   if (opts.growable && typeof node.computeSize === "function" && typeof node.setSize === "function") {
     const nativeComputeSize = node.computeSize.bind(node);
@@ -75,6 +87,25 @@ export function createNodeSizeSync(
       }
       nativeSetSize(size);
     };
+
+    // LiteGraph restores `node.size` inside `configure()` and calls this at the
+    // end of it — the only announcement that a box came from a saved workflow
+    // rather than from the estimate. Per-node and chained, not a prototype
+    // patch: another pack's own `onConfigure` still runs.
+    const priorOnConfigure = node.onConfigure?.bind(node);
+    node.onConfigure = (info) => {
+      const saved = (info?.size as [number, number] | undefined)?.[1];
+      if (typeof saved === "number" && Number.isFinite(saved)) {
+        configuredHeight = saved;
+        // Whether the first sync has already run is not ours to assume: the
+        // panel can be measured before `configure()` arrives (a plain
+        // component, a resolved chunk) or long after (the usual async case).
+        // Re-arming makes the recovery independent of that race instead of
+        // silently landing on whichever came first.
+        initialized = false;
+      }
+      priorOnConfigure?.(info);
+    };
   }
 
   function syncPlain(): void {
@@ -97,13 +128,24 @@ export function createNodeSizeSync(
     if (!node.computeSize || !node.setSize || !node.size) return;
     const [currentWidth, currentHeight] = node.size;
     const [minWidth, minHeight] = node.minSize ?? [0, 0];
+    // Publish first, then read. `remeasureNatural()` above only updates the
+    // model's own number — until the widget is told, `computeSize()` still
+    // reports the height it was last given, which on the first pass is the
+    // caller's estimate (`scanner.ts` guesses 580 for a panel that measures
+    // 540). Reading the base off that estimate charged the difference to the
+    // stretch on every workflow load: a panel dragged to +200 came back at
+    // +162, then +122, shrinking towards its content one reload at a time.
+    model.applyStretch();
     // `computeSize()` is patched above to report the un-stretched height, so
     // this is the node box that exactly fits the panel's own content.
     const baseHeight = Math.max(node.computeSize()[1], minHeight);
     if (!initialized) {
       // A saved workflow restores `node.size` directly (no `setSize`), so the
       // stretch the user left behind has to be read back from the box once.
-      model.setStretch(currentHeight - baseHeight);
+      // A node the user just dropped has no stretch to recover — its box is
+      // the estimate, and subtracting a measurement from an estimate would
+      // invent one.
+      model.setStretch(configuredHeight != null ? configuredHeight - baseHeight : 0);
       initialized = true;
     }
     // Content-driven changes land here: collapsing a section shrinks the panel
