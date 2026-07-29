@@ -130,7 +130,7 @@ class _FakeResponse:
 def test_generate_waits_on_the_rate_limiter_before_each_request(monkeypatch):
     client = ModelClient()
     calls = []
-    monkeypatch.setattr(client.rate_limiter, "wait_if_needed", lambda ms=None: calls.append(ms))
+    monkeypatch.setattr(client.rate_limiter, "wait_if_needed", lambda ms=None, provider="": calls.append(ms))
     monkeypatch.setattr(client.http_client, "post", lambda *a, **kw: _FakeResponse())
 
     client.generate(provider="ollama", model="llama3", system_prompt="s", user_prompt="u", rate_limit_ms=250)
@@ -143,7 +143,7 @@ def test_generate_passes_none_through_when_rate_limit_unset(monkeypatch):
     # None — see test_rate_limiter_defaults_to_100ms_when_ms_is_none below.
     client = ModelClient()
     calls = []
-    monkeypatch.setattr(client.rate_limiter, "wait_if_needed", lambda ms=None: calls.append(ms))
+    monkeypatch.setattr(client.rate_limiter, "wait_if_needed", lambda ms=None, provider="": calls.append(ms))
     monkeypatch.setattr(client.http_client, "post", lambda *a, **kw: _FakeResponse())
 
     client.generate(provider="ollama", model="llama3", system_prompt="s", user_prompt="u")
@@ -157,8 +157,63 @@ def test_rate_limiter_defaults_to_100ms_when_ms_is_none(monkeypatch):
     limiter = RateLimiter(default_ms=100)
     slept = []
     monkeypatch.setattr(time, "sleep", lambda s: slept.append(s))
-    limiter._last = time.time()  # force "elapsed < interval"
+    limiter._last["ollama"] = time.time()  # force "elapsed < interval"
 
-    limiter.wait_if_needed(None)
+    limiter.wait_if_needed(None, "ollama")
 
     assert slept and slept[0] <= 0.1
+
+
+def test_a_429_widens_the_spacing_for_that_provider_only(monkeypatch):
+    """The 429 is the provider's own answer about pace — the limiter must hear it.
+
+    Google's free tier allows 15 requests a minute while the Provider Loader
+    ships with 100ms, so a Dataset Forge run over a folder walked into the wall
+    and then kept knocking at exactly the same rate.
+    """
+    from FiL_Design_ImageMind.common.network import RATE_LIMIT_PENALTY_MS, RateLimiter
+
+    limiter = RateLimiter(default_ms=100)
+    assert limiter.penalize("google") == RATE_LIMIT_PENALTY_MS
+    # A limit hit twice means the widened pace was still too fast.
+    assert limiter.penalize("google") == RATE_LIMIT_PENALTY_MS * 2
+
+    slept = []
+    monkeypatch.setattr(time, "sleep", lambda s: slept.append(s))
+    limiter._last["google"] = time.time()
+    limiter.wait_if_needed(100, "google")
+    assert slept and slept[0] > 1.0, "the penalty has to outrank the widget value"
+
+    # Groq was never refused and keeps its own pace: the spacing used to be one
+    # clock shared by every provider.
+    slept.clear()
+    limiter._last["groq"] = time.time()
+    limiter.wait_if_needed(100, "groq")
+    assert slept and slept[0] <= 0.1
+
+
+def test_the_provider_named_delay_wins_over_the_default_penalty():
+    from FiL_Design_ImageMind.common.network import RateLimiter, retry_after_seconds
+
+    class Response:
+        headers = {"Retry-After": "12"}
+
+    assert retry_after_seconds(Response()) == 12.0
+    assert RateLimiter().penalize("openrouter", 12.0) == 12000
+    # A header the provider never sent must not read as "no wait at all".
+    class Bare:
+        headers = {}
+
+    assert retry_after_seconds(Bare()) is None
+
+
+def test_the_penalty_expires_so_one_bad_minute_does_not_slow_the_session(monkeypatch):
+    from FiL_Design_ImageMind.common import network
+
+    limiter = network.RateLimiter(default_ms=100)
+    limiter.penalize("google")
+    assert limiter._penalty_ms("google") > 0
+
+    later = time.time() + network.RATE_LIMIT_PENALTY_TTL_S + 1
+    monkeypatch.setattr(network.time, "time", lambda: later)
+    assert limiter._penalty_ms("google") == 0

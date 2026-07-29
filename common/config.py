@@ -144,11 +144,16 @@ LOCAL_PROVIDERS = ("ollama", "lmstudio")
 # a vision request to the user-selected OpenRouter model fails (e.g. the model
 # is not vision-capable or is rate-limited). The catalog is fetched live and
 # filtered; these constants guide preference and exclusion.
+# Every id here must be one OpenRouter declares image-capable: when the catalog
+# fetch fails this list is returned verbatim, so a text-only model in it becomes
+# a vision attempt that cannot succeed. `nvidia/nemotron-3-nano-30b-a3b:free`
+# and `openai/gpt-oss-20b:free` sat here until the 2026-07-29 audit read their
+# `architecture.input_modalities` and found both text-only.
 OPENROUTER_PREFERRED_VISION_MODELS = [
     "google/gemma-4-31b-it:free",
     "google/gemma-4-26b-a4b-it:free",
-    "nvidia/nemotron-3-nano-30b-a3b:free",
-    "openai/gpt-oss-20b:free",
+    "nvidia/nemotron-nano-12b-v2-vl:free",
+    "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
     "openrouter/free",
 ]
 OPENROUTER_EXCLUDED_MODEL_PATTERNS = ["lyria-", "llama-guard", "whisper", "tts-", "safeguard"]
@@ -159,51 +164,124 @@ OPENROUTER_EXCLUDED_MODEL_IDS = {
 }
 ACCOUNT_PROVIDER_KEYS = ("openai", "google", "groq", "openrouter", "cloudflare")
 
-VISION_MODEL_HINTS = ["vision", "vl", "llava", "qwen-vl", "qwenvl", "qwen2vl", "qwen3vl", "moondream", "gemini", "gemma-3", "gemma-4", "pixtral", "llama-3.2-11b", "llama-4-scout", "llama-4-maverick", "claude", "grok", "kimi", "glm-4", "glm-5", "gpt-oss", "nemotron"]
+# Last-resort name matching, and by now only the local providers reach it —
+# Ollama and LM Studio publish no capability metadata. Every cloud provider is
+# answered from its own /models response (see `model_capabilities`).
+#
+# Dropped on 2026-07-29 because the providers themselves contradicted them:
+# `gpt-oss` (Groq and OpenRouter both declare the family text-only, yet the
+# token badged all three Groq gpt-oss models), `nemotron` (the family splits —
+# `nemotron-nano-12b-v2-vl` sees, `nemotron-3-nano-30b-a3b` does not), and
+# `glm-4`/`glm-5` (Cloudflare's catalogue carries no vision flag for glm-5.2).
+# Bare "vl" also went: it matched any id with those two letters anywhere.
+VISION_MODEL_HINTS = ["vision", "-vl", "/vl", "_vl", "vl:", "llava", "qwen-vl", "qwenvl", "qwen2vl", "qwen3vl", "moondream", "gemini", "gemma-3", "gemma-4", "pixtral", "llama-3.2-11b", "llama-4-scout", "llama-4-maverick", "claude", "grok", "kimi"]
 
 RECOMMENDED_MODELS = {
     # Local providers — pulled from Ollama Hub / LM Studio catalog July 2026
     "ollama": ["qwen3-vl:8b", "qwen2.5-vl:7b", "llava:13b", "moondream:latest", "deepseek-r1:8b", "llama-3.3:latest"],
     "lmstudio": ["qwen2.5-vl-7b-instruct", "qwen2-vl-7b-instruct", "llama-3.2-3b-instruct"],
-    # OpenAI — GPT-5.6 series current flagship (July 2026); gpt-5.6 alias routes to -sol
-    "openai": ["gpt-5.6", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-4o", "gpt-4o-mini", "gpt-4.1-mini"],
-    # Google — Gemini 3.x GA + 2.5 series still available; 3.6-flash newest workhorse (July 21 2026)
+    # Every cloud entry below was read back from the provider's own /models on
+    # 2026-07-29. Seven ids in the previous list no longer existed, and a
+    # recommendation that 404s is worse than no recommendation — it is the
+    # first thing a new user clicks.
+    #
+    # OpenAI — plain `gpt-5.6` was never a real id; the flagship ships as three
+    # named variants. `gpt-4o` stays only as the cheap long-tail fallback.
+    "openai": [
+        "gpt-5.6-sol",
+        "gpt-5.6-terra",
+        "gpt-5.6-luna",
+        "gpt-5.5",
+        "gpt-5.4-mini",
+        "gpt-4.1-mini",
+        "gpt-4o-mini",
+    ],
+    # Google — 3.6-flash is the current workhorse. 3.1-pro ships as
+    # `-preview` only, and 1.5-flash is gone from the account listing.
     "google": [
         "gemini-3.6-flash",
         "gemini-3.5-flash",
         "gemini-3.5-flash-lite",
-        "gemini-3.1-pro",
+        "gemini-3.1-pro-preview",
         "gemini-2.5-flash",
         "gemini-2.5-pro",
         "gemini-2.0-flash",
-        "gemini-1.5-flash",
     ],
-    # Groq — LPU inference, July 2026. llama-3.1-8b-instant and llama-3.3-70b-versatile
-    # are DEPRECATED — replaced by gpt-oss-20b and gpt-oss-120b/qwen3.6-27b respectively.
+    # Groq — `llama-4-scout` and `deepseek-r1-distill-llama-70b` were both
+    # withdrawn, and the note claiming llama-3.1-8b-instant/llama-3.3-70b-versatile
+    # were deprecated was wrong: Groq still serves both. `qwen/qwen3.6-27b` is
+    # the only model Groq declares image-capable.
     "groq": [
         "openai/gpt-oss-120b",
         "openai/gpt-oss-20b",
         "qwen/qwen3.6-27b",
-        "meta-llama/llama-4-scout-17b-16e-instruct",
-        "deepseek-r1-distill-llama-70b",
+        "llama-3.3-70b-versatile",
+        "llama-3.1-8b-instant",
     ],
-    # OpenRouter — free router slug first; gemma-4-31b supports vision; nemotron-3 added July 2026
+    # OpenRouter — `meta-llama/llama-3.3-70b-instruct:free` is no longer in the
+    # catalog. The two gemma-4 slugs and nemotron-nano-12b-v2-vl are the free
+    # models OpenRouter declares image-capable.
     "openrouter": [
         "openrouter/free",
         "google/gemma-4-31b-it:free",
         "google/gemma-4-26b-a4b-it:free",
-        "meta-llama/llama-3.3-70b-instruct:free",
+        "nvidia/nemotron-nano-12b-v2-vl:free",
         "nvidia/nemotron-3-nano-30b-a3b:free",
         "openai/gpt-oss-20b:free",
     ],
-    # Cloudflare Workers AI — glm-5.2 and kimi-k2.6 added mid-2026; llama-4-scout remains primary
+    # Cloudflare Workers AI — llama-3.3-70b is published only as the
+    # `-fp8-fast` build. Per the account catalogue, scout / 3.2-11b-vision /
+    # gemma-4 / kimi-k2.6 carry `vision: true`; glm-5.2 does not.
     "cloudflare": [
         "@cf/meta/llama-4-scout-17b-16e-instruct",
         "@cf/meta/llama-3.2-11b-vision-instruct",
-        "@cf/meta/llama-3.3-70b-instruct",
-        "@cf/zai-org/glm-5.2",
+        "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+        "@cf/moonshotai/kimi-k2.6",
         "@cf/google/gemma-4-26b-a4b-it",
+        "@cf/zai-org/glm-5.2",
     ],
+}
+
+
+# Which of those curated ids the provider declared image-capable during the same
+# 2026-07-29 audit. Recorded rather than re-derived: when the fallback list is
+# showing, there is no /models answer to read, and the name hints get exactly the
+# case that matters wrong — `qwen/qwen3.6-27b` is the only model Groq declares
+# image-capable and no hint token matches it.
+RECOMMENDED_VISION_MODELS: Dict[str, set] = {
+    "openai": {
+        "gpt-5.6-sol",
+        "gpt-5.6-terra",
+        "gpt-5.6-luna",
+        "gpt-5.5",
+        "gpt-5.4-mini",
+        "gpt-4.1-mini",
+        "gpt-4o-mini",
+    },
+    "google": {
+        "gemini-3.6-flash",
+        "gemini-3.5-flash",
+        "gemini-3.5-flash-lite",
+        "gemini-3.1-pro-preview",
+        "gemini-2.5-flash",
+        "gemini-2.5-pro",
+        "gemini-2.0-flash",
+    },
+    "groq": {"qwen/qwen3.6-27b"},
+    # `openrouter/free` is the auto-router: OpenRouter declares it
+    # image-capable because it can route to a model that sees.
+    "openrouter": {
+        "openrouter/free",
+        "google/gemma-4-31b-it:free",
+        "google/gemma-4-26b-a4b-it:free",
+        "nvidia/nemotron-nano-12b-v2-vl:free",
+    },
+    "cloudflare": {
+        "@cf/meta/llama-4-scout-17b-16e-instruct",
+        "@cf/meta/llama-3.2-11b-vision-instruct",
+        "@cf/moonshotai/kimi-k2.6",
+        "@cf/google/gemma-4-26b-a4b-it",
+    },
 }
 
 
@@ -247,18 +325,23 @@ def is_known_vision_model_name(model: str) -> bool:
 
 
 def is_model_vision_capable(provider: str, model: str) -> bool:
-    prov = str(provider or "").strip().lower()
-    if prov == "google":
-        return True
-    try:
-        from .vision_smoke import is_vision_capable as _smoke_check
-        return _smoke_check(provider, model)
-    except ImportError:
-        return is_known_vision_model_name(model)
+    """Whether `model` accepts images, asked of the provider where possible.
+
+    Imported late: `model_capabilities` reads this module's constants, and the
+    nodes call this name directly.
+    """
+    from .model_capabilities import resolve_vision
+
+    return resolve_vision(provider, model)
 
 
 def get_recommended_models(provider: str) -> List[str]:
     return RECOMMENDED_MODELS.get(provider, [])
+
+
+def get_recommended_vision_models(provider: str) -> set:
+    """The audited image-capable subset of `get_recommended_models(provider)`."""
+    return RECOMMENDED_VISION_MODELS.get(provider, set())
 
 
 class Config:

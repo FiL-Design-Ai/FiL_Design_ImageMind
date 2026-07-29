@@ -4,6 +4,14 @@ from FiL_Design_ImageMind.common.logic import compute_aspect_ratio_info, PromptG
 from FiL_Design_ImageMind.common.data import get_visible_style_keys
 from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner
 
+from executor_harness import as_the_executor_calls_it
+
+# The scanner reports per-image progress through `cls.hidden.unique_id`,
+# which only the clone the executor prepares carries — calling
+# `FiLOpticScanner.execute()` straight from a test does not have it.
+# See tests/executor_harness.py.
+_execute = as_the_executor_calls_it(FiLOpticScanner)
+
 PHOTO_STYLE = get_visible_style_keys("photo_style")[0]
 
 
@@ -71,7 +79,7 @@ def test_optic_scanner_fingerprint_includes_dimensions():
 
 # ── Node level: the guidance has to survive every path to the provider ──────
 # The builder-level tests above only prove the string is assembled. These drive
-# FiLOpticScanner.execute() with a stubbed provider and assert on the system
+# the node with a stubbed provider and assert on the system
 # prompt that actually reached it, per mode.
 
 def _dims_line(system_prompt: str) -> str:
@@ -80,7 +88,7 @@ def _dims_line(system_prompt: str) -> str:
 
 def _run_scanner(stub_scanner_generate, generate, **kwargs):
     stub_scanner_generate(generate)
-    return FiLOpticScanner.execute(
+    return _execute(
         config={"provider": "ollama", "model": "llama3.2-vision"},
         agent="None",
         image=None,
@@ -155,7 +163,7 @@ def test_batch_sends_dimensions_per_image(stub_scanner_generate):
         return "per image prompt"
 
     stub_scanner_generate(fake_generate)
-    FiLOpticScanner.execute(
+    _execute(
         config={"provider": "ollama", "model": "llama3.2-vision"},
         agent="None",
         image=torch.zeros(2, 8, 8, 3),

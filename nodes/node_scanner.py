@@ -3,6 +3,7 @@ import json
 from datetime import datetime, timezone
 from typing import Any
 
+from comfy.utils import ProgressBar
 from comfy_api.latest import io
 
 from ..common.base import FiLError, VisionNotAvailableError
@@ -121,6 +122,9 @@ description=(
                 FilDict.Output(display_name="metadata_dict", tooltip="Parsed metadata dict."),
             ],
             search_aliases=["scanner", "vision", "image analysis", "prompt generator", "describe"],
+            # A batch is scanned one image at a time and reports progress per
+            # image, which needs the node's own id.
+            hidden=[io.Hidden.unique_id],
         )
 
     @classmethod
@@ -332,7 +336,11 @@ description=(
         if not has_image and not has_text:
             return io.NodeOutput("Ошибка: подключи изображение или введи текст.", "{}", {})
 
-        unique_id = kwargs.get("unique_id")
+        # Not from kwargs: a hidden value reaches a V3 node through `cls.hidden`
+        # and nowhere else, so this was always None and the per-image progress
+        # below never ran — which is also why the broken call inside it went
+        # unnoticed.
+        unique_id = cls.hidden.unique_id
 
         vision = is_model_vision_capable(provider, model)
         if has_image and not vision:
@@ -432,9 +440,11 @@ description=(
             if has_image and len(images_b64) > 1:
                 per_image_results = []
                 total = len(images_b64)
+                # `io.execution` is not part of `comfy_api.latest.io`, and the
+                # `set_progress` that exists is a coroutine nothing here awaits.
+                progress = ProgressBar(total, node_id=unique_id)
                 for i, b64 in enumerate(images_b64):
-                    if unique_id is not None:
-                        io.execution.set_progress(unique_id, i, total)
+                    progress.update_absolute(i, total)
                     t_image_start = datetime.now(timezone.utc)
                     single_result, single_fb, contract, sent_prompt = cls._run_one_pass(
                         provider=provider, model=model,

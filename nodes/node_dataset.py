@@ -9,6 +9,7 @@ from typing import Any
 
 import numpy as np
 import torch
+from comfy.utils import ProgressBar
 from comfy_api.latest import io
 
 from ..common.base import FiLError
@@ -143,6 +144,9 @@ class FiLDatasetForge(io.ComfyNode):
                 FilDict.Output(display_name="manifest", tooltip="Full manifest dict — per-image bucket, crop, caption and hash."),
             ],
             search_aliases=["lora", "dataset", "training", "caption", "bucket", "kohya"],
+            # Captioning reports progress per image, which needs the node's own
+            # id. It has to be declared to be there at all.
+            hidden=[io.Hidden.unique_id],
         )
 
     @classmethod
@@ -212,7 +216,10 @@ class FiLDatasetForge(io.ComfyNode):
                     mode=caption_mode, language=caption_language,
                     max_words=int(caption_max_words), class_token=class_token,
                     dont_caption=dont_caption, extra_instruction=caption_instruction,
-                    seed=int(seed), unique_id=kwargs.get("unique_id"),
+                    # Not kwargs: the executor passes no hidden value as an
+                    # argument, so this read was always None and the per-image
+                    # progress never reached the UI.
+                    seed=int(seed), unique_id=cls.hidden.unique_id,
                 )
             except FiLError as exc:
                 return _error(sanitize_sensitive_data(exc.message), exc.code)
@@ -305,10 +312,15 @@ class FiLDatasetForge(io.ComfyNode):
         raw_max_tokens = config.get("max_tokens")
         max_tokens = None if raw_max_tokens in (0, None) else raw_max_tokens
 
+        # `io.execution` does not exist on `comfy_api.latest.io`, and the
+        # `set_progress` that does exist is a coroutine this synchronous
+        # callback could not await anyway. Both went unnoticed because the
+        # `unique_id` guarding the call was never anything but None.
+        progress = ProgressBar(len(images_b64), node_id=unique_id)
+
         def on_progress(index: int, total: int) -> None:
             _raise_if_interrupted()
-            if unique_id is not None:
-                io.execution.set_progress(unique_id, index, total)
+            progress.update_absolute(index, total)
 
         return captioning.caption_batch(
             _client(), images_b64,

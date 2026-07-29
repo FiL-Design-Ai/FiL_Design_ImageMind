@@ -8,6 +8,14 @@ from FiL_Design_ImageMind.nodes.node_provider import FiLProviderLoader
 from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner
 from FiL_Design_ImageMind.common import models
 
+from executor_harness import as_the_executor_calls_it
+
+# The scanner reports per-image progress through `cls.hidden.unique_id`,
+# which only the clone the executor prepares carries — calling
+# `FiLOpticScanner.execute()` straight from a test does not have it.
+# See tests/executor_harness.py.
+_execute = as_the_executor_calls_it(FiLOpticScanner)
+
 global_payloads = []
 
 def mock_generate(*args, **kwargs):
@@ -29,7 +37,7 @@ def base_config():
 
 def test_widget_agent(monkeypatch, base_config):
     setup_mock(monkeypatch)
-    FiLOpticScanner.execute(config=base_config, prompt="test", agent="🍽 Food")
+    _execute(config=base_config, prompt="test", agent="🍽 Food")
     payload = global_payloads[-1]
     assert "Food Agent" in payload["system_prompt"]
 
@@ -37,24 +45,24 @@ def test_widget_agent(monkeypatch, base_config):
 def test_widget_agent_focus_composes_with_the_agent(monkeypatch, base_config):
     """The focus is an overlay on top of the agent, not a replacement for it."""
     setup_mock(monkeypatch)
-    FiLOpticScanner.execute(config=base_config, prompt="test", agent="🍽 Food", agent_focus="💡 Lighting & Color")
+    _execute(config=base_config, prompt="test", agent="🍽 Food", agent_focus="💡 Lighting & Color")
     payload = global_payloads[-1]
     assert "Food Agent" in payload["system_prompt"]
     assert "FOCUS OVERLAY — Lighting & Color" in payload["system_prompt"]
 
 def test_widget_prompt_and_negative_prompt(monkeypatch, base_config):
     setup_mock(monkeypatch)
-    FiLOpticScanner.execute(config=base_config, prompt="red car", negative_prompt="blue car")
+    _execute(config=base_config, prompt="red car", negative_prompt="blue car")
     payload = global_payloads[-1]
     assert "red car" in payload["user_prompt"]
     assert "blue car" in payload["system_prompt"] or "blue car" in payload["user_prompt"]
 
 def test_widget_detail_level(monkeypatch, base_config):
     setup_mock(monkeypatch)
-    FiLOpticScanner.execute(config=base_config, prompt="cat", detail_level="tiny")
+    _execute(config=base_config, prompt="cat", detail_level="tiny")
     payload_low = global_payloads[-1]
     
-    FiLOpticScanner.execute(config=base_config, prompt="cat", detail_level="ultra")
+    _execute(config=base_config, prompt="cat", detail_level="ultra")
     payload_extreme = global_payloads[-1]
     
     # Just verify they are different or handled correctly
@@ -62,10 +70,10 @@ def test_widget_detail_level(monkeypatch, base_config):
 
 def test_widget_language(monkeypatch, base_config):
     setup_mock(monkeypatch)
-    FiLOpticScanner.execute(config=base_config, prompt="test", language="en")
+    _execute(config=base_config, prompt="test", language="en")
     payload_en = global_payloads[-1]
     
-    FiLOpticScanner.execute(config=base_config, prompt="test", language="ru")
+    _execute(config=base_config, prompt="test", language="ru")
     payload_ru = global_payloads[-1]
     
     sys_en = payload_en["system_prompt"].lower()
@@ -75,20 +83,20 @@ def test_widget_language(monkeypatch, base_config):
 
 def test_widget_model_type(monkeypatch, base_config):
     setup_mock(monkeypatch)
-    FiLOpticScanner.execute(config=base_config, prompt="test", model_type="SDXL")
+    _execute(config=base_config, prompt="test", model_type="SDXL")
     payload = global_payloads[-1]
     assert "SDXL" in payload["user_prompt"] or "SDXL" in payload["system_prompt"]
 
 def test_widget_photo_style_and_mode(monkeypatch, base_config):
     setup_mock(monkeypatch)
-    FiLOpticScanner.execute(
+    _execute(
         config=base_config, prompt="test", prompt_mode="Two-Stage", photo_style="analog_film"
     )
     assert len(global_payloads) > 0
 
 def test_widget_custom_style(monkeypatch, base_config):
     setup_mock(monkeypatch)
-    FiLOpticScanner.execute(
+    _execute(
         config=base_config, prompt="test", custom_style="make it neon"
     )
     payload = global_payloads[-1]
@@ -96,7 +104,7 @@ def test_widget_custom_style(monkeypatch, base_config):
 
 def test_widget_seed_and_response_format(monkeypatch, base_config):
     setup_mock(monkeypatch)
-    FiLOpticScanner.execute(
+    _execute(
         config=base_config, prompt="test", seed=777, response_format="json"
     )
     payload = global_payloads[-1]
@@ -109,7 +117,7 @@ def test_widget_image_pass(monkeypatch, base_config):
     fake_image = torch.zeros((1, 512, 512, 3))
     base_config_vision = dict(base_config)
     base_config_vision["model"] = "llava"
-    FiLOpticScanner.execute(
+    _execute(
         config=base_config_vision, prompt="describe this", image=fake_image
     )
     payload = global_payloads[-1]

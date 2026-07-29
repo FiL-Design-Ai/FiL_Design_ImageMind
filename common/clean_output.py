@@ -22,6 +22,16 @@ CLEANUP_PATTERNS: List[Tuple[str, str]] = [
     (r"\b(kinetic apex|motion vector|energy vector|maximum tension|soul[- ]?crushing beauty|pure cinematic energy)\b", ""),
     (r"<analysis_scratchpad>.*?</analysis_scratchpad>", ""),
     (r"</?analysis_scratchpad[^>]*>", ""),
+    # The Russian half. Everything above only ever matched English, so a model
+    # answering in the language the system prompt asks for kept its preamble:
+    # `qwq-32b` opened with "Хорошо, мне нужно обработать запрос пользователя"
+    # — reasoning out loud without the <think> tags that would have hidden it.
+    (r"^\s*(Хорошо|Ладно|Итак|Окей|Конечно|Отлично)[,!.]?\s+(мне\s+нужно|нужно|я\s|сначала|давайте|пользовател)[^\n]*\n+", ""),
+    # "Вот несколько вариантов промптов:" — a wrapper around the answer, not
+    # the answer. Narrowed to the meta nouns so a real line that starts with
+    # "Вот" survives.
+    (r"^\s*(Вот|Ниже)\s+(?:несколько\s+|мой\s+|краткое\s+)?(вариант|промпт|описани|запрос)[^\n]*:\s*", ""),
+    (r"^(Описание|Промпт|Запрос|Описание изображения|Финальный промпт)\s*:\s*", ""),
 ]
 
 

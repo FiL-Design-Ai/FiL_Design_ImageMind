@@ -23,10 +23,18 @@ from FiL_Design_ImageMind.common.data import (
 )
 from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner
 
+from executor_harness import as_the_executor_calls_it
+
+# The scanner reports per-image progress through `cls.hidden.unique_id`,
+# which only the clone the executor prepares carries — calling
+# `FiLOpticScanner.execute()` straight from a test does not have it.
+# See tests/executor_harness.py.
+_execute = as_the_executor_calls_it(FiLOpticScanner)
+
 
 def _run(stub_scanner_generate, calls, **kwargs):
     stub_scanner_generate(lambda **kw: (calls.append(kw), "a generated prompt long enough")[1])
-    return FiLOpticScanner.execute(
+    return _execute(
         config={"provider": "ollama", "model": "llama3.2-vision"},
         prompt="a scene",
         **kwargs,

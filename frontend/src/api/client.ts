@@ -40,7 +40,15 @@ export interface ProviderAccounts {
 /** Provider status labels emitted by `common/provider_runtime.py`
  * (`fetch_models_with_status` / `probe_provider`). "available" is the only
  * success value; everything else carries a user-facing `message`. */
-export type ProviderStatus = "available" | "configured" | "auth_error" | "rate_limited" | "offline";
+export type ProviderStatus =
+  | "available"
+  | "configured"
+  | "auth_error"
+  // The key is valid and the catalogue lists fine — the account just has no
+  // quota left. Distinct from `rate_limited`: waiting will not fix it.
+  | "quota_exhausted"
+  | "rate_limited"
+  | "offline";
 
 /** `fetch_models_with_status` returns
  * `{models: string[], status, message, vision_models: string[]}` — the

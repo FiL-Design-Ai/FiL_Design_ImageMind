@@ -240,6 +240,24 @@ _DETAIL_HINTS = {
 }
 
 
+def _language_hint(language: str) -> str:
+    """The language rule, stated so a small model cannot read past it.
+
+    "Answer in Russian." sat third among eight blocks of English prose, and on
+    2026-07-29 a run over 132 models found 38 of them (29%) answering in
+    English anyway — the smaller ones simply mirror the language they are
+    written to in. Naming the script and covering the tag form closes the two
+    ways the old wording was read as optional.
+    """
+    if language == "ru":
+        return (
+            "LANGUAGE: write the entire response in Russian, in Cyrillic script. "
+            "This applies to every word, including comma-separated tags. "
+            "Do not answer in English even though these instructions are in English."
+        )
+    return "LANGUAGE: write the entire response in English."
+
+
 def _detail_hint(detail_level: str) -> str:
     return _DETAIL_HINTS.get(detail_level, _DETAIL_HINTS["normal"])
 
@@ -268,14 +286,14 @@ class PromptGenerator:
         resolved_agent = resolve_agent_key(agent_key)
         agent_template = AGENTS.get(resolved_agent, NONE_AGENT_TEMPLATE)
         style_block = self.style_manager.build_style_block(**style_kwargs)
-        language_hint = "Answer in Russian." if language == "ru" else "Answer in English."
+        language_hint = _language_hint(language)
         detail_hint = _detail_hint(detail_level)
         model_guidance = build_model_type_guidance(model_type)
 
         system_parts = [agent_template]
         if not has_image:
             system_parts.append(TEXT_ONLY_INSTRUCTION)
-        system_parts += [language_hint, detail_hint]
+        system_parts.append(detail_hint)
         if model_guidance:
             system_parts.append(model_guidance)
 
@@ -295,6 +313,11 @@ class PromptGenerator:
         if _wants_tags(response_format):
             system_parts.append(TAGS_OUTPUT_INSTRUCTION)
 
+        # After the shape, because they answer different questions and the
+        # language rule is the one models drop first. Third of eight blocks it
+        # was ignored by 29% of them.
+        system_parts.append(language_hint)
+
         system_prompt = "\n\n".join(system_parts)
         return system_prompt, agent_template, style_block
 
@@ -308,7 +331,7 @@ class PromptGenerator:
         """Return (agent_template, language_hint, detail_hint, model_guidance)."""
         resolved_agent = resolve_agent_key(agent_key)
         agent_template = AGENTS.get(resolved_agent, NONE_AGENT_TEMPLATE)
-        language_hint = "Answer in Russian." if language == "ru" else "Answer in English."
+        language_hint = _language_hint(language)
         return agent_template, language_hint, _detail_hint(detail_level), build_model_type_guidance(model_type)
 
     def build_system_prompt_two_stage_bundle(
@@ -341,7 +364,7 @@ class PromptGenerator:
             parts = [agent_template]
             # Stage 2 never sees the image either way — it restyles stage 1's
             # text — so the "no image attached" framing belongs to stage 1 only.
-            parts += [language_hint, detail_hint]
+            parts.append(detail_hint)
             if model_guidance:
                 parts.append(model_guidance)
             if focus_block:
@@ -353,6 +376,10 @@ class PromptGenerator:
         stage1_parts = _stage_parts()
         if not has_image:
             stage1_parts.insert(1, TEXT_ONLY_INSTRUCTION)
+        # Both stages end on the language rule, for the same reason the
+        # single-stage builder does: it is the instruction models drop first,
+        # and stage 2 works from stage 1's text — English there spreads.
+        stage1_parts.append(language_hint)
         stage1_prompt = "\n\n".join(stage1_parts)
 
         stage2_parts = _stage_parts()
@@ -362,6 +389,7 @@ class PromptGenerator:
         # override goes here — stage 1 stays prose for stage 2 to work from.
         if _wants_tags(response_format):
             stage2_parts.append(TAGS_OUTPUT_INSTRUCTION)
+        stage2_parts.append(language_hint)
         stage2_prompt = "\n\n".join(stage2_parts)
 
         return {

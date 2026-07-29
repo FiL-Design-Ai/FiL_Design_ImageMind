@@ -5,6 +5,15 @@ import asyncio
 
 from FiL_Design_ImageMind.common.brand import CATEGORY_ROOT
 
+from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner
+from executor_harness import as_the_executor_calls_it
+
+# The scanner reports per-image progress through `cls.hidden.unique_id`,
+# which only the clone the executor prepares carries — calling
+# `FiLOpticScanner.execute()` straight from a test does not have it.
+# See tests/executor_harness.py.
+_execute = as_the_executor_calls_it(FiLOpticScanner)
+
 
 EXPECTED_IDS = {
     "FiLSeed",
@@ -154,7 +163,7 @@ def test_cleaner_passthrough_when_cleanup_disabled():
 def test_scanner_returns_clear_error_without_model():
     from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner
 
-    result = FiLOpticScanner.execute(config={}, prompt="test")
+    result = _execute(config={}, prompt="test")
     assert result[0] == "Ошибка: модель не выбрана в Provider Loader."
     assert result[1] == "{}"
     assert result[2] == {}
@@ -175,7 +184,7 @@ def test_scanner_text_only_success(monkeypatch):
     from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner, _model_client
 
     monkeypatch.setattr(_model_client, "generate", lambda **kwargs: "ready prompt")
-    result = FiLOpticScanner.execute(
+    result = _execute(
         config={"provider": "ollama", "model": "qwen3"}, prompt="red sports car"
     )
     assert result[0] == "ready prompt"
@@ -186,7 +195,7 @@ def test_scanner_text_only_success(monkeypatch):
 def test_scanner_rejects_non_vision_model_before_processing():
     from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner
 
-    result = FiLOpticScanner.execute(
+    result = _execute(
         config={"provider": "ollama", "model": "plain-text-model"}, image=object()
     )
     assert "не поддерживает анализ изображений" in result[0]
@@ -196,7 +205,7 @@ def test_scanner_rejects_placeholder_model():
     from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner
 
     assert FiLOpticScanner.validate_inputs(config={"provider": "ollama", "model": "(no models)"}) is not True
-    result = FiLOpticScanner.execute(
+    result = _execute(
         config={"provider": "ollama", "model": "(no models)"}, image=object()
     )
     assert "не выбрана действующая модель" in result[0]
@@ -206,7 +215,7 @@ def test_scanner_rejects_placeholder_model():
 def test_scanner_no_image_no_text_returns_error():
     from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner
 
-    result = FiLOpticScanner.execute(config={"provider": "ollama", "model": "qwen3"}, prompt="")
+    result = _execute(config={"provider": "ollama", "model": "qwen3"}, prompt="")
     assert "подключи изображение или введи текст" in result[0]
 
 
@@ -216,7 +225,7 @@ def test_scanner_empty_prompt_with_image_succeeds(monkeypatch):
     monkeypatch.setattr(_model_client, "generate", lambda **kwargs: "described image")
     monkeypatch.setattr(_processor, "process_batch", lambda img: (["img0"], 64, 64))
     fake_image = [type("Frame", (), {"cpu": lambda self: self, "numpy": lambda self: type("N", (), {"tobytes": lambda b=b"x" * 128: b"x" * 128})()})()]
-    result = FiLOpticScanner.execute(
+    result = _execute(
         config={"provider": "ollama", "model": "qwen3-vl"}, prompt="", image=fake_image
     )
     assert result[0] == "described image"
@@ -226,7 +235,7 @@ def test_scanner_custom_style_unicode(monkeypatch):
     from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner, _model_client
 
     monkeypatch.setattr(_model_client, "generate", lambda **kwargs: "styled unicode result")
-    result = FiLOpticScanner.execute(
+    result = _execute(
         config={"provider": "ollama", "model": "qwen3"},
         prompt="test", custom_style="стиль с юникодом 🔥",
     )
@@ -238,7 +247,7 @@ def test_scanner_response_format_short(monkeypatch):
     from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner, _model_client
 
     monkeypatch.setattr(_model_client, "generate", lambda **kwargs: "short")
-    result = FiLOpticScanner.execute(
+    result = _execute(
         config={"provider": "ollama", "model": "qwen3"},
         prompt="test", response_format="short",
     )
@@ -249,7 +258,7 @@ def test_scanner_response_format_json(monkeypatch):
     from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner, _model_client
 
     monkeypatch.setattr(_model_client, "generate", lambda **kwargs: '{"key": "value"}')
-    result = FiLOpticScanner.execute(
+    result = _execute(
         config={"provider": "ollama", "model": "qwen3"},
         prompt="test", response_format="json",
     )
@@ -274,7 +283,7 @@ def test_scanner_auth_error_hides_raw_exception_text(monkeypatch):
         )
 
     monkeypatch.setattr(_model_client, "generate", _boom)
-    result = FiLOpticScanner.execute(
+    result = _execute(
         config={"provider": "ollama", "model": "qwen3"}, prompt="red sports car"
     )
     assert result[0] == "Ошибка: API-ключ отклонён провайдером."
@@ -287,7 +296,7 @@ def test_scanner_non_vision_error_never_leaks_api_key():
     config['api_key'] into the message, metadata_json, or metadata_dict."""
     from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner
 
-    result = FiLOpticScanner.execute(
+    result = _execute(
         config={"provider": "ollama", "model": "plain-text-model", "api_key": "SECRET_KEY_123"},
         image=object(),
     )
