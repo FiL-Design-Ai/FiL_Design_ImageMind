@@ -2,7 +2,7 @@ import logging
 import random
 import threading
 import time
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 from urllib.parse import urlparse
 
 import requests
@@ -103,16 +103,77 @@ class HTTPClient:
         self._session.close()
 
 
+# What a 429 costs the next request when the provider names no delay of its
+# own. Google's free tier allows 15 requests a minute — 4s apart — and the
+# Provider Loader ships with 100ms, so a Dataset Forge run over a folder used
+# to walk straight into the wall around the sixteenth image.
+RATE_LIMIT_PENALTY_MS = 4000
+RATE_LIMIT_PENALTY_CEILING_MS = 30000
+# How long a penalty stands without a fresh 429. Long enough to carry a batch
+# through, short enough that one bad minute does not slow the whole session.
+RATE_LIMIT_PENALTY_TTL_S = 120.0
+
+
+def retry_after_seconds(response: Any) -> Optional[float]:
+    """The provider's own answer to "how long should I wait", if it gives one.
+
+    Preferred over any table of tier limits: the account's real quota is not
+    knowable from here, and guessing it either throttles a paid account or
+    fails to protect a free one.
+    """
+    try:
+        raw = (response.headers or {}).get("Retry-After")
+    except Exception:
+        return None
+    if not raw:
+        return None
+    try:
+        return max(0.0, float(str(raw).strip()))
+    except (TypeError, ValueError):
+        return None
+
+
 class RateLimiter:
+    """Per-provider request spacing that widens when a provider pushes back.
+
+    The spacing used to be one clock for every provider at once, so a slow
+    pace chosen for Google also held up Groq, and a 429 changed nothing at all
+    — the next request went out at the same rate that had just been refused.
+    """
+
     def __init__(self, default_ms: int = 100):
         self._lock = threading.Lock()
-        self._last = 0.0
+        self._last: Dict[str, float] = {}
+        self._penalty: Dict[str, tuple] = {}
         self._default = default_ms
 
-    def wait_if_needed(self, ms: Optional[int] = None) -> None:
-        interval = (ms if ms is not None else self._default) / 1000.0
+    def _penalty_ms(self, key: str) -> int:
+        amount, expires = self._penalty.get(key, (0, 0.0))
+        if not amount or time.time() >= expires:
+            return 0
+        return int(amount)
+
+    def wait_if_needed(self, ms: Optional[int] = None, provider: str = "") -> None:
+        key = (provider or "").strip().lower()
+        requested = ms if ms is not None else self._default
         with self._lock:
-            elapsed = time.time() - self._last
+            interval = max(requested, self._penalty_ms(key)) / 1000.0
+            elapsed = time.time() - self._last.get(key, 0.0)
             if elapsed < interval:
                 time.sleep(min(interval - elapsed, 5.0))
-            self._last = time.time()
+            self._last[key] = time.time()
+
+    def penalize(self, provider: str, retry_after_s: Optional[float] = None) -> int:
+        """Widen this provider's spacing after it answered 429.
+
+        Repeats double the wait rather than reapplying the same one: a limit
+        that was hit twice is not being respected by the current pace.
+        """
+        key = (provider or "").strip().lower()
+        with self._lock:
+            asked = int((retry_after_s or 0) * 1000)
+            current = self._penalty_ms(key)
+            widened = max(asked, current * 2, RATE_LIMIT_PENALTY_MS)
+            widened = min(widened, RATE_LIMIT_PENALTY_CEILING_MS)
+            self._penalty[key] = (widened, time.time() + RATE_LIMIT_PENALTY_TTL_S)
+            return widened

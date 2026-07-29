@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 
+import pytest
 import requests
 
 
@@ -255,6 +256,234 @@ def test_http_statuses_are_safely_classified(monkeypatch):
     assert provider_runtime.fetch_models_with_status("openai")["status"] == "rate_limited"
 
 
+def test_a_failed_listing_still_offers_the_curated_models(monkeypatch):
+    """An empty dropdown is unusable: there is nothing to pick and nothing to run.
+
+    The four cloud providers other than Cloudflare had `RECOMMENDED_MODELS`
+    entries that no code path ever read, so any `/models` hiccup left the
+    Provider Loader with no options at all.
+    """
+    from FiL_Design_ImageMind.common import provider_runtime
+    from FiL_Design_ImageMind.common.config import get_recommended_models
+    from FiL_Design_ImageMind.common.model_capabilities import forget_declared
+
+    class Client:
+        def __init__(self, **kwargs):
+            pass
+
+        def get(self, *args, **kwargs):
+            raise requests.ConnectionError("offline")
+
+    monkeypatch.setattr(provider_runtime, "HTTPClient", Client)
+    monkeypatch.setattr(provider_runtime, "get_api_key", lambda provider: "configured")
+
+    for prov in ("openai", "google", "groq", "openrouter"):
+        forget_declared(prov)
+        result = provider_runtime.fetch_models_with_status(prov, force=True)
+        # The list is a fallback, not a connection: the failure keeps its status.
+        assert result["status"] == "offline"
+        assert result["models"] == sorted(get_recommended_models(prov))
+        assert result["vision_models"], f"{prov} recommends at least one model that takes images"
+        assert set(result["vision_models"]) <= set(result["models"])
+
+    # Groq is the case the name hints get wrong: `qwen/qwen3.6-27b` is the one
+    # model Groq declares image-capable and no hint token matches it.
+    forget_declared("groq")
+    assert "qwen/qwen3.6-27b" in provider_runtime.fetch_models_with_status("groq", force=True)["vision_models"]
+
+    # And it is never cached as if it had succeeded.
+    assert "openai" not in provider_runtime._model_cache
+
+
+def test_the_curated_vision_set_stays_inside_the_curated_list():
+    """Two lists that drift apart would badge a model nobody is offered."""
+    from FiL_Design_ImageMind.common.config import RECOMMENDED_MODELS, RECOMMENDED_VISION_MODELS
+
+    for provider, vision in RECOMMENDED_VISION_MODELS.items():
+        assert provider in RECOMMENDED_MODELS
+        assert vision <= set(RECOMMENDED_MODELS[provider]), f"{provider} badges a model it never offers"
+
+
+def test_a_readable_catalogue_is_not_a_working_connection(monkeypatch):
+    """The listing must not claim more than it proves.
+
+    An OpenAI key with no billing lists 76 models and then answers 429 to the
+    first completion. "Подключение работает" on the listing is what put a green
+    badge on an account that cannot run a single node.
+    """
+    from FiL_Design_ImageMind.common import provider_runtime
+
+    class Response:
+        def json(self):
+            return {"data": [{"id": "gpt-4o-mini"}]}
+
+    class Client:
+        def __init__(self, **kwargs):
+            pass
+
+        def get(self, *args, **kwargs):
+            return Response()
+
+    monkeypatch.setattr(provider_runtime, "HTTPClient", Client)
+    monkeypatch.setattr(provider_runtime, "get_api_key", lambda provider: "configured")
+    message = provider_runtime.fetch_models_with_status("openai", force=True)["message"]
+    assert "подключение" not in message.lower()
+
+
+def test_the_probe_generates_even_when_no_model_was_named(monkeypatch):
+    """Probe means "it answered", not "it listed".
+
+    The settings panel probes with an empty model; before this the backend
+    reported the listing as success for every provider but Cloudflare, so the
+    button confirmed a connection it had never tested.
+    """
+    from FiL_Design_ImageMind.common import provider_runtime
+
+    calls = []
+
+    class FakeClient:
+        def generate(self, **kwargs):
+            calls.append(kwargs)
+            return "OK"
+
+    monkeypatch.setattr(
+        provider_runtime,
+        "fetch_models_with_status",
+        lambda provider, force=False: {
+            "status": "available",
+            "message": "Список моделей получен.",
+            "models": ["gpt-4o-mini", "zzz-expensive"],
+            "vision_models": [],
+        },
+    )
+    import FiL_Design_ImageMind.common.models as models_module
+
+    monkeypatch.setattr(models_module, "ModelClient", lambda: FakeClient())
+
+    result = provider_runtime.probe_provider("openai")
+    assert result["status"] == "available"
+    assert len(calls) == 1, "the probe must actually call the provider"
+    # A curated id that is on offer is preferred over the alphabetical first.
+    assert calls[0]["model"] == "gpt-4o-mini"
+    # Reasoning models spend the budget before they answer; 16 tokens was not
+    # enough for `gpt-oss-20b` to emit a single visible character.
+    assert calls[0]["max_tokens"] >= 64
+
+
+def test_no_quota_is_not_the_same_as_too_many_requests(monkeypatch):
+    """429 splits in two, and the user's next move differs: wait, or pay."""
+    from FiL_Design_ImageMind.common import provider_runtime
+
+    class Client:
+        body = '{"error": {"code": "insufficient_quota"}}'
+
+        def __init__(self, **kwargs):
+            pass
+
+        def get(self, *args, **kwargs):
+            response = requests.Response()
+            response.status_code = 429
+            response._content = self.body.encode()
+            raise requests.HTTPError(response=response)
+
+    monkeypatch.setattr(provider_runtime, "HTTPClient", Client)
+    monkeypatch.setattr(provider_runtime, "get_api_key", lambda provider: "configured")
+    assert provider_runtime.fetch_models_with_status("openai", force=True)["status"] == "quota_exhausted"
+
+    Client.body = '{"error": {"message": "Rate limit reached, slow down"}}'
+    assert provider_runtime.fetch_models_with_status("openai", force=True)["status"] == "rate_limited"
+
+
+def test_openrouter_asks_for_cheap_reasoning_and_nobody_else_does():
+    """The knob goes only where the host accepts it.
+
+    Asked on 2026-07-29: OpenRouter takes `reasoning` from every model in its
+    catalogue and cut `gpt-oss-20b` from 143 thinking tokens to 8. Groq answers
+    400 `reasoning_effort is not supported with this model` on its
+    non-reasoning models, so sending it there would break what works today.
+    """
+    from FiL_Design_ImageMind.common.models import OpenAIStrategy
+
+    strategy = OpenAIStrategy(http_client=None, rate_limiter=None)
+    for provider, expected in (("openrouter", True), ("groq", False), ("openai", False), ("cloudflare", False)):
+        payload = strategy.build_payload(
+            {"provider": provider, "model": "some-model"}, "sys", "user", max_tokens=100
+        )
+        assert ("reasoning" in payload) is expected, provider
+
+
+def test_an_answer_eaten_by_reasoning_is_retried_with_a_bigger_budget(monkeypatch):
+    """The pack's Max tokens widget defaults to 100.
+
+    Every reasoning model spends more than that before its first visible
+    character, so without the retry those models can never answer at all.
+    """
+    from FiL_Design_ImageMind.common import models as models_module
+
+    budgets = []
+
+    class Response:
+        def __init__(self, budget):
+            self.budget = budget
+
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            if self.budget < 500:
+                return {
+                    "choices": [{"finish_reason": "length", "message": {"content": None}}],
+                    "usage": {"completion_tokens_details": {"reasoning_tokens": self.budget}},
+                }
+            return {"choices": [{"finish_reason": "stop", "message": {"content": "Одинокий маяк на скале"}}]}
+
+    class FakeHTTP:
+        def post(self, url, **kwargs):
+            budget = kwargs["json"].get("max_tokens", 0)
+            budgets.append(budget)
+            return Response(budget)
+
+    client = models_module.ModelClient()
+    monkeypatch.setattr(client, "http_client", FakeHTTP())
+    monkeypatch.setattr(client.rate_limiter, "wait_if_needed", lambda *a, **k: None)
+    monkeypatch.setattr(models_module, "get_api_key", lambda provider: "configured")
+
+    answer = client.generate(
+        provider="groq",
+        model="openai/gpt-oss-20b",
+        system_prompt="sys",
+        user_prompt="user",
+        max_tokens=100,
+    )
+    assert answer == "Одинокий маяк на скале"
+    assert budgets == [100, models_module._retry_budget(100)]
+    assert budgets[1] >= 2000, "the retry has to clear the reasoning cost, not nudge past it"
+    # A model that stays silent climbs one more rung — `@cf/moonshotai/kimi-k2.6`
+    # had nothing to show even at 2000.
+    ladder = models_module._budget_ladder(100)
+    assert ladder == [100, 2000, models_module.RETRY_BUDGET_CEILING]
+    assert ladder == sorted(set(ladder)), "no rung may repeat or go backwards"
+
+
+def test_a_reply_cut_off_by_the_token_budget_says_so(monkeypatch):
+    """`content: None` with `finish_reason: length` is a truncated answer.
+
+    Reported as "could not find a response", it sent a user hunting for a
+    network fault while the provider had answered and billed for it.
+    """
+    from FiL_Design_ImageMind.common.base import InferenceError
+    from FiL_Design_ImageMind.common.models import OpenAIStrategy
+
+    payload = {
+        "choices": [{"finish_reason": "length", "message": {"content": None, "reasoning": "thinking..."}}],
+        "usage": {"completion_tokens_details": {"reasoning_tokens": 13}},
+    }
+    with pytest.raises(InferenceError) as excinfo:
+        OpenAIStrategy(http_client=None, rate_limiter=None).parse_response(payload)
+    assert "max_tokens" in str(excinfo.value)
+    assert "13" in str(excinfo.value)
+
+
 def test_offline_local_provider(monkeypatch):
     from FiL_Design_ImageMind.common import provider_runtime
 
@@ -269,6 +498,9 @@ def test_offline_local_provider(monkeypatch):
     result = provider_runtime.fetch_models_with_status("ollama")
     assert result["status"] == "offline"
     assert "offline" not in result["message"].lower()
+    # No curated fallback here: a model that was never pulled is not a choice,
+    # and a dead local server cannot pull it.
+    assert result["models"] == []
 
 
 def test_all_seven_providers_schema_and_fetching(monkeypatch):
@@ -328,3 +560,34 @@ def test_all_seven_providers_schema_and_fetching(monkeypatch):
         v_model = res["models"][0]
         assert isinstance(is_model_vision_capable(prov, v_model), bool)
 
+
+
+def test_the_next_budget_follows_what_the_provider_reported_spending():
+    """The fixed ladder topped out at 6000 for every model at once.
+
+    A model that thought for 5800 tokens needs room past that ceiling, not a
+    second attempt at it — and the provider states the number in `usage`.
+    """
+    from FiL_Design_ImageMind.common import models as models_module
+
+    # Nothing reported: the planned rung stands.
+    assert models_module._next_budget(2000, 0) == 2000
+    # A cheap thinker does not drag the budget down below the plan either.
+    assert models_module._next_budget(2000, 300) == 2000
+    # An expensive one lifts it above the old ceiling.
+    assert models_module._next_budget(6000, 5800) == 5800 * 2 + models_module.ANSWER_HEADROOM
+
+
+def test_a_truncated_answer_carries_the_spend_it_reported():
+    from FiL_Design_ImageMind.common.models import OpenAIStrategy, TruncatedAnswerError
+
+    payload = {
+        "choices": [{"finish_reason": "length", "message": {"content": None}}],
+        "usage": {"completion_tokens": 298, "completion_tokens_details": {"reasoning_tokens": 297}},
+    }
+    try:
+        OpenAIStrategy(http_client=None, rate_limiter=None).parse_response(payload)
+    except TruncatedAnswerError as exc:
+        assert exc.spent == 298
+    else:
+        raise AssertionError("a truncated answer must raise")
