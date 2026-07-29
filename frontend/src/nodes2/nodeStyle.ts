@@ -62,41 +62,32 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
     return result;
   };
 
-  // Fix ComfyUI's text stretching logic. ComfyUI's core `onResize` for `customtext`
-  // widgets iterates over `node.widgets` and subtracts every widget's height from
-  // the node's total height to find remaining space for text boxes. BUT it forgets
-  // to check `w.hidden`! Our Scanner hides ~10 native widgets, so ComfyUI subtracts
-  // ~220px of phantom height, leaving 0 or negative remaining space for the text
-  // boxes — preventing them from stretching, and instead forcing the node's empty
-  // background ("lower frame") to stretch.
-  if (!Object.getOwnPropertyDescriptor(p, "onResize")) {
-    Object.defineProperty(p, "onResize", {
-      get() {
-        if (Object.prototype.hasOwnProperty.call(this, "__filOnResize")) return this.__filOnResize;
-        const parent = Object.getPrototypeOf(p);
-        return parent ? parent.onResize : undefined;
-      },
-      set(val) {
-        const original = val;
-        this.__filOnResize = function(this: any, size: [number, number]) {
-          if (!original) return;
-
-          // Temporarily hide `hidden` widgets from `this.widgets` so ComfyUI's native
-          // text-stretching logic calculates the available height correctly without
-          // subtracting "phantom" height from widgets that aren't rendered.
-          const allWidgets = this.widgets || [];
-          const visibleWidgets = allWidgets.filter((w: any) => !w.hidden);
-          
-          this.widgets = visibleWidgets;
-          try {
-            original.apply(this, [size]);
-          } finally {
-            this.widgets = allWidgets;
-          }
-        };
-      }
-    });
-  }
+  // An `onResize` patch used to live here, and removing it was the whole fix for
+  // a defect that took down every node at once: blank panels plus a hard
+  // "Required input is missing" from the server on Queue Prompt.
+  //
+  // It was written against a core bug — `onResize` for `customtext` summed every
+  // entry of `node.widgets` to find the space left for text boxes and forgot to
+  // skip `w.hidden`, so our ~10 hidden natives ate the Scanner's stretch. The
+  // patch worked around it by assigning the visible subset to `node.widgets`,
+  // running core, then restoring the full array in a `finally`.
+  //
+  // Both halves of that are now wrong on frontend 1.47.10:
+  //
+  //   - `node.widgets` is an instance accessor, not a data field, and its setter
+  //     is one-way: widgets left out of the assigned array are dropped from the
+  //     widget store for good. Measured on a live node — 11 widgets, assign a
+  //     1-element slice, assign the original array back, still 1. So the
+  //     `finally` restored nothing and the first resize of a FiL node destroyed
+  //     every hidden widget it had. `graphToPrompt` then emitted the DOM widget
+  //     as the node's only input, which is exactly what the server rejects.
+  //   - the core bug is gone. `customtext` is a Vue component behind the widget
+  //     store now, and the only `onResize` core installs comes from
+  //     `addDOMWidget` itself, chaining the widget's `beforeResize`/`afterResize`
+  //     — there is no height-summing loop over `node.widgets` left to fix.
+  //
+  // Panel stretch is ours to do now and is done, in `host/heightModel.ts` and
+  // `host/nodeSizeSync.ts`. Nothing here may assign `node.widgets` again.
 
   // Dark title bar with a left accent stripe instead of a solid accent
   // fill. `onDrawTitleBar` is a real per-node-type LiteGraph hook (verified
@@ -105,8 +96,9 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
   // to wrongly assuming this needed a global LGraphCanvas monkeypatch): it
   // only replaces *this node type's* title background fill, title TEXT is
   // drawn separately by `drawTitleText`/`onDrawTitleText` and unaffected.
-  // `fgcolor` is `this.renderingColor` (== node.color), so the stripe still
-  // reflects the "Change color…" picker (useColorPicker.ts) per node.
+  // `fgcolor` is `this.renderingColor` (== node.color), so the stripe follows
+  // whatever colour the node carries — including one set from ComfyUI's own
+  // colour menu.
   p.onDrawTitleBar = function (
     this: { collapsed?: boolean },
     ctx: CanvasRenderingContext2D,
@@ -214,9 +206,10 @@ export function reapplyThemeToGraph(app: unknown): void {
   if (!nodes) return;
   for (const node of nodes) {
     if (!node._filFamily) continue;
-    // Skip nodes the user manually recolored via "Change color…" (see
-    // useColorPicker.ts) — a per-node override should survive a global
-    // theme switch, not get silently stomped back to the theme accent.
+    // Skip nodes carrying a manual colour override — it should survive a global
+    // theme switch, not get silently stomped back to the theme accent. The flag
+    // outlives the pack's own colour picker, which is gone: a workflow saved
+    // while it existed still has it set.
     if (node.properties?.fil_custom_color) continue;
     node.color = ACTIVE_PALETTE.accent;
     node.bgcolor = ACTIVE_PALETTE.panelAlt;

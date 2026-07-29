@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { openBlankWorkflow, closeScratchWorkflow } from "./comfyWindow";
 
 /**
  * Every node, in a real ComfyUI, on one canvas.
@@ -42,26 +43,6 @@ const NODES_WITH_PANELS = [
   "FiLUpscaleTileCalc",
 ];
 
-declare global {
-  interface Window {
-    app: {
-      graph: { _nodes: unknown[]; add(node: unknown): void };
-      extensionManager: {
-        command: { execute(id: string): Promise<void> };
-        workflow: {
-          activeWorkflow?: { path?: string };
-          openWorkflows: Array<{ path?: string }>;
-          closeWorkflow(workflow: unknown, options?: { warnIfUnsaved?: boolean }): Promise<void>;
-        };
-      };
-    };
-    LiteGraph: {
-      registered_node_types: Record<string, unknown>;
-      createNode(type: string): unknown;
-    };
-  }
-}
-
 /**
  * Anything the pack put in the console.
  *
@@ -94,24 +75,6 @@ function collectErrors(page: Page): Collected {
 
 function errorReport(collected: Collected, what: string): string {
   return `${what}\n\nfrom this pack:\n${collected.ours.join("\n") || "(none)"}\n\neverything seen:\n${collected.all.join("\n")}`;
-}
-
-async function openBlankWorkflow(page: Page): Promise<void> {
-  await page.waitForFunction(() => Boolean(window.app?.graph), null, { timeout: 150_000 });
-  await page.evaluate(async () => {
-    await window.app.extensionManager.command.execute("Comfy.NewBlankWorkflow");
-  });
-  await expect
-    .poll(() => page.evaluate(() => window.app.graph._nodes.length))
-    .toBe(0);
-}
-
-async function closeScratchWorkflow(page: Page): Promise<void> {
-  await page.evaluate(async () => {
-    const workflows = window.app.extensionManager.workflow;
-    const active = workflows.activeWorkflow;
-    if (active) await workflows.closeWorkflow(active, { warnIfUnsaved: false });
-  });
 }
 
 test.describe("the pack in a real ComfyUI", () => {
