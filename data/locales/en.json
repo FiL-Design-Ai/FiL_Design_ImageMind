@@ -2,7 +2,7 @@
   "tt_provider": "Choose where the model runs. Local for offline work, cloud for hosted models.",
   "tt_model": "Choose which model to use. If the list is empty, refresh it or check the provider account.",
   "tt_refresh": "Reload the model list. Use after adding a new model or API key.",
-  "tt_rate_limit": "Pause between requests in milliseconds. Increase for free providers that return 429 errors.",
+  "tt_rate_limit": "Minimum pause between requests, in milliseconds. On a 429 the pack widens this by itself for a couple of minutes, honouring the provider's own Retry-After when it sends one.",
   "tt_config": "Settings received from the Loader node.",
   "tt_image": "Image or batch to analyze. Leave disconnected to generate from Prompt field.",
   "tt_agent": "Subject domain — what is in the frame.",
@@ -53,6 +53,7 @@
   "scn_style_button_none": "Style: None",
   "scn_clear_all_styles": "🗑️ Clear all styles",
   "scn_field_linked": "🔗 Text comes from the connected node",
+  "fld_linked_tt": "Driven by the connected input — disconnect it to edit here.",
   "scn_field_linked_tt": "Driven by the connected input — disconnect it to type here.",
   "sd_mode": "Random generates a new seed each run.",
   "sd_locked": "Locked seed",
@@ -316,5 +317,8 @@
   "dsp_label_caption_ext": "📄 Caption ext.",
   "dsp_label_image_format": "🖼️ File format",
   "dsp_label_jpg_quality": "🎚️ JPG quality",
-  "dsp_label_seed": "🌱 Caption seed"
+  "dsp_label_seed": "🌱 Caption seed",
+  "nc_clean_vram_label": "🧹 GPU cache",
+  "nc_unload_models_label": "🧠 Loaded models",
+  "hrf_sec_advanced": "Advanced"
 }

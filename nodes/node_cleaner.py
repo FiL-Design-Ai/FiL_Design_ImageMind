@@ -23,14 +23,20 @@ class FiLNeuroCleaner(_io.ComfyNode):
                 # pack: this node's panel used to be a localized Vue component,
                 # and dropping to native widgets must not quietly turn it
                 # English-only.
+                # `display_name` is what the row is labelled with; without it
+                # LiteGraph prints the raw id, so the panel read `clean_vram`
+                # and `unload_models` next to human switch text. The id itself
+                # must not change — saved workflows address widgets by it.
                 _io.Boolean.Input(
-                    "clean_vram", default=True,
+                    "clean_vram", display_name=_t("nc_clean_vram_label", "🧹 GPU cache"),
+                    default=True,
                     label_on=_t("nc_clean_vram_on", "Flush cache"),
                     label_off=_t("nc_clean_vram_off", "Keep cache"),
                     tooltip=_t("nc_clean_vram", "Flush GPU CUDA cache."),
                 ),
                 _io.Boolean.Input(
-                    "unload_models", default=True,
+                    "unload_models", display_name=_t("nc_unload_models_label", "🧠 Loaded models"),
+                    default=True,
                     label_on=_t("nc_unload_models_on", "Unload models"),
                     label_off=_t("nc_unload_models_off", "Keep models"),
                     tooltip=_t("nc_unload_models", "Unload every model ComfyUI currently holds in memory."),
