@@ -6,6 +6,7 @@ import FilButton from "@/components/widgets/FilButton.vue";
 import FilInfo from "@/components/widgets/FilInfo.vue";
 import FilSegmented from "@/components/widgets/FilSegmented.vue";
 import { useProviderStore, PROVIDER_LIST } from "@/stores/providerStore";
+import { isFavourite, toggleFavourite, favouriteCountFor } from "@/stores/modelFavourites";
 import { PROVIDER_LABEL, PROVIDER_ICON } from "@/composables/providerMeta";
 import { useI18n } from "@/composables/useI18n";
 import { toast } from "@/stores/toastStore";
@@ -30,19 +31,33 @@ const { t, tPlural } = useI18n();
 const selectedProvider = ref<string>(props.provider);
 const selectedModel = ref<string>(props.model);
 const searchQuery = ref<string>("");
+
+// Reads go through `recall`, not bare `localStorage`. These run at module
+// scope, and `localStorage` is not guaranteed to exist — a blocked-storage
+// browser profile, a file:// origin or an opaque one leaves it undefined or
+// makes the getter throw, and an unguarded read there takes the whole picker
+// module down on import. Writes were already wrapped; reads were not.
+function recall(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
 const typeFilter = ref<"all" | "vision" | "text">(
-  (localStorage.getItem("fil_model_picker_type_filter") as "all" | "vision" | "text") || "all"
+  (recall("fil_model_picker_type_filter") as "all" | "vision" | "text") || "all"
 );
 const tierFilter = ref<"all" | "free" | "paid" | "local">(
-  (localStorage.getItem("fil_model_picker_tier_filter") as "all" | "free" | "paid" | "local") || "all"
+  (recall("fil_model_picker_tier_filter") as "all" | "free" | "paid" | "local") || "all"
 );
 
 const STORAGE_KEY_VIEW = "fil_model_picker_view_mode";
 const STORAGE_KEY_TYPE = "fil_model_picker_type_filter";
 const STORAGE_KEY_TIER = "fil_model_picker_tier_filter";
-const viewMode = ref<"list" | "grid">(
-  (localStorage.getItem(STORAGE_KEY_VIEW) as "list" | "grid") || "list"
-);
+const STORAGE_KEY_FAV_ONLY = "fil_model_picker_fav_only";
+const favOnly = ref<boolean>(recall(STORAGE_KEY_FAV_ONLY) === "1");
+const viewMode = ref<"list" | "grid">((recall(STORAGE_KEY_VIEW) as "list" | "grid") || "list");
 
 function remember(key: string, value: string) {
   try {
@@ -62,6 +77,7 @@ function setViewMode(mode: "list" | "grid") {
 // OpenRouter list to free vision models had to redo it each time.
 watch(typeFilter, (v) => remember(STORAGE_KEY_TYPE, v));
 watch(tierFilter, (v) => remember(STORAGE_KEY_TIER, v));
+watch(favOnly, (v) => remember(STORAGE_KEY_FAV_ONLY, v ? "1" : "0"));
 
 // Filter option sets + labels for the FilSegmented controls. Tier options are
 // provider-dependent: local providers (ollama/lmstudio) only ever have "local"
@@ -146,6 +162,17 @@ function isVision(m: string): boolean {
   return visionModels.value.includes(m);
 }
 
+// `isFavourite` reads a module-level ref, so calling it from the template is
+// enough for Vue to track it — a toggle replaces the Set and everything that
+// read it re-renders. No manual invalidation needed.
+function starred(m: string): boolean {
+  return isFavourite(selectedProvider.value, m);
+}
+function toggleStar(m: string) {
+  toggleFavourite(selectedProvider.value, m);
+}
+const favCount = computed(() => favouriteCountFor(selectedProvider.value, currentModels.value));
+
 const filteredModels = computed(() => {
   let list = currentModels.value;
   const q = searchQuery.value.trim().toLowerCase();
@@ -163,6 +190,10 @@ const filteredModels = computed(() => {
 
   if (tierFilter.value !== "all") {
     list = list.filter((m) => getTier(m, p) === tierFilter.value);
+  }
+
+  if (favOnly.value) {
+    list = list.filter((m) => isFavourite(p, m));
   }
 
   return list;
@@ -234,6 +265,7 @@ function closeModal() {
 
       <!-- Controls & Filters -->
       <div class="filter-controls">
+        <div class="search-row">
         <div class="search-input-wrap">
           <FilIcon name="search" :size="14" class="search-icon" />
           <input
@@ -249,6 +281,23 @@ function closeModal() {
             :title="t('tt_clear_search', 'Clear search')"
             @click="searchQuery = ''"
           >✕</button>
+        </div>
+
+        <!-- Favourites is a toggle, not a fourth segmented row: it is
+             orthogonal to type and tier, and the three existing rows already
+             fill the width. -->
+        <button
+          type="button"
+          class="fav-filter"
+          :class="{ active: favOnly }"
+          :aria-pressed="favOnly"
+          :title="t('pmp_fav_only_tt', 'Show only starred models')"
+          @click="favOnly = !favOnly"
+        >
+          <span class="fav-filter-star">{{ favOnly ? '★' : '☆' }}</span>
+          <span>{{ t('pmp_fav_only', 'Favourites') }}</span>
+          <span v-if="favCount" class="fav-filter-count">{{ favCount }}</span>
+        </button>
         </div>
 
         <div class="filter-segments">
@@ -286,28 +335,41 @@ function closeModal() {
                control in this dialog, and every other interactive element in the
                codebase is a button, so keyboard users and screen readers were
                the only ones locked out of picking a model. -->
-          <button
-            v-for="m in filteredModels"
-            :key="m"
-            type="button"
-            class="model-card"
-            :class="{ selected: m === selectedModel }"
-            :aria-pressed="m === selectedModel"
-            @click="pickModel(m)"
-          >
-            <div class="model-main">
-              <span class="type-icon">{{ isVision(m) ? '👁' : '📝' }}</span>
-              <span class="model-name" :title="m">{{ m }}</span>
-            </div>
-            <div class="model-tags">
-              <span v-if="isVision(m)" class="tag vision">{{ t('pmp_tag_vision', 'Vision') }}</span>
-              <span v-else class="tag text">{{ t('pmp_tag_text', 'Text') }}</span>
-              
-              <span v-if="getTier(m, selectedProvider) === 'local'" class="tag local">{{ t('pmp_tag_local', 'Local') }}</span>
-              <span v-else-if="getTier(m, selectedProvider) === 'free'" class="tag free">{{ t('pmp_tag_free', 'Free') }}</span>
-              <span v-else class="tag paid">{{ t('pmp_tag_paid', 'Paid') }}</span>
-            </div>
-          </button>
+          <!-- The star is a sibling of the card, never a child: a <button>
+               inside a <button> is invalid markup, and browsers resolve it by
+               dropping one of them — starring would have selected the model
+               instead, or stopped working entirely. -->
+          <div v-for="m in filteredModels" :key="m" class="model-row">
+            <button
+              type="button"
+              class="model-card"
+              :class="{ selected: m === selectedModel }"
+              :aria-pressed="m === selectedModel"
+              @click="pickModel(m)"
+            >
+              <div class="model-main">
+                <span class="type-icon">{{ isVision(m) ? '👁' : '📝' }}</span>
+                <span class="model-name" :title="m">{{ m }}</span>
+              </div>
+              <div class="model-tags">
+                <span v-if="isVision(m)" class="tag vision">{{ t('pmp_tag_vision', 'Vision') }}</span>
+                <span v-else class="tag text">{{ t('pmp_tag_text', 'Text') }}</span>
+
+                <span v-if="getTier(m, selectedProvider) === 'local'" class="tag local">{{ t('pmp_tag_local', 'Local') }}</span>
+                <span v-else-if="getTier(m, selectedProvider) === 'free'" class="tag free">{{ t('pmp_tag_free', 'Free') }}</span>
+                <span v-else class="tag paid">{{ t('pmp_tag_paid', 'Paid') }}</span>
+              </div>
+            </button>
+            <button
+              type="button"
+              class="fav-btn"
+              :class="{ on: starred(m) }"
+              :aria-pressed="starred(m)"
+              :aria-label="starred(m) ? t('pmp_unstar', 'Remove from favourites') : t('pmp_star', 'Add to favourites')"
+              :title="starred(m) ? t('pmp_unstar', 'Remove from favourites') : t('pmp_star', 'Add to favourites')"
+              @click="toggleStar(m)"
+            >{{ starred(m) ? '★' : '☆' }}</button>
+          </div>
         </div>
       </div>
 
@@ -420,10 +482,57 @@ function closeModal() {
   flex-direction: column;
   gap: 8px;
 }
+.search-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 .search-input-wrap {
   position: relative;
   display: flex;
   align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+.fav-filter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  height: var(--fil-control-h);
+  padding: 0 12px;
+  background: var(--fil-panel-alt);
+  border: 1px solid var(--fil-border);
+  border-radius: var(--fil-field-radius);
+  color: var(--fil-muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+.fav-filter:hover {
+  background: var(--fil-surface-2);
+  color: var(--fil-text);
+}
+.fav-filter.active {
+  border-color: var(--fil-accent);
+  color: var(--fil-accent-text);
+  font-weight: 600;
+}
+.fav-filter:focus-visible {
+  outline: 2px solid var(--fil-accent);
+  outline-offset: -2px;
+}
+.fav-filter-star {
+  font-size: 14px;
+  line-height: 1;
+}
+.fav-filter-count {
+  font-size: 10px;
+  background: var(--fil-pill-bg);
+  padding: 1px 5px;
+  border-radius: 99px;
 }
 .search-icon {
   position: absolute;
@@ -491,6 +600,39 @@ function closeModal() {
   grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
   gap: 8px;
 }
+/* The row is the flex/grid item now; the card inside it takes the space the
+   card itself used to. */
+.model-row {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  min-width: 0;
+}
+.fav-btn {
+  flex-shrink: 0;
+  width: 34px;
+  background: var(--fil-surface-1);
+  border: 1px solid var(--fil-border);
+  border-radius: 6px;
+  color: var(--fil-muted);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.12s ease;
+}
+.fav-btn:hover {
+  background: var(--fil-surface-2);
+  color: var(--fil-text);
+}
+.fav-btn.on {
+  color: var(--fil-accent-text);
+  border-color: var(--fil-accent);
+}
+.fav-btn:focus-visible {
+  outline: 2px solid var(--fil-accent);
+  outline-offset: -2px;
+}
 .models-container.grid .model-card {
   flex-direction: column;
   align-items: flex-start;
@@ -508,6 +650,8 @@ function closeModal() {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex: 1;
+  min-width: 0;
   padding: 8px 12px;
   background: var(--fil-surface-1);
   border: 1px solid var(--fil-border);
