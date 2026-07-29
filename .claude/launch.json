@@ -18,6 +18,40 @@
       "port": 8189
     },
     {
+      "name": "comfyui-e",
+      "runtimeExecutable": "E:\\AI\\ComfyUI-Easy-Install\\python_embeded\\python.exe",
+      "runtimeArgs": [
+        "-I",
+        "-W",
+        "ignore::FutureWarning",
+        "E:\\AI\\ComfyUI-Easy-Install\\ComfyUI\\main.py",
+        "--windows-standalone-build",
+        "--use-sage-attention",
+        "--preview-method",
+        "auto",
+        "--output-directory",
+        "d:\\AI\\Outputs\\",
+        "--port",
+        "8188"
+      ],
+      "port": 8188
+    },
+    {
+      "name": "widget-playground",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "frontend",
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5173",
+        "--strictPort"
+      ],
+      "port": 5173
+    },
+    {
       "name": "docs-preview",
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "8290", "--directory", "docs"],

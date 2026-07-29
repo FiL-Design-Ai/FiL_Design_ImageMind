@@ -5,9 +5,17 @@ import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
 import { createSyncedNodeState, findFilWidget, sanitizeWidgetValue } from "@/nodes2/util";
 import { FIL_STATE_KEY, installFilStatePersistence, restoreFilState } from "@/nodes2/statePersistence";
+import { exposeWidgetInputSockets, installWidgetSocketSync } from "@/nodes2/widgetInputSockets";
 import { applyFxComposables } from "@/nodes2/applyFxComposables";
 
 const StyleMixerVue = defineAsyncComponent(() => import("@/components/nodes/StyleMixer.vue"));
+
+/**
+ * Widgets that may also be driven from the graph. The Vue panel hides the
+ * native widget, which hides its input slot with it — `exposeWidgetInputSockets`
+ * gives the slot a row and a visible dot back.
+ */
+export const STYLE_MIXER_SOCKET_INPUTS = ["base_prompt"];
 
 export interface ComfyInputSlot {
   name: string;
@@ -166,6 +174,7 @@ export const styleMixerNode: NodeModule = {
 
       addFilDomWidget(node, "fil_style_mixer_view", StyleMixerVue, { state, height: 480 });
       updateImageSlotVisibility(this);
+      exposeWidgetInputSockets(this, STYLE_MIXER_SOCKET_INPUTS);
       return res;
     };
 
@@ -190,6 +199,7 @@ export const styleMixerNode: NodeModule = {
         restoreFilState(state, args[0]);
       }
       updateImageSlotVisibility(this);
+      exposeWidgetInputSockets(this, STYLE_MIXER_SOCKET_INPUTS);
       return res;
     };
 
@@ -199,6 +209,7 @@ export const styleMixerNode: NodeModule = {
       if (type === 1 || (type as any)?.name === "input") {
         updateImageSlotVisibility(this);
       }
+      exposeWidgetInputSockets(this, STYLE_MIXER_SOCKET_INPUTS);
       return res;
     };
 
@@ -208,6 +219,7 @@ export const styleMixerNode: NodeModule = {
       return origRemoved?.apply(this, args);
     };
 
+    installWidgetSocketSync(p, STYLE_MIXER_SOCKET_INPUTS, "_filStyleMixerState");
     applyFxComposables(nodeType as { prototype?: unknown });
   },
 };

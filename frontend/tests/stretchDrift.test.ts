@@ -1,32 +1,34 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { defineComponent, h } from "vue";
 import { addFilDomWidget } from "@/nodes2/domWidgetHost";
-import { addLegacyFilDomWidget } from "./fixtures/legacyDomWidgetHost";
 import {
   FakeResizeObserver,
   createWidgetNode,
   stubElementHeights,
-  type FakeWidgetNode,
+  NODE_CHROME_HEIGHT,
 } from "./fakes/comfyHost";
 
 /**
- * Does the growable stretch drift, and did the split cause it?
+ * Where the growable stretch goes when nobody is holding it.
  *
- * Live in ComfyUI, a panel dragged to 200px of stretch settled at 192 after the
- * content changed under it — 8px, stable afterwards. The split was the obvious
- * suspect. It is not: both implementations produce identical numbers at every
- * step of the sequence below, which is what this exists to show rather than
- * argue.
+ * A panel dragged taller kept losing pixels. The number in the first report was
+ * 8 and the suspect was the `domWidgetHost` split (`3a0752e`); both were wrong.
+ * Driven through a real ComfyUI (`tests/smoke/stretchDrift.spec.ts`) the loss is
+ * ~40px and it repeats on every workflow load — +200 comes back as +162, then
+ * +122, until the panel sits on its content.
  *
- * What it does not do is reproduce the 8px. In jsdom the stretch holds at
- * exactly 200 through a grow and a shrink, in both versions — so whatever costs
- * those pixels lives in something only the real host does, most likely
- * LiteGraph writing back a size of its own after the resize. Cosmetic, stable
- * once it happens, and older than the split.
+ * The cause is arithmetic, not the host: on the first sync the stretch was read
+ * as "box minus content height", while the content height still came from the
+ * caller's estimate (`scanner.ts` guesses 580 for a panel that measures 540)
+ * because a re-measure updates the model without telling the widget. The
+ * difference between guess and measurement was charged to the user's drag.
  *
- * The fixture is the pre-split file at dc873c0, unmodified but for its export
- * name. When it stops compiling, this comparison has already expired — delete
- * both rather than repair the fixture.
+ * These tests pin the two halves of the repair: a restored box is the only
+ * source of stretch, and the measurement is published before it is read.
+ *
+ * (This file used to compare the split against a copy of the pre-split
+ * implementation, which is how the split was cleared. That comparison and its
+ * fixture are gone: the behaviour below is deliberately no longer the old one.)
  */
 
 const Panel = defineComponent({
@@ -38,58 +40,22 @@ const Panel = defineComponent({
 let layout: { client: number; scroll: number };
 let restoreHeights: (() => void) | null = null;
 
-type Mount = typeof addFilDomWidget;
-
-interface Reading {
-  natural: number;
-  stretch: number;
-  published: number;
-  nodeHeight: number;
-}
+/** The settle loop and the observers are animation-frame driven; jsdom runs
+ * them off timers, so time has to pass for any of it to happen. */
+const settle = () => new Promise((resolve) => setTimeout(resolve, 400));
 
 /**
- * Drive one implementation through: settle, drag 200px taller, content grows,
- * content shrinks back.
+ * The stretch as the app sees it — neither implementation exposes it.
  *
- * `stretch` is not exposed by either version, so it is derived the way the app
- * sees it — the published widget height minus the panel's own content height,
- * which is what `computeSize()` reports un-stretched.
+ * The published widget height carries the stretch; `computeSize()` is patched
+ * to report the box without it. The difference is what the user dragged.
  */
-async function run(mount: Mount): Promise<{ node: FakeWidgetNode; readings: Record<string, Reading> }> {
-  layout = { client: 400, scroll: 400 };
-  const node = createWidgetNode({ contentHeight: 100 });
-  const controller = mount(node, "test_view", Panel, { state: {}, height: 40, growable: true });
-
-  const widget = controller!.widget as { computeSize?: () => [number, number] };
-  const read = (): Reading => {
-    const published = widget.computeSize?.()[1] ?? 0;
-    const natural = node.computeSize()[1] - 35; // un-stretched box, less the chrome
-    return { natural, stretch: published - natural, published, nodeHeight: node.size[1] };
-  };
-
-  // The settle loop and the observers are animation-frame driven; jsdom runs
-  // them off timers, so time has to pass for any of it to happen.
-  const settle = () => new Promise((resolve) => setTimeout(resolve, 400));
-
-  await settle();
-  const readings: Record<string, Reading> = { settled: read() };
-
-  node.setSize([200, node.size[1] + 200]);
-  await settle();
-  readings.dragged = read();
-
-  layout = { client: 520, scroll: 520 };
-  controller!.host.firstElementChild?.appendChild(document.createElement("div"));
-  await settle();
-  readings.grown = read();
-
-  layout = { client: 400, scroll: 400 };
-  controller!.host.firstElementChild?.lastElementChild?.remove();
-  await settle();
-  readings.shrunk = read();
-
-  controller!.unmount();
-  return { node, readings };
+function stretchOf(
+  node: { computeSize(): [number, number] },
+  widget: { computeSize?: () => [number, number] },
+): number {
+  const published = widget.computeSize?.()[1] ?? 0;
+  return published - (node.computeSize()[1] - NODE_CHROME_HEIGHT);
 }
 
 beforeEach(() => {
@@ -112,18 +78,33 @@ afterEach(() => {
   restoreHeights = null;
 });
 
-describe("the growable stretch, before and after the split", () => {
-  it("moves the same way in both implementations", async () => {
-    const legacy = await run(addLegacyFilDomWidget as Mount);
-    const current = await run(addFilDomWidget);
+describe("the growable stretch", () => {
+  it("holds through a grow and a shrink of the content", async () => {
+    const node = createWidgetNode({ contentHeight: 100 });
+    const controller = addFilDomWidget(node, "test_view", Panel, { state: {}, height: 40, growable: true });
+    const widget = controller!.widget as { computeSize?: () => [number, number] };
 
-    // Guard the comparison against being vacuous: two implementations that both
-    // did nothing would agree perfectly.
-    expect(legacy.readings.dragged.stretch).toBe(200);
-    expect(legacy.readings.grown.natural).toBeGreaterThan(legacy.readings.settled.natural);
-    expect(legacy.readings.shrunk.natural).toBe(legacy.readings.settled.natural);
+    await settle();
+    node.setSize([200, node.size[1] + 200]);
+    await settle();
+    expect(stretchOf(node, widget)).toBe(200);
 
-    expect(current.readings).toEqual(legacy.readings);
+    layout = { client: 520, scroll: 520 };
+    controller!.host.firstElementChild?.appendChild(document.createElement("div"));
+    await settle();
+    expect(stretchOf(node, widget)).toBe(200);
+    // The box follows the content in the same pass, rather than a step behind:
+    // publishing the fresh measurement before reading it is what fixed the
+    // drift, and this is the visible half of that change.
+    expect(node.size[1]).toBe(520 + NODE_CHROME_HEIGHT + 200);
+
+    layout = { client: 400, scroll: 400 };
+    controller!.host.firstElementChild?.lastElementChild?.remove();
+    await settle();
+    expect(stretchOf(node, widget)).toBe(200);
+    expect(node.size[1]).toBe(400 + NODE_CHROME_HEIGHT + 200);
+
+    controller!.unmount();
   });
 
   it("settles rather than accumulating across repeated content changes", async () => {
@@ -132,14 +113,12 @@ describe("the growable stretch, before and after the split", () => {
     const node = createWidgetNode({ contentHeight: 100 });
     const controller = addFilDomWidget(node, "test_view", Panel, { state: {}, height: 40, growable: true });
     const widget = controller!.widget as { computeSize?: () => [number, number] };
-    const settle = () => new Promise((resolve) => setTimeout(resolve, 400));
-    const stretch = () => (widget.computeSize?.()[1] ?? 0) - (node.computeSize()[1] - 35);
 
     await settle();
     node.setSize([200, node.size[1] + 200]);
     await settle();
 
-    const seen: number[] = [stretch()];
+    const seen: number[] = [stretchOf(node, widget)];
     for (let round = 0; round < 3; round++) {
       layout = { client: 520, scroll: 520 };
       controller!.host.firstElementChild?.appendChild(document.createElement("div"));
@@ -147,11 +126,54 @@ describe("the growable stretch, before and after the split", () => {
       layout = { client: 400, scroll: 400 };
       controller!.host.firstElementChild?.lastElementChild?.remove();
       await settle();
-      seen.push(stretch());
+      seen.push(stretchOf(node, widget));
     }
     controller!.unmount();
 
-    // Whatever the first content change costs, the ones after it are free.
-    expect(seen.slice(1).every((value) => value === seen[1])).toBe(true);
+    expect(seen.every((value) => value === seen[0])).toBe(true);
+  });
+
+  it("comes back with the workflow it was saved in", async () => {
+    // The live defect, in miniature. A reload builds a new node with a new
+    // host and hands it the saved box through `configure()` — never through
+    // `setSize`, so the stretch has to be recovered from that box exactly once.
+    const first = createWidgetNode({ contentHeight: 100 });
+    const firstController = addFilDomWidget(first, "test_view", Panel, { state: {}, height: 40, growable: true });
+    await settle();
+    first.setSize([200, first.size[1] + 200]);
+    await settle();
+    const saved = [...first.size] as [number, number];
+    firstController!.unmount();
+
+    // Three round trips: the loss was ~40px *per load*, so one reload alone
+    // could be read as a one-off. It never was.
+    let box = saved;
+    for (let load = 0; load < 3; load++) {
+      const node = createWidgetNode({ contentHeight: 100 });
+      const controller = addFilDomWidget(node, "test_view", Panel, { state: {}, height: 40, growable: true });
+      const widget = controller!.widget as { computeSize?: () => [number, number] };
+      node.configure({ size: box });
+      await settle();
+
+      expect(stretchOf(node, widget), `stretch lost on load ${load + 1}`).toBe(200);
+      box = [...node.size] as [number, number];
+      controller!.unmount();
+    }
+  });
+
+  it("gives a freshly dropped node no stretch at all", async () => {
+    // The other half: without a saved box there is nothing to recover, and the
+    // caller's height estimate must not be mistaken for one. Charging that
+    // difference as stretch would leave dead space under the content of every
+    // new node — the same arithmetic, in the opposite direction.
+    const node = createWidgetNode({ contentHeight: 100 });
+    const controller = addFilDomWidget(node, "test_view", Panel, { state: {}, height: 40, growable: true });
+    const widget = controller!.widget as { computeSize?: () => [number, number] };
+
+    await settle();
+
+    expect(stretchOf(node, widget)).toBe(0);
+    expect(node.size[1]).toBe(400 + NODE_CHROME_HEIGHT);
+    controller!.unmount();
   });
 });

@@ -3,10 +3,18 @@
 import { computed, watch } from "vue";
 import { FilNumberInput, FilSlider, FilSegmented, FilToggle, FilSection } from "@/components/widgets";
 import { useI18n } from "@/composables/useI18n";
+import { useWidgetSockets } from "@/composables/useWidgetSockets";
+import { UPSCALE_SOCKET_INPUTS } from "@/nodes2/nodes/upscale";
 import type { FilNodeState } from "@/nodes2/filState";
 
 const props = defineProps<{ state: FilNodeState }>();
 const { t } = useI18n();
+
+// Shared by FiLUpscaleTileCalc and FiLUpscaleSimple — both expose the same
+// three widget names, so one list covers the panel either node mounts it as.
+const { setFieldEl, isLinked } = useWidgetSockets(props.state, UPSCALE_SOCKET_INPUTS);
+const linkedTip = (name: string, own: string) =>
+  isLinked(name) ? t("fld_linked_tt", "Driven by the connected input — disconnect it to edit here.") : own;
 
 const AUTO_PROFILES = ["Low VRAM", "Balanced", "High VRAM", "Max Quality", "Ultra Quality"] as const;
 const AUTO_PROFILE_LABELS: Record<string, string> = {
@@ -60,8 +68,11 @@ watch(() => props.state.nodeState, () => {}, { deep: true });
 
 <template>
   <div class="fil-up-root">
-    <FilSlider :model-value="upscaleFactor" :min="0.1" :max="8" :step="0.25" :label="t('lbl_upscale_factor', '🔍 Upscale factor')"
-      :title="t('utc_factor', 'Upscale multiplier.')" @update:model-value="(v: number) => (upscaleFactor = v)" />
+    <FilSlider :ref="(el: unknown) => setFieldEl('upscale_factor', el)"
+      :model-value="upscaleFactor" :min="0.1" :max="8" :step="0.25" :label="t('lbl_upscale_factor', '🔍 Upscale factor')"
+      :disabled="isLinked('upscale_factor')"
+      :title="linkedTip('upscale_factor', t('utc_factor', 'Upscale multiplier.'))"
+      @update:model-value="(v: number) => (upscaleFactor = v)" />
 
     <FilSection :title="t('utc_section_auto', '⚙️ Auto / advanced')"
       :model-value="isCollapsed('auto')" @update:model-value="(v: boolean) => setCollapsed('auto', v)" />
@@ -83,9 +94,12 @@ watch(() => props.state.nodeState, () => {}, { deep: true });
       <template v-if="autoMode === 'OFF'">
         <div class="fil-up-row fil-up-row-overlap">
           <label class="fil-w-label" :title="t('utc_tile_size', 'Base tile size.')">{{ t('lbl_tile_size', '🔲 Tile size') }}</label>
-          <FilNumberInput v-model="tileSize" :min="64" :max="2048" :step="64" />
+          <FilNumberInput :ref="(el: unknown) => setFieldEl('tile_size', el)"
+            v-model="tileSize" :min="64" :max="2048" :step="64" :disabled="isLinked('tile_size')" />
           <label class="fil-w-label" :title="t('utc_overlap', 'Tile overlap.')">{{ t('lbl_overlap', '🧵 Overlap') }}</label>
-          <FilNumberInput v-model="tileOverlap" :min="0" :max="512" :step="8" :disabled="autoOverlap === 'ON'" />
+          <FilNumberInput :ref="(el: unknown) => setFieldEl('tile_overlap', el)"
+            v-model="tileOverlap" :min="0" :max="512" :step="8"
+            :disabled="autoOverlap === 'ON' || isLinked('tile_overlap')" />
           <FilToggle bare :model-value="autoOverlap" :label="t('lbl_auto_overlap', '🧵 Auto')"
             :title="t('utc_auto_overlap', 'Derive overlap automatically from tile size (~12.5%) instead of the fixed value above.')"
             @update:model-value="(v) => (autoOverlap = v)" />

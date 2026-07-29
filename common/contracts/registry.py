@@ -427,8 +427,10 @@ _HIRESFIX = NodeContract(
     description="Packs latent/pixel upscale + re-sample settings into a script.",
     # 380, not 320: the own-seed row is a readout plus three pills, and the
     # Russian captions need ~370px before FilSeedRow starts truncating them.
+    # Height dropped from 300 with the ADVANCED section: six rows show by
+    # default instead of nine.
     # Keep in step with nodes2/nodes/hiresfix.ts — test_ui_presentation guards it.
-    min_size=(380, 300),
+    min_size=(380, 230),
     family="sampling",
     inputs=NodeInputs(
         required=[

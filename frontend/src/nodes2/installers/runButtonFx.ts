@@ -1,5 +1,5 @@
 import type { ComfyApp } from "@/types/comfy";
-import { startNodeRun, stopNodeRun, FIL_RUN_FX_CSS } from "@/composables/useRunButtonFx";
+import { setRunningNodes, startNodeRun, stopNodeRun, FIL_RUN_FX_CSS } from "@/composables/useRunButtonFx";
 
 const STYLE_ID = "fil-run-fx";
 
@@ -11,13 +11,43 @@ function injectStyle(): void {
   document.head.appendChild(el);
 }
 
+/** One entry of `progress_state.nodes`, as `comfy_execution/progress.py` sends it. */
+interface ProgressNode {
+  state?: string;
+  node_id?: string | number;
+  display_node_id?: string | number | null;
+  parent_node_id?: string | number | null;
+}
+
+function runningIds(detail: unknown): (string | number)[] | null {
+  const nodes = (detail as { nodes?: Record<string, ProgressNode> } | null)?.nodes;
+  if (!nodes || typeof nodes !== "object") return null;
+  const ids: (string | number)[] = [];
+  for (const [key, entry] of Object.entries(nodes)) {
+    if (entry?.state !== "running") continue;
+    // `display_node_id` is the node the user is meant to see for an expanded
+    // one; the composite it falls back to is resolved against the canvas by
+    // the composable, which walks up to the containing subgraph.
+    ids.push(entry.display_node_id ?? entry.node_id ?? key);
+  }
+  return ids;
+}
+
 /**
- * Pulse the header of the node that is executing.
+ * Mark the nodes that are executing.
  *
- * Hooks the canonical ComfyUI signal — the `executing` event on `app.api`,
- * whose detail is the id of the node currently running, or null when the queue
- * drains. That null is what ends the last pulse; without handling it a node
- * would keep pulsing after the run finished.
+ * Two signals, and the difference between them is the whole reason this file
+ * is not three lines:
+ *
+ *  - `progress_state` (`comfy_execution/progress.py`) carries the *complete*
+ *    picture — every non-pending node with its `state`, so a run with four
+ *    nodes going at once marks four. This is the one to follow when core sends
+ *    it.
+ *  - `executing` carries one id at a time, or null when the queue drains. On a
+ *    live 1.47.10 it arrives as a bare string, not the `{ node, display_node }`
+ *    object newer core is documented to send; both forms are read here. Once
+ *    `progress_state` has been seen, only its closing null is honoured — the
+ *    ids would otherwise collapse the set back to one node per burst.
  */
 export function installRunButtonFx(app: ComfyApp): void {
   const api = app.api;
@@ -27,19 +57,23 @@ export function installRunButtonFx(app: ComfyApp): void {
   }
   injectStyle();
 
+  let sawProgressState = false;
+
+  api.addEventListener("progress_state", (event: Event) => {
+    const ids = runningIds((event as CustomEvent).detail);
+    if (!ids) return;
+    sawProgressState = true;
+    setRunningNodes(app as never, ids);
+  });
+
   api.addEventListener("executing", (event: Event) => {
     const detail = (event as CustomEvent).detail;
-    // Older core sends the bare node id; newer wraps it as `{ node, display_node }`.
-    // `node` is the execution id, which for an expanded or subgraph node is a
-    // composite like "5:2" — no such node exists on the canvas. `display_node`
-    // is the one the user sees and the one `canvas.nodeEls` is keyed by, so it
-    // is what the pulse has to follow.
     const nodeId = detail && typeof detail === "object"
       ? (detail as { display_node?: string | number | null; node?: string | number | null }).display_node
         ?? (detail as { node?: string | number | null }).node
       : detail;
     if (typeof nodeId === "string" || typeof nodeId === "number") {
-      startNodeRun(app as never, nodeId);
+      if (!sawProgressState) startNodeRun(app as never, nodeId);
     } else {
       stopNodeRun();
     }
@@ -49,5 +83,5 @@ export function installRunButtonFx(app: ComfyApp): void {
   api.addEventListener("execution_error", stopNodeRun);
   api.addEventListener("execution_interrupted", stopNodeRun);
 
-  console.info("[FiL_Design_ImageMind] run FX installed (api executing hook)");
+  console.info("[FiL_Design_ImageMind] run FX installed (progress_state + executing)");
 }

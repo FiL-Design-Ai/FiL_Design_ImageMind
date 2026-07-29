@@ -3,14 +3,22 @@
  * Latent/pixel/controlnet fields show/hide reactively — this replaces the
  * widgethider.js behaviour of the original efficiency-nodes node. */
 import { computed, watch } from "vue";
-import { FilSlider, FilNumberInput, FilSelect, FilSegmented, FilSeedRow } from "@/components/widgets";
+import { FilSlider, FilNumberInput, FilSelect, FilSegmented, FilSeedRow, FilSection } from "@/components/widgets";
 import { useI18n } from "@/composables/useI18n";
 import { toast } from "@/stores/toastStore";
 import { findFilWidget } from "@/nodes2/util";
+import { useWidgetSockets } from "@/composables/useWidgetSockets";
+import { HIRESFIX_SOCKET_INPUTS } from "@/nodes2/nodes/hiresfix";
 import type { FilNodeState } from "@/nodes2/filState";
 
 const props = defineProps<{ state: FilNodeState }>();
 const { t } = useI18n();
+
+// These fields can also be driven from the graph. The dots are lined up with
+// their fields so it is obvious which socket feeds which, and a field with a
+// wire attached is marked read-only — typing there would be overwritten by the
+// link when the prompt is queued.
+const { setFieldEl, isLinked } = useWidgetSockets(props.state, HIRESFIX_SOCKET_INPUTS);
 
 function numberField(name: string, fallback: number) {
   return computed({
@@ -29,6 +37,17 @@ function boolField(name: string, fallback: boolean) {
     get: () => ((props.state.nodeState[name] ?? props.state.initialValues[name] ?? fallback) ? "ON" : "OFF"),
     set: (v: "ON" | "OFF") => { props.state.nodeState[name] = v === "ON"; },
   });
+}
+
+// Collapse state lives in `state.ui`, same as Optic Scanner's sections, so it
+// survives a workflow save/load. Undefined means the user has never touched it
+// — the section starts closed on a fresh node.
+function isCollapsed(section: string): boolean {
+  const stored = (props.state.ui as Record<string, unknown>)[`collapsed_${section}`];
+  return stored === undefined ? true : Boolean(stored);
+}
+function setCollapsed(section: string, collapsed: boolean) {
+  (props.state.ui as Record<string, unknown>)[`collapsed_${section}`] = collapsed;
 }
 
 function comboOptions(name: string, fallback: string[]): string[] {
@@ -140,19 +159,21 @@ function newFixedSeed() {
         @update:model-value="(v: string) => (pixelUpscaler = v)" />
     </template>
 
-    <FilSelect :options="ckptOptions" :model-value="hiresCkpt"
-      :label="t('lbl_hires_ckpt', '📦 Hires checkpoint')" :title="t('hrf_ckpt', 'Checkpoint for the hires pass. (use same) reuses the base model.')"
-      @update:model-value="(v: string) => (hiresCkpt = v)" />
+    <FilSlider :ref="(el: unknown) => setFieldEl('upscale_by', el)"
+      :model-value="upscaleBy" :min="0.01" :max="8" :step="0.05" :label="t('lbl_upscale_by', '🔍 Upscale by')"
+      :disabled="isLinked('upscale_by')"
+      :title="isLinked('upscale_by') ? t('fld_linked_tt', 'Driven by the connected input — disconnect it to edit here.') : t('hrf_upscale_by', 'Upscale multiplier.')"
+      @update:model-value="(v: number) => (upscaleBy = v)" />
+    <FilSlider :ref="(el: unknown) => setFieldEl('denoise', el)"
+      :model-value="denoise" :min="0" :max="1" :step="0.01" :label="t('lbl_hrf_denoise', '💧 Denoise')"
+      :disabled="isLinked('denoise')"
+      :title="isLinked('denoise') ? t('fld_linked_tt', 'Driven by the connected input — disconnect it to edit here.') : t('hrf_denoise', 'Denoise strength for the hires re-sample.')"
+      @update:model-value="(v: number) => (denoise = v)" />
 
-    <FilSlider :model-value="upscaleBy" :min="0.01" :max="8" :step="0.05" :label="t('lbl_upscale_by', '🔍 Upscale by')"
-      :title="t('hrf_upscale_by', 'Upscale multiplier.')" @update:model-value="(v: number) => (upscaleBy = v)" />
-    <FilSlider :model-value="denoise" :min="0" :max="1" :step="0.01" :label="t('lbl_hrf_denoise', '💧 Denoise')"
-      :title="t('hrf_denoise', 'Denoise strength for the hires re-sample.')" @update:model-value="(v: number) => (denoise = v)" />
-
-    <FilNumberInput v-model="hiresSteps" :min="1" :max="10000" :step="1"
-      :label="t('lbl_hires_steps', '🪜 Hires steps')" :title="t('hrf_steps', 'Steps for the hires re-sample.')" />
-    <FilNumberInput v-model="iterations" :min="0" :max="5" :step="1"
-      :label="t('lbl_iterations', '🔁 Iterations')" :title="t('hrf_iterations', 'How many upscale+resample passes to run.')" />
+    <FilNumberInput :ref="(el: unknown) => setFieldEl('hires_steps', el)"
+      v-model="hiresSteps" :min="1" :max="10000" :step="1" :disabled="isLinked('hires_steps')"
+      :label="t('lbl_hires_steps', '🪜 Hires steps')"
+      :title="isLinked('hires_steps') ? t('fld_linked_tt', 'Driven by the connected input — disconnect it to edit here.') : t('hrf_steps', 'Steps for the hires re-sample.')" />
 
     <FilSegmented :options="['ON', 'OFF']" :option-labels="{ ON: '♻️ same seed', OFF: '🎲 own' }" :model-value="useSameSeed"
       :label="t('lbl_use_same_seed', '🌱 Seed source')"
@@ -161,6 +182,7 @@ function newFixedSeed() {
 
     <FilSeedRow
       v-if="useSameSeed === 'OFF'"
+      :ref="(el: unknown) => setFieldEl('seed', el)"
       :display="seedDisplay"
       :mode="seedMode"
       :field-aria-label="t('hrf_aria_seed_value', 'Hires seed value')"
@@ -181,20 +203,36 @@ function newFixedSeed() {
       @new-fixed="newFixedSeed"
     />
 
-    <FilSegmented :options="['ON', 'OFF']" :option-labels="{ ON: '🕹️ ON', OFF: 'OFF' }" :model-value="useControlnet"
-      :label="t('lbl_use_cn', '🕹️ Use ControlNet')"
-      :title="t('hrf_use_cn', 'Guide the hires pass with a ControlNet. Tile ControlNets work without a preprocessor.')"
-      @update:model-value="(v) => (useControlnet = v as 'ON' | 'OFF')" />
-    <template v-if="useControlnet === 'ON'">
-      <FilSelect :options="controlNetOptions" :model-value="controlNetName"
-        :label="t('lbl_cn_name', '🧩 ControlNet model')" :title="t('hrf_cn_name', 'ControlNet model to apply.')"
-        @update:model-value="(v: string) => (controlNetName = v)" />
-      <FilSlider :model-value="strength" :min="0" :max="10" :step="0.01" :label="t('lbl_cn_strength', '💪 Strength')"
-        :title="t('hrf_cn_strength', 'ControlNet strength.')" @update:model-value="(v: number) => (strength = v)" />
-      <FilSegmented :options="preprocessorOptions" :option-labels="{ none: '🚫 none', canny: '🪞 canny' }"
-        :model-value="preprocessor" :label="t('lbl_cn_preproc', '🧪 Preprocessor')"
-        :title="t('hrf_cn_preproc', `Preprocess the ControlNet hint image. 'none' feeds the raw upscaled image (right for tile ControlNets).`)"
-        @update:model-value="(v: string) => (preprocessor = v)" />
+    <!-- Nine rows always on screen made the node the tallest in the pack, and
+         six of them are set once and never touched again. Same collapsible
+         section Optic Scanner uses, collapsed by default: the everyday
+         controls stay in view, the rest is one click away. -->
+    <FilSection
+      :title="t('hrf_sec_advanced', 'ADVANCED')"
+      :model-value="isCollapsed('advanced')"
+      @update:model-value="(v: boolean) => setCollapsed('advanced', v)"
+    />
+    <template v-if="!isCollapsed('advanced')">
+      <FilSelect :options="ckptOptions" :model-value="hiresCkpt"
+        :label="t('lbl_hires_ckpt', '📦 Hires checkpoint')" :title="t('hrf_ckpt', 'Checkpoint for the hires pass. (use same) reuses the base model.')"
+        @update:model-value="(v: string) => (hiresCkpt = v)" />
+      <FilNumberInput v-model="iterations" :min="0" :max="5" :step="1"
+        :label="t('lbl_iterations', '🔁 Iterations')" :title="t('hrf_iterations', 'How many upscale+resample passes to run.')" />
+      <FilSegmented :options="['ON', 'OFF']" :option-labels="{ ON: '🕹️ ON', OFF: 'OFF' }" :model-value="useControlnet"
+        :label="t('lbl_use_cn', '🕹️ Use ControlNet')"
+        :title="t('hrf_use_cn', 'Guide the hires pass with a ControlNet. Tile ControlNets work without a preprocessor.')"
+        @update:model-value="(v) => (useControlnet = v as 'ON' | 'OFF')" />
+      <template v-if="useControlnet === 'ON'">
+        <FilSelect :options="controlNetOptions" :model-value="controlNetName"
+          :label="t('lbl_cn_name', '🧩 ControlNet model')" :title="t('hrf_cn_name', 'ControlNet model to apply.')"
+          @update:model-value="(v: string) => (controlNetName = v)" />
+        <FilSlider :model-value="strength" :min="0" :max="10" :step="0.01" :label="t('lbl_cn_strength', '💪 Strength')"
+          :title="t('hrf_cn_strength', 'ControlNet strength.')" @update:model-value="(v: number) => (strength = v)" />
+        <FilSegmented :options="preprocessorOptions" :option-labels="{ none: '🚫 none', canny: '🪞 canny' }"
+          :model-value="preprocessor" :label="t('lbl_cn_preproc', '🧪 Preprocessor')"
+          :title="t('hrf_cn_preproc', `Preprocess the ControlNet hint image. 'none' feeds the raw upscaled image (right for tile ControlNets).`)"
+          @update:model-value="(v: string) => (preprocessor = v)" />
+      </template>
     </template>
   </div>
 </template>

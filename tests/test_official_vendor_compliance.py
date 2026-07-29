@@ -325,44 +325,19 @@ def test_response_instructions_align_with_vendors():
 
 
 # ─────────────────────────────────────────────────────────────────────────
-# Known Limitations & TODOs
+# Not this pack's job
 # ─────────────────────────────────────────────────────────────────────────
-
-
-def test_flux_reference_images_noted():
-    """FLUX officially supports 10 reference images per generation.
-
-    NOTE: This is not yet implemented in Optic Scanner.
-    When image reference support is added, this test should verify it.
-
-    TODO: Add reference image support to FLUX prompting.
-    """
-    # Placeholder for future feature
-    pass
-
-
-def test_qwen_cfg_scale_documentation():
-    """QWEN guide recommends CFG 4.5 + 50 steps.
-
-    NOTE: CFG scale and step count are handled at inference time,
-    not at prompt adaptation time. This is working as designed.
-
-    Recommendation: Document optimal settings in UI/API docs.
-    """
-    # Placeholder - this is infrastructure configuration, not prompt issue
-    pass
-
-
-def test_krea2_style_transfer_feature():
-    """Krea AI officially supports style transfer from reference images.
-
-    NOTE: Style transfer is not yet implemented in Optic Scanner.
-    When style transfer support is added, this test should verify it.
-
-    TODO: Add style transfer capability to Krea 2 prompting.
-    """
-    # Placeholder for future feature
-    pass
+#
+# Three tests stood here with an empty body, added in `b356905` as notes taken
+# while reading the vendor guides. They asserted nothing and were never tasks:
+#
+# * FLUX accepting up to 10 reference images, and Krea 2 transferring style
+#   from one, are things those *generators* do. This pack writes prompt text
+#   and generates no image, so there is nothing here to comply with. Feeding a
+#   reference image into a prompt is Style Mixer's job (`nodes/node_style_mixer
+#   .py`), not Optic Scanner's.
+# * QWEN's CFG 4.5 / 50 steps is a sampler setting, decided at inference time
+#   and nowhere near prompt adaptation.
 
 
 def test_sdxl_keyword_weights_preserved():
