@@ -16,12 +16,9 @@
         {"name": "image", "type": "COMBO", "widget": {"name": "image"}, "link": null},
         {"name": "upload", "type": "IMAGEUPLOAD", "widget": {"name": "upload"}, "link": null}
       ],
-      "outputs": [
-        {"name": "IMAGE", "type": "IMAGE", "links": [2]},
-        {"name": "MASK", "type": "MASK", "links": null}
-      ],
+      "outputs": [{"name": "IMAGE", "type": "IMAGE", "links": [2]}, {"name": "MASK", "type": "MASK", "links": null}],
       "properties": {"Node name for S&R": "LoadImage"},
-      "widgets_values": [""]
+      "widgets_values": ["", "image"]
     },
     {
       "id": 2,
@@ -33,33 +30,50 @@
       "mode": 0,
       "inputs": [
         {"name": "provider", "type": "COMBO", "widget": {"name": "provider"}, "link": null},
-        {"name": "model", "type": "STRING", "widget": {"name": "model"}, "link": null},
+        {"name": "model", "type": "COMBO", "widget": {"name": "model"}, "link": null},
         {"name": "refresh_models", "type": "BOOLEAN", "widget": {"name": "refresh_models"}, "link": null},
-        {"name": "agent_mode", "type": "COMBO", "widget": {"name": "agent_mode"}, "link": null},
-        {"name": "language", "type": "COMBO", "widget": {"name": "language"}, "link": null},
-        {"name": "model_type", "type": "COMBO", "widget": {"name": "model_type"}, "link": null},
-        {"name": "detail_level", "type": "COMBO", "widget": {"name": "detail_level"}, "link": null},
-        {"name": "prompt_mode", "type": "COMBO", "widget": {"name": "prompt_mode"}, "link": null},
-        {"name": "photo_style", "type": "COMBO", "widget": {"name": "photo_style"}, "link": null},
-        {"name": "art_style", "type": "COMBO", "widget": {"name": "art_style"}, "link": null},
         {"name": "temperature", "type": "FLOAT", "widget": {"name": "temperature"}, "link": null},
-        {"name": "seed", "type": "INT", "widget": {"name": "seed"}, "link": null},
         {"name": "max_tokens", "type": "INT", "widget": {"name": "max_tokens"}, "link": null},
-        {"name": "rate_limit_ms", "type": "INT", "widget": {"name": "rate_limit_ms"}, "link": null}
+        {"name": "rate_limit_ms", "type": "INT", "widget": {"name": "rate_limit_ms"}, "link": null},
+        {"name": "max_image_side", "type": "INT", "widget": {"name": "max_image_side"}, "link": null}
       ],
       "outputs": [
-        {"name": "config", "type": "DICT", "links": [1]},
-        {"name": "model", "type": "STRING", "links": null},
-        {"name": "agent_key", "type": "STRING", "links": null},
-        {"name": "language", "type": "STRING", "links": null},
-        {"name": "model_type", "type": "STRING", "links": null},
-        {"name": "detail_level", "type": "STRING", "links": null},
-        {"name": "prompt_mode", "type": "STRING", "links": null},
-        {"name": "style_key", "type": "STRING", "links": null},
-        {"name": "style_overlay", "type": "STRING", "links": null}
+        {"name": "config", "type": "FIL_PROVIDER_CONFIG", "links": [1]},
+        {"name": "model", "type": "STRING", "links": null}
       ],
       "properties": {"Node name for S&R": "FiLProviderLoader"},
-      "widgets_values": ["ollama", "", false, "None", "ru", "Auto/None", "normal", "Auto", "None", "None", 0.7, -1, 0, 100]
+      "widgets_values": [
+        "ollama",
+        "",
+        false,
+        0.7,
+        0,
+        100,
+        1024,
+        {
+          "nodeState": {
+            "provider": "ollama",
+            "model": "",
+            "temperature": 0.7,
+            "max_tokens": 0,
+            "rate_limit_ms": 100,
+            "max_image_side": 1024,
+            "refresh_models": false
+          },
+          "initialValues": {
+            "provider": "ollama",
+            "model": "",
+            "refresh_models": false,
+            "temperature": 0.7,
+            "max_tokens": 0,
+            "rate_limit_ms": 100,
+            "max_image_side": 1024
+          },
+          "ui": {}
+        }
+      ],
+      "color": "#d5ff40",
+      "bgcolor": "#232620"
     },
     {
       "id": 3,
@@ -70,11 +84,12 @@
       "order": 2,
       "mode": 0,
       "inputs": [
-        {"name": "config", "type": "DICT", "link": 1},
+        {"name": "config", "type": "FIL_PROVIDER_CONFIG", "link": 1},
+        {"name": "image", "shape": 7, "type": "IMAGE", "link": 2},
+        {"name": "width", "shape": 7, "type": "INT", "link": null},
+        {"name": "height", "shape": 7, "type": "INT", "link": null},
         {"name": "agent", "type": "COMBO", "widget": {"name": "agent"}, "link": null},
-        {"name": "image", "type": "IMAGE", "link": 2},
-        {"name": "prompt", "type": "STRING", "widget": {"name": "prompt"}, "link": null},
-        {"name": "negative_prompt", "type": "STRING", "widget": {"name": "negative_prompt"}, "link": null},
+        {"name": "agent_focus", "type": "COMBO", "widget": {"name": "agent_focus"}, "link": null},
         {"name": "detail_level", "type": "COMBO", "widget": {"name": "detail_level"}, "link": null},
         {"name": "language", "type": "COMBO", "widget": {"name": "language"}, "link": null},
         {"name": "model_type", "type": "COMBO", "widget": {"name": "model_type"}, "link": null},
@@ -83,12 +98,17 @@
         {"name": "nsfw_photo_style", "type": "COMBO", "widget": {"name": "nsfw_photo_style"}, "link": null},
         {"name": "art_style", "type": "COMBO", "widget": {"name": "art_style"}, "link": null},
         {"name": "nsfw_art_style", "type": "COMBO", "widget": {"name": "nsfw_art_style"}, "link": null},
-        {"name": "custom_style", "type": "STRING", "widget": {"name": "custom_style"}, "link": null},
-        {"name": "temperature", "type": "FLOAT", "widget": {"name": "temperature"}, "link": null},
         {"name": "seed", "type": "INT", "widget": {"name": "seed"}, "link": null},
-        {"name": "max_tokens", "type": "INT", "widget": {"name": "max_tokens"}, "link": null},
         {"name": "response_format", "type": "COMBO", "widget": {"name": "response_format"}, "link": null},
-        {"name": "max_image_side", "type": "INT", "widget": {"name": "max_image_side"}, "link": null}
+        {"name": "prompt", "shape": 7, "type": "STRING", "widget": {"name": "prompt"}, "link": null},
+        {
+          "name": "negative_prompt",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {"name": "negative_prompt"},
+          "link": null
+        },
+        {"name": "custom_style", "shape": 7, "type": "STRING", "widget": {"name": "custom_style"}, "link": null}
       ],
       "outputs": [
         {"name": "prompt", "type": "STRING", "links": null},
@@ -96,15 +116,94 @@
         {"name": "metadata_dict", "type": "DICT", "links": null}
       ],
       "properties": {"Node name for S&R": "FiLOpticScanner"},
-      "widgets_values": ["None", "", "", "normal", "en", "Auto/None", "Auto", "None", "None", "None", "None", "", 0.7, -1, 1024, "text", 1024]
+      "widgets_values": [
+        "⚪ None",
+        "⚪ None",
+        "normal",
+        "en",
+        "Auto/None",
+        "Auto",
+        "None",
+        "None",
+        "None",
+        "None",
+        -1,
+        "randomize",
+        "text",
+        "",
+        "",
+        "",
+        {
+          "nodeState": {
+            "prompt": "",
+            "negative_prompt": "",
+            "custom_style": "",
+            "agent": "⚪ None",
+            "agent_focus": "⚪ None",
+            "model_type": "Auto/None",
+            "detail_level": "normal",
+            "language": "en",
+            "prompt_mode": "Auto",
+            "response_format": "text",
+            "photo_style": "None",
+            "nsfw_photo_style": "None",
+            "art_style": "None",
+            "nsfw_art_style": "None",
+            "seed": -1,
+            "control_after_generate": "randomize",
+            "seed_mode": "random"
+          },
+          "initialValues": {
+            "agent": "⚪ None",
+            "agent_focus": "⚪ None",
+            "detail_level": "normal",
+            "language": "en",
+            "model_type": "Auto/None",
+            "prompt_mode": "Auto",
+            "photo_style": "None",
+            "nsfw_photo_style": "None",
+            "art_style": "None",
+            "nsfw_art_style": "None",
+            "seed": -1,
+            "control_after_generate": "randomize",
+            "response_format": "text",
+            "prompt": "",
+            "negative_prompt": "",
+            "custom_style": ""
+          },
+          "ui": {},
+          "lastRunSeed": null
+        }
+      ],
+      "color": "#d5ff40",
+      "bgcolor": "#232620",
+      "fil_state": {
+        "nodeState": {
+          "prompt": "",
+          "negative_prompt": "",
+          "custom_style": "",
+          "agent": "⚪ None",
+          "agent_focus": "⚪ None",
+          "model_type": "Auto/None",
+          "detail_level": "normal",
+          "language": "en",
+          "prompt_mode": "Auto",
+          "response_format": "text",
+          "photo_style": "None",
+          "nsfw_photo_style": "None",
+          "art_style": "None",
+          "nsfw_art_style": "None",
+          "seed": -1,
+          "control_after_generate": "randomize",
+          "seed_mode": "random"
+        },
+        "ui": {},
+        "lastRunSeed": null
+      }
     }
   ],
+  "links": [[1, 2, 0, 3, 0, "FIL_PROVIDER_CONFIG"], [2, 1, 0, 3, 1, "IMAGE"]],
   "groups": [],
-  "links": [
-    [1, 2, 0, 3, 0, "DICT"],
-    [2, 1, 0, 3, 2, "IMAGE"]
-  ],
   "config": {},
-  "extra": {"ds": {"scale": 0.9, "offset": [60, 60]}},
   "version": 0.4
 }

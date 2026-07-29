@@ -46,15 +46,32 @@ def test_example_workflows_are_valid_and_use_current_types():
             assert target in node_ids
 
 
-def test_workflow_widget_values_match_serialized_widget_inputs():
+def test_workflow_widget_values_cover_every_widget_input():
+    """Every widget input must have a value at its own position.
+
+    This used to assert the two lengths were *equal*, which ComfyUI does not
+    honour — it was only ever green because both examples were stale in
+    matching ways. A graph serialized by 1.47.10 carries extras that belong to
+    no declared input:
+
+      * `control_after_generate`, inserted right after a seed widget;
+      * the Vue panel's state object, always last on our nodes;
+      * `upload` on LoadImage, which the old filter excluded from one side of
+        the comparison but the host writes a value for anyway.
+
+    So the real invariant is a prefix one: `widgets_values` is at least as long
+    as the widget-input list, and never shorter — a short list is what silently
+    shifts values onto the wrong fields.
+    """
     for path in WORKFLOWS:
         workflow = json.loads(path.read_text(encoding="utf-8"))
         for node in workflow["nodes"]:
-            widget_inputs = [
-                item for item in node.get("inputs", [])
-                if "widget" in item and item.get("type") != "IMAGEUPLOAD"
-            ]
-            assert len(node.get("widgets_values", [])) == len(widget_inputs)
+            widget_inputs = [item for item in node.get("inputs", []) if "widget" in item]
+            values = node.get("widgets_values", [])
+            assert len(values) >= len(widget_inputs), (
+                f"{path.name}: {node['type']} has {len(values)} values for "
+                f"{len(widget_inputs)} widget inputs — values would land on the wrong fields"
+            )
 
 
 def test_reported_version_matches_pyproject():
@@ -136,33 +153,23 @@ def test_readme_style_counts_match_the_libraries():
         )
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "The two shipped examples are a snapshot of an older schema; confirmed "
-        "against a live ComfyUI 1.47.10 on 2026-07-29. Regenerating them means "
-        "exporting from a running instance and scrubbing what that leaks — an "
-        "input filename, provider defaults, a neighbour pack's `ue_properties` — "
-        "so it is left as its own task. Remove this marker when it is done; "
-        "strict=True makes the test fail once the files are correct."
-    ),
-)
 def test_workflow_widget_inputs_match_the_current_node_schema(monkeypatch):
     """The shipped example graphs must describe the nodes as they are today.
 
     `test_workflow_widget_values_match_serialized_widget_inputs` compares the
     two halves of a saved node against each other, so a graph whose halves went
-    stale together stayed green. Both examples have exactly that:
-    FiLProviderLoader carries 14 widgets from a schema that now has 7, and
-    FiLOpticScanner lists `temperature`/`max_tokens`/`max_image_side` — which
+    stale together stayed green. Both examples had exactly that until they were
+    regenerated: FiLProviderLoader carried 14 widgets for a schema with 7, and
+    FiLOpticScanner carried `temperature`/`max_tokens`/`max_image_side` — which
     moved to the Provider Loader — while missing `agent_focus`. ComfyUI reads
-    widgets_values positionally, so opening either example lands values on the
+    widgets_values positionally, so opening either example landed values on the
     wrong fields without a word of warning.
 
     `force_input` inputs are excluded: they are sockets, not widgets. `width`
     and `height` on the scanner have defaults *and* `force_input=True`, and a
     first pass at this test counted them as widgets — the live node exposes 15,
-    not 17. The host was asked; it disagreed with the schema reading.
+    not 17. The host was asked; it disagreed with the schema reading, and the
+    host won.
     """
     import importlib
     import asyncio
@@ -192,10 +199,16 @@ def test_workflow_widget_inputs_match_the_current_node_schema(monkeypatch):
             if expected is None:
                 continue
             saved = [i["name"] for i in node.get("inputs", []) if "widget" in i]
-            if saved != expected:
-                drifted[f"{path.name}:{node['type']}"] = {
-                    "missing": [n for n in expected if n not in saved],
-                    "stale": [n for n in saved if n not in expected],
-                }
+            # Which widgets, not what order. The order is the host's to decide —
+            # ComfyUI 1.47.10 puts the multiline fields last, so the scanner
+            # serializes as `agent, agent_focus, detail_level, …, prompt,
+            # negative_prompt, custom_style` while the schema declares `prompt`
+            # third. An earlier version of this test compared the sequences and
+            # failed on files the host itself had just written: nothing in Python
+            # can know that ordering, so nothing in Python should assert it.
+            missing = [n for n in expected if n not in saved]
+            stale = [n for n in saved if n not in expected]
+            if missing or stale:
+                drifted[f"{path.name}:{node['type']}"] = {"missing": missing, "stale": stale}
 
     assert not drifted, f"example workflows describe an older schema: {drifted}"
