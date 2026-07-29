@@ -1,6 +1,12 @@
 # Changelog
 
-## 1.0.1 (2026-07-29)
+## 1.1.0 (2026-07-29)
+
+There is no 1.0.1. It was tagged, published, and pulled from the registry the
+same day, and publishing again under that number did not go through — so the
+work below, which is what 1.0.1 would have been plus the features that landed
+after it, ships under the next number instead. Anyone who installed 1.0.1 in
+the hours it was listed needs nothing beyond updating.
 
 Repairs to 1.0.0, plus the removal of three features that reached further into
 ComfyUI than a node pack should. One change does alter what the nodes produce:
