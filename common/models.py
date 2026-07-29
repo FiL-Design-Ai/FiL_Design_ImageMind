@@ -7,7 +7,7 @@ from typing import Any, Callable, Dict, List, Optional
 from .base import FiLError, InferenceError
 from .brand import BRAND
 from .config import PROVIDERS, get_config
-from .network import HTTPClient, RateLimiter
+from .network import HTTPClient, RateLimiter, retry_after_seconds
 from .processing import normalize_model_name
 from .provider_accounts import get_api_key, get_provider_base_url
 from .provider_resilience import (
@@ -20,6 +20,65 @@ from .provider_resilience import (
 from .storage import get_prompt_cache
 
 logger = logging.getLogger(f"{BRAND}.Models")
+
+
+class TruncatedAnswerError(InferenceError):
+    """The provider answered, but the token budget ran out before any text.
+
+    Its own class rather than a message match: the caller retries on exactly
+    this case, and a retry triggered by a string in an error text would fire on
+    the wrong failures the moment a provider reworded its message.
+
+    `spent` is what the provider reported burning on that attempt — the size of
+    the next budget follows from it instead of from a guess.
+    """
+
+    def __init__(self, message: str, spent: int = 0):
+        super().__init__(message)
+        self.spent = int(spent or 0)
+
+
+# What a retry gets when the first budget was spent before a single visible
+# character. Measured, not guessed: on 2026-07-29 `@cf/openai/gpt-oss-20b`
+# produced nothing at 300 tokens and a full answer at 1200, and
+# `@cf/google/gemma-4-26b-a4b-it` needed 4000. The pack's own Max tokens widget
+# defaults to 0, which lets the provider pick — usually lower than that.
+RETRY_BUDGET_FLOOR = 2000
+RETRY_BUDGET_CEILING = 6000
+# Room for the visible answer on top of what the thinking already cost.
+ANSWER_HEADROOM = 512
+
+
+def _retry_budget(requested: int) -> int:
+    base = requested if requested and requested > 0 else 512
+    return min(max(base * 4, RETRY_BUDGET_FLOOR), RETRY_BUDGET_CEILING)
+
+
+def _budget_ladder(requested: int) -> List[int]:
+    """Budgets to try, in order, stopping as soon as one produces text.
+
+    Two steps, not one: `@cf/moonshotai/kimi-k2.6` still had nothing to show
+    after 2000 tokens. Only a model that produced no text at all climbs the
+    ladder, so a working model never pays for the extra rungs.
+    """
+    ladder = [requested]
+    for rung in (_retry_budget(requested), RETRY_BUDGET_CEILING):
+        if rung > (ladder[-1] or 0):
+            ladder.append(rung)
+    return ladder
+
+
+def _next_budget(planned: int, spent: int) -> int:
+    """The next rung, widened to what the provider said it just burned.
+
+    The fixed ladder topped out at 6000 for everyone, which is a guess about
+    every model at once. When the provider reports the tokens it spent, that
+    number is the better basis: a model that thought for 5800 tokens needs
+    room beyond 6000, not another attempt at it.
+    """
+    if spent <= 0:
+        return planned
+    return max(planned, spent * 2 + ANSWER_HEADROOM)
 
 
 class ModelStrategy(ABC):
@@ -136,6 +195,18 @@ class OpenAIStrategy(ModelStrategy):
             payload["max_tokens"] = int(max_tokens)
         if kwargs.get("response_format") == "json":
             payload["response_format"] = {"type": "json_object"}
+        # OpenRouter only, and only because it was asked on 2026-07-29: it
+        # accepts `reasoning` from every model in the catalogue, reasoning or
+        # not, and it cut `gpt-oss-20b` from 143 thinking tokens to 8 — the
+        # difference between an empty answer and a written prompt at a small
+        # budget. Groq rejects the same idea outright (`reasoning_effort is not
+        # supported with this model`, 400) on its non-reasoning models, and
+        # even its reasoning ones take only `none`/`default`, so nothing goes
+        # there; the budget retry covers Groq instead. `reasoning.exclude` was
+        # tried and is not a substitute — it hides the thinking, still pays for
+        # it, and still truncates.
+        if config.get("provider") == "openrouter":
+            payload["reasoning"] = {"effort": "low"}
         return payload
 
     def parse_response(self, data):
@@ -149,6 +220,20 @@ class OpenAIStrategy(ModelStrategy):
             content = choices[0].get("message", {}).get("content", "")
             if content:
                 return content.strip()
+            # An empty answer that stopped on `length` is not a missing answer:
+            # the model was cut off mid-thought. Reasoning models hit this
+            # first, spending the whole budget before the visible reply starts
+            # — `gpt-oss-20b` at max_tokens=16 returns 13 reasoning tokens and
+            # `content: None`. Dumping the raw payload as "no response" sent
+            # that user looking for a network fault that was never there.
+            if choices[0].get("finish_reason") == "length":
+                usage = data.get("usage") or {}
+                reasoning = (usage.get("completion_tokens_details") or {}).get("reasoning_tokens") or 0
+                detail = f" ({reasoning} of them on reasoning)" if reasoning else ""
+                raise TruncatedAnswerError(
+                    f"The model hit the max_tokens limit{detail} before it produced any text — raise max_tokens.",
+                    spent=usage.get("completion_tokens") or reasoning,
+                )
         # A few OpenAI-compatible providers reply with a bare `content`/`response`
         # field instead of the `choices` shape — accept those, but never fall
         # back to dumping the raw payload as if it were the model's answer.
@@ -202,6 +287,16 @@ class GoogleStrategy(ModelStrategy):
             text = "".join(p.get("text", "") for p in parts)
             if text:
                 return text
+            # Gemini spells the same truncation `MAX_TOKENS`, and its thinking
+            # models spend the budget the same way.
+            if candidates[0].get("finishReason") == "MAX_TOKENS":
+                usage = data.get("usageMetadata") or {}
+                thoughts = usage.get("thoughtsTokenCount") or 0
+                detail = f" ({thoughts} of them on thinking)" if thoughts else ""
+                raise TruncatedAnswerError(
+                    f"The model hit the max_tokens limit{detail} before it produced any text — raise max_tokens.",
+                    spent=usage.get("candidatesTokenCount") or thoughts,
+                )
         raise InferenceError(f"Could not find a response in provider payload: {data!r}")
 
 
@@ -263,6 +358,25 @@ class ModelClient:
         retry_policy = get_retry_policy(provider)
 
         def _build_and_send(current_model: str):
+            ladder = _budget_ladder(max_tokens)
+            for position, budget in enumerate(ladder):
+                try:
+                    return _send_once(current_model, budget)
+                except TruncatedAnswerError as exc:
+                    # The model answered — it just spent every token thinking.
+                    # A bigger budget is the only lever that works on every
+                    # provider: Groq refuses the reasoning knob on most of its
+                    # models, and Cloudflare accepts it without effect.
+                    if position == len(ladder) - 1:
+                        raise
+                    ladder[position + 1] = _next_budget(ladder[position + 1], exc.spent)
+                    logger.warning(
+                        "[%s] '%s' produced no text within %s tokens (spent %s); retrying at %s.",
+                        provider.upper(), current_model, budget or "provider default",
+                        exc.spent or "unreported", ladder[position + 1],
+                    )
+
+        def _send_once(current_model: str, budget: int):
             cfg = {
                 "provider": provider,
                 "model": current_model,
@@ -276,7 +390,7 @@ class ModelClient:
             img = images[0] if images else None
             pl = strategy.build_payload(
                 cfg, system_prompt, user_prompt, img=img,
-                temperature=temperature, seed=seed, max_tokens=max_tokens,
+                temperature=temperature, seed=seed, max_tokens=budget,
                 response_format=response_format, stream=stream or stream_callback is not None,
             )
             chat_url = strategy.get_chat_url(cfg)
@@ -284,12 +398,14 @@ class ModelClient:
             req_kwargs = {"json": pl, "timeout": resolved_timeout, "headers": hdrs}
             if retry_policy:
                 req_kwargs.update(retry_policy.as_kwargs())
-            self.rate_limiter.wait_if_needed(rate_limit_ms)
+            self.rate_limiter.wait_if_needed(rate_limit_ms, provider)
             if stream and stream_callback:
                 resp = self.http_client.post(chat_url, stream=True, **req_kwargs)
+                self._note_rate_limit(provider, resp)
                 resp.raise_for_status()
                 return self._handle_stream_response(resp, provider, stream_callback)
             resp = self.http_client.post(chat_url, **req_kwargs)
+            self._note_rate_limit(provider, resp)
             resp.raise_for_status()
             result = strategy.parse_response(resp.json())
             if use_cache:
@@ -367,6 +483,21 @@ class ModelClient:
                     "Подождите ~1 минуту или увеличьте значение 'Rate limit' в Provider Loader."
                 ) from exc
             raise InferenceError(sanitize_sensitive_data(f"API call to {provider}/{model_name} failed: {exc}")) from exc
+
+    def _note_rate_limit(self, provider: str, response: Any) -> None:
+        """Let the limiter hear the provider say "too fast".
+
+        Read from the response rather than from a table of tier limits: which
+        quota this key has is not knowable here, and a guess either throttles a
+        paid account for nothing or leaves a free one unprotected.
+        """
+        if getattr(response, "status_code", 0) != 429:
+            return
+        spacing = self.rate_limiter.penalize(provider, retry_after_seconds(response))
+        logger.warning(
+            "[%s] rate limit hit — spacing requests %sms apart for the next couple of minutes.",
+            provider.upper(), spacing,
+        )
 
     def _log_cloud_failure(self, provider: str, model: str, exc: BaseException) -> None:
         """Classify and log a cloud provider failure without changing control flow."""

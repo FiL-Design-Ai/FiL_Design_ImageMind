@@ -243,6 +243,48 @@ RECOMMENDED_MODELS = {
 }
 
 
+# Which of those curated ids the provider declared image-capable during the same
+# 2026-07-29 audit. Recorded rather than re-derived: when the fallback list is
+# showing, there is no /models answer to read, and the name hints get exactly the
+# case that matters wrong — `qwen/qwen3.6-27b` is the only model Groq declares
+# image-capable and no hint token matches it.
+RECOMMENDED_VISION_MODELS: Dict[str, set] = {
+    "openai": {
+        "gpt-5.6-sol",
+        "gpt-5.6-terra",
+        "gpt-5.6-luna",
+        "gpt-5.5",
+        "gpt-5.4-mini",
+        "gpt-4.1-mini",
+        "gpt-4o-mini",
+    },
+    "google": {
+        "gemini-3.6-flash",
+        "gemini-3.5-flash",
+        "gemini-3.5-flash-lite",
+        "gemini-3.1-pro-preview",
+        "gemini-2.5-flash",
+        "gemini-2.5-pro",
+        "gemini-2.0-flash",
+    },
+    "groq": {"qwen/qwen3.6-27b"},
+    # `openrouter/free` is the auto-router: OpenRouter declares it
+    # image-capable because it can route to a model that sees.
+    "openrouter": {
+        "openrouter/free",
+        "google/gemma-4-31b-it:free",
+        "google/gemma-4-26b-a4b-it:free",
+        "nvidia/nemotron-nano-12b-v2-vl:free",
+    },
+    "cloudflare": {
+        "@cf/meta/llama-4-scout-17b-16e-instruct",
+        "@cf/meta/llama-3.2-11b-vision-instruct",
+        "@cf/moonshotai/kimi-k2.6",
+        "@cf/google/gemma-4-26b-a4b-it",
+    },
+}
+
+
 def get_provider_config(provider: str) -> Optional[Dict[str, Any]]:
     prov = PROVIDERS.get(provider)
     if not prov:
@@ -295,6 +337,11 @@ def is_model_vision_capable(provider: str, model: str) -> bool:
 
 def get_recommended_models(provider: str) -> List[str]:
     return RECOMMENDED_MODELS.get(provider, [])
+
+
+def get_recommended_vision_models(provider: str) -> set:
+    """The audited image-capable subset of `get_recommended_models(provider)`."""
+    return RECOMMENDED_VISION_MODELS.get(provider, set())
 
 
 class Config:

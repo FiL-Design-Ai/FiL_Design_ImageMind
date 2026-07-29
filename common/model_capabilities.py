@@ -86,6 +86,12 @@ NON_CHAT_MARKERS: Dict[str, tuple[str, ...]] = {
         "imagen",
         "veo-",
         "-image",
+        # Agentic products behind the same `generateContent` method: both
+        # answered 400 to an ordinary chat call on 2026-07-29. `robotics-er` is
+        # deliberately absent — 1.5 is withdrawn (404) but 1.6 writes prompts
+        # fine, so the family is not the problem.
+        "deep-research",
+        "antigravity",
     ),
     "groq": (
         "whisper",
@@ -93,6 +99,12 @@ NON_CHAT_MARKERS: Dict[str, tuple[str, ...]] = {
         "prompt-guard",
         "llama-guard",
     ),
+    # Cloudflare's catalogue is already narrowed to Text Generation, so only
+    # the safety classifiers slip through: `llama-guard-3-8b` replies with a
+    # safe/unsafe verdict, which the Provider Loader offered as a prompt
+    # writer. `safeguard` is deliberately not here — Groq's
+    # `gpt-oss-safeguard-20b` does write prompts.
+    "cloudflare": ("llama-guard",),
 }
 
 
