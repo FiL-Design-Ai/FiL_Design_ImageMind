@@ -89,6 +89,151 @@ def test_successful_model_list(monkeypatch):
     assert result["models"] == ["model-a", "model-b"]
 
 
+def test_listing_reports_the_vision_subset_the_provider_declares(monkeypatch):
+    """The badge comes from the payload, both ways round.
+
+    `gpt-oss-20b` reads as vision to any name-based rule and is text-only;
+    `qwen3.6-27b` reads as text and Groq declares it image-capable. Before the
+    2026-07-29 audit the pack got both backwards.
+    """
+    from FiL_Design_ImageMind.common import provider_runtime
+
+    class Response:
+        def json(self):
+            return {
+                "data": [
+                    {"id": "openai/gpt-oss-20b", "input_modalities": ["text"], "output_modalities": ["text"]},
+                    {"id": "qwen/qwen3.6-27b", "input_modalities": ["text", "image"], "output_modalities": ["text"]},
+                    {"id": "whisper-large-v3", "input_modalities": ["audio"], "output_modalities": ["text"]},
+                ]
+            }
+
+    class Client:
+        def __init__(self, **kwargs):
+            pass
+
+        def get(self, *args, **kwargs):
+            return Response()
+
+    monkeypatch.setattr(provider_runtime, "HTTPClient", Client)
+    monkeypatch.setattr(provider_runtime, "get_api_key", lambda provider: "configured")
+    result = provider_runtime.fetch_models_with_status("groq", force=True)
+
+    assert result["vision_models"] == ["qwen/qwen3.6-27b"]
+    # The audio model never becomes a chat option.
+    assert result["models"] == ["openai/gpt-oss-20b", "qwen/qwen3.6-27b"]
+
+
+def test_a_listed_declaration_reaches_the_name_only_callers(monkeypatch):
+    """The nodes ask by name alone; they must get the provider's answer too."""
+    from FiL_Design_ImageMind.common import provider_runtime
+    from FiL_Design_ImageMind.common.config import is_model_vision_capable
+
+    class Response:
+        def json(self):
+            return {"data": [{"id": "qwen/qwen3.6-27b", "input_modalities": ["text", "image"]}]}
+
+    class Client:
+        def __init__(self, **kwargs):
+            pass
+
+        def get(self, *args, **kwargs):
+            return Response()
+
+    monkeypatch.setattr(provider_runtime, "HTTPClient", Client)
+    monkeypatch.setattr(provider_runtime, "get_api_key", lambda provider: "configured")
+
+    provider_runtime.fetch_models_with_status("groq", force=True)
+    assert is_model_vision_capable("groq", "qwen/qwen3.6-27b") is True
+
+    # Dropping the listing drops the answer with it.
+    provider_runtime.invalidate_model_cache("groq")
+    assert is_model_vision_capable("groq", "qwen/qwen3.6-27b") is False
+
+
+def test_google_media_models_are_not_offered_as_chat(monkeypatch):
+    from FiL_Design_ImageMind.common import provider_runtime
+
+    class Response:
+        def json(self):
+            return {
+                "models": [
+                    {"name": "models/gemini-3.6-flash", "supportedGenerationMethods": ["generateContent"]},
+                    {"name": "models/lyria-3-pro-preview", "supportedGenerationMethods": ["generateContent"]},
+                    {"name": "models/gemini-2.5-flash-preview-tts", "supportedGenerationMethods": ["generateContent"]},
+                    {"name": "models/nano-banana-pro-preview", "supportedGenerationMethods": ["generateContent"]},
+                ]
+            }
+
+    class Client:
+        def __init__(self, **kwargs):
+            pass
+
+        def get(self, *args, **kwargs):
+            return Response()
+
+    monkeypatch.setattr(provider_runtime, "HTTPClient", Client)
+    monkeypatch.setattr(provider_runtime, "get_api_key", lambda provider: "configured")
+    result = provider_runtime.fetch_models_with_status("google", force=True)
+
+    assert result["models"] == ["gemini-3.6-flash"]
+    assert result["vision_models"] == ["gemini-3.6-flash"]
+
+
+def test_cloudflare_reads_its_catalogue_and_falls_back_when_it_is_gone(monkeypatch):
+    from FiL_Design_ImageMind.common import provider_runtime
+
+    catalog = {
+        "result": [
+            {
+                "name": "@cf/meta/llama-4-scout-17b-16e-instruct",
+                "task": {"name": "Text Generation"},
+                "properties": [{"property_id": "vision", "value": "true"}],
+            },
+            {
+                "name": "@cf/zai-org/glm-5.2",
+                "task": {"name": "Text Generation"},
+                "properties": [{"property_id": "context_window", "value": "262144"}],
+            },
+            {"name": "@cf/black-forest-labs/flux-1-schnell", "task": {"name": "Text-to-Image"}, "properties": []},
+        ]
+    }
+
+    class Response:
+        def json(self):
+            return catalog
+
+    class Client:
+        fail = False
+
+        def __init__(self, **kwargs):
+            pass
+
+        def get(self, url, **kwargs):
+            if Client.fail:
+                raise requests.ConnectionError("offline")
+            assert url.endswith("/ai/models/search"), url
+            return Response()
+
+    monkeypatch.setattr(provider_runtime, "HTTPClient", Client)
+    monkeypatch.setattr(provider_runtime, "get_api_key", lambda provider: "configured")
+    monkeypatch.setattr(
+        provider_runtime,
+        "get_provider_base_url",
+        lambda p: "https://api.cloudflare.com/client/v4/accounts/acct/ai/v1",
+    )
+
+    result = provider_runtime.fetch_models_with_status("cloudflare", force=True)
+    assert result["models"] == ["@cf/meta/llama-4-scout-17b-16e-instruct", "@cf/zai-org/glm-5.2"]
+    # glm-5.2 carries no vision property — the name used to badge it anyway.
+    assert result["vision_models"] == ["@cf/meta/llama-4-scout-17b-16e-instruct"]
+
+    Client.fail = True
+    fallback = provider_runtime.fetch_models_with_status("cloudflare", force=True)
+    assert fallback["status"] == "available"
+    assert fallback["models"], "the curated list must still answer when the catalogue is unreachable"
+
+
 def test_http_statuses_are_safely_classified(monkeypatch):
     from FiL_Design_ImageMind.common import provider_runtime
 

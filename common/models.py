@@ -6,7 +6,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 from .base import FiLError, InferenceError
 from .brand import BRAND
-from .config import PROVIDERS, get_config, is_known_vision_model_name
+from .config import PROVIDERS, get_config
 from .network import HTTPClient, RateLimiter
 from .processing import normalize_model_name
 from .provider_accounts import get_api_key, get_provider_base_url
@@ -422,7 +422,11 @@ class ModelClient:
         return "".join(full_text)
 
     def check_vision(self, provider: str, model: str) -> bool:
-        return is_known_vision_model_name(model) or provider == "google"
+        # Same resolver the Provider Loader badges use, so the client and the
+        # UI cannot disagree about whether a model takes an image.
+        from .config import is_model_vision_capable
+
+        return is_model_vision_capable(provider, model)
 
     def list_models(self, provider: str) -> List[str]:
         from .provider_runtime import fetch_models_from_provider
