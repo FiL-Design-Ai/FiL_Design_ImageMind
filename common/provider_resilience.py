@@ -19,7 +19,6 @@ from .config import (
     OPENROUTER_EXCLUDED_MODEL_PATTERNS,
     OPENROUTER_PREFERRED_VISION_MODELS,
     PROVIDERS,
-    get_provider_config,
 )
 from .network import HTTPClient
 from .processing import normalize_model_name

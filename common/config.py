@@ -374,8 +374,13 @@ class Config:
                         if line and not line.startswith("#") and "=" in line:
                             key, _, value = line.partition("=")
                             self._env_data[key.strip()] = value.strip()
-            except Exception:
-                pass
+            except Exception as exc:
+                # Loudly, because the symptom is otherwise unrecognisable: an
+                # unreadable API.env leaves every cloud provider reporting "no
+                # key", and the user goes looking at their keys instead of at
+                # the file holding them. The exception text is safe — it names
+                # the file, never its contents.
+                logger.warning("Could not read %s (%s); provider keys from it are unavailable.", env_file, exc)
         for key in {"OLLAMA_URL", "LMSTUDIO_URL"}:
             if key in os.environ:
                 self._env_data[key] = os.environ[key]
@@ -388,8 +393,11 @@ class Config:
                 with open(config_file, "r", encoding="utf-8") as f:
                     content = f.read()
                     self._yaml_data = yaml.safe_load(content) or {} if content.strip() else {}
-            except Exception:
-                pass
+            except Exception as exc:
+                # A broken config.yaml used to roll every setting silently back
+                # to its built-in default — timeouts, rate limits, local server
+                # URLs — with nothing in the log to connect the two.
+                logger.warning("Could not parse %s (%s); falling back to built-in defaults.", config_file, exc)
 
     def _merge_configs(self) -> None:
         self._config_data = self._yaml_data.copy()

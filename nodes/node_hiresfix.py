@@ -8,11 +8,15 @@ latent upscalers and the AIO ControlNet preprocessor of the original are
 intentionally omitted.
 """
 
+import logging
+
 from comfy_api.latest import io
 
-from ..common.brand import CATEGORY_ROOT
+from ..common.brand import BRAND, CATEGORY_ROOT
 from ..common.io_types import FilHiresScript
 from ..common.localization import t
+
+logger = logging.getLogger(f"{BRAND}.HighResFix")
 
 _LATENT_METHODS = ["nearest-exact", "bilinear", "area", "bicubic", "bislerp"]
 
@@ -104,7 +108,10 @@ class FiLHighResFix(io.ComfyNode):
 
                 control_net = ControlNetLoader().load_controlnet(control_net_name)[0]
             except Exception as exc:  # pragma: no cover - depends on installed models
-                print(f"[FiLHighResFix] ControlNet load failed ({exc}); continuing without it.")
+                # Through the logger, not print: the pack exposes a log level
+                # (common/base.py, the /log_level route) and a bare print
+                # ignores it, so this warning could not be turned down.
+                logger.warning("ControlNet load failed (%s); continuing without it.", exc)
 
         new_script = dict(script) if isinstance(script, dict) else {}
         new_script["hiresfix"] = {
