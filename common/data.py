@@ -448,6 +448,22 @@ def get_visible_style_keys(widget_name: str) -> List[str]:
     return [key for key in source.keys() if key and key != "None"]
 
 
+def get_all_style_keys() -> List[str]:
+    """Every style the pack knows, across all four libraries, deduplicated.
+
+    Lives here rather than beside its caller because two places need the same
+    answer and they gave different ones: 🎛️ Style Mixer built the list from all
+    four libraries while its frontend contract built it from photo + art only,
+    so 112 NSFW styles were accepted by the node and unreachable in its panel.
+    One list, one source.
+    """
+    keys: List[str] = []
+    for widget in ("photo_style", "nsfw_photo_style", "art_style", "nsfw_art_style"):
+        keys.extend(get_visible_style_keys(widget))
+    seen: set = set()
+    return [k for k in keys if not (k in seen or seen.add(k))]
+
+
 def get_style_prompt(style_key: str) -> str:
     """Resolve a style display key to its underlying prompt string across all style libraries."""
     if not style_key or style_key == "(None)":

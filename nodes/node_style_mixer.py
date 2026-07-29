@@ -10,7 +10,7 @@ from typing import Any, Optional
 
 from comfy_api.latest import io
 from ..common.brand import BRAND, CATEGORY_ROOT
-from ..common.data import get_style_prompt, get_visible_style_keys
+from ..common.data import get_all_style_keys, get_style_prompt
 from ..common.io_types import FilProviderConfig
 from ..common.models import ModelClient
 from ..common.processing import ImageProcessor
@@ -34,20 +34,12 @@ FUSION_MODES = [
 ]
 
 
-def _get_all_style_keys() -> list[str]:
-    keys = []
-    for widget in ("photo_style", "nsfw_photo_style", "art_style", "nsfw_art_style"):
-        keys.extend(get_visible_style_keys(widget))
-    seen = set()
-    return [k for k in keys if not (k in seen or seen.add(k))]
-
-
 class FiLStyleMixer(io.ComfyNode):
     """Blends multiple visual styles and reference images with weighted influence sliders."""
 
     @classmethod
     def define_schema(cls):
-        style_options = ["(None)"] + _get_all_style_keys()
+        style_options = ["(None)"] + get_all_style_keys()
         return io.Schema(
             node_id="FiLStyleMixer",
             display_name="🎛️ Style Mixer",
