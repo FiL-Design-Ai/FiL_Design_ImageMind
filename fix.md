@@ -8,12 +8,21 @@ bug can be traced to the commit that closed it.
 Add an entry when you fix something. Format: `` `hash` — one line saying what
 was broken`` , then a sentence on the cause where it is not obvious.
 
-## 1.0.1 (tag `v1.0.1`)
+## 1.1.0 (tag `v1.1.0`)
 
-Everything under this heading ships in 1.0.1. The first tag cut for this
-version was deleted before anyone could install it — the registry entry it
-published was removed too — so the repairs below, which landed after it, are
-part of the same release rather than the next one.
+Everything under this heading ships in 1.1.0, and the number skipped a step.
+1.0.1 was tagged, published to the registry and pulled the same day; the second
+publish under that number failed on `comfy node publish` with a bare exit 1,
+after the token guard and the frontend build had both passed. The log needs a
+GitHub login to read, so the cause was never established — the registry keeping
+a pulled number reserved is the obvious suspect and is not proven. What is
+observable: the versions list dropped 1.0.1, while the node record kept
+reporting it as `latest_version` with its original 04:36 timestamp.
+
+Worth knowing next time: deleting a GitHub release and deleting the registry
+version are two different actions, and only the second frees anything. The
+first attempt here removed the release and the tag, and the registry served
+1.0.1 for hours afterwards.
 
 - `a4404cb` — six photo styles added on the axis the library was thin on: 96
   of 157 entries described what is in front of the camera and 20 what the
@@ -265,7 +274,7 @@ And the repairs from earlier in the same cycle, before the first tag:
   panels shot against the 1.0.0 UI, gallery in both language halves,
   `docs/images/` kept out of the registry archive.
 
-Until the 1.0.1 tag is pushed, ComfyUI Manager still serves 1.0.0 — the code
+Until the 1.1.0 tag is pushed, ComfyUI Manager still serves 1.0.0 — the code
 as it stood at `d03b5e8`, global wheel listener and all.
 
 ## 1.0.0 (tag `v1.0.0` = `d03b5e8`)
