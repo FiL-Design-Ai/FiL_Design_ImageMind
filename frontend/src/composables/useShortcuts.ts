@@ -15,13 +15,12 @@ import { toast } from "@/stores/toastStore";
 const SETTING_ENABLED = "FiL_Design_ImageMind.Shortcuts.Enabled";
 const CHEATSHEET_ID = "__cheatsheet__";
 
-const SEARCH_SELECTORS = [
-  "#comfy-search-input",
-  'input[name="search"]',
-  'input[aria-label="Search"]',
-  "#search-input",
-  'input[placeholder*="search" i]',
-];
+// A "focus the add-node search" command lived here, bound to a bare `/`. Both
+// halves were wrong for a node pack: the key is claimed globally, from every
+// context in the host, and the field was hunted down through five guessed CSS
+// selectors — the same way `.comfy-node-header` and the canvas `nodeEls` map
+// were guessed, neither of which any shipped frontend has ever emitted.
+// Focusing core's own search is core's business. Only the help binding stays.
 
 /**
  * Declarative commands + keybindings, attached to the extension object in
@@ -36,19 +35,12 @@ export const filCommands: ComfyCommand[] = [
     icon: "?",
     function: openCheatsheet,
   },
-  {
-    id: "FiL_Design_ImageMind.focusSearch",
-    label: "FiL_Design_ImageMind — Focus add-node search",
-    icon: "/",
-    function: focusSearch,
-  },
 ];
 
 export const filKeybindings: ComfyKeybinding[] = [
   { commandId: "FiL_Design_ImageMind.helpCheatsheet", combo: { key: "?", shift: true } },
   // NB: Ctrl+Shift+K is reserved by core (Workspace.ToggleBottomPanel) — binding it
   // via the native API throws a duplicate-keybinding error, so we don't register it.
-  { commandId: "FiL_Design_ImageMind.focusSearch", combo: { key: "/" } },
 ];
 
 function isFormField(target: EventTarget | null): boolean {
@@ -57,34 +49,12 @@ function isFormField(target: EventTarget | null): boolean {
   return tag === "input" || tag === "textarea" || tag === "select" || (target as HTMLElement).isContentEditable === true;
 }
 
-function findSearchField(): HTMLElement | null {
-  for (const sel of SEARCH_SELECTORS) {
-    const el = document.querySelector<HTMLElement>(sel);
-    if (el) return el;
-  }
-  return null;
-}
-
 function openCheatsheet() {
   const store = useHelpStore();
   store.ensureHelpDefaultsInjected();
   // The cheatsheet is registered as a help entry; the FilHelpPopup
   // auto-opens for the active help id via the shared `activeHelpId` ref.
   store.value_open?.(CHEATSHEET_ID);
-}
-
-function focusSearch() {
-  const el = findSearchField();
-  if (!el) {
-    toast.info("ComfyUI search field not found");
-    return;
-  }
-  try {
-    el.focus();
-    if ("select" in el) (el as HTMLInputElement).select();
-  } catch {
-    // ignore — non-critical.
-  }
 }
 
 /**
@@ -152,13 +122,6 @@ function onFallbackKey(event: KeyboardEvent, app: ComfyApp): void {
         toast.info("Select exactly one FiL_Design_ImageMind node, then press ?");
       }
     }
-    event.preventDefault();
-    return;
-  }
-
-  // "/" — focus search.
-  if (event.key === "/" && !event.shiftKey && !event.ctrlKey && !event.metaKey && !event.altKey) {
-    focusSearch();
     event.preventDefault();
   }
 }

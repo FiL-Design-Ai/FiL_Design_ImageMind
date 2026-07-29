@@ -17,6 +17,9 @@ import { NODE_MODULES } from "@/nodes2/nodeRegistry";
 import { installToasts } from "@/nodes2/installers/toasts";
 import { installRunButtonFx } from "@/nodes2/installers/runButtonFx";
 import { installProviderManager } from "@/nodes2/installers/providerManager";
+import { installHelpToolbar } from "@/nodes2/installers/helpToolbar";
+import { installShortcuts } from "@/nodes2/installers/shortcuts";
+import { filCommands, filKeybindings } from "@/composables/useShortcuts";
 import { ALL_SETTINGS } from "@/stores/settings/allSettings";
 import { applyStartupLogLevel } from "@/stores/settings/loggingSettings";
 import { applyStartupTheme } from "@/stores/settings/themeSettings";
@@ -72,11 +75,17 @@ export function createFilExtension(app: ComfyApp): ComfyExtension {
     // even if a later installer throws.
     settings: ALL_SETTINGS,
 
-    // No `commands`/`keybindings`: the pack registered Shift+? for a keyboard
-    // cheatsheet and `/` for the node search. Both were removed along with the
-    // help popup they drove — ComfyUI's own keybinding settings are where a
-    // user expects to bind those, and a node pack claiming global keys is a
-    // conflict waiting to happen.
+    // One command, one binding: Shift+? opens the keyboard cheatsheet. It goes
+    // through the host's own `commands`/`keybindings` API, so the key shows up
+    // in ComfyUI's keybinding settings and the user can rebind or clear it —
+    // which is the answer to the objection that sank the previous attempt (a
+    // raw capture-phase `document` listener nobody could see or override).
+    //
+    // The `/` binding for the add-node search does *not* come back. A bare key
+    // claimed from every context in the host is a conflict waiting to happen,
+    // and focusing core's own search is core's business.
+    commands: filCommands,
+    keybindings: filKeybindings,
 
     async setup() {
       // All installers are isolated: a throw in one must not break others.
@@ -84,6 +93,11 @@ export function createFilExtension(app: ComfyApp): ComfyExtension {
         () => installToasts(),
         () => installProviderManager(app),
         () => installRunButtonFx(app),
+        () => installHelpToolbar(app),
+        // A no-op when the host has `extensionManager` — the commands above
+        // already did the work. Only a very old or dev-only ComfyUI falls back
+        // to a keydown listener.
+        () => installShortcuts(app),
         () => applyStartupLogLevel((id, fallback) => readSetting(id, fallback, app)),
         () => applyStartupTheme((id, fallback) => readSetting(id, fallback, app)),
       ];
