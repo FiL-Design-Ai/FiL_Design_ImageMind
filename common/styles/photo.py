@@ -24,6 +24,19 @@ PHOTO_STYLES = {
     "📷 КАМЕРЫ/🚓 Police Dashcam": (
         "police dashcam footage, windshield perspective, LED emergency strobe flares, shaky vehicle-mounted capture, harsh night contrast, blown highlights, road reflection glare, compressed video texture, documentary incident realism, bodycam-adjacent visual truth."
     ),
+    # The medium most photographs are actually made on now. Its tells are
+    # computational, not optical: shadows lifted flat by HDR stacking, noise
+    # scrubbed into plastic smoothness, edges over-sharpened. Reads as "a real
+    # picture someone took" more reliably than any prestige camera.
+    "📷 КАМЕРЫ/📱 Smartphone Computational": (
+        "modern smartphone photo, 26mm equivalent lens at f/1.8, computational HDR stacking lifting every shadow flat, aggressive noise reduction smoothing fine texture into waxy patches, over-sharpened edge halos, slightly oversaturated processing, deep focus across the whole frame, handheld snapshot framing, ordinary phone-camera realism."
+    ),
+    # Distinct from the disposable: that is a cheap plastic lens, this is a
+    # reporter's flash gun — a hard shadow stamped on the wall behind and
+    # everything past two metres falling to black.
+    "📷 КАМЕРЫ/⚡ Direct Flash Night": (
+        "on-camera direct flash at night, 35mm lens at f/8, 1/200s sync, harsh frontal light flattening the subject, hard-edged shadow stamped on the wall behind, blown-out nearest surfaces, background falling to solid black past the flash range, specular hotspots on skin and glass, red-eye catchlights, paparazzi press photography."
+    ),
     "📷 КАМЕРЫ/🎞️ Raw 35mm Photo": (
         "Nikon F3 35mm film photo, Kodak Gold 200 color negative, natural color response, visible film grain, analog latitude, soft highlight rolloff, subtle halation, imperfect focus realism, sprocket-hole frame option, unsharpened documentary film look."
     ),
@@ -72,6 +85,26 @@ PHOTO_STYLES = {
     # 🕰️ РЕТРО
     "🕰️ РЕТРО/🎞️ Vintage 70s Portra": (
         "Kodak Portra 400 film look, warm skin tones, soft highlight halation, subtle shadow grain, low contrast midtones, analog color shift, sun-faded palette, film softness, vintage editorial realism, 1970s photography aesthetic."
+    ),
+    # The stock the neon half of this library was missing: tungsten-balanced
+    # cine film with the anti-halation layer removed, which is where the red
+    # bloom around every light source comes from.
+    # Deliberately avoids the word "neon": that single token routes a style into
+    # the `cyberpunk` category, which rewrites "skin" to "synthetic epidermis"
+    # and "hair" to "synthetic fiber strands". This is a film stock meant to
+    # stack onto any subject through Style Mixer, so it must stay neutral about
+    # what is in front of the lens. Same reason `Rembrandt Key Light` says
+    # "unlit background" rather than "dark".
+    "🕰️ РЕТРО/🌆 Cinestill 800T Halation": (
+        "CineStill 800T tungsten-balanced film pushed to 1600, 35mm lens at f/2, red halation blooming around every practical light source, cool blue shadows against warm sodium highlights, coarse colour grain in the midtones, soft highlight rolloff, night street exposure, analog colour film photography."
+    ),
+    "🕰️ РЕТРО/⬛ Tri-X Push 1600": (
+        "Kodak Tri-X 400 black and white film pushed to 1600, 35mm lens at f/5.6, coarse clumping grain, blocked-up blacks with no shadow detail, blown highlight edges, gritty midtone contrast, hand-printed fibre paper look, available-light documentary photography."
+    ),
+    # Not a filter over the image — a photograph of a photograph. The scanner's
+    # own artefacts are the realism cue.
+    "🕰️ РЕТРО/🖨️ Scanned Print": (
+        "flatbed scan of an old 10x15 colour print, visible paper grain and matte surface texture, dust specks and a hair on the platen, faint newton rings, magenta cast from decades of dye fade, slightly soft focus from the original print, white border and rounded corners, one bent corner, family photo album scan."
     ),
     "🕰️ РЕТРО/🪞 Daguerreotype": (
         "1839 daguerreotype process on silvered copper plate, mirror-polished metallic sheen visible in the shadow areas, razor-sharp engraved micro-detail, narrow silvery tonal range with almost no midtones, rigid formal studio pose, dark velvet backdrop, cold blue-silver cast, pristine unblemished plate surface, earliest photography realism."
@@ -382,6 +415,12 @@ PHOTO_STYLES = {
     ),
     "🧪 ЭФФЕКТЫ/🌊 Bioluminescence": (
         "long-exposure night photograph of bioluminescence, 24mm lens wide open at f/1.4, 15-second exposure, high ISO grain, blue-green light emission, organic light sources, dark environment contrast, faint glow the eye barely sees gathered by the sensor, natural-history field capture."
+    ),
+    # The library had lighting *moods* but no named pattern. Rembrandt is the
+    # one portrait photographers actually call for, and the triangle under the
+    # far eye is a specific, checkable geometry rather than an adjective.
+    "🧪 ЭФФЕКТЫ/💡 Rembrandt Key Light": (
+        "studio portrait photograph, 85mm lens at f/4, single key light 45 degrees to the side and 45 above, small illuminated triangle on the shadowed cheek under the far eye, nose shadow meeting the cheek shadow, subtle fill from a reflector holding the shadow side one stop down, soft falloff into an unlit background, classic portrait lighting captured in camera."
     ),
     "🧪 ЭФФЕКТЫ/🎭 Hard Chiaroscuro": (
         "studio photograph with one bare hard light and no fill, 85mm lens at f/8, extreme light-shadow contrast, sharp shadow edges, deep black negative space, sculpted subject form, single-source lighting captured in camera."
