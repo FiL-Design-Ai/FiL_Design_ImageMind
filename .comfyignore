@@ -2,7 +2,10 @@
 # What ComfyUI actually loads is __init__.py, server_routes.py, common/,
 # nodes/, data/, requirements.txt and the built frontend/dist bundle.
 
-# Test suite and developer tooling
+# Test suite and developer tooling. fix.md is the running log of individual
+# repairs — written for whoever maintains this pack, not for whoever installs
+# it; CHANGELOG.md is the user-facing half. install_requirements.bat stays:
+# the README documents it in both language halves.
 tests/
 tools/
 scripts/
@@ -14,10 +17,17 @@ requirements-dev.txt
 .agents/
 .vscode/
 CLAUDE.md
+fix.md
+.gitignore
+.gitattributes
 
 # Frontend sources — only frontend/dist ships. frontend/public is a
 # byte-for-byte duplicate of dist/style-previews, so shipping both doubles
-# 1.5 MB of preview images for nothing.
+# 1.5 MB of preview images for nothing. The sourcemap goes for the same
+# reason: 1.8 MB, and its `sourcesContent` inlines all 164 files that the
+# next line excludes. Devtools will 404 on it, which costs nothing to anyone
+# who is not debugging the bundle, and anyone who is has the repository.
+frontend/dist/fil_design_imagemind.js.map
 frontend/src/
 frontend/public/
 frontend/tests/
