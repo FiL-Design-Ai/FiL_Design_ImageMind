@@ -184,7 +184,7 @@ target diffusion model. Prompt fields are resizable and also work as input socke
 | `language` | COMBO | `en` | en, ru |
 | `model_type` | COMBO | `Auto/None` | Z-Image Turbo, FLUX, SDXL, QWEN, Krea 2, Ideogram 4 |
 | `prompt_mode` | COMBO | `Auto` | Auto, Hybrid, Two-Stage |
-| `photo_style` / `art_style` | COMBO | `None` | 158 photo + 130 art presets, grouped by category |
+| `photo_style` / `art_style` | COMBO | `None` | 163 photo + 129 art presets, grouped by category |
 | `nsfw_photo_style` / `nsfw_art_style` | COMBO | `None` | separate 18+ catalogs |
 | `custom_style` | STRING (optional) | `""` | free-form style text, merged with the picks |
 | `seed` | INT | `-1` | -1 – 999999999999 (-1 = random) |
@@ -229,7 +229,7 @@ Wire the individual layers into separate conditioning branches when you want to 
 | `image_1..4` | IMAGE (optional) | — | reference images |
 | `img_weight_1..4` | FLOAT (optional) | 0.8 / 0.6 / 0.4 / 0.2 | influence per reference |
 | `img_focus_1..4` | COMBO (optional) | `Auto / General` | Style & Texture, Color & Lighting, Subject & Composition, Mood & Atmosphere |
-| `style_1..3` | COMBO (optional) | `(None)` | from the same 288-preset catalog as the Scanner |
+| `style_1..3` | COMBO (optional) | `(None)` | from the full 401-preset catalog (photo, art and both NSFW libraries) |
 | `weight_1..3` | FLOAT (optional) | 1.0 / 0.5 / 0.3 | influence per style |
 
 **Outputs:** `styled_prompt` (STRING), `style_overlay` (STRING)
@@ -498,7 +498,7 @@ is an RGB-specific interpolation and does not belong in latent space.
 - **Prompt modes:** `Hybrid` is a single enriched call; `Two-Stage` analyses first, then writes the
   prompt from that analysis, falling back to stage 1 if stage 2 comes back too short; `Auto` picks
   between them.
-- **Styles:** 158 photo + 130 art presets in `common/styles/`, browsable through a searchable picker
+- **Styles:** 163 photo + 129 art presets in `common/styles/`, browsable through a searchable picker
   with preview tiles. See [`docs/styles.md`](docs/styles.md).
 
 ### Settings
@@ -835,7 +835,7 @@ Python самого ComfyUI (`python_embeded`, `venv` или `.venv`), став�
 | `language` | COMBO | `en` | en, ru |
 | `model_type` | COMBO | `Auto/None` | Z-Image Turbo, FLUX, SDXL, QWEN, Krea 2, Ideogram 4 |
 | `prompt_mode` | COMBO | `Auto` | Auto, Hybrid, Two-Stage |
-| `photo_style` / `art_style` | COMBO | `None` | 158 фото + 130 арт-пресетов по категориям |
+| `photo_style` / `art_style` | COMBO | `None` | 163 фото + 129 арт-пресетов по категориям |
 | `nsfw_photo_style` / `nsfw_art_style` | COMBO | `None` | отдельные 18+ каталоги |
 | `custom_style` | STRING (опц.) | `""` | свой текст стиля, подмешивается к выбранным |
 | `seed` | INT | `-1` | -1 – 999999999999 (-1 = случайный) |
@@ -880,7 +880,7 @@ Python самого ComfyUI (`python_embeded`, `venv` или `.venv`), став�
 | `image_1..4` | IMAGE (опц.) | — | референсные изображения |
 | `img_weight_1..4` | FLOAT (опц.) | 0.8 / 0.6 / 0.4 / 0.2 | влияние каждого референса |
 | `img_focus_1..4` | COMBO (опц.) | `Auto / General` | Style & Texture, Color & Lighting, Subject & Composition, Mood & Atmosphere |
-| `style_1..3` | COMBO (опц.) | `(None)` | из того же каталога на 288 пресетов, что и у Сканера |
+| `style_1..3` | COMBO (опц.) | `(None)` | из полного каталога на 401 пресет (фото, арт и обе NSFW-библиотеки) |
 | `weight_1..3` | FLOAT (опц.) | 1.0 / 0.5 / 0.3 | влияние каждого стиля |
 
 **Выходы:** `styled_prompt` (STRING), `style_overlay` (STRING)
@@ -1149,7 +1149,7 @@ lanczos это RGB-специфичная интерполяция, в лате�
 - **Режимы промпта:** `Hybrid` — один обогащённый вызов; `Two-Stage` — сначала анализ, затем промпт
   по этому анализу, с откатом на первую стадию, если вторая вернула слишком короткий текст; `Auto`
   выбирает между ними.
-- **Стили:** 158 фото + 130 арт-пресетов в `common/styles/`, доступны через поисковый пикер с
+- **Стили:** 163 фото + 129 арт-пресетов в `common/styles/`, доступны через поисковый пикер с
   плитками превью. См. [`docs/styles.md`](docs/styles.md).
 
 ### Настройки
