@@ -8,7 +8,83 @@ bug can be traced to the commit that closed it.
 Add an entry when you fix something. Format: `` `hash` — one line saying what
 was broken`` , then a sentence on the cause where it is not obvious.
 
-## Unreleased
+## 1.0.1 (tag `v1.0.1`)
+
+Everything under this heading ships in 1.0.1. The first tag cut for this
+version was deleted before anyone could install it — the registry entry it
+published was removed too — so the repairs below, which landed after it, are
+part of the same release rather than the next one.
+
+- `a4404cb` — six photo styles added on the axis the library was thin on: 96
+  of 157 entries described what is in front of the camera and 20 what the
+  camera is, while Style Mixer stacks three styles with weights, so a
+  "how it was shot" entry multiplies across every scene and a scene only adds
+  itself. Two of the six had to be worded around the category detector —
+  "neon" alone routes a style into `cyberpunk`, which rewrites "skin" to
+  "synthetic epidermis", and "dark" alone routes it into `gothic`. Noted in
+  the file so the next edit does not undo it.
+- `0e4dad7` — **69 of 157 photo styles named no medium**, so the model was
+  free to answer a photo style with an illustration, and did. The engine was
+  worse than the wording: category detection reads free text and cannot see
+  which library a style came from, so ten photo styles resolved into
+  categories that strip photography back out — the style asked for a
+  photograph and the engine then forbade the word. The resolver consults the
+  photo libraries directly now; the hostile set is derived from
+  `CATEGORY_FORBIDDEN` rather than listed by hand, so a new category with the
+  same posture is covered the day it is added.
+- `f891fc6` — the model picker's localStorage **reads** were bare while its
+  writes had been wrapped all along. They run at module scope, so a
+  blocked-storage profile or an opaque origin took the whole picker down on
+  import rather than losing one preference. Surfaced because the pack's own
+  test environment is exactly such a context.
+- `66eedb5` — the help popup, the shortcuts and their cheatsheet had sat in
+  the tree unreferenced since `7dfd52a`/`9930f55`: nothing imported them, so
+  Vite left them out of the bundle entirely. Wired in as one command and one
+  binding through the host commands API, so the key shows up in ComfyUI's own
+  keybinding settings and can be rebound or cleared — which answers the
+  objection that removed the previous attempt, a capture-phase document
+  listener the user could neither see nor override. The `/` binding does not
+  come back: it hunted core's search field through five guessed CSS selectors,
+  the same guessing that produced `.comfy-node-header` and the `nodeEls` map.
+- **`Shortcuts.Enabled` was inert for every real user.** Only the keydown
+  fallback read it, and that path installs solely on a host without the native
+  commands API — which no shipped ComfyUI is. The command now consults the
+  setting itself, so the switch governs the shortcut wherever it is invoked
+  from, including the command palette. Its tooltip promised `Esc` and a bare
+  `?` for per-node help on top of that; both are fallback-only, so the tooltip
+  now names what is actually registered. (`Esc` does close the popup, but
+  that is `FilModal`'s own handler, not a shortcut this switch governs.) The
+  read goes through `readSetting`, which calls `get(id)` without a fallback
+  argument — passing one is what logged a deprecation warning on every call.
+  The setting also grouped itself under a bare `FiL_Design_ImageMind` category
+  instead of `SETTINGS_CATEGORY`, so it stood in its own section of the
+  settings dialog away from the pack's other nine.
+- `0b262f4` — a Vue panel hides the native widget, and hiding a widget hides
+  its input slot with it, so graph-drivable fields had no visible dot or one
+  in a fallback row with no clue which field it fed. The slot gets a row back
+  and the dot is pinned to its field element; a field with a wire attached
+  goes read-only, because typing there would be overwritten by the link when
+  the prompt is queued.
+- `0dbcd6b` — 🔬 HighRes Fix showed nine rows by default, six of them set once
+  and never looked at again. The reserved DOM widget height drops 420 → 250
+  and `min_size` 300 → 230 to match: `computeSize()` wins via `Math.max`
+  anyway, so a stale larger number only reserved dead space under the last
+  control.
+- `faacfdc` — **every theme flourish on a node title has been inert since it
+  was written.** They targeted `.comfy-node-header`, a class no shipped
+  frontend emits — the Vue renderer names it `.lg-node-header`. Same wrong
+  guess that kept the run highlight from firing. The pixaroma skin, left blank
+  on the assumption that flat panels mean no flourish, is filled in: their
+  framework does mark a chosen control, by filling it with the accent.
+- `e8f79ed` — the run highlight keyed off that same absent class and therefore
+  never fired once. Reworked against what the host actually renders, with the
+  suite driven through `tests/fakes/comfyHost.ts` rather than a hand-rolled
+  node.
+- `fc9b35f` — 🧹 Cleaner read `clean_vram` and `unload_models` down its left
+  edge, next to human switch text on the right. V3 schemas take a
+  `display_name` per input and nothing in the pack used it; LiteGraph falls
+  back to the raw id without one. The ids themselves are untouched — saved
+  workflows address widgets by them.
 
 Found by `tests/test_executor_contract.py`, which is new: it asks ComfyUI's own
 `execution.py` what a node is passed instead of calling `execute()` directly and
@@ -112,7 +188,7 @@ And two checks for the gap that let all of the above through:
   recomputes it from the checkout. Same guarantee, no assumption about
   toolchains agreeing across platforms.
 
-## 1.0.1
+And the repairs from earlier in the same cycle, before the first tag:
 
 - `86b4c0e` — **the 400 ms layout poll per widget is gone, and so is the reflow
   per frame.** The ResizeObserver it backed up was watching `host`, whose box
@@ -189,9 +265,8 @@ And two checks for the gap that let all of the above through:
   panels shot against the 1.0.0 UI, gallery in both language halves,
   `docs/images/` kept out of the registry archive.
 
-Everything above ships in 1.0.1. Until that tag is pushed, ComfyUI Manager
-still serves 1.0.0 — the code as it stood at `d03b5e8`, global wheel listener
-and all.
+Until the 1.0.1 tag is pushed, ComfyUI Manager still serves 1.0.0 — the code
+as it stood at `d03b5e8`, global wheel listener and all.
 
 ## 1.0.0 (tag `v1.0.0` = `d03b5e8`)
 

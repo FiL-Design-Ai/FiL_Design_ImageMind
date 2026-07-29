@@ -1,9 +1,12 @@
 # Changelog
 
-## 1.0.1 (2026-07-28)
+## 1.0.1 (2026-07-29)
 
 Repairs to 1.0.0, plus the removal of three features that reached further into
-ComfyUI than a node pack should. Nothing here changes what the nodes produce.
+ComfyUI than a node pack should. One change does alter what the nodes produce:
+the photo style library was rewritten to actually ask for photographs, so a
+workflow using a photo style will not reproduce its 1.0.0 output. Everything
+else leaves generation alone.
 
 ### Breaking
 
@@ -22,10 +25,14 @@ ComfyUI than a node pack should. Nothing here changes what the nodes produce.
 - **⚡ KSampler**: `latent_image` → `latent`, `optional_vae` → `vae`, matching
   the outputs they pair with. Workflows addressing them by the old names in the
   API format still load.
-- **Keyboard shortcuts are gone.** The pack claimed `Shift+?` and `/` globally
-  through the commands API. Global keys belong to ComfyUI's own keybinding
-  settings, not to one of sixty installed packs. The per-node help popup they
-  opened went with them; node documentation lives in this repository.
+- **`/` no longer opens the add-node search, and `Shift+?` is rebindable.** In
+  1.0.0 both keys were claimed by a capture-phase listener the user could
+  neither see in ComfyUI's keybinding settings nor override. `Shift+?` is back
+  as one registered command — it appears in those settings and can be rebound
+  or cleared, and `Shortcuts.Enabled` switches the set off. `/` is not coming
+  back: a bare key claimed from every context collides with whatever else
+  wants it, and the search field it reached for was hunted through five
+  guessed CSS selectors. Focusing core's own search is core's business.
 - **Settings removed**: `RequestTimeout` and `AutoCleanVRAM` were never read by
   anything — timeouts come from `config.yaml` and per-provider defaults, and
   VRAM cleanup is the Cleaner node's job. `RunButton.Enabled` /
@@ -33,6 +40,22 @@ ComfyUI than a node pack should. Nothing here changes what the nodes produce.
 
 ### Fixed
 
+- **The photo style library asks for photographs now.** A diffusion model
+  picks the medium from the words it is given, and 69 of the 157 photo styles
+  named no medium at all — "bohemian interior design, layered textiles, warm
+  ambient lighting" describes a room, never a picture of one, so the model was
+  free to answer with an illustration or a 3D render, and did. Every entry now
+  carries the lens, light and capture it would be taken with, and six that
+  asked outright for the thing the category exists to avoid (`photo-real
+  render look`, `digital HDR rendering`) are gone. The deeper cause was in the
+  engine: category detection reads free text and could not see which library a
+  style came from, so ten photo styles resolved into categories whose own
+  rules strip photography back out — `comic` replaces "photograph" with
+  "illustration", and `Cybernetic Arm Close-Up` resolved to `oil_painting`.
+  The resolver consults the photo libraries directly now, because membership
+  is a fact and a keyword match is a guess. Style keys are unchanged, so no
+  workflow needs editing — but prompts built from a photo style will differ
+  from 1.0.0.
 - **The global wheel listener is gone.** A capture-phase `wheel` handler on
   `window`, installed at import, put this pack ahead of every other extension
   for every wheel event in the application — other packs' wheel-driven
@@ -59,6 +82,28 @@ ComfyUI than a node pack should. Nothing here changes what the nodes produce.
   the only value anyone got.
 - **Default LLM Provider** could not be set to OpenAI: the option list was
   hand-written and had drifted from the provider registry.
+- **A resized Optic Scanner shrank a little on every load.** A panel dragged
+  to +200px of height came back at +162, then +122, until it sat on its
+  content. On the first sync the stretch was recovered as "box minus content
+  height" while the content height was still the caller's estimate rather than
+  the fresh measurement — `scanner.ts` guesses 580 for a panel that measures
+  540, and that 40px gap was charged to the drag once per load.
+- **Theme flourishes on node titles never ran.** Every cyberpunk glow and
+  pipboy text-shadow keyed off `.comfy-node-header`, a class no shipped
+  frontend emits — the Vue renderer names it `.lg-node-header`. Under the
+  default canvas renderer a node has no DOM at all, so these stay inert there
+  by nature; the node-body rules sit on this pack's own shell and always
+  applied. The pixaroma skin, left blank on the assumption that flat panels
+  mean no flourish, is filled in.
+- **🧹 Cleaner printed widget ids instead of labels** — `clean_vram` ran down
+  the left edge next to human text on the right. V3 schemas take a
+  `display_name` per input and nothing in the pack used it, so LiteGraph fell
+  back to the raw id. The ids are untouched; saved workflows address widgets
+  by them.
+- **The model picker could take itself down on import.** Its localStorage
+  reads run at module scope and were unguarded while the writes had been
+  wrapped all along, so a blocked-storage profile or an opaque origin — where
+  the global is undefined — broke the whole picker rather than one preference.
 - Reading any setting logged a deprecation warning on every call.
 
 ### Added
@@ -71,6 +116,32 @@ ComfyUI than a node pack should. Nothing here changes what the nodes produce.
 - **Running node highlight** (`RunFx.Mode`): the header pulses for as long as
   the node executes, instead of a 400 ms flash. Covers this pack's nodes by
   default, optionally all of them.
+- **Widget inputs have their dots back, next to the field they drive.** A Vue
+  panel hides the native widget, and hiding a widget hides its input slot with
+  it — so a field that can be graph-driven had no visible socket, or one in a
+  fallback row with no clue which field it fed. A field with a wire attached
+  goes read-only: what you typed there would be overwritten by the link when
+  the prompt is queued, and a control that silently discards input is worse
+  than one that says it is taken. Covers Color Wizard, Dataset Forge, Style
+  Mixer, Upscaler and Upscaler Simple.
+- **Starred models in the picker.** OpenRouter lists 367 models and OpenAI 76;
+  the type and tier filters narrow that by kind, but the three or four you
+  actually use stay scattered through whatever is left. A star pulls them back
+  and a badge filters down to them. Favourites are keyed `provider::model`, so
+  `openai/gpt-oss-20b` starred on Groq does not light up under OpenRouter
+  where it is a different offering, and they live in localStorage rather than
+  inside a saved graph — a per-machine convenience should not travel with a
+  workflow.
+- **🔬 HighRes Fix folds its rarely-touched controls into an ADVANCED
+  section.** Nine rows showed by default and six of them are set once and
+  never looked at again. The section remembers whether you left it open, per
+  saved workflow; a fresh node starts closed.
+- **Six photo styles on the axis the library was thin on** — Smartphone
+  Computational, Direct Flash Night, Cinestill 800T Halation, Tri-X Push 1600,
+  Scanned Print and Rembrandt Key Light. The library ran 96 of 157 entries on
+  what is in front of the camera and 20 on what the camera is, and since Style
+  Mixer stacks three styles with weights, an entry on the "how it was shot"
+  axis multiplies across every scene while another scene only adds itself.
 
 ## 1.0.0 (2026-07-28)
 
