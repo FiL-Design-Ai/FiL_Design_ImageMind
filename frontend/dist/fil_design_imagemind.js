@@ -12877,14 +12877,12 @@ function rb(e) {
 	let t = document.createElement("div");
 	t.id = "__fil_help_popup_host", document.body.appendChild(t), nb = Gs(tb).use(ul()), nb.mount(t), console.info("[FiL_Design_ImageMind] help popup mounted");
 }
-//#endregion
-//#region src/composables/useShortcuts.ts
-cu();
+cu(), Ml();
 var ib = "FiL_Design_ImageMind.Shortcuts.Enabled", ab = "__cheatsheet__", ob = [{
 	id: "FiL_Design_ImageMind.helpCheatsheet",
 	label: "FiL_Design_ImageMind — Keyboard cheatsheet",
 	icon: "?",
-	function: lb
+	function: ub
 }], sb = [{
 	commandId: "FiL_Design_ImageMind.helpCheatsheet",
 	combo: {
@@ -12898,37 +12896,37 @@ function cb(e) {
 	return t === "input" || t === "textarea" || t === "select" || e.isContentEditable === !0;
 }
 function lb() {
+	return jl(ib, !0);
+}
+function ub() {
+	if (!lb()) return;
 	let e = qy();
 	e.ensureHelpDefaultsInjected(), e.value_open?.(ab);
 }
-function ub(e) {
+function db(e) {
 	if (e.extensionManager) {
 		console.info("[FiL_Design_ImageMind] shortcuts registered via native commands API");
 		return;
 	}
-	window.addEventListener("keydown", (t) => db(t, e), !0), console.info("[FiL_Design_ImageMind] shortcuts installed (fallback keydown handler)");
+	window.addEventListener("keydown", (t) => fb(t, e), !0), console.info("[FiL_Design_ImageMind] shortcuts installed (fallback keydown handler)");
 }
-function db(e, t) {
-	let n = !0;
-	try {
-		n = !!(globalThis.app?.extensionManager?.setting?.get?.(ib, !0) ?? !0);
-	} catch {}
-	if (!n) return;
-	let r = e.target, i = cb(r);
+function fb(e, t) {
+	if (!lb()) return;
+	let n = e.target, r = cb(n);
 	if (e.key === "Escape") {
 		try {
 			qy().value_close?.();
 		} catch {}
-		i && r.blur?.(), e.preventDefault?.();
+		r && n.blur?.(), e.preventDefault?.();
 		return;
 	}
-	if (!i) {
+	if (!r) {
 		if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "K" || e.key === "k")) {
-			lb(), e.preventDefault();
+			ub(), e.preventDefault();
 			return;
 		}
 		if (e.key === "?" || e.shiftKey && e.key === "/") {
-			if (e.shiftKey) lb();
+			if (e.shiftKey) ub();
 			else {
 				let e = t.canvas?.selected_nodes ?? {}, n = Object.values(e).filter(Boolean);
 				if (n.length === 1) {
@@ -12942,13 +12940,13 @@ function db(e, t) {
 }
 //#endregion
 //#region src/nodes2/installers/shortcuts.ts
-function fb(e) {
-	ub(e);
+function pb(e) {
+	db(e);
 }
 //#endregion
 //#region src/stores/settings/languageSettings.ts
 Al();
-var pb = [{
+var mb = [{
 	id: "FiL_Design_ImageMind.Language",
 	name: "Language of FiL panels",
 	type: "combo",
@@ -12958,10 +12956,10 @@ var pb = [{
 	category: [El, "Language"]
 }];
 Uf(), Al();
-function mb(e) {
+function hb(e) {
 	Vf(`${Dl}/log_level`, { level: String(e) }).catch(() => {});
 }
-var hb = [{
+var gb = [{
 	id: "FiL_Design_ImageMind.Logging.Level",
 	name: "Log level",
 	type: "combo",
@@ -12974,13 +12972,13 @@ var hb = [{
 	],
 	category: [El, "Logging"],
 	tooltip: "Python backend log verbosity for this node pack.",
-	onChange: mb
+	onChange: hb
 }];
-function gb(e) {
-	mb(e("FiL_Design_ImageMind.Logging.Level", "WARNING"));
+function _b(e) {
+	hb(e("FiL_Design_ImageMind.Logging.Level", "WARNING"));
 }
 gc(), Oc(), Al();
-var _b = {
+var vb = {
 	Default: "default",
 	Cyberpunk: "cyberpunk",
 	Fallout: "fallout",
@@ -12988,12 +12986,12 @@ var _b = {
 	"FiL Green": "travelmate",
 	Pixaroma: "pixaroma"
 };
-function vb(e) {
-	$s(_b[String(e)] ?? "default");
+function yb(e) {
+	$s(vb[String(e)] ?? "default");
 	let t = globalThis.app;
 	t && Ec(t);
 }
-var yb = [{
+var bb = [{
 	id: "FiL_Design_ImageMind.Theme",
 	name: "Node theme",
 	type: "combo",
@@ -13008,51 +13006,52 @@ var yb = [{
 	],
 	category: [El, "Appearance"],
 	tooltip: "Recolors every FiL_Design_ImageMind node panel and adds a small themed flourish (neon glow for Cyberpunk, a CRT scanline texture for Pipboy and Fallout, acid-lime glow for Travelmate). Pixaroma matches the ComfyUI-Pixaroma node pack's own colors. Applies instantly, no reload.",
-	onChange: vb
+	onChange: yb
 }];
-function bb() {
+function xb() {
 	Qs(Xs());
 	let e = globalThis.app;
 	e && Ec(e);
 }
-function xb() {
+function Sb() {
 	if (typeof MutationObserver > "u" || typeof document > "u") return;
 	let e = Xs();
 	new MutationObserver(() => {
 		let t = Xs();
-		t !== e && (e = t, bb());
+		t !== e && (e = t, xb());
 	}).observe(document.documentElement, {
 		attributes: !0,
 		attributeFilter: ["style", "class"]
 	});
 }
-function Sb(e) {
+function Cb(e) {
 	let t = e("FiL_Design_ImageMind.Theme", "Default");
-	Qs(Xs()), $s(_b[t] ?? "default"), xb();
+	Qs(Xs()), $s(vb[t] ?? "default"), Sb();
 }
 //#endregion
 //#region src/stores/settings/shortcutsSettings.ts
-var Cb = [{
+Al();
+var wb = [{
 	id: "FiL_Design_ImageMind.Shortcuts.Enabled",
 	name: "Keyboard shortcuts",
 	type: "boolean",
 	defaultValue: !0,
-	tooltip: "Esc — close popup / unfocus field. ? — help for the selected FiL_Design_ImageMind node. Shift+? — full shortcuts cheatsheet.",
-	category: ["FiL_Design_ImageMind", "Shortcuts"]
+	tooltip: "Shift+? opens this pack's keyboard cheatsheet. The key itself can be rebound or cleared under Keybinding in ComfyUI's settings; this switch turns the command off wherever it is invoked from.",
+	category: [El, "Shortcuts"]
 }];
 Il(), du();
-var wb = [
+var Tb = [
 	...Sm,
-	...pb,
-	...hb,
-	...yb,
+	...mb,
+	...gb,
+	...bb,
 	...Fl,
 	...uu,
 	...Fv,
-	...Cb
+	...wb
 ];
 Ml(), Al(), `${Dl}`;
-function Tb(e) {
+function Eb(e) {
 	try {
 		let e = globalThis.app?.graph?._nodes ?? [];
 		for (let t of e) {
@@ -13067,10 +13066,10 @@ function Tb(e) {
 	}
 	return e;
 }
-function Eb(e) {
+function Db(e) {
 	return {
 		name: kl,
-		settings: wb,
+		settings: Tb,
 		commands: ob,
 		keybindings: sb,
 		async setup() {
@@ -13079,9 +13078,9 @@ function Eb(e) {
 				() => Vy(e),
 				() => uy(e),
 				() => rb(e),
-				() => fb(e),
-				() => gb((t, n) => jl(t, n, e)),
-				() => Sb((t, n) => jl(t, n, e))
+				() => pb(e),
+				() => _b((t, n) => jl(t, n, e)),
+				() => Cb((t, n) => jl(t, n, e))
 			];
 			for (let e of t) try {
 				e();
@@ -13101,14 +13100,14 @@ function Eb(e) {
 			}
 		},
 		async graphToPrompt(e) {
-			return Tb(e);
+			return Eb(e);
 		}
 	};
 }
 //#endregion
 //#region src/api/contractCheck.ts
 Al();
-async function Db() {
+async function Ob() {
 	if (typeof fetch > "u") return;
 	let e;
 	try {
@@ -13127,11 +13126,11 @@ async function Db() {
 	for (let e of n) r.has(e) || console.warn(`${Ol} server expects "${e}" but local JS does not register it`);
 	for (let e of r) n.has(e) || console.warn(`${Ol} JS registers "${e}" but server does not expose a contract`);
 }
-gc(), fl(), Ys(), ll(e), Db().catch((e) => {
+gc(), fl(), Ys(), ll(e), Ob().catch((e) => {
 	console.warn("[FiL_Design_ImageMind] contract self-check failed:", e);
 });
-var Ob = Eb(e);
-e.registerExtension(Ob), console.info(`[FiL_Design_ImageMind] extension registered as "${Ob.name}"`);
+var kb = Db(e);
+e.registerExtension(kb), console.info(`[FiL_Design_ImageMind] extension registered as "${kb.name}"`);
 //#endregion
 
 //# sourceMappingURL=fil_design_imagemind.js.map
