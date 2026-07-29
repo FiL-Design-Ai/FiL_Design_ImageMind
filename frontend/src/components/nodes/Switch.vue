@@ -36,14 +36,24 @@ function toggle() {
   enable.value = !enable.value;
 }
 
+// Mirror an *external* write — a workflow load, an undo, anything that assigns
+// `nodeState.enable` without going through the computed's setter — onto the
+// native widget the backend actually reads.
+//
+// The guard has to compare against the widget, not against `enable.value`:
+// that getter reads the very same `nodeState.enable` this watcher fires on, so
+// `enable.value !== boolVal` was always false and the whole body was dead. A
+// click was unaffected (it goes through the setter, which writes the widget
+// itself), which is why the panel always looked right while the widget could
+// sit on a stale value.
 watch(
   () => props.state.nodeState.enable,
   (val) => {
-    if (val !== undefined) {
-      const boolVal = Boolean(val);
-      if (enable.value !== boolVal) {
-        enable.value = boolVal;
-      }
+    if (val === undefined) return;
+    const boolVal = Boolean(val);
+    const w = props.state.node ? findFilWidget(props.state.node, "enable") : null;
+    if (w && Boolean(w.value) !== boolVal) {
+      w.value = boolVal;
     }
   },
 );
