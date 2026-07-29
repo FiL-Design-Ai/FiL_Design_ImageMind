@@ -4,9 +4,17 @@ import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
 import { createSyncedNodeState, findFilWidget, sanitizeWidgetValue } from "@/nodes2/util";
+import { exposeWidgetInputSockets, installWidgetSocketSync } from "@/nodes2/widgetInputSockets";
 import { applyFxComposables } from "@/nodes2/applyFxComposables";
 
 const HiResFixVue = defineAsyncComponent(() => import("@/components/nodes/HiResFix.vue"));
+
+/**
+ * Widgets that may also be driven from the graph. The Vue panel hides the
+ * native widget, which hides its input slot with it — `exposeWidgetInputSockets`
+ * gives the slot a row and a visible dot back.
+ */
+export const HIRESFIX_SOCKET_INPUTS = ["seed", "denoise", "hires_steps", "upscale_by"];
 
 const numericDefaults: Record<string, number> = {
   upscale_by: 1.25, denoise: 0.56, iterations: 1, strength: 1.0,
@@ -37,7 +45,7 @@ export const hiresfixNode: NodeModule = {
       // Russian captions ("Случайно", "Прошлый", "Новый фикс.") need ~370px
       // before FilSeedRow starts truncating them. Nodes saved narrower are
       // widened to this floor on load.
-      minSize: [380, 300],
+      minSize: [380, 230],
       family: "sampling",
       description: "Latent/pixel upscale + re-sample settings, packed into a script for FiLKSampler.",
       badges: [{ text: "hires", color: "#bb9af7", text_color: "#0b0e14" }],
@@ -98,7 +106,12 @@ export const hiresfixNode: NodeModule = {
       };
       Object.defineProperty(state, "node", { value: node, enumerable: false, configurable: true });
       node._filHiResFixState = state;
-      addFilDomWidget(node, "fil_hiresfix_view", HiResFixVue, { state, height: 420 });
+      // 420 was the old nine-row panel. Six rows show by default now — the
+      // rest sits behind the ADVANCED section — and computeSize() wins via
+      // Math.max in domWidgetHost.ts anyway, so a stale larger number here
+      // only reserved dead space under the last control.
+      addFilDomWidget(node, "fil_hiresfix_view", HiResFixVue, { state, height: 250 });
+      exposeWidgetInputSockets(this, HIRESFIX_SOCKET_INPUTS);
       return result;
     };
 
@@ -109,6 +122,7 @@ export const hiresfixNode: NodeModule = {
       const state = node._filHiResFixState;
       if (!state) return result;
       syncAll(node, state.nodeState);
+      exposeWidgetInputSockets(this, HIRESFIX_SOCKET_INPUTS);
       return result;
     };
 
@@ -118,6 +132,7 @@ export const hiresfixNode: NodeModule = {
       return originalRemoved?.apply(this, args);
     };
 
+    installWidgetSocketSync(p, HIRESFIX_SOCKET_INPUTS, "_filHiResFixState");
     applyFxComposables(nodeType as { prototype?: unknown });
   },
 };
