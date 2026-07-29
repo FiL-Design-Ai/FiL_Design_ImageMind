@@ -11,6 +11,7 @@
 import type { ComfyApp, ComfyCommand, ComfyKeybinding } from "@/types/comfy";
 import { useHelpStore } from "@/stores/helpStore";
 import { toast } from "@/stores/toastStore";
+import { readSetting } from "@/stores/settings/providerSettings";
 
 const SETTING_ENABLED = "FiL_Design_ImageMind.Shortcuts.Enabled";
 const CHEATSHEET_ID = "__cheatsheet__";
@@ -49,7 +50,21 @@ function isFormField(target: EventTarget | null): boolean {
   return tag === "input" || tag === "textarea" || tag === "select" || (target as HTMLElement).isContentEditable === true;
 }
 
+/**
+ * `Shortcuts.Enabled`, read from the host on every use.
+ *
+ * The command path has to consult it too, not just the fallback keydown
+ * handler below: on any shipped ComfyUI the fallback never installs, so a
+ * switch only that handler read would have been inert for every real user —
+ * the same dead control this pack keeps `runButtonFxSettingsAdvanced` out of
+ * `ALL_SETTINGS` to avoid.
+ */
+function shortcutsEnabled(): boolean {
+  return readSetting<boolean>(SETTING_ENABLED, true);
+}
+
 function openCheatsheet() {
+  if (!shortcutsEnabled()) return;
   const store = useHelpStore();
   store.ensureHelpDefaultsInjected();
   // The cheatsheet is registered as a help entry; the FilHelpPopup
@@ -75,14 +90,7 @@ export function installShortcuts(app: ComfyApp): void {
 }
 
 function onFallbackKey(event: KeyboardEvent, app: ComfyApp): void {
-  let enabled = true;
-  try {
-    const w = globalThis as unknown as {
-      app?: { extensionManager?: { setting?: { get?: (id: string, fallback?: unknown) => unknown } } };
-    };
-    enabled = Boolean(w.app?.extensionManager?.setting?.get?.(SETTING_ENABLED, true) ?? true);
-  } catch { /* defaults on */ }
-  if (!enabled) return;
+  if (!shortcutsEnabled()) return;
 
   const t = event.target;
   const inField = isFormField(t);
