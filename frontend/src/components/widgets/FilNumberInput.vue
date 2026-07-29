@@ -46,10 +46,17 @@ function formatNum(v: number): string {
 }
 
 function safeEval(expr: string): number | null {
-  const cleaned = (expr || "").trim();
-  if (cleaned === "") return null;
-  // Allow only digits, spaces, + - * / ( ) . and the literal ^ as **.
-  if (!/^[0-9+\-*/(). ]+$/.test(cleaned.replace(/\^/g, "**"))) return null;
+  const raw = (expr || "").trim();
+  if (raw === "") return null;
+  // `^` means exponentiation to anyone typing in a number field; in JavaScript
+  // it is bitwise XOR. The rewrite happens once, up front, and the *rewritten*
+  // string is both what gets validated and what gets evaluated. Validating one
+  // string and evaluating another is how `2^10` used to return 8: the check saw
+  // `2**10` and passed, then `new Function` received the original `2^10`.
+  const cleaned = raw.replace(/\^/g, "**");
+  // Digits, spaces, + - * / ( ) . only — no identifiers, so nothing in scope is
+  // reachable from here.
+  if (!/^[0-9+\-*/(). ]+$/.test(cleaned)) return null;
   try {
     const fn = new Function(`"use strict"; return (${cleaned});`);
     const n = Number(fn());

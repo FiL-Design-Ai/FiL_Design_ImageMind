@@ -19,6 +19,15 @@ export function applyFxComposables(proto: { prototype?: unknown }): void {
 
   const p = proto.prototype as Record<string, unknown>;
 
+  // Once per node type. `beforeRegisterNodeDef` is not guaranteed to run only
+  // once — refreshing node definitions replays it — and these are chained
+  // prototype patches, so a second pass would leave two copies in the chain and
+  // fire the effect twice for every connection. `applyNodeStyle` guards itself
+  // with `_filStyled` and `installToasts` with `_toastApp`; this was the one
+  // patch in the pack without a guard, across all 15 nodes.
+  if (p._filFxApplied) return;
+  p._filFxApplied = true;
+
   // Patch onConnect to apply Connection FX connection event
   const origConnect = p.onConnect as ((...args: unknown[]) => unknown) | undefined;
   p.onConnect = function (this: unknown, ...args: unknown[]) {
