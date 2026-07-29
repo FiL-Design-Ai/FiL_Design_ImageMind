@@ -3,11 +3,10 @@ FiL_Design_ImageMind API Routes — минимальные REST-эндпоинт
 """
 
 import logging
-import shutil
-from pathlib import Path
+
 from aiohttp import web
 
-from .common.brand import OUTPUT_SUBFOLDER, ROUTE_SLUG, BRAND, VERSION
+from .common.brand import ROUTE_SLUG, BRAND, VERSION
 from .common.provider_runtime import fetch_models_with_status, invalidate_model_cache, probe_provider
 from .common.provider_accounts import (
     delete_provider_credentials,

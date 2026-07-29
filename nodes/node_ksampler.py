@@ -5,11 +5,15 @@ the model/conditioning/vae through, optionally VAE-decodes a preview, and can
 run a HighRes-fix pass when a ``FiLHighResFix`` script is connected.
 """
 
+import logging
+
 from comfy_api.latest import io
 
-from ..common.brand import CATEGORY_ROOT
+from ..common.brand import BRAND, CATEGORY_ROOT
 from ..common.io_types import FilHiresScript
 from ..common.localization import t
+
+logger = logging.getLogger(f"{BRAND}.KSampler")
 
 # Sampler/scheduler lists are read lazily in define_schema() (not at import
 # time) so that custom nodes which extend KSampler.SAMPLERS/SCHEDULERS after
@@ -158,7 +162,9 @@ class FiLKSampler(io.ComfyNode):
         finally:
             cls._set_preview_method(None)
         for msg in hires_warnings:
-            print(f"[FiLKSampler] {msg}")
+            # Through the logger, not print: these obey the pack's log level
+            # (common/base.py, the /log_level route), which a bare print did not.
+            logger.warning("%s", msg)
 
         # 3) Optional VAE decode + preview.
         ui_data: dict = {"images": []}
@@ -176,8 +182,13 @@ class FiLKSampler(io.ComfyNode):
                         image, "fil.ksampler", cls.hidden.prompt, cls.hidden.extra_pnginfo,
                     )
                     ui_data["images"] = saved["ui"]["images"]
-                except Exception:
-                    pass
+                except Exception as exc:
+                    # Still best-effort — a preview is not worth failing a
+                    # finished sample over — but no longer silent. This branch
+                    # swallowed an AttributeError for as long as `cls.hidden`
+                    # was read wrongly, and the only visible symptom was a
+                    # preview that stopped appearing.
+                    logger.warning("Preview could not be saved (%s); the sample itself is fine.", exc)
         else:
             image = cls._empty_image()
 

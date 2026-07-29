@@ -111,3 +111,46 @@ def test_script_without_hiresfix_key_is_a_noop(monkeypatch):
         vae_decode="false", script={"other": 1},
     )
     assert result[3] == {"samples": "BASE"}
+
+
+def test_preview_is_saved_with_the_workflow_attached(monkeypatch):
+    """The saved preview must carry `prompt`/`extra_pnginfo` from `cls.hidden`.
+
+    Every other test in this file calls `FiLKSampler.execute()` on the bare
+    class, where `cls.hidden` is None. That reaches the preview branch, raises
+    `AttributeError` inside it, and the bare `except Exception: pass` in
+    node_ksampler.py swallows it — so the whole feature could break in ComfyUI
+    and this file would stay green. Measured on 2026-07-29:
+
+        FiLKSampler.hidden        -> None
+        FiLKSampler.hidden.prompt -> AttributeError
+
+    Its sibling 🧩 Tile Assembly has had this assertion since the same bug was
+    fixed there (tests/test_tile_assembly.py); KSampler never got one. Goes
+    through the harness so the executor populates `cls.hidden` for real.
+    """
+    from FiL_Design_ImageMind.nodes import node_ksampler
+    from executor_harness import as_the_executor_calls_it
+
+    seen: dict = {}
+
+    class _FakePreviewSaver:
+        def save_images(self, image, prefix, prompt, extra_pnginfo):
+            seen["prompt"] = prompt
+            seen["extra_pnginfo"] = extra_pnginfo
+            return {"ui": {"images": [{"filename": "fake.png"}]}}
+
+    monkeypatch.setattr(sampling, "sample_unified", lambda *a, **kw: {"samples": "BASE"})
+    monkeypatch.setattr(sampling, "_decode", lambda vae, latent, tiled=False: "IMAGE")
+    monkeypatch.setattr(node_ksampler, "_preview_saver", _FakePreviewSaver())
+
+    execute = as_the_executor_calls_it(FiLKSampler)
+    result = execute(
+        model="MODEL", seed=1, steps=1, cfg=7.0, sampler_name="euler", scheduler="normal",
+        positive="P", negative="N", latent={"samples": "L"},
+        vae_decode="true", vae="VAE",
+    )
+
+    assert result.ui["images"] == [{"filename": "fake.png"}]
+    assert "prompt" in seen, "the preview branch never ran — it was swallowed again"
+    assert seen["prompt"] is not None, "preview saved with no workflow attached"
