@@ -4,9 +4,17 @@ import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
 import { createSyncedNodeState, findFilWidget, sanitizeWidgetValue } from "@/nodes2/util";
+import { exposeWidgetInputSockets, installWidgetSocketSync } from "@/nodes2/widgetInputSockets";
 import { applyFxComposables } from "@/nodes2/applyFxComposables";
 
 const DatasetForgeVue = defineAsyncComponent(() => import("@/components/nodes/DatasetForge.vue"));
+
+/**
+ * Widgets that may also be driven from the graph. The Vue panel hides the
+ * native widget, which hides its input slot with it — `exposeWidgetInputSockets`
+ * gives the slot a row and a visible dot back.
+ */
+export const DATASET_SOCKET_INPUTS = ["dataset_name", "trigger_word", "class_token", "captions", "caption_instruction", "dont_caption", "seed", "repeats"];
 
 /** Name of the DOM widget carrying the Vue panel. */
 const VIEW_WIDGET = "fil_dataset_forge_view";
@@ -100,6 +108,7 @@ export const datasetForgeNode: NodeModule = {
       // absorb spare height (no `.is-growable`), so a buffer here would only
       // ever be dead space under the last section.
       addFilDomWidget(node, VIEW_WIDGET, DatasetForgeVue, { state, height: 420 });
+      exposeWidgetInputSockets(this, DATASET_SOCKET_INPUTS);
       return result;
     };
 
@@ -115,6 +124,7 @@ export const datasetForgeNode: NodeModule = {
       syncFromWidgets(state.nodeState, node);
       pinSeedControl(node);
       hideNativeWidgets(node);
+      exposeWidgetInputSockets(this, DATASET_SOCKET_INPUTS);
       return result;
     };
 
@@ -124,6 +134,7 @@ export const datasetForgeNode: NodeModule = {
       return originalRemoved?.apply(this, args);
     };
 
+    installWidgetSocketSync(p, DATASET_SOCKET_INPUTS, "_filDatasetForgeState");
     applyFxComposables(nodeType as { prototype?: unknown });
   },
 };

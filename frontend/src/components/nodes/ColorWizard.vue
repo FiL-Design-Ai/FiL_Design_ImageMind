@@ -8,9 +8,17 @@ import type { FilNodeState } from "@/nodes2/filState";
 import { findFilWidget } from "@/nodes2/util";
 import { NODE_CONTRACTS } from "@/api/contracts";
 import { useI18n } from "@/composables/useI18n";
+import { useWidgetSockets } from "@/composables/useWidgetSockets";
+import { COLOR_WIZARD_SOCKET_INPUTS } from "@/nodes2/nodes/color_wizard";
 
 const props = defineProps<{ state: FilNodeState }>();
 const { t } = useI18n();
+
+// `saturate` has a socket too but no field in this panel — it is graph-driven
+// only, so its dot stays in the fallback row rather than tracking a field.
+const { setFieldEl, isLinked } = useWidgetSockets(props.state, COLOR_WIZARD_SOCKET_INPUTS);
+const linkedTip = (name: string, own: string) =>
+  isLinked(name) ? t("fld_linked_tt", "Driven by the connected input — disconnect it to edit here.") : own;
 
 // Methods come from the generated contract (backed by METHODS in
 // common/color_correction.py), never from literals here: "LAB Contrast" is not a
@@ -113,15 +121,18 @@ function applyPreset(preset: "warm" | "cool" | "skin" | "contrast") {
     <!-- Adjustment Sliders -->
     <FilSection :title="t('cw_section_adjust', '🎛️ Adjustments')" />
     <div class="fil-cw-slider-group">
-      <FilSlider v-model="strength" :min="0" :max="1" :step="0.05"
+      <FilSlider :ref="(el: unknown) => setFieldEl('strength', el)"
+        v-model="strength" :min="0" :max="1" :step="0.05" :disabled="isLinked('strength')"
         :label="t('cw_strength', 'Correction Strength')"
-        :title="t('tt_cw_strength', 'Correction strength (0 = no change).')" />
-      <FilSlider v-model="temperature" :min="-1" :max="1" :step="0.05"
+        :title="linkedTip('strength', t('tt_cw_strength', 'Correction strength (0 = no change).'))" />
+      <FilSlider :ref="(el: unknown) => setFieldEl('temperature', el)"
+        v-model="temperature" :min="-1" :max="1" :step="0.05" :disabled="isLinked('temperature')"
         :label="t('cw_temperature', 'Temperature (Warm/Cool)')"
-        :title="t('tt_cw_temperature', 'Colour temperature.')" />
-      <FilSlider v-model="tint" :min="-1" :max="1" :step="0.05"
+        :title="linkedTip('temperature', t('tt_cw_temperature', 'Colour temperature.'))" />
+      <FilSlider :ref="(el: unknown) => setFieldEl('tint', el)"
+        v-model="tint" :min="-1" :max="1" :step="0.05" :disabled="isLinked('tint')"
         :label="t('cw_tint', 'Tint (Green/Magenta)')"
-        :title="t('tt_cw_tint', 'Colour tint.')" />
+        :title="linkedTip('tint', t('tt_cw_tint', 'Colour tint.'))" />
     </div>
 
     <!-- Skin Protection Toggle — shared FilToggle, not a bespoke ON/OFF pill,
