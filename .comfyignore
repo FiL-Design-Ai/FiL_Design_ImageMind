@@ -2,6 +2,26 @@
 # What ComfyUI actually loads is __init__.py, server_routes.py, common/,
 # nodes/, data/, requirements.txt and the built frontend/dist bundle.
 
+# Credentials and local state. These are all in .gitignore, so a publish from
+# a CI checkout never sees them — but `comfy node publish` run from a working
+# copy packs the directory as it stands, and this one has live API keys in it.
+# The 2026-07-29 audit found API.env and data/auth.json (3978 bytes of real
+# provider keys) sitting outside this list with nothing but "we always publish
+# from CI" between them and the registry.
+API.env
+data/auth.json
+data/auth.json.backup-*
+data/provider_vision_smoke.json
+config.yaml
+config.local.yaml
+comfyui_detail.log
+logs/
+.venv/
+**/__pycache__/
+frontend/playwright-report/
+frontend/test-results/
+frontend/playwright.comfy.config.ts
+
 # Test suite and developer tooling. fix.md is the running log of individual
 # repairs — written for whoever maintains this pack, not for whoever installs
 # it; CHANGELOG.md is the user-facing half. install_requirements.bat stays:
@@ -18,6 +38,8 @@ requirements-dev.txt
 .vscode/
 CLAUDE.md
 fix.md
+audit.md
+audit-next.md
 .gitignore
 .gitattributes
 
