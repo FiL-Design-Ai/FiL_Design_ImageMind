@@ -4,10 +4,14 @@
  * body (same rationale as the "Change color…" menu item in nodeStyle.ts —
  * one shared mount point instead of every per-node component wiring
  * things individually).
+ *
+ * `state` arrives by reference and must stay that way: `host/stateBridge.ts`
+ * merges a loaded workflow's values into that same reactive object, and
+ * replacing it would leave the body watching a detached copy.
  */
 import type { Component } from "vue";
 
-defineProps<{ root: Component; state: Record<string, unknown>; comfyClass: string }>();
+defineProps<{ root: Component; state: Record<string, unknown> }>();
 </script>
 
 <template>

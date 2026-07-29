@@ -120,10 +120,15 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
   heights.attachWidget(widget);
 
   // Mount a fresh Vue app onto the host. Pinia is reused so cross-widget
-  // stores (toast, providers, …) share state across nodes. `FilNodeShell`
-  // wraps the caller's `root` component so every node picks up the shared
-  // "?" help badge in one place instead of each node file wiring it itself.
-  const app = createApp(FilNodeShell, { root, state, comfyClass: n.comfyClass ?? "default" }).use(useActivePinia());
+  // stores (toast, providers, …) share state across nodes. `FilNodeShell` is
+  // the one wrapper around the caller's `root`, so per-node chrome has a single
+  // place to live.
+  //
+  // It used to be handed `comfyClass` as well, for a "?" help badge the comment
+  // here claimed it rendered. It never did: the help popup is mounted once
+  // globally in `installers/helpToolbar.ts` and keyed off `helpStore`, so the
+  // prop was required of this one caller and read by nobody.
+  const app = createApp(FilNodeShell, { root, state }).use(useActivePinia());
   app.mount(host);
 
   // After the mount: the growable patch reads the node's own `computeSize()`,

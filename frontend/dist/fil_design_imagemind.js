@@ -1,4 +1,4 @@
-(function(){try{var s=document.createElement("style");s.textContent=".fil-node-shell[data-v-cb614e72]{box-sizing:border-box;width:100%;height:100%;position:relative}.fil-w-btn[data-v-75e79c80]{box-sizing:border-box;padding:var(--fil-row-pad);background:var(--fil-surface-1);border:1px solid var(--fil-border);color:var(--fil-text);cursor:pointer;-webkit-user-select:none;user-select:none;text-align:center;appearance:none;border-radius:6px;outline:none;justify-content:center;align-items:center;gap:6px;font-family:ui-sans-serif,system-ui,sans-serif;font-size:12px;transition:background 80ms,border-color 80ms,color 80ms;display:inline-flex}.fil-w-btn[data-v-75e79c80]:hover:not(:disabled){background:var(--fil-accent);border-color:var(--fil-accent);color:var(--fil-accent-ink)}.fil-w-btn[data-v-75e79c80]:active{transform:translateY(1px)}.fil-w-btn[data-v-75e79c80]:disabled{opacity:.4;cursor:default}.fil-w-btn-accent[data-v-75e79c80]{background:var(--fil-accent);border-color:var(--fil-accent);color:var(--fil-accent-ink)}.fil-w-btn-danger[data-v-75e79c80]{color:var(--fil-danger)}.fil-w-btn-danger[data-v-75e79c80]:hover:not(:disabled){background:var(--fil-danger);border-color:var(--fil-danger);color:#fff}.fil-w-btn-sm[data-v-75e79c80]{padding:4px 8px;font-size:11px}.fil-w-btn-full[data-v-75e79c80]{width:100%;display:block}.fil-w-btn-icon[data-v-75e79c80]{justify-content:center;align-items:center;gap:5px;display:inline-flex}.fil-w-btn-glyph[data-v-75e79c80] svg{width:14px;height:14px}.fil-w-btn.is-flashing[data-v-75e79c80],.fil-w-btn.is-flashing[data-v-75e79c80]:hover{background:var(--fil-ok);border-color:var(--fil-ok);color:#fff}.fil-w-btn.is-loading[data-v-75e79c80]{cursor:wait}.fil-w-btn[data-v-75e79c80]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:-2px}.fil-w-btn-spinner[data-v-75e79c80]{border:2px solid;border-top-color:#0000;border-radius:50%;width:12px;height:12px;animation:.6s linear infinite fil-w-spin-75e79c80;display:inline-block}@keyframes fil-w-spin-75e79c80{to{transform:rotate(360deg)}}.fil-w-chips[data-v-23d693d7]{gap:5px;width:100%;display:grid}.fil-w-chip[data-v-23d693d7]{box-sizing:border-box;background:var(--fil-panel-alt);border:1px solid var(--fil-border);color:var(--fil-text);cursor:pointer;-webkit-user-select:none;user-select:none;text-align:center;appearance:none;text-overflow:ellipsis;white-space:nowrap;border-radius:5px;outline:none;padding:6px 4px;font-family:inherit;font-size:10px;transition:background 80ms,border-color 80ms,color 80ms;overflow:hidden}.fil-w-chip[data-v-23d693d7]:hover:not(.disabled){border-color:var(--fil-accent);color:var(--fil-text)}.fil-w-chip.active[data-v-23d693d7]{background:var(--fil-panel-alt);color:var(--fil-accent-text);border-color:var(--fil-accent);box-shadow:0 0 8px color-mix(in srgb, var(--fil-accent) 55%, transparent);font-weight:500}.fil-w-chip.disabled[data-v-23d693d7]{opacity:.5;cursor:default}.fil-w-chip[data-v-23d693d7]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:-2px}.fil-w-chiplist[data-v-6cab4842]{flex-direction:column;gap:5px;width:100%;display:flex}.fil-w-search[data-v-6cab4842]{box-sizing:border-box;background:var(--fil-panel-alt);border:1px solid var(--fil-border);width:100%;color:var(--fil-text);border-radius:5px;outline:none;padding:5px 8px;font-family:inherit;font-size:11px}.fil-w-search[data-v-6cab4842]:focus{border-color:var(--fil-accent)}.fil-w-search[data-v-6cab4842]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:1px}.fil-w-chip-scroll[data-v-6cab4842]{gap:3px;max-height:200px;padding-right:2px;display:grid;overflow:hidden auto}.fil-w-chip-scroll[data-v-6cab4842]::-webkit-scrollbar{width:5px}.fil-w-chip-scroll[data-v-6cab4842]::-webkit-scrollbar-thumb{background:var(--fil-muted);border-radius:3px}.fil-w-chip-scroll[data-v-6cab4842]::-webkit-scrollbar-track{background:0 0}.fil-w-chip[data-v-6cab4842]{box-sizing:border-box;background:var(--fil-panel-alt);border:1px solid var(--fil-border);color:var(--fil-text);cursor:pointer;-webkit-user-select:none;user-select:none;text-align:center;appearance:none;text-overflow:ellipsis;white-space:nowrap;border-radius:5px;outline:none;padding:6px 4px;font-family:inherit;font-size:10px;transition:background 80ms,border-color 80ms,color 80ms;overflow:hidden}.fil-w-chip[data-v-6cab4842]:hover:not(.disabled){border-color:var(--fil-accent);color:var(--fil-text)}.fil-w-chip.active[data-v-6cab4842]{background:var(--fil-accent);color:var(--fil-accent-ink);border-color:var(--fil-accent);font-weight:500}.fil-w-chip.disabled[data-v-6cab4842]{opacity:.5;cursor:default}.fil-w-chip[data-v-6cab4842]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:-2px}.fil-w-chip-empty[data-v-6cab4842]{text-align:center;color:var(--fil-muted);padding:8px;font-size:11px}.fil-icon[data-v-dfb78d9f]{flex-shrink:0;justify-content:center;align-items:center;line-height:0;display:inline-flex}.fil-icon[data-v-dfb78d9f] svg{width:100%;height:100%}.fil-combo[data-v-605297df]{align-items:center;gap:var(--fil-node-gap);grid-template-columns:minmax(auto,max-content) minmax(60px,1fr);width:100%;display:grid}.fil-combo-label[data-v-605297df]{color:var(--fil-muted);grid-column:1;font-family:inherit;font-size:11px}.fil-combo-trigger[data-v-605297df]{box-sizing:border-box;width:100%;height:var(--fil-control-h);background:var(--fil-panel-alt);border:1px solid var(--fil-border);color:var(--fil-text);cursor:pointer;text-align:left;appearance:none;border-radius:6px;outline:none;grid-column:2;align-items:center;gap:6px;padding:5px 8px;font-family:inherit;font-size:12px;display:flex}.fil-combo-trigger.open[data-v-605297df],.fil-combo-trigger[data-v-605297df]:focus-visible{border-color:var(--fil-accent);outline:2px solid var(--fil-accent);outline-offset:1px}.fil-combo-trigger.disabled[data-v-605297df]{opacity:.5;cursor:default}.fil-combo-trigger-label[data-v-605297df]{text-overflow:ellipsis;white-space:nowrap;flex:1;overflow:hidden}.fil-combo-chevron[data-v-605297df]{color:var(--fil-muted);flex-shrink:0;font-size:9px}.fil-combo-badge[data-v-605297df]{background:var(--fil-accent);color:var(--fil-accent-ink);border-radius:999px;flex-shrink:0;padding:2px 5px;font-size:9px;font-weight:600;line-height:1}.fil-combo-panel[data-v-605297df]{z-index:10001;box-sizing:border-box;background:var(--fil-panel);border:1px solid var(--fil-border);border-radius:8px;flex-direction:column;padding:6px;display:flex;position:fixed;overflow:hidden;box-shadow:0 12px 32px #0006}.fil-combo-search[data-v-605297df]{box-sizing:border-box;background:var(--fil-panel-alt);border:1px solid var(--fil-border);width:100%;color:var(--fil-text);border-radius:5px;outline:none;margin-bottom:6px;padding:6px 8px;font-family:inherit;font-size:12px}.fil-combo-search[data-v-605297df]:focus{border-color:var(--fil-accent)}.fil-combo-list[data-v-605297df]{flex-direction:column;gap:2px;max-height:240px;display:flex;overflow-y:auto}.fil-combo-option[data-v-605297df]{box-sizing:border-box;width:100%;color:var(--fil-text);text-align:left;cursor:pointer;background:0 0;border:none;border-radius:5px;outline:none;align-items:center;gap:6px;padding:6px 8px;font-family:inherit;font-size:12px;display:flex}.fil-combo-option.active[data-v-605297df]{background:var(--fil-surface-2)}.fil-combo-option.selected[data-v-605297df]{color:var(--fil-accent-text);font-weight:600}.fil-combo-option-label[data-v-605297df]{text-overflow:ellipsis;white-space:nowrap;flex:1;overflow:hidden}.fil-combo-empty[data-v-605297df]{text-align:center;color:var(--fil-muted);padding:10px;font-size:12px}.fil-w-info[data-v-be74f393]{color:var(--fil-muted);text-align:center;white-space:nowrap;text-overflow:ellipsis;font-size:11px;line-height:1.5;overflow:hidden}.fil-w-info[data-ok][data-v-be74f393]{color:var(--fil-ok)}.fil-w-info[data-err][data-v-be74f393]{color:var(--fil-danger)}.fil-modal-backdrop[data-v-952a8f2d]{z-index:10000;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);background:#0000008c;justify-content:center;align-items:center;display:flex;position:fixed;inset:0}.fil-modal-panel[data-v-952a8f2d]{background:var(--fil-panel);border:1px solid var(--fil-border);border-radius:10px;flex-direction:column;width:90%;max-height:80vh;display:flex;overflow:hidden;box-shadow:0 20px 60px #00000080}.fil-modal-header[data-v-952a8f2d]{border-bottom:1px solid var(--fil-border);justify-content:space-between;align-items:center;padding:12px 16px;display:flex}.fil-modal-title[data-v-952a8f2d]{color:var(--fil-text);font-size:14px;font-weight:600}.fil-modal-close[data-v-952a8f2d]{width:28px;height:28px;color:var(--fil-muted);cursor:pointer;background:0 0;border:none;border-radius:6px;justify-content:center;align-items:center;transition:background 80ms,color 80ms;display:inline-flex}.fil-modal-close[data-v-952a8f2d]:hover{color:var(--fil-text);background:#ffffff14}.fil-modal-body[data-v-952a8f2d]{flex:1;padding:16px;overflow-y:auto}.fil-modal-enter-active[data-v-952a8f2d],.fil-modal-leave-active[data-v-952a8f2d]{transition:opacity .15s}.fil-modal-enter-from[data-v-952a8f2d],.fil-modal-leave-to[data-v-952a8f2d]{opacity:0}.fil-modal-enter-active .fil-modal-panel[data-v-952a8f2d],.fil-modal-leave-active .fil-modal-panel[data-v-952a8f2d]{transition:transform .15s}.fil-modal-enter-from .fil-modal-panel[data-v-952a8f2d],.fil-modal-leave-to .fil-modal-panel[data-v-952a8f2d]{transform:scale(.95)translateY(8px)}.fil-w-numfield[data-v-3e158373]{align-items:center;gap:var(--fil-node-gap);grid-template-columns:minmax(auto,max-content) minmax(60px,1fr);width:100%;display:grid}.fil-w-numfield.no-label[data-v-3e158373]{display:contents}.fil-w-numfield-label[data-v-3e158373]{color:var(--fil-muted);grid-column:1;font-family:inherit;font-size:11px}.fil-w-numfield:not(.no-label) .fil-w-num-wrap[data-v-3e158373]{grid-column:2}.fil-w-num-wrap[data-v-3e158373]{width:100%;min-width:0;position:relative}.fil-w-num[data-v-3e158373]{box-sizing:border-box;width:100%;height:var(--fil-control-h);background:var(--fil-panel-alt);border:1px solid var(--fil-border);color:var(--fil-text);text-align:left;border-radius:6px;outline:none;padding:7px 20px 7px 8px;font-family:ui-monospace,Cascadia Code,Consolas,monospace;font-size:14px;transition:border-color 80ms}.fil-w-num[data-v-3e158373]:focus{border-color:var(--fil-accent)}.fil-w-num[data-v-3e158373]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:1px}.fil-w-num[data-v-3e158373]:disabled{opacity:.5}.fil-w-num-step[data-v-3e158373]{border-left:1px solid var(--fil-border);border-radius:0 5px 5px 0;flex-direction:column;width:17px;display:flex;position:absolute;top:1px;bottom:1px;right:1px;overflow:hidden}.fil-w-num-btn[data-v-3e158373]{min-height:0;color:var(--fil-muted);cursor:pointer;background:0 0;border:none;flex:1;justify-content:center;align-items:center;padding:0;font-size:7px;line-height:1;transition:color 80ms,background 80ms;display:flex}.fil-w-num-btn[data-v-3e158373]:last-child{border-top:1px solid var(--fil-border)}.fil-w-num-btn[data-v-3e158373]:hover:not(:disabled){color:var(--fil-accent);background:var(--fil-surface-2)}.fil-w-num-btn[data-v-3e158373]:disabled{opacity:.3;cursor:default}.fil-w-seedrow[data-v-5802f079]{gap:6px;min-width:0;display:flex}.fil-w-seedrow-field[data-v-5802f079]{box-sizing:border-box;min-width:0;height:var(--fil-control-h-lg);background:var(--fil-inset);border:1px solid var(--fil-border);border-radius:var(--fil-pill-radius);color:var(--fil-text);text-align:center;outline:none;flex:1.3;padding:0 12px;font-family:ui-monospace,Cascadia Code,Consolas,monospace;font-size:13px;transition:border-color 80ms}.fil-w-seedrow-field[data-v-5802f079]:focus{border-color:var(--fil-accent)}.fil-w-seedrow-field[data-v-5802f079]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:1px}.fil-w-seedrow-field.is-random[data-v-5802f079]{color:var(--fil-muted);font-style:italic}.fil-w-seedrow-pill[data-v-5802f079]{box-sizing:border-box;min-width:0;height:var(--fil-control-h-lg);white-space:nowrap;text-overflow:ellipsis;border-radius:var(--fil-pill-radius);border:1px solid var(--fil-pill-border);background:var(--fil-pill-bg);color:var(--fil-text);cursor:pointer;appearance:none;outline:none;flex:1;padding:0 8px;font-family:inherit;font-size:12px;font-weight:600;transition:background 80ms,border-color 80ms,color 80ms;overflow:hidden}.fil-w-seedrow-pill[data-v-5802f079]:hover{background:var(--fil-surface-3)}.fil-w-seedrow-pill[data-v-5802f079]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:-2px}.fil-w-seedrow-pill.active[data-v-5802f079]{background:var(--fil-accent);border-color:var(--fil-accent);color:var(--fil-accent-ink)}.fil-w-seedrow-pill.is-accent[data-v-5802f079]{background:color-mix(in srgb, var(--fil-accent) 12%, transparent);border-color:var(--fil-accent);color:var(--fil-text);font-weight:700}.fil-w-seedrow-pill.is-accent[data-v-5802f079]:hover{background:color-mix(in srgb, var(--fil-accent) 24%, transparent)}.fil-w-section[data-v-47c32650]{box-sizing:border-box;width:100%;padding:var(--fil-row-pad);background:var(--fil-surface-1);color:var(--fil-muted);text-transform:uppercase;letter-spacing:.6px;cursor:pointer;text-align:left;-webkit-user-select:none;user-select:none;appearance:none;border:none;border-radius:5px;outline:none;align-items:center;gap:6px;font-family:inherit;font-size:11px;font-weight:600;transition:background 80ms,color 80ms;display:flex}.fil-w-section[data-v-47c32650]:hover:not(:disabled){background:var(--fil-surface-2);color:var(--fil-text)}.fil-w-section[data-v-47c32650]:disabled{cursor:default}.fil-w-section[data-v-47c32650]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:-2px}.fil-w-section-arrow[data-v-47c32650]{width:8px;color:var(--fil-accent-text);font-size:9px;display:inline-block}.fil-w-segmented[data-v-80a17629]{align-items:center;gap:var(--fil-node-gap);grid-template-columns:minmax(auto,max-content) minmax(60px,1fr);width:100%;display:grid}.fil-w-segmented-label[data-v-80a17629]{color:var(--fil-muted);grid-column:1;font-family:inherit;font-size:11px}.fil-w-pill[data-v-80a17629]{background:var(--fil-surface-2);border-radius:7px;grid-column:2;gap:0;min-width:0;padding:3px;display:flex}.fil-w-pill.disabled[data-v-80a17629]{opacity:.5}.fil-w-seg[data-v-80a17629]{text-overflow:ellipsis;white-space:nowrap;text-align:center;min-width:0;color:var(--fil-muted);cursor:pointer;-webkit-user-select:none;user-select:none;appearance:none;background:0 0;border:none;border-radius:5px;outline:none;flex:1;padding:6px;font-family:inherit;font-size:12px;transition:background 80ms,color 80ms;overflow:hidden}.fil-w-seg[data-v-80a17629]:hover:not(.active){color:var(--fil-text)}.fil-w-seg.active[data-v-80a17629]{background:var(--fil-accent);color:var(--fil-accent-ink);font-weight:500}.fil-w-seg[data-v-80a17629]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:-2px}.fil-w-select[data-v-f303e789]{align-items:center;gap:var(--fil-node-gap);grid-template-columns:minmax(auto,max-content) minmax(60px,1fr);width:100%;display:grid}.fil-w-select-label[data-v-f303e789]{color:var(--fil-muted);grid-column:1;font-family:inherit;font-size:11px}.fil-w-select-input[data-v-f303e789]{box-sizing:border-box;width:100%;height:var(--fil-control-h);background:var(--fil-panel-alt);border:1px solid var(--fil-border);color:var(--fil-text);cursor:pointer;border-radius:6px;outline:none;grid-column:2;padding:5px 8px;font-family:inherit;font-size:12px}.fil-w-select-input[data-v-f303e789]:focus{border-color:var(--fil-accent)}.fil-w-select-input[data-v-f303e789]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:1px}.fil-w-select-input[data-v-f303e789]:disabled{opacity:.5;cursor:default}.fil-w-slider[data-v-bcb4fa2a]{align-items:center;gap:var(--fil-node-gap);grid-template-columns:minmax(auto,max-content) minmax(60px,1fr);width:100%;display:grid}.fil-w-slider-label[data-v-bcb4fa2a]{color:var(--fil-muted);grid-column:1;font-family:inherit;font-size:11px}.fil-w-slider-row[data-v-bcb4fa2a]{grid-column:2;align-items:center;gap:6px;min-width:0;display:flex}.fil-w-slider-range[data-v-bcb4fa2a]{min-width:0;max-width:220px;accent-color:var(--fil-accent);cursor:pointer;flex:auto}.fil-w-slider-range[data-v-bcb4fa2a]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:2px}.fil-w-slider-row[data-v-bcb4fa2a] .fil-w-num-wrap{flex:none;width:70px}.fil-style-picker[data-v-572f1dc7]{flex-direction:column;gap:10px;display:flex}.fil-style-cats[data-v-572f1dc7]{flex-wrap:wrap;gap:6px;display:flex}.fil-style-cat[data-v-572f1dc7]{box-sizing:border-box;border:1px solid var(--fil-border);background:var(--fil-surface-1);color:var(--fil-text);cursor:pointer;-webkit-user-select:none;user-select:none;appearance:none;border-radius:999px;outline:none;padding:5px 10px;font-size:11px;transition:background 80ms,border-color 80ms,color 80ms}.fil-style-cat[data-v-572f1dc7]:hover{border-color:var(--fil-accent)}.fil-style-cat.active[data-v-572f1dc7]{background:var(--fil-accent);border-color:var(--fil-accent);color:var(--fil-accent-ink);font-weight:500}.fil-style-cat[data-v-572f1dc7]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:1px}.fil-style-search-wrap[data-v-572f1dc7]{width:100%;position:relative}.fil-style-search[data-v-572f1dc7]{box-sizing:border-box;background:var(--fil-panel-alt);border:1px solid var(--fil-border);width:100%;color:var(--fil-text);border-radius:6px;outline:none;padding:7px 28px 7px 10px;font-family:inherit;font-size:12px}.fil-style-search[data-v-572f1dc7]:focus{border-color:var(--fil-accent)}.fil-style-search-clear[data-v-572f1dc7]{background:var(--fil-surface-3);color:#bbb;cursor:pointer;border:none;border-radius:50%;justify-content:center;align-items:center;width:18px;height:18px;font-size:13px;line-height:1;transition:all .12s;display:flex;position:absolute;top:50%;right:6px;transform:translateY(-50%)}.fil-style-search-clear[data-v-572f1dc7]:hover{color:var(--fil-danger);background:#ff4b4b4d}.fil-style-grid[data-v-572f1dc7]{grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;max-height:50vh;padding-right:2px;display:grid;overflow-y:auto}.fil-style-tile[data-v-572f1dc7]{box-sizing:border-box;border:1px solid var(--fil-border);background:var(--fil-panel-alt);color:var(--fil-text);cursor:pointer;-webkit-user-select:none;user-select:none;appearance:none;border-radius:8px;outline:none;flex-direction:column;align-items:center;gap:6px;padding:8px 6px;transition:background 80ms,border-color 80ms,color 80ms;display:flex}.fil-style-tile[data-v-572f1dc7]:hover{border-color:var(--fil-accent);color:var(--fil-text)}.fil-style-tile.active[data-v-572f1dc7]{border-color:var(--fil-accent);background:color-mix(in srgb, var(--fil-accent) 14%, transparent)}.fil-style-tile[data-v-572f1dc7]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:-2px}.fil-style-tile-preview[data-v-572f1dc7]{aspect-ratio:1;background:var(--fil-surface-1);border-radius:6px;justify-content:center;align-items:center;width:100%;font-size:22px;display:flex;overflow:hidden}.fil-style-tile-img[data-v-572f1dc7]{object-fit:cover;width:100%;height:100%}.fil-style-tile-label[data-v-572f1dc7]{text-align:center;text-overflow:ellipsis;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:10px;line-height:1.3;display:-webkit-box;overflow:hidden}.fil-style-empty[data-v-572f1dc7]{text-align:center;color:var(--fil-muted);grid-column:1/-1;padding:20px;font-size:12px}.fil-style-selected-bar[data-v-572f1dc7]{background:color-mix(in srgb, var(--fil-accent) 6%, transparent);border:1px solid color-mix(in srgb, var(--fil-accent) 20%, transparent);border-radius:6px;flex-wrap:wrap;gap:6px;padding:6px;display:flex}.fil-style-chip[data-v-572f1dc7]{background:var(--fil-accent);color:var(--fil-accent-ink);border-radius:999px;align-items:center;gap:4px;padding:3px 8px;font-size:11px;font-weight:600;display:inline-flex}.fil-chip-text[data-v-572f1dc7]{text-overflow:ellipsis;white-space:nowrap;max-width:140px;overflow:hidden}.fil-chip-remove[data-v-572f1dc7]{width:14px;height:14px;color:var(--fil-accent-ink);cursor:pointer;background:#0003;border:none;border-radius:50%;justify-content:center;align-items:center;padding:0;font-size:12px;line-height:1;transition:background 80ms,color 80ms;display:inline-flex}.fil-chip-remove[data-v-572f1dc7]:hover{background:var(--fil-danger);color:#fff}.fil-w-textarea-row[data-v-f3b21190]{flex-direction:column;gap:3px;min-width:0;display:flex}.fil-w-textarea-label[data-v-f3b21190]{color:var(--fil-muted);font-family:inherit;font-size:11px}.fil-w-textarea[data-v-f3b21190]{box-sizing:border-box;background:var(--fil-panel-alt);border:1px solid var(--fil-border);border-radius:var(--fil-field-radius);width:100%;min-height:40px;color:var(--fil-text);resize:vertical;outline:none;padding:8px 10px;font-family:inherit;font-size:12px;transition:border-color 80ms}.fil-w-textarea[data-v-f3b21190]::placeholder{color:color-mix(in srgb, var(--fil-text) 30%, transparent);font-style:italic}.fil-w-textarea[data-v-f3b21190]:focus{border-color:var(--fil-accent)}.fil-w-textarea[data-v-f3b21190]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:1px}.fil-w-textarea[data-v-f3b21190]:disabled{opacity:.5}.fil-w-textarea.is-linked[data-v-f3b21190]{border-style:dashed;border-color:var(--fil-accent);color:var(--fil-muted);cursor:not-allowed}.fil-w-text[data-v-d656e366]{align-items:center;gap:var(--fil-node-gap);grid-template-columns:minmax(auto,max-content) minmax(60px,1fr);width:100%;display:grid}.fil-w-text-label[data-v-d656e366]{color:var(--fil-muted);grid-column:1;font-family:inherit;font-size:11px}.fil-w-text-input[data-v-d656e366]{box-sizing:border-box;width:100%;height:var(--fil-control-h);background:var(--fil-panel-alt);border:1px solid var(--fil-border);color:var(--fil-text);border-radius:6px;outline:none;grid-column:2;padding:5px 8px;font-family:inherit;font-size:12px;transition:border-color 80ms}.fil-w-text-input[data-v-d656e366]::placeholder{color:color-mix(in srgb, var(--fil-text) 30%, transparent);font-style:italic}.fil-w-text-input[data-v-d656e366]:focus{border-color:var(--fil-accent)}.fil-w-text-input[data-v-d656e366]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:1px}.fil-w-text-input[data-v-d656e366]:disabled{opacity:.5}.fil-toast-stack[data-v-efc20406]{z-index:100001;pointer-events:none;flex-direction:column;gap:8px;max-width:min(360px,90vw);display:flex;position:fixed;bottom:20px;right:20px}.fil-toast[data-v-efc20406]{pointer-events:auto;background:var(--fil-panel);color:var(--fil-text);border:1px solid var(--fil-panel-alt);border-left:3px solid var(--toast-color,var(--fil-muted));border-radius:8px;align-items:flex-start;gap:10px;padding:10px 12px;font:12.5px/1.45 system-ui,sans-serif;animation:.18s cubic-bezier(.2,.7,.3,1) fil-toast-in-efc20406;display:flex;box-shadow:0 6px 22px #0000006b}@keyframes fil-toast-in-efc20406{0%{opacity:0;transform:translateY(8px)scale(.98)}to{opacity:1;transform:none}}.fil-toast-dot[data-v-efc20406]{background:var(--toast-color,var(--fil-muted));border-radius:50%;flex:none;width:8px;height:8px;margin-top:4px}.fil-toast-text[data-v-efc20406]{flex:1;align-self:center;min-width:0}.fil-toast-action[data-v-efc20406]{cursor:pointer;background:var(--fil-surface-2);color:inherit;font:inherit;border:none;border-radius:4px;flex:none;padding:4px 8px;transition:background .12s}.fil-toast-action[data-v-efc20406]:hover{background:var(--fil-surface-3)}.fil-toast-close[data-v-efc20406]{cursor:pointer;width:18px;height:18px;color:var(--fil-muted);opacity:.6;background:0 0;border:none;flex:none;align-self:flex-start;padding:0;font-size:16px;line-height:18px;transition:opacity .12s}.fil-toast-close[data-v-efc20406]:hover{opacity:1}.fil-w-toggle[data-v-3b513d75]{align-items:center;gap:var(--fil-node-gap);grid-template-columns:minmax(auto,max-content) minmax(60px,1fr);width:100%;display:grid}.fil-w-toggle-label[data-v-3b513d75]{color:var(--fil-muted);grid-column:1;font-family:inherit;font-size:11px}.fil-w-toggle.bare[data-v-3b513d75]{gap:4px;width:auto;display:flex}.fil-w-toggle.bare .fil-w-toggle-label[data-v-3b513d75]{white-space:nowrap;font-size:10px}.fil-w-switch[data-v-3b513d75]{box-sizing:border-box;background:var(--fil-surface-3);cursor:pointer;appearance:none;border:none;border-radius:10px;outline:none;grid-column:2;justify-self:end;width:36px;height:20px;padding:2px;transition:background .12s}.fil-w-switch.on[data-v-3b513d75]{background:var(--fil-accent)}.fil-w-switch[data-v-3b513d75]:disabled{opacity:.5;cursor:default}.fil-w-switch[data-v-3b513d75]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:2px}.fil-w-switch-thumb[data-v-3b513d75]{background:#fff;border-radius:50%;width:16px;height:16px;transition:transform .12s;display:block}.fil-w-switch.on .fil-w-switch-thumb[data-v-3b513d75]{transform:translate(16px)}div.fil-seed-root[data-v-dca90760]{box-sizing:border-box;align-items:center;gap:var(--fil-node-gap);width:100%;min-width:0;padding:var(--fil-node-pad);color:var(--fil-text);box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;background:0 0;border:none;border-radius:0;flex-direction:row;font-family:ui-sans-serif,system-ui,sans-serif;display:flex}.fil-seed-display[data-v-dca90760]{box-sizing:border-box;min-width:0;height:var(--fil-control-h-lg);background:var(--fil-glass-bg);border:1px solid var(--fil-glass-border);border-radius:var(--fil-field-radius);color:var(--fil-text);text-align:center;outline:none;flex:1;padding:6px 8px;font-family:ui-monospace,Cascadia Code,Consolas,monospace;font-size:19px;transition:border-color 80ms}.fil-seed-display[data-v-dca90760]:focus{border-color:var(--fil-accent)}.fil-seed-display[readonly][data-v-dca90760]{color:var(--fil-muted);font-style:italic}.fil-seed-actions[data-v-dca90760]{flex-shrink:0;gap:5px;display:flex}.fil-seed-actions[data-v-dca90760] .fil-w-btn{width:var(--fil-control-h-lg);height:var(--fil-control-h-lg);padding:0;font-size:16px}.picker-container[data-v-cb4a4ea1]{color:var(--fil-text);flex-direction:column;gap:12px;display:flex}.provider-tabs[data-v-cb4a4ea1]{scrollbar-width:thin;gap:6px;padding-bottom:6px;display:flex;overflow-x:auto}.tab-btn[data-v-cb4a4ea1]{border:1px solid var(--fil-pill-border);background:var(--fil-pill-bg);color:var(--fil-muted);cursor:pointer;white-space:nowrap;border-radius:8px;flex-shrink:0;align-items:center;gap:6px;padding:7px 10px;font-size:12px;transition:all .15s;display:flex}.tab-btn[data-v-cb4a4ea1]:hover{background:var(--fil-surface-2);color:var(--fil-text)}.tab-btn.active[data-v-cb4a4ea1]{background:var(--fil-panel-alt);border-color:var(--fil-accent);color:var(--fil-accent-text);font-weight:600}.tab-badge[data-v-cb4a4ea1]{background:var(--fil-pill-bg);border-radius:99px;padding:1px 5px;font-size:10px}.provider-status-bar[data-v-cb4a4ea1]{background:#0003;border-radius:6px;justify-content:space-between;align-items:center;padding:8px 12px;font-size:12px;display:flex}.status-info[data-v-cb4a4ea1]{align-items:center;gap:8px;display:flex}.provider-name[data-v-cb4a4ea1]{font-weight:600}.status-badge[data-v-cb4a4ea1]{border-radius:4px;padding:2px 6px;font-size:11px}.status-badge.online[data-v-cb4a4ea1]{color:var(--fil-ok)}.status-badge.loading[data-v-cb4a4ea1]{color:var(--fil-accent-text)}.status-badge.error[data-v-cb4a4ea1]{color:var(--fil-danger)}.age-label[data-v-cb4a4ea1]{color:var(--fil-muted);font-size:10px}.filter-controls[data-v-cb4a4ea1]{flex-direction:column;gap:8px;display:flex}.search-row[data-v-cb4a4ea1]{align-items:center;gap:8px;display:flex}.search-input-wrap[data-v-cb4a4ea1]{flex:1;align-items:center;min-width:0;display:flex;position:relative}.fav-filter[data-v-cb4a4ea1]{height:var(--fil-control-h);background:var(--fil-panel-alt);border:1px solid var(--fil-border);border-radius:var(--fil-field-radius);color:var(--fil-muted);font:inherit;cursor:pointer;white-space:nowrap;flex-shrink:0;align-items:center;gap:6px;padding:0 12px;font-size:12px;transition:all .15s;display:flex}.fav-filter[data-v-cb4a4ea1]:hover{background:var(--fil-surface-2);color:var(--fil-text)}.fav-filter.active[data-v-cb4a4ea1]{border-color:var(--fil-accent);color:var(--fil-accent-text);font-weight:600}.fav-filter[data-v-cb4a4ea1]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:-2px}.fav-filter-star[data-v-cb4a4ea1]{font-size:14px;line-height:1}.fav-filter-count[data-v-cb4a4ea1]{background:var(--fil-pill-bg);border-radius:99px;padding:1px 5px;font-size:10px}.search-icon[data-v-cb4a4ea1]{color:var(--fil-muted);position:absolute;left:10px}.search-input[data-v-cb4a4ea1]{box-sizing:border-box;width:100%;height:var(--fil-control-h);background:var(--fil-panel-alt);border:1px solid var(--fil-border);border-radius:var(--fil-field-radius);color:var(--fil-text);outline:none;padding:6px 30px;font-size:12px}.search-input[data-v-cb4a4ea1]:focus{border-color:var(--fil-accent)}.clear-search[data-v-cb4a4ea1]{color:var(--fil-muted);cursor:pointer;background:0 0;border:none;position:absolute;right:10px}.filter-segments[data-v-cb4a4ea1]{gap:8px;min-width:0;display:flex}.filter-segments[data-v-cb4a4ea1]>*{flex:1;min-width:0}.models-list-wrapper[data-v-cb4a4ea1]{background:var(--fil-inset);border:1px solid var(--fil-border);border-radius:8px;height:320px;padding:8px;overflow-y:auto}.empty-state[data-v-cb4a4ea1]{height:100%;color:var(--fil-muted);justify-content:center;align-items:center;font-size:12px;display:flex}.models-container.list[data-v-cb4a4ea1]{flex-direction:column;gap:6px;display:flex}.models-container.grid[data-v-cb4a4ea1]{grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px;display:grid}.model-row[data-v-cb4a4ea1]{align-items:stretch;gap:4px;min-width:0;display:flex}.fav-btn[data-v-cb4a4ea1]{background:var(--fil-surface-1);border:1px solid var(--fil-border);width:34px;color:var(--fil-muted);cursor:pointer;border-radius:6px;flex-shrink:0;padding:0;font-size:16px;line-height:1;transition:all .12s}.fav-btn[data-v-cb4a4ea1]:hover{background:var(--fil-surface-2);color:var(--fil-text)}.fav-btn.on[data-v-cb4a4ea1]{color:var(--fil-accent-text);border-color:var(--fil-accent)}.fav-btn[data-v-cb4a4ea1]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:-2px}.models-container.grid .model-card[data-v-cb4a4ea1]{flex-direction:column;align-items:flex-start;gap:8px;padding:10px 12px}.models-container.grid .model-main[data-v-cb4a4ea1]{width:100%}.models-container.grid .model-tags[data-v-cb4a4ea1]{justify-content:flex-start;width:100%}.model-card[data-v-cb4a4ea1]{background:var(--fil-surface-1);border:1px solid var(--fil-border);cursor:pointer;box-sizing:border-box;text-align:left;width:100%;min-width:0;font:inherit;color:inherit;appearance:none;border-radius:6px;flex:1;justify-content:space-between;align-items:center;padding:8px 12px;transition:all .12s;display:flex}.model-card[data-v-cb4a4ea1]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:-2px}.model-card[data-v-cb4a4ea1]:hover{background:var(--fil-surface-2);border-color:var(--fil-border)}.model-card.selected[data-v-cb4a4ea1]{border-color:var(--fil-accent);background:#f08a4526}.model-main[data-v-cb4a4ea1]{align-items:center;gap:8px;min-width:0;display:flex}.type-icon[data-v-cb4a4ea1]{font-size:14px}.model-name[data-v-cb4a4ea1]{white-space:nowrap;text-overflow:ellipsis;font-size:12px;font-weight:500;overflow:hidden}.model-tags[data-v-cb4a4ea1]{flex-shrink:0;gap:4px;display:flex}.tag[data-v-cb4a4ea1]{text-transform:uppercase;border-radius:4px;padding:2px 6px;font-size:9px;font-weight:600}.tag.vision[data-v-cb4a4ea1]{color:var(--fil-accent-text);background:#f08a4526}.tag.text[data-v-cb4a4ea1],.tag.local[data-v-cb4a4ea1],.tag.free[data-v-cb4a4ea1],.tag.paid[data-v-cb4a4ea1]{background:var(--fil-pill-bg);color:var(--fil-muted)}.picker-footer[data-v-cb4a4ea1]{justify-content:space-between;align-items:center;padding-top:8px;display:flex}.selection-summary[data-v-cb4a4ea1]{font-size:12px}.selection-summary .muted[data-v-cb4a4ea1]{color:var(--fil-muted)}.footer-actions[data-v-cb4a4ea1]{gap:8px;display:flex}.fil-provider-root[data-v-d1f3392e]{box-sizing:border-box;gap:var(--fil-node-gap);width:100%;min-width:0;padding:var(--fil-node-pad);color:var(--fil-text);flex-direction:column;min-width:0;font-family:ui-sans-serif,system-ui,sans-serif;display:flex}.picker-trigger-btn[data-v-d1f3392e]{box-sizing:border-box;background:var(--fil-panel-alt);border:1px solid var(--fil-pill-border);border-radius:var(--fil-field-radius);width:100%;color:var(--fil-text);cursor:pointer;text-align:left;outline:none;flex-direction:column;gap:6px;padding:8px 10px;transition:border-color .15s,background .15s;display:flex}.picker-trigger-btn[data-v-d1f3392e]:hover{border-color:var(--fil-accent);background:var(--fil-pill-bg)}.picker-trigger-btn[data-v-d1f3392e]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:1px;border-color:var(--fil-accent)}.trigger-header[data-v-d1f3392e]{justify-content:space-between;align-items:center;width:100%;display:flex}.provider-badge[data-v-d1f3392e]{color:var(--fil-accent-text);align-items:center;gap:6px;font-size:13px;font-weight:600;display:flex}.open-icon[data-v-d1f3392e]{background:var(--fil-pill-bg);color:var(--fil-text);border-radius:4px;padding:2px 6px;font-size:11px}.trigger-model[data-v-d1f3392e]{align-items:center;gap:6px;min-width:0;font-size:12px;display:flex}.model-label[data-v-d1f3392e]{color:var(--fil-muted);flex-shrink:0}.model-name[data-v-d1f3392e]{white-space:nowrap;text-overflow:ellipsis;flex:1;font-weight:500;overflow:hidden}.fil-scanner-root[data-v-ffe55d1d]{gap:var(--fil-node-gap);padding:var(--fil-node-pad);color:var(--fil-text);box-sizing:border-box;flex-direction:column;width:100%;min-width:0;height:100%;font-family:ui-sans-serif,system-ui,sans-serif;display:flex}.fil-section-block[data-v-ffe55d1d]{flex-direction:column;gap:5px;min-width:0;display:flex}.fil-section-block.is-growable[data-v-ffe55d1d]{flex:auto;min-height:0}.fil-w-row[data-v-ffe55d1d]{flex-direction:column;gap:3px;min-width:0;display:flex}.fil-w-row.is-growable[data-v-ffe55d1d]{flex:auto;min-height:0}.fil-w-row[data-v-ffe55d1d] .fil-w-textarea{min-height:48px}.fil-w-row.is-growable[data-v-ffe55d1d] .fil-w-textarea{flex:auto;height:auto}.fil-single-style-block[data-v-ffe55d1d]{margin-top:2px}.fil-unified-style-modal[data-v-ffe55d1d]{flex-direction:column;gap:12px;padding:4px 0;display:flex}.fil-style-tab-bar[data-v-ffe55d1d]{background:var(--fil-inset);border:1px solid var(--fil-border);border-radius:8px;gap:6px;padding:4px;display:flex}.fil-style-tab-btn[data-v-ffe55d1d]{height:var(--fil-control-h-lg);color:var(--fil-muted);cursor:pointer;background:0 0;border:1px solid #0000;border-radius:6px;flex:1;justify-content:center;align-items:center;gap:6px;font-size:12px;font-weight:600;transition:all .12s;display:flex}.fil-style-tab-btn[data-v-ffe55d1d]:hover{color:var(--fil-text);background:var(--fil-surface-2)}.fil-style-tab-btn.active[data-v-ffe55d1d]{background:var(--fil-accent);color:var(--fil-accent-ink);border-color:var(--fil-accent);box-shadow:0 0 10px color-mix(in srgb, var(--fil-accent) 30%, transparent);font-weight:700}.fil-tab-badge[data-v-ffe55d1d]{color:var(--fil-ok);font-size:10px}.fil-style-tab-btn.active .fil-tab-badge[data-v-ffe55d1d]{color:var(--fil-accent-ink)}.fil-style-picker-body[data-v-ffe55d1d]{min-height:320px;max-height:480px;overflow-y:auto}.fil-style-modal-footer[data-v-ffe55d1d]{border-top:1px solid var(--fil-border);justify-content:flex-end;padding-top:8px;display:flex}.fil-clear-styles-btn[data-v-ffe55d1d]{border:1px solid color-mix(in srgb, var(--fil-danger) 40%, transparent);background:color-mix(in srgb, var(--fil-danger) 12%, transparent);color:var(--fil-danger);cursor:pointer;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600;transition:background .12s,border-color .12s,color .12s}.fil-clear-styles-btn[data-v-ffe55d1d]:hover{background:color-mix(in srgb, var(--fil-danger) 28%, transparent);border-color:var(--fil-danger);color:var(--fil-text)}.fil-clear-styles-btn[data-v-ffe55d1d]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:1px}.fil-style-picker-btn[data-v-ffe55d1d]{box-sizing:border-box;min-height:var(--fil-control-h-lg);border-radius:var(--fil-pill-radius);background:var(--fil-pill-bg);border:1px solid var(--fil-pill-border);color:var(--fil-text);cursor:pointer;flex:2;justify-content:center;align-items:center;font-family:inherit;font-size:12px;font-weight:600;transition:background .12s,border-color .12s,box-shadow .12s;display:flex}.fil-style-picker-btn[data-v-ffe55d1d]:hover{background:var(--fil-surface-3);border-color:var(--fil-accent)}.fil-style-picker-btn[data-v-ffe55d1d]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:-2px}.fil-style-picker-btn.has-styles[data-v-ffe55d1d]{background:color-mix(in srgb, var(--fil-accent) 20%, transparent);border-color:var(--fil-accent);box-shadow:0 0 12px color-mix(in srgb, var(--fil-accent) 25%, transparent)}.fil-style-picker-btn.has-styles[data-v-ffe55d1d]:hover{background:color-mix(in srgb, var(--fil-accent) 32%, transparent)}.fil-up-root[data-v-7a3cbf95]{box-sizing:border-box;gap:var(--fil-node-gap);width:100%;min-width:0;padding:var(--fil-node-pad);color:var(--fil-text);flex-direction:column;font-family:ui-sans-serif,system-ui,sans-serif;display:flex}.fil-up-row[data-v-7a3cbf95]{align-items:center;gap:var(--fil-node-gap);grid-template-columns:minmax(auto,max-content) 64px minmax(auto,max-content) 64px;display:grid}.fil-up-row-overlap[data-v-7a3cbf95]{grid-template-columns:minmax(auto,max-content) 64px minmax(auto,max-content) 64px auto}.fil-w-label[data-v-7a3cbf95]{color:var(--fil-muted);font-size:11px}.fil-hrf-root[data-v-9399efd5],.fil-style-mixer-root[data-v-87c8a7d7],.fil-color-wizard-root[data-v-a7254666]{box-sizing:border-box;gap:var(--fil-node-gap);width:100%;min-width:0;padding:var(--fil-node-pad);color:var(--fil-text);flex-direction:column;font-family:ui-sans-serif,system-ui,sans-serif;display:flex}.fil-cw-presets-block[data-v-a7254666]{border:1px solid var(--fil-border);background:#0000004d;border-radius:8px;flex-direction:column;gap:6px;padding:8px 10px;display:flex}.fil-cw-presets-title[data-v-a7254666]{color:var(--fil-accent-text);text-transform:uppercase;letter-spacing:.5px;font-size:11px;font-weight:700}.fil-cw-presets-grid[data-v-a7254666]{grid-template-columns:1fr 1fr;gap:6px;display:grid}.fil-cw-preset-btn[data-v-a7254666]{border:1px solid var(--fil-border);background:var(--fil-surface-1);height:28px;color:var(--fil-text);cursor:pointer;border-radius:6px;justify-content:center;align-items:center;font-size:11px;font-weight:600;transition:all .12s;display:flex}.fil-cw-preset-btn[data-v-a7254666]:hover{background:var(--fil-surface-3);border-color:var(--fil-accent)}.fil-cw-preset-btn.warm[data-v-a7254666]:hover{color:#fa0;border-color:#fa0}.fil-cw-preset-btn.cool[data-v-a7254666]:hover{color:#00f0ff;border-color:#00f0ff}.fil-cw-preset-btn.skin[data-v-a7254666]:hover{color:#f7a;border-color:#f7a}.fil-cw-preset-btn.contrast[data-v-a7254666]:hover{color:#fa0;border-color:#fa0}.fil-cw-slider-group[data-v-a7254666]{flex-direction:column;gap:6px;display:flex}.fil-switch-panel[data-v-e917a7af]{box-sizing:border-box;justify-content:center;align-items:center;width:100%;padding:6px 10px;display:flex}.fil-switch-btn[data-v-e917a7af]{width:100%;height:var(--fil-control-h-lg);box-sizing:border-box;border-radius:var(--fil-field-radius);background:var(--fil-surface-2);color:var(--fil-text);letter-spacing:.05em;cursor:pointer;-webkit-user-select:none;user-select:none;border:1px solid #0000;outline:none;justify-content:center;align-items:center;gap:8px;font-family:inherit;font-size:13px;font-weight:700;transition:background .12s,border-color .12s,box-shadow .12s;display:inline-flex;box-shadow:0 2px 8px #00000040}.fil-switch-btn[data-v-e917a7af]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:2px}.fil-switch-btn.is-on[data-v-e917a7af]{background:color-mix(in srgb, var(--fil-ok) 18%, transparent);border-color:color-mix(in srgb, var(--fil-ok) 65%, transparent);box-shadow:0 2px 8px #00000040, 0 0 10px color-mix(in srgb, var(--fil-ok) 22%, transparent)}.fil-switch-btn.is-on[data-v-e917a7af]:hover{background:color-mix(in srgb, var(--fil-ok) 30%, transparent);border-color:var(--fil-ok)}.fil-switch-btn.is-off[data-v-e917a7af]{background:color-mix(in srgb, var(--fil-danger) 14%, transparent);border-color:color-mix(in srgb, var(--fil-danger) 45%, transparent)}.fil-switch-btn.is-off[data-v-e917a7af]:hover{background:color-mix(in srgb, var(--fil-danger) 26%, transparent);border-color:var(--fil-danger)}.fil-switch-text[data-v-e917a7af]{text-transform:uppercase}.fil-ds-root[data-v-c3edb9b3]{gap:var(--fil-node-gap);padding:var(--fil-node-pad);color:var(--fil-text);box-sizing:border-box;flex-direction:column;width:100%;min-width:0;font-family:ui-sans-serif,system-ui,sans-serif;display:flex}.fil-pm-root[data-v-65eee937]{flex-direction:column;gap:12px;padding:4px 0;display:flex}.fil-pm-card[data-v-65eee937]{background:var(--fil-surface-1);border:1px solid var(--fil-border);border-radius:8px;padding:12px}.fil-pm-header[data-v-65eee937]{align-items:center;gap:8px;margin-bottom:10px;display:flex}.fil-pm-card--collapsed[data-v-65eee937]{padding:8px 12px}.fil-pm-card--collapsed .fil-pm-header[data-v-65eee937]{margin-bottom:0}.fil-pm-header--clickable[data-v-65eee937]{cursor:pointer}.fil-pm-header--clickable:hover .fil-pm-name[data-v-65eee937]{color:var(--fil-accent-text)}.fil-pm-chevron[data-v-65eee937]{color:#fff6;align-items:center;transition:transform .12s;display:inline-flex}.fil-pm-chevron--open[data-v-65eee937]{transform:rotate(90deg)}.fil-pm-icon[data-v-65eee937]{justify-content:center;align-items:center;width:26px;height:26px;display:inline-flex}.fil-pm-name[data-v-65eee937]{color:var(--fil-text);font-size:14px;font-weight:600}.fil-pm-disp[data-v-65eee937]{color:#ffffff80;font-size:11px}.fil-pm-status[data-v-65eee937]{text-transform:uppercase;letter-spacing:.5px;color:#fff6;white-space:nowrap;align-items:center;gap:5px;margin-left:auto;font-size:10px;display:inline-flex}.fil-pm-dot[data-v-65eee937]{width:8px;height:8px;box-shadow:0 0 0 3px color-mix(in srgb, currentColor 22%, transparent);background:currentColor;border-radius:50%}.fil-pm-status--connected[data-v-65eee937]{color:var(--fil-ok)}.fil-pm-status--configured[data-v-65eee937]{color:var(--fil-accent-text)}.fil-pm-status--off[data-v-65eee937]{color:var(--fil-muted)}.fil-pm-fields[data-v-65eee937]{flex-direction:column;gap:8px;margin-bottom:10px;display:flex}.fil-pm-field[data-v-65eee937]{flex-direction:column;gap:3px;display:flex}.fil-pm-field-head[data-v-65eee937]{justify-content:space-between;align-items:baseline;gap:8px;display:flex}.fil-pm-field-label[data-v-65eee937]{text-transform:uppercase;letter-spacing:.5px;color:#ffffff80;font-size:10px}.fil-pm-link[data-v-65eee937]{letter-spacing:.3px;color:var(--fil-accent);white-space:nowrap;font-size:10px;text-decoration:none}.fil-pm-link[data-v-65eee937]:hover{text-decoration:underline}.fil-pm-input[data-v-65eee937]{box-sizing:border-box;background:var(--fil-panel-alt);border:1px solid var(--fil-border);width:100%;height:32px;color:var(--fil-text);border-radius:6px;outline:none;padding:7px 8px;font-family:ui-monospace,monospace;font-size:13px;transition:border-color 80ms}.fil-pm-input[data-v-65eee937]:focus{border-color:var(--fil-accent)}.fil-pm-input.fil-pm-has-val[data-v-65eee937]{border-color:var(--fil-border)}.fil-pm-actions[data-v-65eee937]{flex-wrap:wrap;gap:6px;margin-bottom:8px;display:flex}.fil-pm-models[data-v-65eee937]{flex-wrap:wrap;gap:4px;display:flex}.fil-pm-model-tag[data-v-65eee937]{background:var(--fil-surface-2);color:#ffffffbf;white-space:nowrap;border-radius:4px;align-items:center;gap:3px;padding:2px 6px;font-size:11px;display:inline-flex}.fil-pm-vision-badge[data-v-65eee937]{font-size:10px;line-height:1}.fil-pm-err[data-v-65eee937]{color:var(--fil-danger);margin-top:4px;font-size:11px}.fil-pm-age[data-v-65eee937]{color:#fff6;align-self:center;font-size:10px}.fil-help-title[data-v-bfee41d7]{color:var(--fil-text);margin:0 0 12px;font-size:16px;font-weight:700}.fil-help-body[data-v-bfee41d7]{color:var(--fil-muted);margin:0 0 12px;font-size:13px;line-height:1.6}.fil-help-bullet[data-v-bfee41d7]{color:var(--fil-muted);align-items:flex-start;gap:6px;margin-bottom:6px;font-size:13px;display:flex}.fil-help-bullet>span[data-v-bfee41d7]{flex:1}.fil-help-table[data-v-bfee41d7]{border-collapse:collapse;width:100%;margin-top:8px;font-size:12px}.fil-help-table th[data-v-bfee41d7],.fil-help-table td[data-v-bfee41d7]{text-align:left;border-bottom:1px solid var(--fil-border);padding:6px 10px}.fil-help-table th[data-v-bfee41d7]{color:var(--fil-text);font-weight:600}.fil-help-table td[data-v-bfee41d7]{color:var(--fil-muted)}.fil-help-code[data-v-bfee41d7]{color:var(--fil-muted);background:#0000004d;border-radius:6px;margin-top:10px;padding:12px;font-size:12px;overflow-x:auto}.fil-help-empty[data-v-bfee41d7]{color:var(--fil-muted);font-size:13px}\n/*$vite$:1*/";document.head.appendChild(s);}catch(e){}})();
+(function(){try{var s=document.createElement("style");s.textContent=".fil-node-shell[data-v-33d4ad3e]{box-sizing:border-box;width:100%;height:100%;position:relative}.fil-w-btn[data-v-75e79c80]{box-sizing:border-box;padding:var(--fil-row-pad);background:var(--fil-surface-1);border:1px solid var(--fil-border);color:var(--fil-text);cursor:pointer;-webkit-user-select:none;user-select:none;text-align:center;appearance:none;border-radius:6px;outline:none;justify-content:center;align-items:center;gap:6px;font-family:ui-sans-serif,system-ui,sans-serif;font-size:12px;transition:background 80ms,border-color 80ms,color 80ms;display:inline-flex}.fil-w-btn[data-v-75e79c80]:hover:not(:disabled){background:var(--fil-accent);border-color:var(--fil-accent);color:var(--fil-accent-ink)}.fil-w-btn[data-v-75e79c80]:active{transform:translateY(1px)}.fil-w-btn[data-v-75e79c80]:disabled{opacity:.4;cursor:default}.fil-w-btn-accent[data-v-75e79c80]{background:var(--fil-accent);border-color:var(--fil-accent);color:var(--fil-accent-ink)}.fil-w-btn-danger[data-v-75e79c80]{color:var(--fil-danger)}.fil-w-btn-danger[data-v-75e79c80]:hover:not(:disabled){background:var(--fil-danger);border-color:var(--fil-danger);color:#fff}.fil-w-btn-sm[data-v-75e79c80]{padding:4px 8px;font-size:11px}.fil-w-btn-full[data-v-75e79c80]{width:100%;display:block}.fil-w-btn-icon[data-v-75e79c80]{justify-content:center;align-items:center;gap:5px;display:inline-flex}.fil-w-btn-glyph[data-v-75e79c80] svg{width:14px;height:14px}.fil-w-btn.is-flashing[data-v-75e79c80],.fil-w-btn.is-flashing[data-v-75e79c80]:hover{background:var(--fil-ok);border-color:var(--fil-ok);color:#fff}.fil-w-btn.is-loading[data-v-75e79c80]{cursor:wait}.fil-w-btn[data-v-75e79c80]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:-2px}.fil-w-btn-spinner[data-v-75e79c80]{border:2px solid;border-top-color:#0000;border-radius:50%;width:12px;height:12px;animation:.6s linear infinite fil-w-spin-75e79c80;display:inline-block}@keyframes fil-w-spin-75e79c80{to{transform:rotate(360deg)}}.fil-w-chips[data-v-23d693d7]{gap:5px;width:100%;display:grid}.fil-w-chip[data-v-23d693d7]{box-sizing:border-box;background:var(--fil-panel-alt);border:1px solid var(--fil-border);color:var(--fil-text);cursor:pointer;-webkit-user-select:none;user-select:none;text-align:center;appearance:none;text-overflow:ellipsis;white-space:nowrap;border-radius:5px;outline:none;padding:6px 4px;font-family:inherit;font-size:10px;transition:background 80ms,border-color 80ms,color 80ms;overflow:hidden}.fil-w-chip[data-v-23d693d7]:hover:not(.disabled){border-color:var(--fil-accent);color:var(--fil-text)}.fil-w-chip.active[data-v-23d693d7]{background:var(--fil-panel-alt);color:var(--fil-accent-text);border-color:var(--fil-accent);box-shadow:0 0 8px color-mix(in srgb, var(--fil-accent) 55%, transparent);font-weight:500}.fil-w-chip.disabled[data-v-23d693d7]{opacity:.5;cursor:default}.fil-w-chip[data-v-23d693d7]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:-2px}.fil-w-chiplist[data-v-6cab4842]{flex-direction:column;gap:5px;width:100%;display:flex}.fil-w-search[data-v-6cab4842]{box-sizing:border-box;background:var(--fil-panel-alt);border:1px solid var(--fil-border);width:100%;color:var(--fil-text);border-radius:5px;outline:none;padding:5px 8px;font-family:inherit;font-size:11px}.fil-w-search[data-v-6cab4842]:focus{border-color:var(--fil-accent)}.fil-w-search[data-v-6cab4842]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:1px}.fil-w-chip-scroll[data-v-6cab4842]{gap:3px;max-height:200px;padding-right:2px;display:grid;overflow:hidden auto}.fil-w-chip-scroll[data-v-6cab4842]::-webkit-scrollbar{width:5px}.fil-w-chip-scroll[data-v-6cab4842]::-webkit-scrollbar-thumb{background:var(--fil-muted);border-radius:3px}.fil-w-chip-scroll[data-v-6cab4842]::-webkit-scrollbar-track{background:0 0}.fil-w-chip[data-v-6cab4842]{box-sizing:border-box;background:var(--fil-panel-alt);border:1px solid var(--fil-border);color:var(--fil-text);cursor:pointer;-webkit-user-select:none;user-select:none;text-align:center;appearance:none;text-overflow:ellipsis;white-space:nowrap;border-radius:5px;outline:none;padding:6px 4px;font-family:inherit;font-size:10px;transition:background 80ms,border-color 80ms,color 80ms;overflow:hidden}.fil-w-chip[data-v-6cab4842]:hover:not(.disabled){border-color:var(--fil-accent);color:var(--fil-text)}.fil-w-chip.active[data-v-6cab4842]{background:var(--fil-accent);color:var(--fil-accent-ink);border-color:var(--fil-accent);font-weight:500}.fil-w-chip.disabled[data-v-6cab4842]{opacity:.5;cursor:default}.fil-w-chip[data-v-6cab4842]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:-2px}.fil-w-chip-empty[data-v-6cab4842]{text-align:center;color:var(--fil-muted);padding:8px;font-size:11px}.fil-icon[data-v-dfb78d9f]{flex-shrink:0;justify-content:center;align-items:center;line-height:0;display:inline-flex}.fil-icon[data-v-dfb78d9f] svg{width:100%;height:100%}.fil-combo[data-v-605297df]{align-items:center;gap:var(--fil-node-gap);grid-template-columns:minmax(auto,max-content) minmax(60px,1fr);width:100%;display:grid}.fil-combo-label[data-v-605297df]{color:var(--fil-muted);grid-column:1;font-family:inherit;font-size:11px}.fil-combo-trigger[data-v-605297df]{box-sizing:border-box;width:100%;height:var(--fil-control-h);background:var(--fil-panel-alt);border:1px solid var(--fil-border);color:var(--fil-text);cursor:pointer;text-align:left;appearance:none;border-radius:6px;outline:none;grid-column:2;align-items:center;gap:6px;padding:5px 8px;font-family:inherit;font-size:12px;display:flex}.fil-combo-trigger.open[data-v-605297df],.fil-combo-trigger[data-v-605297df]:focus-visible{border-color:var(--fil-accent);outline:2px solid var(--fil-accent);outline-offset:1px}.fil-combo-trigger.disabled[data-v-605297df]{opacity:.5;cursor:default}.fil-combo-trigger-label[data-v-605297df]{text-overflow:ellipsis;white-space:nowrap;flex:1;overflow:hidden}.fil-combo-chevron[data-v-605297df]{color:var(--fil-muted);flex-shrink:0;font-size:9px}.fil-combo-badge[data-v-605297df]{background:var(--fil-accent);color:var(--fil-accent-ink);border-radius:999px;flex-shrink:0;padding:2px 5px;font-size:9px;font-weight:600;line-height:1}.fil-combo-panel[data-v-605297df]{z-index:10001;box-sizing:border-box;background:var(--fil-panel);border:1px solid var(--fil-border);border-radius:8px;flex-direction:column;padding:6px;display:flex;position:fixed;overflow:hidden;box-shadow:0 12px 32px #0006}.fil-combo-search[data-v-605297df]{box-sizing:border-box;background:var(--fil-panel-alt);border:1px solid var(--fil-border);width:100%;color:var(--fil-text);border-radius:5px;outline:none;margin-bottom:6px;padding:6px 8px;font-family:inherit;font-size:12px}.fil-combo-search[data-v-605297df]:focus{border-color:var(--fil-accent)}.fil-combo-list[data-v-605297df]{flex-direction:column;gap:2px;max-height:240px;display:flex;overflow-y:auto}.fil-combo-option[data-v-605297df]{box-sizing:border-box;width:100%;color:var(--fil-text);text-align:left;cursor:pointer;background:0 0;border:none;border-radius:5px;outline:none;align-items:center;gap:6px;padding:6px 8px;font-family:inherit;font-size:12px;display:flex}.fil-combo-option.active[data-v-605297df]{background:var(--fil-surface-2)}.fil-combo-option.selected[data-v-605297df]{color:var(--fil-accent-text);font-weight:600}.fil-combo-option-label[data-v-605297df]{text-overflow:ellipsis;white-space:nowrap;flex:1;overflow:hidden}.fil-combo-empty[data-v-605297df]{text-align:center;color:var(--fil-muted);padding:10px;font-size:12px}.fil-modal-backdrop[data-v-952a8f2d]{z-index:10000;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);background:#0000008c;justify-content:center;align-items:center;display:flex;position:fixed;inset:0}.fil-modal-panel[data-v-952a8f2d]{background:var(--fil-panel);border:1px solid var(--fil-border);border-radius:10px;flex-direction:column;width:90%;max-height:80vh;display:flex;overflow:hidden;box-shadow:0 20px 60px #00000080}.fil-modal-header[data-v-952a8f2d]{border-bottom:1px solid var(--fil-border);justify-content:space-between;align-items:center;padding:12px 16px;display:flex}.fil-modal-title[data-v-952a8f2d]{color:var(--fil-text);font-size:14px;font-weight:600}.fil-modal-close[data-v-952a8f2d]{width:28px;height:28px;color:var(--fil-muted);cursor:pointer;background:0 0;border:none;border-radius:6px;justify-content:center;align-items:center;transition:background 80ms,color 80ms;display:inline-flex}.fil-modal-close[data-v-952a8f2d]:hover{color:var(--fil-text);background:#ffffff14}.fil-modal-body[data-v-952a8f2d]{flex:1;padding:16px;overflow-y:auto}.fil-modal-enter-active[data-v-952a8f2d],.fil-modal-leave-active[data-v-952a8f2d]{transition:opacity .15s}.fil-modal-enter-from[data-v-952a8f2d],.fil-modal-leave-to[data-v-952a8f2d]{opacity:0}.fil-modal-enter-active .fil-modal-panel[data-v-952a8f2d],.fil-modal-leave-active .fil-modal-panel[data-v-952a8f2d]{transition:transform .15s}.fil-modal-enter-from .fil-modal-panel[data-v-952a8f2d],.fil-modal-leave-to .fil-modal-panel[data-v-952a8f2d]{transform:scale(.95)translateY(8px)}.fil-help-title[data-v-bfee41d7]{color:var(--fil-text);margin:0 0 12px;font-size:16px;font-weight:700}.fil-help-body[data-v-bfee41d7]{color:var(--fil-muted);margin:0 0 12px;font-size:13px;line-height:1.6}.fil-help-bullet[data-v-bfee41d7]{color:var(--fil-muted);align-items:flex-start;gap:6px;margin-bottom:6px;font-size:13px;display:flex}.fil-help-bullet>span[data-v-bfee41d7]{flex:1}.fil-help-table[data-v-bfee41d7]{border-collapse:collapse;width:100%;margin-top:8px;font-size:12px}.fil-help-table th[data-v-bfee41d7],.fil-help-table td[data-v-bfee41d7]{text-align:left;border-bottom:1px solid var(--fil-border);padding:6px 10px}.fil-help-table th[data-v-bfee41d7]{color:var(--fil-text);font-weight:600}.fil-help-table td[data-v-bfee41d7]{color:var(--fil-muted)}.fil-help-code[data-v-bfee41d7]{color:var(--fil-muted);background:#0000004d;border-radius:6px;margin-top:10px;padding:12px;font-size:12px;overflow-x:auto}.fil-help-empty[data-v-bfee41d7]{color:var(--fil-muted);font-size:13px}.fil-w-info[data-v-be74f393]{color:var(--fil-muted);text-align:center;white-space:nowrap;text-overflow:ellipsis;font-size:11px;line-height:1.5;overflow:hidden}.fil-w-info[data-ok][data-v-be74f393]{color:var(--fil-ok)}.fil-w-info[data-err][data-v-be74f393]{color:var(--fil-danger)}.fil-w-numfield[data-v-dd14f50b]{align-items:center;gap:var(--fil-node-gap);grid-template-columns:minmax(auto,max-content) minmax(60px,1fr);width:100%;display:grid}.fil-w-numfield.no-label[data-v-dd14f50b]{display:contents}.fil-w-numfield-label[data-v-dd14f50b]{color:var(--fil-muted);grid-column:1;font-family:inherit;font-size:11px}.fil-w-numfield:not(.no-label) .fil-w-num-wrap[data-v-dd14f50b]{grid-column:2}.fil-w-num-wrap[data-v-dd14f50b]{width:100%;min-width:0;position:relative}.fil-w-num[data-v-dd14f50b]{box-sizing:border-box;width:100%;height:var(--fil-control-h);background:var(--fil-panel-alt);border:1px solid var(--fil-border);color:var(--fil-text);text-align:left;border-radius:6px;outline:none;padding:7px 20px 7px 8px;font-family:ui-monospace,Cascadia Code,Consolas,monospace;font-size:14px;transition:border-color 80ms}.fil-w-num[data-v-dd14f50b]:focus{border-color:var(--fil-accent)}.fil-w-num[data-v-dd14f50b]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:1px}.fil-w-num[data-v-dd14f50b]:disabled{opacity:.5}.fil-w-num-step[data-v-dd14f50b]{border-left:1px solid var(--fil-border);border-radius:0 5px 5px 0;flex-direction:column;width:17px;display:flex;position:absolute;top:1px;bottom:1px;right:1px;overflow:hidden}.fil-w-num-btn[data-v-dd14f50b]{min-height:0;color:var(--fil-muted);cursor:pointer;background:0 0;border:none;flex:1;justify-content:center;align-items:center;padding:0;font-size:7px;line-height:1;transition:color 80ms,background 80ms;display:flex}.fil-w-num-btn[data-v-dd14f50b]:last-child{border-top:1px solid var(--fil-border)}.fil-w-num-btn[data-v-dd14f50b]:hover:not(:disabled){color:var(--fil-accent);background:var(--fil-surface-2)}.fil-w-num-btn[data-v-dd14f50b]:disabled{opacity:.3;cursor:default}.fil-w-seedrow[data-v-5802f079]{gap:6px;min-width:0;display:flex}.fil-w-seedrow-field[data-v-5802f079]{box-sizing:border-box;min-width:0;height:var(--fil-control-h-lg);background:var(--fil-inset);border:1px solid var(--fil-border);border-radius:var(--fil-pill-radius);color:var(--fil-text);text-align:center;outline:none;flex:1.3;padding:0 12px;font-family:ui-monospace,Cascadia Code,Consolas,monospace;font-size:13px;transition:border-color 80ms}.fil-w-seedrow-field[data-v-5802f079]:focus{border-color:var(--fil-accent)}.fil-w-seedrow-field[data-v-5802f079]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:1px}.fil-w-seedrow-field.is-random[data-v-5802f079]{color:var(--fil-muted);font-style:italic}.fil-w-seedrow-pill[data-v-5802f079]{box-sizing:border-box;min-width:0;height:var(--fil-control-h-lg);white-space:nowrap;text-overflow:ellipsis;border-radius:var(--fil-pill-radius);border:1px solid var(--fil-pill-border);background:var(--fil-pill-bg);color:var(--fil-text);cursor:pointer;appearance:none;outline:none;flex:1;padding:0 8px;font-family:inherit;font-size:12px;font-weight:600;transition:background 80ms,border-color 80ms,color 80ms;overflow:hidden}.fil-w-seedrow-pill[data-v-5802f079]:hover{background:var(--fil-surface-3)}.fil-w-seedrow-pill[data-v-5802f079]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:-2px}.fil-w-seedrow-pill.active[data-v-5802f079]{background:var(--fil-accent);border-color:var(--fil-accent);color:var(--fil-accent-ink)}.fil-w-seedrow-pill.is-accent[data-v-5802f079]{background:color-mix(in srgb, var(--fil-accent) 12%, transparent);border-color:var(--fil-accent);color:var(--fil-text);font-weight:700}.fil-w-seedrow-pill.is-accent[data-v-5802f079]:hover{background:color-mix(in srgb, var(--fil-accent) 24%, transparent)}.fil-w-section[data-v-47c32650]{box-sizing:border-box;width:100%;padding:var(--fil-row-pad);background:var(--fil-surface-1);color:var(--fil-muted);text-transform:uppercase;letter-spacing:.6px;cursor:pointer;text-align:left;-webkit-user-select:none;user-select:none;appearance:none;border:none;border-radius:5px;outline:none;align-items:center;gap:6px;font-family:inherit;font-size:11px;font-weight:600;transition:background 80ms,color 80ms;display:flex}.fil-w-section[data-v-47c32650]:hover:not(:disabled){background:var(--fil-surface-2);color:var(--fil-text)}.fil-w-section[data-v-47c32650]:disabled{cursor:default}.fil-w-section[data-v-47c32650]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:-2px}.fil-w-section-arrow[data-v-47c32650]{width:8px;color:var(--fil-accent-text);font-size:9px;display:inline-block}.fil-w-segmented[data-v-80a17629]{align-items:center;gap:var(--fil-node-gap);grid-template-columns:minmax(auto,max-content) minmax(60px,1fr);width:100%;display:grid}.fil-w-segmented-label[data-v-80a17629]{color:var(--fil-muted);grid-column:1;font-family:inherit;font-size:11px}.fil-w-pill[data-v-80a17629]{background:var(--fil-surface-2);border-radius:7px;grid-column:2;gap:0;min-width:0;padding:3px;display:flex}.fil-w-pill.disabled[data-v-80a17629]{opacity:.5}.fil-w-seg[data-v-80a17629]{text-overflow:ellipsis;white-space:nowrap;text-align:center;min-width:0;color:var(--fil-muted);cursor:pointer;-webkit-user-select:none;user-select:none;appearance:none;background:0 0;border:none;border-radius:5px;outline:none;flex:1;padding:6px;font-family:inherit;font-size:12px;transition:background 80ms,color 80ms;overflow:hidden}.fil-w-seg[data-v-80a17629]:hover:not(.active){color:var(--fil-text)}.fil-w-seg.active[data-v-80a17629]{background:var(--fil-accent);color:var(--fil-accent-ink);font-weight:500}.fil-w-seg[data-v-80a17629]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:-2px}.fil-w-select[data-v-f303e789]{align-items:center;gap:var(--fil-node-gap);grid-template-columns:minmax(auto,max-content) minmax(60px,1fr);width:100%;display:grid}.fil-w-select-label[data-v-f303e789]{color:var(--fil-muted);grid-column:1;font-family:inherit;font-size:11px}.fil-w-select-input[data-v-f303e789]{box-sizing:border-box;width:100%;height:var(--fil-control-h);background:var(--fil-panel-alt);border:1px solid var(--fil-border);color:var(--fil-text);cursor:pointer;border-radius:6px;outline:none;grid-column:2;padding:5px 8px;font-family:inherit;font-size:12px}.fil-w-select-input[data-v-f303e789]:focus{border-color:var(--fil-accent)}.fil-w-select-input[data-v-f303e789]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:1px}.fil-w-select-input[data-v-f303e789]:disabled{opacity:.5;cursor:default}.fil-w-slider[data-v-bcb4fa2a]{align-items:center;gap:var(--fil-node-gap);grid-template-columns:minmax(auto,max-content) minmax(60px,1fr);width:100%;display:grid}.fil-w-slider-label[data-v-bcb4fa2a]{color:var(--fil-muted);grid-column:1;font-family:inherit;font-size:11px}.fil-w-slider-row[data-v-bcb4fa2a]{grid-column:2;align-items:center;gap:6px;min-width:0;display:flex}.fil-w-slider-range[data-v-bcb4fa2a]{min-width:0;max-width:220px;accent-color:var(--fil-accent);cursor:pointer;flex:auto}.fil-w-slider-range[data-v-bcb4fa2a]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:2px}.fil-w-slider-row[data-v-bcb4fa2a] .fil-w-num-wrap{flex:none;width:70px}.fil-style-picker[data-v-572f1dc7]{flex-direction:column;gap:10px;display:flex}.fil-style-cats[data-v-572f1dc7]{flex-wrap:wrap;gap:6px;display:flex}.fil-style-cat[data-v-572f1dc7]{box-sizing:border-box;border:1px solid var(--fil-border);background:var(--fil-surface-1);color:var(--fil-text);cursor:pointer;-webkit-user-select:none;user-select:none;appearance:none;border-radius:999px;outline:none;padding:5px 10px;font-size:11px;transition:background 80ms,border-color 80ms,color 80ms}.fil-style-cat[data-v-572f1dc7]:hover{border-color:var(--fil-accent)}.fil-style-cat.active[data-v-572f1dc7]{background:var(--fil-accent);border-color:var(--fil-accent);color:var(--fil-accent-ink);font-weight:500}.fil-style-cat[data-v-572f1dc7]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:1px}.fil-style-search-wrap[data-v-572f1dc7]{width:100%;position:relative}.fil-style-search[data-v-572f1dc7]{box-sizing:border-box;background:var(--fil-panel-alt);border:1px solid var(--fil-border);width:100%;color:var(--fil-text);border-radius:6px;outline:none;padding:7px 28px 7px 10px;font-family:inherit;font-size:12px}.fil-style-search[data-v-572f1dc7]:focus{border-color:var(--fil-accent)}.fil-style-search-clear[data-v-572f1dc7]{background:var(--fil-surface-3);color:#bbb;cursor:pointer;border:none;border-radius:50%;justify-content:center;align-items:center;width:18px;height:18px;font-size:13px;line-height:1;transition:all .12s;display:flex;position:absolute;top:50%;right:6px;transform:translateY(-50%)}.fil-style-search-clear[data-v-572f1dc7]:hover{color:var(--fil-danger);background:#ff4b4b4d}.fil-style-grid[data-v-572f1dc7]{grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;max-height:50vh;padding-right:2px;display:grid;overflow-y:auto}.fil-style-tile[data-v-572f1dc7]{box-sizing:border-box;border:1px solid var(--fil-border);background:var(--fil-panel-alt);color:var(--fil-text);cursor:pointer;-webkit-user-select:none;user-select:none;appearance:none;border-radius:8px;outline:none;flex-direction:column;align-items:center;gap:6px;padding:8px 6px;transition:background 80ms,border-color 80ms,color 80ms;display:flex}.fil-style-tile[data-v-572f1dc7]:hover{border-color:var(--fil-accent);color:var(--fil-text)}.fil-style-tile.active[data-v-572f1dc7]{border-color:var(--fil-accent);background:color-mix(in srgb, var(--fil-accent) 14%, transparent)}.fil-style-tile[data-v-572f1dc7]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:-2px}.fil-style-tile-preview[data-v-572f1dc7]{aspect-ratio:1;background:var(--fil-surface-1);border-radius:6px;justify-content:center;align-items:center;width:100%;font-size:22px;display:flex;overflow:hidden}.fil-style-tile-img[data-v-572f1dc7]{object-fit:cover;width:100%;height:100%}.fil-style-tile-label[data-v-572f1dc7]{text-align:center;text-overflow:ellipsis;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:10px;line-height:1.3;display:-webkit-box;overflow:hidden}.fil-style-empty[data-v-572f1dc7]{text-align:center;color:var(--fil-muted);grid-column:1/-1;padding:20px;font-size:12px}.fil-style-selected-bar[data-v-572f1dc7]{background:color-mix(in srgb, var(--fil-accent) 6%, transparent);border:1px solid color-mix(in srgb, var(--fil-accent) 20%, transparent);border-radius:6px;flex-wrap:wrap;gap:6px;padding:6px;display:flex}.fil-style-chip[data-v-572f1dc7]{background:var(--fil-accent);color:var(--fil-accent-ink);border-radius:999px;align-items:center;gap:4px;padding:3px 8px;font-size:11px;font-weight:600;display:inline-flex}.fil-chip-text[data-v-572f1dc7]{text-overflow:ellipsis;white-space:nowrap;max-width:140px;overflow:hidden}.fil-chip-remove[data-v-572f1dc7]{width:14px;height:14px;color:var(--fil-accent-ink);cursor:pointer;background:#0003;border:none;border-radius:50%;justify-content:center;align-items:center;padding:0;font-size:12px;line-height:1;transition:background 80ms,color 80ms;display:inline-flex}.fil-chip-remove[data-v-572f1dc7]:hover{background:var(--fil-danger);color:#fff}.fil-w-textarea-row[data-v-f3b21190]{flex-direction:column;gap:3px;min-width:0;display:flex}.fil-w-textarea-label[data-v-f3b21190]{color:var(--fil-muted);font-family:inherit;font-size:11px}.fil-w-textarea[data-v-f3b21190]{box-sizing:border-box;background:var(--fil-panel-alt);border:1px solid var(--fil-border);border-radius:var(--fil-field-radius);width:100%;min-height:40px;color:var(--fil-text);resize:vertical;outline:none;padding:8px 10px;font-family:inherit;font-size:12px;transition:border-color 80ms}.fil-w-textarea[data-v-f3b21190]::placeholder{color:color-mix(in srgb, var(--fil-text) 30%, transparent);font-style:italic}.fil-w-textarea[data-v-f3b21190]:focus{border-color:var(--fil-accent)}.fil-w-textarea[data-v-f3b21190]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:1px}.fil-w-textarea[data-v-f3b21190]:disabled{opacity:.5}.fil-w-textarea.is-linked[data-v-f3b21190]{border-style:dashed;border-color:var(--fil-accent);color:var(--fil-muted);cursor:not-allowed}.fil-w-text[data-v-d656e366]{align-items:center;gap:var(--fil-node-gap);grid-template-columns:minmax(auto,max-content) minmax(60px,1fr);width:100%;display:grid}.fil-w-text-label[data-v-d656e366]{color:var(--fil-muted);grid-column:1;font-family:inherit;font-size:11px}.fil-w-text-input[data-v-d656e366]{box-sizing:border-box;width:100%;height:var(--fil-control-h);background:var(--fil-panel-alt);border:1px solid var(--fil-border);color:var(--fil-text);border-radius:6px;outline:none;grid-column:2;padding:5px 8px;font-family:inherit;font-size:12px;transition:border-color 80ms}.fil-w-text-input[data-v-d656e366]::placeholder{color:color-mix(in srgb, var(--fil-text) 30%, transparent);font-style:italic}.fil-w-text-input[data-v-d656e366]:focus{border-color:var(--fil-accent)}.fil-w-text-input[data-v-d656e366]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:1px}.fil-w-text-input[data-v-d656e366]:disabled{opacity:.5}.fil-toast-stack[data-v-efc20406]{z-index:100001;pointer-events:none;flex-direction:column;gap:8px;max-width:min(360px,90vw);display:flex;position:fixed;bottom:20px;right:20px}.fil-toast[data-v-efc20406]{pointer-events:auto;background:var(--fil-panel);color:var(--fil-text);border:1px solid var(--fil-panel-alt);border-left:3px solid var(--toast-color,var(--fil-muted));border-radius:8px;align-items:flex-start;gap:10px;padding:10px 12px;font:12.5px/1.45 system-ui,sans-serif;animation:.18s cubic-bezier(.2,.7,.3,1) fil-toast-in-efc20406;display:flex;box-shadow:0 6px 22px #0000006b}@keyframes fil-toast-in-efc20406{0%{opacity:0;transform:translateY(8px)scale(.98)}to{opacity:1;transform:none}}.fil-toast-dot[data-v-efc20406]{background:var(--toast-color,var(--fil-muted));border-radius:50%;flex:none;width:8px;height:8px;margin-top:4px}.fil-toast-text[data-v-efc20406]{flex:1;align-self:center;min-width:0}.fil-toast-action[data-v-efc20406]{cursor:pointer;background:var(--fil-surface-2);color:inherit;font:inherit;border:none;border-radius:4px;flex:none;padding:4px 8px;transition:background .12s}.fil-toast-action[data-v-efc20406]:hover{background:var(--fil-surface-3)}.fil-toast-close[data-v-efc20406]{cursor:pointer;width:18px;height:18px;color:var(--fil-muted);opacity:.6;background:0 0;border:none;flex:none;align-self:flex-start;padding:0;font-size:16px;line-height:18px;transition:opacity .12s}.fil-toast-close[data-v-efc20406]:hover{opacity:1}.fil-w-toggle[data-v-3b513d75]{align-items:center;gap:var(--fil-node-gap);grid-template-columns:minmax(auto,max-content) minmax(60px,1fr);width:100%;display:grid}.fil-w-toggle-label[data-v-3b513d75]{color:var(--fil-muted);grid-column:1;font-family:inherit;font-size:11px}.fil-w-toggle.bare[data-v-3b513d75]{gap:4px;width:auto;display:flex}.fil-w-toggle.bare .fil-w-toggle-label[data-v-3b513d75]{white-space:nowrap;font-size:10px}.fil-w-switch[data-v-3b513d75]{box-sizing:border-box;background:var(--fil-surface-3);cursor:pointer;appearance:none;border:none;border-radius:10px;outline:none;grid-column:2;justify-self:end;width:36px;height:20px;padding:2px;transition:background .12s}.fil-w-switch.on[data-v-3b513d75]{background:var(--fil-accent)}.fil-w-switch[data-v-3b513d75]:disabled{opacity:.5;cursor:default}.fil-w-switch[data-v-3b513d75]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:2px}.fil-w-switch-thumb[data-v-3b513d75]{background:#fff;border-radius:50%;width:16px;height:16px;transition:transform .12s;display:block}.fil-w-switch.on .fil-w-switch-thumb[data-v-3b513d75]{transform:translate(16px)}div.fil-seed-root[data-v-dca90760]{box-sizing:border-box;align-items:center;gap:var(--fil-node-gap);width:100%;min-width:0;padding:var(--fil-node-pad);color:var(--fil-text);box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;background:0 0;border:none;border-radius:0;flex-direction:row;font-family:ui-sans-serif,system-ui,sans-serif;display:flex}.fil-seed-display[data-v-dca90760]{box-sizing:border-box;min-width:0;height:var(--fil-control-h-lg);background:var(--fil-glass-bg);border:1px solid var(--fil-glass-border);border-radius:var(--fil-field-radius);color:var(--fil-text);text-align:center;outline:none;flex:1;padding:6px 8px;font-family:ui-monospace,Cascadia Code,Consolas,monospace;font-size:19px;transition:border-color 80ms}.fil-seed-display[data-v-dca90760]:focus{border-color:var(--fil-accent)}.fil-seed-display[readonly][data-v-dca90760]{color:var(--fil-muted);font-style:italic}.fil-seed-actions[data-v-dca90760]{flex-shrink:0;gap:5px;display:flex}.fil-seed-actions[data-v-dca90760] .fil-w-btn{width:var(--fil-control-h-lg);height:var(--fil-control-h-lg);padding:0;font-size:16px}.picker-container[data-v-cb4a4ea1]{color:var(--fil-text);flex-direction:column;gap:12px;display:flex}.provider-tabs[data-v-cb4a4ea1]{scrollbar-width:thin;gap:6px;padding-bottom:6px;display:flex;overflow-x:auto}.tab-btn[data-v-cb4a4ea1]{border:1px solid var(--fil-pill-border);background:var(--fil-pill-bg);color:var(--fil-muted);cursor:pointer;white-space:nowrap;border-radius:8px;flex-shrink:0;align-items:center;gap:6px;padding:7px 10px;font-size:12px;transition:all .15s;display:flex}.tab-btn[data-v-cb4a4ea1]:hover{background:var(--fil-surface-2);color:var(--fil-text)}.tab-btn.active[data-v-cb4a4ea1]{background:var(--fil-panel-alt);border-color:var(--fil-accent);color:var(--fil-accent-text);font-weight:600}.tab-badge[data-v-cb4a4ea1]{background:var(--fil-pill-bg);border-radius:99px;padding:1px 5px;font-size:10px}.provider-status-bar[data-v-cb4a4ea1]{background:#0003;border-radius:6px;justify-content:space-between;align-items:center;padding:8px 12px;font-size:12px;display:flex}.status-info[data-v-cb4a4ea1]{align-items:center;gap:8px;display:flex}.provider-name[data-v-cb4a4ea1]{font-weight:600}.status-badge[data-v-cb4a4ea1]{border-radius:4px;padding:2px 6px;font-size:11px}.status-badge.online[data-v-cb4a4ea1]{color:var(--fil-ok)}.status-badge.loading[data-v-cb4a4ea1]{color:var(--fil-accent-text)}.status-badge.error[data-v-cb4a4ea1]{color:var(--fil-danger)}.age-label[data-v-cb4a4ea1]{color:var(--fil-muted);font-size:10px}.filter-controls[data-v-cb4a4ea1]{flex-direction:column;gap:8px;display:flex}.search-row[data-v-cb4a4ea1]{align-items:center;gap:8px;display:flex}.search-input-wrap[data-v-cb4a4ea1]{flex:1;align-items:center;min-width:0;display:flex;position:relative}.fav-filter[data-v-cb4a4ea1]{height:var(--fil-control-h);background:var(--fil-panel-alt);border:1px solid var(--fil-border);border-radius:var(--fil-field-radius);color:var(--fil-muted);font:inherit;cursor:pointer;white-space:nowrap;flex-shrink:0;align-items:center;gap:6px;padding:0 12px;font-size:12px;transition:all .15s;display:flex}.fav-filter[data-v-cb4a4ea1]:hover{background:var(--fil-surface-2);color:var(--fil-text)}.fav-filter.active[data-v-cb4a4ea1]{border-color:var(--fil-accent);color:var(--fil-accent-text);font-weight:600}.fav-filter[data-v-cb4a4ea1]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:-2px}.fav-filter-star[data-v-cb4a4ea1]{font-size:14px;line-height:1}.fav-filter-count[data-v-cb4a4ea1]{background:var(--fil-pill-bg);border-radius:99px;padding:1px 5px;font-size:10px}.search-icon[data-v-cb4a4ea1]{color:var(--fil-muted);position:absolute;left:10px}.search-input[data-v-cb4a4ea1]{box-sizing:border-box;width:100%;height:var(--fil-control-h);background:var(--fil-panel-alt);border:1px solid var(--fil-border);border-radius:var(--fil-field-radius);color:var(--fil-text);outline:none;padding:6px 30px;font-size:12px}.search-input[data-v-cb4a4ea1]:focus{border-color:var(--fil-accent)}.clear-search[data-v-cb4a4ea1]{color:var(--fil-muted);cursor:pointer;background:0 0;border:none;position:absolute;right:10px}.filter-segments[data-v-cb4a4ea1]{gap:8px;min-width:0;display:flex}.filter-segments[data-v-cb4a4ea1]>*{flex:1;min-width:0}.models-list-wrapper[data-v-cb4a4ea1]{background:var(--fil-inset);border:1px solid var(--fil-border);border-radius:8px;height:320px;padding:8px;overflow-y:auto}.empty-state[data-v-cb4a4ea1]{height:100%;color:var(--fil-muted);justify-content:center;align-items:center;font-size:12px;display:flex}.models-container.list[data-v-cb4a4ea1]{flex-direction:column;gap:6px;display:flex}.models-container.grid[data-v-cb4a4ea1]{grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px;display:grid}.model-row[data-v-cb4a4ea1]{align-items:stretch;gap:4px;min-width:0;display:flex}.fav-btn[data-v-cb4a4ea1]{background:var(--fil-surface-1);border:1px solid var(--fil-border);width:34px;color:var(--fil-muted);cursor:pointer;border-radius:6px;flex-shrink:0;padding:0;font-size:16px;line-height:1;transition:all .12s}.fav-btn[data-v-cb4a4ea1]:hover{background:var(--fil-surface-2);color:var(--fil-text)}.fav-btn.on[data-v-cb4a4ea1]{color:var(--fil-accent-text);border-color:var(--fil-accent)}.fav-btn[data-v-cb4a4ea1]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:-2px}.models-container.grid .model-card[data-v-cb4a4ea1]{flex-direction:column;align-items:flex-start;gap:8px;padding:10px 12px}.models-container.grid .model-main[data-v-cb4a4ea1]{width:100%}.models-container.grid .model-tags[data-v-cb4a4ea1]{justify-content:flex-start;width:100%}.model-card[data-v-cb4a4ea1]{background:var(--fil-surface-1);border:1px solid var(--fil-border);cursor:pointer;box-sizing:border-box;text-align:left;width:100%;min-width:0;font:inherit;color:inherit;appearance:none;border-radius:6px;flex:1;justify-content:space-between;align-items:center;padding:8px 12px;transition:all .12s;display:flex}.model-card[data-v-cb4a4ea1]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:-2px}.model-card[data-v-cb4a4ea1]:hover{background:var(--fil-surface-2);border-color:var(--fil-border)}.model-card.selected[data-v-cb4a4ea1]{border-color:var(--fil-accent);background:#f08a4526}.model-main[data-v-cb4a4ea1]{align-items:center;gap:8px;min-width:0;display:flex}.type-icon[data-v-cb4a4ea1]{font-size:14px}.model-name[data-v-cb4a4ea1]{white-space:nowrap;text-overflow:ellipsis;font-size:12px;font-weight:500;overflow:hidden}.model-tags[data-v-cb4a4ea1]{flex-shrink:0;gap:4px;display:flex}.tag[data-v-cb4a4ea1]{text-transform:uppercase;border-radius:4px;padding:2px 6px;font-size:9px;font-weight:600}.tag.vision[data-v-cb4a4ea1]{color:var(--fil-accent-text);background:#f08a4526}.tag.text[data-v-cb4a4ea1],.tag.local[data-v-cb4a4ea1],.tag.free[data-v-cb4a4ea1],.tag.paid[data-v-cb4a4ea1]{background:var(--fil-pill-bg);color:var(--fil-muted)}.picker-footer[data-v-cb4a4ea1]{justify-content:space-between;align-items:center;padding-top:8px;display:flex}.selection-summary[data-v-cb4a4ea1]{font-size:12px}.selection-summary .muted[data-v-cb4a4ea1]{color:var(--fil-muted)}.footer-actions[data-v-cb4a4ea1]{gap:8px;display:flex}.fil-provider-root[data-v-d1f3392e]{box-sizing:border-box;gap:var(--fil-node-gap);width:100%;min-width:0;padding:var(--fil-node-pad);color:var(--fil-text);flex-direction:column;min-width:0;font-family:ui-sans-serif,system-ui,sans-serif;display:flex}.picker-trigger-btn[data-v-d1f3392e]{box-sizing:border-box;background:var(--fil-panel-alt);border:1px solid var(--fil-pill-border);border-radius:var(--fil-field-radius);width:100%;color:var(--fil-text);cursor:pointer;text-align:left;outline:none;flex-direction:column;gap:6px;padding:8px 10px;transition:border-color .15s,background .15s;display:flex}.picker-trigger-btn[data-v-d1f3392e]:hover{border-color:var(--fil-accent);background:var(--fil-pill-bg)}.picker-trigger-btn[data-v-d1f3392e]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:1px;border-color:var(--fil-accent)}.trigger-header[data-v-d1f3392e]{justify-content:space-between;align-items:center;width:100%;display:flex}.provider-badge[data-v-d1f3392e]{color:var(--fil-accent-text);align-items:center;gap:6px;font-size:13px;font-weight:600;display:flex}.open-icon[data-v-d1f3392e]{background:var(--fil-pill-bg);color:var(--fil-text);border-radius:4px;padding:2px 6px;font-size:11px}.trigger-model[data-v-d1f3392e]{align-items:center;gap:6px;min-width:0;font-size:12px;display:flex}.model-label[data-v-d1f3392e]{color:var(--fil-muted);flex-shrink:0}.model-name[data-v-d1f3392e]{white-space:nowrap;text-overflow:ellipsis;flex:1;font-weight:500;overflow:hidden}.fil-scanner-root[data-v-ffe55d1d]{gap:var(--fil-node-gap);padding:var(--fil-node-pad);color:var(--fil-text);box-sizing:border-box;flex-direction:column;width:100%;min-width:0;height:100%;font-family:ui-sans-serif,system-ui,sans-serif;display:flex}.fil-section-block[data-v-ffe55d1d]{flex-direction:column;gap:5px;min-width:0;display:flex}.fil-section-block.is-growable[data-v-ffe55d1d]{flex:auto;min-height:0}.fil-w-row[data-v-ffe55d1d]{flex-direction:column;gap:3px;min-width:0;display:flex}.fil-w-row.is-growable[data-v-ffe55d1d]{flex:auto;min-height:0}.fil-w-row[data-v-ffe55d1d] .fil-w-textarea{min-height:48px}.fil-w-row.is-growable[data-v-ffe55d1d] .fil-w-textarea{flex:auto;height:auto}.fil-single-style-block[data-v-ffe55d1d]{margin-top:2px}.fil-unified-style-modal[data-v-ffe55d1d]{flex-direction:column;gap:12px;padding:4px 0;display:flex}.fil-style-tab-bar[data-v-ffe55d1d]{background:var(--fil-inset);border:1px solid var(--fil-border);border-radius:8px;gap:6px;padding:4px;display:flex}.fil-style-tab-btn[data-v-ffe55d1d]{height:var(--fil-control-h-lg);color:var(--fil-muted);cursor:pointer;background:0 0;border:1px solid #0000;border-radius:6px;flex:1;justify-content:center;align-items:center;gap:6px;font-size:12px;font-weight:600;transition:all .12s;display:flex}.fil-style-tab-btn[data-v-ffe55d1d]:hover{color:var(--fil-text);background:var(--fil-surface-2)}.fil-style-tab-btn.active[data-v-ffe55d1d]{background:var(--fil-accent);color:var(--fil-accent-ink);border-color:var(--fil-accent);box-shadow:0 0 10px color-mix(in srgb, var(--fil-accent) 30%, transparent);font-weight:700}.fil-tab-badge[data-v-ffe55d1d]{color:var(--fil-ok);font-size:10px}.fil-style-tab-btn.active .fil-tab-badge[data-v-ffe55d1d]{color:var(--fil-accent-ink)}.fil-style-picker-body[data-v-ffe55d1d]{min-height:320px;max-height:480px;overflow-y:auto}.fil-style-modal-footer[data-v-ffe55d1d]{border-top:1px solid var(--fil-border);justify-content:flex-end;padding-top:8px;display:flex}.fil-clear-styles-btn[data-v-ffe55d1d]{border:1px solid color-mix(in srgb, var(--fil-danger) 40%, transparent);background:color-mix(in srgb, var(--fil-danger) 12%, transparent);color:var(--fil-danger);cursor:pointer;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600;transition:background .12s,border-color .12s,color .12s}.fil-clear-styles-btn[data-v-ffe55d1d]:hover{background:color-mix(in srgb, var(--fil-danger) 28%, transparent);border-color:var(--fil-danger);color:var(--fil-text)}.fil-clear-styles-btn[data-v-ffe55d1d]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:1px}.fil-style-picker-btn[data-v-ffe55d1d]{box-sizing:border-box;min-height:var(--fil-control-h-lg);border-radius:var(--fil-pill-radius);background:var(--fil-pill-bg);border:1px solid var(--fil-pill-border);color:var(--fil-text);cursor:pointer;flex:2;justify-content:center;align-items:center;font-family:inherit;font-size:12px;font-weight:600;transition:background .12s,border-color .12s,box-shadow .12s;display:flex}.fil-style-picker-btn[data-v-ffe55d1d]:hover{background:var(--fil-surface-3);border-color:var(--fil-accent)}.fil-style-picker-btn[data-v-ffe55d1d]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:-2px}.fil-style-picker-btn.has-styles[data-v-ffe55d1d]{background:color-mix(in srgb, var(--fil-accent) 20%, transparent);border-color:var(--fil-accent);box-shadow:0 0 12px color-mix(in srgb, var(--fil-accent) 25%, transparent)}.fil-style-picker-btn.has-styles[data-v-ffe55d1d]:hover{background:color-mix(in srgb, var(--fil-accent) 32%, transparent)}.fil-up-root[data-v-7a3cbf95]{box-sizing:border-box;gap:var(--fil-node-gap);width:100%;min-width:0;padding:var(--fil-node-pad);color:var(--fil-text);flex-direction:column;font-family:ui-sans-serif,system-ui,sans-serif;display:flex}.fil-up-row[data-v-7a3cbf95]{align-items:center;gap:var(--fil-node-gap);grid-template-columns:minmax(auto,max-content) 64px minmax(auto,max-content) 64px;display:grid}.fil-up-row-overlap[data-v-7a3cbf95]{grid-template-columns:minmax(auto,max-content) 64px minmax(auto,max-content) 64px auto}.fil-w-label[data-v-7a3cbf95]{color:var(--fil-muted);font-size:11px}.fil-hrf-root[data-v-9399efd5],.fil-style-mixer-root[data-v-87c8a7d7],.fil-color-wizard-root[data-v-a7254666]{box-sizing:border-box;gap:var(--fil-node-gap);width:100%;min-width:0;padding:var(--fil-node-pad);color:var(--fil-text);flex-direction:column;font-family:ui-sans-serif,system-ui,sans-serif;display:flex}.fil-cw-presets-block[data-v-a7254666]{border:1px solid var(--fil-border);background:#0000004d;border-radius:8px;flex-direction:column;gap:6px;padding:8px 10px;display:flex}.fil-cw-presets-title[data-v-a7254666]{color:var(--fil-accent-text);text-transform:uppercase;letter-spacing:.5px;font-size:11px;font-weight:700}.fil-cw-presets-grid[data-v-a7254666]{grid-template-columns:1fr 1fr;gap:6px;display:grid}.fil-cw-preset-btn[data-v-a7254666]{border:1px solid var(--fil-border);background:var(--fil-surface-1);height:28px;color:var(--fil-text);cursor:pointer;border-radius:6px;justify-content:center;align-items:center;font-size:11px;font-weight:600;transition:all .12s;display:flex}.fil-cw-preset-btn[data-v-a7254666]:hover{background:var(--fil-surface-3);border-color:var(--fil-accent)}.fil-cw-preset-btn.warm[data-v-a7254666]:hover{color:#fa0;border-color:#fa0}.fil-cw-preset-btn.cool[data-v-a7254666]:hover{color:#00f0ff;border-color:#00f0ff}.fil-cw-preset-btn.skin[data-v-a7254666]:hover{color:#f7a;border-color:#f7a}.fil-cw-preset-btn.contrast[data-v-a7254666]:hover{color:#fa0;border-color:#fa0}.fil-cw-slider-group[data-v-a7254666]{flex-direction:column;gap:6px;display:flex}.fil-switch-panel[data-v-e917a7af]{box-sizing:border-box;justify-content:center;align-items:center;width:100%;padding:6px 10px;display:flex}.fil-switch-btn[data-v-e917a7af]{width:100%;height:var(--fil-control-h-lg);box-sizing:border-box;border-radius:var(--fil-field-radius);background:var(--fil-surface-2);color:var(--fil-text);letter-spacing:.05em;cursor:pointer;-webkit-user-select:none;user-select:none;border:1px solid #0000;outline:none;justify-content:center;align-items:center;gap:8px;font-family:inherit;font-size:13px;font-weight:700;transition:background .12s,border-color .12s,box-shadow .12s;display:inline-flex;box-shadow:0 2px 8px #00000040}.fil-switch-btn[data-v-e917a7af]:focus-visible{outline:2px solid var(--fil-accent);outline-offset:2px}.fil-switch-btn.is-on[data-v-e917a7af]{background:color-mix(in srgb, var(--fil-ok) 18%, transparent);border-color:color-mix(in srgb, var(--fil-ok) 65%, transparent);box-shadow:0 2px 8px #00000040, 0 0 10px color-mix(in srgb, var(--fil-ok) 22%, transparent)}.fil-switch-btn.is-on[data-v-e917a7af]:hover{background:color-mix(in srgb, var(--fil-ok) 30%, transparent);border-color:var(--fil-ok)}.fil-switch-btn.is-off[data-v-e917a7af]{background:color-mix(in srgb, var(--fil-danger) 14%, transparent);border-color:color-mix(in srgb, var(--fil-danger) 45%, transparent)}.fil-switch-btn.is-off[data-v-e917a7af]:hover{background:color-mix(in srgb, var(--fil-danger) 26%, transparent);border-color:var(--fil-danger)}.fil-switch-text[data-v-e917a7af]{text-transform:uppercase}.fil-ds-root[data-v-c3edb9b3]{gap:var(--fil-node-gap);padding:var(--fil-node-pad);color:var(--fil-text);box-sizing:border-box;flex-direction:column;width:100%;min-width:0;font-family:ui-sans-serif,system-ui,sans-serif;display:flex}.fil-pm-root[data-v-65eee937]{flex-direction:column;gap:12px;padding:4px 0;display:flex}.fil-pm-card[data-v-65eee937]{background:var(--fil-surface-1);border:1px solid var(--fil-border);border-radius:8px;padding:12px}.fil-pm-header[data-v-65eee937]{align-items:center;gap:8px;margin-bottom:10px;display:flex}.fil-pm-card--collapsed[data-v-65eee937]{padding:8px 12px}.fil-pm-card--collapsed .fil-pm-header[data-v-65eee937]{margin-bottom:0}.fil-pm-header--clickable[data-v-65eee937]{cursor:pointer}.fil-pm-header--clickable:hover .fil-pm-name[data-v-65eee937]{color:var(--fil-accent-text)}.fil-pm-chevron[data-v-65eee937]{color:#fff6;align-items:center;transition:transform .12s;display:inline-flex}.fil-pm-chevron--open[data-v-65eee937]{transform:rotate(90deg)}.fil-pm-icon[data-v-65eee937]{justify-content:center;align-items:center;width:26px;height:26px;display:inline-flex}.fil-pm-name[data-v-65eee937]{color:var(--fil-text);font-size:14px;font-weight:600}.fil-pm-disp[data-v-65eee937]{color:#ffffff80;font-size:11px}.fil-pm-status[data-v-65eee937]{text-transform:uppercase;letter-spacing:.5px;color:#fff6;white-space:nowrap;align-items:center;gap:5px;margin-left:auto;font-size:10px;display:inline-flex}.fil-pm-dot[data-v-65eee937]{width:8px;height:8px;box-shadow:0 0 0 3px color-mix(in srgb, currentColor 22%, transparent);background:currentColor;border-radius:50%}.fil-pm-status--connected[data-v-65eee937]{color:var(--fil-ok)}.fil-pm-status--configured[data-v-65eee937]{color:var(--fil-accent-text)}.fil-pm-status--off[data-v-65eee937]{color:var(--fil-muted)}.fil-pm-fields[data-v-65eee937]{flex-direction:column;gap:8px;margin-bottom:10px;display:flex}.fil-pm-field[data-v-65eee937]{flex-direction:column;gap:3px;display:flex}.fil-pm-field-head[data-v-65eee937]{justify-content:space-between;align-items:baseline;gap:8px;display:flex}.fil-pm-field-label[data-v-65eee937]{text-transform:uppercase;letter-spacing:.5px;color:#ffffff80;font-size:10px}.fil-pm-link[data-v-65eee937]{letter-spacing:.3px;color:var(--fil-accent);white-space:nowrap;font-size:10px;text-decoration:none}.fil-pm-link[data-v-65eee937]:hover{text-decoration:underline}.fil-pm-input[data-v-65eee937]{box-sizing:border-box;background:var(--fil-panel-alt);border:1px solid var(--fil-border);width:100%;height:32px;color:var(--fil-text);border-radius:6px;outline:none;padding:7px 8px;font-family:ui-monospace,monospace;font-size:13px;transition:border-color 80ms}.fil-pm-input[data-v-65eee937]:focus{border-color:var(--fil-accent)}.fil-pm-input.fil-pm-has-val[data-v-65eee937]{border-color:var(--fil-border)}.fil-pm-actions[data-v-65eee937]{flex-wrap:wrap;gap:6px;margin-bottom:8px;display:flex}.fil-pm-models[data-v-65eee937]{flex-wrap:wrap;gap:4px;display:flex}.fil-pm-model-tag[data-v-65eee937]{background:var(--fil-surface-2);color:#ffffffbf;white-space:nowrap;border-radius:4px;align-items:center;gap:3px;padding:2px 6px;font-size:11px;display:inline-flex}.fil-pm-vision-badge[data-v-65eee937]{font-size:10px;line-height:1}.fil-pm-err[data-v-65eee937]{color:var(--fil-danger);margin-top:4px;font-size:11px}.fil-pm-age[data-v-65eee937]{color:#fff6;align-self:center;font-size:10px}\n/*$vite$:1*/";document.head.appendChild(s);}catch(e){}})();
 import { app as e } from "/scripts/app.js";
 //#region \0rolldown/runtime.js
 var t = Object.defineProperty, n = (e, t, n) => () => {
@@ -3957,8 +3957,7 @@ var dl, fl = n((() => {
 		__name: "FilNodeShell",
 		props: {
 			root: {},
-			state: {},
-			comfyClass: {}
+			state: {}
 		},
 		setup(e) {
 			return (t, n) => (V(), H("div", pl, [(V(), U(pr(e.root), { state: e.state }, null, 8, ["state"]))]));
@@ -3971,7 +3970,7 @@ var dl, fl = n((() => {
 		return n;
 	};
 })), _l, vl = n((() => {
-	hl(), hl(), gl(), Z(), _l = /*#__PURE__*/ X(ml, [["__scopeId", "data-v-cb614e72"]]);
+	hl(), hl(), gl(), Z(), _l = /*#__PURE__*/ X(ml, [["__scopeId", "data-v-33d4ad3e"]]);
 }));
 //#endregion
 //#region src/nodes2/host/hostElement.ts
@@ -4207,8 +4206,7 @@ function Yl(e, t, n, r) {
 	s.attachWidget(c);
 	let l = Gs(_l, {
 		root: n,
-		state: o,
-		comfyClass: i.comfyClass ?? "default"
+		state: o
 	}).use(ul());
 	l.mount(a);
 	let u = Gl(i, s, r), d = ql(a, r, () => u.sync()), f = {
@@ -4372,7 +4370,10 @@ var mu = n((() => {
 //#region src/nodes2/applyFxComposables.ts
 function hu(e) {
 	if (!e?.prototype) return;
-	let t = e.prototype, n = t.onConnect;
+	let t = e.prototype;
+	if (t._filFxApplied) return;
+	t._filFxApplied = !0;
+	let n = t.onConnect;
 	t.onConnect = function(...e) {
 		let { onConnect: t } = pu();
 		return t(...e), n?.apply(this, e);
@@ -4567,12 +4568,16 @@ var vu, yu = n((() => {
 	});
 })), Hu = n((() => {})), Uu, Wu = n((() => {
 	Vu(), Vu(), Hu(), Z(), Uu = /*#__PURE__*/ X(Bu, [["__scopeId", "data-v-6cab4842"]]);
-})), Gu, Ku, qu = n((() => {
-	Y(), yu(), Gu = [
+})), Gu = n((() => {
+	Y();
+})), Ku = n((() => {})), qu = n((() => {
+	Gu(), Gu(), Ku();
+})), Ju, Yu, Xu = n((() => {
+	Y(), yu(), Ju = [
 		"title",
 		"aria-label",
 		"innerHTML"
-	], Ku = /*@__PURE__*/ B({
+	], Yu = /*@__PURE__*/ B({
 		name: "FilIcon",
 		__name: "FilIcon",
 		props: {
@@ -4591,29 +4596,29 @@ var vu, yu = n((() => {
 				role: "img",
 				"aria-label": e.title ?? e.name,
 				innerHTML: L(_u)(e.name)
-			}, null, 12, Gu));
+			}, null, 12, Ju));
 		}
 	});
-})), Ju = n((() => {})), Yu, Xu = n((() => {
-	qu(), qu(), Ju(), Z(), Yu = /*#__PURE__*/ X(Ku, [["__scopeId", "data-v-dfb78d9f"]]);
-})), Zu, Qu, $u, ed, td, nd, rd, id, ad, od, sd, cd, ld = n((() => {
-	Y(), Xu(), Zu = ["title"], Qu = {
+})), Zu = n((() => {})), Qu, $u = n((() => {
+	Xu(), Xu(), Zu(), Z(), Qu = /*#__PURE__*/ X(Yu, [["__scopeId", "data-v-dfb78d9f"]]);
+})), ed, td, nd, rd, id, ad, od, sd, cd, ld, ud, dd, fd = n((() => {
+	Y(), $u(), ed = ["title"], td = {
 		key: 0,
 		class: "fil-combo-label"
-	}, $u = ["disabled", "aria-expanded"], ed = { class: "fil-combo-trigger-label" }, td = {
+	}, nd = ["disabled", "aria-expanded"], rd = { class: "fil-combo-trigger-label" }, id = {
 		key: 1,
 		class: "fil-combo-badge"
-	}, nd = ["placeholder"], rd = { class: "fil-combo-list" }, id = [
+	}, ad = ["placeholder"], od = { class: "fil-combo-list" }, sd = [
 		"aria-selected",
 		"onMouseenter",
 		"onClick"
-	], ad = { class: "fil-combo-option-label" }, od = {
+	], cd = { class: "fil-combo-option-label" }, ld = {
 		key: 1,
 		class: "fil-combo-badge"
-	}, sd = {
+	}, ud = {
 		key: 0,
 		class: "fil-combo-empty"
-	}, cd = /*@__PURE__*/ B({
+	}, dd = /*@__PURE__*/ B({
 		__name: "FilComboBox",
 		props: /*@__PURE__*/ br({
 			options: {},
@@ -4698,7 +4703,7 @@ var vu, yu = n((() => {
 				class: "fil-combo",
 				title: e.title
 			}, [
-				e.label ? (V(), H("label", Qu, N(e.label), 1)) : G("", !0),
+				e.label ? (V(), H("label", td, N(e.label), 1)) : G("", !0),
 				W("button", {
 					ref_key: "triggerRef",
 					ref: c,
@@ -4713,15 +4718,15 @@ var vu, yu = n((() => {
 					onClick: b,
 					onKeydown: S
 				}, [
-					f.value?.icon ? (V(), U(Yu, {
+					f.value?.icon ? (V(), U(Qu, {
 						key: 0,
 						name: f.value.icon,
 						size: 16
 					}, null, 8, ["name"])) : G("", !0),
-					W("span", ed, N(f.value ? m(f.value) : n.value), 1),
-					f.value?.badge ? (V(), H("span", td, N(f.value.badge), 1)) : G("", !0),
+					W("span", rd, N(f.value ? m(f.value) : n.value), 1),
+					f.value?.badge ? (V(), H("span", id, N(f.value.badge), 1)) : G("", !0),
 					h[1] ||= W("span", { class: "fil-combo-chevron" }, "▾", -1)
-				], 42, $u),
+				], 42, nd),
 				(V(), U(ea, { to: "body" }, [r.value ? (V(), H("div", {
 					key: 0,
 					ref_key: "panelRef",
@@ -4739,7 +4744,7 @@ var vu, yu = n((() => {
 					class: "fil-combo-search",
 					placeholder: e.placeholder,
 					spellcheck: "false"
-				}, null, 8, nd)), [[Is, i.value]]) : G("", !0), W("div", rd, [(V(!0), H(K, null, gr(p.value, (e, t) => (V(), H("button", {
+				}, null, 8, ad)), [[Is, i.value]]) : G("", !0), W("div", od, [(V(!0), H(K, null, gr(p.value, (e, t) => (V(), H("button", {
 					key: e.value,
 					type: "button",
 					class: s(["fil-combo-option", {
@@ -4751,39 +4756,237 @@ var vu, yu = n((() => {
 					onMouseenter: (e) => o.value = t,
 					onClick: (t) => x(e)
 				}, [
-					e.icon ? (V(), U(Yu, {
+					e.icon ? (V(), U(Qu, {
 						key: 0,
 						name: e.icon,
 						size: 16
 					}, null, 8, ["name"])) : G("", !0),
-					W("span", ad, N(m(e)), 1),
-					e.badge ? (V(), H("span", od, N(e.badge), 1)) : G("", !0)
-				], 42, id))), 128)), p.value.length === 0 ? (V(), H("div", sd, "No matches")) : G("", !0)])], 36)) : G("", !0)]))
-			], 8, Zu));
+					W("span", cd, N(m(e)), 1),
+					e.badge ? (V(), H("span", ld, N(e.badge), 1)) : G("", !0)
+				], 42, sd))), 128)), p.value.length === 0 ? (V(), H("div", ud, "No matches")) : G("", !0)])], 36)) : G("", !0)]))
+			], 8, ed));
 		}
 	});
-})), ud = n((() => {})), dd, fd = n((() => {
-	ld(), ld(), ud(), Z(), dd = /*#__PURE__*/ X(cd, [["__scopeId", "data-v-605297df"]]);
-})), pd, md, hd = n((() => {
-	Y(), pd = ["data-ok", "data-err"], md = /*@__PURE__*/ B({
-		__name: "FilInfo",
-		props: {
-			text: {},
-			ok: { type: Boolean },
-			err: { type: Boolean }
+})), pd = n((() => {})), md, hd = n((() => {
+	fd(), fd(), pd(), Z(), md = /*#__PURE__*/ X(dd, [["__scopeId", "data-v-605297df"]]);
+})), gd = /* @__PURE__ */ r({ HELP_DEFAULTS: () => _d }), _d, vd = n((() => {
+	_d = {
+		__cheatsheet__: {
+			id: "__cheatsheet__",
+			title: "FiL_Design_ImageMind — Keyboard Cheatsheet",
+			body: "Global keyboard shortcuts available on the ComfyUI canvas.",
+			table: {
+				headers: ["Key", "Action"],
+				rows: [
+					["Shift+?", "Open this cheatsheet"],
+					["Ctrl+Shift+K", "Open this cheatsheet (alternative)"],
+					["?", "Open help for the selected FiL_Design_ImageMind node"],
+					["/", "Focus the Add-Node search field"],
+					["Esc", "Close popup / blur form field"]
+				]
+			}
 		},
-		setup(e) {
-			return (t, n) => (V(), H("div", {
-				class: "fil-w-info",
-				"data-ok": e.ok || void 0,
-				"data-err": e.err || void 0
-			}, N(e.text), 9, pd));
+		default: {
+			id: "default",
+			title: "FiL_Design_ImageMind",
+			body: "Provider + model selector pack for vision-aware LLMs.",
+			bullets: [
+				"Open Settings → FiL_Design_ImageMind → Providers and API keys to configure a provider.",
+				"Drop a FiL Provider Loader on the canvas, pick a provider + model, and wire its `config` output into the Optic Scanner.",
+				"Use Shift+? or Ctrl+Shift+K for the keyboard cheatsheet."
+			]
+		},
+		FiLSeed: {
+			id: "FiLSeed",
+			title: "FiL Seed",
+			body: "Fixed or randomized seed with copy and reuse buttons.",
+			bullets: [
+				"Random: a fresh seed every run.",
+				"Fixed: same seed for repeatable results.",
+				"New fixed random rolls and locks a new seed.",
+				"Use last seed recalls the seed used by the latest run.",
+				"Copy puts the current seed on the clipboard."
+			]
+		},
+		FiLProviderLoader: {
+			id: "FiLProviderLoader",
+			title: "FiL Provider Loader",
+			body: "Provider and model runtime configuration. Returns `{config, model}`.",
+			bullets: [
+				"Choose a provider (Ollama/LM Studio/Groq/Google/OpenRouter/Cloudflare).",
+				"The model list is fetched from the configured provider; click Refresh models to re-pull.",
+				"Wire the `config` output into the Optic Scanner.",
+				"Credentials are stored locally, never in workflows."
+			],
+			rows: [
+				{
+					label: "Temperature",
+					desc: "LLM sampling temperature (0 = greedy, 2 = chaotic)."
+				},
+				{
+					label: "Max tokens",
+					desc: "0 = use the provider's default; > 0 caps response length."
+				},
+				{
+					label: "Rate limit ms",
+					desc: "Minimum ms between calls for this provider."
+				}
+			]
+		},
+		FiLOpticScanner: {
+			id: "FiLOpticScanner",
+			title: "FiL Optic Scanner",
+			body: "Image analysis or text-idea expansion into a generation prompt.",
+			bullets: [
+				"Wire a Provider Loader into the `config` slot before running.",
+				"Disconnect the `image` input to use text-only mode (prompt expansion).",
+				"Agent + Detail level + language shape the output prompt.",
+				"Photo/art styles are optional; pick one or none."
+			]
+		},
+		FiLNeuroCleaner: {
+			id: "FiLNeuroCleaner",
+			title: "FiL Neuro Cleaner",
+			body: "Selective model, VRAM, RAM, and cache cleanup.",
+			bullets: [
+				"Returns its input unchanged so it may inline anywhere.",
+				"Selects target caches to drop before, mid, or after heavy runs.",
+				"Force = aggressive (may interrupt pending tasks)."
+			]
+		},
+		FiLUpscaleTileCalc: {
+			id: "FiLUpscaleTileCalc",
+			title: "FiL Upscale Tile Calc",
+			body: "Tile dimensions, grid preview, denoise and latent-size calculation.",
+			bullets: [
+				"Computes optimal tile grid for a target resolution.",
+				"Outputs tile width/height, grid cols/rows, latent width/height.",
+				"Optional latent input mirrors image/tiles: latent + latent_tiles out, same grid, bislerp resize.",
+				"Wire outputs into KSampler-tile-aware upscale nodes."
+			]
+		},
+		FiLUpscaleSimple: {
+			id: "FiLUpscaleSimple",
+			title: "FiL Upscale Simple",
+			body: "Upscale + tile crop with the same tiling controls as Advanced, through a required model.",
+			bullets: [
+				"Same widget panel as Upscaler Advanced (factor, tile size/overlap, auto mode, manual grid).",
+				"upscale_model is required; optional latent input adds latent + latent_tiles outputs.",
+				"Delegates to Upscaler Advanced internally — one source of truth for the tiling math."
+			]
+		},
+		FiLTileAssembly: {
+			id: "FiLTileAssembly",
+			title: "FiL Tile Assembly",
+			body: "Recombines a batch of processed tiles back into one image.",
+			bullets: [
+				"Wire `layout` straight from Upscaler Advanced/Simple's `layout` output — no manual grid setup.",
+				"`tiles` must be the same order/count as when they were produced (process each tile, don't reorder).",
+				"Overlap zones are feathered automatically from the real tile positions — no extra padding widget."
+			]
+		},
+		FiLKSampler: {
+			id: "FiLKSampler",
+			title: "FiL KSampler",
+			body: "Full-featured sampler with every ComfyUI sampler/scheduler, passthrough outputs, built-in preview, and optional HighRes-fix script.",
+			bullets: [
+				"Wire model, positive/negative conditioning, and a latent, then Queue.",
+				"Denoise 1.0 = full sample; lower for img2img / refine passes.",
+				"VAE decode outputs an IMAGE preview — needs a VAE (input or passthrough).",
+				"Plug a FiL HighRes Fix `script` into the `script` slot to add an upscale pass."
+			],
+			rows: [
+				{
+					label: "CFG",
+					desc: "Classifier-free guidance scale (higher = follows the prompt more strictly)."
+				},
+				{
+					label: "Preview method",
+					desc: "How the live sampling preview is rendered (auto/latent2rgb/taesd)."
+				},
+				{
+					label: "VAE decode",
+					desc: "Decode the result to an IMAGE output. Off = latent only."
+				}
+			]
+		},
+		FiLHighResFix: {
+			id: "FiLHighResFix",
+			title: "FiL HighRes Fix",
+			body: "Packs latent/pixel upscale + re-sample settings into a script for FiL KSampler.",
+			bullets: [
+				"Outputs a `script` — wire it into the KSampler `script` slot, not into a latent.",
+				"Upscale type: latent (fast), pixel (model upscaler), or both.",
+				"Denoise controls how much the hires pass reworks the image (0.4–0.6 is typical).",
+				"Iterations run multiple upscale+resample passes; ControlNet (advanced) can guide them."
+			],
+			rows: [
+				{
+					label: "Upscale by",
+					desc: "Resolution multiplier for the hires pass."
+				},
+				{
+					label: "Same seed",
+					desc: "Reuse the sampler's seed; turn off to set an own seed."
+				},
+				{
+					label: "Hires steps",
+					desc: "Denoising steps for the re-sample (fewer than the base pass is fine)."
+				}
+			]
+		},
+		FiLNoiseControl: {
+			id: "FiLNoiseControl",
+			title: "FiL Noise Control",
+			body: "Packs an RNG source and optional seed-variation blend into a script for FiL KSampler.",
+			bullets: [
+				"Outputs a `script` — wire it into the KSampler `script` slot, not into a latent.",
+				"RNG source: 'gpu' can better match Automatic1111-style noise for the same seed.",
+				"Seed variation blends a second seed's noise in at the given weight (0 = base only, 1 = variation only)."
+			],
+			rows: [{
+				label: "RNG source",
+				desc: "Device the initial noise is drawn on (cpu/gpu)."
+			}, {
+				label: "Weight",
+				desc: "Variation strength — how much of the second seed's noise to blend in."
+			}]
 		}
+	};
+})), yd, bd, xd, Sd = n((() => {
+	cl(), Y(), yd = /* @__PURE__ */ I({}), bd = !1, xd = Gc("fil/help", () => {
+		let e = /* @__PURE__ */ I(null);
+		function t(e) {
+			for (let [t, n] of Object.entries(e)) yd.value[t] = n;
+		}
+		function n() {
+			bd || (bd = !0, Promise.resolve().then(() => (vd(), gd)).then(({ HELP_DEFAULTS: e }) => t(e)).catch((e) => console.warn("[FiL_Design_ImageMind] help defaults import failed:", e)));
+		}
+		function r(e) {
+			return yd.value[e];
+		}
+		function i() {
+			return Object.values(yd.value);
+		}
+		function a(t) {
+			n(), e.value = t;
+		}
+		function o() {
+			e.value = null;
+		}
+		return {
+			registry: yd,
+			activeHelpId: e,
+			ensureHelpDefaultsInjected: n,
+			registerAll: t,
+			get: r,
+			list: i,
+			value_open: a,
+			value_close: o
+		};
 	});
-})), gd = n((() => {})), _d, vd = n((() => {
-	hd(), hd(), gd(), Z(), _d = /*#__PURE__*/ X(md, [["__scopeId", "data-v-be74f393"]]);
-})), yd, bd, xd, Sd, Cd, wd = n((() => {
-	Y(), Xu(), yd = ["aria-label"], bd = { class: "fil-modal-header" }, xd = { class: "fil-modal-title" }, Sd = { class: "fil-modal-body" }, Cd = /*@__PURE__*/ B({
+})), Cd, wd, Td, Ed, Dd, Od = n((() => {
+	Y(), $u(), Cd = ["aria-label"], wd = { class: "fil-modal-header" }, Td = { class: "fil-modal-title" }, Ed = { class: "fil-modal-body" }, Dd = /*@__PURE__*/ B({
 		__name: "FilModal",
 		props: /*@__PURE__*/ br({
 			title: {},
@@ -4849,31 +5052,102 @@ var vu, yu = n((() => {
 				}, [W("div", {
 					class: "fil-modal-panel",
 					style: a({ maxWidth: e.width })
-				}, [W("div", bd, [W("span", xd, N(e.title), 1), W("button", {
+				}, [W("div", wd, [W("span", Td, N(e.title), 1), W("button", {
 					class: "fil-modal-close",
 					title: "Close",
 					onClick: c
-				}, [q(Yu, {
+				}, [q(Qu, {
 					name: "close",
 					size: 14
-				})])]), W("div", Sd, [_r(t.$slots, "default", {}, void 0, !0)])], 4)], 8, yd)) : G("", !0)]),
+				})])]), W("div", Ed, [_r(t.$slots, "default", {}, void 0, !0)])], 4)], 8, Cd)) : G("", !0)]),
 				_: 3
 			})]));
 		}
 	});
-})), Td = n((() => {})), Ed, Dd = n((() => {
-	wd(), wd(), Td(), Z(), Ed = /*#__PURE__*/ X(Cd, [["__scopeId", "data-v-952a8f2d"]]);
-})), Od, kd, Ad, jd, Md, Nd, Pd, Fd, Id = n((() => {
-	Y(), Od = ["title"], kd = {
+})), kd = n((() => {})), Ad, jd = n((() => {
+	Od(), Od(), kd(), Z(), Ad = /*#__PURE__*/ X(Dd, [["__scopeId", "data-v-952a8f2d"]]);
+})), Md, Nd, Pd, Fd, Id, Ld, Rd, zd = n((() => {
+	Y(), Sd(), jd(), $u(), Md = { class: "fil-help-title" }, Nd = {
+		key: 0,
+		class: "fil-help-body"
+	}, Pd = { key: 1 }, Fd = {
+		key: 2,
+		class: "fil-help-table"
+	}, Id = {
+		key: 3,
+		class: "fil-help-code"
+	}, Ld = {
+		key: 1,
+		class: "fil-help-empty"
+	}, Rd = /*@__PURE__*/ B({
+		__name: "FilHelpPopup",
+		setup(e) {
+			let t = xd(), n = J(() => {
+				let e = t.activeHelpId;
+				return e ? t.get(e) ?? null : null;
+			}), r = J({
+				get: () => t.activeHelpId !== null,
+				set: (e) => {
+					e || t.value_close();
+				}
+			});
+			return z(n, (e) => {
+				e || t.value_close();
+			}), (e, i) => (V(), U(Ad, {
+				open: r.value,
+				"onUpdate:open": i[0] ||= (e) => r.value = e,
+				title: "FiL LLM Help",
+				width: "600px",
+				onClose: i[1] ||= (e) => L(t).value_close()
+			}, {
+				default: Mn(() => [n.value ? (V(), H(K, { key: 0 }, [
+					W("h2", Md, N(n.value.title), 1),
+					n.value.body ? (V(), H("p", Nd, N(n.value.body), 1)) : G("", !0),
+					n.value.bullets?.length ? (V(), H("ul", Pd, [(V(!0), H(K, null, gr(n.value.bullets, (e, t) => (V(), H("li", {
+						key: t,
+						class: "fil-help-bullet"
+					}, [q(Qu, {
+						name: "chevronRight",
+						size: 12
+					}), W("span", null, N(e), 1)]))), 128))])) : G("", !0),
+					n.value.table ? (V(), H("table", Fd, [W("thead", null, [W("tr", null, [(V(!0), H(K, null, gr(n.value.table.headers, (e) => (V(), H("th", { key: e }, N(e), 1))), 128))])]), W("tbody", null, [(V(!0), H(K, null, gr(n.value.table.rows, (e, t) => (V(), H("tr", { key: t }, [(V(!0), H(K, null, gr(e, (e, t) => (V(), H("td", { key: t }, N(e), 1))), 128))]))), 128))])])) : G("", !0),
+					n.value.code ? (V(), H("pre", Id, [W("code", null, N(n.value.code), 1)])) : G("", !0)
+				], 64)) : (V(), H("p", Ld, "No help available for this node."))]),
+				_: 1
+			}, 8, ["open"]));
+		}
+	});
+})), Bd = n((() => {})), Vd, Hd = n((() => {
+	zd(), zd(), Bd(), Z(), Vd = /*#__PURE__*/ X(Rd, [["__scopeId", "data-v-bfee41d7"]]);
+})), Ud, Wd, Gd = n((() => {
+	Y(), Ud = ["data-ok", "data-err"], Wd = /*@__PURE__*/ B({
+		__name: "FilInfo",
+		props: {
+			text: {},
+			ok: { type: Boolean },
+			err: { type: Boolean }
+		},
+		setup(e) {
+			return (t, n) => (V(), H("div", {
+				class: "fil-w-info",
+				"data-ok": e.ok || void 0,
+				"data-err": e.err || void 0
+			}, N(e.text), 9, Ud));
+		}
+	});
+})), Kd = n((() => {})), qd, Jd = n((() => {
+	Gd(), Gd(), Kd(), Z(), qd = /*#__PURE__*/ X(Wd, [["__scopeId", "data-v-be74f393"]]);
+})), Yd, Xd, Zd, Qd, $d, ef, tf, nf, rf = n((() => {
+	Y(), Yd = ["title"], Xd = {
 		key: 0,
 		class: "fil-w-numfield-label"
-	}, Ad = { class: "fil-w-num-wrap" }, jd = [
+	}, Zd = { class: "fil-w-num-wrap" }, Qd = [
 		"disabled",
 		"min",
 		"max",
 		"step",
 		"aria-label"
-	], Md = { class: "fil-w-num-step" }, Nd = ["disabled"], Pd = ["disabled"], Fd = /*@__PURE__*/ B({
+	], $d = { class: "fil-w-num-step" }, ef = ["disabled"], tf = ["disabled"], nf = /*@__PURE__*/ B({
 		__name: "FilNumberInput",
 		props: /*@__PURE__*/ br({
 			min: {},
@@ -4899,10 +5173,12 @@ var vu, yu = n((() => {
 			}
 			function l(e) {
 				let t = (e || "").trim();
-				if (t === "" || !/^[0-9+\-*/(). ]+$/.test(t.replace(/\^/g, "**"))) return null;
+				if (t === "") return null;
+				let n = t.replace(/\^/g, "**");
+				if (!/^[0-9+\-*/(). ]+$/.test(n)) return null;
 				try {
-					let e = Function(`"use strict"; return (${t});`), n = Number(e());
-					return Number.isFinite(n) ? n : null;
+					let e = Function(`"use strict"; return (${n});`), t = Number(e());
+					return Number.isFinite(t) ? t : null;
 				} catch {
 					return null;
 				}
@@ -4931,7 +5207,7 @@ var vu, yu = n((() => {
 			return (t, r) => (V(), H("div", {
 				class: s(["fil-w-numfield", { "no-label": !e.label }]),
 				title: e.title
-			}, [e.label ? (V(), H("label", kd, N(e.label), 1)) : G("", !0), W("div", Ad, [Nn(W("input", {
+			}, [e.label ? (V(), H("label", Xd, N(e.label), 1)) : G("", !0), W("div", Zd, [Nn(W("input", {
 				"onUpdate:modelValue": r[0] ||= (e) => i.value = e,
 				type: "text",
 				class: "fil-w-num",
@@ -4944,7 +5220,7 @@ var vu, yu = n((() => {
 				onFocus: d,
 				onBlur: f,
 				onKeydown: p
-			}, null, 40, jd), [[Is, i.value]]), W("div", Md, [W("button", {
+			}, null, 40, Qd), [[Is, i.value]]), W("div", $d, [W("button", {
 				type: "button",
 				class: "fil-w-num-btn",
 				tabindex: "-1",
@@ -4952,7 +5228,7 @@ var vu, yu = n((() => {
 				disabled: e.disabled || e.max != null && n.value >= e.max,
 				onMousedown: r[1] ||= Bs(() => {}, ["prevent"]),
 				onClick: r[2] ||= (e) => m(e.shiftKey ? 10 : 1)
-			}, "▲", 40, Nd), W("button", {
+			}, "▲", 40, ef), W("button", {
 				type: "button",
 				class: "fil-w-num-btn",
 				tabindex: "-1",
@@ -4960,18 +5236,18 @@ var vu, yu = n((() => {
 				disabled: e.disabled || e.min != null && n.value <= e.min,
 				onMousedown: r[3] ||= Bs(() => {}, ["prevent"]),
 				onClick: r[4] ||= (e) => m(e.shiftKey ? -10 : -1)
-			}, "▼", 40, Pd)])])], 10, Od));
+			}, "▼", 40, tf)])])], 10, Yd));
 		}
 	});
-})), Ld = n((() => {})), Rd, zd = n((() => {
-	Id(), Id(), Ld(), Z(), Rd = /*#__PURE__*/ X(Fd, [["__scopeId", "data-v-3e158373"]]);
-})), Bd, Vd, Hd, Ud, Wd, Gd, Kd = n((() => {
-	Y(), Bd = { class: "fil-w-seedrow" }, Vd = [
+})), af = n((() => {})), of, sf = n((() => {
+	rf(), rf(), af(), Z(), of = /*#__PURE__*/ X(nf, [["__scopeId", "data-v-dd14f50b"]]);
+})), cf, lf, uf, df, ff, pf, mf = n((() => {
+	Y(), cf = { class: "fil-w-seedrow" }, lf = [
 		"value",
 		"readonly",
 		"aria-label",
 		"title"
-	], Hd = ["title"], Ud = ["title"], Wd = ["title"], Gd = /*@__PURE__*/ B({
+	], uf = ["title"], df = ["title"], ff = ["title"], pf = /*@__PURE__*/ B({
 		__name: "FilSeedRow",
 		props: {
 			display: {},
@@ -4992,7 +5268,7 @@ var vu, yu = n((() => {
 			function r(e) {
 				n("input-seed", Number(e.target.value) || 0);
 			}
-			return (t, i) => (V(), H("div", Bd, [
+			return (t, i) => (V(), H("div", cf, [
 				W("input", {
 					value: e.display,
 					type: "text",
@@ -5001,32 +5277,32 @@ var vu, yu = n((() => {
 					"aria-label": e.fieldAriaLabel,
 					title: e.fieldTitle,
 					onInput: r
-				}, null, 42, Vd),
+				}, null, 42, lf),
 				W("button", {
 					type: "button",
 					class: s(["fil-w-seedrow-pill", { active: e.mode === "random" }]),
 					title: e.titles.random,
 					onClick: i[0] ||= (e) => n("random")
-				}, N(e.labels.random), 11, Hd),
+				}, N(e.labels.random), 11, uf),
 				W("button", {
 					type: "button",
 					class: "fil-w-seedrow-pill",
 					title: e.titles.useLast,
 					onClick: i[1] ||= (e) => n("use-last")
-				}, N(e.labels.useLast), 9, Ud),
+				}, N(e.labels.useLast), 9, df),
 				W("button", {
 					type: "button",
 					class: "fil-w-seedrow-pill is-accent",
 					title: e.titles.newFixed,
 					onClick: i[2] ||= (e) => n("new-fixed")
-				}, N(e.labels.newFixed), 9, Wd)
+				}, N(e.labels.newFixed), 9, ff)
 			]));
 		}
 	});
-})), qd = n((() => {})), Jd, Yd = n((() => {
-	Kd(), Kd(), qd(), Z(), Jd = /*#__PURE__*/ X(Gd, [["__scopeId", "data-v-5802f079"]]);
-})), Xd, Zd, Qd, $d, ef = n((() => {
-	Y(), Xd = ["aria-expanded", "disabled"], Zd = { class: "fil-w-section-arrow" }, Qd = { class: "fil-w-section-title" }, $d = /*@__PURE__*/ B({
+})), hf = n((() => {})), gf, _f = n((() => {
+	mf(), mf(), hf(), Z(), gf = /*#__PURE__*/ X(pf, [["__scopeId", "data-v-5802f079"]]);
+})), vf, yf, bf, xf, Sf = n((() => {
+	Y(), vf = ["aria-expanded", "disabled"], yf = { class: "fil-w-section-arrow" }, bf = { class: "fil-w-section-title" }, xf = /*@__PURE__*/ B({
 		__name: "FilSection",
 		props: /*@__PURE__*/ br({
 			title: {},
@@ -5057,22 +5333,22 @@ var vu, yu = n((() => {
 				"aria-expanded": !n.value,
 				disabled: !e.collapsible,
 				onClick: r
-			}, [W("span", Zd, N(i.value), 1), W("span", Qd, N(e.title), 1)], 10, Xd));
+			}, [W("span", yf, N(i.value), 1), W("span", bf, N(e.title), 1)], 10, vf));
 		}
 	});
-})), tf = n((() => {})), nf, rf = n((() => {
-	ef(), ef(), tf(), Z(), nf = /*#__PURE__*/ X($d, [["__scopeId", "data-v-47c32650"]]);
-})), af, of, sf, cf, lf, uf = n((() => {
-	Y(), af = ["title"], of = {
+})), Cf = n((() => {})), wf, Tf = n((() => {
+	Sf(), Sf(), Cf(), Z(), wf = /*#__PURE__*/ X(xf, [["__scopeId", "data-v-47c32650"]]);
+})), Ef, Df, Of, kf, Af, jf = n((() => {
+	Y(), Ef = ["title"], Df = {
 		key: 0,
 		class: "fil-w-segmented-label"
-	}, sf = ["aria-label"], cf = [
+	}, Of = ["aria-label"], kf = [
 		"aria-pressed",
 		"disabled",
 		"tabindex",
 		"onClick",
 		"onKeydown"
-	], lf = /*@__PURE__*/ B({
+	], Af = /*@__PURE__*/ B({
 		__name: "FilSegmented",
 		props: /*@__PURE__*/ br({
 			options: {},
@@ -5108,7 +5384,7 @@ var vu, yu = n((() => {
 			return (t, c) => (V(), H("div", {
 				class: "fil-w-segmented",
 				title: e.title
-			}, [e.label ? (V(), H("label", of, N(e.label), 1)) : G("", !0), W("div", {
+			}, [e.label ? (V(), H("label", Df, N(e.label), 1)) : G("", !0), W("div", {
 				class: s(["fil-w-pill", { disabled: e.disabled }]),
 				role: "group",
 				"aria-label": e.label
@@ -5125,16 +5401,16 @@ var vu, yu = n((() => {
 				tabindex: t === n.value ? 0 : -1,
 				onClick: (e) => a(t),
 				onKeydown: (e) => o(e, c)
-			}, N(i(t)), 43, cf))), 128))], 10, sf)], 8, af));
+			}, N(i(t)), 43, kf))), 128))], 10, Of)], 8, Ef));
 		}
 	});
-})), df = n((() => {})), ff, pf = n((() => {
-	uf(), uf(), df(), Z(), ff = /*#__PURE__*/ X(lf, [["__scopeId", "data-v-80a17629"]]);
-})), mf, hf, gf, _f, vf, yf = n((() => {
-	Y(), mf = ["title"], hf = {
+})), Mf = n((() => {})), Nf, Pf = n((() => {
+	jf(), jf(), Mf(), Z(), Nf = /*#__PURE__*/ X(Af, [["__scopeId", "data-v-80a17629"]]);
+})), Ff, If, Lf, Rf, zf, Bf = n((() => {
+	Y(), Ff = ["title"], If = {
 		key: 0,
 		class: "fil-w-select-label"
-	}, gf = ["disabled", "aria-label"], _f = ["value"], vf = /*@__PURE__*/ B({
+	}, Lf = ["disabled", "aria-label"], Rf = ["value"], zf = /*@__PURE__*/ B({
 		__name: "FilSelect",
 		props: /*@__PURE__*/ br({
 			options: {},
@@ -5151,7 +5427,7 @@ var vu, yu = n((() => {
 			return (n, r) => (V(), H("div", {
 				class: "fil-w-select",
 				title: e.title
-			}, [e.label ? (V(), H("label", hf, N(e.label), 1)) : G("", !0), Nn(W("select", {
+			}, [e.label ? (V(), H("label", If, N(e.label), 1)) : G("", !0), Nn(W("select", {
 				"onUpdate:modelValue": r[0] ||= (e) => t.value = e,
 				class: "fil-w-select-input",
 				disabled: e.disabled,
@@ -5159,23 +5435,23 @@ var vu, yu = n((() => {
 			}, [(V(!0), H(K, null, gr(e.options, (e) => (V(), H("option", {
 				key: e,
 				value: e
-			}, N(e), 9, _f))), 128))], 8, gf), [[Ls, t.value]])], 8, mf));
+			}, N(e), 9, Rf))), 128))], 8, Lf), [[Ls, t.value]])], 8, Ff));
 		}
 	});
-})), bf = n((() => {})), xf, Sf = n((() => {
-	yf(), yf(), bf(), Z(), xf = /*#__PURE__*/ X(vf, [["__scopeId", "data-v-f303e789"]]);
-})), Cf, wf, Tf, Ef, Df, Of = n((() => {
-	Y(), zd(), Cf = ["title"], wf = {
+})), Vf = n((() => {})), Hf, Uf = n((() => {
+	Bf(), Bf(), Vf(), Z(), Hf = /*#__PURE__*/ X(zf, [["__scopeId", "data-v-f303e789"]]);
+})), Wf, Gf, Kf, qf, Jf, Yf = n((() => {
+	Y(), sf(), Wf = ["title"], Gf = {
 		key: 0,
 		class: "fil-w-slider-label"
-	}, Tf = { class: "fil-w-slider-row" }, Ef = [
+	}, Kf = { class: "fil-w-slider-row" }, qf = [
 		"value",
 		"min",
 		"max",
 		"step",
 		"disabled",
 		"aria-label"
-	], Df = /*@__PURE__*/ B({
+	], Jf = /*@__PURE__*/ B({
 		__name: "FilSlider",
 		props: /*@__PURE__*/ br({
 			min: {},
@@ -5207,7 +5483,7 @@ var vu, yu = n((() => {
 			return (t, n) => (V(), H("div", {
 				class: "fil-w-slider",
 				title: e.title
-			}, [e.label ? (V(), H("label", wf, N(e.label), 1)) : G("", !0), W("div", Tf, [W("input", {
+			}, [e.label ? (V(), H("label", Gf, N(e.label), 1)) : G("", !0), W("div", Kf, [W("input", {
 				type: "range",
 				class: "fil-w-slider-range",
 				value: r.value,
@@ -5217,7 +5493,7 @@ var vu, yu = n((() => {
 				disabled: e.disabled,
 				"aria-label": e.label,
 				onInput: i
-			}, null, 40, Ef), q(Rd, {
+			}, null, 40, qf), q(of, {
 				modelValue: r.value,
 				"onUpdate:modelValue": n[0] ||= (e) => r.value = e,
 				min: e.min,
@@ -5232,13 +5508,13 @@ var vu, yu = n((() => {
 				"step",
 				"disabled",
 				"aria-label"
-			])])], 8, Cf));
+			])])], 8, Wf));
 		}
 	});
-})), kf = n((() => {})), Af, jf = n((() => {
-	Of(), Of(), kf(), Z(), Af = /*#__PURE__*/ X(Df, [["__scopeId", "data-v-bcb4fa2a"]]);
-})), Mf, Nf, Pf, Ff, If, Lf = n((() => {
-	Mf = {
+})), Xf = n((() => {})), Zf, Qf = n((() => {
+	Yf(), Yf(), Xf(), Z(), Zf = /*#__PURE__*/ X(Jf, [["__scopeId", "data-v-bcb4fa2a"]]);
+})), $f, ep, tp, np, rp, ip = n((() => {
+	$f = {
 		"⏱️ ЗАХВАТ/🎞️ Slo-Mo Bullet Time": "/extensions/FiL_Design_ImageMind/style-previews/7f9dc89f4509.webp",
 		"⏱️ ЗАХВАТ/💫 Motion Blur": "/extensions/FiL_Design_ImageMind/style-previews/319b52f9ad57.webp",
 		"⏱️ ЗАХВАТ/📸 Action Freeze": "/extensions/FiL_Design_ImageMind/style-previews/8a1e33a444cd.webp",
@@ -5396,16 +5672,16 @@ var vu, yu = n((() => {
 		"🧪 ЭФФЕКТЫ/🧊 Absolute Zero": "/extensions/FiL_Design_ImageMind/style-previews/551664a56507.webp",
 		"🧪 ЭФФЕКТЫ/🪞 Зеркальный мир": "/extensions/FiL_Design_ImageMind/style-previews/c3e62ceaea58.webp",
 		"🧪 ЭФФЕКТЫ/🫧 Мыльные пузыри": "/extensions/FiL_Design_ImageMind/style-previews/a0cf782e627e.webp"
-	}, Nf = {}, Pf = {}, Ff = {}, If = {
-		...Mf,
-		...Nf,
-		...Pf,
-		...Ff
+	}, ep = {}, tp = {}, np = {}, rp = {
+		...$f,
+		...ep,
+		...tp,
+		...np
 	};
 }));
 //#endregion
 //#region src/api/client.ts
-async function Rf(e) {
+async function ap(e) {
 	let t;
 	try {
 		t = await e.json();
@@ -5418,86 +5694,86 @@ async function Rf(e) {
 	}
 	return t;
 }
-function zf() {
+function op() {
 	let e = globalThis;
 	if (e.api?.fetchApi) return (t, n) => e.api.fetchApi(t, n);
 	if (e.fetch) return e.fetch.bind(globalThis);
 	throw Error(`${Ol} no HTTP transport (api.fetchApi or window.fetch undefined)`);
 }
-async function Bf(e) {
-	return Rf(await zf()(e));
+async function sp(e) {
+	return ap(await op()(e));
 }
-async function Vf(e, t) {
-	return Rf(await zf()(e, {
+async function cp(e, t) {
+	return ap(await op()(e, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify(t)
 	}));
 }
-var Hf, Uf = n((() => {
-	Al(), Hf = {
-		loadAccounts: () => Bf(`${Dl}/auth`),
-		saveAccounts: (e) => Vf(`${Dl}/auth`, { accounts: e }),
-		loadModels: (e, t = !1) => Bf(`${Dl}/models/${encodeURIComponent(e)}${t ? "?force=1" : ""}`),
-		probe: (e, t = "") => Vf(`${Dl}/provider_probe`, {
+var lp, up = n((() => {
+	Al(), lp = {
+		loadAccounts: () => sp(`${Dl}/auth`),
+		saveAccounts: (e) => cp(`${Dl}/auth`, { accounts: e }),
+		loadModels: (e, t = !1) => sp(`${Dl}/models/${encodeURIComponent(e)}${t ? "?force=1" : ""}`),
+		probe: (e, t = "") => cp(`${Dl}/provider_probe`, {
 			provider: e,
 			model: t
 		}),
-		listProviders: () => Bf(`${Dl}/providers`),
-		nodeContracts: () => Bf(`${Dl}/node_contracts`)
+		listProviders: () => sp(`${Dl}/providers`),
+		nodeContracts: () => sp(`${Dl}/node_contracts`)
 	};
 }));
 //#endregion
 //#region src/composables/useI18n.ts
-async function Wf(e) {
+async function dp(e) {
 	try {
-		let t = await Bf(`/fil_design_imagemind/locale/${encodeURIComponent(e)}`);
-		Xf.translations = t, Xf.lang = e;
+		let t = await sp(`/fil_design_imagemind/locale/${encodeURIComponent(e)}`);
+		_p.translations = t, _p.lang = e;
 	} catch (t) {
 		console.warn(`[FiL_Design_ImageMind] failed to load locale "${e}":`, t);
 	} finally {
-		Xf.loaded = !0;
+		_p.loaded = !0;
 	}
 }
-function Gf() {
-	Zf ||= Wf(jl(Jf, Yf));
+function fp() {
+	vp ||= dp(jl(hp, gp));
 }
-function Kf(e, t, n, r) {
+function pp(e, t, n, r) {
 	let i = e % 10, a = e % 100;
 	return i === 1 && a !== 11 ? t : i >= 2 && i <= 4 && (a < 10 || a >= 20) ? n : r;
 }
-function qf() {
-	Gf();
+function mp() {
+	fp();
 	function e(e, t) {
-		return Xf.translations[e] ?? t;
+		return _p.translations[e] ?? t;
 	}
 	function t(e, t, n, r, i) {
-		let a = Xf.translations[`${e}_one`] ?? n, o = Xf.translations[`${e}_few`] ?? r, s = Xf.translations[`${e}_many`] ?? i;
-		return Xf.lang === "ru" ? Kf(t, a, o, s) : t === 1 ? a : s;
+		let a = _p.translations[`${e}_one`] ?? n, o = _p.translations[`${e}_few`] ?? r, s = _p.translations[`${e}_many`] ?? i;
+		return _p.lang === "ru" ? pp(t, a, o, s) : t === 1 ? a : s;
 	}
 	return {
 		t: e,
 		tPlural: t,
-		state: /* @__PURE__ */ ct(Xf)
+		state: /* @__PURE__ */ ct(_p)
 	};
 }
-var Jf, Yf, Xf, Zf, Qf = n((() => {
-	Y(), Uf(), Ml(), Jf = "FiL_Design_ImageMind.Language", Yf = "en", Xf = /* @__PURE__ */ ot({
-		lang: Yf,
+var hp, gp, _p, vp, yp = n((() => {
+	Y(), up(), Ml(), hp = "FiL_Design_ImageMind.Language", gp = "en", _p = /* @__PURE__ */ ot({
+		lang: gp,
 		translations: {},
 		loaded: !1
-	}), Zf = null;
-})), $f, ep, tp, np, rp, ip, ap, op, sp, cp, lp, up, dp, fp, pp, mp, hp, gp, _p = n((() => {
-	Y(), Lf(), Qf(), $f = { class: "fil-style-picker" }, ep = {
+	}), vp = null;
+})), bp, xp, Sp, Cp, wp, Tp, Ep, Dp, Op, kp, Ap, jp, Mp, Np, Pp, Fp, Ip, Lp, Rp = n((() => {
+	Y(), ip(), yp(), bp = { class: "fil-style-picker" }, xp = {
 		key: 0,
 		class: "fil-style-selected-bar"
-	}, tp = { class: "fil-chip-text" }, np = ["onClick"], rp = { class: "fil-style-cats" }, ip = ["onClick"], ap = { class: "fil-style-search-wrap" }, op = ["placeholder", "aria-label"], sp = ["title"], cp = { class: "fil-style-grid" }, lp = ["title", "onClick"], up = { class: "fil-style-tile-preview" }, dp = ["src"], fp = {
+	}, Sp = { class: "fil-chip-text" }, Cp = ["onClick"], wp = { class: "fil-style-cats" }, Tp = ["onClick"], Ep = { class: "fil-style-search-wrap" }, Dp = ["placeholder", "aria-label"], Op = ["title"], kp = { class: "fil-style-grid" }, Ap = ["title", "onClick"], jp = { class: "fil-style-tile-preview" }, Mp = ["src"], Np = {
 		key: 1,
 		class: "fil-style-tile-placeholder"
-	}, pp = { class: "fil-style-tile-label" }, mp = {
+	}, Pp = { class: "fil-style-tile-label" }, Fp = {
 		key: 0,
 		class: "fil-style-empty"
-	}, hp = "__all__", gp = /*@__PURE__*/ B({
+	}, Ip = "__all__", Lp = /*@__PURE__*/ B({
 		__name: "FilStylePicker",
 		props: /*@__PURE__*/ br({
 			styles: {},
@@ -5511,7 +5787,7 @@ var Jf, Yf, Xf, Zf, Qf = n((() => {
 		}),
 		emits: /*@__PURE__*/ br(["select"], ["update:modelValue"]),
 		setup(e, { emit: t }) {
-			let { t: n } = qf(), r = e, i = Ir(e, "modelValue"), a = t;
+			let { t: n } = mp(), r = e, i = Ir(e, "modelValue"), a = t;
 			function o(e) {
 				let t = e.indexOf("/");
 				return t === -1 ? "" : e.slice(0, t);
@@ -5534,12 +5810,12 @@ var Jf, Yf, Xf, Zf, Qf = n((() => {
 					r && !e.has(r) && (e.add(r), t.push(r));
 				}
 				return t;
-			}), p = /* @__PURE__ */ I(hp), m = /* @__PURE__ */ I(""), h = J(() => {
+			}), p = /* @__PURE__ */ I(Ip), m = /* @__PURE__ */ I(""), h = J(() => {
 				let e = m.value.trim().toLowerCase();
-				return r.styles.filter((t) => p.value !== hp && o(t) !== p.value ? !1 : !e || t.toLowerCase().includes(e));
+				return r.styles.filter((t) => p.value !== Ip && o(t) !== p.value ? !1 : !e || t.toLowerCase().includes(e));
 			});
 			function g(e) {
-				return If[e];
+				return rp[e];
 			}
 			function _(e) {
 				let t = l.value.filter((t) => t !== e), n = t.length > 0 ? t.join(" | ") : "None";
@@ -5556,70 +5832,70 @@ var Jf, Yf, Xf, Zf, Qf = n((() => {
 					i.value = t, a("select", t);
 				}
 			}
-			return (e, t) => (V(), H("div", $f, [
-				l.value.length > 0 ? (V(), H("div", ep, [(V(!0), H(K, null, gr(l.value, (e) => (V(), H("span", {
+			return (e, t) => (V(), H("div", bp, [
+				l.value.length > 0 ? (V(), H("div", xp, [(V(!0), H(K, null, gr(l.value, (e) => (V(), H("span", {
 					key: e,
 					class: "fil-style-chip"
-				}, [W("span", tp, N(c(e)), 1), W("button", {
+				}, [W("span", Sp, N(c(e)), 1), W("button", {
 					type: "button",
 					class: "fil-chip-remove",
 					title: "Remove style",
 					onClick: Bs((t) => _(e), ["stop"])
-				}, "×", 8, np)]))), 128))])) : G("", !0),
-				W("div", rp, [W("button", {
+				}, "×", 8, Cp)]))), 128))])) : G("", !0),
+				W("div", wp, [W("button", {
 					type: "button",
-					class: s(["fil-style-cat", { active: p.value === hp }]),
-					onClick: t[0] ||= (e) => p.value = hp
+					class: s(["fil-style-cat", { active: p.value === Ip }]),
+					onClick: t[0] ||= (e) => p.value = Ip
 				}, N(L(n)("fsp_all_categories", "All")), 3), (V(!0), H(K, null, gr(f.value, (e) => (V(), H("button", {
 					key: e,
 					type: "button",
 					class: s(["fil-style-cat", { active: p.value === e }]),
 					onClick: (t) => p.value = e
-				}, N(e), 11, ip))), 128))]),
-				W("div", ap, [Nn(W("input", {
+				}, N(e), 11, Tp))), 128))]),
+				W("div", Ep, [Nn(W("input", {
 					"onUpdate:modelValue": t[1] ||= (e) => m.value = e,
 					type: "search",
 					class: "fil-style-search",
 					placeholder: L(n)("fsp_search_placeholder", "Search styles…"),
 					"aria-label": L(n)("fsp_search_aria", "Search styles"),
 					spellcheck: "false"
-				}, null, 8, op), [[Is, m.value]]), m.value.trim().length > 0 ? (V(), H("button", {
+				}, null, 8, Dp), [[Is, m.value]]), m.value.trim().length > 0 ? (V(), H("button", {
 					key: 0,
 					type: "button",
 					class: "fil-style-search-clear",
 					title: L(n)("fsp_clear_search", "Clear search"),
 					onClick: t[2] ||= (e) => m.value = ""
-				}, " × ", 8, sp)) : G("", !0)]),
-				W("div", cp, [(V(!0), H(K, null, gr(h.value, (e) => (V(), H("button", {
+				}, " × ", 8, Op)) : G("", !0)]),
+				W("div", kp, [(V(!0), H(K, null, gr(h.value, (e) => (V(), H("button", {
 					key: e,
 					type: "button",
 					class: s(["fil-style-tile", { active: d(e) }]),
 					title: e,
 					onClick: (t) => v(e)
-				}, [W("span", up, [g(e) ? (V(), H("img", {
+				}, [W("span", jp, [g(e) ? (V(), H("img", {
 					key: 0,
 					src: g(e),
 					class: "fil-style-tile-img",
 					alt: ""
-				}, null, 8, dp)) : (V(), H("span", fp, N(c(e).split(" ")[0]), 1))]), W("span", pp, N(c(e)), 1)], 10, lp))), 128)), h.value.length === 0 ? (V(), H("div", mp, "No matches")) : G("", !0)])
+				}, null, 8, Mp)) : (V(), H("span", Np, N(c(e).split(" ")[0]), 1))]), W("span", Pp, N(c(e)), 1)], 10, Ap))), 128)), h.value.length === 0 ? (V(), H("div", Fp, "No matches")) : G("", !0)])
 			]));
 		}
 	});
-})), vp = n((() => {})), yp, bp = n((() => {
-	_p(), _p(), vp(), Z(), yp = /*#__PURE__*/ X(gp, [["__scopeId", "data-v-572f1dc7"]]);
-})), xp, Sp, Cp, wp, Tp, Ep = n((() => {
-	Y(), xp = ["title"], Sp = { class: "fil-w-textarea-label" }, Cp = [
+})), zp = n((() => {})), Bp, Vp = n((() => {
+	Rp(), Rp(), zp(), Z(), Bp = /*#__PURE__*/ X(Lp, [["__scopeId", "data-v-572f1dc7"]]);
+})), Hp, Up, Wp, Gp, Kp, qp = n((() => {
+	Y(), Hp = ["title"], Up = { class: "fil-w-textarea-label" }, Wp = [
 		"placeholder",
 		"rows",
 		"disabled",
 		"readonly"
-	], wp = [
+	], Gp = [
 		"title",
 		"placeholder",
 		"rows",
 		"disabled",
 		"readonly"
-	], Tp = /*@__PURE__*/ B({
+	], Kp = /*@__PURE__*/ B({
 		__name: "FilTextArea",
 		props: /*@__PURE__*/ br({
 			label: {},
@@ -5640,14 +5916,14 @@ var Jf, Yf, Xf, Zf, Qf = n((() => {
 				key: 0,
 				class: "fil-w-textarea-row",
 				title: e.title
-			}, [W("label", Sp, N(e.label), 1), Nn(W("textarea", {
+			}, [W("label", Up, N(e.label), 1), Nn(W("textarea", {
 				"onUpdate:modelValue": r[0] ||= (e) => t.value = e,
 				class: s(["fil-w-textarea", { "is-linked": e.linked }]),
 				placeholder: e.placeholder,
 				rows: e.rows,
 				disabled: e.disabled,
 				readonly: e.readonly || e.linked
-			}, null, 10, Cp), [[Is, t.value]])], 8, xp)) : Nn((V(), H("textarea", {
+			}, null, 10, Wp), [[Is, t.value]])], 8, Hp)) : Nn((V(), H("textarea", {
 				key: 1,
 				"onUpdate:modelValue": r[1] ||= (e) => t.value = e,
 				class: s(["fil-w-textarea", { "is-linked": e.linked }]),
@@ -5656,20 +5932,20 @@ var Jf, Yf, Xf, Zf, Qf = n((() => {
 				rows: e.rows,
 				disabled: e.disabled,
 				readonly: e.readonly || e.linked
-			}, null, 10, wp)), [[Is, t.value]]);
+			}, null, 10, Gp)), [[Is, t.value]]);
 		}
 	});
-})), Dp = n((() => {})), Op, kp = n((() => {
-	Ep(), Ep(), Dp(), Z(), Op = /*#__PURE__*/ X(Tp, [["__scopeId", "data-v-f3b21190"]]);
-})), Ap, jp, Mp, Np, Pp = n((() => {
-	Y(), Ap = ["title"], jp = {
+})), Jp = n((() => {})), Yp, Xp = n((() => {
+	qp(), qp(), Jp(), Z(), Yp = /*#__PURE__*/ X(Kp, [["__scopeId", "data-v-f3b21190"]]);
+})), Zp, Qp, $p, em, tm = n((() => {
+	Y(), Zp = ["title"], Qp = {
 		key: 0,
 		class: "fil-w-text-label"
-	}, Mp = [
+	}, $p = [
 		"placeholder",
 		"disabled",
 		"aria-label"
-	], Np = /*@__PURE__*/ B({
+	], em = /*@__PURE__*/ B({
 		__name: "FilTextInput",
 		props: /*@__PURE__*/ br({
 			label: {},
@@ -5686,27 +5962,27 @@ var Jf, Yf, Xf, Zf, Qf = n((() => {
 			return (n, r) => (V(), H("div", {
 				class: "fil-w-text",
 				title: e.title
-			}, [e.label ? (V(), H("label", jp, N(e.label), 1)) : G("", !0), Nn(W("input", {
+			}, [e.label ? (V(), H("label", Qp, N(e.label), 1)) : G("", !0), Nn(W("input", {
 				"onUpdate:modelValue": r[0] ||= (e) => t.value = e,
 				type: "text",
 				class: "fil-w-text-input",
 				placeholder: e.placeholder,
 				disabled: e.disabled,
 				"aria-label": e.label
-			}, null, 8, Mp), [[Is, t.value]])], 8, Ap));
+			}, null, 8, $p), [[Is, t.value]])], 8, Zp));
 		}
 	});
-})), Fp = n((() => {})), Ip, Lp = n((() => {
-	Pp(), Pp(), Fp(), Z(), Ip = /*#__PURE__*/ X(Np, [["__scopeId", "data-v-d656e366"]]);
-})), Rp, zp, Bp, Vp, Hp, Up, Wp = n((() => {
-	Y(), cl(), cu(), Qf(), Rp = {
+})), nm = n((() => {})), rm, im = n((() => {
+	tm(), tm(), nm(), Z(), rm = /*#__PURE__*/ X(em, [["__scopeId", "data-v-d656e366"]]);
+})), am, om, sm, cm, lm, um, dm = n((() => {
+	Y(), cl(), cu(), yp(), am = {
 		class: "fil-toast-stack",
 		role: "status",
 		"aria-live": "polite"
-	}, zp = ["onMouseenter", "onMouseleave"], Bp = { class: "fil-toast-text" }, Vp = ["onClick"], Hp = ["aria-label", "onClick"], Up = /*@__PURE__*/ B({
+	}, om = ["onMouseenter", "onMouseleave"], sm = { class: "fil-toast-text" }, cm = ["onClick"], lm = ["aria-label", "onClick"], um = /*@__PURE__*/ B({
 		__name: "FilToastStack",
 		setup(e) {
-			let { t } = qf(), n = ou(), { items: r } = Kc(n), i = /* @__PURE__ */ new Map(), o = /* @__PURE__ */ new Set(), c = {
+			let { t } = mp(), n = ou(), { items: r } = Kc(n), i = /* @__PURE__ */ new Map(), o = /* @__PURE__ */ new Set(), c = {
 				info: "var(--fil-muted)",
 				success: "var(--fil-ok)",
 				warning: "var(--fil-accent)",
@@ -5738,7 +6014,7 @@ var Jf, Yf, Xf, Zf, Qf = n((() => {
 			}), _a(() => {
 				for (let e of i.values()) clearTimeout(e);
 				i.clear(), o.clear();
-			}), (e, n) => (V(), H("div", Rp, [(V(!0), H(K, null, gr(p.value, (e) => (V(), H("div", {
+			}), (e, n) => (V(), H("div", am, [(V(!0), H(K, null, gr(p.value, (e) => (V(), H("div", {
 				key: e.id,
 				class: s(["fil-toast", `fil-toast-${e.level}`]),
 				style: a({ "--toast-color": c[e.level] }),
@@ -5749,7 +6025,7 @@ var Jf, Yf, Xf, Zf, Qf = n((() => {
 					class: "fil-toast-dot",
 					"aria-hidden": "true"
 				}, null, -1),
-				W("span", Bp, N(e.text), 1),
+				W("span", sm, N(e.text), 1),
 				e.action ? (V(), H("button", {
 					key: 0,
 					type: "button",
@@ -5757,27 +6033,27 @@ var Jf, Yf, Xf, Zf, Qf = n((() => {
 					onClick: Bs((t) => {
 						e.action.onClick(t), f(e);
 					}, ["stop"])
-				}, N(e.action.label), 9, Vp)) : G("", !0),
+				}, N(e.action.label), 9, cm)) : G("", !0),
 				W("button", {
 					type: "button",
 					class: "fil-toast-close",
 					"aria-label": L(t)("toast_close", "Close"),
 					onClick: Bs((t) => f(e), ["stop"])
-				}, " × ", 8, Hp)
-			], 46, zp))), 128))]));
+				}, " × ", 8, lm)
+			], 46, om))), 128))]));
 		}
 	});
-})), Gp = n((() => {})), Kp, qp = n((() => {
-	Wp(), Wp(), Gp(), Z(), Kp = /*#__PURE__*/ X(Up, [["__scopeId", "data-v-efc20406"]]);
-})), Jp, Yp, Xp, Zp, Qp = n((() => {
-	Y(), Jp = ["title"], Yp = {
+})), fm = n((() => {})), pm, mm = n((() => {
+	dm(), dm(), fm(), Z(), pm = /*#__PURE__*/ X(um, [["__scopeId", "data-v-efc20406"]]);
+})), hm, gm, _m, vm, ym = n((() => {
+	Y(), hm = ["title"], gm = {
 		key: 0,
 		class: "fil-w-toggle-label"
-	}, Xp = [
+	}, _m = [
 		"aria-checked",
 		"aria-label",
 		"disabled"
-	], Zp = /*@__PURE__*/ B({
+	], vm = /*@__PURE__*/ B({
 		__name: "FilToggle",
 		props: /*@__PURE__*/ br({
 			label: {},
@@ -5797,7 +6073,7 @@ var Jf, Yf, Xf, Zf, Qf = n((() => {
 			return (t, i) => (V(), H("div", {
 				class: s(["fil-w-toggle", { bare: e.bare }]),
 				title: e.title
-			}, [e.label ? (V(), H("label", Yp, N(e.label), 1)) : G("", !0), W("button", {
+			}, [e.label ? (V(), H("label", gm, N(e.label), 1)) : G("", !0), W("button", {
 				type: "button",
 				class: s(["fil-w-switch", { on: n.value === "ON" }]),
 				role: "switch",
@@ -5805,23 +6081,23 @@ var Jf, Yf, Xf, Zf, Qf = n((() => {
 				"aria-label": e.label,
 				disabled: e.disabled,
 				onClick: r
-			}, [...i[0] ||= [W("span", { class: "fil-w-switch-thumb" }, null, -1)]], 10, Xp)], 10, Jp));
+			}, [...i[0] ||= [W("span", { class: "fil-w-switch-thumb" }, null, -1)]], 10, _m)], 10, hm));
 		}
 	});
-})), $p = n((() => {})), em, tm = n((() => {
-	Qp(), Qp(), $p(), Z(), em = /*#__PURE__*/ X(Zp, [["__scopeId", "data-v-3b513d75"]]);
-})), nm = n((() => {
-	Ou(), Pu(), Wu(), fd(), Xu(), vd(), Dd(), vl(), zd(), Yd(), rf(), pf(), Sf(), jf(), bp(), kp(), Lp(), qp(), tm();
-})), rm, im, am, om, sm = n((() => {
-	Y(), nm(), cu(), Qf(), $l(), rm = { class: "fil-seed-root" }, im = [
+})), bm = n((() => {})), xm, Sm = n((() => {
+	ym(), ym(), bm(), Z(), xm = /*#__PURE__*/ X(vm, [["__scopeId", "data-v-3b513d75"]]);
+})), Cm = n((() => {
+	Ou(), Pu(), Wu(), qu(), hd(), Hd(), $u(), Jd(), jd(), vl(), sf(), _f(), Tf(), Pf(), Uf(), Qf(), Vp(), Xp(), im(), mm(), Sm();
+})), wm, Tm, Em, Dm, Om = n((() => {
+	Y(), Cm(), cu(), yp(), $l(), wm = { class: "fil-seed-root" }, Tm = [
 		"readonly",
 		"title",
 		"aria-label"
-	], am = { class: "fil-seed-actions" }, om = /*@__PURE__*/ B({
+	], Em = { class: "fil-seed-actions" }, Dm = /*@__PURE__*/ B({
 		__name: "Seed",
 		props: { state: {} },
 		setup(e) {
-			let t = e, { t: n } = qf(), r = J({
+			let t = e, { t: n } = mp(), r = J({
 				get: () => t.state.nodeState.mode ?? "random",
 				set: (e) => {
 					t.state.nodeState.mode = e;
@@ -5862,14 +6138,14 @@ var Jf, Yf, Xf, Zf, Qf = n((() => {
 					Number.isNaN(t) || (i.value = t, r.value = "fixed");
 				}
 			});
-			return (e, t) => (V(), H("div", rm, [Nn(W("input", {
+			return (e, t) => (V(), H("div", wm, [Nn(W("input", {
 				"onUpdate:modelValue": t[0] ||= (e) => c.value = e,
 				type: "text",
 				class: "fil-seed-display",
 				readonly: r.value === "random",
 				title: r.value === "fixed" ? L(n)("sd_locked", "Locked seed") : L(n)("sd_auto_random", "Auto-random"),
 				"aria-label": L(n)("sd_aria_seed_value", "Seed value")
-			}, null, 8, im), [[Is, c.value]]), W("div", am, [
+			}, null, 8, Tm), [[Is, c.value]]), W("div", Em, [
 				q(L(Du), {
 					label: "🔀",
 					variant: "standard",
@@ -5891,11 +6167,11 @@ var Jf, Yf, Xf, Zf, Qf = n((() => {
 			])]));
 		}
 	});
-})), cm = n((() => {})), lm = /* @__PURE__ */ r({ default: () => um }), um, dm = n((() => {
-	sm(), sm(), cm(), Z(), um = /*#__PURE__*/ X(om, [["__scopeId", "data-v-dca90760"]]);
+})), km = n((() => {})), Am = /* @__PURE__ */ r({ default: () => jm }), jm, Mm = n((() => {
+	Om(), Om(), km(), Z(), jm = /*#__PURE__*/ X(Dm, [["__scopeId", "data-v-dca90760"]]);
 }));
 Y(), Oc(), Zl(), $l(), gu();
-var fm = /* @__PURE__ */ ar(() => Promise.resolve().then(() => (dm(), lm))), pm = {
+var Nm = /* @__PURE__ */ ar(() => Promise.resolve().then(() => (Mm(), Am))), Pm = {
 	id: "FiLSeed",
 	register(e, t) {
 		Tc(e, {
@@ -5923,7 +6199,7 @@ var fm = /* @__PURE__ */ ar(() => Promise.resolve().then(() => (dm(), lm))), pm 
 				value: n,
 				enumerable: !1,
 				configurable: !0
-			}), n._filSeedState = s, Yl(n, "fil_seed_view", fm, {
+			}), n._filSeedState = s, Yl(n, "fil_seed_view", Nm, {
 				state: s,
 				height: 52
 			}), t;
@@ -5938,8 +6214,8 @@ var fm = /* @__PURE__ */ ar(() => Promise.resolve().then(() => (dm(), lm))), pm 
 			return Xl(this), a?.apply(this, e);
 		}, hu(e);
 	}
-}, mm, hm, gm, _m, vm, ym = n((() => {
-	mm = {
+}, Fm, Im, Lm, Rm, zm, Bm = n((() => {
+	Fm = {
 		ollama: "Ollama",
 		lmstudio: "LM Studio",
 		openai: "OpenAI",
@@ -5947,7 +6223,7 @@ var fm = /* @__PURE__ */ ar(() => Promise.resolve().then(() => (dm(), lm))), pm 
 		google: "Google AI",
 		openrouter: "OpenRouter",
 		cloudflare: "Cloudflare"
-	}, hm = {
+	}, Im = {
 		ollama: {
 			url: "https://ollama.com/download",
 			label: "Download Ollama"
@@ -5976,10 +6252,10 @@ var fm = /* @__PURE__ */ ar(() => Promise.resolve().then(() => (dm(), lm))), pm 
 			url: "https://dash.cloudflare.com/profile/api-tokens",
 			label: "Get API token"
 		}
-	}, gm = { cloudflare: {
+	}, Lm = { cloudflare: {
 		url: "https://dash.cloudflare.com/",
 		label: "Find Account ID"
-	} }, _m = /* @__PURE__ */ new Set(["ollama", "lmstudio"]), vm = {
+	} }, Rm = /* @__PURE__ */ new Set(["ollama", "lmstudio"]), zm = {
 		ollama: "provider-ollama",
 		lmstudio: "provider-lmstudio",
 		openai: "provider-openai",
@@ -5989,24 +6265,24 @@ var fm = /* @__PURE__ */ ar(() => Promise.resolve().then(() => (dm(), lm))), pm 
 		cloudflare: "provider-cloudflare"
 	};
 }));
-Al(), ym(), Ml();
-var bm = "FiL_Design_ImageMind.DefaultProvider", xm = Object.keys(mm), Sm = [{
-	id: bm,
+Al(), Bm(), Ml();
+var Vm = "FiL_Design_ImageMind.DefaultProvider", Hm = Object.keys(Fm), Um = [{
+	id: Vm,
 	name: "Default LLM Provider",
 	type: "combo",
-	defaultValue: mm.ollama,
-	options: xm.map((e) => mm[e]),
+	defaultValue: Fm.ollama,
+	options: Hm.map((e) => Fm[e]),
 	category: [El, "General"],
 	tooltip: "Provider a freshly added Provider Loader node starts on. Nodes already placed, and nodes loaded from a workflow, keep their own value."
 }];
-function Cm() {
-	let e = jl(bm, mm.ollama);
-	return xm.find((t) => mm[t] === e) ?? "ollama";
+function Wm() {
+	let e = jl(Vm, Fm.ollama);
+	return Hm.find((t) => Fm[t] === e) ?? "ollama";
 }
 //#endregion
 //#region src/stores/providerStore.ts
-var wm, Tm, Em, Dm, Om = n((() => {
-	cl(), Y(), Uf(), wm = 3e5, Tm = [
+var Gm, Km, qm, Jm, Ym = n((() => {
+	cl(), Y(), up(), Gm = 3e5, Km = [
 		"ollama",
 		"lmstudio",
 		"openai",
@@ -6014,11 +6290,11 @@ var wm, Tm, Em, Dm, Om = n((() => {
 		"groq",
 		"openrouter",
 		"cloudflare"
-	], Em = Tm, Dm = Gc("fil/providers", () => {
+	], qm = Km, Jm = Gc("fil/providers", () => {
 		let e = /* @__PURE__ */ I({}), t = /* @__PURE__ */ I({}), n = /* @__PURE__ */ I({}), r = /* @__PURE__ */ I({}), i = /* @__PURE__ */ I(null), a = J(() => Object.fromEntries(Object.entries(e.value).filter(([, e]) => e?.configured || e?.account_id || e?.base_url)));
 		async function o() {
 			try {
-				let t = await Hf.loadAccounts();
+				let t = await lp.loadAccounts();
 				e.value = t.accounts || {}, i.value = null;
 			} catch (e) {
 				i.value = e instanceof Error ? e.message : String(e);
@@ -6026,14 +6302,14 @@ var wm, Tm, Em, Dm, Om = n((() => {
 		}
 		async function s(t, n) {
 			try {
-				let r = await Hf.saveAccounts({ [t]: n });
+				let r = await lp.saveAccounts({ [t]: n });
 				e.value = r.accounts || {}, i.value = null, u(t, !0);
 			} catch (e) {
 				throw i.value = e instanceof Error ? e.message : String(e), e;
 			}
 		}
 		async function c(t) {
-			let n = await Hf.saveAccounts({ [t]: { delete: !0 } });
+			let n = await lp.saveAccounts({ [t]: { delete: !0 } });
 			e.value = n.accounts || {};
 		}
 		async function l(e) {
@@ -6046,7 +6322,7 @@ var wm, Tm, Em, Dm, Om = n((() => {
 		}
 		async function u(e, n = !1) {
 			let r = t.value[e];
-			if (r && !n && !r.error && r.cachedAt > 0 && Date.now() - r.cachedAt < wm) return r.list;
+			if (r && !n && !r.error && r.cachedAt > 0 && Date.now() - r.cachedAt < Gm) return r.list;
 			r ? r.loading = !0 : t.value[e] = {
 				list: [],
 				visionModels: [],
@@ -6054,7 +6330,7 @@ var wm, Tm, Em, Dm, Om = n((() => {
 				loading: !0
 			};
 			try {
-				let r = await Hf.loadModels(e, n), i = r.models || [];
+				let r = await lp.loadModels(e, n), i = r.models || [];
 				return t.value[e] = {
 					list: i,
 					visionModels: r.vision_models || [],
@@ -6080,7 +6356,7 @@ var wm, Tm, Em, Dm, Om = n((() => {
 		}
 		async function f(e, t = "") {
 			try {
-				let r = await Hf.probe(e, t);
+				let r = await lp.probe(e, t);
 				return n.value[e] = r, r;
 			} catch (e) {
 				i.value = e instanceof Error ? e.message : String(e);
@@ -6089,7 +6365,7 @@ var wm, Tm, Em, Dm, Om = n((() => {
 		}
 		async function p() {
 			try {
-				let e = await Hf.listProviders();
+				let e = await lp.listProviders();
 				r.value = e.providers || {};
 			} catch {}
 		}
@@ -6109,7 +6385,7 @@ var wm, Tm, Em, Dm, Om = n((() => {
 			displayNames: r,
 			lastError: i,
 			configuredProviders: a,
-			PROVIDER_LIST: Em,
+			PROVIDER_LIST: qm,
 			loadAccounts: o,
 			saveAccount: s,
 			deleteAccount: l,
@@ -6126,12 +6402,12 @@ var wm, Tm, Em, Dm, Om = n((() => {
 }));
 //#endregion
 //#region src/stores/modelFavourites.ts
-function km(e, t) {
+function Xm(e, t) {
 	return `${e.trim().toLowerCase()}::${t.trim()}`;
 }
-function Am() {
+function Zm() {
 	try {
-		let e = localStorage.getItem(Fm);
+		let e = localStorage.getItem(nh);
 		if (!e) return /* @__PURE__ */ new Set();
 		let t = JSON.parse(e);
 		return Array.isArray(t) ? new Set(t.filter((e) => typeof e == "string")) : /* @__PURE__ */ new Set();
@@ -6139,72 +6415,72 @@ function Am() {
 		return /* @__PURE__ */ new Set();
 	}
 }
-function jm() {
+function Qm() {
 	try {
-		localStorage.setItem(Fm, JSON.stringify([...Im.value]));
+		localStorage.setItem(nh, JSON.stringify([...rh.value]));
 	} catch {}
 }
-function Mm(e, t) {
-	return Im.value.has(km(e, t));
+function $m(e, t) {
+	return rh.value.has(Xm(e, t));
 }
-function Nm(e, t) {
-	let n = km(e, t), r = new Set(Im.value), i = !r.has(n);
-	return i ? r.add(n) : r.delete(n), Im.value = r, jm(), i;
+function eh(e, t) {
+	let n = Xm(e, t), r = new Set(rh.value), i = !r.has(n);
+	return i ? r.add(n) : r.delete(n), rh.value = r, Qm(), i;
 }
-function Pm(e, t) {
-	return t.reduce((t, n) => t + +!!Mm(e, n), 0);
+function th(e, t) {
+	return t.reduce((t, n) => t + +!!$m(e, n), 0);
 }
-var Fm, Im, Lm = n((() => {
-	Y(), Fm = "fil_model_picker_favourites", Im = /* @__PURE__ */ I(Am());
-})), Rm, zm, Bm, Vm, Hm, Um, Wm, Gm, Km, qm, Jm, Ym, Xm, Zm, Qm, $m, eh, th, nh, rh, ih, ah, oh, sh, ch, lh, uh, dh, fh, ph, mh, hh, gh, _h, vh, yh, bh, xh, Sh, Ch, wh, Th, Eh, Dh, Oh, kh = n((() => {
-	Y(), Dd(), Xu(), Ou(), vd(), pf(), Om(), Lm(), ym(), Qf(), cu(), Rm = { class: "picker-container" }, zm = { class: "provider-tabs" }, Bm = ["onClick"], Vm = { class: "tab-label" }, Hm = {
+var nh, rh, ih = n((() => {
+	Y(), nh = "fil_model_picker_favourites", rh = /* @__PURE__ */ I(Zm());
+})), ah, oh, sh, ch, lh, uh, dh, fh, ph, mh, hh, gh, _h, vh, yh, bh, xh, Sh, Ch, wh, Th, Eh, Dh, Oh, kh, Ah, jh, Mh, Nh, Ph, Fh, Ih, Lh, Rh, zh, Bh, Vh, Hh, Uh, Wh, Gh, Kh, qh, Jh, Yh, Xh = n((() => {
+	Y(), jd(), $u(), Ou(), Jd(), Pf(), Ym(), ih(), Bm(), yp(), cu(), ah = { class: "picker-container" }, oh = { class: "provider-tabs" }, sh = ["onClick"], ch = { class: "tab-label" }, lh = {
 		key: 0,
 		class: "tab-badge"
-	}, Um = { class: "provider-status-bar" }, Wm = { class: "status-info" }, Gm = { class: "provider-name" }, Km = {
+	}, uh = { class: "provider-status-bar" }, dh = { class: "status-info" }, fh = { class: "provider-name" }, ph = {
 		key: 0,
 		class: "status-badge loading"
-	}, qm = {
-		key: 1,
-		class: "status-badge error"
-	}, Jm = {
-		key: 2,
-		class: "status-badge online"
-	}, Ym = {
-		key: 3,
-		class: "age-label"
-	}, Xm = { class: "filter-controls" }, Zm = { class: "search-row" }, Qm = { class: "search-input-wrap" }, $m = ["placeholder"], eh = ["title"], th = ["aria-pressed", "title"], nh = { class: "fav-filter-star" }, rh = {
-		key: 0,
-		class: "fav-filter-count"
-	}, ih = { class: "filter-segments" }, ah = { class: "models-list-wrapper" }, oh = {
-		key: 0,
-		class: "empty-state"
-	}, sh = {
-		key: 1,
-		class: "empty-state"
-	}, ch = ["aria-pressed", "onClick"], lh = { class: "model-main" }, uh = { class: "type-icon" }, dh = ["title"], fh = { class: "model-tags" }, ph = {
-		key: 0,
-		class: "tag vision"
 	}, mh = {
 		key: 1,
-		class: "tag text"
+		class: "status-badge error"
 	}, hh = {
 		key: 2,
-		class: "tag local"
+		class: "status-badge online"
 	}, gh = {
 		key: 3,
+		class: "age-label"
+	}, _h = { class: "filter-controls" }, vh = { class: "search-row" }, yh = { class: "search-input-wrap" }, bh = ["placeholder"], xh = ["title"], Sh = ["aria-pressed", "title"], Ch = { class: "fav-filter-star" }, wh = {
+		key: 0,
+		class: "fav-filter-count"
+	}, Th = { class: "filter-segments" }, Eh = { class: "models-list-wrapper" }, Dh = {
+		key: 0,
+		class: "empty-state"
+	}, Oh = {
+		key: 1,
+		class: "empty-state"
+	}, kh = ["aria-pressed", "onClick"], Ah = { class: "model-main" }, jh = { class: "type-icon" }, Mh = ["title"], Nh = { class: "model-tags" }, Ph = {
+		key: 0,
+		class: "tag vision"
+	}, Fh = {
+		key: 1,
+		class: "tag text"
+	}, Ih = {
+		key: 2,
+		class: "tag local"
+	}, Lh = {
+		key: 3,
 		class: "tag free"
-	}, _h = {
+	}, Rh = {
 		key: 4,
 		class: "tag paid"
-	}, vh = [
+	}, zh = [
 		"aria-pressed",
 		"aria-label",
 		"title",
 		"onClick"
-	], yh = { class: "picker-footer" }, bh = { class: "selection-summary" }, xh = { key: 0 }, Sh = {
+	], Bh = { class: "picker-footer" }, Vh = { class: "selection-summary" }, Hh = { key: 0 }, Uh = {
 		key: 1,
 		class: "muted"
-	}, Ch = { class: "footer-actions" }, wh = "fil_model_picker_view_mode", Th = "fil_model_picker_type_filter", Eh = "fil_model_picker_tier_filter", Dh = "fil_model_picker_fav_only", Oh = /*@__PURE__*/ B({
+	}, Wh = { class: "footer-actions" }, Gh = "fil_model_picker_view_mode", Kh = "fil_model_picker_type_filter", qh = "fil_model_picker_tier_filter", Jh = "fil_model_picker_fav_only", Yh = /*@__PURE__*/ B({
 		__name: "ProviderModelPicker",
 		props: {
 			open: {
@@ -6216,7 +6492,7 @@ var Fm, Im, Lm = n((() => {
 		},
 		emits: ["update:open", "select"],
 		setup(e, { emit: t }) {
-			let n = e, r = t, i = Dm(), { t: a, tPlural: o } = qf(), c = /* @__PURE__ */ I(n.provider), l = /* @__PURE__ */ I(n.model), u = /* @__PURE__ */ I("");
+			let n = e, r = t, i = Jm(), { t: a, tPlural: o } = mp(), c = /* @__PURE__ */ I(n.provider), l = /* @__PURE__ */ I(n.model), u = /* @__PURE__ */ I("");
 			function d(e) {
 				try {
 					return localStorage.getItem(e);
@@ -6224,16 +6500,16 @@ var Fm, Im, Lm = n((() => {
 					return null;
 				}
 			}
-			let f = /* @__PURE__ */ I(d("fil_model_picker_type_filter") || "all"), p = /* @__PURE__ */ I(d("fil_model_picker_tier_filter") || "all"), m = /* @__PURE__ */ I(d(Dh) === "1"), h = /* @__PURE__ */ I(d(wh) || "list");
+			let f = /* @__PURE__ */ I(d("fil_model_picker_type_filter") || "all"), p = /* @__PURE__ */ I(d("fil_model_picker_tier_filter") || "all"), m = /* @__PURE__ */ I(d(Jh) === "1"), h = /* @__PURE__ */ I(d(Gh) || "list");
 			function g(e, t) {
 				try {
 					localStorage.setItem(e, t);
 				} catch {}
 			}
 			function _(e) {
-				h.value = e, g(wh, e);
+				h.value = e, g(Gh, e);
 			}
-			z(f, (e) => g(Th, e)), z(p, (e) => g(Eh, e)), z(m, (e) => g(Dh, e ? "1" : "0"));
+			z(f, (e) => g(Kh, e)), z(p, (e) => g(qh, e)), z(m, (e) => g(Jh, e ? "1" : "0"));
 			let v = [
 				"all",
 				"vision",
@@ -6278,14 +6554,14 @@ var Fm, Im, Lm = n((() => {
 				return D.value.includes(e);
 			}
 			function re(e) {
-				return Mm(c.value, e);
+				return $m(c.value, e);
 			}
 			function A(e) {
-				Nm(c.value, e);
+				eh(c.value, e);
 			}
-			let j = J(() => Pm(c.value, E.value)), ie = J(() => {
+			let j = J(() => th(c.value, E.value)), ie = J(() => {
 				let e = E.value, t = u.value.trim().toLowerCase(), n = c.value;
-				return t && (e = e.filter((e) => e.toLowerCase().includes(t))), f.value === "vision" ? e = e.filter((e) => ne(e)) : f.value === "text" && (e = e.filter((e) => !ne(e))), p.value !== "all" && (e = e.filter((e) => te(e, n) === p.value)), m.value && (e = e.filter((e) => Mm(n, e))), e;
+				return t && (e = e.filter((e) => e.toLowerCase().includes(t))), f.value === "vision" ? e = e.filter((e) => ne(e)) : f.value === "text" && (e = e.filter((e) => !ne(e))), p.value !== "all" && (e = e.filter((e) => te(e, n) === p.value)), m.value && (e = e.filter((e) => $m(n, e))), e;
 			});
 			function ae(e) {
 				l.value = e;
@@ -6299,31 +6575,31 @@ var Fm, Im, Lm = n((() => {
 			function M() {
 				r("update:open", !1);
 			}
-			return (t, n) => (V(), U(Ed, {
+			return (t, n) => (V(), U(Ad, {
 				open: e.open,
 				width: "860px",
 				title: L(a)("pmp_title", "🔌 Choose Provider & Model"),
 				"onUpdate:open": n[7] ||= (e) => r("update:open", e),
 				onClose: M
 			}, {
-				default: Mn(() => [W("div", Rm, [
-					W("div", zm, [(V(!0), H(K, null, gr(L(Em), (e) => (V(), H("button", {
+				default: Mn(() => [W("div", ah, [
+					W("div", oh, [(V(!0), H(K, null, gr(L(qm), (e) => (V(), H("button", {
 						key: e,
 						type: "button",
 						class: s(["tab-btn", { active: e === c.value }]),
 						onClick: (t) => T(e)
 					}, [
-						q(Yu, {
-							name: L(vm)[e],
+						q(Qu, {
+							name: L(zm)[e],
 							size: 18
 						}, null, 8, ["name"]),
-						W("span", Vm, N(L(mm)[e] ?? e), 1),
-						L(i).modelsFor(e).length ? (V(), H("span", Hm, N(L(i).modelsFor(e).length), 1)) : G("", !0)
-					], 10, Bm))), 128))]),
-					W("div", Um, [W("div", Wm, [
-						W("span", Gm, N(L(mm)[c.value] ?? c.value), 1),
-						O.value ? (V(), H("span", Km, "⏳ " + N(L(a)("pmp_loading", "Loading...")), 1)) : k.value && k.value.status && k.value.status !== "available" ? (V(), H("span", qm, " ⚠️ " + N(k.value.message || k.value.status), 1)) : (V(), H("span", Jm, " ● " + N(L(a)("pmp_online", "Online")) + " (" + N(E.value.length) + " " + N(L(o)("prov_models", E.value.length, "model", "models", "models")) + ") ", 1)),
-						ee.value ? (V(), H("span", Ym, N(L(a)("pmp_updated", "Updated")) + ": " + N(ee.value), 1)) : G("", !0)
+						W("span", ch, N(L(Fm)[e] ?? e), 1),
+						L(i).modelsFor(e).length ? (V(), H("span", lh, N(L(i).modelsFor(e).length), 1)) : G("", !0)
+					], 10, sh))), 128))]),
+					W("div", uh, [W("div", dh, [
+						W("span", fh, N(L(Fm)[c.value] ?? c.value), 1),
+						O.value ? (V(), H("span", ph, "⏳ " + N(L(a)("pmp_loading", "Loading...")), 1)) : k.value && k.value.status && k.value.status !== "available" ? (V(), H("span", mh, " ⚠️ " + N(k.value.message || k.value.status), 1)) : (V(), H("span", hh, " ● " + N(L(a)("pmp_online", "Online")) + " (" + N(E.value.length) + " " + N(L(o)("prov_models", E.value.length, "model", "models", "models")) + ") ", 1)),
+						ee.value ? (V(), H("span", gh, N(L(a)("pmp_updated", "Updated")) + ": " + N(ee.value), 1)) : G("", !0)
 					]), q(Du, {
 						variant: "sm",
 						label: L(a)("pmp_refresh", "↻ Refresh"),
@@ -6335,8 +6611,8 @@ var Fm, Im, Lm = n((() => {
 						"loading",
 						"title"
 					])]),
-					W("div", Xm, [W("div", Zm, [W("div", Qm, [
-						q(Yu, {
+					W("div", _h, [W("div", vh, [W("div", yh, [
+						q(Qu, {
 							name: "search",
 							size: 14,
 							class: "search-icon"
@@ -6346,14 +6622,14 @@ var Fm, Im, Lm = n((() => {
 							type: "text",
 							class: "search-input",
 							placeholder: L(a)("pmp_search", "Search models...")
-						}, null, 8, $m), [[Is, u.value]]),
+						}, null, 8, bh), [[Is, u.value]]),
 						u.value ? (V(), H("button", {
 							key: 0,
 							type: "button",
 							class: "clear-search",
 							title: L(a)("tt_clear_search", "Clear search"),
 							onClick: n[2] ||= (e) => u.value = ""
-						}, "✕", 8, eh)) : G("", !0)
+						}, "✕", 8, xh)) : G("", !0)
 					]), W("button", {
 						type: "button",
 						class: s(["fav-filter", { active: m.value }]),
@@ -6361,11 +6637,11 @@ var Fm, Im, Lm = n((() => {
 						title: L(a)("pmp_fav_only_tt", "Show only starred models"),
 						onClick: n[3] ||= (e) => m.value = !m.value
 					}, [
-						W("span", nh, N(m.value ? "★" : "☆"), 1),
+						W("span", Ch, N(m.value ? "★" : "☆"), 1),
 						W("span", null, N(L(a)("pmp_fav_only", "Favourites")), 1),
-						j.value ? (V(), H("span", rh, N(j.value), 1)) : G("", !0)
-					], 10, th)]), W("div", ih, [
-						q(ff, {
+						j.value ? (V(), H("span", wh, N(j.value), 1)) : G("", !0)
+					], 10, Sh)]), W("div", Th, [
+						q(Nf, {
 							options: [...v],
 							"option-labels": y.value,
 							"model-value": f.value,
@@ -6375,7 +6651,7 @@ var Fm, Im, Lm = n((() => {
 							"option-labels",
 							"model-value"
 						]),
-						q(ff, {
+						q(Nf, {
 							options: C.value,
 							"option-labels": b.value,
 							"model-value": p.value,
@@ -6385,7 +6661,7 @@ var Fm, Im, Lm = n((() => {
 							"option-labels",
 							"model-value"
 						]),
-						q(ff, {
+						q(Nf, {
 							options: [...x],
 							"option-labels": S.value,
 							"model-value": h.value,
@@ -6396,7 +6672,7 @@ var Fm, Im, Lm = n((() => {
 							"model-value"
 						])
 					])]),
-					W("div", ah, [O.value && !E.value.length ? (V(), H("div", oh, [q(_d, { text: L(a)("pmp_loading_provider", "Loading models from provider...") }, null, 8, ["text"])])) : ie.value.length ? (V(), H("div", {
+					W("div", Eh, [O.value && !E.value.length ? (V(), H("div", Dh, [q(qd, { text: L(a)("pmp_loading_provider", "Loading models from provider...") }, null, 8, ["text"])])) : ie.value.length ? (V(), H("div", {
 						key: 2,
 						class: s(["models-container", h.value])
 					}, [(V(!0), H(K, null, gr(ie.value, (e) => (V(), H("div", {
@@ -6407,18 +6683,18 @@ var Fm, Im, Lm = n((() => {
 						class: s(["model-card", { selected: e === l.value }]),
 						"aria-pressed": e === l.value,
 						onClick: (t) => ae(e)
-					}, [W("div", lh, [W("span", uh, N(ne(e) ? "👁" : "📝"), 1), W("span", {
+					}, [W("div", Ah, [W("span", jh, N(ne(e) ? "👁" : "📝"), 1), W("span", {
 						class: "model-name",
 						title: e
-					}, N(e), 9, dh)]), W("div", fh, [ne(e) ? (V(), H("span", ph, N(L(a)("pmp_tag_vision", "Vision")), 1)) : (V(), H("span", mh, N(L(a)("pmp_tag_text", "Text")), 1)), te(e, c.value) === "local" ? (V(), H("span", hh, N(L(a)("pmp_tag_local", "Local")), 1)) : te(e, c.value) === "free" ? (V(), H("span", gh, N(L(a)("pmp_tag_free", "Free")), 1)) : (V(), H("span", _h, N(L(a)("pmp_tag_paid", "Paid")), 1))])], 10, ch), W("button", {
+					}, N(e), 9, Mh)]), W("div", Nh, [ne(e) ? (V(), H("span", Ph, N(L(a)("pmp_tag_vision", "Vision")), 1)) : (V(), H("span", Fh, N(L(a)("pmp_tag_text", "Text")), 1)), te(e, c.value) === "local" ? (V(), H("span", Ih, N(L(a)("pmp_tag_local", "Local")), 1)) : te(e, c.value) === "free" ? (V(), H("span", Lh, N(L(a)("pmp_tag_free", "Free")), 1)) : (V(), H("span", Rh, N(L(a)("pmp_tag_paid", "Paid")), 1))])], 10, kh), W("button", {
 						type: "button",
 						class: s(["fav-btn", { on: re(e) }]),
 						"aria-pressed": re(e),
 						"aria-label": re(e) ? L(a)("pmp_unstar", "Remove from favourites") : L(a)("pmp_star", "Add to favourites"),
 						title: re(e) ? L(a)("pmp_unstar", "Remove from favourites") : L(a)("pmp_star", "Add to favourites"),
 						onClick: (t) => A(e)
-					}, N(re(e) ? "★" : "☆"), 11, vh)]))), 128))], 2)) : (V(), H("div", sh, [W("span", null, N(L(a)("pmp_no_match", "No models matching criteria")), 1)]))]),
-					W("div", yh, [W("div", bh, [l.value ? (V(), H("span", xh, [gi(N(L(a)("pmp_selected", "Selected")) + ": ", 1), W("strong", null, N(l.value), 1)])) : (V(), H("span", Sh, N(L(a)("pmp_none_selected", "No model selected")), 1))]), W("div", Ch, [q(Du, {
+					}, N(re(e) ? "★" : "☆"), 11, zh)]))), 128))], 2)) : (V(), H("div", Oh, [W("span", null, N(L(a)("pmp_no_match", "No models matching criteria")), 1)]))]),
+					W("div", Bh, [W("div", Vh, [l.value ? (V(), H("span", Hh, [gi(N(L(a)("pmp_selected", "Selected")) + ": ", 1), W("strong", null, N(l.value), 1)])) : (V(), H("span", Uh, N(L(a)("pmp_none_selected", "No model selected")), 1))]), W("div", Wh, [q(Du, {
 						label: L(a)("pmp_cancel", "Cancel"),
 						title: L(a)("pmp_cancel_tt", "Close without changing the model"),
 						onClick: M
@@ -6438,14 +6714,14 @@ var Fm, Im, Lm = n((() => {
 			}, 8, ["open", "title"]));
 		}
 	});
-})), Ah = n((() => {})), jh, Mh = n((() => {
-	kh(), kh(), Ah(), Z(), jh = /*#__PURE__*/ X(Oh, [["__scopeId", "data-v-cb4a4ea1"]]);
-})), Nh, Ph, Fh, Ih, Lh, Rh, zh, Bh, Vh = n((() => {
-	Y(), nm(), Mh(), Om(), ym(), cu(), Qf(), $l(), Nh = { class: "fil-provider-root" }, Ph = { class: "trigger-header" }, Fh = { class: "provider-badge" }, Ih = { class: "provider-title" }, Lh = { class: "trigger-model" }, Rh = ["title"], zh = 3e5, Bh = /*@__PURE__*/ B({
+})), Zh = n((() => {})), Qh, $h = n((() => {
+	Xh(), Xh(), Zh(), Z(), Qh = /*#__PURE__*/ X(Yh, [["__scopeId", "data-v-cb4a4ea1"]]);
+})), eg, tg, ng, rg, ig, ag, og, sg, cg = n((() => {
+	Y(), Cm(), $h(), Ym(), Bm(), cu(), yp(), $l(), eg = { class: "fil-provider-root" }, tg = { class: "trigger-header" }, ng = { class: "provider-badge" }, rg = { class: "provider-title" }, ig = { class: "trigger-model" }, ag = ["title"], og = 3e5, sg = /*@__PURE__*/ B({
 		__name: "ProviderLoader",
 		props: { state: {} },
 		setup(e) {
-			let t = e, n = Dm(), { t: r } = qf(), i = /* @__PURE__ */ I(!1);
+			let t = e, n = Jm(), { t: r } = mp(), i = /* @__PURE__ */ I(!1);
 			function a(e, n) {
 				return {
 					get: () => t.state.nodeState[e] ?? n,
@@ -6488,33 +6764,33 @@ var Fm, Im, Lm = n((() => {
 				}
 				v = setInterval(() => {
 					n.loadModels(o.value, !0);
-				}, zh);
+				}, og);
 			}), va(() => {
 				v && clearInterval(v);
-			}), (e, t) => (V(), H("div", Nh, [
+			}), (e, t) => (V(), H("div", eg, [
 				W("button", {
 					type: "button",
 					class: "picker-trigger-btn",
 					onClick: t[0] ||= (e) => i.value = !0
-				}, [W("div", Ph, [W("div", Fh, [q(L(Yu), {
-					name: L(vm)[o.value],
+				}, [W("div", tg, [W("div", ng, [q(L(Qu), {
+					name: L(zm)[o.value],
 					size: 16
-				}, null, 8, ["name"]), W("span", Ih, N(L(mm)[o.value] ?? o.value), 1)]), t[6] ||= W("span", { class: "open-icon" }, "⚙️ Choose", -1)]), W("div", Lh, [t[7] ||= W("span", { class: "model-label" }, "🧠 Model:", -1), W("span", {
+				}, null, 8, ["name"]), W("span", rg, N(L(Fm)[o.value] ?? o.value), 1)]), t[6] ||= W("span", { class: "open-icon" }, "⚙️ Choose", -1)]), W("div", ig, [t[7] ||= W("span", { class: "model-label" }, "🧠 Model:", -1), W("span", {
 					class: "model-name",
 					title: c.value
-				}, N(c.value), 9, Rh)])]),
-				h.value ? (V(), U(L(_d), {
+				}, N(c.value), 9, ag)])]),
+				h.value ? (V(), U(L(qd), {
 					key: 0,
 					text: L(r)("prov_loading_models", "Loading models…")
-				}, null, 8, ["text"])) : g.value && g.value.status && g.value.status !== "available" ? (V(), U(L(_d), {
+				}, null, 8, ["text"])) : g.value && g.value.status && g.value.status !== "available" ? (V(), U(L(qd), {
 					key: 1,
 					err: !0,
 					text: g.value.message || g.value.status
-				}, null, 8, ["text"])) : _.value ? (V(), U(L(_d), {
+				}, null, 8, ["text"])) : _.value ? (V(), U(L(qd), {
 					key: 2,
 					text: `${L(r)("prov_models_updated", "Models updated")}: ${_.value}`
 				}, null, 8, ["text"])) : G("", !0),
-				q(L(Af), {
+				q(L(Zf), {
 					"model-value": u.value,
 					min: 0,
 					max: 2,
@@ -6527,7 +6803,7 @@ var Fm, Im, Lm = n((() => {
 					"label",
 					"title"
 				]),
-				q(L(Af), {
+				q(L(Zf), {
 					"model-value": d.value,
 					min: 0,
 					max: 65536,
@@ -6540,7 +6816,7 @@ var Fm, Im, Lm = n((() => {
 					"label",
 					"title"
 				]),
-				q(L(Af), {
+				q(L(Zf), {
 					"model-value": f.value,
 					min: 0,
 					max: 5e3,
@@ -6553,7 +6829,7 @@ var Fm, Im, Lm = n((() => {
 					"label",
 					"title"
 				]),
-				q(L(Af), {
+				q(L(Zf), {
 					"model-value": p.value,
 					min: 128,
 					max: 4096,
@@ -6566,7 +6842,7 @@ var Fm, Im, Lm = n((() => {
 					"label",
 					"title"
 				]),
-				q(jh, {
+				q(Qh, {
 					open: i.value,
 					"onUpdate:open": t[5] ||= (e) => i.value = e,
 					provider: o.value,
@@ -6580,11 +6856,11 @@ var Fm, Im, Lm = n((() => {
 			]));
 		}
 	});
-})), Hh = n((() => {})), Uh = /* @__PURE__ */ r({ default: () => Wh }), Wh, Gh = n((() => {
-	Vh(), Vh(), Hh(), Z(), Wh = /*#__PURE__*/ X(Bh, [["__scopeId", "data-v-d1f3392e"]]);
+})), lg = n((() => {})), ug = /* @__PURE__ */ r({ default: () => dg }), dg, fg = n((() => {
+	cg(), cg(), lg(), Z(), dg = /*#__PURE__*/ X(sg, [["__scopeId", "data-v-d1f3392e"]]);
 }));
 Y(), Oc(), Zl(), $l(), gu();
-var Kh = /* @__PURE__ */ ar(() => Promise.resolve().then(() => (Gh(), Uh))), qh = {
+var pg = /* @__PURE__ */ ar(() => Promise.resolve().then(() => (fg(), ug))), mg = {
 	id: "FiLProviderLoader",
 	register(e, t) {
 		Tc(e, {
@@ -6630,7 +6906,7 @@ var Kh = /* @__PURE__ */ ar(() => Promise.resolve().then(() => (Gh(), Uh))), qh 
 			}
 		], i = n.onNodeCreated;
 		n.onNodeCreated = function(...e) {
-			let t = i?.apply(this, e), n = this, r = Cm(), a = Q(n, "provider");
+			let t = i?.apply(this, e), n = this, r = Wm(), a = Q(n, "provider");
 			a && (a.value = r);
 			let o = $(Q(n, "model"), "string", "(loading...)"), s = $(Q(n, "temperature"), "number", .7), c = $(Q(n, "max_tokens"), "number", 0), l = $(Q(n, "rate_limit_ms"), "number", 100), u = $(Q(n, "max_image_side"), "number", 1024);
 			for (let e of [
@@ -6668,7 +6944,7 @@ var Kh = /* @__PURE__ */ ar(() => Promise.resolve().then(() => (Gh(), Uh))), qh 
 				value: n,
 				enumerable: !1,
 				configurable: !0
-			}), n._filProviderState = d, Yl(n, "fil_provider_view", Kh, {
+			}), n._filProviderState = d, Yl(n, "fil_provider_view", pg, {
 				state: d,
 				height: 180
 			}), t;
@@ -6689,19 +6965,19 @@ var Kh = /* @__PURE__ */ ar(() => Promise.resolve().then(() => (Gh(), Uh))), qh 
 };
 //#endregion
 //#region src/nodes2/widgetInputSockets.ts
-function Jh(e, t) {
+function hg(e, t) {
 	let n = e, r = 0;
 	for (let i of t) {
 		let t = n.inputs?.find((e) => e.name === i);
 		if (!t) continue;
 		t.alwaysVisible = !0;
 		let a = Q(e, i);
-		a && (a.y = ng * (r + 1)), r += 1;
+		a && (a.y = Cg * (r + 1)), r += 1;
 	}
-	eg(n);
+	xg(n);
 }
-function Yh(e, t) {
-	let n = $h(), r = e.pos?.[1], i = e.size?.[1];
+function gg(e, t) {
+	let n = bg(), r = e.pos?.[1], i = e.size?.[1];
 	if (!n || r == null || i == null) return;
 	let a = !1;
 	for (let { name: o, el: s } of t) {
@@ -6712,32 +6988,32 @@ function Yh(e, t) {
 		if (c.height === 0) continue;
 		let l = (c.top + c.height / 2 - n.canvasTop) / n.scale - n.offsetY - r;
 		if (l < 0 || l > i) continue;
-		let u = Math.round(l - tg);
+		let u = Math.round(l - Sg);
 		t.y !== u && (t.y = u, a = !0);
 	}
-	(a || Qh(e, t)) && eg(e);
+	(a || yg(e, t)) && xg(e);
 }
-function Xh(e, t, n) {
+function _g(e, t, n) {
 	let r = e, i = r.onConnectionsChange;
 	r.onConnectionsChange = function(...e) {
 		let r = i?.apply(this, e);
-		Jh(this, t);
+		hg(this, t);
 		let a = this[n];
 		return a?.ui && (a.ui.linkVersion = (a.ui.linkVersion ?? 0) + 1), r;
 	};
 }
-function Zh(e, t) {
+function vg(e, t) {
 	let n = e, r = {};
 	for (let e of t) r[e] = n.inputs?.find((t) => t.name === e)?.link != null;
 	return r;
 }
-function Qh(e, t) {
+function yg(e, t) {
 	return t.some(({ name: t }) => {
 		let n = e.inputs?.find((e) => e.name === t)?.boundingRect;
 		return !n || !n[2] || !n[3];
 	});
 }
-function $h() {
+function bg() {
 	let e = globalThis.app?.canvas, t = e?.canvas, n = e?.ds;
 	return !(t instanceof HTMLCanvasElement) || !n?.offset ? null : {
 		scale: n.scale || 1,
@@ -6745,20 +7021,20 @@ function $h() {
 		canvasTop: t.getBoundingClientRect().top
 	};
 }
-function eg(e) {
+function xg(e) {
 	e._widgetSlotsDirty = !0, e.graph?.setDirtyCanvas?.(!0, !0);
 }
-var tg, ng, rg = n((() => {
-	$l(), tg = 10, ng = 20;
+var Sg, Cg, wg = n((() => {
+	$l(), Sg = 10, Cg = 20;
 }));
-rg(), Y();
-var ig = "fil_state";
-function ag(e, t) {
+wg(), Y();
+var Tg = "fil_state";
+function Eg(e, t) {
 	let n = e, r = n.onSerialize?.bind(n);
 	n.onSerialize = (e) => {
 		r?.(e);
 		try {
-			e[ig] = JSON.parse(JSON.stringify({
+			e[Tg] = JSON.parse(JSON.stringify({
 				nodeState: { ...t.nodeState },
 				ui: { ...t.ui },
 				lastRunSeed: t.lastRunSeed ?? null
@@ -6768,8 +7044,8 @@ function ag(e, t) {
 		}
 	};
 }
-function og(e, t) {
-	let n = t?.[ig];
+function Dg(e, t) {
+	let n = t?.[Tg];
 	if (!n || typeof n != "object") return !1;
 	let r = n, i = /* @__PURE__ */ ot(e);
 	if (r.nodeState && typeof r.nodeState == "object") for (let [e, t] of Object.entries(r.nodeState)) i.nodeState[e] = t;
@@ -6777,8 +7053,8 @@ function og(e, t) {
 }
 //#endregion
 //#region src/api/contracts.ts
-var sg, cg = n((() => {
-	sg = {
+var Og, kg = n((() => {
+	Og = {
 		FiLSeed: {
 			id: "FiLSeed",
 			title: "♻️ Seed",
@@ -6814,7 +7090,7 @@ var sg, cg = n((() => {
 					searchable: null,
 					multiline: null,
 					min: 0,
-					max: 999999999999,
+					max: 0x10000000000000000,
 					step: 1,
 					units: null,
 					options: null,
@@ -8037,7 +8313,7 @@ var sg, cg = n((() => {
 						label: "Sampler",
 						default: "euler",
 						tooltip: null,
-						values: ["euler"],
+						values: /* @__PURE__ */ "euler.euler_cfg_pp.euler_ancestral.euler_ancestral_cfg_pp.heun.heunpp2.exp_heun_2_x0.exp_heun_2_x0_sde.dpm_2.dpm_2_ancestral.lms.dpm_fast.dpm_adaptive.dpmpp_2s_ancestral.dpmpp_2s_ancestral_cfg_pp.dpmpp_sde.dpmpp_sde_gpu.dpmpp_2m.dpmpp_2m_cfg_pp.dpmpp_2m_sde.dpmpp_2m_sde_gpu.dpmpp_2m_sde_heun.dpmpp_2m_sde_heun_gpu.dpmpp_3m_sde.dpmpp_3m_sde_gpu.ddpm.lcm.ipndm.ipndm_v.deis.res_multistep.res_multistep_cfg_pp.res_multistep_ancestral.res_multistep_ancestral_cfg_pp.gradient_estimation.gradient_estimation_cfg_pp.er_sde.seeds_2.seeds_3.sa_solver.sa_solver_pece.ddim.uni_pc.uni_pc_bh2".split("."),
 						columns: null,
 						searchable: null,
 						multiline: null,
@@ -8054,9 +8330,19 @@ var sg, cg = n((() => {
 						name: "scheduler",
 						kind: "combo",
 						label: "Scheduler",
-						default: "normal",
+						default: "simple",
 						tooltip: null,
-						values: ["normal"],
+						values: [
+							"simple",
+							"sgm_uniform",
+							"karras",
+							"exponential",
+							"ddim_uniform",
+							"beta",
+							"normal",
+							"linear_quadratic",
+							"kl_optimal"
+						],
 						columns: null,
 						searchable: null,
 						multiline: null,
@@ -8697,7 +8983,7 @@ var sg, cg = n((() => {
 						label: "Style 1",
 						default: "(None)",
 						tooltip: null,
-						values: /* @__PURE__ */ "(None).📷 КАМЕРЫ/📷 Disposable 90s.📷 КАМЕРЫ/📸 Polaroid 600.📷 КАМЕРЫ/📷 Hasselblad 70mm.📷 КАМЕРЫ/🕳️ Pinhole Obscura.📷 КАМЕРЫ/📹 CCTV surveillance.📷 КАМЕРЫ/🚓 Police Dashcam.📷 КАМЕРЫ/📱 Smartphone Computational.📷 КАМЕРЫ/⚡ Direct Flash Night.📷 КАМЕРЫ/🎞️ Raw 35mm Photo.📐 МОДИФИКАТОРЫ/🛩️ Drone Photo.📐 МОДИФИКАТОРЫ/🔭 Ultra Wide 12mm.📐 МОДИФИКАТОРЫ/🌐 Fisheye Lens.📐 МОДИФИКАТОРЫ/📐 Dutch Angle.📐 МОДИФИКАТОРЫ/📹 GoPro POV Action.🎬 КИНО/🎞️ IMAX Production.🎬 КИНО/🌑 Film Noir.🎬 КИНО/🌈 Technicolor 50s.🎬 КИНО/📷 Anamorphic Wide.🎬 КИНО/🎬 Gangster Cinema.⏱️ ЗАХВАТ/💫 Motion Blur.⏱️ ЗАХВАТ/📸 Action Freeze.⏱️ ЗАХВАТ/🎞️ Slo-Mo Bullet Time.🕰️ РЕТРО/🎞️ Vintage 70s Portra.🕰️ РЕТРО/🌆 Cinestill 800T Halation.🕰️ РЕТРО/⬛ Tri-X Push 1600.🕰️ РЕТРО/🖨️ Scanned Print.🕰️ РЕТРО/🪞 Daguerreotype.🕰️ РЕТРО/🧪 Wet Plate Collodion.🕰️ РЕТРО/🟤 Sepia Nostalgia.🕰️ РЕТРО/🎸 Rockabilly 50s.🕰️ РЕТРО/🎩 Gilded Gangster.🕰️ РЕТРО/🎬 Nostalgic 8mm.🏠 ИНТЕРЬЕР/🏭 Loft Industrial.🏠 ИНТЕРЬЕР/🌻 Provence Rustic.🏠 ИНТЕРЬЕР/🕉️ Boho Chic.🏠 ИНТЕРЬЕР/🌿 Eco-Style Design.🏠 ИНТЕРЬЕР/👑 Baroque Ornate.🏠 ИНТЕРЬЕР/⬜ Minimalism.🏠 ИНТЕРЬЕР/🏡 Country House.👗 ФЭШН/📸 Editorial Vogue.👗 ФЭШН/👤 Portrait Bokeh.👗 ФЭШН/✨ Glamour Glow.👗 ФЭШН/🖤 Chanel Aesthetic.👗 ФЭШН/💋 Pin-up Style.👗 ФЭШН/👔 Business Pro.👗 ФЭШН/👠 Fashion Runway.👗 ФЭШН/🛍️ Street Fashion.🏙️ СРЕДА/🌃 Cyberpunk Neon.🏙️ СРЕДА/🌧️ Rainy Neon Noir.🏙️ СРЕДА/🌫️ Foggy Neon Noir.🏙️ СРЕДА/🏚️ Dystopian Megacity.🏙️ СРЕДА/🧱 Urban Grunge.🏙️ СРЕДА/📷 Street Candid.🏙️ СРЕДА/🌅 Magic Hour.🏙️ СРЕДА/☔ Rain Monsoon Puddle.🏙️ СРЕДА/🇬🇧 London Smog.🏜️ ЖАНРЫ/🏔️ Пейзажный Landscape.🏜️ ЖАНРЫ/🦁 Nat Geo Scale.🏜️ ЖАНРЫ/🔬 Macro Micro-world.🏜️ ЖАНРЫ/🌌 Astro Cosmic.🏜️ ЖАНРЫ/✈️ Travel Adventure.🏜️ ЖАНРЫ/🪶 Ethnic Spirit.🏜️ ЖАНРЫ/🏜️ Saharan Mirage.📸 РЕПОРТАЖ/☕ Lifestyle Moment.📸 РЕПОРТАЖ/📋 Documentary Truth.📸 РЕПОРТАЖ/💼 Stock Quality.🧪 ЭФФЕКТЫ/🤖 Holographic HUD.🧪 ЭФФЕКТЫ/💡 Hard Rim Neon.🧪 ЭФФЕКТЫ/🎨 Chromatic Aberration.🧪 ЭФФЕКТЫ/💎 Prism Optical Fracture.🧪 ЭФФЕКТЫ/🌫️ Volumetric Tyndall Dust.🧪 ЭФФЕКТЫ/📼 Expired Chemical Leak.🧪 ЭФФЕКТЫ/☀️ High-Key Airy.🧪 ЭФФЕКТЫ/🌈 HDR Dynamic.🧪 ЭФФЕКТЫ/🕯️ Candlelit Mood.🧪 ЭФФЕКТЫ/🔴 Infrared Surreal.🦾 КИБЕРПАНК/📱 Sleek White Android.🦾 КИБЕРПАНК/🪞 Chrome Android.🦾 КИБЕРПАНК/💉 Wirehead Junkie.🦾 КИБЕРПАНК/🏢 Corpo-Cyborg.🦾 КИБЕРПАНК/🎖️ Military Cyborg.🦾 КИБЕРПАНК/⚔️ Cyber-Samurai.🦾 КИБЕРПАНК/🧬 Biomechanical Giger.🦾 КИБЕРПАНК/🧪 Biopunk Organic.🦾 КИБЕРПАНК/🌱 Solarpunk Hybrid.🦾 КИБЕРПАНК/💀 Post-Apoc Cyber.🦾 КИБЕРПАНК/🌃 Neon Cyberpunk City Rain.🦾 КИБЕРПАНК/🚗 JDM Neon Street Racer.🦾 КИБЕРПАНК/🌇 Electric Sunset Megacity.🦾 КИБЕРПАНК/🛰️ Holographic Interface Portrait.🦾 КИБЕРПАНК/🗡️ Dark Samurai Street.🦾 КИБЕРПАНК/🤖 Chrome Cyborg Hyperrealism.🦾 КИБЕРПАНК/🦾 Cybernetic Arm Close-Up.🦾 КИБЕРПАНК/🧠 Biomechanical Horror Realism.🦾 КИБЕРПАНК/🕶️ Teal Gold Cyber Noir Portrait.🦾 КИБЕРПАНК/🧬 Synthetic Skin Android Portrait.🦾 КИБЕРПАНК/🤍 White Android Minimal Studio.🦾 КИБЕРПАНК/🏭 Industrial Cyborg Portrait.🦾 КИБЕРПАНК/🫀 Bio-Mechanical Core.🦾 КИБЕРПАНК/🧩 Android Anatomy Cutaway.🦾 КИБЕРПАНК/🧡 Golden Mechanical Luxury.🦾 КИБЕРПАНК/🪦 Melancholic Robot Portrait.🦾 КИБЕРПАНК/🩻 X-Ray Cyber Radiograph.🦾 КИБЕРПАНК/💎 Prismatic Neon Reflections.🦾 КИБЕРПАНК/🪞 Molten Liquid Chrome Realism.🦾 КИБЕРПАНК/🌫️ Atmospheric Sci-Fi Mist.🧪 ЭФФЕКТЫ/📡 Тесла-катушка.🧪 ЭФФЕКТЫ/🪞 Зеркальный мир.🧪 ЭФФЕКТЫ/📺 CRT Scanlines.🧪 ЭФФЕКТЫ/🔦 Полицейский прожектор.🧪 ЭФФЕКТЫ/🌊 Цифровой муар.🧪 ЭФФЕКТЫ/🫧 Мыльные пузыри.🧪 ЭФФЕКТЫ/🕶️ Солнечное затмение.🧪 ЭФФЕКТЫ/📠 Факс-аппарат.🧪 ЭФФЕКТЫ/🟣 UV Fluorescence.🧪 ЭФФЕКТЫ/💥 High-Speed Shatter.🧪 ЭФФЕКТЫ/🎨 Light Painting.🧪 ЭФФЕКТЫ/👯 Double Exposure.🧪 ЭФФЕКТЫ/🌑 Silhouette Drama.🧪 ЭФФЕКТЫ/🧊 Absolute Zero.🧪 ЭФФЕКТЫ/⚒️ Forgemaster Heat.🧪 ЭФФЕКТЫ/🌡️ Thermal Imager.🧪 ЭФФЕКТЫ/☢️ X-Ray Radiograph.🧪 ЭФФЕКТЫ/🌊 Bioluminescence.🧪 ЭФФЕКТЫ/💡 Rembrandt Key Light.🧪 ЭФФЕКТЫ/🎭 Hard Chiaroscuro.🧪 ЭФФЕКТЫ/🔬 Electron Micro.🗺️ СЦЕНЫ/🎪 Circus Big Top.🗺️ СЦЕНЫ/🛁 Bathroom Mirror.🗺️ СЦЕНЫ/🔮 Crystal Ball.🗺️ СЦЕНЫ/🖼️ Art Gallery.🗺️ СЦЕНЫ/🛒 Grocery Store.🗺️ СЦЕНЫ/🛩️ Airplane Window.🗺️ СЦЕНЫ/🎢 Amusement Park.🗺️ СЦЕНЫ/🌊 Ocean Wave.🗺️ СЦЕНЫ/🏊 Swimming Pool.🗺️ СЦЕНЫ/🏜️ Desert Road.🗺️ СЦЕНЫ/🍄 Fairy Forest.🗺️ СЦЕНЫ/🗿 Ancient Ruins.🗺️ СЦЕНЫ/🎹 Piano Studio.🗺️ СЦЕНЫ/🧖 Spa Towel.🗺️ СЦЕНЫ/📚 Library Shelf.🗺️ СЦЕНЫ/🪜 Construction Site.🗺️ СЦЕНЫ/🏚️ Abandoned Building.🗺️ СЦЕНЫ/🖤 Black Light Party.🗺️ СЦЕНЫ/🏮 Lantern Festival.🗺️ СЦЕНЫ/🔦 Flashlight Beam.🗺️ СЦЕНЫ/🏺 Pottery Studio.🗺️ СЦЕНЫ/🕯️ Candle Meditation.🗺️ СЦЕНЫ/🪴 Plant Nursery.🗺️ СЦЕНЫ/🎤 Recording Studio.🗺️ СЦЕНЫ/🧸 Cozy Bedroom.🗺️ СЦЕНЫ/🏗️ Skyscraper Edge.🗺️ СЦЕНЫ/🍳 Kitchen Morning.🗺️ СЦЕНЫ/⛺ Campfire Night.🗺️ СЦЕНЫ/🧗 Rock Climbing.🗺️ СЦЕНЫ/🛒 Vintage Store.🗺️ СЦЕНЫ/🌉 Golden Gate.🗺️ СЦЕНЫ/🛁 Rainy Window.🗺️ СЦЕНЫ/🪐 Neon Desert.🗺️ СЦЕНЫ/🥾 Hiking Trail.🗺️ СЦЕНЫ/🌾 Rice Terraces.🗺️ СЦЕНЫ/🛀 Floating Bath.🎨 ЖИВОПИСЬ/🖌️ Impasto Oil.🎨 ЖИВОПИСЬ/💧 Wet Watercolor.🎨 ЖИВОПИСЬ/🔪 Palette Knife.🎨 ЖИВОПИСЬ/🌸 Ghibli Inspired.🎨 ЖИВОПИСЬ/🗿 Classical Marble.🎨 ЖИВОПИСЬ/🎭 Baroque Drama.🎨 ЖИВОПИСЬ/🖼️ Renaissance.🎨 ЖИВОПИСЬ/🎪 Impressionist.🎨 ЖИВОПИСЬ/🖌️ Asian Ink.🎨 ЖИВОПИСЬ/🖌️ Sumi-e.✏️ ГРАФИКА/✏️ Pencil Sketch.✏️ ГРАФИКА/🖊️ Ink Illustration.✏️ ГРАФИКА/🖍️ Charcoal Drawing.✏️ ГРАФИКА/✏️ Graphite Study.✏️ ГРАФИКА/🖋️ Pen & Ink.💻 ЦИФРОВАЯ/👾 Pixel Art.💻 ЦИФРОВАЯ/📐 Vector Art.💻 ЦИФРОВАЯ/🎨 Digital Painting.💻 ЦИФРОВАЯ/🤖 AI Art Style.💻 ЦИФРОВАЯ/🌆 Concept Art.💻 ЦИФРОВАЯ/🏮 Anime Style.💻 ЦИФРОВАЯ/🗾 Manga Style.💻 ЦИФРОВАЯ/🎮 Game UI.💻 ЦИФРОВАЯ/🎲 Tabletop RPG.🏛️ ИСТОРИЯ/🏺 Ancient Egyptian.🏛️ ИСТОРИЯ/🏛️ Greek Classical.🏛️ ИСТОРИЯ/🗿 Roman Bust.🏛️ ИСТОРИЯ/🖼️ Medieval Icon.🏛️ ИСТОРИЯ/⚔️ Viking Art.🏛️ ИСТОРИЯ/🏰 Art Nouveau.🏛️ ИСТОРИЯ/🎭 Art Deco.🔬 СТИЛИЗАЦИЯ/🔍 Hyperrealism.🔬 СТИЛИЗАЦИЯ/🌫️ Vaporwave.🔬 СТИЛИЗАЦИЯ/🎲 Glitch Art.🔬 СТИЛИЗАЦИЯ/💎 Steampunk.🔬 СТИЛИЗАЦИЯ/🌸 Kawaii.🔬 СТИЛИЗАЦИЯ/🦋 Morbid.🔬 СТИЛИЗАЦИЯ/🔮 Mystical.🔬 СТИЛИЗАЦИЯ/🎪 Circus Noir.💥 КОМИКС/🎬 Dynamic Cel-Shaded.💥 КОМИКС/🎌 Manga Screen-tone.💥 КОМИКС/💥 Action Comic.💥 КОМИКС/📜 Comic Cover.💥 КОМИКС/🤖 Киберпанк-комикс.💥 КОМИКС/💡 Неон-комикс.💥 КОМИКС/💋 Пин-ап комикс.💥 КОМИКС/📼 Ретро-комикс.💥 КОМИКС/⚙️ Стимпанк-комикс.💥 КОМИКС/⚰️ Готический комикс.💥 КОМИКС/👑 Барокко-комикс.💥 КОМИКС/⚫ Блэк-энд-уайт.🦾 КИБЕРПАНК/🎮 Mecha Pilot.🦾 КИБЕРПАНК/⚛️ Nanopunk Swarm.🦾 КИБЕРПАНК/💉 Neon Tattoos.🦾 КИБЕРПАНК/🤖 Flesh-to-Steel Fusion.🦾 КИБЕРПАНК/💊 Neuro-Interface.🦾 КИБЕРПАНК/🩸 Bio-Corroded Tech.👾 ДИДЖИТАЛ/🏄 Vaporwave Cyber.👾 ДИДЖИТАЛ/👓 Anaglyph Red-Blue.👾 ДИДЖИТАЛ/🔆 Octane Render.👾 ДИДЖИТАЛ/🌅 Synthwave Art.👾 ДИДЖИТАЛ/💧 Molten Liquid Chrome.👾 ДИДЖИТАЛ/🖥️ Holographic UI.👾 ДИДЖИТАЛ/📺 Киберпоп.👾 ДИДЖИТАЛ/🎨 Коллаж-арт.👾 ДИДЖИТАЛ/🔀 Сегментация-арт.👾 ДИДЖИТАЛ/🎭 Постер-арт.👾 ДИДЖИТАЛ/🚗 Лоурайдер-арт.💻 ЦИФРОВАЯ/🌃 Neon Cyberpunk City Rain.💻 ЦИФРОВАЯ/🚗 Retro Anime JDM Car Wallpaper.💻 ЦИФРОВАЯ/🏍️ Anime Motorcycle Action Poster.💻 ЦИФРОВАЯ/🌇 Electric Sunset Sci-Fi Landscape.💻 ЦИФРОВАЯ/🔮 Crystal Overload Sci-Fi.💻 ЦИФРОВАЯ/🧊 Cold Blue Anime Macro.💻 ЦИФРОВАЯ/🌊 Soft Water Reflection Anime.💻 ЦИФРОВАЯ/🌌 Lofi Anime City Melancholy.💻 ЦИФРОВАЯ/📼 Retro 90s Anime Cel.💻 ЦИФРОВАЯ/🎀 Cute Pink Anime Portrait.💻 ЦИФРОВАЯ/🐉 Fantasy Dragon Girl Anime.💻 ЦИФРОВАЯ/🚘 Night Street Car Cinematic.💻 ЦИФРОВАЯ/🪄 Sorceress Neon Ritual Anime.💻 ЦИФРОВАЯ/🎧 Moody Headphone Anime Girl.💻 ЦИФРОВАЯ/🏁 Street Racing Anime Poster.💻 ЦИФРОВАЯ/🍭 Soft Pastel Kawaii Car.💻 ЦИФРОВАЯ/🏙️ Urban Fashion Editorial Anime.💻 ЦИФРОВАЯ/🌫️ Atmospheric Sci-Fi Mist.💻 ЦИФРОВАЯ/🌆 Neo-Tokyo Anime Adventure.💻 ЦИФРОВАЯ/📱 Phone Wallpaper Vertical Sci-Fi.💻 ЦИФРОВАЯ/🎮 Anime Game Character Render.💻 ЦИФРОВАЯ/🧜 Ethereal Soft Fantasy Anime.💻 ЦИФРОВАЯ/🗡️ Dark Samurai Cyber Anime.💻 ЦИФРОВАЯ/🛰️ Holographic Interface Portrait.💻 ЦИФРОВАЯ/🧩 Abstract Cyber Shape Design.💻 ЦИФРОВАЯ/🚨 Warning Sign AI Robot Art.💻 ЦИФРОВАЯ/🖼️ Pinterest Vertical AI Art Mix.🔬 СТИЛИЗАЦИЯ/🖤 Dark Anime Witch Gothic.🔬 СТИЛИЗАЦИЯ/🩸 Vampire Red Eye Anime Noir.🔬 СТИЛИЗАЦИЯ/🎭 Hyperpop Character Illustration.🔬 СТИЛИЗАЦИЯ/🦇 Gothic Dark Fantasy Portrait.🔬 СТИЛИЗАЦИЯ/🌹 Dark Floral Gothic Editorial.🔬 СТИЛИЗАЦИЯ/🫧 Iridescent Hologram Fashion.🔬 СТИЛИЗАЦИЯ/🧛 Crimson Gothic Beauty.🔬 СТИЛИЗАЦИЯ/🌠 Cosmic Dream Girl.🔬 СТИЛИЗАЦИЯ/💿 Holographic Y2K Pop Star.🔬 СТИЛИЗАЦИЯ/🛸 Alien Fashion Runway.🔬 СТИЛИЗАЦИЯ/🏴 Black Armor Dark Fantasy.🔬 СТИЛИЗАЦИЯ/🕯️ Occult Black Magic Anime.🔬 СТИЛИЗАЦИЯ/🕳️ Black Void High Contrast.🔬 СТИЛИЗАЦИЯ/🧱 Gritty Post-Apocalyptic Casual.🔬 СТИЛИЗАЦИЯ/🔥 Red Smoke Dark Character.🔬 СТИЛИЗАЦИЯ/💎 Prismatic Neon Reflections.🔬 СТИЛИЗАЦИЯ/🪞 Glossy Black Latex Cyber.🔬 СТИЛИЗАЦИЯ/🌸 Bloom Soft Girl Aesthetic.💥 КОМИКС/🕷️ Symbiote Venom Comic Ink.💥 КОМИКС/⚡ Aggressive Comic Ink Splash.💥 КОМИКС/🧨 Dynamic Superhero Splash.🦾 КИБЕРПАНК/🤖 Chrome Cyborg Hyperrealism.🦾 КИБЕРПАНК/🦾 Cybernetic Arm Concept Art.🦾 КИБЕРПАНК/🧠 Biomechanical Body Horror.🦾 КИБЕРПАНК/🕶️ Teal Gold Cyberpunk Noir Portrait.🦾 КИБЕРПАНК/🧬 Synthetic Skin Android Portrait.🦾 КИБЕРПАНК/🦾 White Android Minimal Portrait.🦾 КИБЕРПАНК/🩶 Industrial Female Cyborg Portrait.🦾 КИБЕРПАНК/🫀Bio-Mechanical Core Portrait.🦾 КИБЕРПАНК/🧬 Android Anatomy Cutaway.🦾 КИБЕРПАНК/🦋 Angelic Cyber Feminine.🦾 КИБЕРПАНК/🧡 Golden Mechanical Portrait.🦾 КИБЕРПАНК/🪦 Melancholic Robot Portrait.🦾 КИБЕРПАНК/🩻 X-Ray Skeleton Cyber Anime".split("."),
+						values: /* @__PURE__ */ "(None).📷 КАМЕРЫ/📷 Disposable 90s.📷 КАМЕРЫ/📸 Polaroid 600.📷 КАМЕРЫ/📷 Hasselblad 70mm.📷 КАМЕРЫ/🕳️ Pinhole Obscura.📷 КАМЕРЫ/📹 CCTV surveillance.📷 КАМЕРЫ/🚓 Police Dashcam.📷 КАМЕРЫ/📱 Smartphone Computational.📷 КАМЕРЫ/⚡ Direct Flash Night.📷 КАМЕРЫ/🎞️ Raw 35mm Photo.📐 МОДИФИКАТОРЫ/🛩️ Drone Photo.📐 МОДИФИКАТОРЫ/🔭 Ultra Wide 12mm.📐 МОДИФИКАТОРЫ/🌐 Fisheye Lens.📐 МОДИФИКАТОРЫ/📐 Dutch Angle.📐 МОДИФИКАТОРЫ/📹 GoPro POV Action.🎬 КИНО/🎞️ IMAX Production.🎬 КИНО/🌑 Film Noir.🎬 КИНО/🌈 Technicolor 50s.🎬 КИНО/📷 Anamorphic Wide.🎬 КИНО/🎬 Gangster Cinema.⏱️ ЗАХВАТ/💫 Motion Blur.⏱️ ЗАХВАТ/📸 Action Freeze.⏱️ ЗАХВАТ/🎞️ Slo-Mo Bullet Time.🕰️ РЕТРО/🎞️ Vintage 70s Portra.🕰️ РЕТРО/🌆 Cinestill 800T Halation.🕰️ РЕТРО/⬛ Tri-X Push 1600.🕰️ РЕТРО/🖨️ Scanned Print.🕰️ РЕТРО/🪞 Daguerreotype.🕰️ РЕТРО/🧪 Wet Plate Collodion.🕰️ РЕТРО/🟤 Sepia Nostalgia.🕰️ РЕТРО/🎸 Rockabilly 50s.🕰️ РЕТРО/🎩 Gilded Gangster.🕰️ РЕТРО/🎬 Nostalgic 8mm.🏠 ИНТЕРЬЕР/🏭 Loft Industrial.🏠 ИНТЕРЬЕР/🌻 Provence Rustic.🏠 ИНТЕРЬЕР/🕉️ Boho Chic.🏠 ИНТЕРЬЕР/🌿 Eco-Style Design.🏠 ИНТЕРЬЕР/👑 Baroque Ornate.🏠 ИНТЕРЬЕР/⬜ Minimalism.🏠 ИНТЕРЬЕР/🏡 Country House.👗 ФЭШН/📸 Editorial Vogue.👗 ФЭШН/👤 Portrait Bokeh.👗 ФЭШН/✨ Glamour Glow.👗 ФЭШН/🖤 Chanel Aesthetic.👗 ФЭШН/💋 Pin-up Style.👗 ФЭШН/👔 Business Pro.👗 ФЭШН/👠 Fashion Runway.👗 ФЭШН/🛍️ Street Fashion.🏙️ СРЕДА/🌃 Cyberpunk Neon.🏙️ СРЕДА/🌧️ Rainy Neon Noir.🏙️ СРЕДА/🌫️ Foggy Neon Noir.🏙️ СРЕДА/🏚️ Dystopian Megacity.🏙️ СРЕДА/🧱 Urban Grunge.🏙️ СРЕДА/📷 Street Candid.🏙️ СРЕДА/🌅 Magic Hour.🏙️ СРЕДА/☔ Rain Monsoon Puddle.🏙️ СРЕДА/🇬🇧 London Smog.🏜️ ЖАНРЫ/🏔️ Пейзажный Landscape.🏜️ ЖАНРЫ/🦁 Nat Geo Scale.🏜️ ЖАНРЫ/🔬 Macro Micro-world.🏜️ ЖАНРЫ/🌌 Astro Cosmic.🏜️ ЖАНРЫ/✈️ Travel Adventure.🏜️ ЖАНРЫ/🪶 Ethnic Spirit.🏜️ ЖАНРЫ/🏜️ Saharan Mirage.📸 РЕПОРТАЖ/☕ Lifestyle Moment.📸 РЕПОРТАЖ/📋 Documentary Truth.📸 РЕПОРТАЖ/💼 Stock Quality.🧪 ЭФФЕКТЫ/🤖 Holographic HUD.🧪 ЭФФЕКТЫ/💡 Hard Rim Neon.🧪 ЭФФЕКТЫ/🎨 Chromatic Aberration.🧪 ЭФФЕКТЫ/💎 Prism Optical Fracture.🧪 ЭФФЕКТЫ/🌫️ Volumetric Tyndall Dust.🧪 ЭФФЕКТЫ/📼 Expired Chemical Leak.🧪 ЭФФЕКТЫ/☀️ High-Key Airy.🧪 ЭФФЕКТЫ/🌈 HDR Dynamic.🧪 ЭФФЕКТЫ/🕯️ Candlelit Mood.🧪 ЭФФЕКТЫ/🔴 Infrared Surreal.🦾 КИБЕРПАНК/📱 Sleek White Android.🦾 КИБЕРПАНК/🪞 Chrome Android.🦾 КИБЕРПАНК/💉 Wirehead Junkie.🦾 КИБЕРПАНК/🏢 Corpo-Cyborg.🦾 КИБЕРПАНК/🎖️ Military Cyborg.🦾 КИБЕРПАНК/⚔️ Cyber-Samurai.🦾 КИБЕРПАНК/🧬 Biomechanical Giger.🦾 КИБЕРПАНК/🧪 Biopunk Organic.🦾 КИБЕРПАНК/🌱 Solarpunk Hybrid.🦾 КИБЕРПАНК/💀 Post-Apoc Cyber.🦾 КИБЕРПАНК/🌃 Neon Cyberpunk City Rain.🦾 КИБЕРПАНК/🚗 JDM Neon Street Racer.🦾 КИБЕРПАНК/🌇 Electric Sunset Megacity.🦾 КИБЕРПАНК/🛰️ Holographic Interface Portrait.🦾 КИБЕРПАНК/🗡️ Dark Samurai Street.🦾 КИБЕРПАНК/🤖 Chrome Cyborg Hyperrealism.🦾 КИБЕРПАНК/🦾 Cybernetic Arm Close-Up.🦾 КИБЕРПАНК/🧠 Biomechanical Horror Realism.🦾 КИБЕРПАНК/🕶️ Teal Gold Cyber Noir Portrait.🦾 КИБЕРПАНК/🧬 Synthetic Skin Android Portrait.🦾 КИБЕРПАНК/🤍 White Android Minimal Studio.🦾 КИБЕРПАНК/🏭 Industrial Cyborg Portrait.🦾 КИБЕРПАНК/🫀 Bio-Mechanical Core.🦾 КИБЕРПАНК/🧩 Android Anatomy Cutaway.🦾 КИБЕРПАНК/🧡 Golden Mechanical Luxury.🦾 КИБЕРПАНК/🪦 Melancholic Robot Portrait.🦾 КИБЕРПАНК/🩻 X-Ray Cyber Radiograph.🦾 КИБЕРПАНК/💎 Prismatic Neon Reflections.🦾 КИБЕРПАНК/🪞 Molten Liquid Chrome Realism.🦾 КИБЕРПАНК/🌫️ Atmospheric Sci-Fi Mist.🧪 ЭФФЕКТЫ/📡 Тесла-катушка.🧪 ЭФФЕКТЫ/🪞 Зеркальный мир.🧪 ЭФФЕКТЫ/📺 CRT Scanlines.🧪 ЭФФЕКТЫ/🔦 Полицейский прожектор.🧪 ЭФФЕКТЫ/🌊 Цифровой муар.🧪 ЭФФЕКТЫ/🫧 Мыльные пузыри.🧪 ЭФФЕКТЫ/🕶️ Солнечное затмение.🧪 ЭФФЕКТЫ/📠 Факс-аппарат.🧪 ЭФФЕКТЫ/🟣 UV Fluorescence.🧪 ЭФФЕКТЫ/💥 High-Speed Shatter.🧪 ЭФФЕКТЫ/🎨 Light Painting.🧪 ЭФФЕКТЫ/👯 Double Exposure.🧪 ЭФФЕКТЫ/🌑 Silhouette Drama.🧪 ЭФФЕКТЫ/🧊 Absolute Zero.🧪 ЭФФЕКТЫ/⚒️ Forgemaster Heat.🧪 ЭФФЕКТЫ/🌡️ Thermal Imager.🧪 ЭФФЕКТЫ/☢️ X-Ray Radiograph.🧪 ЭФФЕКТЫ/🌊 Bioluminescence.🧪 ЭФФЕКТЫ/💡 Rembrandt Key Light.🧪 ЭФФЕКТЫ/🎭 Hard Chiaroscuro.🧪 ЭФФЕКТЫ/🔬 Electron Micro.🗺️ СЦЕНЫ/🎪 Circus Big Top.🗺️ СЦЕНЫ/🛁 Bathroom Mirror.🗺️ СЦЕНЫ/🔮 Crystal Ball.🗺️ СЦЕНЫ/🖼️ Art Gallery.🗺️ СЦЕНЫ/🛒 Grocery Store.🗺️ СЦЕНЫ/🛩️ Airplane Window.🗺️ СЦЕНЫ/🎢 Amusement Park.🗺️ СЦЕНЫ/🌊 Ocean Wave.🗺️ СЦЕНЫ/🏊 Swimming Pool.🗺️ СЦЕНЫ/🏜️ Desert Road.🗺️ СЦЕНЫ/🍄 Fairy Forest.🗺️ СЦЕНЫ/🗿 Ancient Ruins.🗺️ СЦЕНЫ/🎹 Piano Studio.🗺️ СЦЕНЫ/🧖 Spa Towel.🗺️ СЦЕНЫ/📚 Library Shelf.🗺️ СЦЕНЫ/🪜 Construction Site.🗺️ СЦЕНЫ/🏚️ Abandoned Building.🗺️ СЦЕНЫ/🖤 Black Light Party.🗺️ СЦЕНЫ/🏮 Lantern Festival.🗺️ СЦЕНЫ/🔦 Flashlight Beam.🗺️ СЦЕНЫ/🏺 Pottery Studio.🗺️ СЦЕНЫ/🕯️ Candle Meditation.🗺️ СЦЕНЫ/🪴 Plant Nursery.🗺️ СЦЕНЫ/🎤 Recording Studio.🗺️ СЦЕНЫ/🧸 Cozy Bedroom.🗺️ СЦЕНЫ/🏗️ Skyscraper Edge.🗺️ СЦЕНЫ/🍳 Kitchen Morning.🗺️ СЦЕНЫ/⛺ Campfire Night.🗺️ СЦЕНЫ/🧗 Rock Climbing.🗺️ СЦЕНЫ/🛒 Vintage Store.🗺️ СЦЕНЫ/🌉 Golden Gate.🗺️ СЦЕНЫ/🛁 Rainy Window.🗺️ СЦЕНЫ/🪐 Neon Desert.🗺️ СЦЕНЫ/🥾 Hiking Trail.🗺️ СЦЕНЫ/🌾 Rice Terraces.🗺️ СЦЕНЫ/🛀 Floating Bath.📸 СТУДИЯ/📸 Studio Elite.📸 СТУДИЯ/✨ Glamour Core.📸 СТУДИЯ/🛋️ Boudoir.📸 СТУДИЯ/🌅 Morning Boudoir.📸 СТУДИЯ/👙 Fashion Lingerie.🏠 ИНТЕРЬЕР/🛏️ Bedroom Intimate.🏠 ИНТЕРЬЕР/🚿 Shower Scene.🏠 ИНТЕРЬЕР/🛁 Bath Scene.🏠 ИНТЕРЬЕР/🪞 Vanity Mirror.🏠 ИНТЕРЬЕР/🛋️ Living Room.🌿 ПРИРОДА/🌊 Beach Sunset.🌿 ПРИРОДА/🌲 Forest Glade.🌿 ПРИРОДА/🌸 Garden Path.🌿 ПРИРОДА/⛺ Private Pool.🎭 ФЭШН/💋 Beauty Close-up.🎭 ФЭШН/📸 Fashion Editorial.🎭 ФЭШН/👗 Dressed to Kill.🎭 ФЭШН/🩱 Swimsuit Campaign.🌑 НУАР/⛓️ Fetish Noir.🌑 НУАР/🛏️ Bedroom.🌑 НУАР/🎭 Venetian Velvet.🌑 НУАР/🔦 Interrogation Room.🌑 НУАР/🎪 Carnival.🌑 НУАР/⚰️ Gothic Romance.🌑 НУАР/🧛 Vampire Gothic.🌑 НУАР/🌑 Intimate Shadows.🛀 ТЕКСТУРЫ/💦 Wet Skin.🛀 ТЕКСТУРЫ/🫒 Wet & Glossy.🛀 ТЕКСТУРЫ/🛁 Steamy Bathtub.🛀 ТЕКСТУРЫ/🥛 Milk Bath Editorial.🛀 ТЕКСТУРЫ/🚿 Frosted Glass Shower.🛀 ТЕКСТУРЫ/🌊 Underwater Weightless.🛀 ТЕКСТУРЫ/🎨 Nude Aesthetic.🛀 ТЕКСТУРЫ/👘 Silk & Lace.🛀 ТЕКСТУРЫ/🕸️ Spiderweb Silk.🏙️ ЛОКАЦИИ/🤳 Amateur POV.🏙️ ЛОКАЦИИ/📹 Amateur Real.🏙️ ЛОКАЦИИ/🪩 Nightclub Dark.🏙️ ЛОКАЦИИ/🏖️ Beach Sensual.🏙️ ЛОКАЦИИ/☔ Neon Rain Cyberpunk.🏙️ ЛОКАЦИИ/🚗 Backseat Tryst.🏙️ ЛОКАЦИИ/🏨 Hotel Room Neon.🏙️ ЛОКАЦИИ/❄️ Winter Cabin.🏙️ ЛОКАЦИИ/🏜️ Desert Oasis.🏙️ ЛОКАЦИИ/🏙️ Skyscraper Penthouse.🏙️ ЛОКАЦИИ/🔧 Garage Oil & Chrome.🦾 КИБЕРПАНК/🌃 Neon Alley Exposure.🦾 КИБЕРПАНК/🤖 Chrome Implant Nude.🦾 КИБЕРПАНК/🧬 Synthetic Skin Android Nude.🦾 КИБЕРПАНК/🪩 Holographic Strip Club.🦾 КИБЕРПАНК/🩺 Ripperdoc Aftercare.🦾 КИБЕРПАНК/⛓️ Cyber Latex Dungeon.🦾 КИБЕРПАНК/🌧️ Rain-Slick Rooftop Nude.🦾 КИБЕРПАНК/📹 Backroom Neon POV.🦾 КИБЕРПАНК/🚦 Red-Light District Android.🦾 КИБЕРПАНК/🪞 Augmented Mirror Selfie.🦾 КИБЕРПАНК/💡 Bioluminescent Body Ports.🦾 КИБЕРПАНК/🏙️ Drone-Lit Penthouse Nude.🦾 КИБЕРПАНК/🚿 Wet Chrome Shower Pod.🦾 КИБЕРПАНК/🎤 Virtual Idol Dressing Room.🦾 КИБЕРПАНК/🩻 Holo-Tattoo Nude Scan.🦾 КИБЕРПАНК/🫧 Glass Capsule Display.🦾 КИБЕРПАНК/🏍️ Neon Motorcycle Garage.🦾 КИБЕРПАНК/🟣 Blacklight Cyber Boudoir.🦾 КИБЕРПАНК/🖥️ Server Room Heat.🦾 КИБЕРПАНК/💎 Prismatic Implant Glamour.🎨 ЖИВОПИСЬ/🖌️ Impasto Oil.🎨 ЖИВОПИСЬ/💧 Wet Watercolor.🎨 ЖИВОПИСЬ/🔪 Palette Knife.🎨 ЖИВОПИСЬ/🌸 Ghibli Inspired.🎨 ЖИВОПИСЬ/🗿 Classical Marble.🎨 ЖИВОПИСЬ/🎭 Baroque Drama.🎨 ЖИВОПИСЬ/🖼️ Renaissance.🎨 ЖИВОПИСЬ/🎪 Impressionist.🎨 ЖИВОПИСЬ/🖌️ Asian Ink.🎨 ЖИВОПИСЬ/🖌️ Sumi-e.✏️ ГРАФИКА/✏️ Pencil Sketch.✏️ ГРАФИКА/🖊️ Ink Illustration.✏️ ГРАФИКА/🖍️ Charcoal Drawing.✏️ ГРАФИКА/✏️ Graphite Study.✏️ ГРАФИКА/🖋️ Pen & Ink.💻 ЦИФРОВАЯ/👾 Pixel Art.💻 ЦИФРОВАЯ/📐 Vector Art.💻 ЦИФРОВАЯ/🎨 Digital Painting.💻 ЦИФРОВАЯ/🤖 AI Art Style.💻 ЦИФРОВАЯ/🌆 Concept Art.💻 ЦИФРОВАЯ/🏮 Anime Style.💻 ЦИФРОВАЯ/🗾 Manga Style.💻 ЦИФРОВАЯ/🎮 Game UI.💻 ЦИФРОВАЯ/🎲 Tabletop RPG.🏛️ ИСТОРИЯ/🏺 Ancient Egyptian.🏛️ ИСТОРИЯ/🏛️ Greek Classical.🏛️ ИСТОРИЯ/🗿 Roman Bust.🏛️ ИСТОРИЯ/🖼️ Medieval Icon.🏛️ ИСТОРИЯ/⚔️ Viking Art.🏛️ ИСТОРИЯ/🏰 Art Nouveau.🏛️ ИСТОРИЯ/🎭 Art Deco.🔬 СТИЛИЗАЦИЯ/🔍 Hyperrealism.🔬 СТИЛИЗАЦИЯ/🌫️ Vaporwave.🔬 СТИЛИЗАЦИЯ/🎲 Glitch Art.🔬 СТИЛИЗАЦИЯ/💎 Steampunk.🔬 СТИЛИЗАЦИЯ/🌸 Kawaii.🔬 СТИЛИЗАЦИЯ/🦋 Morbid.🔬 СТИЛИЗАЦИЯ/🔮 Mystical.🔬 СТИЛИЗАЦИЯ/🎪 Circus Noir.💥 КОМИКС/🎬 Dynamic Cel-Shaded.💥 КОМИКС/🎌 Manga Screen-tone.💥 КОМИКС/💥 Action Comic.💥 КОМИКС/📜 Comic Cover.💥 КОМИКС/🤖 Киберпанк-комикс.💥 КОМИКС/💡 Неон-комикс.💥 КОМИКС/💋 Пин-ап комикс.💥 КОМИКС/📼 Ретро-комикс.💥 КОМИКС/⚙️ Стимпанк-комикс.💥 КОМИКС/⚰️ Готический комикс.💥 КОМИКС/👑 Барокко-комикс.💥 КОМИКС/⚫ Блэк-энд-уайт.🦾 КИБЕРПАНК/🎮 Mecha Pilot.🦾 КИБЕРПАНК/⚛️ Nanopunk Swarm.🦾 КИБЕРПАНК/💉 Neon Tattoos.🦾 КИБЕРПАНК/🤖 Flesh-to-Steel Fusion.🦾 КИБЕРПАНК/💊 Neuro-Interface.🦾 КИБЕРПАНК/🩸 Bio-Corroded Tech.👾 ДИДЖИТАЛ/🏄 Vaporwave Cyber.👾 ДИДЖИТАЛ/👓 Anaglyph Red-Blue.👾 ДИДЖИТАЛ/🔆 Octane Render.👾 ДИДЖИТАЛ/🌅 Synthwave Art.👾 ДИДЖИТАЛ/💧 Molten Liquid Chrome.👾 ДИДЖИТАЛ/🖥️ Holographic UI.👾 ДИДЖИТАЛ/📺 Киберпоп.👾 ДИДЖИТАЛ/🎨 Коллаж-арт.👾 ДИДЖИТАЛ/🔀 Сегментация-арт.👾 ДИДЖИТАЛ/🎭 Постер-арт.👾 ДИДЖИТАЛ/🚗 Лоурайдер-арт.💻 ЦИФРОВАЯ/🌃 Neon Cyberpunk City Rain.💻 ЦИФРОВАЯ/🚗 Retro Anime JDM Car Wallpaper.💻 ЦИФРОВАЯ/🏍️ Anime Motorcycle Action Poster.💻 ЦИФРОВАЯ/🌇 Electric Sunset Sci-Fi Landscape.💻 ЦИФРОВАЯ/🔮 Crystal Overload Sci-Fi.💻 ЦИФРОВАЯ/🧊 Cold Blue Anime Macro.💻 ЦИФРОВАЯ/🌊 Soft Water Reflection Anime.💻 ЦИФРОВАЯ/🌌 Lofi Anime City Melancholy.💻 ЦИФРОВАЯ/📼 Retro 90s Anime Cel.💻 ЦИФРОВАЯ/🎀 Cute Pink Anime Portrait.💻 ЦИФРОВАЯ/🐉 Fantasy Dragon Girl Anime.💻 ЦИФРОВАЯ/🚘 Night Street Car Cinematic.💻 ЦИФРОВАЯ/🪄 Sorceress Neon Ritual Anime.💻 ЦИФРОВАЯ/🎧 Moody Headphone Anime Girl.💻 ЦИФРОВАЯ/🏁 Street Racing Anime Poster.💻 ЦИФРОВАЯ/🍭 Soft Pastel Kawaii Car.💻 ЦИФРОВАЯ/🏙️ Urban Fashion Editorial Anime.💻 ЦИФРОВАЯ/🌫️ Atmospheric Sci-Fi Mist.💻 ЦИФРОВАЯ/🌆 Neo-Tokyo Anime Adventure.💻 ЦИФРОВАЯ/📱 Phone Wallpaper Vertical Sci-Fi.💻 ЦИФРОВАЯ/🎮 Anime Game Character Render.💻 ЦИФРОВАЯ/🧜 Ethereal Soft Fantasy Anime.💻 ЦИФРОВАЯ/🗡️ Dark Samurai Cyber Anime.💻 ЦИФРОВАЯ/🛰️ Holographic Interface Portrait.💻 ЦИФРОВАЯ/🧩 Abstract Cyber Shape Design.💻 ЦИФРОВАЯ/🚨 Warning Sign AI Robot Art.💻 ЦИФРОВАЯ/🖼️ Pinterest Vertical AI Art Mix.🔬 СТИЛИЗАЦИЯ/🖤 Dark Anime Witch Gothic.🔬 СТИЛИЗАЦИЯ/🩸 Vampire Red Eye Anime Noir.🔬 СТИЛИЗАЦИЯ/🎭 Hyperpop Character Illustration.🔬 СТИЛИЗАЦИЯ/🦇 Gothic Dark Fantasy Portrait.🔬 СТИЛИЗАЦИЯ/🌹 Dark Floral Gothic Editorial.🔬 СТИЛИЗАЦИЯ/🫧 Iridescent Hologram Fashion.🔬 СТИЛИЗАЦИЯ/🧛 Crimson Gothic Beauty.🔬 СТИЛИЗАЦИЯ/🌠 Cosmic Dream Girl.🔬 СТИЛИЗАЦИЯ/💿 Holographic Y2K Pop Star.🔬 СТИЛИЗАЦИЯ/🛸 Alien Fashion Runway.🔬 СТИЛИЗАЦИЯ/🏴 Black Armor Dark Fantasy.🔬 СТИЛИЗАЦИЯ/🕯️ Occult Black Magic Anime.🔬 СТИЛИЗАЦИЯ/🕳️ Black Void High Contrast.🔬 СТИЛИЗАЦИЯ/🧱 Gritty Post-Apocalyptic Casual.🔬 СТИЛИЗАЦИЯ/🔥 Red Smoke Dark Character.🔬 СТИЛИЗАЦИЯ/💎 Prismatic Neon Reflections.🔬 СТИЛИЗАЦИЯ/🪞 Glossy Black Latex Cyber.🔬 СТИЛИЗАЦИЯ/🌸 Bloom Soft Girl Aesthetic.💥 КОМИКС/🕷️ Symbiote Venom Comic Ink.💥 КОМИКС/⚡ Aggressive Comic Ink Splash.💥 КОМИКС/🧨 Dynamic Superhero Splash.🦾 КИБЕРПАНК/🦾 Cybernetic Arm Concept Art.🦾 КИБЕРПАНК/🧠 Biomechanical Body Horror.🦾 КИБЕРПАНК/🕶️ Teal Gold Cyberpunk Noir Portrait.🦾 КИБЕРПАНК/🦾 White Android Minimal Portrait.🦾 КИБЕРПАНК/🩶 Industrial Female Cyborg Portrait.🦾 КИБЕРПАНК/🫀Bio-Mechanical Core Portrait.🦾 КИБЕРПАНК/🧬 Android Anatomy Cutaway.🦾 КИБЕРПАНК/🦋 Angelic Cyber Feminine.🦾 КИБЕРПАНК/🧡 Golden Mechanical Portrait.🦾 КИБЕРПАНК/🩻 X-Ray Skeleton Cyber Anime.🎨 ИЛЛЮСТРАЦИЯ/🖌️ Pro Hentai.🎨 ИЛЛЮСТРАЦИЯ/💎 Premium Hentai.🎨 ИЛЛЮСТРАЦИЯ/🌸 Anime Ecchi.🎨 ИЛЛЮСТРАЦИЯ/🦸 Western Adult.🎨 ИЛЛЮСТРАЦИЯ/🎯 Digital Pin-up.💻 ЦИФРОВАЯ/🧊 3D Render.💻 ЦИФРОВАЯ/🖥️ CGI.💻 ЦИФРОВАЯ/🤖 AI Generated.📜 КЛАССИКА/🖼️ Baroque Nude.📜 КЛАССИКА/🏛️ Academic Nude.📜 КЛАССИКА/🎭 Impressionist Nude.🎯 ЖАНРЫ/🔞 Explicit.🎯 ЖАНРЫ/🎭 Sensual Art.🎯 ЖАНРЫ/📸 Fetish Art.🎨 ИЛЛЮСТРАЦИЯ/🎭 Kabuki Demon.🎨 ИЛЛЮСТРАЦИЯ/🌺 Tropical Adult.🎨 ИЛЛЮСТРАЦИЯ/🌿 Botanical Nymph.🖌️ ЖИВОПИСЬ/👼 Renaissance Oil.🖌️ ЖИВОПИСЬ/🔪 Thick Impasto.🖌️ ЖИВОПИСЬ/💧 Watercolor Soft.🖌️ ЖИВОПИСЬ/🎨 Artistic Nude.🖌️ ЖИВОПИСЬ/🛢️ Oil Painting.✒️ СКЕТЧ/✒️ Ink Erotica.✒️ СКЕТЧ/🦴 Raw Anatomy.✒️ СКЕТЧ/💀 Macabre Ink.🏰 ФЭНТЕЗИ/🧝 Dark Fantasy.🏰 ФЭНТЕЗИ/🧝 Dark Desire.🏰 ФЭНТЕЗИ/🏛️ Mythological Nude.🏰 ФЭНТЕЗИ/🌊 Aquatic Erotic.🏰 ФЭНТЕЗИ/🏜️ Dune Fantasy.🏰 ФЭНТЕЗИ/🧚 Fairy Tale.🏰 ФЭНТЕЗИ/🎨 NSFW Art.🚀 SCI-FI/🛸 Sci-Fi Adult.🚀 SCI-FI/🤖 Cyberpunk NSFW.🚀 SCI-FI/🦾 Mecha-Musume.🚀 SCI-FI/💎 Crystal Anatomy.🚀 SCI-FI/🌋 Lava Forged.🦾 КИБЕРПАНК/👽 Synthetic Skin.🦾 КИБЕРПАНК/👘 Cyber-Geisha.🦾 КИБЕРПАНК/⛓️ Chrome Bondage.🦾 КИБЕРПАНК/🧩 Fragmented Body.🦾 КИБЕРПАНК/💡 Glowing Fiber Optics.🕰️ РЕТРО/🎭 Retro Cabaret.🕰️ РЕТРО/🌿 Nouveau Adult.🕰️ РЕТРО/🌸 Shoujo Romance.🕰️ РЕТРО/📼 80s Anime OVA".split("."),
 						columns: null,
 						searchable: !0,
 						multiline: null,
@@ -8932,7 +9218,7 @@ var sg, cg = n((() => {
 						label: "Style 2",
 						default: "(None)",
 						tooltip: null,
-						values: /* @__PURE__ */ "(None).📷 КАМЕРЫ/📷 Disposable 90s.📷 КАМЕРЫ/📸 Polaroid 600.📷 КАМЕРЫ/📷 Hasselblad 70mm.📷 КАМЕРЫ/🕳️ Pinhole Obscura.📷 КАМЕРЫ/📹 CCTV surveillance.📷 КАМЕРЫ/🚓 Police Dashcam.📷 КАМЕРЫ/📱 Smartphone Computational.📷 КАМЕРЫ/⚡ Direct Flash Night.📷 КАМЕРЫ/🎞️ Raw 35mm Photo.📐 МОДИФИКАТОРЫ/🛩️ Drone Photo.📐 МОДИФИКАТОРЫ/🔭 Ultra Wide 12mm.📐 МОДИФИКАТОРЫ/🌐 Fisheye Lens.📐 МОДИФИКАТОРЫ/📐 Dutch Angle.📐 МОДИФИКАТОРЫ/📹 GoPro POV Action.🎬 КИНО/🎞️ IMAX Production.🎬 КИНО/🌑 Film Noir.🎬 КИНО/🌈 Technicolor 50s.🎬 КИНО/📷 Anamorphic Wide.🎬 КИНО/🎬 Gangster Cinema.⏱️ ЗАХВАТ/💫 Motion Blur.⏱️ ЗАХВАТ/📸 Action Freeze.⏱️ ЗАХВАТ/🎞️ Slo-Mo Bullet Time.🕰️ РЕТРО/🎞️ Vintage 70s Portra.🕰️ РЕТРО/🌆 Cinestill 800T Halation.🕰️ РЕТРО/⬛ Tri-X Push 1600.🕰️ РЕТРО/🖨️ Scanned Print.🕰️ РЕТРО/🪞 Daguerreotype.🕰️ РЕТРО/🧪 Wet Plate Collodion.🕰️ РЕТРО/🟤 Sepia Nostalgia.🕰️ РЕТРО/🎸 Rockabilly 50s.🕰️ РЕТРО/🎩 Gilded Gangster.🕰️ РЕТРО/🎬 Nostalgic 8mm.🏠 ИНТЕРЬЕР/🏭 Loft Industrial.🏠 ИНТЕРЬЕР/🌻 Provence Rustic.🏠 ИНТЕРЬЕР/🕉️ Boho Chic.🏠 ИНТЕРЬЕР/🌿 Eco-Style Design.🏠 ИНТЕРЬЕР/👑 Baroque Ornate.🏠 ИНТЕРЬЕР/⬜ Minimalism.🏠 ИНТЕРЬЕР/🏡 Country House.👗 ФЭШН/📸 Editorial Vogue.👗 ФЭШН/👤 Portrait Bokeh.👗 ФЭШН/✨ Glamour Glow.👗 ФЭШН/🖤 Chanel Aesthetic.👗 ФЭШН/💋 Pin-up Style.👗 ФЭШН/👔 Business Pro.👗 ФЭШН/👠 Fashion Runway.👗 ФЭШН/🛍️ Street Fashion.🏙️ СРЕДА/🌃 Cyberpunk Neon.🏙️ СРЕДА/🌧️ Rainy Neon Noir.🏙️ СРЕДА/🌫️ Foggy Neon Noir.🏙️ СРЕДА/🏚️ Dystopian Megacity.🏙️ СРЕДА/🧱 Urban Grunge.🏙️ СРЕДА/📷 Street Candid.🏙️ СРЕДА/🌅 Magic Hour.🏙️ СРЕДА/☔ Rain Monsoon Puddle.🏙️ СРЕДА/🇬🇧 London Smog.🏜️ ЖАНРЫ/🏔️ Пейзажный Landscape.🏜️ ЖАНРЫ/🦁 Nat Geo Scale.🏜️ ЖАНРЫ/🔬 Macro Micro-world.🏜️ ЖАНРЫ/🌌 Astro Cosmic.🏜️ ЖАНРЫ/✈️ Travel Adventure.🏜️ ЖАНРЫ/🪶 Ethnic Spirit.🏜️ ЖАНРЫ/🏜️ Saharan Mirage.📸 РЕПОРТАЖ/☕ Lifestyle Moment.📸 РЕПОРТАЖ/📋 Documentary Truth.📸 РЕПОРТАЖ/💼 Stock Quality.🧪 ЭФФЕКТЫ/🤖 Holographic HUD.🧪 ЭФФЕКТЫ/💡 Hard Rim Neon.🧪 ЭФФЕКТЫ/🎨 Chromatic Aberration.🧪 ЭФФЕКТЫ/💎 Prism Optical Fracture.🧪 ЭФФЕКТЫ/🌫️ Volumetric Tyndall Dust.🧪 ЭФФЕКТЫ/📼 Expired Chemical Leak.🧪 ЭФФЕКТЫ/☀️ High-Key Airy.🧪 ЭФФЕКТЫ/🌈 HDR Dynamic.🧪 ЭФФЕКТЫ/🕯️ Candlelit Mood.🧪 ЭФФЕКТЫ/🔴 Infrared Surreal.🦾 КИБЕРПАНК/📱 Sleek White Android.🦾 КИБЕРПАНК/🪞 Chrome Android.🦾 КИБЕРПАНК/💉 Wirehead Junkie.🦾 КИБЕРПАНК/🏢 Corpo-Cyborg.🦾 КИБЕРПАНК/🎖️ Military Cyborg.🦾 КИБЕРПАНК/⚔️ Cyber-Samurai.🦾 КИБЕРПАНК/🧬 Biomechanical Giger.🦾 КИБЕРПАНК/🧪 Biopunk Organic.🦾 КИБЕРПАНК/🌱 Solarpunk Hybrid.🦾 КИБЕРПАНК/💀 Post-Apoc Cyber.🦾 КИБЕРПАНК/🌃 Neon Cyberpunk City Rain.🦾 КИБЕРПАНК/🚗 JDM Neon Street Racer.🦾 КИБЕРПАНК/🌇 Electric Sunset Megacity.🦾 КИБЕРПАНК/🛰️ Holographic Interface Portrait.🦾 КИБЕРПАНК/🗡️ Dark Samurai Street.🦾 КИБЕРПАНК/🤖 Chrome Cyborg Hyperrealism.🦾 КИБЕРПАНК/🦾 Cybernetic Arm Close-Up.🦾 КИБЕРПАНК/🧠 Biomechanical Horror Realism.🦾 КИБЕРПАНК/🕶️ Teal Gold Cyber Noir Portrait.🦾 КИБЕРПАНК/🧬 Synthetic Skin Android Portrait.🦾 КИБЕРПАНК/🤍 White Android Minimal Studio.🦾 КИБЕРПАНК/🏭 Industrial Cyborg Portrait.🦾 КИБЕРПАНК/🫀 Bio-Mechanical Core.🦾 КИБЕРПАНК/🧩 Android Anatomy Cutaway.🦾 КИБЕРПАНК/🧡 Golden Mechanical Luxury.🦾 КИБЕРПАНК/🪦 Melancholic Robot Portrait.🦾 КИБЕРПАНК/🩻 X-Ray Cyber Radiograph.🦾 КИБЕРПАНК/💎 Prismatic Neon Reflections.🦾 КИБЕРПАНК/🪞 Molten Liquid Chrome Realism.🦾 КИБЕРПАНК/🌫️ Atmospheric Sci-Fi Mist.🧪 ЭФФЕКТЫ/📡 Тесла-катушка.🧪 ЭФФЕКТЫ/🪞 Зеркальный мир.🧪 ЭФФЕКТЫ/📺 CRT Scanlines.🧪 ЭФФЕКТЫ/🔦 Полицейский прожектор.🧪 ЭФФЕКТЫ/🌊 Цифровой муар.🧪 ЭФФЕКТЫ/🫧 Мыльные пузыри.🧪 ЭФФЕКТЫ/🕶️ Солнечное затмение.🧪 ЭФФЕКТЫ/📠 Факс-аппарат.🧪 ЭФФЕКТЫ/🟣 UV Fluorescence.🧪 ЭФФЕКТЫ/💥 High-Speed Shatter.🧪 ЭФФЕКТЫ/🎨 Light Painting.🧪 ЭФФЕКТЫ/👯 Double Exposure.🧪 ЭФФЕКТЫ/🌑 Silhouette Drama.🧪 ЭФФЕКТЫ/🧊 Absolute Zero.🧪 ЭФФЕКТЫ/⚒️ Forgemaster Heat.🧪 ЭФФЕКТЫ/🌡️ Thermal Imager.🧪 ЭФФЕКТЫ/☢️ X-Ray Radiograph.🧪 ЭФФЕКТЫ/🌊 Bioluminescence.🧪 ЭФФЕКТЫ/💡 Rembrandt Key Light.🧪 ЭФФЕКТЫ/🎭 Hard Chiaroscuro.🧪 ЭФФЕКТЫ/🔬 Electron Micro.🗺️ СЦЕНЫ/🎪 Circus Big Top.🗺️ СЦЕНЫ/🛁 Bathroom Mirror.🗺️ СЦЕНЫ/🔮 Crystal Ball.🗺️ СЦЕНЫ/🖼️ Art Gallery.🗺️ СЦЕНЫ/🛒 Grocery Store.🗺️ СЦЕНЫ/🛩️ Airplane Window.🗺️ СЦЕНЫ/🎢 Amusement Park.🗺️ СЦЕНЫ/🌊 Ocean Wave.🗺️ СЦЕНЫ/🏊 Swimming Pool.🗺️ СЦЕНЫ/🏜️ Desert Road.🗺️ СЦЕНЫ/🍄 Fairy Forest.🗺️ СЦЕНЫ/🗿 Ancient Ruins.🗺️ СЦЕНЫ/🎹 Piano Studio.🗺️ СЦЕНЫ/🧖 Spa Towel.🗺️ СЦЕНЫ/📚 Library Shelf.🗺️ СЦЕНЫ/🪜 Construction Site.🗺️ СЦЕНЫ/🏚️ Abandoned Building.🗺️ СЦЕНЫ/🖤 Black Light Party.🗺️ СЦЕНЫ/🏮 Lantern Festival.🗺️ СЦЕНЫ/🔦 Flashlight Beam.🗺️ СЦЕНЫ/🏺 Pottery Studio.🗺️ СЦЕНЫ/🕯️ Candle Meditation.🗺️ СЦЕНЫ/🪴 Plant Nursery.🗺️ СЦЕНЫ/🎤 Recording Studio.🗺️ СЦЕНЫ/🧸 Cozy Bedroom.🗺️ СЦЕНЫ/🏗️ Skyscraper Edge.🗺️ СЦЕНЫ/🍳 Kitchen Morning.🗺️ СЦЕНЫ/⛺ Campfire Night.🗺️ СЦЕНЫ/🧗 Rock Climbing.🗺️ СЦЕНЫ/🛒 Vintage Store.🗺️ СЦЕНЫ/🌉 Golden Gate.🗺️ СЦЕНЫ/🛁 Rainy Window.🗺️ СЦЕНЫ/🪐 Neon Desert.🗺️ СЦЕНЫ/🥾 Hiking Trail.🗺️ СЦЕНЫ/🌾 Rice Terraces.🗺️ СЦЕНЫ/🛀 Floating Bath.🎨 ЖИВОПИСЬ/🖌️ Impasto Oil.🎨 ЖИВОПИСЬ/💧 Wet Watercolor.🎨 ЖИВОПИСЬ/🔪 Palette Knife.🎨 ЖИВОПИСЬ/🌸 Ghibli Inspired.🎨 ЖИВОПИСЬ/🗿 Classical Marble.🎨 ЖИВОПИСЬ/🎭 Baroque Drama.🎨 ЖИВОПИСЬ/🖼️ Renaissance.🎨 ЖИВОПИСЬ/🎪 Impressionist.🎨 ЖИВОПИСЬ/🖌️ Asian Ink.🎨 ЖИВОПИСЬ/🖌️ Sumi-e.✏️ ГРАФИКА/✏️ Pencil Sketch.✏️ ГРАФИКА/🖊️ Ink Illustration.✏️ ГРАФИКА/🖍️ Charcoal Drawing.✏️ ГРАФИКА/✏️ Graphite Study.✏️ ГРАФИКА/🖋️ Pen & Ink.💻 ЦИФРОВАЯ/👾 Pixel Art.💻 ЦИФРОВАЯ/📐 Vector Art.💻 ЦИФРОВАЯ/🎨 Digital Painting.💻 ЦИФРОВАЯ/🤖 AI Art Style.💻 ЦИФРОВАЯ/🌆 Concept Art.💻 ЦИФРОВАЯ/🏮 Anime Style.💻 ЦИФРОВАЯ/🗾 Manga Style.💻 ЦИФРОВАЯ/🎮 Game UI.💻 ЦИФРОВАЯ/🎲 Tabletop RPG.🏛️ ИСТОРИЯ/🏺 Ancient Egyptian.🏛️ ИСТОРИЯ/🏛️ Greek Classical.🏛️ ИСТОРИЯ/🗿 Roman Bust.🏛️ ИСТОРИЯ/🖼️ Medieval Icon.🏛️ ИСТОРИЯ/⚔️ Viking Art.🏛️ ИСТОРИЯ/🏰 Art Nouveau.🏛️ ИСТОРИЯ/🎭 Art Deco.🔬 СТИЛИЗАЦИЯ/🔍 Hyperrealism.🔬 СТИЛИЗАЦИЯ/🌫️ Vaporwave.🔬 СТИЛИЗАЦИЯ/🎲 Glitch Art.🔬 СТИЛИЗАЦИЯ/💎 Steampunk.🔬 СТИЛИЗАЦИЯ/🌸 Kawaii.🔬 СТИЛИЗАЦИЯ/🦋 Morbid.🔬 СТИЛИЗАЦИЯ/🔮 Mystical.🔬 СТИЛИЗАЦИЯ/🎪 Circus Noir.💥 КОМИКС/🎬 Dynamic Cel-Shaded.💥 КОМИКС/🎌 Manga Screen-tone.💥 КОМИКС/💥 Action Comic.💥 КОМИКС/📜 Comic Cover.💥 КОМИКС/🤖 Киберпанк-комикс.💥 КОМИКС/💡 Неон-комикс.💥 КОМИКС/💋 Пин-ап комикс.💥 КОМИКС/📼 Ретро-комикс.💥 КОМИКС/⚙️ Стимпанк-комикс.💥 КОМИКС/⚰️ Готический комикс.💥 КОМИКС/👑 Барокко-комикс.💥 КОМИКС/⚫ Блэк-энд-уайт.🦾 КИБЕРПАНК/🎮 Mecha Pilot.🦾 КИБЕРПАНК/⚛️ Nanopunk Swarm.🦾 КИБЕРПАНК/💉 Neon Tattoos.🦾 КИБЕРПАНК/🤖 Flesh-to-Steel Fusion.🦾 КИБЕРПАНК/💊 Neuro-Interface.🦾 КИБЕРПАНК/🩸 Bio-Corroded Tech.👾 ДИДЖИТАЛ/🏄 Vaporwave Cyber.👾 ДИДЖИТАЛ/👓 Anaglyph Red-Blue.👾 ДИДЖИТАЛ/🔆 Octane Render.👾 ДИДЖИТАЛ/🌅 Synthwave Art.👾 ДИДЖИТАЛ/💧 Molten Liquid Chrome.👾 ДИДЖИТАЛ/🖥️ Holographic UI.👾 ДИДЖИТАЛ/📺 Киберпоп.👾 ДИДЖИТАЛ/🎨 Коллаж-арт.👾 ДИДЖИТАЛ/🔀 Сегментация-арт.👾 ДИДЖИТАЛ/🎭 Постер-арт.👾 ДИДЖИТАЛ/🚗 Лоурайдер-арт.💻 ЦИФРОВАЯ/🌃 Neon Cyberpunk City Rain.💻 ЦИФРОВАЯ/🚗 Retro Anime JDM Car Wallpaper.💻 ЦИФРОВАЯ/🏍️ Anime Motorcycle Action Poster.💻 ЦИФРОВАЯ/🌇 Electric Sunset Sci-Fi Landscape.💻 ЦИФРОВАЯ/🔮 Crystal Overload Sci-Fi.💻 ЦИФРОВАЯ/🧊 Cold Blue Anime Macro.💻 ЦИФРОВАЯ/🌊 Soft Water Reflection Anime.💻 ЦИФРОВАЯ/🌌 Lofi Anime City Melancholy.💻 ЦИФРОВАЯ/📼 Retro 90s Anime Cel.💻 ЦИФРОВАЯ/🎀 Cute Pink Anime Portrait.💻 ЦИФРОВАЯ/🐉 Fantasy Dragon Girl Anime.💻 ЦИФРОВАЯ/🚘 Night Street Car Cinematic.💻 ЦИФРОВАЯ/🪄 Sorceress Neon Ritual Anime.💻 ЦИФРОВАЯ/🎧 Moody Headphone Anime Girl.💻 ЦИФРОВАЯ/🏁 Street Racing Anime Poster.💻 ЦИФРОВАЯ/🍭 Soft Pastel Kawaii Car.💻 ЦИФРОВАЯ/🏙️ Urban Fashion Editorial Anime.💻 ЦИФРОВАЯ/🌫️ Atmospheric Sci-Fi Mist.💻 ЦИФРОВАЯ/🌆 Neo-Tokyo Anime Adventure.💻 ЦИФРОВАЯ/📱 Phone Wallpaper Vertical Sci-Fi.💻 ЦИФРОВАЯ/🎮 Anime Game Character Render.💻 ЦИФРОВАЯ/🧜 Ethereal Soft Fantasy Anime.💻 ЦИФРОВАЯ/🗡️ Dark Samurai Cyber Anime.💻 ЦИФРОВАЯ/🛰️ Holographic Interface Portrait.💻 ЦИФРОВАЯ/🧩 Abstract Cyber Shape Design.💻 ЦИФРОВАЯ/🚨 Warning Sign AI Robot Art.💻 ЦИФРОВАЯ/🖼️ Pinterest Vertical AI Art Mix.🔬 СТИЛИЗАЦИЯ/🖤 Dark Anime Witch Gothic.🔬 СТИЛИЗАЦИЯ/🩸 Vampire Red Eye Anime Noir.🔬 СТИЛИЗАЦИЯ/🎭 Hyperpop Character Illustration.🔬 СТИЛИЗАЦИЯ/🦇 Gothic Dark Fantasy Portrait.🔬 СТИЛИЗАЦИЯ/🌹 Dark Floral Gothic Editorial.🔬 СТИЛИЗАЦИЯ/🫧 Iridescent Hologram Fashion.🔬 СТИЛИЗАЦИЯ/🧛 Crimson Gothic Beauty.🔬 СТИЛИЗАЦИЯ/🌠 Cosmic Dream Girl.🔬 СТИЛИЗАЦИЯ/💿 Holographic Y2K Pop Star.🔬 СТИЛИЗАЦИЯ/🛸 Alien Fashion Runway.🔬 СТИЛИЗАЦИЯ/🏴 Black Armor Dark Fantasy.🔬 СТИЛИЗАЦИЯ/🕯️ Occult Black Magic Anime.🔬 СТИЛИЗАЦИЯ/🕳️ Black Void High Contrast.🔬 СТИЛИЗАЦИЯ/🧱 Gritty Post-Apocalyptic Casual.🔬 СТИЛИЗАЦИЯ/🔥 Red Smoke Dark Character.🔬 СТИЛИЗАЦИЯ/💎 Prismatic Neon Reflections.🔬 СТИЛИЗАЦИЯ/🪞 Glossy Black Latex Cyber.🔬 СТИЛИЗАЦИЯ/🌸 Bloom Soft Girl Aesthetic.💥 КОМИКС/🕷️ Symbiote Venom Comic Ink.💥 КОМИКС/⚡ Aggressive Comic Ink Splash.💥 КОМИКС/🧨 Dynamic Superhero Splash.🦾 КИБЕРПАНК/🤖 Chrome Cyborg Hyperrealism.🦾 КИБЕРПАНК/🦾 Cybernetic Arm Concept Art.🦾 КИБЕРПАНК/🧠 Biomechanical Body Horror.🦾 КИБЕРПАНК/🕶️ Teal Gold Cyberpunk Noir Portrait.🦾 КИБЕРПАНК/🧬 Synthetic Skin Android Portrait.🦾 КИБЕРПАНК/🦾 White Android Minimal Portrait.🦾 КИБЕРПАНК/🩶 Industrial Female Cyborg Portrait.🦾 КИБЕРПАНК/🫀Bio-Mechanical Core Portrait.🦾 КИБЕРПАНК/🧬 Android Anatomy Cutaway.🦾 КИБЕРПАНК/🦋 Angelic Cyber Feminine.🦾 КИБЕРПАНК/🧡 Golden Mechanical Portrait.🦾 КИБЕРПАНК/🪦 Melancholic Robot Portrait.🦾 КИБЕРПАНК/🩻 X-Ray Skeleton Cyber Anime".split("."),
+						values: /* @__PURE__ */ "(None).📷 КАМЕРЫ/📷 Disposable 90s.📷 КАМЕРЫ/📸 Polaroid 600.📷 КАМЕРЫ/📷 Hasselblad 70mm.📷 КАМЕРЫ/🕳️ Pinhole Obscura.📷 КАМЕРЫ/📹 CCTV surveillance.📷 КАМЕРЫ/🚓 Police Dashcam.📷 КАМЕРЫ/📱 Smartphone Computational.📷 КАМЕРЫ/⚡ Direct Flash Night.📷 КАМЕРЫ/🎞️ Raw 35mm Photo.📐 МОДИФИКАТОРЫ/🛩️ Drone Photo.📐 МОДИФИКАТОРЫ/🔭 Ultra Wide 12mm.📐 МОДИФИКАТОРЫ/🌐 Fisheye Lens.📐 МОДИФИКАТОРЫ/📐 Dutch Angle.📐 МОДИФИКАТОРЫ/📹 GoPro POV Action.🎬 КИНО/🎞️ IMAX Production.🎬 КИНО/🌑 Film Noir.🎬 КИНО/🌈 Technicolor 50s.🎬 КИНО/📷 Anamorphic Wide.🎬 КИНО/🎬 Gangster Cinema.⏱️ ЗАХВАТ/💫 Motion Blur.⏱️ ЗАХВАТ/📸 Action Freeze.⏱️ ЗАХВАТ/🎞️ Slo-Mo Bullet Time.🕰️ РЕТРО/🎞️ Vintage 70s Portra.🕰️ РЕТРО/🌆 Cinestill 800T Halation.🕰️ РЕТРО/⬛ Tri-X Push 1600.🕰️ РЕТРО/🖨️ Scanned Print.🕰️ РЕТРО/🪞 Daguerreotype.🕰️ РЕТРО/🧪 Wet Plate Collodion.🕰️ РЕТРО/🟤 Sepia Nostalgia.🕰️ РЕТРО/🎸 Rockabilly 50s.🕰️ РЕТРО/🎩 Gilded Gangster.🕰️ РЕТРО/🎬 Nostalgic 8mm.🏠 ИНТЕРЬЕР/🏭 Loft Industrial.🏠 ИНТЕРЬЕР/🌻 Provence Rustic.🏠 ИНТЕРЬЕР/🕉️ Boho Chic.🏠 ИНТЕРЬЕР/🌿 Eco-Style Design.🏠 ИНТЕРЬЕР/👑 Baroque Ornate.🏠 ИНТЕРЬЕР/⬜ Minimalism.🏠 ИНТЕРЬЕР/🏡 Country House.👗 ФЭШН/📸 Editorial Vogue.👗 ФЭШН/👤 Portrait Bokeh.👗 ФЭШН/✨ Glamour Glow.👗 ФЭШН/🖤 Chanel Aesthetic.👗 ФЭШН/💋 Pin-up Style.👗 ФЭШН/👔 Business Pro.👗 ФЭШН/👠 Fashion Runway.👗 ФЭШН/🛍️ Street Fashion.🏙️ СРЕДА/🌃 Cyberpunk Neon.🏙️ СРЕДА/🌧️ Rainy Neon Noir.🏙️ СРЕДА/🌫️ Foggy Neon Noir.🏙️ СРЕДА/🏚️ Dystopian Megacity.🏙️ СРЕДА/🧱 Urban Grunge.🏙️ СРЕДА/📷 Street Candid.🏙️ СРЕДА/🌅 Magic Hour.🏙️ СРЕДА/☔ Rain Monsoon Puddle.🏙️ СРЕДА/🇬🇧 London Smog.🏜️ ЖАНРЫ/🏔️ Пейзажный Landscape.🏜️ ЖАНРЫ/🦁 Nat Geo Scale.🏜️ ЖАНРЫ/🔬 Macro Micro-world.🏜️ ЖАНРЫ/🌌 Astro Cosmic.🏜️ ЖАНРЫ/✈️ Travel Adventure.🏜️ ЖАНРЫ/🪶 Ethnic Spirit.🏜️ ЖАНРЫ/🏜️ Saharan Mirage.📸 РЕПОРТАЖ/☕ Lifestyle Moment.📸 РЕПОРТАЖ/📋 Documentary Truth.📸 РЕПОРТАЖ/💼 Stock Quality.🧪 ЭФФЕКТЫ/🤖 Holographic HUD.🧪 ЭФФЕКТЫ/💡 Hard Rim Neon.🧪 ЭФФЕКТЫ/🎨 Chromatic Aberration.🧪 ЭФФЕКТЫ/💎 Prism Optical Fracture.🧪 ЭФФЕКТЫ/🌫️ Volumetric Tyndall Dust.🧪 ЭФФЕКТЫ/📼 Expired Chemical Leak.🧪 ЭФФЕКТЫ/☀️ High-Key Airy.🧪 ЭФФЕКТЫ/🌈 HDR Dynamic.🧪 ЭФФЕКТЫ/🕯️ Candlelit Mood.🧪 ЭФФЕКТЫ/🔴 Infrared Surreal.🦾 КИБЕРПАНК/📱 Sleek White Android.🦾 КИБЕРПАНК/🪞 Chrome Android.🦾 КИБЕРПАНК/💉 Wirehead Junkie.🦾 КИБЕРПАНК/🏢 Corpo-Cyborg.🦾 КИБЕРПАНК/🎖️ Military Cyborg.🦾 КИБЕРПАНК/⚔️ Cyber-Samurai.🦾 КИБЕРПАНК/🧬 Biomechanical Giger.🦾 КИБЕРПАНК/🧪 Biopunk Organic.🦾 КИБЕРПАНК/🌱 Solarpunk Hybrid.🦾 КИБЕРПАНК/💀 Post-Apoc Cyber.🦾 КИБЕРПАНК/🌃 Neon Cyberpunk City Rain.🦾 КИБЕРПАНК/🚗 JDM Neon Street Racer.🦾 КИБЕРПАНК/🌇 Electric Sunset Megacity.🦾 КИБЕРПАНК/🛰️ Holographic Interface Portrait.🦾 КИБЕРПАНК/🗡️ Dark Samurai Street.🦾 КИБЕРПАНК/🤖 Chrome Cyborg Hyperrealism.🦾 КИБЕРПАНК/🦾 Cybernetic Arm Close-Up.🦾 КИБЕРПАНК/🧠 Biomechanical Horror Realism.🦾 КИБЕРПАНК/🕶️ Teal Gold Cyber Noir Portrait.🦾 КИБЕРПАНК/🧬 Synthetic Skin Android Portrait.🦾 КИБЕРПАНК/🤍 White Android Minimal Studio.🦾 КИБЕРПАНК/🏭 Industrial Cyborg Portrait.🦾 КИБЕРПАНК/🫀 Bio-Mechanical Core.🦾 КИБЕРПАНК/🧩 Android Anatomy Cutaway.🦾 КИБЕРПАНК/🧡 Golden Mechanical Luxury.🦾 КИБЕРПАНК/🪦 Melancholic Robot Portrait.🦾 КИБЕРПАНК/🩻 X-Ray Cyber Radiograph.🦾 КИБЕРПАНК/💎 Prismatic Neon Reflections.🦾 КИБЕРПАНК/🪞 Molten Liquid Chrome Realism.🦾 КИБЕРПАНК/🌫️ Atmospheric Sci-Fi Mist.🧪 ЭФФЕКТЫ/📡 Тесла-катушка.🧪 ЭФФЕКТЫ/🪞 Зеркальный мир.🧪 ЭФФЕКТЫ/📺 CRT Scanlines.🧪 ЭФФЕКТЫ/🔦 Полицейский прожектор.🧪 ЭФФЕКТЫ/🌊 Цифровой муар.🧪 ЭФФЕКТЫ/🫧 Мыльные пузыри.🧪 ЭФФЕКТЫ/🕶️ Солнечное затмение.🧪 ЭФФЕКТЫ/📠 Факс-аппарат.🧪 ЭФФЕКТЫ/🟣 UV Fluorescence.🧪 ЭФФЕКТЫ/💥 High-Speed Shatter.🧪 ЭФФЕКТЫ/🎨 Light Painting.🧪 ЭФФЕКТЫ/👯 Double Exposure.🧪 ЭФФЕКТЫ/🌑 Silhouette Drama.🧪 ЭФФЕКТЫ/🧊 Absolute Zero.🧪 ЭФФЕКТЫ/⚒️ Forgemaster Heat.🧪 ЭФФЕКТЫ/🌡️ Thermal Imager.🧪 ЭФФЕКТЫ/☢️ X-Ray Radiograph.🧪 ЭФФЕКТЫ/🌊 Bioluminescence.🧪 ЭФФЕКТЫ/💡 Rembrandt Key Light.🧪 ЭФФЕКТЫ/🎭 Hard Chiaroscuro.🧪 ЭФФЕКТЫ/🔬 Electron Micro.🗺️ СЦЕНЫ/🎪 Circus Big Top.🗺️ СЦЕНЫ/🛁 Bathroom Mirror.🗺️ СЦЕНЫ/🔮 Crystal Ball.🗺️ СЦЕНЫ/🖼️ Art Gallery.🗺️ СЦЕНЫ/🛒 Grocery Store.🗺️ СЦЕНЫ/🛩️ Airplane Window.🗺️ СЦЕНЫ/🎢 Amusement Park.🗺️ СЦЕНЫ/🌊 Ocean Wave.🗺️ СЦЕНЫ/🏊 Swimming Pool.🗺️ СЦЕНЫ/🏜️ Desert Road.🗺️ СЦЕНЫ/🍄 Fairy Forest.🗺️ СЦЕНЫ/🗿 Ancient Ruins.🗺️ СЦЕНЫ/🎹 Piano Studio.🗺️ СЦЕНЫ/🧖 Spa Towel.🗺️ СЦЕНЫ/📚 Library Shelf.🗺️ СЦЕНЫ/🪜 Construction Site.🗺️ СЦЕНЫ/🏚️ Abandoned Building.🗺️ СЦЕНЫ/🖤 Black Light Party.🗺️ СЦЕНЫ/🏮 Lantern Festival.🗺️ СЦЕНЫ/🔦 Flashlight Beam.🗺️ СЦЕНЫ/🏺 Pottery Studio.🗺️ СЦЕНЫ/🕯️ Candle Meditation.🗺️ СЦЕНЫ/🪴 Plant Nursery.🗺️ СЦЕНЫ/🎤 Recording Studio.🗺️ СЦЕНЫ/🧸 Cozy Bedroom.🗺️ СЦЕНЫ/🏗️ Skyscraper Edge.🗺️ СЦЕНЫ/🍳 Kitchen Morning.🗺️ СЦЕНЫ/⛺ Campfire Night.🗺️ СЦЕНЫ/🧗 Rock Climbing.🗺️ СЦЕНЫ/🛒 Vintage Store.🗺️ СЦЕНЫ/🌉 Golden Gate.🗺️ СЦЕНЫ/🛁 Rainy Window.🗺️ СЦЕНЫ/🪐 Neon Desert.🗺️ СЦЕНЫ/🥾 Hiking Trail.🗺️ СЦЕНЫ/🌾 Rice Terraces.🗺️ СЦЕНЫ/🛀 Floating Bath.📸 СТУДИЯ/📸 Studio Elite.📸 СТУДИЯ/✨ Glamour Core.📸 СТУДИЯ/🛋️ Boudoir.📸 СТУДИЯ/🌅 Morning Boudoir.📸 СТУДИЯ/👙 Fashion Lingerie.🏠 ИНТЕРЬЕР/🛏️ Bedroom Intimate.🏠 ИНТЕРЬЕР/🚿 Shower Scene.🏠 ИНТЕРЬЕР/🛁 Bath Scene.🏠 ИНТЕРЬЕР/🪞 Vanity Mirror.🏠 ИНТЕРЬЕР/🛋️ Living Room.🌿 ПРИРОДА/🌊 Beach Sunset.🌿 ПРИРОДА/🌲 Forest Glade.🌿 ПРИРОДА/🌸 Garden Path.🌿 ПРИРОДА/⛺ Private Pool.🎭 ФЭШН/💋 Beauty Close-up.🎭 ФЭШН/📸 Fashion Editorial.🎭 ФЭШН/👗 Dressed to Kill.🎭 ФЭШН/🩱 Swimsuit Campaign.🌑 НУАР/⛓️ Fetish Noir.🌑 НУАР/🛏️ Bedroom.🌑 НУАР/🎭 Venetian Velvet.🌑 НУАР/🔦 Interrogation Room.🌑 НУАР/🎪 Carnival.🌑 НУАР/⚰️ Gothic Romance.🌑 НУАР/🧛 Vampire Gothic.🌑 НУАР/🌑 Intimate Shadows.🛀 ТЕКСТУРЫ/💦 Wet Skin.🛀 ТЕКСТУРЫ/🫒 Wet & Glossy.🛀 ТЕКСТУРЫ/🛁 Steamy Bathtub.🛀 ТЕКСТУРЫ/🥛 Milk Bath Editorial.🛀 ТЕКСТУРЫ/🚿 Frosted Glass Shower.🛀 ТЕКСТУРЫ/🌊 Underwater Weightless.🛀 ТЕКСТУРЫ/🎨 Nude Aesthetic.🛀 ТЕКСТУРЫ/👘 Silk & Lace.🛀 ТЕКСТУРЫ/🕸️ Spiderweb Silk.🏙️ ЛОКАЦИИ/🤳 Amateur POV.🏙️ ЛОКАЦИИ/📹 Amateur Real.🏙️ ЛОКАЦИИ/🪩 Nightclub Dark.🏙️ ЛОКАЦИИ/🏖️ Beach Sensual.🏙️ ЛОКАЦИИ/☔ Neon Rain Cyberpunk.🏙️ ЛОКАЦИИ/🚗 Backseat Tryst.🏙️ ЛОКАЦИИ/🏨 Hotel Room Neon.🏙️ ЛОКАЦИИ/❄️ Winter Cabin.🏙️ ЛОКАЦИИ/🏜️ Desert Oasis.🏙️ ЛОКАЦИИ/🏙️ Skyscraper Penthouse.🏙️ ЛОКАЦИИ/🔧 Garage Oil & Chrome.🦾 КИБЕРПАНК/🌃 Neon Alley Exposure.🦾 КИБЕРПАНК/🤖 Chrome Implant Nude.🦾 КИБЕРПАНК/🧬 Synthetic Skin Android Nude.🦾 КИБЕРПАНК/🪩 Holographic Strip Club.🦾 КИБЕРПАНК/🩺 Ripperdoc Aftercare.🦾 КИБЕРПАНК/⛓️ Cyber Latex Dungeon.🦾 КИБЕРПАНК/🌧️ Rain-Slick Rooftop Nude.🦾 КИБЕРПАНК/📹 Backroom Neon POV.🦾 КИБЕРПАНК/🚦 Red-Light District Android.🦾 КИБЕРПАНК/🪞 Augmented Mirror Selfie.🦾 КИБЕРПАНК/💡 Bioluminescent Body Ports.🦾 КИБЕРПАНК/🏙️ Drone-Lit Penthouse Nude.🦾 КИБЕРПАНК/🚿 Wet Chrome Shower Pod.🦾 КИБЕРПАНК/🎤 Virtual Idol Dressing Room.🦾 КИБЕРПАНК/🩻 Holo-Tattoo Nude Scan.🦾 КИБЕРПАНК/🫧 Glass Capsule Display.🦾 КИБЕРПАНК/🏍️ Neon Motorcycle Garage.🦾 КИБЕРПАНК/🟣 Blacklight Cyber Boudoir.🦾 КИБЕРПАНК/🖥️ Server Room Heat.🦾 КИБЕРПАНК/💎 Prismatic Implant Glamour.🎨 ЖИВОПИСЬ/🖌️ Impasto Oil.🎨 ЖИВОПИСЬ/💧 Wet Watercolor.🎨 ЖИВОПИСЬ/🔪 Palette Knife.🎨 ЖИВОПИСЬ/🌸 Ghibli Inspired.🎨 ЖИВОПИСЬ/🗿 Classical Marble.🎨 ЖИВОПИСЬ/🎭 Baroque Drama.🎨 ЖИВОПИСЬ/🖼️ Renaissance.🎨 ЖИВОПИСЬ/🎪 Impressionist.🎨 ЖИВОПИСЬ/🖌️ Asian Ink.🎨 ЖИВОПИСЬ/🖌️ Sumi-e.✏️ ГРАФИКА/✏️ Pencil Sketch.✏️ ГРАФИКА/🖊️ Ink Illustration.✏️ ГРАФИКА/🖍️ Charcoal Drawing.✏️ ГРАФИКА/✏️ Graphite Study.✏️ ГРАФИКА/🖋️ Pen & Ink.💻 ЦИФРОВАЯ/👾 Pixel Art.💻 ЦИФРОВАЯ/📐 Vector Art.💻 ЦИФРОВАЯ/🎨 Digital Painting.💻 ЦИФРОВАЯ/🤖 AI Art Style.💻 ЦИФРОВАЯ/🌆 Concept Art.💻 ЦИФРОВАЯ/🏮 Anime Style.💻 ЦИФРОВАЯ/🗾 Manga Style.💻 ЦИФРОВАЯ/🎮 Game UI.💻 ЦИФРОВАЯ/🎲 Tabletop RPG.🏛️ ИСТОРИЯ/🏺 Ancient Egyptian.🏛️ ИСТОРИЯ/🏛️ Greek Classical.🏛️ ИСТОРИЯ/🗿 Roman Bust.🏛️ ИСТОРИЯ/🖼️ Medieval Icon.🏛️ ИСТОРИЯ/⚔️ Viking Art.🏛️ ИСТОРИЯ/🏰 Art Nouveau.🏛️ ИСТОРИЯ/🎭 Art Deco.🔬 СТИЛИЗАЦИЯ/🔍 Hyperrealism.🔬 СТИЛИЗАЦИЯ/🌫️ Vaporwave.🔬 СТИЛИЗАЦИЯ/🎲 Glitch Art.🔬 СТИЛИЗАЦИЯ/💎 Steampunk.🔬 СТИЛИЗАЦИЯ/🌸 Kawaii.🔬 СТИЛИЗАЦИЯ/🦋 Morbid.🔬 СТИЛИЗАЦИЯ/🔮 Mystical.🔬 СТИЛИЗАЦИЯ/🎪 Circus Noir.💥 КОМИКС/🎬 Dynamic Cel-Shaded.💥 КОМИКС/🎌 Manga Screen-tone.💥 КОМИКС/💥 Action Comic.💥 КОМИКС/📜 Comic Cover.💥 КОМИКС/🤖 Киберпанк-комикс.💥 КОМИКС/💡 Неон-комикс.💥 КОМИКС/💋 Пин-ап комикс.💥 КОМИКС/📼 Ретро-комикс.💥 КОМИКС/⚙️ Стимпанк-комикс.💥 КОМИКС/⚰️ Готический комикс.💥 КОМИКС/👑 Барокко-комикс.💥 КОМИКС/⚫ Блэк-энд-уайт.🦾 КИБЕРПАНК/🎮 Mecha Pilot.🦾 КИБЕРПАНК/⚛️ Nanopunk Swarm.🦾 КИБЕРПАНК/💉 Neon Tattoos.🦾 КИБЕРПАНК/🤖 Flesh-to-Steel Fusion.🦾 КИБЕРПАНК/💊 Neuro-Interface.🦾 КИБЕРПАНК/🩸 Bio-Corroded Tech.👾 ДИДЖИТАЛ/🏄 Vaporwave Cyber.👾 ДИДЖИТАЛ/👓 Anaglyph Red-Blue.👾 ДИДЖИТАЛ/🔆 Octane Render.👾 ДИДЖИТАЛ/🌅 Synthwave Art.👾 ДИДЖИТАЛ/💧 Molten Liquid Chrome.👾 ДИДЖИТАЛ/🖥️ Holographic UI.👾 ДИДЖИТАЛ/📺 Киберпоп.👾 ДИДЖИТАЛ/🎨 Коллаж-арт.👾 ДИДЖИТАЛ/🔀 Сегментация-арт.👾 ДИДЖИТАЛ/🎭 Постер-арт.👾 ДИДЖИТАЛ/🚗 Лоурайдер-арт.💻 ЦИФРОВАЯ/🌃 Neon Cyberpunk City Rain.💻 ЦИФРОВАЯ/🚗 Retro Anime JDM Car Wallpaper.💻 ЦИФРОВАЯ/🏍️ Anime Motorcycle Action Poster.💻 ЦИФРОВАЯ/🌇 Electric Sunset Sci-Fi Landscape.💻 ЦИФРОВАЯ/🔮 Crystal Overload Sci-Fi.💻 ЦИФРОВАЯ/🧊 Cold Blue Anime Macro.💻 ЦИФРОВАЯ/🌊 Soft Water Reflection Anime.💻 ЦИФРОВАЯ/🌌 Lofi Anime City Melancholy.💻 ЦИФРОВАЯ/📼 Retro 90s Anime Cel.💻 ЦИФРОВАЯ/🎀 Cute Pink Anime Portrait.💻 ЦИФРОВАЯ/🐉 Fantasy Dragon Girl Anime.💻 ЦИФРОВАЯ/🚘 Night Street Car Cinematic.💻 ЦИФРОВАЯ/🪄 Sorceress Neon Ritual Anime.💻 ЦИФРОВАЯ/🎧 Moody Headphone Anime Girl.💻 ЦИФРОВАЯ/🏁 Street Racing Anime Poster.💻 ЦИФРОВАЯ/🍭 Soft Pastel Kawaii Car.💻 ЦИФРОВАЯ/🏙️ Urban Fashion Editorial Anime.💻 ЦИФРОВАЯ/🌫️ Atmospheric Sci-Fi Mist.💻 ЦИФРОВАЯ/🌆 Neo-Tokyo Anime Adventure.💻 ЦИФРОВАЯ/📱 Phone Wallpaper Vertical Sci-Fi.💻 ЦИФРОВАЯ/🎮 Anime Game Character Render.💻 ЦИФРОВАЯ/🧜 Ethereal Soft Fantasy Anime.💻 ЦИФРОВАЯ/🗡️ Dark Samurai Cyber Anime.💻 ЦИФРОВАЯ/🛰️ Holographic Interface Portrait.💻 ЦИФРОВАЯ/🧩 Abstract Cyber Shape Design.💻 ЦИФРОВАЯ/🚨 Warning Sign AI Robot Art.💻 ЦИФРОВАЯ/🖼️ Pinterest Vertical AI Art Mix.🔬 СТИЛИЗАЦИЯ/🖤 Dark Anime Witch Gothic.🔬 СТИЛИЗАЦИЯ/🩸 Vampire Red Eye Anime Noir.🔬 СТИЛИЗАЦИЯ/🎭 Hyperpop Character Illustration.🔬 СТИЛИЗАЦИЯ/🦇 Gothic Dark Fantasy Portrait.🔬 СТИЛИЗАЦИЯ/🌹 Dark Floral Gothic Editorial.🔬 СТИЛИЗАЦИЯ/🫧 Iridescent Hologram Fashion.🔬 СТИЛИЗАЦИЯ/🧛 Crimson Gothic Beauty.🔬 СТИЛИЗАЦИЯ/🌠 Cosmic Dream Girl.🔬 СТИЛИЗАЦИЯ/💿 Holographic Y2K Pop Star.🔬 СТИЛИЗАЦИЯ/🛸 Alien Fashion Runway.🔬 СТИЛИЗАЦИЯ/🏴 Black Armor Dark Fantasy.🔬 СТИЛИЗАЦИЯ/🕯️ Occult Black Magic Anime.🔬 СТИЛИЗАЦИЯ/🕳️ Black Void High Contrast.🔬 СТИЛИЗАЦИЯ/🧱 Gritty Post-Apocalyptic Casual.🔬 СТИЛИЗАЦИЯ/🔥 Red Smoke Dark Character.🔬 СТИЛИЗАЦИЯ/💎 Prismatic Neon Reflections.🔬 СТИЛИЗАЦИЯ/🪞 Glossy Black Latex Cyber.🔬 СТИЛИЗАЦИЯ/🌸 Bloom Soft Girl Aesthetic.💥 КОМИКС/🕷️ Symbiote Venom Comic Ink.💥 КОМИКС/⚡ Aggressive Comic Ink Splash.💥 КОМИКС/🧨 Dynamic Superhero Splash.🦾 КИБЕРПАНК/🦾 Cybernetic Arm Concept Art.🦾 КИБЕРПАНК/🧠 Biomechanical Body Horror.🦾 КИБЕРПАНК/🕶️ Teal Gold Cyberpunk Noir Portrait.🦾 КИБЕРПАНК/🦾 White Android Minimal Portrait.🦾 КИБЕРПАНК/🩶 Industrial Female Cyborg Portrait.🦾 КИБЕРПАНК/🫀Bio-Mechanical Core Portrait.🦾 КИБЕРПАНК/🧬 Android Anatomy Cutaway.🦾 КИБЕРПАНК/🦋 Angelic Cyber Feminine.🦾 КИБЕРПАНК/🧡 Golden Mechanical Portrait.🦾 КИБЕРПАНК/🩻 X-Ray Skeleton Cyber Anime.🎨 ИЛЛЮСТРАЦИЯ/🖌️ Pro Hentai.🎨 ИЛЛЮСТРАЦИЯ/💎 Premium Hentai.🎨 ИЛЛЮСТРАЦИЯ/🌸 Anime Ecchi.🎨 ИЛЛЮСТРАЦИЯ/🦸 Western Adult.🎨 ИЛЛЮСТРАЦИЯ/🎯 Digital Pin-up.💻 ЦИФРОВАЯ/🧊 3D Render.💻 ЦИФРОВАЯ/🖥️ CGI.💻 ЦИФРОВАЯ/🤖 AI Generated.📜 КЛАССИКА/🖼️ Baroque Nude.📜 КЛАССИКА/🏛️ Academic Nude.📜 КЛАССИКА/🎭 Impressionist Nude.🎯 ЖАНРЫ/🔞 Explicit.🎯 ЖАНРЫ/🎭 Sensual Art.🎯 ЖАНРЫ/📸 Fetish Art.🎨 ИЛЛЮСТРАЦИЯ/🎭 Kabuki Demon.🎨 ИЛЛЮСТРАЦИЯ/🌺 Tropical Adult.🎨 ИЛЛЮСТРАЦИЯ/🌿 Botanical Nymph.🖌️ ЖИВОПИСЬ/👼 Renaissance Oil.🖌️ ЖИВОПИСЬ/🔪 Thick Impasto.🖌️ ЖИВОПИСЬ/💧 Watercolor Soft.🖌️ ЖИВОПИСЬ/🎨 Artistic Nude.🖌️ ЖИВОПИСЬ/🛢️ Oil Painting.✒️ СКЕТЧ/✒️ Ink Erotica.✒️ СКЕТЧ/🦴 Raw Anatomy.✒️ СКЕТЧ/💀 Macabre Ink.🏰 ФЭНТЕЗИ/🧝 Dark Fantasy.🏰 ФЭНТЕЗИ/🧝 Dark Desire.🏰 ФЭНТЕЗИ/🏛️ Mythological Nude.🏰 ФЭНТЕЗИ/🌊 Aquatic Erotic.🏰 ФЭНТЕЗИ/🏜️ Dune Fantasy.🏰 ФЭНТЕЗИ/🧚 Fairy Tale.🏰 ФЭНТЕЗИ/🎨 NSFW Art.🚀 SCI-FI/🛸 Sci-Fi Adult.🚀 SCI-FI/🤖 Cyberpunk NSFW.🚀 SCI-FI/🦾 Mecha-Musume.🚀 SCI-FI/💎 Crystal Anatomy.🚀 SCI-FI/🌋 Lava Forged.🦾 КИБЕРПАНК/👽 Synthetic Skin.🦾 КИБЕРПАНК/👘 Cyber-Geisha.🦾 КИБЕРПАНК/⛓️ Chrome Bondage.🦾 КИБЕРПАНК/🧩 Fragmented Body.🦾 КИБЕРПАНК/💡 Glowing Fiber Optics.🕰️ РЕТРО/🎭 Retro Cabaret.🕰️ РЕТРО/🌿 Nouveau Adult.🕰️ РЕТРО/🌸 Shoujo Romance.🕰️ РЕТРО/📼 80s Anime OVA".split("."),
 						columns: null,
 						searchable: !0,
 						multiline: null,
@@ -8970,7 +9256,7 @@ var sg, cg = n((() => {
 						label: "Style 3",
 						default: "(None)",
 						tooltip: null,
-						values: /* @__PURE__ */ "(None).📷 КАМЕРЫ/📷 Disposable 90s.📷 КАМЕРЫ/📸 Polaroid 600.📷 КАМЕРЫ/📷 Hasselblad 70mm.📷 КАМЕРЫ/🕳️ Pinhole Obscura.📷 КАМЕРЫ/📹 CCTV surveillance.📷 КАМЕРЫ/🚓 Police Dashcam.📷 КАМЕРЫ/📱 Smartphone Computational.📷 КАМЕРЫ/⚡ Direct Flash Night.📷 КАМЕРЫ/🎞️ Raw 35mm Photo.📐 МОДИФИКАТОРЫ/🛩️ Drone Photo.📐 МОДИФИКАТОРЫ/🔭 Ultra Wide 12mm.📐 МОДИФИКАТОРЫ/🌐 Fisheye Lens.📐 МОДИФИКАТОРЫ/📐 Dutch Angle.📐 МОДИФИКАТОРЫ/📹 GoPro POV Action.🎬 КИНО/🎞️ IMAX Production.🎬 КИНО/🌑 Film Noir.🎬 КИНО/🌈 Technicolor 50s.🎬 КИНО/📷 Anamorphic Wide.🎬 КИНО/🎬 Gangster Cinema.⏱️ ЗАХВАТ/💫 Motion Blur.⏱️ ЗАХВАТ/📸 Action Freeze.⏱️ ЗАХВАТ/🎞️ Slo-Mo Bullet Time.🕰️ РЕТРО/🎞️ Vintage 70s Portra.🕰️ РЕТРО/🌆 Cinestill 800T Halation.🕰️ РЕТРО/⬛ Tri-X Push 1600.🕰️ РЕТРО/🖨️ Scanned Print.🕰️ РЕТРО/🪞 Daguerreotype.🕰️ РЕТРО/🧪 Wet Plate Collodion.🕰️ РЕТРО/🟤 Sepia Nostalgia.🕰️ РЕТРО/🎸 Rockabilly 50s.🕰️ РЕТРО/🎩 Gilded Gangster.🕰️ РЕТРО/🎬 Nostalgic 8mm.🏠 ИНТЕРЬЕР/🏭 Loft Industrial.🏠 ИНТЕРЬЕР/🌻 Provence Rustic.🏠 ИНТЕРЬЕР/🕉️ Boho Chic.🏠 ИНТЕРЬЕР/🌿 Eco-Style Design.🏠 ИНТЕРЬЕР/👑 Baroque Ornate.🏠 ИНТЕРЬЕР/⬜ Minimalism.🏠 ИНТЕРЬЕР/🏡 Country House.👗 ФЭШН/📸 Editorial Vogue.👗 ФЭШН/👤 Portrait Bokeh.👗 ФЭШН/✨ Glamour Glow.👗 ФЭШН/🖤 Chanel Aesthetic.👗 ФЭШН/💋 Pin-up Style.👗 ФЭШН/👔 Business Pro.👗 ФЭШН/👠 Fashion Runway.👗 ФЭШН/🛍️ Street Fashion.🏙️ СРЕДА/🌃 Cyberpunk Neon.🏙️ СРЕДА/🌧️ Rainy Neon Noir.🏙️ СРЕДА/🌫️ Foggy Neon Noir.🏙️ СРЕДА/🏚️ Dystopian Megacity.🏙️ СРЕДА/🧱 Urban Grunge.🏙️ СРЕДА/📷 Street Candid.🏙️ СРЕДА/🌅 Magic Hour.🏙️ СРЕДА/☔ Rain Monsoon Puddle.🏙️ СРЕДА/🇬🇧 London Smog.🏜️ ЖАНРЫ/🏔️ Пейзажный Landscape.🏜️ ЖАНРЫ/🦁 Nat Geo Scale.🏜️ ЖАНРЫ/🔬 Macro Micro-world.🏜️ ЖАНРЫ/🌌 Astro Cosmic.🏜️ ЖАНРЫ/✈️ Travel Adventure.🏜️ ЖАНРЫ/🪶 Ethnic Spirit.🏜️ ЖАНРЫ/🏜️ Saharan Mirage.📸 РЕПОРТАЖ/☕ Lifestyle Moment.📸 РЕПОРТАЖ/📋 Documentary Truth.📸 РЕПОРТАЖ/💼 Stock Quality.🧪 ЭФФЕКТЫ/🤖 Holographic HUD.🧪 ЭФФЕКТЫ/💡 Hard Rim Neon.🧪 ЭФФЕКТЫ/🎨 Chromatic Aberration.🧪 ЭФФЕКТЫ/💎 Prism Optical Fracture.🧪 ЭФФЕКТЫ/🌫️ Volumetric Tyndall Dust.🧪 ЭФФЕКТЫ/📼 Expired Chemical Leak.🧪 ЭФФЕКТЫ/☀️ High-Key Airy.🧪 ЭФФЕКТЫ/🌈 HDR Dynamic.🧪 ЭФФЕКТЫ/🕯️ Candlelit Mood.🧪 ЭФФЕКТЫ/🔴 Infrared Surreal.🦾 КИБЕРПАНК/📱 Sleek White Android.🦾 КИБЕРПАНК/🪞 Chrome Android.🦾 КИБЕРПАНК/💉 Wirehead Junkie.🦾 КИБЕРПАНК/🏢 Corpo-Cyborg.🦾 КИБЕРПАНК/🎖️ Military Cyborg.🦾 КИБЕРПАНК/⚔️ Cyber-Samurai.🦾 КИБЕРПАНК/🧬 Biomechanical Giger.🦾 КИБЕРПАНК/🧪 Biopunk Organic.🦾 КИБЕРПАНК/🌱 Solarpunk Hybrid.🦾 КИБЕРПАНК/💀 Post-Apoc Cyber.🦾 КИБЕРПАНК/🌃 Neon Cyberpunk City Rain.🦾 КИБЕРПАНК/🚗 JDM Neon Street Racer.🦾 КИБЕРПАНК/🌇 Electric Sunset Megacity.🦾 КИБЕРПАНК/🛰️ Holographic Interface Portrait.🦾 КИБЕРПАНК/🗡️ Dark Samurai Street.🦾 КИБЕРПАНК/🤖 Chrome Cyborg Hyperrealism.🦾 КИБЕРПАНК/🦾 Cybernetic Arm Close-Up.🦾 КИБЕРПАНК/🧠 Biomechanical Horror Realism.🦾 КИБЕРПАНК/🕶️ Teal Gold Cyber Noir Portrait.🦾 КИБЕРПАНК/🧬 Synthetic Skin Android Portrait.🦾 КИБЕРПАНК/🤍 White Android Minimal Studio.🦾 КИБЕРПАНК/🏭 Industrial Cyborg Portrait.🦾 КИБЕРПАНК/🫀 Bio-Mechanical Core.🦾 КИБЕРПАНК/🧩 Android Anatomy Cutaway.🦾 КИБЕРПАНК/🧡 Golden Mechanical Luxury.🦾 КИБЕРПАНК/🪦 Melancholic Robot Portrait.🦾 КИБЕРПАНК/🩻 X-Ray Cyber Radiograph.🦾 КИБЕРПАНК/💎 Prismatic Neon Reflections.🦾 КИБЕРПАНК/🪞 Molten Liquid Chrome Realism.🦾 КИБЕРПАНК/🌫️ Atmospheric Sci-Fi Mist.🧪 ЭФФЕКТЫ/📡 Тесла-катушка.🧪 ЭФФЕКТЫ/🪞 Зеркальный мир.🧪 ЭФФЕКТЫ/📺 CRT Scanlines.🧪 ЭФФЕКТЫ/🔦 Полицейский прожектор.🧪 ЭФФЕКТЫ/🌊 Цифровой муар.🧪 ЭФФЕКТЫ/🫧 Мыльные пузыри.🧪 ЭФФЕКТЫ/🕶️ Солнечное затмение.🧪 ЭФФЕКТЫ/📠 Факс-аппарат.🧪 ЭФФЕКТЫ/🟣 UV Fluorescence.🧪 ЭФФЕКТЫ/💥 High-Speed Shatter.🧪 ЭФФЕКТЫ/🎨 Light Painting.🧪 ЭФФЕКТЫ/👯 Double Exposure.🧪 ЭФФЕКТЫ/🌑 Silhouette Drama.🧪 ЭФФЕКТЫ/🧊 Absolute Zero.🧪 ЭФФЕКТЫ/⚒️ Forgemaster Heat.🧪 ЭФФЕКТЫ/🌡️ Thermal Imager.🧪 ЭФФЕКТЫ/☢️ X-Ray Radiograph.🧪 ЭФФЕКТЫ/🌊 Bioluminescence.🧪 ЭФФЕКТЫ/💡 Rembrandt Key Light.🧪 ЭФФЕКТЫ/🎭 Hard Chiaroscuro.🧪 ЭФФЕКТЫ/🔬 Electron Micro.🗺️ СЦЕНЫ/🎪 Circus Big Top.🗺️ СЦЕНЫ/🛁 Bathroom Mirror.🗺️ СЦЕНЫ/🔮 Crystal Ball.🗺️ СЦЕНЫ/🖼️ Art Gallery.🗺️ СЦЕНЫ/🛒 Grocery Store.🗺️ СЦЕНЫ/🛩️ Airplane Window.🗺️ СЦЕНЫ/🎢 Amusement Park.🗺️ СЦЕНЫ/🌊 Ocean Wave.🗺️ СЦЕНЫ/🏊 Swimming Pool.🗺️ СЦЕНЫ/🏜️ Desert Road.🗺️ СЦЕНЫ/🍄 Fairy Forest.🗺️ СЦЕНЫ/🗿 Ancient Ruins.🗺️ СЦЕНЫ/🎹 Piano Studio.🗺️ СЦЕНЫ/🧖 Spa Towel.🗺️ СЦЕНЫ/📚 Library Shelf.🗺️ СЦЕНЫ/🪜 Construction Site.🗺️ СЦЕНЫ/🏚️ Abandoned Building.🗺️ СЦЕНЫ/🖤 Black Light Party.🗺️ СЦЕНЫ/🏮 Lantern Festival.🗺️ СЦЕНЫ/🔦 Flashlight Beam.🗺️ СЦЕНЫ/🏺 Pottery Studio.🗺️ СЦЕНЫ/🕯️ Candle Meditation.🗺️ СЦЕНЫ/🪴 Plant Nursery.🗺️ СЦЕНЫ/🎤 Recording Studio.🗺️ СЦЕНЫ/🧸 Cozy Bedroom.🗺️ СЦЕНЫ/🏗️ Skyscraper Edge.🗺️ СЦЕНЫ/🍳 Kitchen Morning.🗺️ СЦЕНЫ/⛺ Campfire Night.🗺️ СЦЕНЫ/🧗 Rock Climbing.🗺️ СЦЕНЫ/🛒 Vintage Store.🗺️ СЦЕНЫ/🌉 Golden Gate.🗺️ СЦЕНЫ/🛁 Rainy Window.🗺️ СЦЕНЫ/🪐 Neon Desert.🗺️ СЦЕНЫ/🥾 Hiking Trail.🗺️ СЦЕНЫ/🌾 Rice Terraces.🗺️ СЦЕНЫ/🛀 Floating Bath.🎨 ЖИВОПИСЬ/🖌️ Impasto Oil.🎨 ЖИВОПИСЬ/💧 Wet Watercolor.🎨 ЖИВОПИСЬ/🔪 Palette Knife.🎨 ЖИВОПИСЬ/🌸 Ghibli Inspired.🎨 ЖИВОПИСЬ/🗿 Classical Marble.🎨 ЖИВОПИСЬ/🎭 Baroque Drama.🎨 ЖИВОПИСЬ/🖼️ Renaissance.🎨 ЖИВОПИСЬ/🎪 Impressionist.🎨 ЖИВОПИСЬ/🖌️ Asian Ink.🎨 ЖИВОПИСЬ/🖌️ Sumi-e.✏️ ГРАФИКА/✏️ Pencil Sketch.✏️ ГРАФИКА/🖊️ Ink Illustration.✏️ ГРАФИКА/🖍️ Charcoal Drawing.✏️ ГРАФИКА/✏️ Graphite Study.✏️ ГРАФИКА/🖋️ Pen & Ink.💻 ЦИФРОВАЯ/👾 Pixel Art.💻 ЦИФРОВАЯ/📐 Vector Art.💻 ЦИФРОВАЯ/🎨 Digital Painting.💻 ЦИФРОВАЯ/🤖 AI Art Style.💻 ЦИФРОВАЯ/🌆 Concept Art.💻 ЦИФРОВАЯ/🏮 Anime Style.💻 ЦИФРОВАЯ/🗾 Manga Style.💻 ЦИФРОВАЯ/🎮 Game UI.💻 ЦИФРОВАЯ/🎲 Tabletop RPG.🏛️ ИСТОРИЯ/🏺 Ancient Egyptian.🏛️ ИСТОРИЯ/🏛️ Greek Classical.🏛️ ИСТОРИЯ/🗿 Roman Bust.🏛️ ИСТОРИЯ/🖼️ Medieval Icon.🏛️ ИСТОРИЯ/⚔️ Viking Art.🏛️ ИСТОРИЯ/🏰 Art Nouveau.🏛️ ИСТОРИЯ/🎭 Art Deco.🔬 СТИЛИЗАЦИЯ/🔍 Hyperrealism.🔬 СТИЛИЗАЦИЯ/🌫️ Vaporwave.🔬 СТИЛИЗАЦИЯ/🎲 Glitch Art.🔬 СТИЛИЗАЦИЯ/💎 Steampunk.🔬 СТИЛИЗАЦИЯ/🌸 Kawaii.🔬 СТИЛИЗАЦИЯ/🦋 Morbid.🔬 СТИЛИЗАЦИЯ/🔮 Mystical.🔬 СТИЛИЗАЦИЯ/🎪 Circus Noir.💥 КОМИКС/🎬 Dynamic Cel-Shaded.💥 КОМИКС/🎌 Manga Screen-tone.💥 КОМИКС/💥 Action Comic.💥 КОМИКС/📜 Comic Cover.💥 КОМИКС/🤖 Киберпанк-комикс.💥 КОМИКС/💡 Неон-комикс.💥 КОМИКС/💋 Пин-ап комикс.💥 КОМИКС/📼 Ретро-комикс.💥 КОМИКС/⚙️ Стимпанк-комикс.💥 КОМИКС/⚰️ Готический комикс.💥 КОМИКС/👑 Барокко-комикс.💥 КОМИКС/⚫ Блэк-энд-уайт.🦾 КИБЕРПАНК/🎮 Mecha Pilot.🦾 КИБЕРПАНК/⚛️ Nanopunk Swarm.🦾 КИБЕРПАНК/💉 Neon Tattoos.🦾 КИБЕРПАНК/🤖 Flesh-to-Steel Fusion.🦾 КИБЕРПАНК/💊 Neuro-Interface.🦾 КИБЕРПАНК/🩸 Bio-Corroded Tech.👾 ДИДЖИТАЛ/🏄 Vaporwave Cyber.👾 ДИДЖИТАЛ/👓 Anaglyph Red-Blue.👾 ДИДЖИТАЛ/🔆 Octane Render.👾 ДИДЖИТАЛ/🌅 Synthwave Art.👾 ДИДЖИТАЛ/💧 Molten Liquid Chrome.👾 ДИДЖИТАЛ/🖥️ Holographic UI.👾 ДИДЖИТАЛ/📺 Киберпоп.👾 ДИДЖИТАЛ/🎨 Коллаж-арт.👾 ДИДЖИТАЛ/🔀 Сегментация-арт.👾 ДИДЖИТАЛ/🎭 Постер-арт.👾 ДИДЖИТАЛ/🚗 Лоурайдер-арт.💻 ЦИФРОВАЯ/🌃 Neon Cyberpunk City Rain.💻 ЦИФРОВАЯ/🚗 Retro Anime JDM Car Wallpaper.💻 ЦИФРОВАЯ/🏍️ Anime Motorcycle Action Poster.💻 ЦИФРОВАЯ/🌇 Electric Sunset Sci-Fi Landscape.💻 ЦИФРОВАЯ/🔮 Crystal Overload Sci-Fi.💻 ЦИФРОВАЯ/🧊 Cold Blue Anime Macro.💻 ЦИФРОВАЯ/🌊 Soft Water Reflection Anime.💻 ЦИФРОВАЯ/🌌 Lofi Anime City Melancholy.💻 ЦИФРОВАЯ/📼 Retro 90s Anime Cel.💻 ЦИФРОВАЯ/🎀 Cute Pink Anime Portrait.💻 ЦИФРОВАЯ/🐉 Fantasy Dragon Girl Anime.💻 ЦИФРОВАЯ/🚘 Night Street Car Cinematic.💻 ЦИФРОВАЯ/🪄 Sorceress Neon Ritual Anime.💻 ЦИФРОВАЯ/🎧 Moody Headphone Anime Girl.💻 ЦИФРОВАЯ/🏁 Street Racing Anime Poster.💻 ЦИФРОВАЯ/🍭 Soft Pastel Kawaii Car.💻 ЦИФРОВАЯ/🏙️ Urban Fashion Editorial Anime.💻 ЦИФРОВАЯ/🌫️ Atmospheric Sci-Fi Mist.💻 ЦИФРОВАЯ/🌆 Neo-Tokyo Anime Adventure.💻 ЦИФРОВАЯ/📱 Phone Wallpaper Vertical Sci-Fi.💻 ЦИФРОВАЯ/🎮 Anime Game Character Render.💻 ЦИФРОВАЯ/🧜 Ethereal Soft Fantasy Anime.💻 ЦИФРОВАЯ/🗡️ Dark Samurai Cyber Anime.💻 ЦИФРОВАЯ/🛰️ Holographic Interface Portrait.💻 ЦИФРОВАЯ/🧩 Abstract Cyber Shape Design.💻 ЦИФРОВАЯ/🚨 Warning Sign AI Robot Art.💻 ЦИФРОВАЯ/🖼️ Pinterest Vertical AI Art Mix.🔬 СТИЛИЗАЦИЯ/🖤 Dark Anime Witch Gothic.🔬 СТИЛИЗАЦИЯ/🩸 Vampire Red Eye Anime Noir.🔬 СТИЛИЗАЦИЯ/🎭 Hyperpop Character Illustration.🔬 СТИЛИЗАЦИЯ/🦇 Gothic Dark Fantasy Portrait.🔬 СТИЛИЗАЦИЯ/🌹 Dark Floral Gothic Editorial.🔬 СТИЛИЗАЦИЯ/🫧 Iridescent Hologram Fashion.🔬 СТИЛИЗАЦИЯ/🧛 Crimson Gothic Beauty.🔬 СТИЛИЗАЦИЯ/🌠 Cosmic Dream Girl.🔬 СТИЛИЗАЦИЯ/💿 Holographic Y2K Pop Star.🔬 СТИЛИЗАЦИЯ/🛸 Alien Fashion Runway.🔬 СТИЛИЗАЦИЯ/🏴 Black Armor Dark Fantasy.🔬 СТИЛИЗАЦИЯ/🕯️ Occult Black Magic Anime.🔬 СТИЛИЗАЦИЯ/🕳️ Black Void High Contrast.🔬 СТИЛИЗАЦИЯ/🧱 Gritty Post-Apocalyptic Casual.🔬 СТИЛИЗАЦИЯ/🔥 Red Smoke Dark Character.🔬 СТИЛИЗАЦИЯ/💎 Prismatic Neon Reflections.🔬 СТИЛИЗАЦИЯ/🪞 Glossy Black Latex Cyber.🔬 СТИЛИЗАЦИЯ/🌸 Bloom Soft Girl Aesthetic.💥 КОМИКС/🕷️ Symbiote Venom Comic Ink.💥 КОМИКС/⚡ Aggressive Comic Ink Splash.💥 КОМИКС/🧨 Dynamic Superhero Splash.🦾 КИБЕРПАНК/🤖 Chrome Cyborg Hyperrealism.🦾 КИБЕРПАНК/🦾 Cybernetic Arm Concept Art.🦾 КИБЕРПАНК/🧠 Biomechanical Body Horror.🦾 КИБЕРПАНК/🕶️ Teal Gold Cyberpunk Noir Portrait.🦾 КИБЕРПАНК/🧬 Synthetic Skin Android Portrait.🦾 КИБЕРПАНК/🦾 White Android Minimal Portrait.🦾 КИБЕРПАНК/🩶 Industrial Female Cyborg Portrait.🦾 КИБЕРПАНК/🫀Bio-Mechanical Core Portrait.🦾 КИБЕРПАНК/🧬 Android Anatomy Cutaway.🦾 КИБЕРПАНК/🦋 Angelic Cyber Feminine.🦾 КИБЕРПАНК/🧡 Golden Mechanical Portrait.🦾 КИБЕРПАНК/🪦 Melancholic Robot Portrait.🦾 КИБЕРПАНК/🩻 X-Ray Skeleton Cyber Anime".split("."),
+						values: /* @__PURE__ */ "(None).📷 КАМЕРЫ/📷 Disposable 90s.📷 КАМЕРЫ/📸 Polaroid 600.📷 КАМЕРЫ/📷 Hasselblad 70mm.📷 КАМЕРЫ/🕳️ Pinhole Obscura.📷 КАМЕРЫ/📹 CCTV surveillance.📷 КАМЕРЫ/🚓 Police Dashcam.📷 КАМЕРЫ/📱 Smartphone Computational.📷 КАМЕРЫ/⚡ Direct Flash Night.📷 КАМЕРЫ/🎞️ Raw 35mm Photo.📐 МОДИФИКАТОРЫ/🛩️ Drone Photo.📐 МОДИФИКАТОРЫ/🔭 Ultra Wide 12mm.📐 МОДИФИКАТОРЫ/🌐 Fisheye Lens.📐 МОДИФИКАТОРЫ/📐 Dutch Angle.📐 МОДИФИКАТОРЫ/📹 GoPro POV Action.🎬 КИНО/🎞️ IMAX Production.🎬 КИНО/🌑 Film Noir.🎬 КИНО/🌈 Technicolor 50s.🎬 КИНО/📷 Anamorphic Wide.🎬 КИНО/🎬 Gangster Cinema.⏱️ ЗАХВАТ/💫 Motion Blur.⏱️ ЗАХВАТ/📸 Action Freeze.⏱️ ЗАХВАТ/🎞️ Slo-Mo Bullet Time.🕰️ РЕТРО/🎞️ Vintage 70s Portra.🕰️ РЕТРО/🌆 Cinestill 800T Halation.🕰️ РЕТРО/⬛ Tri-X Push 1600.🕰️ РЕТРО/🖨️ Scanned Print.🕰️ РЕТРО/🪞 Daguerreotype.🕰️ РЕТРО/🧪 Wet Plate Collodion.🕰️ РЕТРО/🟤 Sepia Nostalgia.🕰️ РЕТРО/🎸 Rockabilly 50s.🕰️ РЕТРО/🎩 Gilded Gangster.🕰️ РЕТРО/🎬 Nostalgic 8mm.🏠 ИНТЕРЬЕР/🏭 Loft Industrial.🏠 ИНТЕРЬЕР/🌻 Provence Rustic.🏠 ИНТЕРЬЕР/🕉️ Boho Chic.🏠 ИНТЕРЬЕР/🌿 Eco-Style Design.🏠 ИНТЕРЬЕР/👑 Baroque Ornate.🏠 ИНТЕРЬЕР/⬜ Minimalism.🏠 ИНТЕРЬЕР/🏡 Country House.👗 ФЭШН/📸 Editorial Vogue.👗 ФЭШН/👤 Portrait Bokeh.👗 ФЭШН/✨ Glamour Glow.👗 ФЭШН/🖤 Chanel Aesthetic.👗 ФЭШН/💋 Pin-up Style.👗 ФЭШН/👔 Business Pro.👗 ФЭШН/👠 Fashion Runway.👗 ФЭШН/🛍️ Street Fashion.🏙️ СРЕДА/🌃 Cyberpunk Neon.🏙️ СРЕДА/🌧️ Rainy Neon Noir.🏙️ СРЕДА/🌫️ Foggy Neon Noir.🏙️ СРЕДА/🏚️ Dystopian Megacity.🏙️ СРЕДА/🧱 Urban Grunge.🏙️ СРЕДА/📷 Street Candid.🏙️ СРЕДА/🌅 Magic Hour.🏙️ СРЕДА/☔ Rain Monsoon Puddle.🏙️ СРЕДА/🇬🇧 London Smog.🏜️ ЖАНРЫ/🏔️ Пейзажный Landscape.🏜️ ЖАНРЫ/🦁 Nat Geo Scale.🏜️ ЖАНРЫ/🔬 Macro Micro-world.🏜️ ЖАНРЫ/🌌 Astro Cosmic.🏜️ ЖАНРЫ/✈️ Travel Adventure.🏜️ ЖАНРЫ/🪶 Ethnic Spirit.🏜️ ЖАНРЫ/🏜️ Saharan Mirage.📸 РЕПОРТАЖ/☕ Lifestyle Moment.📸 РЕПОРТАЖ/📋 Documentary Truth.📸 РЕПОРТАЖ/💼 Stock Quality.🧪 ЭФФЕКТЫ/🤖 Holographic HUD.🧪 ЭФФЕКТЫ/💡 Hard Rim Neon.🧪 ЭФФЕКТЫ/🎨 Chromatic Aberration.🧪 ЭФФЕКТЫ/💎 Prism Optical Fracture.🧪 ЭФФЕКТЫ/🌫️ Volumetric Tyndall Dust.🧪 ЭФФЕКТЫ/📼 Expired Chemical Leak.🧪 ЭФФЕКТЫ/☀️ High-Key Airy.🧪 ЭФФЕКТЫ/🌈 HDR Dynamic.🧪 ЭФФЕКТЫ/🕯️ Candlelit Mood.🧪 ЭФФЕКТЫ/🔴 Infrared Surreal.🦾 КИБЕРПАНК/📱 Sleek White Android.🦾 КИБЕРПАНК/🪞 Chrome Android.🦾 КИБЕРПАНК/💉 Wirehead Junkie.🦾 КИБЕРПАНК/🏢 Corpo-Cyborg.🦾 КИБЕРПАНК/🎖️ Military Cyborg.🦾 КИБЕРПАНК/⚔️ Cyber-Samurai.🦾 КИБЕРПАНК/🧬 Biomechanical Giger.🦾 КИБЕРПАНК/🧪 Biopunk Organic.🦾 КИБЕРПАНК/🌱 Solarpunk Hybrid.🦾 КИБЕРПАНК/💀 Post-Apoc Cyber.🦾 КИБЕРПАНК/🌃 Neon Cyberpunk City Rain.🦾 КИБЕРПАНК/🚗 JDM Neon Street Racer.🦾 КИБЕРПАНК/🌇 Electric Sunset Megacity.🦾 КИБЕРПАНК/🛰️ Holographic Interface Portrait.🦾 КИБЕРПАНК/🗡️ Dark Samurai Street.🦾 КИБЕРПАНК/🤖 Chrome Cyborg Hyperrealism.🦾 КИБЕРПАНК/🦾 Cybernetic Arm Close-Up.🦾 КИБЕРПАНК/🧠 Biomechanical Horror Realism.🦾 КИБЕРПАНК/🕶️ Teal Gold Cyber Noir Portrait.🦾 КИБЕРПАНК/🧬 Synthetic Skin Android Portrait.🦾 КИБЕРПАНК/🤍 White Android Minimal Studio.🦾 КИБЕРПАНК/🏭 Industrial Cyborg Portrait.🦾 КИБЕРПАНК/🫀 Bio-Mechanical Core.🦾 КИБЕРПАНК/🧩 Android Anatomy Cutaway.🦾 КИБЕРПАНК/🧡 Golden Mechanical Luxury.🦾 КИБЕРПАНК/🪦 Melancholic Robot Portrait.🦾 КИБЕРПАНК/🩻 X-Ray Cyber Radiograph.🦾 КИБЕРПАНК/💎 Prismatic Neon Reflections.🦾 КИБЕРПАНК/🪞 Molten Liquid Chrome Realism.🦾 КИБЕРПАНК/🌫️ Atmospheric Sci-Fi Mist.🧪 ЭФФЕКТЫ/📡 Тесла-катушка.🧪 ЭФФЕКТЫ/🪞 Зеркальный мир.🧪 ЭФФЕКТЫ/📺 CRT Scanlines.🧪 ЭФФЕКТЫ/🔦 Полицейский прожектор.🧪 ЭФФЕКТЫ/🌊 Цифровой муар.🧪 ЭФФЕКТЫ/🫧 Мыльные пузыри.🧪 ЭФФЕКТЫ/🕶️ Солнечное затмение.🧪 ЭФФЕКТЫ/📠 Факс-аппарат.🧪 ЭФФЕКТЫ/🟣 UV Fluorescence.🧪 ЭФФЕКТЫ/💥 High-Speed Shatter.🧪 ЭФФЕКТЫ/🎨 Light Painting.🧪 ЭФФЕКТЫ/👯 Double Exposure.🧪 ЭФФЕКТЫ/🌑 Silhouette Drama.🧪 ЭФФЕКТЫ/🧊 Absolute Zero.🧪 ЭФФЕКТЫ/⚒️ Forgemaster Heat.🧪 ЭФФЕКТЫ/🌡️ Thermal Imager.🧪 ЭФФЕКТЫ/☢️ X-Ray Radiograph.🧪 ЭФФЕКТЫ/🌊 Bioluminescence.🧪 ЭФФЕКТЫ/💡 Rembrandt Key Light.🧪 ЭФФЕКТЫ/🎭 Hard Chiaroscuro.🧪 ЭФФЕКТЫ/🔬 Electron Micro.🗺️ СЦЕНЫ/🎪 Circus Big Top.🗺️ СЦЕНЫ/🛁 Bathroom Mirror.🗺️ СЦЕНЫ/🔮 Crystal Ball.🗺️ СЦЕНЫ/🖼️ Art Gallery.🗺️ СЦЕНЫ/🛒 Grocery Store.🗺️ СЦЕНЫ/🛩️ Airplane Window.🗺️ СЦЕНЫ/🎢 Amusement Park.🗺️ СЦЕНЫ/🌊 Ocean Wave.🗺️ СЦЕНЫ/🏊 Swimming Pool.🗺️ СЦЕНЫ/🏜️ Desert Road.🗺️ СЦЕНЫ/🍄 Fairy Forest.🗺️ СЦЕНЫ/🗿 Ancient Ruins.🗺️ СЦЕНЫ/🎹 Piano Studio.🗺️ СЦЕНЫ/🧖 Spa Towel.🗺️ СЦЕНЫ/📚 Library Shelf.🗺️ СЦЕНЫ/🪜 Construction Site.🗺️ СЦЕНЫ/🏚️ Abandoned Building.🗺️ СЦЕНЫ/🖤 Black Light Party.🗺️ СЦЕНЫ/🏮 Lantern Festival.🗺️ СЦЕНЫ/🔦 Flashlight Beam.🗺️ СЦЕНЫ/🏺 Pottery Studio.🗺️ СЦЕНЫ/🕯️ Candle Meditation.🗺️ СЦЕНЫ/🪴 Plant Nursery.🗺️ СЦЕНЫ/🎤 Recording Studio.🗺️ СЦЕНЫ/🧸 Cozy Bedroom.🗺️ СЦЕНЫ/🏗️ Skyscraper Edge.🗺️ СЦЕНЫ/🍳 Kitchen Morning.🗺️ СЦЕНЫ/⛺ Campfire Night.🗺️ СЦЕНЫ/🧗 Rock Climbing.🗺️ СЦЕНЫ/🛒 Vintage Store.🗺️ СЦЕНЫ/🌉 Golden Gate.🗺️ СЦЕНЫ/🛁 Rainy Window.🗺️ СЦЕНЫ/🪐 Neon Desert.🗺️ СЦЕНЫ/🥾 Hiking Trail.🗺️ СЦЕНЫ/🌾 Rice Terraces.🗺️ СЦЕНЫ/🛀 Floating Bath.📸 СТУДИЯ/📸 Studio Elite.📸 СТУДИЯ/✨ Glamour Core.📸 СТУДИЯ/🛋️ Boudoir.📸 СТУДИЯ/🌅 Morning Boudoir.📸 СТУДИЯ/👙 Fashion Lingerie.🏠 ИНТЕРЬЕР/🛏️ Bedroom Intimate.🏠 ИНТЕРЬЕР/🚿 Shower Scene.🏠 ИНТЕРЬЕР/🛁 Bath Scene.🏠 ИНТЕРЬЕР/🪞 Vanity Mirror.🏠 ИНТЕРЬЕР/🛋️ Living Room.🌿 ПРИРОДА/🌊 Beach Sunset.🌿 ПРИРОДА/🌲 Forest Glade.🌿 ПРИРОДА/🌸 Garden Path.🌿 ПРИРОДА/⛺ Private Pool.🎭 ФЭШН/💋 Beauty Close-up.🎭 ФЭШН/📸 Fashion Editorial.🎭 ФЭШН/👗 Dressed to Kill.🎭 ФЭШН/🩱 Swimsuit Campaign.🌑 НУАР/⛓️ Fetish Noir.🌑 НУАР/🛏️ Bedroom.🌑 НУАР/🎭 Venetian Velvet.🌑 НУАР/🔦 Interrogation Room.🌑 НУАР/🎪 Carnival.🌑 НУАР/⚰️ Gothic Romance.🌑 НУАР/🧛 Vampire Gothic.🌑 НУАР/🌑 Intimate Shadows.🛀 ТЕКСТУРЫ/💦 Wet Skin.🛀 ТЕКСТУРЫ/🫒 Wet & Glossy.🛀 ТЕКСТУРЫ/🛁 Steamy Bathtub.🛀 ТЕКСТУРЫ/🥛 Milk Bath Editorial.🛀 ТЕКСТУРЫ/🚿 Frosted Glass Shower.🛀 ТЕКСТУРЫ/🌊 Underwater Weightless.🛀 ТЕКСТУРЫ/🎨 Nude Aesthetic.🛀 ТЕКСТУРЫ/👘 Silk & Lace.🛀 ТЕКСТУРЫ/🕸️ Spiderweb Silk.🏙️ ЛОКАЦИИ/🤳 Amateur POV.🏙️ ЛОКАЦИИ/📹 Amateur Real.🏙️ ЛОКАЦИИ/🪩 Nightclub Dark.🏙️ ЛОКАЦИИ/🏖️ Beach Sensual.🏙️ ЛОКАЦИИ/☔ Neon Rain Cyberpunk.🏙️ ЛОКАЦИИ/🚗 Backseat Tryst.🏙️ ЛОКАЦИИ/🏨 Hotel Room Neon.🏙️ ЛОКАЦИИ/❄️ Winter Cabin.🏙️ ЛОКАЦИИ/🏜️ Desert Oasis.🏙️ ЛОКАЦИИ/🏙️ Skyscraper Penthouse.🏙️ ЛОКАЦИИ/🔧 Garage Oil & Chrome.🦾 КИБЕРПАНК/🌃 Neon Alley Exposure.🦾 КИБЕРПАНК/🤖 Chrome Implant Nude.🦾 КИБЕРПАНК/🧬 Synthetic Skin Android Nude.🦾 КИБЕРПАНК/🪩 Holographic Strip Club.🦾 КИБЕРПАНК/🩺 Ripperdoc Aftercare.🦾 КИБЕРПАНК/⛓️ Cyber Latex Dungeon.🦾 КИБЕРПАНК/🌧️ Rain-Slick Rooftop Nude.🦾 КИБЕРПАНК/📹 Backroom Neon POV.🦾 КИБЕРПАНК/🚦 Red-Light District Android.🦾 КИБЕРПАНК/🪞 Augmented Mirror Selfie.🦾 КИБЕРПАНК/💡 Bioluminescent Body Ports.🦾 КИБЕРПАНК/🏙️ Drone-Lit Penthouse Nude.🦾 КИБЕРПАНК/🚿 Wet Chrome Shower Pod.🦾 КИБЕРПАНК/🎤 Virtual Idol Dressing Room.🦾 КИБЕРПАНК/🩻 Holo-Tattoo Nude Scan.🦾 КИБЕРПАНК/🫧 Glass Capsule Display.🦾 КИБЕРПАНК/🏍️ Neon Motorcycle Garage.🦾 КИБЕРПАНК/🟣 Blacklight Cyber Boudoir.🦾 КИБЕРПАНК/🖥️ Server Room Heat.🦾 КИБЕРПАНК/💎 Prismatic Implant Glamour.🎨 ЖИВОПИСЬ/🖌️ Impasto Oil.🎨 ЖИВОПИСЬ/💧 Wet Watercolor.🎨 ЖИВОПИСЬ/🔪 Palette Knife.🎨 ЖИВОПИСЬ/🌸 Ghibli Inspired.🎨 ЖИВОПИСЬ/🗿 Classical Marble.🎨 ЖИВОПИСЬ/🎭 Baroque Drama.🎨 ЖИВОПИСЬ/🖼️ Renaissance.🎨 ЖИВОПИСЬ/🎪 Impressionist.🎨 ЖИВОПИСЬ/🖌️ Asian Ink.🎨 ЖИВОПИСЬ/🖌️ Sumi-e.✏️ ГРАФИКА/✏️ Pencil Sketch.✏️ ГРАФИКА/🖊️ Ink Illustration.✏️ ГРАФИКА/🖍️ Charcoal Drawing.✏️ ГРАФИКА/✏️ Graphite Study.✏️ ГРАФИКА/🖋️ Pen & Ink.💻 ЦИФРОВАЯ/👾 Pixel Art.💻 ЦИФРОВАЯ/📐 Vector Art.💻 ЦИФРОВАЯ/🎨 Digital Painting.💻 ЦИФРОВАЯ/🤖 AI Art Style.💻 ЦИФРОВАЯ/🌆 Concept Art.💻 ЦИФРОВАЯ/🏮 Anime Style.💻 ЦИФРОВАЯ/🗾 Manga Style.💻 ЦИФРОВАЯ/🎮 Game UI.💻 ЦИФРОВАЯ/🎲 Tabletop RPG.🏛️ ИСТОРИЯ/🏺 Ancient Egyptian.🏛️ ИСТОРИЯ/🏛️ Greek Classical.🏛️ ИСТОРИЯ/🗿 Roman Bust.🏛️ ИСТОРИЯ/🖼️ Medieval Icon.🏛️ ИСТОРИЯ/⚔️ Viking Art.🏛️ ИСТОРИЯ/🏰 Art Nouveau.🏛️ ИСТОРИЯ/🎭 Art Deco.🔬 СТИЛИЗАЦИЯ/🔍 Hyperrealism.🔬 СТИЛИЗАЦИЯ/🌫️ Vaporwave.🔬 СТИЛИЗАЦИЯ/🎲 Glitch Art.🔬 СТИЛИЗАЦИЯ/💎 Steampunk.🔬 СТИЛИЗАЦИЯ/🌸 Kawaii.🔬 СТИЛИЗАЦИЯ/🦋 Morbid.🔬 СТИЛИЗАЦИЯ/🔮 Mystical.🔬 СТИЛИЗАЦИЯ/🎪 Circus Noir.💥 КОМИКС/🎬 Dynamic Cel-Shaded.💥 КОМИКС/🎌 Manga Screen-tone.💥 КОМИКС/💥 Action Comic.💥 КОМИКС/📜 Comic Cover.💥 КОМИКС/🤖 Киберпанк-комикс.💥 КОМИКС/💡 Неон-комикс.💥 КОМИКС/💋 Пин-ап комикс.💥 КОМИКС/📼 Ретро-комикс.💥 КОМИКС/⚙️ Стимпанк-комикс.💥 КОМИКС/⚰️ Готический комикс.💥 КОМИКС/👑 Барокко-комикс.💥 КОМИКС/⚫ Блэк-энд-уайт.🦾 КИБЕРПАНК/🎮 Mecha Pilot.🦾 КИБЕРПАНК/⚛️ Nanopunk Swarm.🦾 КИБЕРПАНК/💉 Neon Tattoos.🦾 КИБЕРПАНК/🤖 Flesh-to-Steel Fusion.🦾 КИБЕРПАНК/💊 Neuro-Interface.🦾 КИБЕРПАНК/🩸 Bio-Corroded Tech.👾 ДИДЖИТАЛ/🏄 Vaporwave Cyber.👾 ДИДЖИТАЛ/👓 Anaglyph Red-Blue.👾 ДИДЖИТАЛ/🔆 Octane Render.👾 ДИДЖИТАЛ/🌅 Synthwave Art.👾 ДИДЖИТАЛ/💧 Molten Liquid Chrome.👾 ДИДЖИТАЛ/🖥️ Holographic UI.👾 ДИДЖИТАЛ/📺 Киберпоп.👾 ДИДЖИТАЛ/🎨 Коллаж-арт.👾 ДИДЖИТАЛ/🔀 Сегментация-арт.👾 ДИДЖИТАЛ/🎭 Постер-арт.👾 ДИДЖИТАЛ/🚗 Лоурайдер-арт.💻 ЦИФРОВАЯ/🌃 Neon Cyberpunk City Rain.💻 ЦИФРОВАЯ/🚗 Retro Anime JDM Car Wallpaper.💻 ЦИФРОВАЯ/🏍️ Anime Motorcycle Action Poster.💻 ЦИФРОВАЯ/🌇 Electric Sunset Sci-Fi Landscape.💻 ЦИФРОВАЯ/🔮 Crystal Overload Sci-Fi.💻 ЦИФРОВАЯ/🧊 Cold Blue Anime Macro.💻 ЦИФРОВАЯ/🌊 Soft Water Reflection Anime.💻 ЦИФРОВАЯ/🌌 Lofi Anime City Melancholy.💻 ЦИФРОВАЯ/📼 Retro 90s Anime Cel.💻 ЦИФРОВАЯ/🎀 Cute Pink Anime Portrait.💻 ЦИФРОВАЯ/🐉 Fantasy Dragon Girl Anime.💻 ЦИФРОВАЯ/🚘 Night Street Car Cinematic.💻 ЦИФРОВАЯ/🪄 Sorceress Neon Ritual Anime.💻 ЦИФРОВАЯ/🎧 Moody Headphone Anime Girl.💻 ЦИФРОВАЯ/🏁 Street Racing Anime Poster.💻 ЦИФРОВАЯ/🍭 Soft Pastel Kawaii Car.💻 ЦИФРОВАЯ/🏙️ Urban Fashion Editorial Anime.💻 ЦИФРОВАЯ/🌫️ Atmospheric Sci-Fi Mist.💻 ЦИФРОВАЯ/🌆 Neo-Tokyo Anime Adventure.💻 ЦИФРОВАЯ/📱 Phone Wallpaper Vertical Sci-Fi.💻 ЦИФРОВАЯ/🎮 Anime Game Character Render.💻 ЦИФРОВАЯ/🧜 Ethereal Soft Fantasy Anime.💻 ЦИФРОВАЯ/🗡️ Dark Samurai Cyber Anime.💻 ЦИФРОВАЯ/🛰️ Holographic Interface Portrait.💻 ЦИФРОВАЯ/🧩 Abstract Cyber Shape Design.💻 ЦИФРОВАЯ/🚨 Warning Sign AI Robot Art.💻 ЦИФРОВАЯ/🖼️ Pinterest Vertical AI Art Mix.🔬 СТИЛИЗАЦИЯ/🖤 Dark Anime Witch Gothic.🔬 СТИЛИЗАЦИЯ/🩸 Vampire Red Eye Anime Noir.🔬 СТИЛИЗАЦИЯ/🎭 Hyperpop Character Illustration.🔬 СТИЛИЗАЦИЯ/🦇 Gothic Dark Fantasy Portrait.🔬 СТИЛИЗАЦИЯ/🌹 Dark Floral Gothic Editorial.🔬 СТИЛИЗАЦИЯ/🫧 Iridescent Hologram Fashion.🔬 СТИЛИЗАЦИЯ/🧛 Crimson Gothic Beauty.🔬 СТИЛИЗАЦИЯ/🌠 Cosmic Dream Girl.🔬 СТИЛИЗАЦИЯ/💿 Holographic Y2K Pop Star.🔬 СТИЛИЗАЦИЯ/🛸 Alien Fashion Runway.🔬 СТИЛИЗАЦИЯ/🏴 Black Armor Dark Fantasy.🔬 СТИЛИЗАЦИЯ/🕯️ Occult Black Magic Anime.🔬 СТИЛИЗАЦИЯ/🕳️ Black Void High Contrast.🔬 СТИЛИЗАЦИЯ/🧱 Gritty Post-Apocalyptic Casual.🔬 СТИЛИЗАЦИЯ/🔥 Red Smoke Dark Character.🔬 СТИЛИЗАЦИЯ/💎 Prismatic Neon Reflections.🔬 СТИЛИЗАЦИЯ/🪞 Glossy Black Latex Cyber.🔬 СТИЛИЗАЦИЯ/🌸 Bloom Soft Girl Aesthetic.💥 КОМИКС/🕷️ Symbiote Venom Comic Ink.💥 КОМИКС/⚡ Aggressive Comic Ink Splash.💥 КОМИКС/🧨 Dynamic Superhero Splash.🦾 КИБЕРПАНК/🦾 Cybernetic Arm Concept Art.🦾 КИБЕРПАНК/🧠 Biomechanical Body Horror.🦾 КИБЕРПАНК/🕶️ Teal Gold Cyberpunk Noir Portrait.🦾 КИБЕРПАНК/🦾 White Android Minimal Portrait.🦾 КИБЕРПАНК/🩶 Industrial Female Cyborg Portrait.🦾 КИБЕРПАНК/🫀Bio-Mechanical Core Portrait.🦾 КИБЕРПАНК/🧬 Android Anatomy Cutaway.🦾 КИБЕРПАНК/🦋 Angelic Cyber Feminine.🦾 КИБЕРПАНК/🧡 Golden Mechanical Portrait.🦾 КИБЕРПАНК/🩻 X-Ray Skeleton Cyber Anime.🎨 ИЛЛЮСТРАЦИЯ/🖌️ Pro Hentai.🎨 ИЛЛЮСТРАЦИЯ/💎 Premium Hentai.🎨 ИЛЛЮСТРАЦИЯ/🌸 Anime Ecchi.🎨 ИЛЛЮСТРАЦИЯ/🦸 Western Adult.🎨 ИЛЛЮСТРАЦИЯ/🎯 Digital Pin-up.💻 ЦИФРОВАЯ/🧊 3D Render.💻 ЦИФРОВАЯ/🖥️ CGI.💻 ЦИФРОВАЯ/🤖 AI Generated.📜 КЛАССИКА/🖼️ Baroque Nude.📜 КЛАССИКА/🏛️ Academic Nude.📜 КЛАССИКА/🎭 Impressionist Nude.🎯 ЖАНРЫ/🔞 Explicit.🎯 ЖАНРЫ/🎭 Sensual Art.🎯 ЖАНРЫ/📸 Fetish Art.🎨 ИЛЛЮСТРАЦИЯ/🎭 Kabuki Demon.🎨 ИЛЛЮСТРАЦИЯ/🌺 Tropical Adult.🎨 ИЛЛЮСТРАЦИЯ/🌿 Botanical Nymph.🖌️ ЖИВОПИСЬ/👼 Renaissance Oil.🖌️ ЖИВОПИСЬ/🔪 Thick Impasto.🖌️ ЖИВОПИСЬ/💧 Watercolor Soft.🖌️ ЖИВОПИСЬ/🎨 Artistic Nude.🖌️ ЖИВОПИСЬ/🛢️ Oil Painting.✒️ СКЕТЧ/✒️ Ink Erotica.✒️ СКЕТЧ/🦴 Raw Anatomy.✒️ СКЕТЧ/💀 Macabre Ink.🏰 ФЭНТЕЗИ/🧝 Dark Fantasy.🏰 ФЭНТЕЗИ/🧝 Dark Desire.🏰 ФЭНТЕЗИ/🏛️ Mythological Nude.🏰 ФЭНТЕЗИ/🌊 Aquatic Erotic.🏰 ФЭНТЕЗИ/🏜️ Dune Fantasy.🏰 ФЭНТЕЗИ/🧚 Fairy Tale.🏰 ФЭНТЕЗИ/🎨 NSFW Art.🚀 SCI-FI/🛸 Sci-Fi Adult.🚀 SCI-FI/🤖 Cyberpunk NSFW.🚀 SCI-FI/🦾 Mecha-Musume.🚀 SCI-FI/💎 Crystal Anatomy.🚀 SCI-FI/🌋 Lava Forged.🦾 КИБЕРПАНК/👽 Synthetic Skin.🦾 КИБЕРПАНК/👘 Cyber-Geisha.🦾 КИБЕРПАНК/⛓️ Chrome Bondage.🦾 КИБЕРПАНК/🧩 Fragmented Body.🦾 КИБЕРПАНК/💡 Glowing Fiber Optics.🕰️ РЕТРО/🎭 Retro Cabaret.🕰️ РЕТРО/🌿 Nouveau Adult.🕰️ РЕТРО/🌸 Shoujo Romance.🕰️ РЕТРО/📼 80s Anime OVA".split("."),
 						columns: null,
 						searchable: !0,
 						multiline: null,
@@ -9613,26 +9899,26 @@ var sg, cg = n((() => {
 			min_size: [360, 460],
 			family: "llm"
 		}
-	}, Object.keys(sg);
-})), lg, ug, dg, fg, pg, mg, hg, gg, _g, vg, yg, bg, xg, Sg, Cg = n((() => {
-	Y(), nm(), cu(), cg(), Qf(), $l(), lg = { class: "fil-scanner-root" }, ug = {
+	}, Object.keys(Og);
+})), Ag, jg, Mg, Ng, Pg, Fg, Ig, Lg, Rg, zg, Bg, Vg, Hg, Ug, Wg = n((() => {
+	Y(), Cm(), cu(), kg(), yp(), $l(), Ag = { class: "fil-scanner-root" }, jg = {
 		key: 0,
 		class: "fil-w-row fil-single-style-block"
-	}, dg = { style: {
+	}, Mg = { style: {
 		display: "flex",
 		gap: "4px",
 		"margin-bottom": "3px"
-	} }, fg = { style: {
+	} }, Ng = { style: {
 		display: "flex",
 		"margin-bottom": "6px"
-	} }, pg = { class: "fil-unified-style-modal" }, mg = { class: "fil-style-tab-bar" }, hg = ["onClick"], gg = { class: "fil-tab-icon" }, _g = { class: "fil-tab-title" }, vg = {
+	} }, Pg = { class: "fil-unified-style-modal" }, Fg = { class: "fil-style-tab-bar" }, Ig = ["onClick"], Lg = { class: "fil-tab-icon" }, Rg = { class: "fil-tab-title" }, zg = {
 		key: 0,
 		class: "fil-tab-badge"
-	}, yg = { class: "fil-style-picker-body" }, bg = { class: "fil-style-modal-footer" }, xg = ["title"], Sg = /*@__PURE__*/ B({
+	}, Bg = { class: "fil-style-picker-body" }, Vg = { class: "fil-style-modal-footer" }, Hg = ["title"], Ug = /*@__PURE__*/ B({
 		__name: "OpticScanner",
 		props: { state: {} },
 		setup(e) {
-			let t = e, { t: n } = qf(), r = sg.FiLOpticScanner, i = [...r?.inputs.required ?? [], ...r?.inputs.optional ?? []], a = {
+			let t = e, { t: n } = mp(), r = Og.FiLOpticScanner, i = [...r?.inputs.required ?? [], ...r?.inputs.optional ?? []], a = {
 				prompt: ["scn_section_prompt", "📝 Prompt/Text"],
 				agent: ["scn_section_agent", "🕵️ Agent"],
 				focus: ["scn_section_focus", "🎯 Focus"],
@@ -9721,11 +10007,11 @@ var sg, cg = n((() => {
 			function x() {
 				let e = t.state.node;
 				if (!e) return;
-				Yh(e, f.map((e) => ({
+				gg(e, f.map((e) => ({
 					name: e,
 					el: m[e]
 				})));
-				let n = Zh(e, f);
+				let n = vg(e, f);
 				f.some((e) => n[e] !== !!v.value[e]) && (v.value = n);
 			}
 			let S = 0;
@@ -9846,10 +10132,10 @@ var sg, cg = n((() => {
 				let e = Math.floor(Math.random() * 1e9) & 2147483647;
 				se.value = e, M.value = "fixed";
 			}
-			return (e, r) => (V(), H("div", lg, [(V(!0), H(K, null, gr(re.value, (e, t) => (V(), H(K, { key: t }, [t === "styles" ? G("", !0) : (V(), H("div", {
+			return (e, r) => (V(), H("div", Ag, [(V(!0), H(K, null, gr(re.value, (e, t) => (V(), H(K, { key: t }, [t === "styles" ? G("", !0) : (V(), H("div", {
 				key: 0,
 				class: s(["fil-section-block", { "is-growable": t === "prompt" }])
-			}, [t !== "_" && t !== "prompt" ? (V(), U(L(nf), {
+			}, [t !== "_" && t !== "prompt" ? (V(), U(L(wf), {
 				key: 0,
 				title: o(String(t)),
 				"model-value": ae(String(t)),
@@ -9858,25 +10144,25 @@ var sg, cg = n((() => {
 				"title",
 				"model-value",
 				"onUpdate:modelValue"
-			])) : G("", !0), (V(!0), H(K, null, gr(e, (e) => (V(), H(K, { key: e.name }, [e.name === "response_format" ? (V(), H("div", ug, [
-				W("div", dg, [W("button", {
+			])) : G("", !0), (V(!0), H(K, null, gr(e, (e) => (V(), H(K, { key: e.name }, [e.name === "response_format" ? (V(), H("div", jg, [
+				W("div", Mg, [W("button", {
 					class: s(["fil-style-picker-btn", { "has-styles": D.value > 0 }]),
 					onClick: r[0] ||= (e) => C.value = !0
 				}, N(E.value), 3)]),
-				W("div", fg, [q(L(Du), {
+				W("div", Ng, [q(L(Du), {
 					variant: "standard",
 					label: "🧹 Clear Style",
 					onClick: ne,
 					style: { flex: "1" }
 				})]),
-				q(L(Ed), {
+				q(L(Ad), {
 					open: C.value,
 					title: L(n)("scn_unified_style_title", "🎨 Style Selection"),
 					width: "680px",
 					"onUpdate:open": r[2] ||= (e) => C.value = e
 				}, {
-					default: Mn(() => [W("div", pg, [
-						W("div", mg, [(V(), H(K, null, gr(O, (e) => W("button", {
+					default: Mn(() => [W("div", Pg, [
+						W("div", Fg, [(V(), H(K, null, gr(O, (e) => W("button", {
 							key: e.id,
 							type: "button",
 							class: s(["fil-style-tab-btn", {
@@ -9885,17 +10171,17 @@ var sg, cg = n((() => {
 							}]),
 							onClick: (t) => w.value = e.id
 						}, [
-							W("span", gg, N(e.icon), 1),
-							W("span", _g, N(L(n)(e.labelKey, e.fallback)), 1),
-							k(e.id) === "None" ? G("", !0) : (V(), H("span", vg, "✓"))
-						], 10, hg)), 64))]),
-						W("div", yg, [q(L(yp), {
+							W("span", Lg, N(e.icon), 1),
+							W("span", Rg, N(L(n)(e.labelKey, e.fallback)), 1),
+							k(e.id) === "None" ? G("", !0) : (V(), H("span", zg, "✓"))
+						], 10, Ig)), 64))]),
+						W("div", Bg, [q(L(Bp), {
 							styles: te(w.value),
 							"model-value": k(w.value),
 							multi: !0,
 							onSelect: r[1] ||= (e) => ee(w.value, e)
 						}, null, 8, ["styles", "model-value"])]),
-						W("div", bg, [W("button", {
+						W("div", Vg, [W("button", {
 							type: "button",
 							class: "fil-clear-styles-btn",
 							onClick: ne
@@ -9909,7 +10195,7 @@ var sg, cg = n((() => {
 					"is-linked": g(e.name) && y(e.name)
 				}]),
 				title: g(e.name) ? b(e) : l(e)
-			}, [e.name === "prompt" || e.name === "negative_prompt" || e.name === "custom_style" ? (V(), U(L(Op), {
+			}, [e.name === "prompt" || e.name === "negative_prompt" || e.name === "custom_style" ? (V(), U(L(Yp), {
 				key: 0,
 				ref_for: !0,
 				ref: (t) => h(e.name, t),
@@ -9945,7 +10231,7 @@ var sg, cg = n((() => {
 				"model-value",
 				"searchable",
 				"onUpdate:modelValue"
-			])) : e.kind === "segmented" ? (V(), U(L(ff), {
+			])) : e.kind === "segmented" ? (V(), U(L(Nf), {
 				key: 3,
 				options: e.options || [],
 				"model-value": String(A(e.name, "")),
@@ -9967,7 +10253,7 @@ var sg, cg = n((() => {
 				"model-value",
 				"columns",
 				"onUpdate:modelValue"
-			]))], 10, xg), [[ys, t === "_" || t === "prompt" || !ae(String(t))]])], 64))), 128))], 2))], 64))), 128)), q(L(Jd), {
+			]))], 10, Hg), [[ys, t === "_" || t === "prompt" || !ae(String(t))]])], 64))), 128))], 2))], 64))), 128)), q(L(gf), {
 				display: ce.value,
 				mode: M.value,
 				"field-aria-label": L(n)("sd_aria_seed_value", "Seed value"),
@@ -9996,19 +10282,19 @@ var sg, cg = n((() => {
 			])]));
 		}
 	});
-})), wg = n((() => {})), Tg = /* @__PURE__ */ r({ default: () => Eg }), Eg, Dg = n((() => {
-	Cg(), Cg(), wg(), Z(), Eg = /*#__PURE__*/ X(Sg, [["__scopeId", "data-v-ffe55d1d"]]);
+})), Gg = n((() => {})), Kg = /* @__PURE__ */ r({ default: () => qg }), qg, Jg = n((() => {
+	Wg(), Wg(), Gg(), Z(), qg = /*#__PURE__*/ X(Ug, [["__scopeId", "data-v-ffe55d1d"]]);
 }));
-Y(), Oc(), Zl(), $l(), rg(), gu();
-var Og = /* @__PURE__ */ ar(() => Promise.resolve().then(() => (Dg(), Tg))), kg = [
+Y(), Oc(), Zl(), $l(), wg(), gu();
+var Yg = /* @__PURE__ */ ar(() => Promise.resolve().then(() => (Jg(), Kg))), Xg = [
 	"prompt",
 	"negative_prompt",
 	"custom_style"
-], Ag = "fil_scanner_view";
-function jg(e) {
-	for (let t of e.widgets || []) t.name !== Ag && (t.hidden = !0);
+], Zg = "fil_scanner_view";
+function Qg(e) {
+	for (let t of e.widgets || []) t.name !== Zg && (t.hidden = !0);
 }
-var Mg = {
+var $g = {
 	id: "FiLOpticScanner",
 	register(e, t) {
 		Tc(e, {
@@ -10047,7 +10333,7 @@ var Mg = {
 				let r = e === "seed", i = $(t, r ? "number" : "string", r ? -1 : "");
 				a[e] = i, o[e] = i, t.hidden = !0;
 			}
-			o.seed_mode = "random", jg(n);
+			o.seed_mode = "random", Qg(n);
 			let s = {
 				nodeState: Ql(n, o),
 				initialValues: a,
@@ -10058,7 +10344,7 @@ var Mg = {
 				value: n,
 				enumerable: !1,
 				configurable: !0
-			}), n._filScannerSeedState = s, ag(n, s), Jh(n, kg), Yl(n, Ag, Og, {
+			}), n._filScannerSeedState = s, Eg(n, s), hg(n, Xg), Yl(n, Zg, Yg, {
 				state: s,
 				height: 580,
 				growable: !0
@@ -10068,14 +10354,14 @@ var Mg = {
 		n.onConfigure = function(...e) {
 			let t = a?.apply(this, e), n = this, i = n._filScannerSeedState;
 			if (!i) return t;
-			let o = !!e[0]?.[ig];
+			let o = !!e[0]?.[Tg];
 			for (let e of r) {
 				let t = Q(n, e);
 				if (!t) continue;
 				let r = e === "seed", a = r ? -1 : "";
 				i.nodeState[e] = $(t, r ? "number" : "string", a, o), t.hidden = !0;
 			}
-			return og(i, e[0]), jg(n), Jh(n, kg), t;
+			return Dg(i, e[0]), Qg(n), hg(n, Xg), t;
 		};
 		let o = n.onRemoved;
 		n.onRemoved = function(...e) {
@@ -10084,7 +10370,7 @@ var Mg = {
 	}
 };
 Oc(), gu();
-var Ng = {
+var e_ = {
 	id: "FiLNeuroCleaner",
 	register(e, t) {
 		Tc(e, {
@@ -10101,7 +10387,7 @@ var Ng = {
 };
 //#endregion
 //#region src/composables/useWidgetSockets.ts
-function Pg(e, t) {
+function t_(e, t) {
 	let n = {}, r = /* @__PURE__ */ I({});
 	function i(e, t) {
 		let r = t?.$el ?? t;
@@ -10113,11 +10399,11 @@ function Pg(e, t) {
 	function o() {
 		let i = e.node;
 		if (!i) return;
-		Yh(i, t.map((e) => ({
+		gg(i, t.map((e) => ({
 			name: e,
 			el: n[e]
 		})));
-		let a = Zh(i, t);
+		let a = vg(i, t);
 		t.some((e) => a[e] !== !!r.value[e]) && (r.value = a);
 	}
 	let s = null, c = null, l = 0;
@@ -10143,14 +10429,14 @@ function Pg(e, t) {
 		syncWidgetSockets: o
 	};
 }
-var Fg = n((() => {
-	Y(), rg();
-})), Ig, Lg, Rg, zg, Bg, Vg, Hg, Ug, Wg = n((() => {
-	Y(), nm(), Qf(), Fg(), Qg(), Ig = { class: "fil-up-root" }, Lg = { class: "fil-up-row fil-up-row-overlap" }, Rg = ["title"], zg = ["title"], Bg = { class: "fil-up-row" }, Vg = ["title"], Hg = ["title"], Ug = /*@__PURE__*/ B({
+var n_ = n((() => {
+	Y(), wg();
+})), r_, i_, a_, o_, s_, c_, l_, u_, d_ = n((() => {
+	Y(), Cm(), yp(), n_(), y_(), r_ = { class: "fil-up-root" }, i_ = { class: "fil-up-row fil-up-row-overlap" }, a_ = ["title"], o_ = ["title"], s_ = { class: "fil-up-row" }, c_ = ["title"], l_ = ["title"], u_ = /*@__PURE__*/ B({
 		__name: "UpscaleTileCalc",
 		props: { state: {} },
 		setup(e) {
-			let t = e, { t: n } = qf(), { setFieldEl: r, isLinked: i } = Pg(t.state, Xg), a = (e, t) => i(e) ? n("fld_linked_tt", "Driven by the connected input — disconnect it to edit here.") : t, o = [
+			let t = e, { t: n } = mp(), { setFieldEl: r, isLinked: i } = t_(t.state, __), a = (e, t) => i(e) ? n("fld_linked_tt", "Driven by the connected input — disconnect it to edit here.") : t, o = [
 				"Low VRAM",
 				"Balanced",
 				"High VRAM",
@@ -10191,8 +10477,8 @@ var Fg = n((() => {
 			function x(e, n) {
 				t.state.ui[`collapsed_${e}`] = n;
 			}
-			return z(() => t.state.nodeState, () => {}, { deep: !0 }), (e, t) => (V(), H("div", Ig, [
-				q(L(Af), {
+			return z(() => t.state.nodeState, () => {}, { deep: !0 }), (e, t) => (V(), H("div", r_, [
+				q(L(Zf), {
 					ref: (e) => L(r)("upscale_factor", e),
 					"model-value": L(u),
 					min: .1,
@@ -10208,13 +10494,13 @@ var Fg = n((() => {
 					"disabled",
 					"title"
 				]),
-				q(L(nf), {
+				q(L(wf), {
 					title: L(n)("utc_section_auto", "⚙️ Auto / advanced"),
 					"model-value": b("auto"),
 					"onUpdate:modelValue": t[1] ||= (e) => x("auto", e)
 				}, null, 8, ["title", "model-value"]),
 				b("auto") ? G("", !0) : (V(), H(K, { key: 0 }, [
-					q(L(em), {
+					q(L(xm), {
 						"model-value": L(g),
 						label: L(n)("lbl_full_auto", "🤖 Full auto"),
 						title: L(n)("utc_auto_mode", "Pick tile size/overlap automatically from the selected VRAM profile."),
@@ -10224,7 +10510,7 @@ var Fg = n((() => {
 						"label",
 						"title"
 					]),
-					L(g) === "ON" ? (V(), U(L(ff), {
+					L(g) === "ON" ? (V(), U(L(Nf), {
 						key: 0,
 						options: [...o],
 						"option-labels": s,
@@ -10239,12 +10525,12 @@ var Fg = n((() => {
 						"title"
 					])) : G("", !0),
 					L(g) === "OFF" ? (V(), H(K, { key: 1 }, [
-						W("div", Lg, [
+						W("div", i_, [
 							W("label", {
 								class: "fil-w-label",
 								title: L(n)("utc_tile_size", "Base tile size.")
-							}, N(L(n)("lbl_tile_size", "🔲 Tile size")), 9, Rg),
-							q(L(Rd), {
+							}, N(L(n)("lbl_tile_size", "🔲 Tile size")), 9, a_),
+							q(L(of), {
 								ref: (e) => L(r)("tile_size", e),
 								modelValue: L(d),
 								"onUpdate:modelValue": t[4] ||= (e) => /* @__PURE__ */ F(d) ? d.value = e : null,
@@ -10256,8 +10542,8 @@ var Fg = n((() => {
 							W("label", {
 								class: "fil-w-label",
 								title: L(n)("utc_overlap", "Tile overlap.")
-							}, N(L(n)("lbl_overlap", "🧵 Overlap")), 9, zg),
-							q(L(Rd), {
+							}, N(L(n)("lbl_overlap", "🧵 Overlap")), 9, o_),
+							q(L(of), {
 								ref: (e) => L(r)("tile_overlap", e),
 								modelValue: L(f),
 								"onUpdate:modelValue": t[5] ||= (e) => /* @__PURE__ */ F(f) ? f.value = e : null,
@@ -10266,7 +10552,7 @@ var Fg = n((() => {
 								step: 8,
 								disabled: L(h) === "ON" || L(i)("tile_overlap")
 							}, null, 8, ["modelValue", "disabled"]),
-							q(L(em), {
+							q(L(xm), {
 								bare: "",
 								"model-value": L(h),
 								label: L(n)("lbl_auto_overlap", "🧵 Auto"),
@@ -10278,12 +10564,12 @@ var Fg = n((() => {
 								"title"
 							])
 						]),
-						W("div", Bg, [
+						W("div", s_, [
 							W("label", {
 								class: "fil-w-label",
 								title: L(n)("utc_manual_cols", "Force this many tile columns. 0 = compute from tile size.")
-							}, N(L(n)("lbl_manual_cols", "↔️ Cols")), 9, Vg),
-							q(L(Rd), {
+							}, N(L(n)("lbl_manual_cols", "↔️ Cols")), 9, c_),
+							q(L(of), {
 								modelValue: L(p),
 								"onUpdate:modelValue": t[7] ||= (e) => /* @__PURE__ */ F(p) ? p.value = e : null,
 								min: 0,
@@ -10293,8 +10579,8 @@ var Fg = n((() => {
 							W("label", {
 								class: "fil-w-label",
 								title: L(n)("utc_manual_rows", "Force this many tile rows. 0 = compute from tile size.")
-							}, N(L(n)("lbl_manual_rows", "↕️ Rows")), 9, Hg),
-							q(L(Rd), {
+							}, N(L(n)("lbl_manual_rows", "↕️ Rows")), 9, l_),
+							q(L(of), {
 								modelValue: L(m),
 								"onUpdate:modelValue": t[8] ||= (e) => /* @__PURE__ */ F(m) ? m.value = e : null,
 								min: 0,
@@ -10302,7 +10588,7 @@ var Fg = n((() => {
 								step: 1
 							}, null, 8, ["modelValue"])
 						]),
-						q(L(em), {
+						q(L(xm), {
 							"model-value": L(v),
 							label: L(n)("lbl_auto_fix_edges", "🩹 Auto-fix thin edges"),
 							title: L(n)("utc_auto_fix_edges", "Shrink tile_size to the next standard size instead of just warning when the grid would leave a thin edge tile."),
@@ -10314,7 +10600,7 @@ var Fg = n((() => {
 						])
 					], 64)) : G("", !0)
 				], 64)),
-				q(L(em), {
+				q(L(xm), {
 					"model-value": L(_),
 					label: L(n)("lbl_non_square", "📐 Non-square tiles"),
 					title: L(n)("utc_non_square", "Allow rectangular tiles instead of forcing square ones."),
@@ -10327,14 +10613,14 @@ var Fg = n((() => {
 			]));
 		}
 	});
-})), Gg = n((() => {})), Kg = /* @__PURE__ */ r({ default: () => qg }), qg, Jg = n((() => {
-	Wg(), Wg(), Gg(), Z(), qg = /*#__PURE__*/ X(Ug, [["__scopeId", "data-v-7a3cbf95"]]);
-})), Yg, Xg, Zg, Qg = n((() => {
-	Y(), Oc(), Zl(), $l(), rg(), gu(), Yg = /* @__PURE__ */ ar(() => Promise.resolve().then(() => (Jg(), Kg))), Xg = [
+})), f_ = n((() => {})), p_ = /* @__PURE__ */ r({ default: () => m_ }), m_, h_ = n((() => {
+	d_(), d_(), f_(), Z(), m_ = /*#__PURE__*/ X(u_, [["__scopeId", "data-v-7a3cbf95"]]);
+})), g_, __, v_, y_ = n((() => {
+	Y(), Oc(), Zl(), $l(), wg(), gu(), g_ = /* @__PURE__ */ ar(() => Promise.resolve().then(() => (h_(), p_))), __ = [
 		"upscale_factor",
 		"tile_size",
 		"tile_overlap"
-	], Zg = {
+	], v_ = {
 		id: "FiLUpscaleTileCalc",
 		register(e, t) {
 			Tc(e, {
@@ -10384,10 +10670,10 @@ var Fg = n((() => {
 					initialValues: c,
 					ui: {}
 				};
-				return n._filUpscaleState = l, Yl(n, "fil_upscale_view", Yg, {
+				return n._filUpscaleState = l, Yl(n, "fil_upscale_view", g_, {
 					state: l,
 					height: 420
-				}), Jh(this, Xg), t;
+				}), hg(this, __), t;
 			};
 			let s = n.onConfigure;
 			n.onConfigure = function(...e) {
@@ -10396,21 +10682,21 @@ var Fg = n((() => {
 				for (let e of Object.keys(r)) o.nodeState[e] = $(Q(n, e), "number", r[e]);
 				for (let e of Object.keys(i)) o.nodeState[e] = $(Q(n, e), "boolean", i[e]);
 				for (let e of Object.keys(a)) o.nodeState[e] = $(Q(n, e), "string", a[e]);
-				return Jh(this, Xg), t;
+				return hg(this, __), t;
 			};
 			let c = n.onRemoved;
 			n.onRemoved = function(...e) {
 				return Xl(this), c?.apply(this, e);
-			}, Xh(n, Xg, "_filUpscaleState"), hu(e);
+			}, _g(n, __, "_filUpscaleState"), hu(e);
 		}
 	};
 }));
-Y(), Oc(), Zl(), $l(), rg(), gu();
-var $g = /* @__PURE__ */ ar(() => Promise.resolve().then(() => (Jg(), Kg))), e_ = [
+Y(), Oc(), Zl(), $l(), wg(), gu();
+var b_ = /* @__PURE__ */ ar(() => Promise.resolve().then(() => (h_(), p_))), x_ = [
 	"upscale_factor",
 	"tile_size",
 	"tile_overlap"
-], t_ = {
+], S_ = {
 	id: "FiLUpscaleSimple",
 	register(e, t) {
 		Tc(e, {
@@ -10460,10 +10746,10 @@ var $g = /* @__PURE__ */ ar(() => Promise.resolve().then(() => (Jg(), Kg))), e_ 
 				initialValues: c,
 				ui: {}
 			};
-			return n._filUpscaleState = l, Yl(n, "fil_upscale_simple_view", $g, {
+			return n._filUpscaleState = l, Yl(n, "fil_upscale_simple_view", b_, {
 				state: l,
 				height: 420
-			}), Jh(this, e_), t;
+			}), hg(this, x_), t;
 		};
 		let s = n.onConfigure;
 		n.onConfigure = function(...e) {
@@ -10472,16 +10758,16 @@ var $g = /* @__PURE__ */ ar(() => Promise.resolve().then(() => (Jg(), Kg))), e_ 
 			for (let e of Object.keys(r)) o.nodeState[e] = $(Q(n, e), "number", r[e]);
 			for (let e of Object.keys(i)) o.nodeState[e] = $(Q(n, e), "boolean", i[e]);
 			for (let e of Object.keys(a)) o.nodeState[e] = $(Q(n, e), "string", a[e]);
-			return Jh(this, e_), t;
+			return hg(this, x_), t;
 		};
 		let c = n.onRemoved;
 		n.onRemoved = function(...e) {
 			return Xl(this), c?.apply(this, e);
-		}, Xh(n, e_, "_filUpscaleState"), hu(e);
+		}, _g(n, x_, "_filUpscaleState"), hu(e);
 	}
 };
 Oc(), gu();
-var n_ = {
+var C_ = {
 	id: "FiLTileAssembly",
 	register(e, t) {
 		Tc(e, {
@@ -10497,7 +10783,7 @@ var n_ = {
 	}
 };
 Oc(), gu();
-var r_ = {
+var w_ = {
 	id: "FiLKSampler",
 	register(e, t) {
 		Tc(e, {
@@ -10511,12 +10797,12 @@ var r_ = {
 			}]
 		}), hu(e);
 	}
-}, i_, a_, o_ = n((() => {
-	Y(), nm(), Qf(), cu(), $l(), Fg(), v_(), i_ = { class: "fil-hrf-root" }, a_ = /*@__PURE__*/ B({
+}, T_, E_, D_ = n((() => {
+	Y(), Cm(), yp(), cu(), $l(), n_(), z_(), T_ = { class: "fil-hrf-root" }, E_ = /*@__PURE__*/ B({
 		__name: "HiResFix",
 		props: { state: {} },
 		setup(e) {
-			let t = e, { t: n } = qf(), { setFieldEl: r, isLinked: i } = Pg(t.state, f_);
+			let t = e, { t: n } = mp(), { setFieldEl: r, isLinked: i } = t_(t.state, N_);
 			function a(e, n) {
 				return J({
 					get: () => Number(t.state.nodeState[e] ?? t.state.initialValues[e] ?? n) || n,
@@ -10590,8 +10876,8 @@ var r_ = {
 				let e = Math.floor(Math.random() * 1e9) & 2147483647;
 				ne.value = e, te.value = "fixed";
 			}
-			return (e, a) => (V(), H("div", i_, [
-				q(L(ff), {
+			return (e, a) => (V(), H("div", T_, [
+				q(L(Nf), {
 					options: [
 						"latent",
 						"pixel",
@@ -10611,7 +10897,7 @@ var r_ = {
 					"label",
 					"title"
 				]),
-				k.value ? (V(), U(L(xf), {
+				k.value ? (V(), U(L(Hf), {
 					key: 0,
 					options: T,
 					"model-value": L(p),
@@ -10623,7 +10909,7 @@ var r_ = {
 					"label",
 					"title"
 				])) : G("", !0),
-				ee.value ? (V(), U(L(xf), {
+				ee.value ? (V(), U(L(Hf), {
 					key: 1,
 					options: E.value,
 					"model-value": L(m),
@@ -10636,7 +10922,7 @@ var r_ = {
 					"label",
 					"title"
 				])) : G("", !0),
-				q(L(Af), {
+				q(L(Zf), {
 					ref: (e) => L(r)("upscale_by", e),
 					"model-value": L(h),
 					min: .01,
@@ -10652,7 +10938,7 @@ var r_ = {
 					"disabled",
 					"title"
 				]),
-				q(L(Af), {
+				q(L(Zf), {
 					ref: (e) => L(r)("denoise", e),
 					"model-value": L(_),
 					min: 0,
@@ -10668,7 +10954,7 @@ var r_ = {
 					"disabled",
 					"title"
 				]),
-				q(L(Rd), {
+				q(L(of), {
 					ref: (e) => L(r)("hires_steps", e),
 					modelValue: L(v),
 					"onUpdate:modelValue": a[5] ||= (e) => /* @__PURE__ */ F(v) ? v.value = e : null,
@@ -10684,7 +10970,7 @@ var r_ = {
 					"label",
 					"title"
 				]),
-				q(L(ff), {
+				q(L(Nf), {
 					options: ["ON", "OFF"],
 					"option-labels": {
 						ON: "♻️ same seed",
@@ -10699,7 +10985,7 @@ var r_ = {
 					"label",
 					"title"
 				]),
-				L(g) === "OFF" ? (V(), U(L(Jd), {
+				L(g) === "OFF" ? (V(), U(L(gf), {
 					key: 2,
 					ref: (e) => L(r)("seed", e),
 					display: re.value,
@@ -10728,13 +11014,13 @@ var r_ = {
 					"labels",
 					"titles"
 				])) : G("", !0),
-				q(L(nf), {
+				q(L(wf), {
 					title: L(n)("hrf_sec_advanced", "ADVANCED"),
 					"model-value": c("advanced"),
 					"onUpdate:modelValue": a[8] ||= (e) => l("advanced", e)
 				}, null, 8, ["title", "model-value"]),
 				c("advanced") ? G("", !0) : (V(), H(K, { key: 3 }, [
-					q(L(xf), {
+					q(L(Hf), {
 						options: w.value,
 						"model-value": L(f),
 						label: L(n)("lbl_hires_ckpt", "📦 Hires checkpoint"),
@@ -10746,7 +11032,7 @@ var r_ = {
 						"label",
 						"title"
 					]),
-					q(L(Rd), {
+					q(L(of), {
 						modelValue: L(y),
 						"onUpdate:modelValue": a[10] ||= (e) => /* @__PURE__ */ F(y) ? y.value = e : null,
 						min: 0,
@@ -10759,7 +11045,7 @@ var r_ = {
 						"label",
 						"title"
 					]),
-					q(L(ff), {
+					q(L(Nf), {
 						options: ["ON", "OFF"],
 						"option-labels": {
 							ON: "🕹️ ON",
@@ -10775,7 +11061,7 @@ var r_ = {
 						"title"
 					]),
 					L(b) === "ON" ? (V(), H(K, { key: 0 }, [
-						q(L(xf), {
+						q(L(Hf), {
 							options: D.value,
 							"model-value": L(x),
 							label: L(n)("lbl_cn_name", "🧩 ControlNet model"),
@@ -10787,7 +11073,7 @@ var r_ = {
 							"label",
 							"title"
 						]),
-						q(L(Af), {
+						q(L(Zf), {
 							"model-value": L(S),
 							min: 0,
 							max: 10,
@@ -10800,7 +11086,7 @@ var r_ = {
 							"label",
 							"title"
 						]),
-						q(L(ff), {
+						q(L(Nf), {
 							options: O.value,
 							"option-labels": {
 								none: "🚫 none",
@@ -10821,36 +11107,36 @@ var r_ = {
 			]));
 		}
 	});
-})), s_ = n((() => {})), c_ = /* @__PURE__ */ r({ default: () => l_ }), l_, u_ = n((() => {
-	o_(), o_(), s_(), Z(), l_ = /*#__PURE__*/ X(a_, [["__scopeId", "data-v-9399efd5"]]);
-})), d_, f_, p_, m_, h_, g_, __, v_ = n((() => {
-	Y(), Oc(), Zl(), $l(), rg(), gu(), d_ = /* @__PURE__ */ ar(() => Promise.resolve().then(() => (u_(), c_))), f_ = [
+})), O_ = n((() => {})), k_ = /* @__PURE__ */ r({ default: () => A_ }), A_, j_ = n((() => {
+	D_(), D_(), O_(), Z(), A_ = /*#__PURE__*/ X(E_, [["__scopeId", "data-v-9399efd5"]]);
+})), M_, N_, P_, F_, I_, L_, R_, z_ = n((() => {
+	Y(), Oc(), Zl(), $l(), wg(), gu(), M_ = /* @__PURE__ */ ar(() => Promise.resolve().then(() => (j_(), k_))), N_ = [
 		"seed",
 		"denoise",
 		"hires_steps",
 		"upscale_by"
-	], p_ = {
+	], P_ = {
 		upscale_by: 1.25,
 		denoise: .56,
 		iterations: 1,
 		strength: 1,
 		seed: 0,
 		hires_steps: 12
-	}, m_ = {
+	}, F_ = {
 		upscale_type: "latent",
 		hires_ckpt_name: "(use same)",
 		latent_upscaler: "nearest-exact",
 		pixel_upscaler: "",
 		control_net_name: "",
 		preprocessor: "none"
-	}, h_ = {
+	}, I_ = {
 		use_same_seed: !0,
 		use_controlnet: !1
-	}, g_ = [
-		...Object.keys(p_),
-		...Object.keys(m_),
-		...Object.keys(h_)
-	], __ = {
+	}, L_ = [
+		...Object.keys(P_),
+		...Object.keys(F_),
+		...Object.keys(I_)
+	], R_ = {
 		id: "FiLHighResFix",
 		register(e, t) {
 			Tc(e, {
@@ -10864,14 +11150,14 @@ var r_ = {
 				}]
 			});
 			let n = e.prototype, r = (e, t) => {
-				for (let n of Object.keys(p_)) t[n] = $(Q(e, n), "number", p_[n]);
-				for (let n of Object.keys(m_)) t[n] = $(Q(e, n), "string", m_[n]);
-				for (let n of Object.keys(h_)) t[n] = $(Q(e, n), "boolean", h_[n]);
+				for (let n of Object.keys(P_)) t[n] = $(Q(e, n), "number", P_[n]);
+				for (let n of Object.keys(F_)) t[n] = $(Q(e, n), "string", F_[n]);
+				for (let n of Object.keys(I_)) t[n] = $(Q(e, n), "boolean", I_[n]);
 			}, i = n.onNodeCreated;
 			n.onNodeCreated = function(...e) {
 				let t = i?.apply(this, e), n = this, a = {};
 				r(n, a);
-				for (let e of g_) {
+				for (let e of L_) {
 					let t = Q(n, e);
 					t && (t.hidden = !0);
 				}
@@ -10887,25 +11173,25 @@ var r_ = {
 					value: n,
 					enumerable: !1,
 					configurable: !0
-				}), n._filHiResFixState = s, Yl(n, "fil_hiresfix_view", d_, {
+				}), n._filHiResFixState = s, Yl(n, "fil_hiresfix_view", M_, {
 					state: s,
 					height: 250
-				}), Jh(this, f_), t;
+				}), hg(this, N_), t;
 			};
 			let a = n.onConfigure;
 			n.onConfigure = function(...e) {
 				let t = a?.apply(this, e), n = this, i = n._filHiResFixState;
-				return i ? (r(n, i.nodeState), Jh(this, f_), t) : t;
+				return i ? (r(n, i.nodeState), hg(this, N_), t) : t;
 			};
 			let o = n.onRemoved;
 			n.onRemoved = function(...e) {
 				return Xl(this), o?.apply(this, e);
-			}, Xh(n, f_, "_filHiResFixState"), hu(e);
+			}, _g(n, N_, "_filHiResFixState"), hu(e);
 		}
 	};
 }));
 Oc(), gu();
-var y_ = {
+var B_ = {
 	id: "FiLNoiseControl",
 	register(e, t) {
 		Tc(e, {
@@ -10921,7 +11207,7 @@ var y_ = {
 	}
 };
 Oc(), gu();
-var b_ = {
+var V_ = {
 	id: "FiLImageDecomposer",
 	register(e, t) {
 		Tc(e, {
@@ -10935,12 +11221,12 @@ var b_ = {
 			}]
 		}), hu(e);
 	}
-}, x_, S_, C_ = n((() => {
-	Y(), nm(), $l(), cg(), Qf(), x_ = { class: "fil-style-mixer-root" }, S_ = /*@__PURE__*/ B({
+}, H_, U_, W_ = n((() => {
+	Y(), Cm(), $l(), kg(), yp(), H_ = { class: "fil-style-mixer-root" }, U_ = /*@__PURE__*/ B({
 		__name: "StyleMixer",
 		props: { state: {} },
 		setup(e) {
-			let t = e, { t: n } = qf(), r = sg.FiLStyleMixer, i = r?.inputs.required.find((e) => e.name === "fusion_mode") || r?.inputs.optional.find((e) => e.name === "fusion_mode"), a = J(() => i?.values?.length ? i.values : ["Weighted Stack (Fast)"]), o = J(() => ({
+			let t = e, { t: n } = mp(), r = Og.FiLStyleMixer, i = r?.inputs.required.find((e) => e.name === "fusion_mode") || r?.inputs.optional.find((e) => e.name === "fusion_mode"), a = J(() => i?.values?.length ? i.values : ["Weighted Stack (Fast)"]), o = J(() => ({
 				"Weighted Stack (Fast)": n("sm_fusion_fast", "⚡ Fast Stack"),
 				"Smart LLM Fusion (Gen-Mix)": n("sm_fusion_smart", "🧬 Smart LLM Fusion")
 			}));
@@ -10979,13 +11265,13 @@ var b_ = {
 			function k(e, n) {
 				t.state.ui[`collapsed_${e}`] = n;
 			}
-			return (e, t) => (V(), H("div", x_, [
-				q(L(nf), {
+			return (e, t) => (V(), H("div", H_, [
+				q(L(wf), {
 					title: L(n)("sm_section_fusion", "🔀 Fusion Mode"),
 					"model-value": O("fusion"),
 					"onUpdate:modelValue": t[0] ||= (e) => k("fusion", e)
 				}, null, 8, ["title", "model-value"]),
-				O("fusion") ? G("", !0) : (V(), U(L(ff), {
+				O("fusion") ? G("", !0) : (V(), U(L(Nf), {
 					key: 0,
 					modelValue: L(c),
 					"onUpdate:modelValue": t[1] ||= (e) => /* @__PURE__ */ F(c) ? c.value = e : null,
@@ -10998,7 +11284,7 @@ var b_ = {
 					"option-labels",
 					"title"
 				])),
-				q(L(nf), {
+				q(L(wf), {
 					title: L(n)("sm_section_style_1", "🎨 Primary Style (Style 1)"),
 					"model-value": O("style1"),
 					"onUpdate:modelValue": t[2] ||= (e) => k("style1", e)
@@ -11009,7 +11295,7 @@ var b_ = {
 						label: D(L(l), L(n)("sm_style_1", "Style 1")),
 						onClick: t[3] ||= (e) => y.value = !0
 					}, null, 8, ["label"]),
-					q(L(Af), {
+					q(L(Zf), {
 						modelValue: L(u),
 						"onUpdate:modelValue": t[4] ||= (e) => /* @__PURE__ */ F(u) ? u.value = e : null,
 						min: 0,
@@ -11017,13 +11303,13 @@ var b_ = {
 						step: .05,
 						label: L(n)("sm_style_1_weight", "Style 1 Weight")
 					}, null, 8, ["modelValue", "label"]),
-					q(L(Ed), {
+					q(L(Ad), {
 						open: y.value,
 						title: L(n)("sm_pick_style_1", "Select Primary Style 1"),
 						width: "680px",
 						"onUpdate:open": t[6] ||= (e) => y.value = e
 					}, {
-						default: Mn(() => [q(L(yp), {
+						default: Mn(() => [q(L(Bp), {
 							styles: E("style_1"),
 							"model-value": L(l),
 							onSelect: t[5] ||= (e) => {
@@ -11033,7 +11319,7 @@ var b_ = {
 						_: 1
 					}, 8, ["open", "title"])
 				], 64)),
-				q(L(nf), {
+				q(L(wf), {
 					title: L(n)("sm_section_style_2", "🧪 Secondary Style (Style 2)"),
 					"model-value": O("style2"),
 					"onUpdate:modelValue": t[7] ||= (e) => k("style2", e)
@@ -11044,7 +11330,7 @@ var b_ = {
 						label: D(L(d), L(n)("sm_style_2", "Style 2")),
 						onClick: t[8] ||= (e) => b.value = !0
 					}, null, 8, ["label"]),
-					q(L(Af), {
+					q(L(Zf), {
 						modelValue: L(f),
 						"onUpdate:modelValue": t[9] ||= (e) => /* @__PURE__ */ F(f) ? f.value = e : null,
 						min: 0,
@@ -11052,13 +11338,13 @@ var b_ = {
 						step: .05,
 						label: L(n)("sm_style_2_weight", "Style 2 Weight")
 					}, null, 8, ["modelValue", "label"]),
-					q(L(Ed), {
+					q(L(Ad), {
 						open: b.value,
 						title: L(n)("sm_pick_style_2", "Select Secondary Style 2"),
 						width: "680px",
 						"onUpdate:open": t[11] ||= (e) => b.value = e
 					}, {
-						default: Mn(() => [q(L(yp), {
+						default: Mn(() => [q(L(Bp), {
 							styles: E("style_2"),
 							"model-value": L(d),
 							onSelect: t[10] ||= (e) => {
@@ -11068,7 +11354,7 @@ var b_ = {
 						_: 1
 					}, 8, ["open", "title"])
 				], 64)),
-				q(L(nf), {
+				q(L(wf), {
 					title: L(n)("sm_section_style_3", "✨ Tertiary Style (Style 3)"),
 					"model-value": O("style3"),
 					"onUpdate:modelValue": t[12] ||= (e) => k("style3", e)
@@ -11079,7 +11365,7 @@ var b_ = {
 						label: D(L(p), L(n)("sm_style_3", "Style 3")),
 						onClick: t[13] ||= (e) => x.value = !0
 					}, null, 8, ["label"]),
-					q(L(Af), {
+					q(L(Zf), {
 						modelValue: L(m),
 						"onUpdate:modelValue": t[14] ||= (e) => /* @__PURE__ */ F(m) ? m.value = e : null,
 						min: 0,
@@ -11087,13 +11373,13 @@ var b_ = {
 						step: .05,
 						label: L(n)("sm_style_3_weight", "Style 3 Weight")
 					}, null, 8, ["modelValue", "label"]),
-					q(L(Ed), {
+					q(L(Ad), {
 						open: x.value,
 						title: L(n)("sm_pick_style_3", "Select Tertiary Style 3"),
 						width: "680px",
 						"onUpdate:open": t[16] ||= (e) => x.value = e
 					}, {
-						default: Mn(() => [q(L(yp), {
+						default: Mn(() => [q(L(Bp), {
 							styles: E("style_3"),
 							"model-value": L(p),
 							onSelect: t[15] ||= (e) => {
@@ -11103,12 +11389,12 @@ var b_ = {
 						_: 1
 					}, 8, ["open", "title"])
 				], 64)),
-				q(L(nf), {
+				q(L(wf), {
 					title: L(n)("sm_section_image_1", "🖼️ Image 1 Influence"),
 					"model-value": O("image1"),
 					"onUpdate:modelValue": t[17] ||= (e) => k("image1", e)
 				}, null, 8, ["title", "model-value"]),
-				O("image1") ? G("", !0) : (V(), U(L(Af), {
+				O("image1") ? G("", !0) : (V(), U(L(Zf), {
 					key: 4,
 					modelValue: L(h),
 					"onUpdate:modelValue": t[18] ||= (e) => /* @__PURE__ */ F(h) ? h.value = e : null,
@@ -11117,12 +11403,12 @@ var b_ = {
 					step: .05,
 					label: L(n)("sm_image_1_weight", "Image 1 Weight")
 				}, null, 8, ["modelValue", "label"])),
-				q(L(nf), {
+				q(L(wf), {
 					title: L(n)("sm_section_image_2", "🖼️ Image 2 Influence"),
 					"model-value": O("image2"),
 					"onUpdate:modelValue": t[19] ||= (e) => k("image2", e)
 				}, null, 8, ["title", "model-value"]),
-				O("image2") ? G("", !0) : (V(), U(L(Af), {
+				O("image2") ? G("", !0) : (V(), U(L(Zf), {
 					key: 5,
 					modelValue: L(g),
 					"onUpdate:modelValue": t[20] ||= (e) => /* @__PURE__ */ F(g) ? g.value = e : null,
@@ -11131,11 +11417,11 @@ var b_ = {
 					step: .05,
 					label: L(n)("sm_image_2_weight", "Image 2 Weight")
 				}, null, 8, ["modelValue", "label"])),
-				w.value ? (V(), H(K, { key: 6 }, [q(L(nf), {
+				w.value ? (V(), H(K, { key: 6 }, [q(L(wf), {
 					title: L(n)("sm_section_image_3", "🖼️ Image 3 Influence"),
 					"model-value": O("image3"),
 					"onUpdate:modelValue": t[21] ||= (e) => k("image3", e)
-				}, null, 8, ["title", "model-value"]), O("image3") ? G("", !0) : (V(), U(L(Af), {
+				}, null, 8, ["title", "model-value"]), O("image3") ? G("", !0) : (V(), U(L(Zf), {
 					key: 0,
 					modelValue: L(_),
 					"onUpdate:modelValue": t[22] ||= (e) => /* @__PURE__ */ F(_) ? _.value = e : null,
@@ -11144,11 +11430,11 @@ var b_ = {
 					step: .05,
 					label: L(n)("sm_image_3_weight", "Image 3 Weight")
 				}, null, 8, ["modelValue", "label"]))], 64)) : G("", !0),
-				T.value ? (V(), H(K, { key: 7 }, [q(L(nf), {
+				T.value ? (V(), H(K, { key: 7 }, [q(L(wf), {
 					title: L(n)("sm_section_image_4", "🖼️ Image 4 Influence"),
 					"model-value": O("image4"),
 					"onUpdate:modelValue": t[23] ||= (e) => k("image4", e)
-				}, null, 8, ["title", "model-value"]), O("image4") ? G("", !0) : (V(), U(L(Af), {
+				}, null, 8, ["title", "model-value"]), O("image4") ? G("", !0) : (V(), U(L(Zf), {
 					key: 0,
 					modelValue: L(v),
 					"onUpdate:modelValue": t[24] ||= (e) => /* @__PURE__ */ F(v) ? v.value = e : null,
@@ -11160,11 +11446,11 @@ var b_ = {
 			]));
 		}
 	});
-})), w_ = n((() => {})), T_ = /* @__PURE__ */ r({ default: () => E_ }), E_, D_ = n((() => {
-	C_(), C_(), w_(), Z(), E_ = /*#__PURE__*/ X(S_, [["__scopeId", "data-v-87c8a7d7"]]);
+})), G_ = n((() => {})), K_ = /* @__PURE__ */ r({ default: () => q_ }), q_, J_ = n((() => {
+	W_(), W_(), G_(), Z(), q_ = /*#__PURE__*/ X(U_, [["__scopeId", "data-v-87c8a7d7"]]);
 }));
-Y(), Oc(), Zl(), $l(), rg(), gu();
-var O_ = /* @__PURE__ */ ar(() => Promise.resolve().then(() => (D_(), T_))), k_ = ["base_prompt"], A_ = [
+Y(), Oc(), Zl(), $l(), wg(), gu();
+var Y_ = /* @__PURE__ */ ar(() => Promise.resolve().then(() => (J_(), K_))), X_ = ["base_prompt"], Z_ = [
 	"fusion_mode",
 	"img_weight_1",
 	"img_focus_1",
@@ -11181,7 +11467,7 @@ var O_ = /* @__PURE__ */ ar(() => Promise.resolve().then(() => (D_(), T_))), k_ 
 	"style_3",
 	"weight_3"
 ];
-function j_(e) {
+function Q_(e) {
 	if (!e) return;
 	let t = e._filStyleMixerState;
 	if (t?.ui && (t.ui.slotVersion = (t.ui.slotVersion ?? 0) + 1), !e._allInputs && Array.isArray(e.inputs) && (e._allInputs = [...e.inputs]), !e._allInputs) return;
@@ -11201,7 +11487,7 @@ function j_(e) {
 		n && (n.target_slot = t);
 	}), typeof e.setSize == "function" && typeof e.computeSize == "function" && e.setSize(e.computeSize()), typeof e.setDirtyCanvas == "function" && e.setDirtyCanvas(!0, !0);
 }
-var M_ = {
+var $_ = {
 	id: "FiLStyleMixer",
 	register(e, t) {
 		Tc(e, {
@@ -11217,7 +11503,7 @@ var M_ = {
 		let n = e.prototype, r = n.onNodeCreated;
 		n.onNodeCreated = function(...e) {
 			let t = r?.apply(this, e), n = this, i = {}, a = {};
-			for (let e of A_) {
+			for (let e of Z_) {
 				let t = Q(n, e);
 				if (!t) continue;
 				let r = e.includes("weight") ? "number" : "string", o = $(t, r, r === "number" ? .5 : "(None)");
@@ -11234,25 +11520,25 @@ var M_ = {
 				configurable: !0
 			});
 			let s = /* @__PURE__ */ ot(o);
-			return n._filStyleMixerState = s, ag(n, s), Yl(n, "fil_style_mixer_view", O_, {
+			return n._filStyleMixerState = s, Eg(n, s), Yl(n, "fil_style_mixer_view", Y_, {
 				state: s,
 				height: 480
-			}), j_(this), Jh(this, k_), t;
+			}), Q_(this), hg(this, X_), t;
 		};
 		let i = n.onConfigure;
 		n.onConfigure = function(...e) {
 			let t = i?.apply(this, e), n = this, r = n._filStyleMixerState;
 			if (r) {
-				let t = !!e[0]?.[ig];
-				for (let e of A_) {
+				let t = !!e[0]?.[Tg];
+				for (let e of Z_) {
 					let i = Q(n, e);
 					if (!i) continue;
 					let a = e.includes("weight") ? "number" : "string", o = a === "number" ? .5 : "(None)";
 					r.nodeState[e] = $(i, a, o, t);
 				}
-				og(r, e[0]);
+				Dg(r, e[0]);
 			}
-			return j_(this), Jh(this, k_), t;
+			return Q_(this), hg(this, X_), t;
 		};
 		let a = n.onConnectionsChange;
 		n.onConnectionsChange = function(e, t, n, r, i) {
@@ -11263,19 +11549,19 @@ var M_ = {
 				r,
 				i
 			]);
-			return (e === 1 || e?.name === "input") && j_(this), Jh(this, k_), o;
+			return (e === 1 || e?.name === "input") && Q_(this), hg(this, X_), o;
 		};
 		let o = n.onRemoved;
 		n.onRemoved = function(...e) {
 			return Xl(this), o?.apply(this, e);
-		}, Xh(n, k_, "_filStyleMixerState"), hu(e);
+		}, _g(n, X_, "_filStyleMixerState"), hu(e);
 	}
-}, N_, P_, F_, I_, L_, R_, z_, B_, V_, H_, U_ = n((() => {
-	Y(), nm(), $l(), cg(), Qf(), Fg(), Q_(), N_ = { class: "fil-color-wizard-root" }, P_ = { class: "fil-cw-presets-block" }, F_ = { class: "fil-cw-presets-title" }, I_ = { class: "fil-cw-presets-grid" }, L_ = ["title"], R_ = ["title"], z_ = ["title"], B_ = ["title"], V_ = { class: "fil-cw-slider-group" }, H_ = /*@__PURE__*/ B({
+}, ev, tv, nv, rv, iv, av, ov, sv, cv, lv, uv = n((() => {
+	Y(), Cm(), $l(), kg(), yp(), n_(), yv(), ev = { class: "fil-color-wizard-root" }, tv = { class: "fil-cw-presets-block" }, nv = { class: "fil-cw-presets-title" }, rv = { class: "fil-cw-presets-grid" }, iv = ["title"], av = ["title"], ov = ["title"], sv = ["title"], cv = { class: "fil-cw-slider-group" }, lv = /*@__PURE__*/ B({
 		__name: "ColorWizard",
 		props: { state: {} },
 		setup(e) {
-			let t = e, { t: n } = qf(), { setFieldEl: r, isLinked: i } = Pg(t.state, Y_), a = (e, t) => i(e) ? n("fld_linked_tt", "Driven by the connected input — disconnect it to edit here.") : t, o = sg.FiLColorWizard, s = o?.inputs.required.find((e) => e.name === "method") || o?.inputs.optional.find((e) => e.name === "method"), c = J(() => (s?.values?.length ? s.values : ["Full Auto"]).map((e) => ({ value: e })));
+			let t = e, { t: n } = mp(), { setFieldEl: r, isLinked: i } = t_(t.state, gv), a = (e, t) => i(e) ? n("fld_linked_tt", "Driven by the connected input — disconnect it to edit here.") : t, o = Og.FiLColorWizard, s = o?.inputs.required.find((e) => e.name === "method") || o?.inputs.optional.find((e) => e.name === "method"), c = J(() => (s?.values?.length ? s.values : ["Full Auto"]).map((e) => ({ value: e })));
 			function l(e, n) {
 				return J({
 					get: () => t.state.nodeState[e] ?? n,
@@ -11290,35 +11576,35 @@ var M_ = {
 			function h(e) {
 				e === "warm" ? (u.value = "Full Auto", f.value = .35, p.value = 0, d.value = .8, m.value = !0) : e === "cool" ? (u.value = "Full Auto", f.value = -.35, p.value = .15, d.value = .85, m.value = !1) : e === "skin" ? (u.value = "White Patch", f.value = .05, p.value = 0, d.value = .75, m.value = !0) : e === "contrast" && (u.value = "LAB Enhance", f.value = 0, p.value = 0, d.value = .9, m.value = !1);
 			}
-			return (e, t) => (V(), H("div", N_, [
-				W("div", P_, [W("div", F_, N(L(n)("cw_presets", "⚡ Quick Presets")), 1), W("div", I_, [
+			return (e, t) => (V(), H("div", ev, [
+				W("div", tv, [W("div", nv, N(L(n)("cw_presets", "⚡ Quick Presets")), 1), W("div", rv, [
 					W("button", {
 						type: "button",
 						class: "fil-cw-preset-btn warm",
 						title: L(n)("cw_preset_warm_tt", "Warm Sunny Tone"),
 						onClick: t[0] ||= (e) => h("warm")
-					}, N(L(n)("cw_preset_warm", "☀️ Warm Sun")), 9, L_),
+					}, N(L(n)("cw_preset_warm", "☀️ Warm Sun")), 9, iv),
 					W("button", {
 						type: "button",
 						class: "fil-cw-preset-btn cool",
 						title: L(n)("cw_preset_cool_tt", "Cool Sci-Fi Cyberpunk Tone"),
 						onClick: t[1] ||= (e) => h("cool")
-					}, N(L(n)("cw_preset_cool", "🧊 Cool Sci-Fi")), 9, R_),
+					}, N(L(n)("cw_preset_cool", "🧊 Cool Sci-Fi")), 9, av),
 					W("button", {
 						type: "button",
 						class: "fil-cw-preset-btn skin",
 						title: L(n)("cw_preset_skin_tt", "Natural Skin Preservation"),
 						onClick: t[2] ||= (e) => h("skin")
-					}, N(L(n)("cw_preset_skin", "👤 Skin Protect")), 9, z_),
+					}, N(L(n)("cw_preset_skin", "👤 Skin Protect")), 9, ov),
 					W("button", {
 						type: "button",
 						class: "fil-cw-preset-btn contrast",
 						title: L(n)("cw_preset_contrast_tt", "Punchy LAB Contrast"),
 						onClick: t[3] ||= (e) => h("contrast")
-					}, N(L(n)("cw_preset_contrast", "⚡ Contrast")), 9, B_)
+					}, N(L(n)("cw_preset_contrast", "⚡ Contrast")), 9, sv)
 				])]),
-				q(L(nf), { title: L(n)("cw_section_method", "⚙️ Method") }, null, 8, ["title"]),
-				q(L(dd), {
+				q(L(wf), { title: L(n)("cw_section_method", "⚙️ Method") }, null, 8, ["title"]),
+				q(L(md), {
 					modelValue: L(u),
 					"onUpdate:modelValue": t[4] ||= (e) => /* @__PURE__ */ F(u) ? u.value = e : null,
 					options: c.value,
@@ -11328,9 +11614,9 @@ var M_ = {
 					"options",
 					"title"
 				]),
-				q(L(nf), { title: L(n)("cw_section_adjust", "🎛️ Adjustments") }, null, 8, ["title"]),
-				W("div", V_, [
-					q(L(Af), {
+				q(L(wf), { title: L(n)("cw_section_adjust", "🎛️ Adjustments") }, null, 8, ["title"]),
+				W("div", cv, [
+					q(L(Zf), {
 						ref: (e) => L(r)("strength", e),
 						modelValue: L(d),
 						"onUpdate:modelValue": t[5] ||= (e) => /* @__PURE__ */ F(d) ? d.value = e : null,
@@ -11346,7 +11632,7 @@ var M_ = {
 						"label",
 						"title"
 					]),
-					q(L(Af), {
+					q(L(Zf), {
 						ref: (e) => L(r)("temperature", e),
 						modelValue: L(f),
 						"onUpdate:modelValue": t[6] ||= (e) => /* @__PURE__ */ F(f) ? f.value = e : null,
@@ -11362,7 +11648,7 @@ var M_ = {
 						"label",
 						"title"
 					]),
-					q(L(Af), {
+					q(L(Zf), {
 						ref: (e) => L(r)("tint", e),
 						modelValue: L(p),
 						"onUpdate:modelValue": t[7] ||= (e) => /* @__PURE__ */ F(p) ? p.value = e : null,
@@ -11379,7 +11665,7 @@ var M_ = {
 						"title"
 					])
 				]),
-				q(L(em), {
+				q(L(xm), {
 					"model-value": L(m) ? "ON" : "OFF",
 					label: L(n)("cw_preserve_skin", "🛡️ Preserve Skin Tones"),
 					title: L(n)("tt_cw_preserve_skin", "Preserve skin tones."),
@@ -11392,22 +11678,22 @@ var M_ = {
 			]));
 		}
 	});
-})), W_ = n((() => {})), G_ = /* @__PURE__ */ r({ default: () => K_ }), K_, q_ = n((() => {
-	U_(), U_(), W_(), Z(), K_ = /*#__PURE__*/ X(H_, [["__scopeId", "data-v-a7254666"]]);
-})), J_, Y_, X_, Z_, Q_ = n((() => {
-	Y(), Oc(), Zl(), $l(), rg(), gu(), J_ = /* @__PURE__ */ ar(() => Promise.resolve().then(() => (q_(), G_))), Y_ = [
+})), dv = n((() => {})), fv = /* @__PURE__ */ r({ default: () => pv }), pv, mv = n((() => {
+	uv(), uv(), dv(), Z(), pv = /*#__PURE__*/ X(lv, [["__scopeId", "data-v-a7254666"]]);
+})), hv, gv, _v, vv, yv = n((() => {
+	Y(), Oc(), Zl(), $l(), wg(), gu(), hv = /* @__PURE__ */ ar(() => Promise.resolve().then(() => (mv(), fv))), gv = [
 		"strength",
 		"saturate",
 		"temperature",
 		"tint"
-	], X_ = [
+	], _v = [
 		"method",
 		"strength",
 		"saturate",
 		"temperature",
 		"tint",
 		"preserve_skin"
-	], Z_ = {
+	], vv = {
 		id: "FiLColorWizard",
 		register(e, t) {
 			Tc(e, {
@@ -11423,7 +11709,7 @@ var M_ = {
 			let n = e.prototype, r = n.onNodeCreated;
 			n.onNodeCreated = function(...e) {
 				let t = r?.apply(this, e), n = this, i = {}, a = {};
-				for (let e of X_) {
+				for (let e of _v) {
 					let t = Q(n, e);
 					if (!t) continue;
 					let r = e === "preserve_skin" ? "boolean" : e === "method" ? "string" : "number", o = $(t, r, r === "boolean" ? !1 : r === "number" ? 0 : "Full Auto");
@@ -11440,34 +11726,34 @@ var M_ = {
 					configurable: !0
 				});
 				let s = /* @__PURE__ */ ot(o);
-				return n._filColorWizardState = s, Yl(n, "fil_color_wizard_view", J_, {
+				return n._filColorWizardState = s, Yl(n, "fil_color_wizard_view", hv, {
 					state: s,
 					height: 320
-				}), Jh(this, Y_), t;
+				}), hg(this, gv), t;
 			};
 			let i = n.onConfigure;
 			n.onConfigure = function(...e) {
 				let t = i?.apply(this, e), n = this, r = n._filColorWizardState;
-				if (r) for (let e of X_) {
+				if (r) for (let e of _v) {
 					let t = Q(n, e);
 					if (!t) continue;
 					let i = e === "preserve_skin" ? "boolean" : e === "method" ? "string" : "number", a = i === "boolean" ? !1 : i === "number" ? 0 : "Full Auto";
 					r.nodeState[e] = $(t, i, a);
 				}
-				return Jh(this, Y_), t;
+				return hg(this, gv), t;
 			};
 			let a = n.onRemoved;
 			n.onRemoved = function(...e) {
 				return Xl(this), a?.apply(this, e);
-			}, Xh(n, Y_, "_filColorWizardState"), hu(e);
+			}, _g(n, gv, "_filColorWizardState"), hu(e);
 		}
 	};
-})), $_, ev, tv, nv, rv = n((() => {
-	Y(), $l(), Qf(), $_ = { class: "fil-switch-panel" }, ev = ["title", "aria-label"], tv = { class: "fil-switch-text" }, nv = /*@__PURE__*/ B({
+})), bv, xv, Sv, Cv, wv = n((() => {
+	Y(), $l(), yp(), bv = { class: "fil-switch-panel" }, xv = ["title", "aria-label"], Sv = { class: "fil-switch-text" }, Cv = /*@__PURE__*/ B({
 		__name: "Switch",
 		props: { state: {} },
 		setup(e) {
-			let t = e, { t: n } = qf(), r = J(() => n("tt_switch_enable", "ON passes the input signal through. OFF sends `None` downstream, and the rest of the graph keeps running.")), i = J({
+			let t = e, { t: n } = mp(), r = J(() => n("tt_switch_enable", "ON passes the input signal through. OFF sends `None` downstream, and the rest of the graph keeps running.")), i = J({
 				get: () => !!(t.state.nodeState.enable ?? !0),
 				set: (e) => {
 					t.state.nodeState.enable = e;
@@ -11483,7 +11769,7 @@ var M_ = {
 					let t = !!e;
 					i.value !== t && (i.value = t);
 				}
-			}), (e, t) => (V(), H("div", $_, [W("button", {
+			}), (e, t) => (V(), H("div", bv, [W("button", {
 				type: "button",
 				class: s(["fil-switch-btn", {
 					"is-on": i.value,
@@ -11492,15 +11778,15 @@ var M_ = {
 				title: r.value,
 				"aria-label": r.value,
 				onClick: a
-			}, [W("span", tv, N(i.value ? "ON" : "OFF"), 1)], 10, ev)]));
+			}, [W("span", Sv, N(i.value ? "ON" : "OFF"), 1)], 10, xv)]));
 		}
 	});
-})), iv = n((() => {})), av = /* @__PURE__ */ r({ default: () => ov }), ov, sv = n((() => {
-	rv(), rv(), iv(), Z(), ov = /*#__PURE__*/ X(nv, [["__scopeId", "data-v-e917a7af"]]);
+})), Tv = n((() => {})), Ev = /* @__PURE__ */ r({ default: () => Dv }), Dv, Ov = n((() => {
+	wv(), wv(), Tv(), Z(), Dv = /*#__PURE__*/ X(Cv, [["__scopeId", "data-v-e917a7af"]]);
 }));
 Y(), Oc(), Zl(), $l(), gu();
-var cv = /* @__PURE__ */ ar(() => Promise.resolve().then(() => (sv(), av)));
-function lv(e) {
+var kv = /* @__PURE__ */ ar(() => Promise.resolve().then(() => (Ov(), Ev)));
+function Av(e) {
 	if (!e.inputs?.[0] || !e.outputs?.[0]) return;
 	let t = e.inputs[0], n = e.outputs[0], r = t.link;
 	if (r != null && e.graph?.links) {
@@ -11513,7 +11799,7 @@ function lv(e) {
 	}
 	n.type = "*", n.label = "output", t.label = "input", delete n.color_on, delete n.color_off, e.graph?.setDirtyCanvas?.(!0, !0);
 }
-var uv = {
+var jv = {
 	id: "FiLSignalSwitch",
 	register(e, t) {
 		Tc(e, {
@@ -11539,32 +11825,32 @@ var uv = {
 				value: n,
 				enumerable: !1,
 				configurable: !0
-			}), n._filSwitchState = o, Yl(n, "fil_switch_view", cv, {
+			}), n._filSwitchState = o, Yl(n, "fil_switch_view", kv, {
 				state: o,
 				height: 46
-			}), lv(n), t;
+			}), Av(n), t;
 		};
 		let i = n.onConfigure;
 		n.onConfigure = function(...e) {
 			let t = i?.apply(this, e), n = this, r = n._filSwitchState;
-			return r && (r.nodeState.enable = $(Q(n, "enable"), "boolean", !0)), lv(n), t;
+			return r && (r.nodeState.enable = $(Q(n, "enable"), "boolean", !0)), Av(n), t;
 		};
 		let a = n.onConnectionsChange;
 		n.onConnectionsChange = function(...e) {
 			let t = a?.apply(this, e);
-			return lv(this), t;
+			return Av(this), t;
 		};
 		let o = n.onRemoved;
 		n.onRemoved = function(...e) {
 			return Xl(this), o?.apply(this, e);
 		}, hu(e);
 	}
-}, dv, fv, pv = n((() => {
-	Y(), nm(), Fg(), Ov(), Qf(), dv = { class: "fil-ds-root" }, fv = /*@__PURE__*/ B({
+}, Mv, Nv, Pv = n((() => {
+	Y(), Cm(), n_(), Yv(), yp(), Mv = { class: "fil-ds-root" }, Nv = /*@__PURE__*/ B({
 		__name: "DatasetForge",
 		props: { state: {} },
 		setup(e) {
-			let t = e, { t: n } = qf(), { setFieldEl: r, isLinked: i } = Pg(t.state, Sv), a = (e, t) => i(e) ? n("fld_linked_tt", "Driven by the connected input — disconnect it to edit here.") : t;
+			let t = e, { t: n } = mp(), { setFieldEl: r, isLinked: i } = t_(t.state, Uv), a = (e, t) => i(e) ? n("fld_linked_tt", "Driven by the connected input — disconnect it to edit here.") : t;
 			function o(e, n = "") {
 				return t.state.nodeState[e] ?? t.state.initialValues[e] ?? n;
 			}
@@ -11656,12 +11942,12 @@ var uv = {
 			function se(e, n) {
 				t.state.ui[`collapsed_${e}`] = n;
 			}
-			return (e, t) => (V(), H("div", dv, [
-				q(L(nf), {
+			return (e, t) => (V(), H("div", Mv, [
+				q(L(wf), {
 					title: L(n)("dsp_section_identity", "1️⃣ Who / what is this"),
 					collapsible: !1
 				}, null, 8, ["title"]),
-				q(L(Ip), {
+				q(L(rm), {
 					ref: (e) => L(r)("dataset_name", e),
 					disabled: L(i)("dataset_name"),
 					modelValue: L(d),
@@ -11675,7 +11961,7 @@ var uv = {
 					"label",
 					"title"
 				]),
-				q(L(Ip), {
+				q(L(rm), {
 					ref: (e) => L(r)("trigger_word", e),
 					disabled: L(i)("trigger_word"),
 					modelValue: L(f),
@@ -11689,7 +11975,7 @@ var uv = {
 					"label",
 					"title"
 				]),
-				q(L(Ip), {
+				q(L(rm), {
 					ref: (e) => L(r)("class_token", e),
 					disabled: L(i)("class_token"),
 					modelValue: L(p),
@@ -11703,12 +11989,12 @@ var uv = {
 					"label",
 					"title"
 				]),
-				q(L(_d), { text: `${L(n)("dsp_preview_folder", "📁 Will create:")} ${v.value}` }, null, 8, ["text"]),
-				q(L(nf), {
+				q(L(qd), { text: `${L(n)("dsp_preview_folder", "📁 Will create:")} ${v.value}` }, null, 8, ["text"]),
+				q(L(wf), {
 					title: L(n)("dsp_section_format", "2️⃣ File format"),
 					collapsible: !1
 				}, null, 8, ["title"]),
-				q(L(dd), {
+				q(L(md), {
 					modelValue: L(b),
 					"onUpdate:modelValue": t[3] ||= (e) => /* @__PURE__ */ F(b) ? b.value = e : null,
 					options: y.value,
@@ -11720,7 +12006,7 @@ var uv = {
 					"label",
 					"title"
 				]),
-				q(L(ff), {
+				q(L(Nf), {
 					modelValue: L(h),
 					"onUpdate:modelValue": t[4] ||= (e) => /* @__PURE__ */ F(h) ? h.value = e : null,
 					options: ["kohya", "flat"],
@@ -11736,7 +12022,7 @@ var uv = {
 					"label",
 					"title"
 				]),
-				q(L(Rd), {
+				q(L(of), {
 					ref: (e) => L(r)("repeats", e),
 					disabled: L(i)("repeats"),
 					modelValue: L(m),
@@ -11752,7 +12038,7 @@ var uv = {
 					"label",
 					"title"
 				]),
-				q(L(ff), {
+				q(L(Nf), {
 					modelValue: L(x),
 					"onUpdate:modelValue": t[6] ||= (e) => /* @__PURE__ */ F(x) ? x.value = e : null,
 					options: ["center", "entropy"],
@@ -11768,11 +12054,11 @@ var uv = {
 					"label",
 					"title"
 				]),
-				q(L(nf), {
+				q(L(wf), {
 					title: L(n)("dsp_section_captions", "3️⃣ Captions"),
 					collapsible: !1
 				}, null, 8, ["title"]),
-				q(L(ff), {
+				q(L(Nf), {
 					modelValue: L(S),
 					"onUpdate:modelValue": t[7] ||= (e) => /* @__PURE__ */ F(S) ? S.value = e : null,
 					options: [
@@ -11795,12 +12081,12 @@ var uv = {
 					"label",
 					"title"
 				]),
-				O.value && !k.value ? (V(), U(L(_d), {
+				O.value && !k.value ? (V(), U(L(qd), {
 					key: 0,
 					text: L(n)("dsp_hint_no_config", "⚠️ Connect 🔌 Provider Loader to caption — or fill in captions below"),
 					err: ""
 				}, null, 8, ["text"])) : G("", !0),
-				L(S) === "none" ? G("", !0) : (V(), H(K, { key: 1 }, [q(L(ff), {
+				L(S) === "none" ? G("", !0) : (V(), H(K, { key: 1 }, [q(L(Nf), {
 					modelValue: L(C),
 					"onUpdate:modelValue": t[8] ||= (e) => /* @__PURE__ */ F(C) ? C.value = e : null,
 					options: ["en", "ru"],
@@ -11815,7 +12101,7 @@ var uv = {
 					"option-labels",
 					"label",
 					"title"
-				]), q(L(Rd), {
+				]), q(L(of), {
 					modelValue: L(w),
 					"onUpdate:modelValue": t[9] ||= (e) => /* @__PURE__ */ F(w) ? w.value = e : null,
 					min: 4,
@@ -11828,7 +12114,7 @@ var uv = {
 					"label",
 					"title"
 				])], 64)),
-				q(L(Op), {
+				q(L(Yp), {
 					ref: (e) => L(r)("captions", e),
 					disabled: L(i)("captions"),
 					modelValue: L(T),
@@ -11843,11 +12129,11 @@ var uv = {
 					"label",
 					"placeholder"
 				]),
-				L(S) === "none" ? G("", !0) : (V(), H(K, { key: 2 }, [q(L(nf), {
+				L(S) === "none" ? G("", !0) : (V(), H(K, { key: 2 }, [q(L(wf), {
 					title: L(n)("dsp_section_caption_tuning", "🎛️ Caption tuning"),
 					"model-value": M("caption_tuning"),
 					"onUpdate:modelValue": t[11] ||= (e) => se("caption_tuning", e)
-				}, null, 8, ["title", "model-value"]), M("caption_tuning") ? G("", !0) : (V(), H(K, { key: 0 }, [q(L(Op), {
+				}, null, 8, ["title", "model-value"]), M("caption_tuning") ? G("", !0) : (V(), H(K, { key: 0 }, [q(L(Yp), {
 					ref: (e) => L(r)("dont_caption", e),
 					disabled: L(i)("dont_caption"),
 					modelValue: L(E),
@@ -11861,7 +12147,7 @@ var uv = {
 					"title",
 					"label",
 					"placeholder"
-				]), q(L(Op), {
+				]), q(L(Yp), {
 					ref: (e) => L(r)("caption_instruction", e),
 					disabled: L(i)("caption_instruction"),
 					modelValue: L(D),
@@ -11874,11 +12160,11 @@ var uv = {
 					"title",
 					"label"
 				])], 64))], 64)),
-				q(L(nf), {
+				q(L(wf), {
 					title: L(n)("dsp_section_write", "4️⃣ Write to disk"),
 					collapsible: !1
 				}, null, 8, ["title"]),
-				q(L(em), {
+				q(L(xm), {
 					"model-value": L(ne),
 					label: L(n)("dsp_label_dry_run", "🧪 Dry run (plan only)"),
 					title: L(n)("ds_dry_run", ""),
@@ -11888,7 +12174,7 @@ var uv = {
 					"label",
 					"title"
 				]),
-				q(L(ff), {
+				q(L(Nf), {
 					modelValue: L(re),
 					"onUpdate:modelValue": t[15] ||= (e) => /* @__PURE__ */ F(re) ? re.value = e : null,
 					options: ["append", "overwrite"],
@@ -11904,13 +12190,13 @@ var uv = {
 					"label",
 					"title"
 				]),
-				q(L(nf), {
+				q(L(wf), {
 					title: L(n)("dsp_section_advanced", "⚙️ Technical details"),
 					"model-value": M("advanced"),
 					"onUpdate:modelValue": t[16] ||= (e) => se("advanced", e)
 				}, null, 8, ["title", "model-value"]),
 				M("advanced") ? G("", !0) : (V(), H(K, { key: 3 }, [
-					q(L(Rd), {
+					q(L(of), {
 						modelValue: L(A),
 						"onUpdate:modelValue": t[17] ||= (e) => /* @__PURE__ */ F(A) ? A.value = e : null,
 						min: 8,
@@ -11923,7 +12209,7 @@ var uv = {
 						"label",
 						"title"
 					]),
-					q(L(xf), {
+					q(L(Hf), {
 						modelValue: L(j),
 						"onUpdate:modelValue": t[18] ||= (e) => /* @__PURE__ */ F(j) ? j.value = e : null,
 						options: [".txt", ".caption"],
@@ -11934,7 +12220,7 @@ var uv = {
 						"label",
 						"title"
 					]),
-					q(L(ff), {
+					q(L(Nf), {
 						modelValue: L(ie),
 						"onUpdate:modelValue": t[19] ||= (e) => /* @__PURE__ */ F(ie) ? ie.value = e : null,
 						options: ["png", "jpg"],
@@ -11949,7 +12235,7 @@ var uv = {
 						"label",
 						"title"
 					]),
-					L(ie) === "jpg" ? (V(), U(L(Rd), {
+					L(ie) === "jpg" ? (V(), U(L(of), {
 						key: 0,
 						modelValue: L(ae),
 						"onUpdate:modelValue": t[20] ||= (e) => /* @__PURE__ */ F(ae) ? ae.value = e : null,
@@ -11963,7 +12249,7 @@ var uv = {
 						"label",
 						"title"
 					])) : G("", !0),
-					q(L(Rd), {
+					q(L(of), {
 						ref: (e) => L(r)("seed", e),
 						disabled: L(i)("seed"),
 						modelValue: L(oe),
@@ -11983,25 +12269,25 @@ var uv = {
 			]));
 		}
 	});
-})), mv = n((() => {})), hv = /* @__PURE__ */ r({ default: () => gv }), gv, _v = n((() => {
-	pv(), pv(), mv(), Z(), gv = /*#__PURE__*/ X(fv, [["__scopeId", "data-v-c3edb9b3"]]);
+})), Fv = n((() => {})), Iv = /* @__PURE__ */ r({ default: () => Lv }), Lv, Rv = n((() => {
+	Pv(), Pv(), Fv(), Z(), Lv = /*#__PURE__*/ X(Nv, [["__scopeId", "data-v-c3edb9b3"]]);
 }));
 //#endregion
 //#region src/nodes2/nodes/dataset.ts
-function vv(e) {
-	for (let t of e.widgets || []) t.name !== Cv && (t.hidden = !0);
+function zv(e) {
+	for (let t of e.widgets || []) t.name !== Wv && (t.hidden = !0);
 }
-function yv(e) {
+function Bv(e) {
 	let t = Q(e, "control_after_generate");
 	t && (t.value = "fixed");
 }
-function bv(e, t) {
-	for (let [n, r] of Object.entries(wv)) e[n] = $(Q(t, n), "string", r);
-	for (let [n, r] of Object.entries(Tv)) e[n] = $(Q(t, n), "number", r);
-	for (let [n, r] of Object.entries(Ev)) e[n] = $(Q(t, n), "boolean", r);
+function Vv(e, t) {
+	for (let [n, r] of Object.entries(Gv)) e[n] = $(Q(t, n), "string", r);
+	for (let [n, r] of Object.entries(Kv)) e[n] = $(Q(t, n), "number", r);
+	for (let [n, r] of Object.entries(qv)) e[n] = $(Q(t, n), "boolean", r);
 }
-var xv, Sv, Cv, wv, Tv, Ev, Dv, Ov = n((() => {
-	Y(), Oc(), Zl(), $l(), rg(), gu(), xv = /* @__PURE__ */ ar(() => Promise.resolve().then(() => (_v(), hv))), Sv = [
+var Hv, Uv, Wv, Gv, Kv, qv, Jv, Yv = n((() => {
+	Y(), Oc(), Zl(), $l(), wg(), gu(), Hv = /* @__PURE__ */ ar(() => Promise.resolve().then(() => (Rv(), Iv))), Uv = [
 		"dataset_name",
 		"trigger_word",
 		"class_token",
@@ -12010,7 +12296,7 @@ var xv, Sv, Cv, wv, Tv, Ev, Dv, Ov = n((() => {
 		"dont_caption",
 		"seed",
 		"repeats"
-	], Cv = "fil_dataset_forge_view", wv = {
+	], Wv = "fil_dataset_forge_view", Gv = {
 		dataset_name: "my_lora",
 		trigger_word: "",
 		class_token: "",
@@ -12025,13 +12311,13 @@ var xv, Sv, Cv, wv, Tv, Ev, Dv, Ov = n((() => {
 		caption_instruction: "",
 		caption_extension: ".txt",
 		image_format: "png"
-	}, Tv = {
+	}, Kv = {
 		repeats: 10,
 		caption_max_words: 60,
 		bucket_step: 64,
 		jpg_quality: 95,
 		seed: -1
-	}, Ev = { dry_run: !1 }, Dv = {
+	}, qv = { dry_run: !1 }, Jv = {
 		id: "FiLDatasetForge",
 		register(e, t) {
 			Tc(e, {
@@ -12047,7 +12333,7 @@ var xv, Sv, Cv, wv, Tv, Ev, Dv, Ov = n((() => {
 			let n = e.prototype, r = n.onNodeCreated;
 			n.onNodeCreated = function(...e) {
 				let t = r?.apply(this, e), n = this, i = {};
-				bv(i, n), yv(n), vv(n);
+				Vv(i, n), Bv(n), zv(n);
 				let a = {
 					nodeState: Ql(n, i),
 					initialValues: { ...i },
@@ -12057,79 +12343,79 @@ var xv, Sv, Cv, wv, Tv, Ev, Dv, Ov = n((() => {
 					value: n,
 					enumerable: !1,
 					configurable: !0
-				}), n._filDatasetForgeState = a, Yl(n, Cv, xv, {
+				}), n._filDatasetForgeState = a, Yl(n, Wv, Hv, {
 					state: a,
 					height: 420
-				}), Jh(this, Sv), t;
+				}), hg(this, Uv), t;
 			};
 			let i = n.onConfigure;
 			n.onConfigure = function(...e) {
 				let t = i?.apply(this, e), n = this, r = n._filDatasetForgeState;
-				return r ? (bv(r.nodeState, n), yv(n), vv(n), Jh(this, Sv), t) : t;
+				return r ? (Vv(r.nodeState, n), Bv(n), zv(n), hg(this, Uv), t) : t;
 			};
 			let a = n.onRemoved;
 			n.onRemoved = function(...e) {
 				return Xl(this), a?.apply(this, e);
-			}, Xh(n, Sv, "_filDatasetForgeState"), hu(e);
+			}, _g(n, Uv, "_filDatasetForgeState"), hu(e);
 		}
 	};
 }));
-Qg(), v_(), Q_(), Ov();
-var kv = Object.fromEntries([
-	pm,
-	qh,
-	Mg,
-	Ng,
-	Zg,
-	t_,
-	n_,
-	r_,
-	__,
-	y_,
-	b_,
-	M_,
-	Z_,
-	uv,
-	Dv
+y_(), z_(), yv(), Yv();
+var Xv = Object.fromEntries([
+	Pm,
+	mg,
+	$g,
+	e_,
+	v_,
+	S_,
+	C_,
+	w_,
+	R_,
+	B_,
+	V_,
+	$_,
+	vv,
+	jv,
+	Jv
 ].map((e) => [e.id, e]));
-Y(), fl(), qp();
-var Av = null;
-function jv() {
-	if (Av) return;
+Y(), fl(), mm();
+var Zv = null;
+function Qv() {
+	if (Zv) return;
 	let e = document.createElement("div");
-	document.body.appendChild(e), Av = Gs(Kp).use(ul()), Av.mount(e);
+	document.body.appendChild(e), Zv = Gs(pm).use(ul()), Zv.mount(e);
 	let t = globalThis;
 	Promise.resolve().then(() => (cu(), eu)).then(({ toast: e }) => {
 		t.__filToast = e, console.info("[FiL_Design_ImageMind] toast stack mounted");
 	}).catch((e) => console.warn("[FiL_Design_ImageMind] toast store import failed:", e));
 }
 Al(), Ml();
-var Mv = "FiL_Design_ImageMind.RunFx.Mode", Nv = "FiL nodes only", Pv = "All nodes", Fv = [{
-	id: Mv,
+var $v = "FiL_Design_ImageMind.RunFx.Mode", ey = "FiL nodes only", ty = "All nodes", ny = [{
+	id: $v,
 	name: "Highlight the running node",
 	type: "combo",
-	defaultValue: Nv,
+	defaultValue: ey,
 	options: [
 		"Off",
-		Nv,
-		Pv
+		ey,
+		ty
 	],
 	category: [El, "Canvas"],
 	tooltip: "Pulse a node's header while it is executing, so you can see where the queue is. Choose whether that covers only this pack's nodes or every node in the graph."
 }];
-function Iv() {
-	return jl(Mv, Nv);
+function ry() {
+	return jl($v, ey);
 }
-function Lv() {
-	return Iv() !== "Off";
+function iy() {
+	return ry() !== "Off";
 }
-function Rv() {
-	return Iv() === Pv;
+function ay() {
+	return ry() === ty;
 }
 //#endregion
 //#region src/composables/useRunButtonFx.ts
 gc();
-var zv = "fil-node-running", Bv = "filRunning", Vv = 1100, Hv = 60, Uv = `
+var oy = "fil-node-running", sy = "filRunning", cy = 1100, ly = 60, uy = `
 @keyframes fil-run-pulse {
   0%, 100% {
     box-shadow: 0 0 0 0 transparent, 0 0 0 0 transparent;
@@ -12140,33 +12426,33 @@ var zv = "fil-node-running", Bv = "filRunning", Vv = 1100, Hv = 60, Uv = `
     filter: brightness(1.35);
   }
 }
-.${zv} {
-  animation: fil-run-pulse ${Vv}ms ease-in-out infinite;
+.${oy} {
+  animation: fil-run-pulse ${cy}ms ease-in-out infinite;
 }
 @media (prefers-reduced-motion: reduce) {
-  .${zv} {
+  .${oy} {
     animation: none;
     box-shadow: 0 0 0 1px rgba(0,0,0,0.85), 0 0 8px 1px var(--fil-accent, #7c3aed);
   }
-}`, Wv = /* @__PURE__ */ new Map(), Gv = null, Kv = null;
-function qv() {
+}`, dy = /* @__PURE__ */ new Map(), fy = null, py = null;
+function my() {
 	return typeof window < "u" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
 }
-function Jv(e, t) {
+function hy(e, t) {
 	let n = e.graph;
 	if (typeof n?.getNodeById != "function") return null;
 	let r = Number(t);
 	return n.getNodeById(t) ?? (Number.isNaN(r) ? null : n.getNodeById(r));
 }
-function Yv(e, t) {
-	let n = Jv(e, t);
+function gy(e, t) {
+	let n = hy(e, t);
 	if (n) return {
 		node: n,
 		id: t
 	};
 	let r = String(t), i = r.indexOf(":");
 	if (i > 0) {
-		let t = r.slice(0, i), n = Jv(e, t);
+		let t = r.slice(0, i), n = hy(e, t);
 		if (n) return {
 			node: n,
 			id: t
@@ -12177,160 +12463,160 @@ function Yv(e, t) {
 		id: t
 	};
 }
-function Xv(e) {
+function _y(e) {
 	return (e?.comfyClass ?? e?.type ?? "").startsWith("FiL");
 }
-function Zv(e) {
+function vy(e) {
 	if (typeof document > "u") return null;
 	let t = String(e).replace(/"/g, "\\\""), n = document.querySelector(`[data-node-id="${t}"]`);
 	return n ? n.querySelector(".lg-node-header") ?? n : null;
 }
-function Qv(e, t) {
+function yy(e, t) {
 	let n = /^#([0-9a-f]{6})$/i.exec(e);
 	if (!n) return e;
 	let r = parseInt(n[1], 16);
 	return `rgba(${r >> 16 & 255},${r >> 8 & 255},${r & 255},${t.toFixed(3)})`;
 }
-function $v() {
+function by() {
 	let e = ic.accent;
-	if (qv()) return {
+	if (my()) return {
 		color: e,
 		lineWidth: 3
 	};
-	let t = Date.now() % Vv / Vv, n = (1 - Math.cos(t * 2 * Math.PI)) / 2;
+	let t = Date.now() % cy / cy, n = (1 - Math.cos(t * 2 * Math.PI)) / 2;
 	return {
-		color: Qv(e, .45 + .55 * n),
+		color: yy(e, .45 + .55 * n),
 		lineWidth: 2 + 2 * n
 	};
 }
-function ey() {
-	Kv !== null || qv() || (Kv = setInterval(() => {
-		if (Wv.size === 0) {
-			ty();
+function xy() {
+	py !== null || my() || (py = setInterval(() => {
+		if (dy.size === 0) {
+			Sy();
 			return;
 		}
-		Gv?.setDirty?.(!0);
-	}, Hv));
+		fy?.setDirty?.(!0);
+	}, ly));
 }
-function ty() {
-	Kv !== null && (clearInterval(Kv), Kv = null);
+function Sy() {
+	py !== null && (clearInterval(py), py = null);
 }
-function ny(e, t) {
-	t.el?.classList.remove(zv);
+function Cy(e, t) {
+	t.el?.classList.remove(oy);
 	let n = t.styles;
-	n && (delete n[Bv], t.hadCoreRunning && (n.running = t.coreRunning)), Wv.delete(e);
+	n && (delete n[sy], t.hadCoreRunning && (n.running = t.coreRunning)), dy.delete(e);
 }
-function ry(e, t, n) {
-	let r = Zv(n);
-	r?.classList.add(zv);
+function wy(e, t, n) {
+	let r = vy(n);
+	r?.classList.add(oy);
 	let i = t.strokeStyles ?? null, a = {
 		el: r,
 		styles: i,
 		coreRunning: void 0,
 		hadCoreRunning: !1
 	};
-	i && (a.hadCoreRunning = Object.prototype.hasOwnProperty.call(i, "running"), a.coreRunning = i.running, delete i.running, i[Bv] = $v), Wv.set(t, a), Gv = e.canvas ?? Gv;
+	i && (a.hadCoreRunning = Object.prototype.hasOwnProperty.call(i, "running"), a.coreRunning = i.running, delete i.running, i[sy] = by), dy.set(t, a), fy = e.canvas ?? fy;
 }
-function iy() {
-	for (let [e, t] of [...Wv]) ny(e, t);
-	ty(), Gv?.setDirty?.(!0), Gv = null;
+function Ty() {
+	for (let [e, t] of [...dy]) Cy(e, t);
+	Sy(), fy?.setDirty?.(!0), fy = null;
 }
-function ay(e, t) {
-	if (!Lv()) {
-		iy();
+function Ey(e, t) {
+	if (!iy()) {
+		Ty();
 		return;
 	}
 	let n = /* @__PURE__ */ new Map();
 	for (let r of t) {
-		let { node: t, id: i } = Yv(e, r);
-		t && (!Rv() && !Xv(t) || n.has(t) || n.set(t, i));
+		let { node: t, id: i } = gy(e, r);
+		t && (!ay() && !_y(t) || n.has(t) || n.set(t, i));
 	}
-	for (let [e, t] of [...Wv]) n.has(e) || ny(e, t);
-	for (let [t, r] of n) Wv.has(t) || ry(e, t, r);
-	Wv.size > 0 ? ey() : ty(), (e.canvas ?? Gv)?.setDirty?.(!0), Wv.size === 0 && (Gv = null);
+	for (let [e, t] of [...dy]) n.has(e) || Cy(e, t);
+	for (let [t, r] of n) dy.has(t) || wy(e, t, r);
+	dy.size > 0 ? xy() : Sy(), (e.canvas ?? fy)?.setDirty?.(!0), dy.size === 0 && (fy = null);
 }
-function oy(e, t) {
-	ay(e, [t]);
+function Dy(e, t) {
+	Ey(e, [t]);
 }
 //#endregion
 //#region src/nodes2/installers/runButtonFx.ts
-var sy = "fil-run-fx";
-function cy() {
-	if (typeof document > "u" || document.getElementById(sy)) return;
+var Oy = "fil-run-fx";
+function ky() {
+	if (typeof document > "u" || document.getElementById(Oy)) return;
 	let e = document.createElement("style");
-	e.id = sy, e.textContent = Uv, document.head.appendChild(e);
+	e.id = Oy, e.textContent = uy, document.head.appendChild(e);
 }
-function ly(e) {
+function Ay(e) {
 	let t = e?.nodes;
 	if (!t || typeof t != "object") return null;
 	let n = [];
 	for (let [e, r] of Object.entries(t)) r?.state === "running" && n.push(r.display_node_id ?? r.node_id ?? e);
 	return n;
 }
-function uy(e) {
+function jy(e) {
 	let t = e.api;
 	if (typeof t?.addEventListener != "function") {
 		console.warn("[FiL_Design_ImageMind] run FX: api not available, skipping");
 		return;
 	}
-	cy();
+	ky();
 	let n = !1;
 	t.addEventListener("progress_state", (t) => {
-		let r = ly(t.detail);
-		r && (n = !0, ay(e, r));
+		let r = Ay(t.detail);
+		r && (n = !0, Ey(e, r));
 	}), t.addEventListener("executing", (t) => {
 		let r = t.detail, i = r && typeof r == "object" ? r.display_node ?? r.node : r;
-		typeof i == "string" || typeof i == "number" ? n || oy(e, i) : iy();
-	}), t.addEventListener("execution_error", iy), t.addEventListener("execution_interrupted", iy), console.info("[FiL_Design_ImageMind] run FX installed (progress_state + executing)");
+		typeof i == "string" || typeof i == "number" ? n || Dy(e, i) : Ty();
+	}), t.addEventListener("execution_error", Ty), t.addEventListener("execution_interrupted", Ty), console.info("[FiL_Design_ImageMind] run FX installed (progress_state + executing)");
 }
-Y(), Om(), Ou(), Xu(), ym();
-var dy = { class: "fil-pm-root" }, fy = ["onClick"], py = { class: "fil-pm-icon" }, my = { class: "fil-pm-name" }, hy = {
+Y(), Ym(), Ou(), $u(), Bm();
+var My = { class: "fil-pm-root" }, Ny = ["onClick"], Py = { class: "fil-pm-icon" }, Fy = { class: "fil-pm-name" }, Iy = {
 	key: 0,
 	class: "fil-pm-disp"
-}, gy = ["title"], _y = { class: "fil-pm-fields" }, vy = {
+}, Ly = ["title"], Ry = { class: "fil-pm-fields" }, zy = {
 	key: 0,
 	class: "fil-pm-field"
-}, yy = { class: "fil-pm-field-head" }, by = ["href"], xy = [
+}, By = { class: "fil-pm-field-head" }, Vy = ["href"], Hy = [
 	"onUpdate:modelValue",
 	"placeholder",
 	"title",
 	"onKeydown"
-], Sy = {
+], Uy = {
 	key: 1,
 	class: "fil-pm-field"
-}, Cy = { class: "fil-pm-field-head" }, wy = ["href"], Ty = ["onUpdate:modelValue", "onKeydown"], Ey = {
+}, Wy = { class: "fil-pm-field-head" }, Gy = ["href"], Ky = ["onUpdate:modelValue", "onKeydown"], qy = {
 	key: 2,
 	class: "fil-pm-field"
-}, Dy = { class: "fil-pm-field-head" }, Oy = ["href"], ky = ["onUpdate:modelValue", "onKeydown"], Ay = { class: "fil-pm-actions" }, jy = {
+}, Jy = { class: "fil-pm-field-head" }, Yy = ["href"], Xy = ["onUpdate:modelValue", "onKeydown"], Zy = { class: "fil-pm-actions" }, Qy = {
 	key: 0,
 	class: "fil-pm-age"
-}, My = {
+}, $y = {
 	key: 0,
 	class: "fil-pm-err"
-}, Ny = {
+}, eb = {
 	key: 1,
 	class: "fil-pm-err"
-}, Py = {
+}, tb = {
 	key: 2,
 	class: "fil-pm-models"
-}, Fy = {
+}, nb = {
 	key: 0,
 	class: "fil-pm-vision-badge",
 	title: "Vision-capable"
-}, Iy = {
+}, rb = {
 	key: 3,
 	class: "fil-pm-err fil-pm-global-err"
-}, Ly = /*@__PURE__*/ B({
+}, ib = /*@__PURE__*/ B({
 	__name: "ProviderManager",
 	setup(e) {
-		let t = Dm(), n = /* @__PURE__ */ I(Object.fromEntries(Em.map((e) => [e, {
+		let t = Jm(), n = /* @__PURE__ */ I(Object.fromEntries(qm.map((e) => [e, {
 			key: "",
 			base_url: "",
 			account_id: ""
 		}]))), r = /* @__PURE__ */ I({}), i = /* @__PURE__ */ I({}), a = /* @__PURE__ */ I({}), o = /* @__PURE__ */ I({});
 		ma(async () => {
 			await Promise.all([t.loadAccounts(), t.loadDisplayNames()]);
-			for (let e of Em) {
+			for (let e of qm) {
 				let r = t.accounts[e];
 				n.value[e] = {
 					key: "",
@@ -12338,21 +12624,21 @@ var dy = { class: "fil-pm-root" }, fy = ["onClick"], py = { class: "fil-pm-icon"
 					account_id: r?.account_id ?? ""
 				};
 			}
-			for (let e of Em) {
+			for (let e of qm) {
 				let n = t.accounts[e];
 				(n?.configured || n?.local || n?.base_url) && D(e, !1);
 			}
 		});
-		let c = mm, l = vm;
+		let c = Fm, l = zm;
 		function u(e) {
 			return { "fil-pm-has-val": e.length > 0 };
 		}
 		function d(e) {
 			return e === "cloudflare";
 		}
-		let f = hm, p = gm;
+		let f = Im, p = Lm;
 		function m(e) {
-			return _m.has(e) || !!t.accounts[e]?.stored_base_url;
+			return Rm.has(e) || !!t.accounts[e]?.stored_base_url;
 		}
 		function h(e) {
 			return !t.accounts[e]?.local;
@@ -12450,76 +12736,76 @@ var dy = { class: "fil-pm-root" }, fy = ["onClick"], py = { class: "fil-pm-icon"
 			let i = t.accounts[e];
 			return r.key !== "" || r.base_url !== (i?.base_url ?? "") || r.account_id !== (i?.account_id ?? "");
 		};
-		return (e, k) => (V(), H("div", dy, [(V(!0), H(K, null, gr(L(Em), (e) => (V(), H("div", {
+		return (e, k) => (V(), H("div", My, [(V(!0), H(K, null, gr(L(qm), (e) => (V(), H("div", {
 			key: e,
 			class: s(["fil-pm-card", { "fil-pm-card--collapsed": S(e) }])
 		}, [W("div", {
 			class: s(["fil-pm-header", { "fil-pm-header--clickable": b(e) === "off" }]),
 			onClick: (t) => C(e)
 		}, [
-			W("span", py, [q(Yu, {
+			W("span", Py, [q(Qu, {
 				name: L(l)[e],
 				size: 20
 			}, null, 8, ["name"])]),
-			W("span", my, N(L(c)[e]), 1),
-			L(t).displayNames[e] ? (V(), H("span", hy, "(" + N(L(t).displayNames[e]) + ")", 1)) : G("", !0),
+			W("span", Fy, N(L(c)[e]), 1),
+			L(t).displayNames[e] ? (V(), H("span", Iy, "(" + N(L(t).displayNames[e]) + ")", 1)) : G("", !0),
 			W("span", {
 				class: s(["fil-pm-status", `fil-pm-status--${b(e)}`]),
 				title: x[b(e)]
-			}, [k[3] ||= W("span", { class: "fil-pm-dot" }, null, -1), gi(" " + N(x[b(e)]), 1)], 10, gy),
+			}, [k[3] ||= W("span", { class: "fil-pm-dot" }, null, -1), gi(" " + N(x[b(e)]), 1)], 10, Ly),
 			b(e) === "off" ? (V(), H("span", {
 				key: 1,
 				class: s(["fil-pm-chevron", { "fil-pm-chevron--open": o.value[e] }])
-			}, [q(Yu, {
+			}, [q(Qu, {
 				name: "chevronRight",
 				size: 12
 			})], 2)) : G("", !0)
-		], 10, fy), S(e) ? G("", !0) : (V(), H(K, { key: 0 }, [
-			W("div", _y, [
-				h(e) ? (V(), H("label", vy, [W("span", yy, [k[4] ||= W("span", { class: "fil-pm-field-label" }, "API Key", -1), L(f)[e] ? (V(), H("a", {
+		], 10, Ny), S(e) ? G("", !0) : (V(), H(K, { key: 0 }, [
+			W("div", Ry, [
+				h(e) ? (V(), H("label", zy, [W("span", By, [k[4] ||= W("span", { class: "fil-pm-field-label" }, "API Key", -1), L(f)[e] ? (V(), H("a", {
 					key: 0,
 					class: "fil-pm-link",
 					href: L(f)[e].url,
 					target: "_blank",
 					rel: "noopener noreferrer",
 					onClick: k[0] ||= Bs(() => {}, ["stop"])
-				}, N(L(f)[e].label) + " ↗", 9, by)) : G("", !0)]), Nn(W("input", {
+				}, N(L(f)[e].label) + " ↗", 9, Vy)) : G("", !0)]), Nn(W("input", {
 					"onUpdate:modelValue": (t) => n.value[e].key = t,
 					type: "password",
 					class: s(["fil-pm-input", u(n.value[e].key)]),
 					placeholder: _(e),
 					title: g(e)?.hint,
 					onKeydown: Hs((t) => w(e), ["enter"])
-				}, null, 42, xy), [[Is, n.value[e].key]])])) : G("", !0),
-				m(e) ? (V(), H("label", Sy, [W("span", Cy, [k[5] ||= W("span", { class: "fil-pm-field-label" }, "Base URL", -1), !h(e) && L(f)[e] ? (V(), H("a", {
+				}, null, 42, Hy), [[Is, n.value[e].key]])])) : G("", !0),
+				m(e) ? (V(), H("label", Uy, [W("span", Wy, [k[5] ||= W("span", { class: "fil-pm-field-label" }, "Base URL", -1), !h(e) && L(f)[e] ? (V(), H("a", {
 					key: 0,
 					class: "fil-pm-link",
 					href: L(f)[e].url,
 					target: "_blank",
 					rel: "noopener noreferrer",
 					onClick: k[1] ||= Bs(() => {}, ["stop"])
-				}, N(L(f)[e].label) + " ↗", 9, wy)) : G("", !0)]), Nn(W("input", {
+				}, N(L(f)[e].label) + " ↗", 9, Gy)) : G("", !0)]), Nn(W("input", {
 					"onUpdate:modelValue": (t) => n.value[e].base_url = t,
 					type: "text",
 					class: s(["fil-pm-input", u(n.value[e].base_url)]),
 					placeholder: "http://localhost:11434",
 					onKeydown: Hs((t) => w(e), ["enter"])
-				}, null, 42, Ty), [[Is, n.value[e].base_url]])])) : G("", !0),
-				d(e) ? (V(), H("label", Ey, [W("span", Dy, [k[6] ||= W("span", { class: "fil-pm-field-label" }, "Account ID", -1), L(p)[e] ? (V(), H("a", {
+				}, null, 42, Ky), [[Is, n.value[e].base_url]])])) : G("", !0),
+				d(e) ? (V(), H("label", qy, [W("span", Jy, [k[6] ||= W("span", { class: "fil-pm-field-label" }, "Account ID", -1), L(p)[e] ? (V(), H("a", {
 					key: 0,
 					class: "fil-pm-link",
 					href: L(p)[e].url,
 					target: "_blank",
 					rel: "noopener noreferrer",
 					onClick: k[2] ||= Bs(() => {}, ["stop"])
-				}, N(L(p)[e].label) + " ↗", 9, Oy)) : G("", !0)]), Nn(W("input", {
+				}, N(L(p)[e].label) + " ↗", 9, Yy)) : G("", !0)]), Nn(W("input", {
 					"onUpdate:modelValue": (t) => n.value[e].account_id = t,
 					type: "text",
 					class: s(["fil-pm-input", u(n.value[e].account_id)]),
 					onKeydown: Hs((t) => w(e), ["enter"])
-				}, null, 42, ky), [[Is, n.value[e].account_id]])])) : G("", !0)
+				}, null, 42, Xy), [[Is, n.value[e].account_id]])])) : G("", !0)
 			]),
-			W("div", Ay, [
+			W("div", Zy, [
 				q(Du, {
 					variant: "accent",
 					label: O(e) ? "Save" : "Saved",
@@ -12530,7 +12816,7 @@ var dy = { class: "fil-pm-root" }, fy = ["onClick"], py = { class: "fil-pm-icon"
 					"disabled",
 					"onClick"
 				]),
-				!O(e) && L(t).cachedAgeLabel(e) ? (V(), H("span", jy, N(L(t).cachedAgeLabel(e)) + " ago ", 1)) : G("", !0),
+				!O(e) && L(t).cachedAgeLabel(e) ? (V(), H("span", Qy, N(L(t).cachedAgeLabel(e)) + " ago ", 1)) : G("", !0),
 				q(Du, {
 					variant: "danger",
 					label: "Delete",
@@ -12562,26 +12848,26 @@ var dy = { class: "fil-pm-root" }, fy = ["onClick"], py = { class: "fil-pm-icon"
 					onClick: (t) => D(e)
 				}, null, 8, ["loading", "onClick"])
 			]),
-			L(t).modelsByProvider[e]?.error ? (V(), H("div", My, N(L(t).modelsByProvider[e].error), 1)) : G("", !0),
-			L(t).probeState[e] && L(t).probeState[e].status !== "available" ? (V(), H("div", Ny, N(L(t).probeState[e].message), 1)) : G("", !0),
-			L(t).modelsFor(e).length > 0 ? (V(), H("div", Py, [(V(!0), H(K, null, gr(L(t).modelsFor(e), (n) => (V(), H("span", {
+			L(t).modelsByProvider[e]?.error ? (V(), H("div", $y, N(L(t).modelsByProvider[e].error), 1)) : G("", !0),
+			L(t).probeState[e] && L(t).probeState[e].status !== "available" ? (V(), H("div", eb, N(L(t).probeState[e].message), 1)) : G("", !0),
+			L(t).modelsFor(e).length > 0 ? (V(), H("div", tb, [(V(!0), H(K, null, gr(L(t).modelsFor(e), (n) => (V(), H("span", {
 				class: "fil-pm-model-tag",
 				key: n
-			}, [gi(N(n) + " ", 1), L(t).visionModelsFor(e).includes(n) ? (V(), H("span", Fy, "👁")) : G("", !0)]))), 128))])) : G("", !0),
-			L(t).lastError ? (V(), H("div", Iy, N(L(t).lastError), 1)) : G("", !0)
+			}, [gi(N(n) + " ", 1), L(t).visionModelsFor(e).includes(n) ? (V(), H("span", nb, "👁")) : G("", !0)]))), 128))])) : G("", !0),
+			L(t).lastError ? (V(), H("div", rb, N(L(t).lastError), 1)) : G("", !0)
 		], 64))], 2))), 128))]));
 	}
 });
 //#endregion
 //#region src/components/settings/ProviderManager.vue
 Z();
-var Ry = /*#__PURE__*/ X(Ly, [["__scopeId", "data-v-65eee937"]]);
+var ab = /*#__PURE__*/ X(ib, [["__scopeId", "data-v-65eee937"]]);
 Y(), fl();
-var zy = null;
-function By(e) {
-	zy &&= (zy.unmount(), null), zy = Gs(Ry).use(ul()), zy.mount(e), console.info("[FiL_Design_ImageMind] provider manager mounted");
+var ob = null;
+function sb(e) {
+	ob &&= (ob.unmount(), null), ob = Gs(ab).use(ul()), ob.mount(e), console.info("[FiL_Design_ImageMind] provider manager mounted");
 }
-function Vy(e) {
+function cb(e) {
 	let t = e.extensionManager;
 	if (!t?.registerSidebarTab) {
 		console.warn("[FiL_Design_ImageMind] extensionManager.registerSidebarTab not available — cannot mount provider manager");
@@ -12593,344 +12879,70 @@ function Vy(e) {
 		title: "FiL Providers",
 		tooltip: "Configure LLM provider API keys and endpoints",
 		type: "custom",
-		render: (e) => By(e)
+		render: (e) => sb(e)
 	}), console.info("[FiL_Design_ImageMind] provider manager sidebar tab registered");
 }
-//#endregion
-//#region src/stores/helpDefaults.ts
-var Hy = /* @__PURE__ */ r({ HELP_DEFAULTS: () => Uy }), Uy, Wy = n((() => {
-	Uy = {
-		__cheatsheet__: {
-			id: "__cheatsheet__",
-			title: "FiL_Design_ImageMind — Keyboard Cheatsheet",
-			body: "Global keyboard shortcuts available on the ComfyUI canvas.",
-			table: {
-				headers: ["Key", "Action"],
-				rows: [
-					["Shift+?", "Open this cheatsheet"],
-					["Ctrl+Shift+K", "Open this cheatsheet (alternative)"],
-					["?", "Open help for the selected FiL_Design_ImageMind node"],
-					["/", "Focus the Add-Node search field"],
-					["Esc", "Close popup / blur form field"]
-				]
-			}
-		},
-		default: {
-			id: "default",
-			title: "FiL_Design_ImageMind",
-			body: "Provider + model selector pack for vision-aware LLMs.",
-			bullets: [
-				"Open Settings → FiL_Design_ImageMind → Providers and API keys to configure a provider.",
-				"Drop a FiL Provider Loader on the canvas, pick a provider + model, and wire its `config` output into the Optic Scanner.",
-				"Use Shift+? or Ctrl+Shift+K for the keyboard cheatsheet."
-			]
-		},
-		FiLSeed: {
-			id: "FiLSeed",
-			title: "FiL Seed",
-			body: "Fixed or randomized seed with copy and reuse buttons.",
-			bullets: [
-				"Random: a fresh seed every run.",
-				"Fixed: same seed for repeatable results.",
-				"New fixed random rolls and locks a new seed.",
-				"Use last seed recalls the seed used by the latest run.",
-				"Copy puts the current seed on the clipboard."
-			]
-		},
-		FiLProviderLoader: {
-			id: "FiLProviderLoader",
-			title: "FiL Provider Loader",
-			body: "Provider and model runtime configuration. Returns `{config, model}`.",
-			bullets: [
-				"Choose a provider (Ollama/LM Studio/Groq/Google/OpenRouter/Cloudflare).",
-				"The model list is fetched from the configured provider; click Refresh models to re-pull.",
-				"Wire the `config` output into the Optic Scanner.",
-				"Credentials are stored locally, never in workflows."
-			],
-			rows: [
-				{
-					label: "Temperature",
-					desc: "LLM sampling temperature (0 = greedy, 2 = chaotic)."
-				},
-				{
-					label: "Max tokens",
-					desc: "0 = use the provider's default; > 0 caps response length."
-				},
-				{
-					label: "Rate limit ms",
-					desc: "Minimum ms between calls for this provider."
-				}
-			]
-		},
-		FiLOpticScanner: {
-			id: "FiLOpticScanner",
-			title: "FiL Optic Scanner",
-			body: "Image analysis or text-idea expansion into a generation prompt.",
-			bullets: [
-				"Wire a Provider Loader into the `config` slot before running.",
-				"Disconnect the `image` input to use text-only mode (prompt expansion).",
-				"Agent + Detail level + language shape the output prompt.",
-				"Photo/art styles are optional; pick one or none."
-			]
-		},
-		FiLNeuroCleaner: {
-			id: "FiLNeuroCleaner",
-			title: "FiL Neuro Cleaner",
-			body: "Selective model, VRAM, RAM, and cache cleanup.",
-			bullets: [
-				"Returns its input unchanged so it may inline anywhere.",
-				"Selects target caches to drop before, mid, or after heavy runs.",
-				"Force = aggressive (may interrupt pending tasks)."
-			]
-		},
-		FiLUpscaleTileCalc: {
-			id: "FiLUpscaleTileCalc",
-			title: "FiL Upscale Tile Calc",
-			body: "Tile dimensions, grid preview, denoise and latent-size calculation.",
-			bullets: [
-				"Computes optimal tile grid for a target resolution.",
-				"Outputs tile width/height, grid cols/rows, latent width/height.",
-				"Optional latent input mirrors image/tiles: latent + latent_tiles out, same grid, bislerp resize.",
-				"Wire outputs into KSampler-tile-aware upscale nodes."
-			]
-		},
-		FiLUpscaleSimple: {
-			id: "FiLUpscaleSimple",
-			title: "FiL Upscale Simple",
-			body: "Upscale + tile crop with the same tiling controls as Advanced, through a required model.",
-			bullets: [
-				"Same widget panel as Upscaler Advanced (factor, tile size/overlap, auto mode, manual grid).",
-				"upscale_model is required; optional latent input adds latent + latent_tiles outputs.",
-				"Delegates to Upscaler Advanced internally — one source of truth for the tiling math."
-			]
-		},
-		FiLTileAssembly: {
-			id: "FiLTileAssembly",
-			title: "FiL Tile Assembly",
-			body: "Recombines a batch of processed tiles back into one image.",
-			bullets: [
-				"Wire `layout` straight from Upscaler Advanced/Simple's `layout` output — no manual grid setup.",
-				"`tiles` must be the same order/count as when they were produced (process each tile, don't reorder).",
-				"Overlap zones are feathered automatically from the real tile positions — no extra padding widget."
-			]
-		},
-		FiLKSampler: {
-			id: "FiLKSampler",
-			title: "FiL KSampler",
-			body: "Full-featured sampler with every ComfyUI sampler/scheduler, passthrough outputs, built-in preview, and optional HighRes-fix script.",
-			bullets: [
-				"Wire model, positive/negative conditioning, and a latent, then Queue.",
-				"Denoise 1.0 = full sample; lower for img2img / refine passes.",
-				"VAE decode outputs an IMAGE preview — needs a VAE (input or passthrough).",
-				"Plug a FiL HighRes Fix `script` into the `script` slot to add an upscale pass."
-			],
-			rows: [
-				{
-					label: "CFG",
-					desc: "Classifier-free guidance scale (higher = follows the prompt more strictly)."
-				},
-				{
-					label: "Preview method",
-					desc: "How the live sampling preview is rendered (auto/latent2rgb/taesd)."
-				},
-				{
-					label: "VAE decode",
-					desc: "Decode the result to an IMAGE output. Off = latent only."
-				}
-			]
-		},
-		FiLHighResFix: {
-			id: "FiLHighResFix",
-			title: "FiL HighRes Fix",
-			body: "Packs latent/pixel upscale + re-sample settings into a script for FiL KSampler.",
-			bullets: [
-				"Outputs a `script` — wire it into the KSampler `script` slot, not into a latent.",
-				"Upscale type: latent (fast), pixel (model upscaler), or both.",
-				"Denoise controls how much the hires pass reworks the image (0.4–0.6 is typical).",
-				"Iterations run multiple upscale+resample passes; ControlNet (advanced) can guide them."
-			],
-			rows: [
-				{
-					label: "Upscale by",
-					desc: "Resolution multiplier for the hires pass."
-				},
-				{
-					label: "Same seed",
-					desc: "Reuse the sampler's seed; turn off to set an own seed."
-				},
-				{
-					label: "Hires steps",
-					desc: "Denoising steps for the re-sample (fewer than the base pass is fine)."
-				}
-			]
-		},
-		FiLNoiseControl: {
-			id: "FiLNoiseControl",
-			title: "FiL Noise Control",
-			body: "Packs an RNG source and optional seed-variation blend into a script for FiL KSampler.",
-			bullets: [
-				"Outputs a `script` — wire it into the KSampler `script` slot, not into a latent.",
-				"RNG source: 'gpu' can better match Automatic1111-style noise for the same seed.",
-				"Seed variation blends a second seed's noise in at the given weight (0 = base only, 1 = variation only)."
-			],
-			rows: [{
-				label: "RNG source",
-				desc: "Device the initial noise is drawn on (cpu/gpu)."
-			}, {
-				label: "Weight",
-				desc: "Variation strength — how much of the second seed's noise to blend in."
-			}]
-		}
-	};
-}));
-cl(), Y();
-var Gy = /* @__PURE__ */ I({}), Ky = !1, qy = Gc("fil/help", () => {
-	let e = /* @__PURE__ */ I(null);
-	function t(e) {
-		for (let [t, n] of Object.entries(e)) Gy.value[t] = n;
-	}
-	function n() {
-		Ky || (Ky = !0, Promise.resolve().then(() => (Wy(), Hy)).then(({ HELP_DEFAULTS: e }) => t(e)).catch((e) => console.warn("[FiL_Design_ImageMind] help defaults import failed:", e)));
-	}
-	function r(e) {
-		return Gy.value[e];
-	}
-	function i() {
-		return Object.values(Gy.value);
-	}
-	function a(t) {
-		n(), e.value = t;
-	}
-	function o() {
-		e.value = null;
-	}
-	return {
-		registry: Gy,
-		activeHelpId: e,
-		ensureHelpDefaultsInjected: n,
-		registerAll: t,
-		get: r,
-		list: i,
-		value_open: a,
-		value_close: o
-	};
-});
-Y(), Dd(), Xu();
-var Jy = { class: "fil-help-title" }, Yy = {
-	key: 0,
-	class: "fil-help-body"
-}, Xy = { key: 1 }, Zy = {
-	key: 2,
-	class: "fil-help-table"
-}, Qy = {
-	key: 3,
-	class: "fil-help-code"
-}, $y = {
-	key: 1,
-	class: "fil-help-empty"
-}, eb = /*@__PURE__*/ B({
-	__name: "FilHelpPopup",
-	setup(e) {
-		let t = qy(), n = J(() => {
-			let e = t.activeHelpId;
-			return e ? t.get(e) ?? null : null;
-		}), r = J({
-			get: () => t.activeHelpId !== null,
-			set: (e) => {
-				e || t.value_close();
-			}
-		});
-		return z(n, (e) => {
-			e || t.value_close();
-		}), (e, i) => (V(), U(Ed, {
-			open: r.value,
-			"onUpdate:open": i[0] ||= (e) => r.value = e,
-			title: "FiL LLM Help",
-			width: "600px",
-			onClose: i[1] ||= (e) => L(t).value_close()
-		}, {
-			default: Mn(() => [n.value ? (V(), H(K, { key: 0 }, [
-				W("h2", Jy, N(n.value.title), 1),
-				n.value.body ? (V(), H("p", Yy, N(n.value.body), 1)) : G("", !0),
-				n.value.bullets?.length ? (V(), H("ul", Xy, [(V(!0), H(K, null, gr(n.value.bullets, (e, t) => (V(), H("li", {
-					key: t,
-					class: "fil-help-bullet"
-				}, [q(Yu, {
-					name: "chevronRight",
-					size: 12
-				}), W("span", null, N(e), 1)]))), 128))])) : G("", !0),
-				n.value.table ? (V(), H("table", Zy, [W("thead", null, [W("tr", null, [(V(!0), H(K, null, gr(n.value.table.headers, (e) => (V(), H("th", { key: e }, N(e), 1))), 128))])]), W("tbody", null, [(V(!0), H(K, null, gr(n.value.table.rows, (e, t) => (V(), H("tr", { key: t }, [(V(!0), H(K, null, gr(e, (e, t) => (V(), H("td", { key: t }, N(e), 1))), 128))]))), 128))])])) : G("", !0),
-				n.value.code ? (V(), H("pre", Qy, [W("code", null, N(n.value.code), 1)])) : G("", !0)
-			], 64)) : (V(), H("p", $y, "No help available for this node."))]),
-			_: 1
-		}, 8, ["open"]));
-	}
-});
-//#endregion
-//#region src/components/widgets/FilHelpPopup.vue
-Z();
-var tb = /*#__PURE__*/ X(eb, [["__scopeId", "data-v-bfee41d7"]]);
-Y(), fl();
-var nb = null;
-function rb(e) {
-	if (nb) return;
+Y(), fl(), Hd();
+var lb = null;
+function ub(e) {
+	if (lb) return;
 	let t = document.createElement("div");
-	t.id = "__fil_help_popup_host", document.body.appendChild(t), nb = Gs(tb).use(ul()), nb.mount(t), console.info("[FiL_Design_ImageMind] help popup mounted");
+	t.id = "__fil_help_popup_host", document.body.appendChild(t), lb = Gs(Vd).use(ul()), lb.mount(t), console.info("[FiL_Design_ImageMind] help popup mounted");
 }
-cu(), Ml();
-var ib = "FiL_Design_ImageMind.Shortcuts.Enabled", ab = "__cheatsheet__", ob = [{
+Sd(), cu(), Ml();
+var db = "FiL_Design_ImageMind.Shortcuts.Enabled", fb = "__cheatsheet__", pb = [{
 	id: "FiL_Design_ImageMind.helpCheatsheet",
 	label: "FiL_Design_ImageMind — Keyboard cheatsheet",
 	icon: "?",
-	function: ub
-}], sb = [{
+	function: _b
+}], mb = [{
 	commandId: "FiL_Design_ImageMind.helpCheatsheet",
 	combo: {
 		key: "?",
 		shift: !0
 	}
 }];
-function cb(e) {
+function hb(e) {
 	if (!e || typeof e != "object") return !1;
 	let t = String(e.tagName || "").toLowerCase();
 	return t === "input" || t === "textarea" || t === "select" || e.isContentEditable === !0;
 }
-function lb() {
-	return jl(ib, !0);
+function gb() {
+	return jl(db, !0);
 }
-function ub() {
-	if (!lb()) return;
-	let e = qy();
-	e.ensureHelpDefaultsInjected(), e.value_open?.(ab);
+function _b() {
+	if (!gb()) return;
+	let e = xd();
+	e.ensureHelpDefaultsInjected(), e.value_open?.(fb);
 }
-function db(e) {
+function vb(e) {
 	if (e.extensionManager) {
 		console.info("[FiL_Design_ImageMind] shortcuts registered via native commands API");
 		return;
 	}
-	window.addEventListener("keydown", (t) => fb(t, e), !0), console.info("[FiL_Design_ImageMind] shortcuts installed (fallback keydown handler)");
+	window.addEventListener("keydown", (t) => yb(t, e), !0), console.info("[FiL_Design_ImageMind] shortcuts installed (fallback keydown handler)");
 }
-function fb(e, t) {
-	if (!lb()) return;
-	let n = e.target, r = cb(n);
+function yb(e, t) {
+	if (!gb()) return;
+	let n = e.target, r = hb(n);
 	if (e.key === "Escape") {
 		try {
-			qy().value_close?.();
+			xd().value_close?.();
 		} catch {}
 		r && n.blur?.(), e.preventDefault?.();
 		return;
 	}
 	if (!r) {
 		if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "K" || e.key === "k")) {
-			ub(), e.preventDefault();
+			_b(), e.preventDefault();
 			return;
 		}
 		if (e.key === "?" || e.shiftKey && e.key === "/") {
-			if (e.shiftKey) ub();
+			if (e.shiftKey) _b();
 			else {
 				let e = t.canvas?.selected_nodes ?? {}, n = Object.values(e).filter(Boolean);
 				if (n.length === 1) {
-					let e = n[0]?.comfyClass ?? "default", t = qy();
+					let e = n[0]?.comfyClass ?? "default", t = xd();
 					t.ensureHelpDefaultsInjected(), t.value_open?.(e);
 				} else su.info("Select exactly one FiL_Design_ImageMind node, then press ?");
 			}
@@ -12940,13 +12952,13 @@ function fb(e, t) {
 }
 //#endregion
 //#region src/nodes2/installers/shortcuts.ts
-function pb(e) {
-	db(e);
+function bb(e) {
+	vb(e);
 }
 //#endregion
 //#region src/stores/settings/languageSettings.ts
 Al();
-var mb = [{
+var xb = [{
 	id: "FiL_Design_ImageMind.Language",
 	name: "Language of FiL panels",
 	type: "combo",
@@ -12955,11 +12967,11 @@ var mb = [{
 	tooltip: "Language of this pack's node panels, labels and tooltips (English / Russian). ComfyUI's own interface language is set separately, in Comfy > Locale.",
 	category: [El, "Language"]
 }];
-Uf(), Al();
-function hb(e) {
-	Vf(`${Dl}/log_level`, { level: String(e) }).catch(() => {});
+up(), Al();
+function Sb(e) {
+	cp(`${Dl}/log_level`, { level: String(e) }).catch(() => {});
 }
-var gb = [{
+var Cb = [{
 	id: "FiL_Design_ImageMind.Logging.Level",
 	name: "Log level",
 	type: "combo",
@@ -12972,13 +12984,13 @@ var gb = [{
 	],
 	category: [El, "Logging"],
 	tooltip: "Python backend log verbosity for this node pack.",
-	onChange: hb
+	onChange: Sb
 }];
-function _b(e) {
-	hb(e("FiL_Design_ImageMind.Logging.Level", "WARNING"));
+function wb(e) {
+	Sb(e("FiL_Design_ImageMind.Logging.Level", "WARNING"));
 }
 gc(), Oc(), Al();
-var vb = {
+var Tb = {
 	Default: "default",
 	Cyberpunk: "cyberpunk",
 	Fallout: "fallout",
@@ -12986,12 +12998,12 @@ var vb = {
 	"FiL Green": "travelmate",
 	Pixaroma: "pixaroma"
 };
-function yb(e) {
-	$s(vb[String(e)] ?? "default");
+function Eb(e) {
+	$s(Tb[String(e)] ?? "default");
 	let t = globalThis.app;
 	t && Ec(t);
 }
-var bb = [{
+var Db = [{
 	id: "FiL_Design_ImageMind.Theme",
 	name: "Node theme",
 	type: "combo",
@@ -13006,32 +13018,32 @@ var bb = [{
 	],
 	category: [El, "Appearance"],
 	tooltip: "Recolors every FiL_Design_ImageMind node panel and adds a small themed flourish (neon glow for Cyberpunk, a CRT scanline texture for Pipboy and Fallout, acid-lime glow for Travelmate). Pixaroma matches the ComfyUI-Pixaroma node pack's own colors. Applies instantly, no reload.",
-	onChange: yb
+	onChange: Eb
 }];
-function xb() {
+function Ob() {
 	Qs(Xs());
 	let e = globalThis.app;
 	e && Ec(e);
 }
-function Sb() {
+function kb() {
 	if (typeof MutationObserver > "u" || typeof document > "u") return;
 	let e = Xs();
 	new MutationObserver(() => {
 		let t = Xs();
-		t !== e && (e = t, xb());
+		t !== e && (e = t, Ob());
 	}).observe(document.documentElement, {
 		attributes: !0,
 		attributeFilter: ["style", "class"]
 	});
 }
-function Cb(e) {
+function Ab(e) {
 	let t = e("FiL_Design_ImageMind.Theme", "Default");
-	Qs(Xs()), $s(vb[t] ?? "default"), Sb();
+	Qs(Xs()), $s(Tb[t] ?? "default"), kb();
 }
 //#endregion
 //#region src/stores/settings/shortcutsSettings.ts
 Al();
-var wb = [{
+var jb = [{
 	id: "FiL_Design_ImageMind.Shortcuts.Enabled",
 	name: "Keyboard shortcuts",
 	type: "boolean",
@@ -13040,18 +13052,18 @@ var wb = [{
 	category: [El, "Shortcuts"]
 }];
 Il(), du();
-var Tb = [
-	...Sm,
-	...mb,
-	...gb,
-	...bb,
+var Mb = [
+	...Um,
+	...xb,
+	...Cb,
+	...Db,
 	...Fl,
 	...uu,
-	...Fv,
-	...wb
+	...ny,
+	...jb
 ];
 Ml(), Al(), `${Dl}`;
-function Eb(e) {
+function Nb(e) {
 	try {
 		let e = globalThis.app?.graph?._nodes ?? [];
 		for (let t of e) {
@@ -13066,21 +13078,21 @@ function Eb(e) {
 	}
 	return e;
 }
-function Db(e) {
+function Pb(e) {
 	return {
 		name: kl,
-		settings: Tb,
-		commands: ob,
-		keybindings: sb,
+		settings: Mb,
+		commands: pb,
+		keybindings: mb,
 		async setup() {
 			let t = [
-				() => jv(),
-				() => Vy(e),
-				() => uy(e),
-				() => rb(e),
-				() => pb(e),
-				() => _b((t, n) => jl(t, n, e)),
-				() => Cb((t, n) => jl(t, n, e))
+				() => Qv(),
+				() => cb(e),
+				() => jy(e),
+				() => ub(e),
+				() => bb(e),
+				() => wb((t, n) => jl(t, n, e)),
+				() => Ab((t, n) => jl(t, n, e))
 			];
 			for (let e of t) try {
 				e();
@@ -13092,7 +13104,7 @@ function Db(e) {
 			return {};
 		},
 		async beforeRegisterNodeDef(e, t) {
-			let n = kv[t.name];
+			let n = Xv[t.name];
 			if (n) try {
 				await n.register(e, t);
 			} catch (e) {
@@ -13100,14 +13112,14 @@ function Db(e) {
 			}
 		},
 		async graphToPrompt(e) {
-			return Eb(e);
+			return Nb(e);
 		}
 	};
 }
 //#endregion
 //#region src/api/contractCheck.ts
 Al();
-async function Ob() {
+async function Fb() {
 	if (typeof fetch > "u") return;
 	let e;
 	try {
@@ -13122,15 +13134,15 @@ async function Ob() {
 	} catch {
 		return;
 	}
-	let n = new Set(Object.keys(t.node_ids ?? {})), r = new Set(Object.keys(kv));
+	let n = new Set(Object.keys(t.node_ids ?? {})), r = new Set(Object.keys(Xv));
 	for (let e of n) r.has(e) || console.warn(`${Ol} server expects "${e}" but local JS does not register it`);
 	for (let e of r) n.has(e) || console.warn(`${Ol} JS registers "${e}" but server does not expose a contract`);
 }
-gc(), fl(), Ys(), ll(e), Ob().catch((e) => {
+gc(), fl(), Ys(), ll(e), Fb().catch((e) => {
 	console.warn("[FiL_Design_ImageMind] contract self-check failed:", e);
 });
-var kb = Db(e);
-e.registerExtension(kb), console.info(`[FiL_Design_ImageMind] extension registered as "${kb.name}"`);
+var Ib = Pb(e);
+e.registerExtension(Ib), console.info(`[FiL_Design_ImageMind] extension registered as "${Ib.name}"`);
 //#endregion
 
 //# sourceMappingURL=fil_design_imagemind.js.map
