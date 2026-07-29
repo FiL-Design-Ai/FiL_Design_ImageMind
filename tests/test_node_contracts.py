@@ -303,3 +303,97 @@ def test_scanner_non_vision_error_never_leaks_api_key():
     assert "SECRET_KEY_123" not in result[0]
     assert "SECRET_KEY_123" not in result[1]
     assert "SECRET_KEY_123" not in str(result[2])
+
+
+def _contract_widgets(contract):
+    return list(contract.inputs.required) + list(contract.inputs.optional)
+
+
+def test_contract_numeric_ranges_match_the_node_schema(monkeypatch):
+    """A widget must not refuse a value its node would have accepted.
+
+    Guards the ♻️ Seed bug found on 2026-07-29: `nodes/node_seed.py` allowed a
+    seed up to 0xFFFFFFFFFFFFFFFF while its contract capped the panel at
+    999999999999, so the widget rejected values the node was happy with. Its
+    three sibling seeds in the same registry file were declared correctly —
+    only this one was missed, and nothing compared the two numbers.
+
+    Compared as floats because `WidgetSpec.min`/`max` are floats: a 64-bit
+    maximum cannot survive JSON and JavaScript intact, so an exact match on
+    the integer would fail for every seed in the pack.
+    """
+    from FiL_Design_ImageMind.common.contracts.registry import NODE_SCHEMAS
+
+    monkeypatch.setenv("FIL_RELEASE_ALL", "1")
+    package = importlib.import_module("FiL_Design_ImageMind")
+    ext = asyncio.run(package.comfy_entrypoint())
+
+    narrowed: dict[str, list[str]] = {}
+    for node_class in asyncio.run(ext.get_node_list()):
+        schema = node_class.GET_SCHEMA()
+        contract = NODE_SCHEMAS.get(schema.node_id)
+        if contract is None:
+            continue
+        schema_inputs = {i.id: i for i in schema.inputs}
+        for widget in _contract_widgets(contract):
+            spec = schema_inputs.get(widget.name)
+            if spec is None:
+                continue
+            for edge, tighter in (("min", lambda w, s: w > s), ("max", lambda w, s: w < s)):
+                w_val = getattr(widget, edge, None)
+                s_val = getattr(spec, edge, None)
+                if w_val is None or s_val is None:
+                    continue
+                if tighter(float(w_val), float(s_val)):
+                    narrowed.setdefault(schema.node_id, []).append(
+                        f"{widget.name}.{edge}: panel {w_val} vs node {s_val}"
+                    )
+
+    assert not narrowed, f"contract ranges narrower than the node accepts: {narrowed}"
+
+
+def test_contract_option_lists_match_the_node_schema(monkeypatch):
+    """A chip list or dropdown must offer everything its node would accept.
+
+    Guards the 🎛️ Style Mixer bug found on 2026-07-29: the node built its style
+    options from all four libraries, the contract built them from photo + art
+    only, and 112 NSFW styles were reachable through a wired socket but
+    impossible to pick in the panel. Both sides now read
+    `common.data.get_all_style_keys()`; this test is what keeps them there.
+
+    Only missing options fail. A panel may legitimately offer a placeholder the
+    schema has no entry for ("(None)" is one), so extras are ignored.
+
+    Single-entry lists are skipped: that is how this registry spells "the host
+    fills this in at runtime". `pixel_upscaler` and `control_net_name` ship as
+    `["(none)"]` because their real contents are whichever model files the user
+    happens to have installed, which no contract can enumerate.
+    """
+    from FiL_Design_ImageMind.common.contracts.registry import NODE_SCHEMAS
+
+    monkeypatch.setenv("FIL_RELEASE_ALL", "1")
+    package = importlib.import_module("FiL_Design_ImageMind")
+    ext = asyncio.run(package.comfy_entrypoint())
+
+    unreachable: dict[str, str] = {}
+    for node_class in asyncio.run(ext.get_node_list()):
+        schema = node_class.GET_SCHEMA()
+        contract = NODE_SCHEMAS.get(schema.node_id)
+        if contract is None:
+            continue
+        schema_inputs = {i.id: i for i in schema.inputs}
+        for widget in _contract_widgets(contract):
+            spec = schema_inputs.get(widget.name)
+            offered_list = list(getattr(widget, "values", None) or [])
+            offered = set(offered_list)
+            accepted = set(getattr(spec, "options", None) or []) if spec else set()
+            if not offered or not accepted or len(offered_list) == 1:
+                continue
+            missing = accepted - offered
+            if missing:
+                sample = ", ".join(sorted(missing)[:3])
+                unreachable[f"{schema.node_id}.{widget.name}"] = (
+                    f"{len(missing)} option(s) the panel cannot pick, e.g. {sample}"
+                )
+
+    assert not unreachable, f"node options missing from the panel: {unreachable}"
