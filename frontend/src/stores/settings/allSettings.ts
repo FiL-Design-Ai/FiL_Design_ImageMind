@@ -10,6 +10,7 @@ import { THEME_SETTINGS } from "@/stores/settings/themeSettings";
 import { SCROLL_GUARD_SETTINGS } from "@/stores/settings/scrollGuardSettings";
 import { CONNECTION_FX_SETTINGS } from "@/stores/settings/connectionFxSettings";
 import { RUN_FX_SETTINGS } from "@/stores/settings/runFxSettings";
+import { SHORTCUTS_SETTINGS } from "@/stores/settings/shortcutsSettings";
 
 // Every settings module in `src/stores/settings/` belongs here. Connection FX
 // was missing, so the code read an id ComfyUI had never heard of and always got
@@ -22,4 +23,5 @@ export const ALL_SETTINGS: ComfyExtensionSettings[] = [
   ...SCROLL_GUARD_SETTINGS,
   ...CONNECTION_FX_SETTINGS,
   ...RUN_FX_SETTINGS,
+  ...SHORTCUTS_SETTINGS,
 ];

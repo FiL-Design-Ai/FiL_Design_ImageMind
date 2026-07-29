@@ -6,7 +6,7 @@ export const SHORTCUTS_SETTINGS: ComfyExtensionSettings[] = [
     name: "Keyboard shortcuts",
     type: "boolean",
     defaultValue: true,
-    tooltip: "Esc — close popup / unfocus field. ? — help for the selected FiL_Design_ImageMind node. Shift+? or Ctrl+Shift+K — full shortcuts cheatsheet. / — focus node search.",
+    tooltip: "Esc — close popup / unfocus field. ? — help for the selected FiL_Design_ImageMind node. Shift+? — full shortcuts cheatsheet.",
     category: ["FiL_Design_ImageMind", "Shortcuts"],
   },
 ];
