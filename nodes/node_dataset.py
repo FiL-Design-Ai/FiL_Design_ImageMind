@@ -164,7 +164,7 @@ class FiLDatasetForge(io.ComfyNode):
         image_key: Any = None
         if image is not None:
             try:
-                digest = hashlib.md5()
+                digest = hashlib.md5(usedforsecurity=False)
                 for frame in range(image.shape[0]):
                     digest.update(image[frame].flatten()[:256].cpu().numpy().tobytes())
                 image_key = (tuple(image.shape), digest.hexdigest())

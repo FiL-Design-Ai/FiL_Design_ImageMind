@@ -170,7 +170,7 @@ models:
       - "llava:13b-v1.6"
       - "bakllava:7b"
       - "moondream:1b-v2"
-    
+
     lmstudio:
       - "qwen2-vl-7b-instruct"
       - "llava-v1.6-34b"
@@ -185,7 +185,7 @@ models:
 
   # Auto-download models on first use
   auto_download: false
-  
+
   # Preferred quantization for local models
   preferred_quantization: "Q4_K_M"  # Options: Q4_K_M, Q5_K_M, Q8_0, fp16
 
@@ -200,7 +200,7 @@ performance:
     default_interval_ms: 150
     aggressive_ms: 50      # For fast models
     conservative_ms: 300   # For slow/cloud models
-  
+
   # Connection pooling
   connections:
     pool_size: 20
@@ -209,7 +209,7 @@ performance:
     timeout_connect: 5
     timeout_read: 60
   # Reduced from 180s for faster failures
-  
+
   # Caching
   cache:
     enabled: true
@@ -234,20 +234,20 @@ image_processing:
     max_side: 1024
     quality: 85
     format: "JPEG"
-  
+
   # Batch processing
   batch:
     enabled: true
     max_images: 10
     parallel: false  # Set true for GPU with enough VRAM
-  
+
   # Optimization
   optimization:
     auto_resize: true
     min_side: 256
     max_side: 2048
     preserve_aspect_ratio: true
-  
+
   # Supported formats
   supported_formats:
     - "JPEG"
@@ -266,7 +266,7 @@ logging:
     level: "WARNING"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
     format: "colored"  # colored, plain, json
     startup_summary: true
-  
+
   # File logging
   file:
     enabled: true
@@ -275,7 +275,7 @@ logging:
     max_size_mb: 10
     backup_count: 5
     format: "json"  # json, text
-  
+
   # Structured logging
   structured:
     enabled: false
@@ -300,14 +300,14 @@ security:
       - 22    # SSH
       - 23    # Telnet
       - 3389  # RDP
-  
+
   # Input validation
   validation:
     max_prompt_length: 10000
     max_image_size_mb: 50
     sanitize_prompts: true
     block_injection_patterns: true
-  
+
   # API security
   api:
     enable_cors: false
@@ -327,7 +327,7 @@ agents:
     top_p: 0.9
     presence_penalty: 0.0
     frequency_penalty: 0.0
-  
+
   # Classification settings
   classification:
     temperature: 0.3  # Lower for more deterministic output

@@ -162,7 +162,7 @@ description=(
                 # the whole batch, so hashing only the first frame returned a
                 # stale cached prompt whenever frames 2..N changed but frame 1
                 # stayed the same.
-                digest = hashlib.md5()
+                digest = hashlib.md5(usedforsecurity=False)
                 for frame in range(image.shape[0]):
                     digest.update(image[frame].flatten()[:256].cpu().numpy().tobytes())
                 image_key = (tuple(image.shape), digest.hexdigest())
@@ -421,7 +421,7 @@ description=(
             try:
                 images_b64, w, h = _processor.process_batch(image)
                 sample = image[0].cpu().numpy().tobytes()[:1024]
-                image_hash = hashlib.md5(sample).hexdigest()
+                image_hash = hashlib.md5(sample, usedforsecurity=False).hexdigest()
             except Exception as exc:
                 err_meta = {"status": "error", "message": str(exc), "error_code": "IMAGE_PROCESSING_ERROR"}
                 return io.NodeOutput(f"Ошибка: {exc}", json.dumps(err_meta, ensure_ascii=False), err_meta)

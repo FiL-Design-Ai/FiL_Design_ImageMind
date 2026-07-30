@@ -161,7 +161,6 @@ def test_cleaner_passthrough_when_cleanup_disabled():
 
 
 def test_scanner_returns_clear_error_without_model():
-    from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner
 
     result = _execute(config={}, prompt="test")
     assert result[0] == "Ошибка: модель не выбрана в Provider Loader."
@@ -181,7 +180,7 @@ def test_provider_loader_does_not_expose_api_key():
 
 
 def test_scanner_text_only_success(monkeypatch):
-    from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner, _model_client
+    from FiL_Design_ImageMind.nodes.node_scanner import _model_client
 
     monkeypatch.setattr(_model_client, "generate", lambda **kwargs: "ready prompt")
     result = _execute(
@@ -193,7 +192,6 @@ def test_scanner_text_only_success(monkeypatch):
 
 
 def test_scanner_rejects_non_vision_model_before_processing():
-    from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner
 
     result = _execute(
         config={"provider": "ollama", "model": "plain-text-model"}, image=object()
@@ -213,14 +211,13 @@ def test_scanner_rejects_placeholder_model():
 
 
 def test_scanner_no_image_no_text_returns_error():
-    from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner
 
     result = _execute(config={"provider": "ollama", "model": "qwen3"}, prompt="")
     assert "подключи изображение или введи текст" in result[0]
 
 
 def test_scanner_empty_prompt_with_image_succeeds(monkeypatch):
-    from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner, _model_client, _processor
+    from FiL_Design_ImageMind.nodes.node_scanner import _model_client, _processor
 
     monkeypatch.setattr(_model_client, "generate", lambda **kwargs: "described image")
     monkeypatch.setattr(_processor, "process_batch", lambda img: (["img0"], 64, 64))
@@ -232,7 +229,7 @@ def test_scanner_empty_prompt_with_image_succeeds(monkeypatch):
 
 
 def test_scanner_custom_style_unicode(monkeypatch):
-    from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner, _model_client
+    from FiL_Design_ImageMind.nodes.node_scanner import _model_client
 
     monkeypatch.setattr(_model_client, "generate", lambda **kwargs: "styled unicode result")
     result = _execute(
@@ -244,7 +241,7 @@ def test_scanner_custom_style_unicode(monkeypatch):
 
 
 def test_scanner_response_format_short(monkeypatch):
-    from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner, _model_client
+    from FiL_Design_ImageMind.nodes.node_scanner import _model_client
 
     monkeypatch.setattr(_model_client, "generate", lambda **kwargs: "short")
     result = _execute(
@@ -255,7 +252,7 @@ def test_scanner_response_format_short(monkeypatch):
 
 
 def test_scanner_response_format_json(monkeypatch):
-    from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner, _model_client
+    from FiL_Design_ImageMind.nodes.node_scanner import _model_client
 
     monkeypatch.setattr(_model_client, "generate", lambda **kwargs: '{"key": "value"}')
     result = _execute(
@@ -271,7 +268,7 @@ def test_scanner_auth_error_hides_raw_exception_text(monkeypatch):
     safe_provider_error(), never the raw exception text (which can contain
     the rejected key or other account details)."""
     import requests
-    from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner, _model_client
+    from FiL_Design_ImageMind.nodes.node_scanner import _model_client
 
     def _boom(**kwargs):
         resp = requests.Response()
@@ -294,7 +291,6 @@ def test_scanner_auth_error_hides_raw_exception_text(monkeypatch):
 def test_scanner_non_vision_error_never_leaks_api_key():
     """The 'image sent to a non-vision model' error path must not leak
     config['api_key'] into the message, metadata_json, or metadata_dict."""
-    from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner
 
     result = _execute(
         config={"provider": "ollama", "model": "plain-text-model", "api_key": "SECRET_KEY_123"},

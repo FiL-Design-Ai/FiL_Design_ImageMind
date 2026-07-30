@@ -37,8 +37,8 @@ function setProvider(v: string) {
 }
 
 const model = computed<string>(() => String(field("model", "(loading...)").get()));
-function setModel(v: string) { 
-  field("model", "(loading...)").set(v); 
+function setModel(v: string) {
+  field("model", "(loading...)").set(v);
   updateWidgetOptions();
 }
 

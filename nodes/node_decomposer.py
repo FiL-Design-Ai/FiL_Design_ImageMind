@@ -111,7 +111,7 @@ class FiLImageDecomposer(io.ComfyNode):
         if image is not None:
             try:
                 sample = image[0].flatten()[:256].cpu().numpy().tobytes()
-                image_key = (tuple(image.shape), hashlib.md5(sample).hexdigest())
+                image_key = (tuple(image.shape), hashlib.md5(sample, usedforsecurity=False).hexdigest())
             except Exception:
                 image_key = id(image)
         return hash((str(config), str(prompt or ""), str(language or ""), image_key))

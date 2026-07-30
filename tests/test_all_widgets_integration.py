@@ -61,10 +61,10 @@ def test_widget_detail_level(monkeypatch, base_config):
     setup_mock(monkeypatch)
     _execute(config=base_config, prompt="cat", detail_level="tiny")
     payload_low = global_payloads[-1]
-    
+
     _execute(config=base_config, prompt="cat", detail_level="ultra")
     payload_extreme = global_payloads[-1]
-    
+
     # Just verify they are different or handled correctly
     assert payload_low["system_prompt"] != payload_extreme["system_prompt"] or payload_low["user_prompt"] != payload_extreme["user_prompt"]
 
@@ -72,10 +72,10 @@ def test_widget_language(monkeypatch, base_config):
     setup_mock(monkeypatch)
     _execute(config=base_config, prompt="test", language="en")
     payload_en = global_payloads[-1]
-    
+
     _execute(config=base_config, prompt="test", language="ru")
     payload_ru = global_payloads[-1]
-    
+
     sys_en = payload_en["system_prompt"].lower()
     sys_ru = payload_ru["system_prompt"].lower()
     assert "english" in sys_en or "en" in sys_en

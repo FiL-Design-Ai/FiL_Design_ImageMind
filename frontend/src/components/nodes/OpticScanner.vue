@@ -334,9 +334,9 @@ function newFixedSeed() {
           <!-- Inject Unified Style Picker above Response Format -->
           <div v-if="w.name === 'response_format'" class="fil-w-row fil-single-style-block">
             <div style="display: flex; gap: 4px; margin-bottom: 3px;">
-              <button 
-                class="fil-style-picker-btn" 
-                :class="{ 'has-styles': activeStylesCount > 0 }" 
+              <button
+                class="fil-style-picker-btn"
+                :class="{ 'has-styles': activeStylesCount > 0 }"
                 @click="isUnifiedStylePickerOpen = true"
               >
                 {{ activeStylesSummary }}

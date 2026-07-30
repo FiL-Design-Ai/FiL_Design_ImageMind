@@ -1,50 +1,51 @@
 # Pre-commit configuration for FiL_Design_ImageMind
 # Install: pip install pre-commit && pre-commit install
+#
+# Every hook here passes on the current tree, and CI runs the same set (see
+# .github/workflows/ci.yml, job "lint-python"). That is the point of the
+# 2026-07-30 rewrite: the previous version listed six tools, none of which ran
+# anywhere and none of which passed when run by hand — ruff-format and black
+# were both present with no configuration, so they disagreed with each other and
+# both wanted 88 columns in a project that reads at 120.
+#
+# No formatter is configured on purpose. Formatting this codebase would rewrite
+# ~95 files and bury every real change under it. `ruff check` catches the things
+# that matter — dead imports, undefined names, stray debug prints — and it runs
+# clean.
+#
+# mypy is deliberately absent. It reports 37 errors, most of them because this
+# pack has a `nodes/` package while ComfyUI has a `nodes.py`, so mypy resolves
+# the wrong module and reports missing attributes that exist at runtime. Wiring
+# in a hook that cannot pass is what got this file into its previous state.
 
 repos:
-  # Git hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
+      # Validators — these read files and never rewrite them.
       - id: check-yaml
         args: [--unsafe]
       - id: check-json
       - id: check-toml
       - id: check-merge-conflict
       - id: check-case-conflict
+      # Worth more here than anywhere else: the audit found real provider keys
+      # in the working copy, kept out of the published archive by nothing but
+      # the habit of always publishing from CI.
       - id: detect-private-key
       - id: forbid-submodules
+      # These two do rewrite, but only whitespace, and the tree is already clean
+      # of both. `--markdown-linebreak-ext=md` keeps the trailing two spaces that
+      # markdown gives meaning to.
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.4.10
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
-      - id: ruff-format
-
-  - repo: https://github.com/psf/black
-    rev: 24.4.2
-    hooks:
-      - id: black
-        language_version: python3.10
-
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.10.0
-    hooks:
-      - id: mypy
-        pass_filenames: false
-        additional_dependencies:
-          - types-requests
-          - types-PyYAML
-          - types-psutil
-        args:
-          - --config-file=pyproject.toml
-          - --ignore-missing-imports
-          - --explicit-package-bases
-          - --package=FiL_Design_ImageMind
-        exclude: ^tests/
 
   - repo: https://github.com/PyCQA/bandit
     rev: 1.7.7
@@ -52,18 +53,15 @@ repos:
       - id: bandit
         args: [-r, common, nodes, -ll]
 
-# Skip certain files
-exclude: ^tests/fixtures/|^_archive/|^\.kilo/|^\.pi/|^\.qwen/|^logs/
+exclude: ^tests/fixtures/|^_archive/|^\.kilo/|^\.pi/|^\.qwen/|^logs/|^frontend/dist/
 
-# Default language version
 default_language_version:
   python: python3.10
 
-# CI mode
 ci:
   autofix_commit_msg: |
     [pre-commit.ci] Auto fixes from pre-commit.com hooks
-    
+
     For more information, see https://pre-commit.ci
   autofix_prs: true
   autoupdate_branch: ''
