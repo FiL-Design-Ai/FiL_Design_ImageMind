@@ -11,6 +11,8 @@
 API.env
 data/auth.json
 data/auth.json.backup-*
+# Obsolete but still on some disks; nothing reads it. Keep excluding it so
+# `comfy node publish` from a working copy cannot ship a stale cache.
 data/provider_vision_smoke.json
 # Exact names on purpose: `config.example.yaml` is the template users are told
 # to copy, and it has to ship. Do not widen these to `config*.yaml`.

@@ -207,8 +207,7 @@ def resolve_vision(provider: str, model: str) -> bool:
     1. what the provider said when we last listed its models
     2. the OpenAI table, for the provider that says nothing
     3. Google, whose Gemini chat models are multimodal across the board
-    4. a recorded vision smoke result
-    5. name hints — local models only, by the time we get here
+    4. name hints — a guess, and mostly local models by the time we get here
     """
     prov = str(provider or "").strip().lower()
     clean = (model or "").strip().lower()
@@ -229,11 +228,6 @@ def resolve_vision(provider: str, model: str) -> bool:
         # list (TTS, Lyria, image generation) are filtered before this point.
         return is_chat_capable("google", clean)
 
-    try:
-        from .vision_smoke import is_vision_capable as _smoke_check
+    from .vision_heuristics import is_vision_capable as _guess_from_name
 
-        return _smoke_check(provider, model)
-    except ImportError:
-        from .config import is_known_vision_model_name
-
-        return is_known_vision_model_name(model)
+    return _guess_from_name(provider, model)
