@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from unittest.mock import patch
 
 import requests
@@ -112,6 +113,60 @@ def test_normalize_cloud_error_payment_required_not_retryable():
     result = normalize_cloud_error(exc, "openrouter", "model")
     assert result["error_category"] == "payment_required"
     assert result["retryable"] is False
+
+
+def _http_error(status: int, body: str, url: str = "https://api.openai.com/v1/chat/completions"):
+    """A real HTTPError with a response attached, the way requests raises it."""
+    response = requests.Response()
+    response.status_code = status
+    response.reason = "Too Many Requests"
+    response.url = url
+    response._content = body.encode()
+    return requests.exceptions.HTTPError(
+        f"{status} Client Error: {response.reason} for url: {url}", response=response
+    )
+
+
+def test_an_exhausted_balance_is_not_reported_as_a_rate_limit():
+    """OpenAI answers an empty balance with 429, not 402, and says so only in
+    the body — `str(exc)` is just "429 Client Error: Too Many Requests". Reading
+    the status alone tells the user to wait a minute and retry, which can never
+    succeed. `probe_provider` already got this right; the generate path did not.
+    """
+    exc = _http_error(429, json.dumps({"error": {
+        "type": "insufficient_quota",
+        "message": "You exceeded your current quota, please check your plan and billing details.",
+    }}))
+    result = normalize_cloud_error(exc, "openai", "gpt-4o")
+    assert result["error_category"] == "payment_required"
+    assert result["retryable"] is False
+
+
+def test_an_exhausted_balance_is_still_seen_through_the_wrapper():
+    """ModelClient re-raises as `InferenceError(...) from exc`, so by the time a
+    node sees the failure the response is one link down the cause chain."""
+    inner = _http_error(429, json.dumps({"error": {"type": "insufficient_quota"}}))
+    try:
+        try:
+            raise inner
+        except Exception as cause:
+            raise RuntimeError(f"API call to openai/gpt-4o failed: {cause}") from cause
+    except RuntimeError as wrapped:
+        result = normalize_cloud_error(wrapped, "openai", "gpt-4o")
+    assert result["error_category"] == "payment_required"
+    assert result["retryable"] is False
+
+
+def test_a_genuine_rate_limit_still_says_wait():
+    """The guard above must not swallow real 429s — those are worth retrying,
+    and telling someone to top up an account that has money is its own defect."""
+    exc = _http_error(429, json.dumps({"error": {
+        "message": "Rate limit exceeded: free-models-per-min",
+        "code": 429,
+    }}), url="https://openrouter.ai/api/v1/chat/completions")
+    result = normalize_cloud_error(exc, "openrouter", "model")
+    assert result["error_category"] == "rate_limited"
+    assert result["retryable"] is True
 
 
 def test_normalize_cloud_error_has_recommendation():
