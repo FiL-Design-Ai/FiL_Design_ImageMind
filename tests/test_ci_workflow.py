@@ -77,6 +77,9 @@ def test_the_workflow_has_the_jobs_it_is_meant_to():
     assert set(jobs) == {
         "test-python",
         "test-frontend",
+        # Added 2026-07-30. The quality tools were configured and never invoked
+        # from anywhere, which is how they drifted into all failing at once.
+        "lint-python",
         "smoke-comfyui",
         "smoke-with-neighbours",
     }

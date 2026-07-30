@@ -727,7 +727,7 @@ Balance detail with natural language.
 
 **Good**:
 ```
-A professional headshot of a woman in business attire, 
+A professional headshot of a woman in business attire,
 warm lighting, confident expression, neutral background
 ```
 
@@ -780,7 +780,7 @@ Ideogram 4 API works well with natural descriptions.
 
 **Good**:
 ```
-A sleek chrome android with glowing neon implants 
+A sleek chrome android with glowing neon implants
 standing in a rain-soaked cyberpunk megacity at night,
 neon signs reflected in puddles, dramatic lighting
 ```

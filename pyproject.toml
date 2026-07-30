@@ -49,3 +49,36 @@ FiL_Design_ImageMind = [
   "frontend/dist/style-previews/*",
   "docs/workflows/*.json",
 ]
+
+# ---------------------------------------------------------------------------
+# Lint
+# ---------------------------------------------------------------------------
+#
+# There was no ruff config here before, which meant ruff run from inside a
+# ComfyUI tree silently inherited ComfyUI's own rules from the parent directory,
+# while the same command in CI — where the pack is checked out on its own — used
+# ruff's defaults. Two different verdicts for the same code depending on where
+# it sat. The rules below are the pack's own, so both agree.
+#
+# Deliberately no formatter. `.pre-commit-config.yaml` used to list ruff-format
+# and black together with no settings for either, so they disagreed with each
+# other and both wanted 88 columns in a project that reads at 120.
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+extend-exclude = ["_archive", "frontend", "logs", ".venv", "tests/fixtures"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "T"]
+# E501 is left to the formatter that does not exist; the rest are idioms this
+# codebase uses on purpose (bare except for best-effort host calls, imports
+# after a sys.path fix-up in scripts).
+ignore = ["E501", "E722", "E731", "E402", "E741"]
+
+[tool.ruff.lint.per-file-ignores]
+# `tools/` is command-line scripts. Printing is their output, not a leftover
+# debug statement — the rule is aimed at the pack's runtime code, which has a
+# logger and a user-settable log level.
+"tools/*" = ["T201", "T203"]
+"scripts/*" = ["T201", "T203"]

@@ -195,7 +195,7 @@ def write_dataset(
                 # An `overwrite` run that re-numbers onto an older pair would
                 # otherwise leave that pair's caption attached to a new image.
                 caption_path.unlink()
-            sha1 = hashlib.sha1(image_path.read_bytes()).hexdigest()
+            sha1 = hashlib.sha1(image_path.read_bytes(), usedforsecurity=False).hexdigest()
 
         records.append({
             "file": image_path.name,

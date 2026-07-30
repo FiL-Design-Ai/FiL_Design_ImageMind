@@ -103,9 +103,9 @@ def test_decomposer_image_tensor_input():
 
     with patch("FiL_Design_ImageMind.nodes.node_decomposer._processor.tensor_to_base64", return_value="base64str") as mock_conv, \
          patch("FiL_Design_ImageMind.nodes.node_decomposer._model_client.generate", return_value=json_resp) as mock_gen:
-        
+
         FiLImageDecomposer.execute(config=config, image=fake_tensor, prompt="Look at image")
-        
+
         mock_conv.assert_called_once_with(fake_tensor)
         mock_gen.assert_called_once()
         _, kwargs = mock_gen.call_args
@@ -120,9 +120,9 @@ def test_decomposer_image_tensor_conversion_error_graceful():
 
     with patch("FiL_Design_ImageMind.nodes.node_decomposer._processor.tensor_to_base64", side_effect=ValueError("Invalid tensor format")), \
          patch("FiL_Design_ImageMind.nodes.node_decomposer._model_client.generate", return_value=json_resp) as mock_gen:
-        
+
         output = FiLImageDecomposer.execute(config=config, image=invalid_tensor, prompt="Corrupted tensor test")
-        
+
         res_tuple = output.args if hasattr(output, "args") else output
         assert res_tuple[0] == "Fallback subject"
         mock_gen.assert_called_once()
@@ -144,7 +144,7 @@ def test_decomposer_json_nulls_are_not_literal_strings():
     with patch("FiL_Design_ImageMind.nodes.node_decomposer._model_client.generate", return_value=json_null_resp):
         output = FiLImageDecomposer.execute(config=config, prompt=None)
         res_tuple = output.args if hasattr(output, "args") else output
-        
+
         # Verify no literal "None" strings are returned
         assert res_tuple[0] == ""
         assert res_tuple[1] == ""

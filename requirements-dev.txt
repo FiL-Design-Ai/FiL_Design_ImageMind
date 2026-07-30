@@ -9,12 +9,15 @@ pytest-asyncio>=0.23.0
 # Turns failures into GitHub annotations, readable without opening the raw log
 pytest-github-actions-annotate-failures>=0.2.0
 
-# Lint / format / type-check (mirrors .pre-commit-config.yaml)
+# Lint (mirrors .pre-commit-config.yaml, which CI runs)
 ruff>=0.4.10
-black>=24.4.2
-mypy>=1.10.0
 bandit>=1.7.7
 pre-commit>=3.7.0
+
+# Type checking is not part of the gate: mypy reports 37 errors, most of them
+# because this pack has a `nodes/` package while ComfyUI has a `nodes.py`, so
+# mypy resolves the wrong module. Kept installable for anyone working on that.
+mypy>=1.10.0
 
 # Type stubs
 types-requests

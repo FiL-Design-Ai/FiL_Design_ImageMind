@@ -338,7 +338,7 @@ class ModelClient:
     def _image_hash(self, images: Optional[List[str]]) -> str:
         if not images:
             return ""
-        return hashlib.md5("".join(images).encode()).hexdigest()[:16]
+        return hashlib.md5("".join(images).encode(), usedforsecurity=False).hexdigest()[:16]
 
     def generate(
         self,

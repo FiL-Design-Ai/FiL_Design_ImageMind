@@ -71,6 +71,31 @@ jobs:
         working-directory: ComfyUI/custom_nodes/FiL_Design_ImageMind
         run: python tools/scan_node_conflicts.py
 
+  # The quality tools were configured but never invoked from anywhere, so they
+  # drifted into a state where none of them passed. They run here now, and the
+  # same set is in .pre-commit-config.yaml so a local hook and CI agree.
+  lint-python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install lint tools
+        run: pip install "ruff>=0.4.10" "bandit>=1.7.7"
+
+      # Config lives in pyproject.toml. Without it, ruff run inside a ComfyUI
+      # tree silently inherits ComfyUI's own rules while the same command here
+      # uses ruff's defaults — two verdicts for the same code.
+      - name: Ruff
+        run: ruff check .
+
+      - name: Bandit
+        run: bandit -r common nodes -ll
+
   test-frontend:
     runs-on: ubuntu-latest
 

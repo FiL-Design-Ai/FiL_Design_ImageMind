@@ -79,7 +79,7 @@ window.mountComponent = (name: string, props: any) => {
 
   currentApp = createApp(Wrapper);
   currentApp.use(createPinia());
-  
+
   // Create a clean container
   const appContainer = document.getElementById("app");
   if (appContainer) {
