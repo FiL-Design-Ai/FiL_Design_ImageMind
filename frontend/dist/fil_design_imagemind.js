@@ -13275,9 +13275,107 @@ function Fb(e) {
 	Nb(e);
 }
 //#endregion
+//#region src/styles/comfyPalette.ts
+vc();
+var Ib = "fil_", Lb = "Comfy.ColorPalette";
+function Rb() {
+	return globalThis.app ?? null;
+}
+function zb() {
+	return Rb()?.extensionManager?.colorPalette ?? null;
+}
+function Bb() {
+	return Rb()?.extensionManager?.setting ?? null;
+}
+function Vb(e, t) {
+	let n = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(e.trim());
+	if (!n) return e;
+	let [r, i, a] = [
+		1,
+		2,
+		3
+	].map((e) => parseInt(n[e], 16));
+	return `rgba(${r},${i},${a},${t})`;
+}
+function Hb(e, t, n = {}) {
+	let r = e.replace(/_/g, " ").replace(/\b\w/g, (e) => e.toUpperCase());
+	return {
+		id: `${Ib}${e}`,
+		name: `FiL — ${r}`,
+		colors: {
+			node_slot: { ...n },
+			litegraph_base: {
+				CLEAR_BACKGROUND_COLOR: t.panel,
+				NODE_TITLE_COLOR: t.text,
+				NODE_SELECTED_TITLE_COLOR: t.accent,
+				NODE_TEXT_COLOR: t.text,
+				NODE_DEFAULT_COLOR: t.panel,
+				NODE_DEFAULT_BGCOLOR: t.panelAlt,
+				NODE_DEFAULT_BOXCOLOR: t.muted,
+				NODE_BOX_OUTLINE_COLOR: t.accent,
+				NODE_BYPASS_BGCOLOR: "#FF00FF",
+				NODE_ERROR_COLOUR: t.danger,
+				DEFAULT_SHADOW_COLOR: "rgba(0,0,0,0.25)",
+				WIDGET_BGCOLOR: t.panelAlt,
+				WIDGET_OUTLINE_COLOR: t.muted,
+				WIDGET_TEXT_COLOR: t.text,
+				WIDGET_SECONDARY_TEXT_COLOR: t.muted,
+				LINK_COLOR: t.accent,
+				EVENT_LINK_COLOR: t.ok,
+				CONNECTING_LINK_COLOR: t.ok
+			},
+			comfy_base: {
+				"fg-color": t.text,
+				"bg-color": t.panel,
+				"comfy-menu-bg": t.panelAlt,
+				"comfy-menu-secondary-bg": t.panelAlt,
+				"comfy-input-bg": t.panelAlt,
+				"input-text": t.text,
+				"descrip-text": t.muted,
+				"drag-text": t.muted,
+				"error-text": t.danger,
+				"border-color": Vb(t.muted, .35),
+				"tr-even-bg-color": t.panel,
+				"tr-odd-bg-color": t.panelAlt,
+				"content-bg": t.panelAlt,
+				"content-fg": t.text,
+				"content-hover-bg": t.panel,
+				"content-hover-fg": t.accent
+			}
+		}
+	};
+}
+async function Ub(e) {
+	let t = zb();
+	if (!t?.addCustomColorPalette) return null;
+	let n = Hb(e, ac, t.getActiveColorPalette?.()?.colors?.node_slot ?? {}), r = Bb(), i = r?.get?.(Lb);
+	return await t.addCustomColorPalette(n), typeof i == "string" && i && i !== n.id && await r?.set?.(Lb, i), n;
+}
+function Wb() {
+	return typeof document > "u" ? "default" : document.documentElement.dataset.filTheme || "default";
+}
+var Gb = [{
+	id: "FiL_Design_ImageMind.exportThemeAsPalette",
+	label: "FiL_Design_ImageMind — Save this theme as a ComfyUI color palette",
+	icon: "🎨",
+	function: async () => {
+		let { toast: e } = await Promise.resolve().then(() => (du(), ru)), t = Wb();
+		try {
+			let n = await Ub(t);
+			if (!n) {
+				e.warning("This ComfyUI has no color-palette API to add to.");
+				return;
+			}
+			e.success(`"${n.name}" added. Apply it in Settings → Appearance → Color Palette.`);
+		} catch (t) {
+			e.error(`Could not add the palette: ${String(t?.message ?? t)}`);
+		}
+	}
+}];
+//#endregion
 //#region src/stores/settings/languageSettings.ts
 Nl();
-var Ib = [{
+var Kb = [{
 	id: "FiL_Design_ImageMind.Language",
 	name: "Panel language",
 	type: "combo",
@@ -13291,10 +13389,10 @@ var Ib = [{
 	]
 }];
 pp(), Nl();
-function Lb(e) {
+function qb(e) {
 	dp(`${Al}/log_level`, { level: String(e) }).catch(() => {});
 }
-var Rb = [{
+var Jb = [{
 	id: "FiL_Design_ImageMind.Logging.Level",
 	name: "Log level",
 	type: "combo",
@@ -13311,13 +13409,13 @@ var Rb = [{
 		"Logging"
 	],
 	tooltip: "Python backend log verbosity for this node pack.",
-	onChange: Lb
+	onChange: qb
 }];
-function zb(e) {
-	Lb(e("FiL_Design_ImageMind.Logging.Level", "WARNING"));
+function Yb(e) {
+	qb(e("FiL_Design_ImageMind.Logging.Level", "WARNING"));
 }
 vc(), jc(), Nl();
-var Bb = {
+var Xb = {
 	Default: "default",
 	Cyberpunk: "cyberpunk",
 	"Cyberpunk 2077": "cyberpunk_2077",
@@ -13329,12 +13427,12 @@ var Bb = {
 	"NFT Vibe": "nft_vibe",
 	"Hollywood Teal": "hollywood_teal"
 };
-function Vb(e) {
-	ec(Bb[String(e)] ?? "default");
+function Zb(e) {
+	ec(Xb[String(e)] ?? "default");
 	let t = globalThis.app;
 	t && kc(t);
 }
-var Hb = [{
+var Qb = [{
 	id: "FiL_Design_ImageMind.Theme",
 	name: "Theme",
 	type: "combo",
@@ -13357,32 +13455,32 @@ var Hb = [{
 		"Theme"
 	],
 	tooltip: "Recolors every FiL_Design_ImageMind node panel. Options: Cyberpunk Neon, official Cyberpunk 2077 High-Voltage Yellow, Vault-Tec CRT Fallout/Pipboy, FiL Green, Web3 Neo Emerald, NFT Vibe, Hollywood Teal. Applies instantly, no reload.",
-	onChange: Vb
+	onChange: Zb
 }];
-function Ub() {
+function $b() {
 	$s(Zs());
 	let e = globalThis.app;
 	e && kc(e);
 }
-function Wb() {
+function ex() {
 	if (typeof MutationObserver > "u" || typeof document > "u") return;
 	let e = Zs();
 	new MutationObserver(() => {
 		let t = Zs();
-		t !== e && (e = t, Ub());
+		t !== e && (e = t, $b());
 	}).observe(document.documentElement, {
 		attributes: !0,
 		attributeFilter: ["style", "class"]
 	});
 }
-function Gb(e) {
+function tx(e) {
 	let t = e("FiL_Design_ImageMind.Theme", "Default");
-	$s(Zs()), ec(Bb[t] ?? "default"), sy(), Wb();
+	$s(Zs()), ec(Xb[t] ?? "default"), sy(), ex();
 }
 //#endregion
 //#region src/stores/settings/shortcutsSettings.ts
 Nl();
-var Kb = [{
+var nx = [{
 	id: "FiL_Design_ImageMind.Shortcuts.Enabled",
 	name: "Keyboard shortcuts",
 	type: "boolean",
@@ -13395,19 +13493,19 @@ var Kb = [{
 	]
 }];
 zl(), mu();
-var qb = [
+var rx = [
 	...ry.slice().reverse(),
-	...Hb,
-	...Kb,
+	...Qb,
+	...nx,
 	..._y,
 	...pu,
 	...Rl,
-	...Rb,
-	...Ib,
+	...Jb,
+	...Kb,
 	...Km
 ];
 Fl(), Nl(), `${Al}`;
-function Jb(e) {
+function ix(e) {
 	try {
 		let e = globalThis.app?.graph?._nodes ?? [];
 		for (let t of e) {
@@ -13422,11 +13520,11 @@ function Jb(e) {
 	}
 	return e;
 }
-function Yb(e) {
+function ax(e) {
 	return {
 		name: Ml,
-		settings: qb,
-		commands: Ob,
+		settings: rx,
+		commands: [...Ob, ...Gb],
 		keybindings: kb,
 		async setup() {
 			let t = [
@@ -13435,8 +13533,8 @@ function Yb(e) {
 				() => Ky(e),
 				() => Tb(e),
 				() => Fb(e),
-				() => zb((t, n) => Pl(t, n, e)),
-				() => Gb((t, n) => Pl(t, n, e))
+				() => Yb((t, n) => Pl(t, n, e)),
+				() => tx((t, n) => Pl(t, n, e))
 			];
 			for (let e of t) try {
 				e();
@@ -13464,14 +13562,14 @@ function Yb(e) {
 			}
 		},
 		async graphToPrompt(e) {
-			return Jb(e);
+			return ix(e);
 		}
 	};
 }
 //#endregion
 //#region src/api/contractCheck.ts
 Nl();
-async function Xb() {
+async function ox() {
 	if (typeof fetch > "u") return;
 	let e;
 	try {
@@ -13490,11 +13588,11 @@ async function Xb() {
 	for (let e of n) r.has(e) || console.warn(`${jl} server expects "${e}" but local JS does not register it`);
 	for (let e of r) n.has(e) || console.warn(`${jl} JS registers "${e}" but server does not expose a contract`);
 }
-vc(), hl(), Xs(), fl(e), Xb().catch((e) => {
+vc(), hl(), Xs(), fl(e), ox().catch((e) => {
 	console.warn("[FiL_Design_ImageMind] contract self-check failed:", e);
 });
-var Zb = Yb(e);
-e.registerExtension(Zb), console.info(`[FiL_Design_ImageMind] extension registered as "${Zb.name}"`);
+var sx = ax(e);
+e.registerExtension(sx), console.info(`[FiL_Design_ImageMind] extension registered as "${sx.name}"`);
 //#endregion
 
 //# sourceMappingURL=fil_design_imagemind.js.map
