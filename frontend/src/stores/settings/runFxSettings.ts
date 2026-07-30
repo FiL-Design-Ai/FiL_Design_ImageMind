@@ -18,7 +18,7 @@ export const RUN_FX_SETTINGS: ComfyExtensionSettings[] = [
     type: "combo",
     defaultValue: MODE_OURS,
     options: [MODE_OFF, MODE_OURS, MODE_ALL],
-    category: [SETTINGS_CATEGORY, "Canvas"],
+    category: [SETTINGS_CATEGORY, "Canvas", "RunHighlight"],
     tooltip: "Pulse a node's header while it is executing, so you can see where the queue is. Choose whether that covers only this pack's nodes or every node in the graph.",
   },
 ];

@@ -35,13 +35,18 @@ function onThemeChange(newValue: unknown): void {
 export const THEME_SETTINGS: ComfyExtensionSettings[] = [
   {
     id: "FiL_Design_ImageMind.Theme",
-    name: "Node theme",
+    name: "Theme",
     type: "combo",
     defaultValue: "Default",
     options: ["Default", "Cyberpunk", "Cyberpunk 2077", "Fallout", "Pipboy", "FiL Green", "Pixaroma", "Neo Emerald", "NFT Vibe", "Hollywood Teal"],
-    // Two levels like every other setting here — a third one ("Theme") put this
-    // single entry behind an extra heading of its own.
-    category: [SETTINGS_CATEGORY, "Appearance"],
+    // The third level is required, and the comment that used to sit here had it
+    // backwards: it claimed a third level "put this entry behind an extra
+    // heading of its own". It does not — the visible heading is the second
+    // level, and the third is an invisible slot key. Two levels made ComfyUI
+    // treat the section itself as the slot, so Appearance's three settings
+    // collided and only the last registered survived. This picker was one of
+    // the four that silently vanished from the panel.
+    category: [SETTINGS_CATEGORY, "Appearance", "Theme"],
     tooltip: "Recolors every FiL_Design_ImageMind node panel. Options: Cyberpunk Neon, official Cyberpunk 2077 High-Voltage Yellow, Vault-Tec CRT Fallout/Pipboy, FiL Green, Web3 Neo Emerald, NFT Vibe, Hollywood Teal. Applies instantly, no reload.",
     onChange: onThemeChange,
   },
