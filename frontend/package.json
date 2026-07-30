@@ -1,6 +1,6 @@
 {
   "name": "fil-design-imagemind-frontend",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": true,
   "type": "module",
   "description": "Vue 3 + TypeScript frontend for the FiL Design ImageMind ComfyUI custom node pack.",
