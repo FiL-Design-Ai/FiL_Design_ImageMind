@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import fnmatch
 import json
 import re
 from pathlib import Path
@@ -296,3 +297,94 @@ def test_the_shipped_bundle_carries_every_preview_image():
     source = {p.name for p in (ROOT / "frontend" / "public" / "style-previews").glob("*.webp")}
     shipped = {p.name for p in (ROOT / "frontend" / "dist" / "style-previews").glob("*.webp")}
     assert not (source - shipped), f"previews missing from the built bundle: {sorted(source - shipped)}"
+
+
+# ---------------------------------------------------------------------------
+# .comfyignore — what `comfy node publish` actually ships
+# ---------------------------------------------------------------------------
+#
+# `.comfyignore` is a hand-maintained text file, and it is the ONLY thing
+# standing between secrets and the registry when someone runs `comfy node
+# publish` from a working copy: that command packs the directory as it stands,
+# not a clean git checkout, so being merely `.gitignore`d is not enough (see
+# the 2026-07-29 audit, which found API.env and data/auth.json sitting outside
+# it with nothing but "we always publish from CI" as protection). CI publishes
+# from a clean checkout, so this file also has to keep dev tooling and
+# repository-only docs out, or an accidental change ships them anyway.
+#
+# This mirrors gitwildmatch semantics narrowly rather than depending on
+# `pathspec` (not a declared dependency of this pack): exact paths, a
+# directory prefix via a trailing `/`, a single `**/name/` anywhere-match, and
+# one-segment `*` globs — the only forms `.comfyignore` actually uses. Verified
+# byte-for-byte against `pathspec.PathSpec.from_lines("gitwildmatch", ...)`
+# across all 906 tracked files before this test was written.
+
+
+def _comfyignore_lines() -> list[str]:
+    text = (ROOT / ".comfyignore").read_text(encoding="utf-8")
+    return [ln for ln in text.splitlines() if ln.strip() and not ln.strip().startswith("#")]
+
+
+def _comfyignore_excludes(path: str, patterns: list[str]) -> bool:
+    def one(p: str, pattern: str) -> bool:
+        if pattern.startswith("**/"):
+            pattern = pattern[3:]
+            segs = p.split("/")
+            return any(one("/".join(segs[i:]), pattern) for i in range(len(segs)))
+        if pattern.endswith("/"):
+            stem = pattern.rstrip("/")
+            return p == stem or p.startswith(stem + "/")
+        if "*" in pattern:
+            return fnmatch.fnmatch(p, pattern) or fnmatch.fnmatch(p.rsplit("/", 1)[-1], pattern)
+        return p == pattern or p.startswith(pattern + "/")
+
+    return any(one(path, pat) for pat in patterns)
+
+
+def test_comfyignore_keeps_secrets_and_local_state_out_of_the_publish():
+    """A local `comfy node publish` packs the working copy as-is — being in
+    .gitignore does not stop it. Every one of these must also be named here.
+    """
+    patterns = _comfyignore_lines()
+    must_exclude = [
+        "API.env", "data/auth.json", "data/auth.json.backup-2026-01-01",
+        "config.yaml", "config.local.yaml", "comfyui_detail.log",
+        "logs/fil_design_imagemind.log", ".venv/pyvenv.cfg",
+        "common/__pycache__/base.cpython-312.pyc",
+    ]
+    missed = [p for p in must_exclude if not _comfyignore_excludes(p, patterns)]
+    assert not missed, f".comfyignore would ship these: {missed}"
+
+
+def test_comfyignore_keeps_dev_tooling_and_repo_only_docs_out():
+    """Developer tooling and maintainer-only notes are not something an
+    installed pack needs, and some (CI config, pre-commit config) only make
+    sense inside this repository.
+    """
+    patterns = _comfyignore_lines()
+    must_exclude = [
+        "tests/test_documentation.py", "tools/gen_style_previews.py",
+        "scripts/dump_contracts.py", "requirements-dev.txt",
+        ".pre-commit-config.yaml", ".github/workflows/ci.yml",
+        "CLAUDE.md", "audit.md", "audit-next.md", "fix.md",
+        "frontend/src/App.vue", "frontend/public/style-previews/x.webp",
+        "frontend/tests/widgets3.test.ts", "frontend/node_modules/vue/package.json",
+        "frontend/package.json", "frontend/dist/fil_design_imagemind.js.map",
+    ]
+    missed = [p for p in must_exclude if not _comfyignore_excludes(p, patterns)]
+    assert not missed, f".comfyignore would ship these: {missed}"
+
+
+def test_comfyignore_still_ships_what_the_pack_needs_to_run():
+    """The exclusion list is broad; it must not swallow the runtime itself."""
+    patterns = _comfyignore_lines()
+    must_ship = [
+        "__init__.py", "server_routes.py", "requirements.txt", "LICENSE",
+        "README.md", "CHANGELOG.md", "config.example.yaml",
+        "common/models.py", "nodes/node_scanner.py",
+        "data/locales/en.json", "docs/workflows/fil-image-to-prompt.json",
+        "frontend/dist/fil_design_imagemind.js",
+        "frontend/dist/style-previews/0112215f4991.webp",
+    ]
+    shipped_anyway = [p for p in must_ship if _comfyignore_excludes(p, patterns)]
+    assert not shipped_anyway, f".comfyignore wrongly excludes: {shipped_anyway}"
