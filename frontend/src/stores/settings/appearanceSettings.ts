@@ -22,11 +22,11 @@ export type ThemeScope = typeof SCOPE_OURS | typeof SCOPE_CONNECTED | typeof SCO
 export const APPEARANCE_SETTINGS: ComfyExtensionSettings[] = [
   {
     id: THEME_SCOPE,
-    name: "Theme reaches",
+    name: "Theme applies to",
     type: "combo",
     defaultValue: SCOPE_OURS,
     options: [SCOPE_OURS, SCOPE_CONNECTED, SCOPE_ALL],
-    category: [SETTINGS_CATEGORY, "Appearance"],
+    category: [SETTINGS_CATEGORY, "Appearance", "Scope"],
     // Deliberately promises the title bar and nothing else. A foreign node's
     // body fill comes from `node.bgcolor`, which LiteGraph *serialises* — see
     // any saved workflow, where our own nodes carry `color`/`bgcolor` in the
@@ -44,7 +44,7 @@ export const APPEARANCE_SETTINGS: ComfyExtensionSettings[] = [
     name: "Theme animations",
     type: "boolean",
     defaultValue: true,
-    category: [SETTINGS_CATEGORY, "Appearance"],
+    category: [SETTINGS_CATEGORY, "Appearance", "Animations"],
     tooltip:
       "Pipboy's CRT scanline sweep and Neo Emerald's pulsing orb run continuously on every visible panel. Turn this off for a still version of the same theme. Off by default when your system asks for reduced motion.",
     onChange: (value: unknown) => onAppearanceChange({ animations: value as boolean }),

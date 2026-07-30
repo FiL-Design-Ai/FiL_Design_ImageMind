@@ -64,7 +64,11 @@ const FIL_PALETTE_CYBERPUNK: FilPalette = {
   panel: "#050811",
   panelAlt: "#0f1526",
   text: "#00ffff",
-  muted: "#8000ff",
+  // 4.76:1 on the composited panel/field backdrop; the pure #8000ff this
+  // replaces measured 3.00:1, and `muted` is text (see the 1.0.0 notes), so it
+  // has to clear AA. Violet cannot reach that at full saturation no matter how
+  // bright — the hue is held at 270° and saturation gives way instead.
+  muted: "#a952ff",
   danger: "#ff00ff",
   ok: "#39ff14",
 };
@@ -175,7 +179,9 @@ const FIL_PALETTE_HOLLYWOOD_TEAL: FilPalette = {
   panel: "#0d1b2a",
   panelAlt: "#13263b",
   text: "#f1f5f9",
-  muted: "#0d9488",
+  // 4.86:1 on the composited panel/field backdrop; #0d9488 measured 4.31:1.
+  // Value only — the teal keeps its full saturation and its 175° hue.
+  muted: "#0e9e91",
   danger: "#f97316",
   ok: "#00d2be",
 };
@@ -209,6 +215,15 @@ const THEMES: Record<FilThemeName, FilPalette> = {
   hollywood_teal: FIL_PALETTE_HOLLYWOOD_TEAL,
   cyberpunk_2077: FIL_PALETTE_CYBERPUNK_2077,
 };
+
+/**
+ * Every theme, as a value rather than a type, so the contrast test covers a new
+ * palette the moment it is added instead of the day someone remembers to list
+ * it. `muted`, `text` and `danger` here are *text* colours and are held to WCAG
+ * AA — Cyberpunk shipped at 3.00:1 and Hollywood Teal at 4.31:1 because nothing
+ * measured them.
+ */
+export const FIL_THEME_NAMES = Object.keys(THEMES) as FilThemeName[];
 
 /**
  * Mutable "currently active" palette — updated in place (never reassigned)

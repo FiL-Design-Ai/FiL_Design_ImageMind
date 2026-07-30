@@ -14,6 +14,6 @@ export const SHORTCUTS_SETTINGS: ComfyExtensionSettings[] = [
     type: "boolean",
     defaultValue: true,
     tooltip: "Shift+? opens this pack's keyboard cheatsheet. The key itself can be rebound or cleared under Keybinding in ComfyUI's settings; this switch turns the command off wherever it is invoked from.",
-    category: [SETTINGS_CATEGORY, "Shortcuts"],
+    category: [SETTINGS_CATEGORY, "Canvas", "Shortcuts"],
   },
 ];

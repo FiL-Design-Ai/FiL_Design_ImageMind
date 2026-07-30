@@ -1,6 +1,22 @@
 /**
- * ComfyUI settings registered by the FiL_Design_ImageMind extension.
- * Contains only clean, relevant settings for the ImageMind AI node pack.
+ * Every ComfyUI setting this pack registers, in one place.
+ *
+ * Two rules govern this file, both learned by reading what the host actually
+ * renders rather than what the definitions say:
+ *
+ * 1. **Sections are sorted alphabetically by ComfyUI**, not by the order here.
+ *    So the section names decide the running order, and there are exactly three
+ *    — Appearance, Canvas, General. It used to be six, four of which held a
+ *    single row: a heading per setting is noise, not organisation.
+ *
+ * 2. **Within a section the host renders in reverse registration order.**
+ *    Verified against core's own "Node Search Box" group, which is declared
+ *    Implementation → NodeSuggestions and drawn NodeSuggestions →
+ *    Implementation. So each block below is listed in reverse of how it should
+ *    read on screen, and the comments state the intended reading order.
+ *
+ * Every setting also needs a three-level category — see the note in
+ * `mindSettings.ts`. Two levels made four of these ten invisible.
  */
 import type { ComfyExtensionSettings } from "@/types/comfy";
 import { MIND_SETTINGS } from "@/stores/settings/mindSettings";
@@ -13,17 +29,19 @@ import { CONNECTION_FX_SETTINGS } from "@/stores/settings/connectionFxSettings";
 import { RUN_FX_SETTINGS } from "@/stores/settings/runFxSettings";
 import { SHORTCUTS_SETTINGS } from "@/stores/settings/shortcutsSettings";
 
-// Every settings module in `src/stores/settings/` belongs here. Connection FX
-// was missing, so the code read an id ComfyUI had never heard of and always got
-// the fallback — a setting no user could reach.
 export const ALL_SETTINGS: ComfyExtensionSettings[] = [
-  ...MIND_SETTINGS,
-  ...LANGUAGE_SETTINGS,
-  ...LOGGING_SETTINGS,
+  // Appearance, to read as: Theme → Theme applies to → Theme animations.
+  ...APPEARANCE_SETTINGS.slice().reverse(),
   ...THEME_SETTINGS,
-  ...APPEARANCE_SETTINGS,
-  ...SCROLL_GUARD_SETTINGS,
-  ...CONNECTION_FX_SETTINGS,
-  ...RUN_FX_SETTINGS,
+
+  // Canvas, to read as: Mouse wheel → Connection toasts → Running node → Shortcuts.
   ...SHORTCUTS_SETTINGS,
+  ...RUN_FX_SETTINGS,
+  ...CONNECTION_FX_SETTINGS,
+  ...SCROLL_GUARD_SETTINGS,
+
+  // General, to read as: Default provider → Panel language → Log level.
+  ...LOGGING_SETTINGS,
+  ...LANGUAGE_SETTINGS,
+  ...MIND_SETTINGS,
 ];

@@ -6,10 +6,10 @@ export const SHOW_CONNECTION_TOASTS = "FiL_Design_ImageMind.ConnectionFX.ShowToa
 export const CONNECTION_FX_SETTINGS: ComfyExtensionSettings[] = [
   {
     id: SHOW_CONNECTION_TOASTS,
-    name: "Show connection toasts",
+    name: "Connection toasts",
     type: "boolean",
     defaultValue: false,
-    category: [SETTINGS_CATEGORY, "Canvas"],
+    category: [SETTINGS_CATEGORY, "Canvas", "ConnectionToasts"],
     tooltip: "Show toast notifications when connecting/disconnecting wires.",
   },
 ];

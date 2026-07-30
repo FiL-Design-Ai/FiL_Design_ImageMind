@@ -3513,7 +3513,7 @@ var nc, rc, ic, ac, oc, sc, cc, lc, uc, dc, fc, pc, mc, hc, gc, _c, vc = n((() =
 			panel: "#050811",
 			panelAlt: "#0f1526",
 			text: "#00ffff",
-			muted: "#8000ff",
+			muted: "#a952ff",
 			danger: "#ff00ff",
 			ok: "#39ff14"
 		},
@@ -3583,7 +3583,7 @@ var nc, rc, ic, ac, oc, sc, cc, lc, uc, dc, fc, pc, mc, hc, gc, _c, vc = n((() =
 			panel: "#0d1b2a",
 			panelAlt: "#13263b",
 			text: "#f1f5f9",
-			muted: "#0d9488",
+			muted: "#0e9e91",
 			danger: "#f97316",
 			ok: "#00d2be"
 		},
@@ -3597,7 +3597,7 @@ var nc, rc, ic, ac, oc, sc, cc, lc, uc, dc, fc, pc, mc, hc, gc, _c, vc = n((() =
 			danger: "#ff0055",
 			ok: "#fcee0a"
 		}
-	}, ac = { ...nc }, oc = null, sc = null, cc = null, lc = "default", uc = "dark", dc = {
+	}, Object.keys(ic), ac = { ...nc }, oc = null, sc = null, cc = null, lc = "default", uc = "dark", dc = {
 		default: "",
 		cyberpunk: "\n:root[data-fil-theme=\"cyberpunk\"] .fil-node-shell [class$=\"-root\"] {\n  box-shadow: 0 0 24px rgba(255, 0, 128, 0.4), inset 0 0 15px rgba(0, 255, 255, 0.25);\n  border: 1px solid #ff0080;\n  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));\n}\n:root[data-fil-theme=\"cyberpunk\"] .fil-w-section {\n  background: linear-gradient(90deg, rgba(255, 0, 128, 0.25) 0%, rgba(128, 0, 255, 0.1) 100%) !important;\n  border-left: 3px solid #ff0080 !important;\n  color: #00ffff !important;\n  font-weight: 700;\n}\n:root[data-fil-theme=\"cyberpunk\"] .fil-w-section:hover:not(:disabled) {\n  background: linear-gradient(90deg, rgba(255, 0, 128, 0.35) 0%, rgba(0, 255, 255, 0.2) 100%) !important;\n  color: #ff0080 !important;\n}\n:root[data-fil-theme=\"cyberpunk\"] .fil-w-seg.active,\n:root[data-fil-theme=\"cyberpunk\"] .fil-combo-trigger.open,\n:root[data-fil-theme=\"cyberpunk\"] .fil-combo-trigger:focus-visible,\n:root[data-fil-theme=\"cyberpunk\"] .fil-w-chip.active {\n  background: #ff0080 !important;\n  color: #050811 !important;\n  box-shadow: 0 0 20px rgba(255, 0, 128, 0.8), 0 0 10px rgba(0, 255, 255, 0.5) !important;\n  border-color: #00ffff !important;\n  font-weight: 800;\n  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));\n}\n:root[data-fil-theme=\"cyberpunk\"] .fil-w-seedrow-pill.is-accent {\n  background: #39ff14 !important;\n  border-color: #00ffff !important;\n  color: #000000 !important;\n  font-weight: 800;\n  box-shadow: 0 0 16px rgba(57, 255, 20, 0.7) !important;\n  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));\n}\n:root[data-fil-theme=\"cyberpunk\"] .fil-w-seedrow-pill.is-accent:hover {\n  background: #ff00ff !important;\n  color: #ffffff !important;\n  box-shadow: 0 0 24px rgba(255, 0, 255, 0.8) !important;\n}\n:root[data-fil-theme=\"cyberpunk\"] input:focus,\n:root[data-fil-theme=\"cyberpunk\"] textarea:focus {\n  border-color: #ff0080 !important;\n  box-shadow: 0 0 18px rgba(255, 0, 128, 0.5) !important;\n}\n:root[data-fil-theme=\"cyberpunk\"] button:hover:not(:disabled) {\n  box-shadow: 0 0 16px rgba(255, 0, 128, 0.5) !important;\n}\n",
 		cyberpunk_2077: "\n:root[data-fil-theme=\"cyberpunk_2077\"] .fil-node-shell [class$=\"-root\"] {\n  box-shadow: 0 0 24px rgba(252, 238, 10, 0.35), inset 0 0 15px rgba(0, 240, 255, 0.2);\n  border: 1px solid #fcee0a;\n  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));\n}\n:root[data-fil-theme=\"cyberpunk_2077\"] .fil-w-section {\n  background: repeating-linear-gradient(-45deg, rgba(252, 238, 10, 0.25) 0px, rgba(252, 238, 10, 0.25) 6px, transparent 6px, transparent 12px) !important;\n  border-left: 3px solid #fcee0a !important;\n  color: #fcee0a !important;\n  font-weight: 800;\n  letter-spacing: 0.1em;\n}\n:root[data-fil-theme=\"cyberpunk_2077\"] .fil-w-section:hover:not(:disabled) {\n  background: repeating-linear-gradient(-45deg, rgba(0, 240, 255, 0.3) 0px, rgba(0, 240, 255, 0.3) 6px, transparent 6px, transparent 12px) !important;\n  color: #00f0ff !important;\n}\n:root[data-fil-theme=\"cyberpunk_2077\"] .fil-w-seg.active,\n:root[data-fil-theme=\"cyberpunk_2077\"] .fil-combo-trigger.open,\n:root[data-fil-theme=\"cyberpunk_2077\"] .fil-combo-trigger:focus-visible,\n:root[data-fil-theme=\"cyberpunk_2077\"] .fil-w-chip.active {\n  background: #fcee0a !important;\n  color: #050805 !important;\n  box-shadow: 0 0 22px rgba(252, 238, 10, 0.8), 0 0 10px rgba(0, 240, 255, 0.5) !important;\n  border-color: #00f0ff !important;\n  font-weight: 800;\n  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));\n}\n:root[data-fil-theme=\"cyberpunk_2077\"] .fil-w-seedrow-pill.is-accent {\n  background: #00f0ff !important;\n  border-color: #fcee0a !important;\n  color: #050805 !important;\n  font-weight: 800;\n  box-shadow: 0 0 16px rgba(0, 240, 255, 0.7) !important;\n  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));\n}\n:root[data-fil-theme=\"cyberpunk_2077\"] .fil-w-seedrow-pill.is-accent:hover {\n  background: #fcee0a !important;\n  color: #000000 !important;\n  box-shadow: 0 0 24px rgba(252, 238, 10, 0.9) !important;\n}\n:root[data-fil-theme=\"cyberpunk_2077\"] input:focus,\n:root[data-fil-theme=\"cyberpunk_2077\"] textarea:focus {\n  border-color: #fcee0a !important;\n  box-shadow: 0 0 18px rgba(252, 238, 10, 0.6) !important;\n}\n:root[data-fil-theme=\"cyberpunk_2077\"] button:hover:not(:disabled) {\n  box-shadow: 0 0 16px rgba(252, 238, 10, 0.6) !important;\n}\n:root[data-fil-theme=\"cyberpunk_2077\"] .lg-node-header {\n  letter-spacing: 0.06em;\n}\n",
@@ -4107,11 +4107,15 @@ function Il() {
 var Ll, Rl, zl = n((() => {
 	Nl(), Fl(), Ll = "FiL_Design_ImageMind.Wheel.Enabled", Rl = [{
 		id: Ll,
-		name: "Wheel scrolling in FiL Design panels",
+		name: "Mouse wheel over panels",
 		type: "boolean",
 		defaultValue: !0,
 		tooltip: "ComfyUI forwards the wheel to canvas zoom over DOM widgets, so scrollable lists inside nodes zoom instead of scrolling. On, this pack handles the wheel over its own panels — nowhere else. Off, its nodes behave like stock ComfyUI: lists zoom the canvas. Turn it off to rule the pack out of a scroll conflict.",
-		category: [kl, "Canvas"]
+		category: [
+			kl,
+			"Canvas",
+			"Wheel"
+		]
 	}];
 }));
 //#endregion
@@ -4410,10 +4414,14 @@ var ou, su, cu, lu, uu, du = n((() => {
 })), fu, pu, mu = n((() => {
 	Nl(), fu = "FiL_Design_ImageMind.ConnectionFX.ShowToasts", pu = [{
 		id: fu,
-		name: "Show connection toasts",
+		name: "Connection toasts",
 		type: "boolean",
 		defaultValue: !1,
-		category: [kl, "Canvas"],
+		category: [
+			kl,
+			"Canvas",
+			"ConnectionToasts"
+		],
 		tooltip: "Show toast notifications when connecting/disconnecting wires."
 	}];
 }));
@@ -6481,7 +6489,11 @@ var Wm = "FiL_Design_ImageMind.DefaultProvider", Gm = Object.keys(Rm), Km = [{
 	type: "combo",
 	defaultValue: Rm.ollama,
 	options: Gm.map((e) => Rm[e]),
-	category: [kl, "General"],
+	category: [
+		kl,
+		"General",
+		"Provider"
+	],
 	tooltip: "Provider a freshly added Provider Loader node starts on. Nodes already placed, and nodes loaded from a workflow, keep their own value."
 }];
 function qm() {
@@ -12589,7 +12601,7 @@ var $v = Object.fromEntries([
 Nl(), Fl();
 var ey = "FiL_Design_ImageMind.Appearance.Scope", ty = "FiL_Design_ImageMind.Appearance.Animations", ny = "FiL nodes only", ry = [{
 	id: ey,
-	name: "Theme reaches",
+	name: "Theme applies to",
 	type: "combo",
 	defaultValue: ny,
 	options: [
@@ -12597,7 +12609,11 @@ var ey = "FiL_Design_ImageMind.Appearance.Scope", ty = "FiL_Design_ImageMind.App
 		"FiL nodes + directly connected",
 		"All nodes"
 	],
-	category: [kl, "Appearance"],
+	category: [
+		kl,
+		"Appearance",
+		"Scope"
+	],
 	tooltip: "How far this pack's theme reaches. Beyond its own nodes it only tints the title bar — never the node body, because body colour is saved into the workflow file and would outlive both the setting and this pack.",
 	onChange: (e) => iy({ scope: e })
 }, {
@@ -12605,7 +12621,11 @@ var ey = "FiL_Design_ImageMind.Appearance.Scope", ty = "FiL_Design_ImageMind.App
 	name: "Theme animations",
 	type: "boolean",
 	defaultValue: !0,
-	category: [kl, "Appearance"],
+	category: [
+		kl,
+		"Appearance",
+		"Animations"
+	],
 	tooltip: "Pipboy's CRT scanline sweep and Neo Emerald's pulsing orb run continuously on every visible panel. Turn this off for a still version of the same theme. Off by default when your system asks for reduced motion.",
 	onChange: (e) => iy({ animations: e })
 }];
@@ -12695,7 +12715,11 @@ var my = "FiL_Design_ImageMind.RunFx.Mode", hy = "FiL nodes only", gy = "All nod
 		hy,
 		gy
 	],
-	category: [kl, "Canvas"],
+	category: [
+		kl,
+		"Canvas",
+		"RunHighlight"
+	],
 	tooltip: "Pulse a node's header while it is executing, so you can see where the queue is. Choose whether that covers only this pack's nodes or every node in the graph."
 }];
 function vy() {
@@ -13255,12 +13279,16 @@ function Fb(e) {
 Nl();
 var Ib = [{
 	id: "FiL_Design_ImageMind.Language",
-	name: "Language of FiL panels",
+	name: "Panel language",
 	type: "combo",
 	defaultValue: "en",
 	options: ["en", "ru"],
 	tooltip: "Language of this pack's node panels, labels and tooltips (English / Russian). ComfyUI's own interface language is set separately, in Comfy > Locale.",
-	category: [kl, "Language"]
+	category: [
+		kl,
+		"General",
+		"Language"
+	]
 }];
 pp(), Nl();
 function Lb(e) {
@@ -13277,7 +13305,11 @@ var Rb = [{
 		"WARNING",
 		"ERROR"
 	],
-	category: [kl, "Logging"],
+	category: [
+		kl,
+		"General",
+		"Logging"
+	],
 	tooltip: "Python backend log verbosity for this node pack.",
 	onChange: Lb
 }];
@@ -13304,7 +13336,7 @@ function Vb(e) {
 }
 var Hb = [{
 	id: "FiL_Design_ImageMind.Theme",
-	name: "Node theme",
+	name: "Theme",
 	type: "combo",
 	defaultValue: "Default",
 	options: [
@@ -13319,7 +13351,11 @@ var Hb = [{
 		"NFT Vibe",
 		"Hollywood Teal"
 	],
-	category: [kl, "Appearance"],
+	category: [
+		kl,
+		"Appearance",
+		"Theme"
+	],
 	tooltip: "Recolors every FiL_Design_ImageMind node panel. Options: Cyberpunk Neon, official Cyberpunk 2077 High-Voltage Yellow, Vault-Tec CRT Fallout/Pipboy, FiL Green, Web3 Neo Emerald, NFT Vibe, Hollywood Teal. Applies instantly, no reload.",
 	onChange: Vb
 }];
@@ -13352,19 +13388,23 @@ var Kb = [{
 	type: "boolean",
 	defaultValue: !0,
 	tooltip: "Shift+? opens this pack's keyboard cheatsheet. The key itself can be rebound or cleared under Keybinding in ComfyUI's settings; this switch turns the command off wherever it is invoked from.",
-	category: [kl, "Shortcuts"]
+	category: [
+		kl,
+		"Canvas",
+		"Shortcuts"
+	]
 }];
 zl(), mu();
 var qb = [
-	...Km,
-	...Ib,
-	...Rb,
+	...ry.slice().reverse(),
 	...Hb,
-	...ry,
-	...Rl,
-	...pu,
+	...Kb,
 	..._y,
-	...Kb
+	...pu,
+	...Rl,
+	...Rb,
+	...Ib,
+	...Km
 ];
 Fl(), Nl(), `${Al}`;
 function Jb(e) {

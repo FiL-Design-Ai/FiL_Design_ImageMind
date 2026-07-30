@@ -18,7 +18,14 @@ export const MIND_SETTINGS: ComfyExtensionSettings[] = [
     type: "combo",
     defaultValue: PROVIDER_LABEL.ollama,
     options: PROVIDER_IDS.map((id) => PROVIDER_LABEL[id]),
-    category: [SETTINGS_CATEGORY, "General"],
+    // Three levels, not two. ComfyUI reads a two-level category as
+    // [section, setting-slot], so every setting sharing a section lands in the
+    // same slot and only the last one registered is rendered — measured on a
+    // live 1.47.10, where four of this pack's ten settings were invisible,
+    // including the theme picker. Core hits the same trap with its own
+    // ["Appearance", "General"] pair. The third level is never displayed; the
+    // visible heading is the second. Keep it unique per setting.
+    category: [SETTINGS_CATEGORY, "General", "Provider"],
     tooltip: "Provider a freshly added Provider Loader node starts on. Nodes already placed, and nodes loaded from a workflow, keep their own value.",
   },
 ];

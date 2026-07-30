@@ -13,7 +13,7 @@ export const LOGGING_SETTINGS: ComfyExtensionSettings[] = [
     type: "combo",
     defaultValue: "WARNING",
     options: ["DEBUG", "INFO", "WARNING", "ERROR"],
-    category: [SETTINGS_CATEGORY, "Logging"],
+    category: [SETTINGS_CATEGORY, "General", "Logging"],
     tooltip: "Python backend log verbosity for this node pack.",
     onChange: onLogLevelChange,
   },
