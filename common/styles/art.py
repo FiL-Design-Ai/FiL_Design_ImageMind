@@ -286,7 +286,7 @@ ART_STYLES = {
         "holographic interface portrait, glowing UI overlays, digital reflections on glasses, facial scan graphics, cyber data streams, blue and yellow interface light, close-up focus, futuristic intelligence mood, crisp tech typography effects"
     ),
     "💻 ЦИФРОВАЯ/🧩 Abstract Cyber Shape Design": (
-        "abstract cyber shape design, futuristic helmet shapes, angular geometric panels, glossy surfaces, dark background, neon accent lines, experimental AI design, high detail hard surface forms, surreal technology object"
+        "abstract cyber shape design illustration, digital hard-surface concept art, futuristic helmet shapes, angular geometric panels, glossy surfaces, dark background, neon accent lines, experimental AI design, high detail hard surface forms, surreal technology object, rendered as designed artwork rather than a photographed prop."
     ),
     "💻 ЦИФРОВАЯ/🚨 Warning Sign AI Robot Art": (
         "warning sign AI robot art, caution symbols, futuristic robot face, bold graphic composition, high contrast colors, tech poster layout, digital hazard aesthetic, neon accents, sharp typography-inspired shapes"
@@ -317,13 +317,13 @@ ART_STYLES = {
         "crimson gothic beauty digital portrait art, pale face, red-black palette, luxurious dark styling, velvet textures, seductive gothic elegance, dramatic portrait lighting, moody high contrast, rich atmospheric shadows"
     ),
     "🔬 СТИЛИЗАЦИЯ/🌠 Cosmic Dream Girl": (
-        "cosmic dream girl aesthetic, deep-space starfield backdrop, layered pastel nebula washes, ethereal feminine portrait with soft rim glow, floating stardust particles, celestial eye highlights, translucent fantasy fabrics with galaxy-print sheen, luminous skin refraction, astral body-glow halo, editorial fantasy styling without cluttered magical noise."
+        "cosmic dream girl digital illustration, painted fantasy portrait art, deep-space starfield backdrop, layered pastel nebula washes, ethereal feminine portrait with soft rim glow, floating stardust particles, celestial eye highlights, translucent fantasy fabrics with galaxy-print sheen, luminous skin refraction, astral body-glow halo, editorial fantasy styling, illustrated finish without cluttered magical noise or photographic skin."
     ),
     "🔬 СТИЛИЗАЦИЯ/💿 Holographic Y2K Pop Star": (
-        "holographic Y2K pop star, metallic makeup, futuristic fashion, glossy magazine styling, digital sparkle, chrome accessories, hyperpop color palette, club lighting, bold beauty composition, pop editorial energy"
+        "holographic Y2K pop star digital illustration, stylized vector-and-airbrush poster art, metallic makeup, futuristic fashion, glossy magazine styling, digital sparkle, chrome accessories, hyperpop color palette, club lighting, bold beauty composition, pop editorial energy, graphic poster finish rather than a fashion photograph."
     ),
     "🔬 СТИЛИЗАЦИЯ/🛸 Alien Fashion Runway": (
-        "alien fashion runway, avant-garde silhouette, extraterrestrial beauty styling, reflective fabrics, surreal couture design, dramatic catwalk lighting, futuristic editorial composition, high-fashion sci-fi atmosphere"
+        "alien couture fashion illustration, hand-painted concept art plate, inked contour over painted rendering, avant-garde silhouette, extraterrestrial beauty styling, reflective fabrics drawn as flat stylized shapes, surreal couture design, stagey graphic backlight blocked in as paint, fashion-plate composition on toned paper, high-fashion sci-fi atmosphere, illustration board finish with visible brush and pen work, never a runway photograph."
     ),
     "🔬 СТИЛИЗАЦИЯ/🏴 Black Armor Dark Fantasy": (
         "black armor dark fantasy illustration, ornate gothic plate armor with filigree edges, heroic stance with broadsword or greatshield, moody castle-ruin or ash-waste environment, deep shadow pools with single rim-light edge, sharp metallic edge highlights on black metal, grim determined expression, high detail fantasy concept rendering with forged-metal texture, cinematic low-angle heroic framing without fantasy glitter or glow."
@@ -347,7 +347,7 @@ ART_STYLES = {
         "glossy black latex cyber digital art aesthetic, reflective black material, dramatic body contour highlights, neon accents, fetish-fashion sci-fi styling, dark editorial atmosphere, polished high contrast glamour"
     ),
     "🔬 СТИЛИЗАЦИЯ/🌸 Bloom Soft Girl Aesthetic": (
-        "bloom soft girl aesthetic, soft window-light fall across face, pastel-pink and lavender color wash, delicate freckle and glow detail, smooth translucent skin rendering, gentle wind-blown hair strands, dreamy out-of-focus floral background, clean minimalist composition, subtle lens-like sparkle highlights, emotional warmth expressed through relaxed features, analog-film light bleed, kawaii-soft portrait intimacy without hard contrast or shadow."
+        "bloom soft girl digital illustration, soft anime-adjacent painted rendering, soft window-light fall across face, pastel-pink and lavender color wash, delicate freckle and glow detail, smooth translucent skin rendering, gentle wind-blown hair strands, dreamy out-of-focus floral background, clean minimalist composition, subtle lens-like sparkle highlights, emotional warmth expressed through relaxed features, analog-film light bleed, kawaii-soft portrait intimacy, painted finish without hard contrast, shadow, or photographic skin texture."
     ),
     # 💥 КОМИКС / COMIC (Pinterest curated)
     "💥 КОМИКС/🕷️ Symbiote Venom Comic Ink": (
