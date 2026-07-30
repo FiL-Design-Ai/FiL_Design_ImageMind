@@ -184,16 +184,36 @@ describe("FilColorPicker", () => {
     expect(wrapper.emitted("update:modelValue")?.at(-1)).toEqual(["#22c55e"]);
   });
 
-  it("does not accept three-digit shorthand — current behaviour, worth knowing", async () => {
-    // `#f00` is what people type. The regex in hexToRgb only takes six digits,
-    // so the field reverts. Recording it rather than calling it a defect: the
-    // picker is driven by the swatches and the drag areas, and the hex field is
-    // the secondary path.
+  it("accepts three-digit shorthand and expands it", async () => {
+    // `#f00` is what people type from habit. It used to revert silently, which
+    // reads as a dead field rather than as rejected input.
     const wrapper = mount(FilColorPicker, { props: { modelValue: "#78716c" } });
     const input = hexField(wrapper);
     await input.setValue("#f00");
     await input.trigger("blur");
-    expect(wrapper.emitted("update:modelValue")).toBeUndefined();
-    expect(input.element.value.toLowerCase()).toBe("#78716c");
+    expect(wrapper.emitted("update:modelValue")?.at(-1)).toEqual(["#ff0000"]);
+    expect(input.element.value.toLowerCase()).toBe("#ff0000");
+  });
+
+  it("accepts shorthand without the leading hash too", async () => {
+    const wrapper = mount(FilColorPicker, { props: { modelValue: "#78716c" } });
+    const input = hexField(wrapper);
+    await input.setValue("0f0");
+    await input.trigger("blur");
+    expect(wrapper.emitted("update:modelValue")?.at(-1)).toEqual(["#00ff00"]);
+  });
+
+  it("still rejects lengths that are neither three nor six", async () => {
+    // Widening the regex must not turn it into "anything hex-ish goes" —
+    // `#ff00` is a typo, and committing some guess from it would be worse than
+    // reverting.
+    const wrapper = mount(FilColorPicker, { props: { modelValue: "#78716c" } });
+    const input = hexField(wrapper);
+    for (const bad of ["#ff00", "#f", "#fffffff"]) {
+      await input.setValue(bad);
+      await input.trigger("blur");
+      expect(wrapper.emitted("update:modelValue"), `rejects ${bad}`).toBeUndefined();
+      expect(input.element.value.toLowerCase()).toBe("#78716c");
+    }
   });
 });
