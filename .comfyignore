@@ -12,6 +12,8 @@ API.env
 data/auth.json
 data/auth.json.backup-*
 data/provider_vision_smoke.json
+# Exact names on purpose: `config.example.yaml` is the template users are told
+# to copy, and it has to ship. Do not widen these to `config*.yaml`.
 config.yaml
 config.local.yaml
 comfyui_detail.log
