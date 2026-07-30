@@ -71,6 +71,12 @@ frontend/.gitignore
 
 # Documentation and the GitHub Pages site. docs/workflows/*.json stays — those
 # are ready-made graphs users load in ComfyUI.
+#
+# This list is by name, not `docs/`, so a new file here ships unless it is added
+# — `docs/add-theme.md` was written and would have gone to the registry. If you
+# add a doc that is for whoever maintains this pack rather than whoever installs
+# it, add it below and extend `test_comfyignore_keeps_dev_tooling_and_repo_only_docs_out`.
+docs/add-theme.md
 docs/ETA_GUIDE.md
 docs/MODEL_PROMPTING_GUIDE.md
 docs/_config.yml
