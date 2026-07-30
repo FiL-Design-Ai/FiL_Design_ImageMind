@@ -7,6 +7,7 @@ import { MIND_SETTINGS } from "@/stores/settings/mindSettings";
 import { LANGUAGE_SETTINGS } from "@/stores/settings/languageSettings";
 import { LOGGING_SETTINGS } from "@/stores/settings/loggingSettings";
 import { THEME_SETTINGS } from "@/stores/settings/themeSettings";
+import { APPEARANCE_SETTINGS } from "@/stores/settings/appearanceSettings";
 import { SCROLL_GUARD_SETTINGS } from "@/stores/settings/scrollGuardSettings";
 import { CONNECTION_FX_SETTINGS } from "@/stores/settings/connectionFxSettings";
 import { RUN_FX_SETTINGS } from "@/stores/settings/runFxSettings";
@@ -20,6 +21,7 @@ export const ALL_SETTINGS: ComfyExtensionSettings[] = [
   ...LANGUAGE_SETTINGS,
   ...LOGGING_SETTINGS,
   ...THEME_SETTINGS,
+  ...APPEARANCE_SETTINGS,
   ...SCROLL_GUARD_SETTINGS,
   ...CONNECTION_FX_SETTINGS,
   ...RUN_FX_SETTINGS,

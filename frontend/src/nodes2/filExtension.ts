@@ -14,6 +14,7 @@
  */
 import type { ComfyApp, ComfyExtension, ComfyNodeData } from "@/types/comfy";
 import { NODE_MODULES } from "@/nodes2/nodeRegistry";
+import { tintForeignNode } from "@/nodes2/foreignNodeTint";
 import { installToasts } from "@/nodes2/installers/toasts";
 import { installRunButtonFx } from "@/nodes2/installers/runButtonFx";
 import { installProviderManager } from "@/nodes2/installers/providerManager";
@@ -116,7 +117,19 @@ export function createFilExtension(app: ComfyApp): ComfyExtension {
 
     async beforeRegisterNodeDef(nodeType: unknown, nodeData: ComfyNodeData): Promise<void> {
       const nodeModule = NODE_MODULES[nodeData.name];
-      if (!nodeModule) return;
+      if (!nodeModule) {
+        // Someone else's node. It gets a title-bar stripe only if the user set
+        // the Appearance scope wider than our own nodes — the hook itself reads
+        // that setting per draw, so registering it here costs a wrapper and
+        // nothing else. See foreignNodeTint.ts for why this may not touch
+        // `color`/`bgcolor`.
+        try {
+          tintForeignNode(nodeType);
+        } catch (error) {
+          console.warn(`${LOG_TAG} failed to tint "${nodeData.name}":`, error);
+        }
+        return;
+      }
       try {
         await nodeModule.register(nodeType, nodeData);
       } catch (error) {

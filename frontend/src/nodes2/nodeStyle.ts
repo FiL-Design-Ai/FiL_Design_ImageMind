@@ -4,7 +4,7 @@
  * entry, and the node's title/body color. Mirrors the legacy
  * `web/core/node_style.js` contract.
  */
-import { ACTIVE_PALETTE } from "@/styles/brand";
+import { ACTIVE_PALETTE, activeThemeName } from "@/styles/brand";
 import { patchRecreateMenuItem } from "@/nodes2/recreateNode";
 
 export interface StyledNodeOptions {
@@ -31,6 +31,7 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
       color?: string;
       bgcolor?: string;
       onDrawTitleBar?: unknown;
+      onDrawTitleText?: unknown;
     };
   };
   const p = proto.prototype;
@@ -48,57 +49,33 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
   // (verified against a real ComfyUI instance: the prototype value was
   // shadowed to `undefined` on every created node), so it must also be
   // (re)applied per-instance in onNodeCreated.
-  p.color = ACTIVE_PALETTE.accent;
+  // Note: node.color sets Canvas title text color. Set strictly to crisp #ffffff
+  // on EVERY theme so LiteGraph canvas text matches DOM header instead of
+  // rendering a duplicate colored drop-shadow offset underneath!
+  p.color = "#ffffff";
   p.bgcolor = ACTIVE_PALETTE.panelAlt;
   const originalCreated = p.onNodeCreated;
   p.onNodeCreated = function (this: { color?: string; bgcolor?: string }, ...args: unknown[]) {
     const result = originalCreated?.apply(this, args);
-    // Read at call time (not module-load time) so a node dropped after the
-    // user switches themes (see styles/brand.ts applyFilTheme) picks up the
-    // theme active *then*, not whatever was active when this extension
-    // first registered its node types.
-    this.color = ACTIVE_PALETTE.accent;
+    this.color = "#ffffff";
     this.bgcolor = ACTIVE_PALETTE.panelAlt;
     return result;
   };
 
-  // An `onResize` patch used to live here, and removing it was the whole fix for
-  // a defect that took down every node at once: blank panels plus a hard
-  // "Required input is missing" from the server on Queue Prompt.
-  //
-  // It was written against a core bug — `onResize` for `customtext` summed every
-  // entry of `node.widgets` to find the space left for text boxes and forgot to
-  // skip `w.hidden`, so our ~10 hidden natives ate the Scanner's stretch. The
-  // patch worked around it by assigning the visible subset to `node.widgets`,
-  // running core, then restoring the full array in a `finally`.
-  //
-  // Both halves of that are now wrong on frontend 1.47.10:
-  //
-  //   - `node.widgets` is an instance accessor, not a data field, and its setter
-  //     is one-way: widgets left out of the assigned array are dropped from the
-  //     widget store for good. Measured on a live node — 11 widgets, assign a
-  //     1-element slice, assign the original array back, still 1. So the
-  //     `finally` restored nothing and the first resize of a FiL node destroyed
-  //     every hidden widget it had. `graphToPrompt` then emitted the DOM widget
-  //     as the node's only input, which is exactly what the server rejects.
-  //   - the core bug is gone. `customtext` is a Vue component behind the widget
-  //     store now, and the only `onResize` core installs comes from
-  //     `addDOMWidget` itself, chaining the widget's `beforeResize`/`afterResize`
-  //     — there is no height-summing loop over `node.widgets` left to fix.
-  //
-  // Panel stretch is ours to do now and is done, in `host/heightModel.ts` and
-  // `host/nodeSizeSync.ts`. Nothing here may assign `node.widgets` again.
+  p.onDrawTitleText = function (
+    this: unknown,
+    ctx: CanvasRenderingContext2D,
+    _title: string,
+    _scale: number,
+  ) {
+    ctx.shadowColor = "transparent";
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.fillStyle = "#ffffff";
+  };
 
-  // Dark title bar with a left accent stripe instead of a solid accent
-  // fill. `onDrawTitleBar` is a real per-node-type LiteGraph hook (verified
-  // against the actual bundled litegraph in comfyui_frontend_package — not
-  // present in third-party vendored .d.ts typings, which is what earlier led
-  // to wrongly assuming this needed a global LGraphCanvas monkeypatch): it
-  // only replaces *this node type's* title background fill, title TEXT is
-  // drawn separately by `drawTitleText`/`onDrawTitleText` and unaffected.
-  // `fgcolor` is `this.renderingColor` (== node.color), so the stripe follows
-  // whatever colour the node carries — including one set from ComfyUI's own
-  // colour menu.
+  // Dark title bar with a left accent stripe instead of a solid accent fill.
   p.onDrawTitleBar = function (
     this: { collapsed?: boolean },
     ctx: CanvasRenderingContext2D,
@@ -107,57 +84,94 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
     _scale: number,
     fgcolor: string,
   ) {
-    const radius = (globalThis as { LiteGraph?: { ROUND_RADIUS?: number } }).LiteGraph?.ROUND_RADIUS ?? 8;
+    // By name, never by accent value. Comparing `ACTIVE_PALETTE.accent` to a hex
+    // literal ties the whole treatment below to a colour that is expected to
+    // move: every accent here is held to a WCAG contrast ratio, so retuning one
+    // is routine — and under the old check that silently dropped its theme into
+    // the plain `else` branch with nothing to show for it.
+    const theme = activeThemeName();
+    const isCyberpunk = theme === "cyberpunk";
+    const isCyberpunk2077 = theme === "cyberpunk_2077";
+    const isPipboy = theme === "pipboy";
+    const isNeoEmerald = theme === "neo_emerald";
+    const isNftVibe = theme === "nft_vibe";
+    const isHollywoodTeal = theme === "hollywood_teal";
+    const radius = (isCyberpunk || isCyberpunk2077) ? 2 : isPipboy ? 4 : isHollywoodTeal ? 12 : (isNeoEmerald || isNftVibe) ? 16 : (globalThis as { LiteGraph?: { ROUND_RADIUS?: number } }).LiteGraph?.ROUND_RADIUS ?? 8;
     const collapsed = Boolean(this.collapsed);
     ctx.fillStyle = ACTIVE_PALETTE.panel;
     ctx.beginPath();
     ctx.roundRect(0, -titleHeight, size[0], titleHeight, collapsed ? [radius] : [radius, radius, 0, 0]);
     ctx.fill();
 
-    const stripeWidth = 3;
-    ctx.fillStyle = fgcolor || ACTIVE_PALETTE.accent;
-    ctx.beginPath();
-    ctx.roundRect(0, -titleHeight, stripeWidth, titleHeight, collapsed ? [radius, 0, 0, radius] : [radius, 0, 0, 0]);
-    ctx.fill();
+    if (isCyberpunk) {
+      // Vivid Pink + Cyan Dual Neon
+      ctx.shadowColor = "rgba(255, 0, 128, 0.8)";
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = "#ff0080";
+      ctx.fillRect(0, -titleHeight, 4, titleHeight);
+
+      ctx.shadowColor = "rgba(0, 255, 255, 0.8)";
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = "#00ffff";
+      ctx.fillRect(4, -titleHeight, 3, titleHeight);
+      ctx.shadowBlur = 0;
+    } else if (isCyberpunk2077) {
+      // Official Cyberpunk 2077 High-Voltage Yellow + Night City Cyan
+      ctx.shadowColor = "rgba(252, 238, 10, 0.9)";
+      ctx.shadowBlur = 12;
+      ctx.fillStyle = "#fcee0a";
+      ctx.fillRect(0, -titleHeight, 5, titleHeight);
+
+      ctx.shadowColor = "rgba(0, 240, 255, 0.8)";
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = "#00f0ff";
+      ctx.fillRect(5, -titleHeight, 3, titleHeight);
+      ctx.shadowBlur = 0;
+    } else if (isHollywoodTeal) {
+      // Hollywood Blockbuster Dual Neon: Electric Teal + Amber Fire
+      ctx.shadowColor = "rgba(0, 210, 190, 0.8)";
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = "#00d2be";
+      ctx.fillRect(0, -titleHeight, 4, titleHeight);
+
+      ctx.shadowColor = "rgba(249, 115, 22, 0.8)";
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = "#f97316";
+      ctx.fillRect(4, -titleHeight, 3, titleHeight);
+      ctx.shadowBlur = 0;
+    } else if (isPipboy) {
+      // CRT Terminal Phosphor Border & Grid Line
+      ctx.strokeStyle = "#00ff00";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(0, -titleHeight, size[0], titleHeight, collapsed ? [radius] : [radius, radius, 0, 0]);
+      ctx.stroke();
+
+      // Top corner bracket accents (PipBoy Terminal UI)
+      ctx.fillStyle = "#00ff00";
+      ctx.fillRect(2, -titleHeight + 2, 8, 2);
+      ctx.fillRect(2, -titleHeight + 2, 2, 8);
+      ctx.fillRect(size[0] - 10, -titleHeight + 2, 8, 2);
+      ctx.fillRect(size[0] - 4, -titleHeight + 2, 2, 8);
+    } else if (isNeoEmerald || isNftVibe) {
+      // Sleek Neon Glow Accent Stripe
+      ctx.shadowColor = isNftVibe ? "rgba(208, 255, 0, 0.7)" : "rgba(0, 255, 136, 0.6)";
+      ctx.shadowBlur = 10;
+      const stripeWidth = 5;
+      ctx.fillStyle = fgcolor || (isNftVibe ? "#d0ff00" : "#00ff88");
+      ctx.beginPath();
+      ctx.roundRect(0, -titleHeight, stripeWidth, titleHeight, collapsed ? [radius, 0, 0, radius] : [radius, 0, 0, 0]);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    } else {
+      const stripeWidth = 3;
+      ctx.fillStyle = fgcolor || ACTIVE_PALETTE.accent;
+      ctx.beginPath();
+      ctx.roundRect(0, -titleHeight, stripeWidth, titleHeight, collapsed ? [radius, 0, 0, radius] : [radius, 0, 0, 0]);
+      ctx.fill();
+    }
   };
 
-  // Everything another extension adds to the menu has to already be in the
-  // array before we can repair an entry, and extension registration order is
-  // not ours to choose. An accessor keeps our pass on the outside whichever way
-  // it goes: whatever is assigned later lands in `current`, and the getter
-  // hands out that value wrapped. It only rewrites a foreign entry's callback —
-  // no menu items of its own, so nothing is added twice when wrappers nest.
-  //
-  // ComfyUI deprecated this in favour of an extension-level `getNodeMenuItems`,
-  // and that replacement cannot express what this does: the frontend collects
-  // hooks with `invokeExtensions("getNodeMenuItems", node).flat()`, so an
-  // extension may contribute items and nothing else — there is no hook over the
-  // assembled list. Checked against the docs and the bundled frontend; the
-  // console currently warns about `getCanvasMenuOptions` only.
-  //
-  // Dropping it is the real exit, and it is not ours to take: the bug is in
-  // `comfyui-manager/js/node_fixer.js`, which still patches this the classic
-  // way and still copies links with `src_node.connect(slot, dest.id,
-  // input.name)` — the shape that throws before its own `graph.remove(old)`.
-  // Repairing other packs is out of scope for this one, so this stays until
-  // they fix it, and then the whole accessor goes. Meanwhile the risk is known
-  // and quiet:
-  // when the legacy path is removed the repair stops running and Manager's
-  // "Fix node (recreate)" is broken again for our nodes — nothing of ours
-  // throws. `tests/nodeStyleMenu.test.ts` is what holds the behaviour.
-  //
-  // `inner` MUST be captured when the property is *read*, not read again when
-  // the wrapper runs. Extensions patch this the classic way:
-  //
-  //   const original = node.getExtraMenuOptions;      // reads our getter
-  //   node.getExtraMenuOptions = function (...) { original.apply(this, …) };
-  //
-  // With a late read, the `original` they captured would resolve to whatever
-  // `current` holds *now* — which is their own function — and the two call each
-  // other forever. Reproduced live with cg-use-everywhere: every context menu
-  // died with "Maximum call stack size exceeded". Capturing on read makes the
-  // chain strictly older-than, so it terminates. The result is cached per
-  // `current` so repeated reads hand back the same function object.
   type MenuFn = (...a: unknown[]) => unknown;
   let current = p.getExtraMenuOptions as MenuFn | undefined;
   let wrapped: MenuFn | undefined;
@@ -206,12 +220,8 @@ export function reapplyThemeToGraph(app: unknown): void {
   if (!nodes) return;
   for (const node of nodes) {
     if (!node._filFamily) continue;
-    // Skip nodes carrying a manual colour override — it should survive a global
-    // theme switch, not get silently stomped back to the theme accent. The flag
-    // outlives the pack's own colour picker, which is gone: a workflow saved
-    // while it existed still has it set.
     if (node.properties?.fil_custom_color) continue;
-    node.color = ACTIVE_PALETTE.accent;
+    node.color = "#ffffff";
     node.bgcolor = ACTIVE_PALETTE.panelAlt;
   }
   const canvas = (app as { canvas?: { setDirty?: (a: boolean, b: boolean) => void } }).canvas;
