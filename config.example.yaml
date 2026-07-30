@@ -1,0 +1,349 @@
+# FiL_Design_ImageMind Configuration — EXAMPLE
+#
+# This file ships with the pack. It is a template, not the file the pack reads.
+#
+#   To use it:  copy it next to this one and name the copy `config.yaml`,
+#               then edit that copy.
+#
+# `config.yaml` is deliberately not shipped and not tracked in git, so updating
+# the pack can never overwrite your settings. Everything here is already the
+# built-in default, so an untouched copy changes nothing — delete the parts you
+# do not care about and keep the rest.
+#
+# No API keys go in this file. Keys live in `API.env` or in environment
+# variables, and the panel on the 🔌 Provider Loader node writes them for you.
+# The `*_api_key_env` entries below are the NAMES of environment variables to
+# read, never the keys themselves.
+
+# ═══════════════════════════════════════════════════════════════
+# === Server Defaults ===
+# ═══════════════════════════════════════════════════════════════
+
+# ───────────────────────────────────────────────────────────────
+# LOCAL SERVERS (Ollama, LM Studio)
+# ───────────────────────────────────────────────────────────────
+local_servers:
+  ollama:
+    host: "127.0.0.1"
+    port: 11434
+    url: "http://127.0.0.1:11434"
+    timeout: 150
+    health_check_timeout: 5
+    models_endpoint: "/api/tags"
+    chat_endpoint: "/api/chat"
+    version_endpoint: "/api/version"
+    # Vision models available
+    vision_models:
+      # Qwen VL series (recommended)
+      - "qwen3-vl:8b"
+      - "qwen3-vl"
+      - "qwen2-vl:7b-instruct"
+      - "qwen2.5-vl"
+      # LLaVA series
+      - "llava:13b-v1.6"
+      - "llava:34b-v1.6"
+      - "llava:7b"
+      - "llava-phi3:mini"
+      # BakLLaVA
+      - "bakllava:7b"
+      - "bakllava"
+      # Moondream (lightweight)
+      - "moondream:1b-v2"
+      - "moondream:1b"
+      - "moondream"
+      # MiniCPM-V
+      - "minicpm-v:2.5"
+      - "minicpm-v:2.6"
+      # GLM (OCR)
+      - "glm-ocr"
+      - "glm-4v"
+
+  lmstudio:
+    host: "127.0.0.1"
+    port: 1234
+    url: "http://127.0.0.1:1234"
+    timeout: 150
+    health_check_timeout: 5
+    models_endpoint: "/v1/models"
+    chat_endpoint: "/v1/chat/completions"
+    # Vision models available (depends on loaded model)
+    vision_models:
+      - "qwen2-vl-7b-instruct"
+      - "llava-v1.6-34b"
+      - "llava-v1.6-mistral-7b"
+
+# ───────────────────────────────────────────────────────────────
+# CLOUD PROVIDERS (Google, Groq, OpenRouter, Cloudflare)
+# ───────────────────────────────────────────────────────────────
+cloud_providers:
+  groq:
+    name: "⚡ Groq (Fast Inference)"
+    base_url: "https://api.groq.com/openai/v1"
+    api_key_env: "GROQ_API_KEY"
+    timeout: 30
+    models_endpoint: "/models"
+    chat_endpoint: "/chat/completions"
+    # Vision models (runtime-checked 2026-04-24)
+    # ✅ Working: Llama 4 Scout
+    # ❌ Removed/dead: Maverick -> 404, Llama 3.2 Vision Preview -> decommissioned
+    vision_models:
+      - "meta-llama/llama-4-scout-17b-16e-instruct"
+    rate_limit_ms: 100
+    all_models:
+      - "llama-3.3-70b-versatile"
+      - "llama-3.3-70b-specdec"
+      - "deepseek-r1-distill-llama-70b"
+      - "deepseek-r1-distill-qwen-32b"
+      - "llama-3.1-8b-instant"
+      - "mixtral-8x7b-32768"
+      - "gemma2-9b-it"
+      - "openai/gpt-oss-20b"
+
+  google:
+    name: "🔴 Google AI (Gemini)"
+    base_url: "https://generativelanguage.googleapis.com/v1beta"
+    api_key_env: "GOOGLE_API_KEY"
+    timeout: 60
+    models_endpoint: "/models"
+    chat_endpoint: "/models/{model}:generateContent"
+    # Vision models (runtime-checked 2026-04-24)
+    # ✅ Confirmed with image input: gemini-3.1-flash-lite-preview, gemini-2.5-flash
+    # ⚠️ Valid but quota-limited on current key during probe: gemini-2.5-pro, gemini-2.0-flash, gemini-2.0-flash-lite
+    vision_models:
+      - "gemini-3.1-flash-lite-preview"
+      - "gemini-2.5-flash"
+      - "gemini-2.5-pro"
+      - "gemini-2.0-flash"
+      - "gemini-2.0-flash-lite"
+    rate_limit_ms: 500
+
+  openrouter:
+    name: "🧭 OpenRouter"
+    base_url: "https://openrouter.ai/api/v1"
+    api_key_env: "OPENROUTER_API_KEY"
+    timeout: 60
+    models_endpoint: "/models"
+    chat_endpoint: "/chat/completions"
+    # Vision models (runtime-checked 2026-04-24)
+    vision_models:
+      - "google/gemma-4-26b-a4b-it:free"
+      - "google/gemma-4-31b-it:free"
+      - "nvidia/nemotron-nano-12b-v2-vl:free"
+      - "openrouter/free"
+    rate_limit_ms: 200
+
+  cloudflare:
+    name: "☁️ Cloudflare Workers AI"
+    base_url: ""
+    api_key_env: "CLOUDFLARE_API_TOKEN"
+    account_id_env: "CLOUDFLARE_ACCOUNT_ID"
+    timeout: 120
+    models_endpoint: ""
+    chat_endpoint: "/chat/completions"
+    # Vision models (runtime-checked 2026-04-24)
+    vision_models:
+      - "@cf/google/gemma-4-26b-a4b-it"
+      - "@cf/meta/llama-3.2-11b-vision-instruct"
+      - "@cf/meta/llama-4-scout-17b-16e-instruct"
+      - "@cf/google/gemma-3-12b-it"
+      - "@cf/mistralai/mistral-small-3.1-24b-instruct"
+    all_models:
+      - "@cf/google/gemma-4-26b-a4b-it"
+      - "@cf/meta/llama-3.2-11b-vision-instruct"
+      - "@cf/meta/llama-4-scout-17b-16e-instruct"
+      - "@cf/google/gemma-3-12b-it"
+      - "@cf/mistralai/mistral-small-3.1-24b-instruct"
+      - "@cf/openai/gpt-oss-20b"
+      - "@cf/openai/gpt-oss-120b"
+    rate_limit_ms: 200
+
+# ═══════════════════════════════════════════════════════════════
+# === Model Settings ===
+# ═══════════════════════════════════════════════════════════════
+
+models:
+  # Default vision models by provider
+  default_vision_models:
+    ollama:
+      - "qwen3-vl:8b"
+      - "qwen2-vl:7b-instruct"
+      - "llava:13b-v1.6"
+      - "bakllava:7b"
+      - "moondream:1b-v2"
+    
+    lmstudio:
+      - "qwen2-vl-7b-instruct"
+      - "llava-v1.6-34b"
+      - "llava-v1.6-mistral-7b"
+
+  # Model aliases for easy reference
+  aliases:
+    "fast": "moondream:1b-v2"
+    "balanced": "qwen3-vl:8b"
+    "quality": "llava:34b-v1.6"
+    "local": "Qwen/Qwen3-VL-4B-Instruct"
+
+  # Auto-download models on first use
+  auto_download: false
+  
+  # Preferred quantization for local models
+  preferred_quantization: "Q4_K_M"  # Options: Q4_K_M, Q5_K_M, Q8_0, fp16
+
+# ═══════════════════════════════════════════════════════════════
+# === Performance Settings ===
+# ═══════════════════════════════════════════════════════════════
+
+performance:
+  # Rate limiting
+  rate_limit:
+    enabled: true
+    default_interval_ms: 150
+    aggressive_ms: 50      # For fast models
+    conservative_ms: 300   # For slow/cloud models
+  
+  # Connection pooling
+  connections:
+    pool_size: 20
+    max_retries: 2
+    retry_backoff_factor: 0.1
+    timeout_connect: 5
+    timeout_read: 60
+  # Reduced from 180s for faster failures
+  
+  # Caching
+  cache:
+    enabled: true
+    model_list_ttl: 60        # seconds
+    response_ttl: 300         # seconds
+    classification_ttl: 600   # seconds
+    max_size_mb: 100
+
+  # Memory management
+  memory:
+    unload_after_seconds: 300  # Auto-unload local models after inactivity
+    max_cached_models: 2       # Maximum number of models to keep in memory
+    gpu_memory_fraction: 0.8   # Fraction of GPU memory to use
+
+# ═══════════════════════════════════════════════════════════════
+# === Image Processing ===
+# ═══════════════════════════════════════════════════════════════
+
+image_processing:
+  # Default settings
+  defaults:
+    max_side: 1024
+    quality: 85
+    format: "JPEG"
+  
+  # Batch processing
+  batch:
+    enabled: true
+    max_images: 10
+    parallel: false  # Set true for GPU with enough VRAM
+  
+  # Optimization
+  optimization:
+    auto_resize: true
+    min_side: 256
+    max_side: 2048
+    preserve_aspect_ratio: true
+  
+  # Supported formats
+  supported_formats:
+    - "JPEG"
+    - "PNG"
+    - "WEBP"
+    - "BMP"
+
+# ═══════════════════════════════════════════════════════════════
+# === Logging Configuration ===
+# ═══════════════════════════════════════════════════════════════
+
+logging:
+  # Console logging
+  console:
+    enabled: true
+    level: "WARNING"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+    format: "colored"  # colored, plain, json
+    startup_summary: true
+  
+  # File logging
+  file:
+    enabled: true
+    level: "DEBUG"
+    path: "logs/fil_design_imagemind.log"
+    max_size_mb: 10
+    backup_count: 5
+    format: "json"  # json, text
+  
+  # Structured logging
+  structured:
+    enabled: false
+    include_timestamp: true
+    include_module: true
+    include_thread: false
+
+# ═══════════════════════════════════════════════════════════════
+# === Security Settings ===
+# ═══════════════════════════════════════════════════════════════
+
+security:
+  # SSRF Protection
+  ssrf_protection:
+    enabled: true
+    allowed_private_networks:
+      - "127.0.0.0/8"
+      - "10.0.0.0/8"
+      - "172.16.0.0/12"
+      - "192.168.0.0/16"
+    blocked_ports:
+      - 22    # SSH
+      - 23    # Telnet
+      - 3389  # RDP
+  
+  # Input validation
+  validation:
+    max_prompt_length: 10000
+    max_image_size_mb: 50
+    sanitize_prompts: true
+    block_injection_patterns: true
+  
+  # API security
+  api:
+    enable_cors: false
+    allowed_origins:
+      - "http://localhost:8188"
+      - "http://127.0.0.1:8188"
+
+# ═══════════════════════════════════════════════════════════════
+# === Agents and Prompts ===
+# ═══════════════════════════════════════════════════════════════
+
+agents:
+  # Default agent configurations
+  defaults:
+    temperature: 0.7
+    max_tokens: 1024
+    top_p: 0.9
+    presence_penalty: 0.0
+    frequency_penalty: 0.0
+  
+  # Classification settings
+  classification:
+    temperature: 0.3  # Lower for more deterministic output
+    format: "json"
+    retries: 2
+
+# ═══════════════════════════════════════════════════════════════
+# === Feature Flags ===
+# ═══════════════════════════════════════════════════════════════
+
+features:
+  # Enable/disable features
+  streaming: false           # Streaming responses (NOT IMPLEMENTED)
+  auto_fetch_models: true    # Auto-fetch model lists
+  show_intro_animation: true # FiL Design logo animation
+  metrics_collection: true   # Performance metrics
+  response_caching: true     # Cache LLM responses
+  health_checks: true        # Periodic health checks
+  webhooks_enabled: false    # Webhook notifications (NOT IMPLEMENTED)

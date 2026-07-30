@@ -113,7 +113,10 @@ need a key.
 3. `API.env` in the pack root — `KEY=value` lines, git-ignored.
 
 `config.yaml` holds non-secret defaults (timeouts, rate limits, local server URLs). `OLLAMA_URL`
-and `LMSTUDIO_URL` can be overridden from the environment.
+and `LMSTUDIO_URL` can be overridden from the environment. The pack ships
+`config.example.yaml`, not `config.yaml` — copy it under the shorter name and edit the copy, and
+updating the pack can never overwrite your settings. Every value in it is already the built-in
+default, so an untouched copy changes nothing.
 
 **Verify a provider** without running a graph: the Provider Loader panel shows a live status badge
 (the pack probes configured providers in the background and surfaces the error text when one fails),
@@ -765,7 +768,10 @@ Python самого ComfyUI (`python_embeded`, `venv` или `.venv`), став�
 3. `API.env` в корне пакета — строки `KEY=value`, в `.gitignore`.
 
 `config.yaml` хранит несекретные умолчания (таймауты, лимиты частоты, адреса локальных серверов).
-`OLLAMA_URL` и `LMSTUDIO_URL` можно переопределить через окружение.
+`OLLAMA_URL` и `LMSTUDIO_URL` можно переопределить через окружение. В паке лежит
+`config.example.yaml`, а не `config.yaml` — скопируйте его под коротким именем и правьте копию:
+тогда обновление пака не затрёт ваши настройки. Все значения в нём и так совпадают со встроенными
+умолчаниями, поэтому нетронутая копия ничего не меняет.
 
 **Проверить провайдера** без запуска графа: панель Provider Loader показывает живой статус (пакет
 фоново пробит настроенных провайдеров и выводит текст ошибки, если проверка не прошла), а

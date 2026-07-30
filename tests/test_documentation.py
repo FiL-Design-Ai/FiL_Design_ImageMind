@@ -212,3 +212,40 @@ def test_workflow_widget_inputs_match_the_current_node_schema(monkeypatch):
                 drifted[f"{path.name}:{node['type']}"] = {"missing": missing, "stale": stale}
 
     assert not drifted, f"example workflows describe an older schema: {drifted}"
+
+
+# ---------------------------------------------------------------------------
+# config.example.yaml
+# ---------------------------------------------------------------------------
+
+
+def test_the_shipped_config_example_exists_and_parses():
+    """README tells the user to copy this file. It has to be there and be valid
+    YAML, or the instruction sends them looking for something that is broken."""
+    yaml = pytest.importorskip("yaml")
+    example = ROOT / "config.example.yaml"
+    assert example.exists(), "README points at config.example.yaml; ship it"
+    data = yaml.safe_load(example.read_text(encoding="utf-8"))
+    assert isinstance(data, dict) and data, "the example must parse to a non-empty mapping"
+
+
+def test_the_shipped_config_example_carries_no_credentials():
+    """This file is published to the registry, and the obvious way to refresh it
+    is to copy someone's working `config.yaml`. That copy would carry keys. The
+    example may name environment variables, never their values.
+    """
+    example = ROOT / "config.example.yaml"
+    text = example.read_text(encoding="utf-8")
+
+    vendor_prefixes = re.compile(r"\b(sk-|gsk_|sk-or-|AIza|xai-|hf_)[A-Za-z0-9_\-]{8,}")
+    assert not vendor_prefixes.search(text), "a provider key is sitting in config.example.yaml"
+
+    # `api_key_env: "GROQ_API_KEY"` is a variable name and fine; an assignment
+    # to a key/token/secret field with anything else in it is not.
+    for match in re.finditer(r"(?im)^\s*([a-z_]*(?:key|token|secret|password)[a-z_]*)\s*:\s*(\S.*)$", text):
+        field, value = match.group(1), match.group(2).split("#")[0].strip().strip('"\'')
+        if field.endswith("_env") or not value:
+            continue
+        assert re.fullmatch(r"[A-Z0-9_]+|\d+|true|false|null", value), (
+            f"{field} looks like a real credential, not a variable name: {value!r}"
+        )
