@@ -161,6 +161,11 @@ OPENROUTER_EXCLUDED_MODEL_IDS = {
     "google/gemma-3-27b-it:free",
     "google/gemma-3-12b-it:free",
     "google/gemma-3-4b-it:free",
+    # The `3n` variants match the `gemma-3` vision hint but take text only.
+    # Recorded by a real probe on 2026-05-01; kept here when the cached probe
+    # file was dropped, since it was the one verdict that file actually changed.
+    "google/gemma-3n-e2b-it:free",
+    "google/gemma-3n-e4b-it:free",
 }
 ACCOUNT_PROVIDER_KEYS = ("openai", "google", "groq", "openrouter", "cloudflare")
 

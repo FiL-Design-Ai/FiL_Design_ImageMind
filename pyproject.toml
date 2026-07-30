@@ -42,9 +42,9 @@ FiL_Design_ImageMind = "."
 
 [tool.setuptools.package-data]
 FiL_Design_ImageMind = [
-  "config.yaml",
+  # `config.yaml` is the user's own copy and is never shipped; the template is.
+  "config.example.yaml",
   "data/locales/*.json",
-  "data/provider_vision_smoke.json",
   "frontend/dist/*",
   "frontend/dist/style-previews/*",
   "docs/workflows/*.json",

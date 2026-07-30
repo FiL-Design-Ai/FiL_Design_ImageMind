@@ -100,4 +100,7 @@ frontend/blob-report/
 # Local auth/credentials
 data/auth.json
 data/auth.json.backup-*
+# Obsolete: nothing reads this any more (see common/vision_heuristics.py).
+# Still listed so a leftover copy on disk stays out of git and out of the
+# published archive.
 data/provider_vision_smoke.json
