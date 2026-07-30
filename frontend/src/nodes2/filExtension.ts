@@ -21,6 +21,7 @@ import { installProviderManager } from "@/nodes2/installers/providerManager";
 import { installHelpToolbar } from "@/nodes2/installers/helpToolbar";
 import { installShortcuts } from "@/nodes2/installers/shortcuts";
 import { filCommands, filKeybindings } from "@/composables/useShortcuts";
+import { paletteCommands } from "@/styles/comfyPalette";
 import { ALL_SETTINGS } from "@/stores/settings/allSettings";
 import { applyStartupLogLevel } from "@/stores/settings/loggingSettings";
 import { applyStartupTheme } from "@/stores/settings/themeSettings";
@@ -85,7 +86,10 @@ export function createFilExtension(app: ComfyApp): ComfyExtension {
     // The `/` binding for the add-node search does *not* come back. A bare key
     // claimed from every context in the host is a conflict waiting to happen,
     // and focusing core's own search is core's business.
-    commands: filCommands,
+    // The palette export lives here rather than in `filCommands`, which is the
+    // keyboard-shortcut set; this one is an action, and it ships with no
+    // keybinding on purpose.
+    commands: [...filCommands, ...paletteCommands],
     keybindings: filKeybindings,
 
     async setup() {
