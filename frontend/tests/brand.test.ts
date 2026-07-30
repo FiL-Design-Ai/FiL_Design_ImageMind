@@ -45,7 +45,12 @@ describe("the Pixaroma skin", () => {
     expect(effects?.textContent).toContain("box-shadow:none");
 
     applyFilTheme("default");
-    expect(effects?.textContent).toBe("");
+    // The default theme contributes no flourishes of its own. The tag is not
+    // empty, though: the motion switch rides along in it unconditionally, so it
+    // is emitted after whatever the theme added and wins on document order.
+    expect(effects?.textContent).not.toContain(".fil-w-chip.active");
+    expect(effects?.textContent).not.toContain("pixaroma");
+    expect(effects?.textContent).toContain('[data-fil-motion="off"]');
     expect(document.getElementById("fil-theme-vars")?.textContent).toBe("");
   });
 });
