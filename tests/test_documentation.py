@@ -249,3 +249,50 @@ def test_the_shipped_config_example_carries_no_credentials():
         assert re.fullmatch(r"[A-Z0-9_]+|\d+|true|false|null", value), (
             f"{field} looks like a real credential, not a variable name: {value!r}"
         )
+
+
+# ---------------------------------------------------------------------------
+# Style preview thumbnails
+# ---------------------------------------------------------------------------
+
+
+def _preview_map() -> dict[str, str]:
+    source = (ROOT / "frontend" / "src" / "generated" / "stylePreviews.ts").read_text(encoding="utf-8")
+    return dict(re.findall(r'^\s+"([^"]+)": "([^"]+)"', source, re.M))
+
+
+def test_every_style_preview_points_at_a_file_that_exists():
+    """An entry with no image behind it is worse than no entry at all.
+
+    A style that is absent from the map renders as an emoji + name tile, which
+    is fine and by design. A style that is present but whose file is gone
+    renders as a broken image. `tools/gen_style_previews.py` names new files
+    from md5(key), so a key renamed after its image was made would silently
+    orphan it — that has happened once already.
+    """
+    previews = ROOT / "frontend" / "public" / "style-previews"
+    missing = sorted(
+        key for key, url in _preview_map().items()
+        if not (previews / url.rsplit("/", 1)[1]).exists()
+    )
+    assert not missing, f"preview entries with no image on disk: {missing}"
+
+
+def test_style_previews_name_only_styles_that_still_exist():
+    """A preview for a deleted style is dead weight shipped to every user."""
+    from FiL_Design_ImageMind.common.data import get_all_style_keys
+
+    known = set(get_all_style_keys())
+    orphans = sorted(key for key in _preview_map() if key not in known)
+    assert not orphans, f"previews for styles the pack no longer has: {orphans}"
+
+
+def test_the_shipped_bundle_carries_every_preview_image():
+    """`frontend/dist` is what reaches the registry; `public` is only the source.
+
+    These are copied at build time, so a preview added without a rebuild would
+    be referenced by the bundle and absent from it.
+    """
+    source = {p.name for p in (ROOT / "frontend" / "public" / "style-previews").glob("*.webp")}
+    shipped = {p.name for p in (ROOT / "frontend" / "dist" / "style-previews").glob("*.webp")}
+    assert not (source - shipped), f"previews missing from the built bundle: {sorted(source - shipped)}"
