@@ -25,6 +25,7 @@ from .model_capabilities import (
 from .network import HTTPClient
 from .processing import normalize_model_name
 from .provider_accounts import get_api_key, get_provider_base_url
+from .provider_resilience import QUOTA_MESSAGE, http_cause, looks_like_quota
 
 from .brand import BRAND
 
@@ -46,46 +47,8 @@ def _result(
     }
 
 
-# A 429 means two very different things, and the user's next move differs:
-# wait, or go top up the account. OpenAI answers `insufficient_quota` on a key
-# with no billing while `/models` keeps working, so this is the difference
-# between "подожди минуту" and "плати".
-_QUOTA_MARKERS = (
-    "insufficient_quota",
-    "exceeded your current quota",
-    "billing",
-    "insufficient credits",
-    "quota exceeded",
-    "check your plan",
-)
-_QUOTA_MESSAGE = "Ключ принят, но у аккаунта нет квоты — проверь баланс и биллинг у провайдера."
-
-
-def _looks_like_quota(*parts: str) -> bool:
-    text = " ".join(p for p in parts if p).lower()
-    return any(marker in text for marker in _QUOTA_MARKERS)
-
-
-def _http_cause(exc: BaseException) -> Optional[requests.exceptions.HTTPError]:
-    """The HTTP error underneath, if any.
-
-    `ModelClient.generate` re-raises everything as `InferenceError(...) from
-    exc`, so by the time a generation failure reaches here the response body is
-    one link down the chain — and that body is the only place OpenAI says
-    `insufficient_quota` rather than plain "Too Many Requests".
-    """
-    seen = 0
-    current: Optional[BaseException] = exc
-    while current is not None and seen < 5:
-        if isinstance(current, requests.exceptions.HTTPError) and current.response is not None:
-            return current
-        current = current.__cause__
-        seen += 1
-    return None
-
-
 def _error_status(exc: Exception) -> tuple[str, str]:
-    http = _http_cause(exc)
+    http = http_cause(exc)
     if http is not None:
         code = http.response.status_code
         if code in (401, 403):
@@ -96,16 +59,16 @@ def _error_status(exc: Exception) -> tuple[str, str]:
                 body = http.response.text or ""
             except Exception:
                 body = ""
-            if code == 402 or _looks_like_quota(body, str(exc)):
-                return "quota_exhausted", _QUOTA_MESSAGE
+            if code == 402 or looks_like_quota(body, str(exc)):
+                return "quota_exhausted", QUOTA_MESSAGE
             return "rate_limited", "Провайдер временно ограничил запросы."
     if isinstance(exc, (requests.exceptions.ConnectionError, requests.exceptions.Timeout)):
         return "offline", "Провайдер недоступен."
     text = str(exc).lower()
     if "401" in text or "403" in text or "unauthorized" in text or "forbidden" in text:
         return "auth_error", "API-ключ отклонён провайдером."
-    if _looks_like_quota(text) or "402" in text:
-        return "quota_exhausted", _QUOTA_MESSAGE
+    if looks_like_quota(text) or "402" in text:
+        return "quota_exhausted", QUOTA_MESSAGE
     if "429" in text or "rate limit" in text:
         return "rate_limited", "Провайдер временно ограничил запросы."
     if "connection" in text or "timeout" in text or "timed out" in text:

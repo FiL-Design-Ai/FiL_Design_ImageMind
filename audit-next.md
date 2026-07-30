@@ -49,8 +49,9 @@ cd frontend && COMFY_PYTHON=E:\AI\ComfyUI-Easy-Install\python_embeded\python.exe
 E:\AI\ComfyUI-Easy-Install\python_embeded\python.exe tools\live_provider_check.py --dry-run
 ```
 
-**Состояние на момент записки:** 1066 тестов проходят, 3 пропущено, 1 `xfailed`; preflight,
-конфликты, typecheck, lint, `check:bundle`, 213 vitest, 12 e2e, 7 smoke — зелёные.
+**Состояние на момент записки:** 1070 тестов проходят, 3 пропущено, ни одного `xfail`; preflight,
+конфликты, typecheck, lint, `check:bundle`, 268 vitest (34 файла), 12 e2e, 7 smoke — зелёные. Всё,
+что сделано, лежит в ветке `audit/full-pass-1.1.0`.
 
 **Правка во `frontend/src` обязательно заканчивается `npm run build`.** `frontend/dist` лежит в гите
 и именно он уезжает в реестр; несобранный `dist` отправит пользователям старый бандл, а все прочие
@@ -93,41 +94,32 @@ E:\AI\ComfyUI-Easy-Install\python_embeded\python.exe tools\live_provider_check.p
 Оба теста переписаны так, чтобы утверждать только то, что питон может знать: состав виджетов, но не
 их порядок — порядок задаёт хост. `xfail` снят.
 
-### 2. Компоненты нод без своих тестов
+### 2. Компоненты нод без своих тестов — СДЕЛАНО (коммит 4f278d5)
 
-Пять компонентов и один виджет упоминаются только в контрактных и smoke-тестах, своего поведения не
-стерегут:
+Все шесть закрыты: `datasetForge`, `hiResFix`, `providerModelPicker`, `switch`, `upscaleTileCalc`,
+`helpPopup` — свои файлы в `frontend/tests/components/`. Фронт вырос со 178 тестов до 268.
 
-- `frontend/src/components/nodes/DatasetForge.vue`
-- `frontend/src/components/nodes/HiResFix.vue`
-- `frontend/src/components/nodes/ProviderModelPicker.vue`
-- `frontend/src/components/nodes/Switch.vue`
-- `frontend/src/components/nodes/UpscaleTileCalc.vue`
-- `frontend/src/components/widgets/FilHelpPopup.vue`
+Написание тестов нашло настоящий дефект в 🔀 Cyber Switch: сторож в `watch` сравнивал
+`nodeState.enable` сам с собой, поэтому тело никогда не выполнялось и внешняя запись (загрузка
+воркфлоу, undo) не доезжала до нативного виджета, который читает бэкенд. Починено там же.
 
-Образцы для стиля: `frontend/tests/components/*.test.ts` (там же видно, как поднимать Pinia) и
-`frontend/tests/widgets3.test.ts`. Хост брать из `frontend/tests/fakes/comfyHost.ts`, свой узел в
-файле теста не изобретать.
+### 3. Облачные провайдеры — почти закрыто (2026-07-30)
 
-Проверять поведение, а не разметку: что компонент отдаёт наружу при вводе, что делает с `disabled` и
-с пустыми списками, как ведёт себя при значении вне списка опций.
+Картинку реально увидели и описали **четверо**: `google`, `groq`, а на повторном прогоне ещё
+`openrouter` (лимит отпустил, цепочка запасных моделей дошла до второго кандидата) и `cloudflare`.
 
-### 3. Три облачных провайдера не подтверждены живьём
-
-`google` и `groq` реально увидели картинку и описали её. Не подтверждены:
-
-- **openai** — у аккаунта кончилась квота (`quota_exhausted`), нужен баланс;
-- **openrouter** — все бесплатные vision-кандидаты под лимитом (429);
-- **cloudflare** — 429.
-
-Каталоги моделей у всех трёх читаются, ошибки классифицируются верно, ключи в текстах ошибок не
-утекают. Не проверен только сквозной путь «картинка → промпт». Повторить:
+Остался один: **openai** — у аккаунта нет квоты (`quota_exhausted`). Это не дефект пака и кодом не
+чинится, нужен баланс. Повторить после пополнения:
 
 ```bash
 E:\AI\ComfyUI-Easy-Install\python_embeded\python.exe tools\live_provider_check.py --provider openai --errors
 ```
 
-Локальные `ollama` и `lmstudio` не проверялись вовсе — не были запущены.
+Попутно на этом прогоне нашёлся и починен настоящий дефект — пустой баланс выдавался за «подожди
+минуту», см. `audit.md`, 2.2. Проверка провайдеров, таким образом, окупилась не только галочками.
+
+Локальные `ollama` и `lmstudio` по-прежнему не проверялись — не запущены, каталог моделей пуст,
+выбирать vision-модель не из чего. Понадобится поднять хотя бы один.
 
 ### 4. Решения, которые нужны от автора
 
@@ -164,8 +156,12 @@ E:\AI\ComfyUI-Easy-Install\python_embeded\python.exe tools\live_provider_check.p
 запускался на портативной сборке (`playwright.comfy.config.ts`); молчащие ошибки чтения
 `config.yaml`/`API.env`; `print` мимо логгера; мёртвые импорты; устаревшие числа в README.
 
-Добавлено 42 теста: 7 питоновских (контракты, обрезанный ответ, превью KSampler, числа в README) и 35
-фронтовых (`numberInput.test.ts`, `widgets3.test.ts`, `widgetBarrel.test.ts`).
+Ещё починено: пустой баланс провайдера выдавался за временный лимит запросов
+(`common/provider_resilience.py`, знание о квоте сведено в один модуль вместо двух копий).
+
+Добавлено 10 питоновских тестов (контракты, обрезанный ответ, превью KSampler, числа в README,
+квота против лимита) и 90 фронтовых (`numberInput.test.ts`, `widgets3.test.ts`,
+`widgetBarrel.test.ts`, тесты компонентов нод).
 
 Новый инструмент: `tools/live_provider_check.py` — живая проверка провайдеров, намеренно не в
 `tests/`, потому что в CI ключей нет.

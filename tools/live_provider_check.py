@@ -62,11 +62,38 @@ from FiL_Design_ImageMind.common.processing import ImageProcessor  # noqa: E402
 from FiL_Design_ImageMind.common.provider_accounts import (  # noqa: E402
     check_provider_configured,
 )
+from FiL_Design_ImageMind.common.base import FiLError  # noqa: E402
+from FiL_Design_ImageMind.common.provider_resilience import (  # noqa: E402
+    http_cause,
+    sanitize_sensitive_data,
+)
 from FiL_Design_ImageMind.common.provider_runtime import (  # noqa: E402
     fetch_models_with_status,
     probe_provider,
     safe_provider_error,
 )
+
+
+def why_it_failed(exc: Exception) -> str:
+    """The most specific safe message available, the way a node reports it.
+
+    Two kinds of failure arrive here and they want opposite treatment:
+
+    * A bare `FiLError` carries a message written for a person — "every free
+      OpenRouter vision model is busy right now" — which `safe_provider_error`
+      would flatten into a generic "could not reach the provider".
+    * An `InferenceError` is a `FiLError` too, but its message is the raw
+      wrapper text ("API call to openai/gpt-5.6-sol failed: 429 Client Error"),
+      and it always carries the provider's response one link down. There the
+      classifier wins: it reads the body, which is the only place an exhausted
+      balance is distinguishable from a rate limit.
+
+    So the response decides, not the exception class. Reporting the pack as
+    vaguer than it is would be the opposite of this tool's job.
+    """
+    if http_cause(exc) is None and isinstance(exc, FiLError):
+        return sanitize_sensitive_data(exc.message)
+    return safe_provider_error(exc)
 
 # ---------------------------------------------------------------- the picture
 
@@ -150,7 +177,7 @@ def check_provider(provider: str, run_errors: bool, timeout: int) -> Dict[str, A
             "seconds": round(time.time() - t0, 2),
         }
     except Exception as exc:
-        steps["models"] = {"ok": False, "detail": safe_provider_error(exc)}
+        steps["models"] = {"ok": False, "detail": why_it_failed(exc)}
         listed, vision = [], []
 
     # --- probe (the pack's own "is this connection alive" call)
@@ -167,7 +194,7 @@ def check_provider(provider: str, run_errors: bool, timeout: int) -> Dict[str, A
             "seconds": round(time.time() - t0, 2),
         }
     except Exception as exc:
-        steps["probe"] = {"ok": False, "detail": safe_provider_error(exc)}
+        steps["probe"] = {"ok": False, "detail": why_it_failed(exc)}
 
     # --- the real thing: an image goes out, a description comes back
     model = pick_vision_model(provider, listed, vision)
@@ -202,7 +229,7 @@ def check_provider(provider: str, run_errors: bool, timeout: int) -> Dict[str, A
         steps["vision"] = {
             "ok": False,
             "model": model,
-            "detail": safe_provider_error(exc),
+            "detail": why_it_failed(exc),
             "seconds": round(time.time() - t0, 2),
         }
 
@@ -231,7 +258,7 @@ def check_error_paths(provider: str, good_model: str) -> Dict[str, Any]:
         out["bad_model"] = {"ok": False, "detail": "a nonexistent model returned success"}
         out["ok"] = False
     except Exception as exc:
-        message = safe_provider_error(exc)
+        message = why_it_failed(exc)
         leaked = _looks_like_a_key(message)
         out["bad_model"] = {
             "ok": not leaked,

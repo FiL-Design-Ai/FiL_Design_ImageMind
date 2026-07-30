@@ -101,13 +101,61 @@ def classify_cloudflare_error(error_details: Dict[str, Any]) -> Tuple[str, str]:
 # ---------------------------------------------------------------------------
 
 
+# A 429 means two very different things, and the user's next move differs:
+# wait, or go top up the account. OpenAI answers `insufficient_quota` on a key
+# with no billing while `/models` keeps working, so this is the difference
+# between "подожди минуту" and "плати".
+QUOTA_MARKERS = (
+    "insufficient_quota",
+    "exceeded your current quota",
+    "billing",
+    "insufficient credits",
+    "quota exceeded",
+    "check your plan",
+)
+QUOTA_MESSAGE = "Ключ принят, но у аккаунта нет квоты — проверь баланс и биллинг у провайдера."
+
+
+def looks_like_quota(*parts: str) -> bool:
+    text = " ".join(p for p in parts if p).lower()
+    return any(marker in text for marker in QUOTA_MARKERS)
+
+
+def http_cause(exc: BaseException) -> Optional[requests.exceptions.HTTPError]:
+    """The HTTP error underneath, if any.
+
+    `ModelClient.generate` re-raises everything as `InferenceError(...) from
+    exc`, so by the time a generation failure reaches here the response body is
+    one link down the chain — and that body is the only place OpenAI says
+    `insufficient_quota` rather than plain "Too Many Requests".
+    """
+    seen = 0
+    current: Optional[BaseException] = exc
+    while current is not None and seen < 5:
+        if isinstance(current, requests.exceptions.HTTPError) and current.response is not None:
+            return current
+        current = current.__cause__
+        seen += 1
+    return None
+
+
+def _response_body(http: Optional[requests.exceptions.HTTPError]) -> str:
+    if http is None:
+        return ""
+    try:
+        return http.response.text or ""
+    except Exception:
+        return ""
+
+
 def normalize_cloud_error(exc: BaseException, provider: str, model: str) -> Dict[str, Any]:
     """Provider-agnostic error classifier producing a normalized dict."""
     message = sanitize_sensitive_data(str(exc))
     lowered = message.lower()
+    http = http_cause(exc)
     status: Optional[int] = None
-    if isinstance(exc, requests.exceptions.HTTPError) and exc.response is not None:
-        status = exc.response.status_code
+    if http is not None:
+        status = http.response.status_code
     if status is None:
         # Fall back to sniffing a leading HTTP status code out of the message.
         match = re.search(r"\b(4\d{2}|5\d{2})\b", message)
@@ -123,7 +171,15 @@ def normalize_cloud_error(exc: BaseException, provider: str, model: str) -> Dict
     elif status == 402 or any(t in lowered for t in ("payment required", "credit balance", "insufficient funds", "billing", "purchase credits")):
         category, retryable = "payment_required", False
     elif status == 429:
-        category, retryable = "rate_limited", True
+        # An exhausted balance also arrives as 429, and only the response body
+        # says so — `str(exc)` is just "429 Client Error: Too Many Requests".
+        # Telling someone to wait a minute when the account is empty sends them
+        # to retry something that can never succeed. The probe path already
+        # reads the body (provider_runtime._error_status); this one did not.
+        if looks_like_quota(_response_body(http), message):
+            category, retryable = "payment_required", False
+        else:
+            category, retryable = "rate_limited", True
     elif status == 401:
         category, retryable = "auth_failed", False
     elif status == 403:
