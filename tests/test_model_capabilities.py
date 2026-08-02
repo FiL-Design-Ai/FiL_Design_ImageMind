@@ -108,6 +108,18 @@ def test_a_declaration_outranks_the_openai_table():
         ("google", "gemini-2.5-flash-image"),
         ("groq", "whisper-large-v3"),
         ("groq", "meta-llama/llama-prompt-guard-2-86m"),
+        ("cloudflare", "@cf/meta/llama-guard-3-8b"),
+        # OpenRouter had no entry in NON_CHAT_MARKERS at all until a live
+        # listing on 2026-08-02 found these five in the dropdown. None is
+        # catchable by declared modality: the audio pair lists `text`
+        # alongside `audio`, and both classifiers answer in plain `text` —
+        # `nemotron-3.5-content-safety:free` answered "User Safety: safe" to
+        # an image-prompt request instead of writing one.
+        ("openrouter", "meta-llama/llama-guard-4-12b"),
+        ("openrouter", "nvidia/nemotron-3.5-content-safety:free"),
+        ("openrouter", "openai/gpt-audio"),
+        ("openrouter", "openai/gpt-audio-mini"),
+        ("openrouter", "openai/gpt-oss-safeguard-20b"),
     ],
 )
 def test_non_chat_models_are_rejected(provider, model):
@@ -128,6 +140,19 @@ def test_non_chat_models_are_rejected(provider, model):
 )
 def test_chat_models_survive(provider, model):
     assert caps.is_chat_capable(provider, model) is True
+
+
+def test_openrouter_non_chat_markers_stay_in_step_with_the_vision_candidate_list():
+    """One list feeds two purposes; a silent divergence would go unnoticed.
+
+    `OPENROUTER_EXCLUDED_MODEL_PATTERNS` already curated the base patterns for
+    the vision-fallback candidate chain (provider_resilience.py) before the
+    dropdown filter existed at all — this keeps the dropdown from drifting
+    behind edits made for that other purpose.
+    """
+    from FiL_Design_ImageMind.common.config import OPENROUTER_EXCLUDED_MODEL_PATTERNS
+
+    assert set(OPENROUTER_EXCLUDED_MODEL_PATTERNS) <= set(caps.NON_CHAT_MARKERS["openrouter"])
 
 
 def test_a_declared_non_text_input_is_enough_to_reject():

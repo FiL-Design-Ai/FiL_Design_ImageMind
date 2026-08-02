@@ -25,6 +25,8 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
+from .config import OPENROUTER_EXCLUDED_MODEL_PATTERNS
+
 # ---------------------------------------------------------------------------
 # OpenAI — the one cloud provider that declares nothing
 # ---------------------------------------------------------------------------
@@ -105,6 +107,18 @@ NON_CHAT_MARKERS: Dict[str, tuple[str, ...]] = {
     # writer. `safeguard` is deliberately not here — Groq's
     # `gpt-oss-safeguard-20b` does write prompts.
     "cloudflare": ("llama-guard",),
+    # OpenRouter had no entry here at all — a live listing on 2026-08-02 found
+    # five non-chat models in the dropdown, none catchable by declared
+    # modality: `gpt-audio(-mini)` lists `text` alongside `audio`, and both
+    # safety classifiers list plain `text` in and out — their `text` is a
+    # verdict, not a chat reply. `nemotron-3.5-content-safety:free` answered
+    # "User Safety: safe" to an image-prompt request.
+    #
+    # Built from `OPENROUTER_EXCLUDED_MODEL_PATTERNS` (config.py) rather than
+    # a second list that could drift from it — that one already curated
+    # `llama-guard`/`safeguard`/`whisper`/`tts-` for the vision-fallback
+    # candidate chain, and the same models are not chat models here either.
+    "openrouter": tuple(OPENROUTER_EXCLUDED_MODEL_PATTERNS) + ("content-safety", "gpt-audio"),
 }
 
 
