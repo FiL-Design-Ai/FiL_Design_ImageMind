@@ -53,6 +53,36 @@ export interface ComfyKeybinding {
   combo: { key: string; ctrl?: boolean; shift?: boolean; alt?: boolean };
 }
 
+/**
+ * One tab in ComfyUI's bottom panel (the dock the "Shortcuts" and terminal
+ * tabs live in). `stores/workspace/bottomPanelStore.ts`'s
+ * `registerExtensionBottomPanelTabs` reads this straight off the extension
+ * object — the same public mechanism core's own Shortcuts tabs are
+ * registered through (`composables/bottomPanelTabs/useShortcutsTab.ts`), so a
+ * tab here costs no patch of host code.
+ *
+ * `type: "custom"`, not `"vue"`: `ExtensionSlot.vue` mounts a `"vue"` tab by
+ * handing the component straight to core's own `<component :is>`, which runs
+ * it inside *core's* Vue app tree — and this pack bundles its own copy of
+ * Vue rather than sharing core's (`vite.config.ts`), so a component mounted
+ * that way updates once and then silently stops reacting (see
+ * `FilWirelessDiagnostics.vue`'s header for how this was confirmed live).
+ * `"custom"` instead hands the tab a raw DOM element and lets the extension
+ * mount its own self-contained `createApp()` into it — same fix every other
+ * piece of this pack's UI already uses (`domWidgetHost.ts`, `installToasts`).
+ */
+export interface ComfyBottomPanelTab {
+  id: string;
+  title: string;
+  type: "custom";
+  /** Mount into this element. Called once, when the tab first becomes active. */
+  render: (el: HTMLElement) => void;
+  /** Torn down when the tab is unregistered — pairs with `render`'s own `createApp().mount()`. */
+  destroy?: () => void;
+  /** Which dock the tab joins. There is no third option in this ComfyUI version. */
+  targetPanel: "terminal" | "shortcuts";
+}
+
 export interface ComfyExtension {
   name: string;
   settings?: ComfyExtensionSettings[];
@@ -60,6 +90,7 @@ export interface ComfyExtension {
   commands?: ComfyCommand[];
   /** Declarative keybindings bound to `commands` above. */
   keybindings?: ComfyKeybinding[];
+  bottomPanelTabs?: ComfyBottomPanelTab[];
   setup?(...args: unknown[]): unknown | Promise<unknown>;
   getCustomWidgets?(canvas: unknown): unknown;
   beforeRegisterNodeDef?(nodeType: unknown, nodeData: ComfyNodeData): void | Promise<void>;
@@ -71,6 +102,13 @@ export interface ComfyApp {
   loadGraphData: (...args: unknown[]) => Promise<unknown>;
   graph?: unknown;
   graphToPrompt?: (...args: unknown[]) => Promise<unknown>;
+  /**
+   * Called by the UI to queue a run. `ComfyApp.queuePrompt` invokes
+   * `this.graphToPrompt(this.rootGraph)` inside its batch loop, which is the
+   * only reason wireless links can be substituted for the prompt and taken
+   * straight back out (see nodes2/wireless/promptBridge.ts).
+   */
+  queuePrompt?: (...args: unknown[]) => Promise<unknown>;
   ui?: unknown;
   /** ComfyApi singleton — emits execution events (`executing`, `progress`, ...). */
   api?: {

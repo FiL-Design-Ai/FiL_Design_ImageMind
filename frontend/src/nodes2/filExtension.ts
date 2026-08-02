@@ -20,6 +20,8 @@ import { installRunButtonFx } from "@/nodes2/installers/runButtonFx";
 import { installProviderManager } from "@/nodes2/installers/providerManager";
 import { installHelpToolbar } from "@/nodes2/installers/helpToolbar";
 import { installShortcuts } from "@/nodes2/installers/shortcuts";
+import { installWireless } from "@/nodes2/installers/wireless";
+import { wirelessBottomPanelTab } from "@/nodes2/installers/wirelessPanel";
 import { filCommands, filKeybindings } from "@/composables/useShortcuts";
 import { paletteCommands } from "@/styles/comfyPalette";
 import { ALL_SETTINGS } from "@/stores/settings/allSettings";
@@ -92,6 +94,16 @@ export function createFilExtension(app: ComfyApp): ComfyExtension {
     commands: [...filCommands, ...paletteCommands],
     keybindings: filKeybindings,
 
+    // One tab in the same bottom-panel dock core's own "Shortcuts" tabs live
+    // in — the documented extension point (`ComfyBottomPanelTab`'s docstring
+    // has the source reference), not a new UI surface bolted on separately.
+    // `targetPanel: "shortcuts"` rather than "terminal": this is something to
+    // glance at while building the graph, not a log to scroll through.
+    // Built by `wirelessBottomPanelTab()`, not inlined here, as a plain
+    // function call each time `createFilExtension` runs — a fresh closure per
+    // call, matching how every other per-app-instance installer is wired.
+    bottomPanelTabs: [wirelessBottomPanelTab()],
+
     async setup() {
       // All installers are isolated: a throw in one must not break others.
       const installers: Array<() => unknown> = [
@@ -103,6 +115,9 @@ export function createFilExtension(app: ComfyApp): ComfyExtension {
         // already did the work. Only a very old or dev-only ComfyUI falls back
         // to a keydown listener.
         () => installShortcuts(app),
+        // Wraps app.graphToPrompt — the pack's only patch of a host method, and
+        // the reason is written out in nodes2/wireless/promptBridge.ts.
+        () => installWireless(app),
         () => applyStartupLogLevel((id, fallback) => readSetting(id, fallback, app)),
         () => applyStartupTheme((id, fallback) => readSetting(id, fallback, app)),
       ];

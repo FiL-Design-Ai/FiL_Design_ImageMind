@@ -17,8 +17,16 @@ export interface FakeSlot {
   name: string;
   type: string;
   link: number | null;
+  /**
+   * The display name a user gave this slot. Core's "Rename Slot" writes here
+   * (`LGraphCanvas.ts:8840`), and the host also fills it in with the slot's own
+   * name for slots nobody renamed — so `label === name` means "not renamed".
+   */
+  label?: string;
   /** Which input slot of the target node a link lands on; LiteGraph re-stamps it. */
   target_slot?: number;
+  /** Output slots fan out — LiteGraph tracks every link id leaving them here. */
+  links?: number[] | null;
 }
 
 export function slot(name: string, type = "IMAGE", link: number | null = null): FakeSlot {
@@ -29,6 +37,7 @@ export interface FakeNode {
   id: string | number;
   comfyClass: string;
   type: string;
+  title?: string;
   inputs: FakeSlot[];
   outputs: FakeSlot[];
   widgets: Array<{ name: string; value: unknown }>;
@@ -37,7 +46,9 @@ export interface FakeNode {
   /** Mute (2) and bypass (4) live here, not in `flags` — see `3c8c888`. */
   mode: number;
   flags: Record<string, unknown>;
-  graph: { links: Record<number, { target_slot?: number }> };
+  graph: FakeNodeGraph;
+  /** Wired by `createGraph()`; absent on a node built without one. */
+  connect?: (originSlot: number, target: FakeNode, targetSlot: number) => FakeLink | null;
   size: [number, number];
   /**
    * Core's own stroke registry, seeded exactly as `LGraphNode`'s constructor
@@ -47,6 +58,16 @@ export interface FakeNode {
    * which is what makes this the seam a canvas-rendered highlight has to use.
    */
   strokeStyles: Record<string, (() => { color: string; lineWidth: number } | undefined) | undefined>;
+  /** Top-left corner in graph coordinates. */
+  pos: [number, number];
+  /**
+   * Where a slot sits, in graph coordinates. LiteGraph exposes these as the
+   * supported way to find a connection point (`LGraphNode.ts:3501/3521`);
+   * `getConnectionPos` is deprecated. The arithmetic here is a stand-in — only
+   * the contract matters: a slot has a position, and it moves with the node.
+   */
+  getInputPos(slot: number): [number, number];
+  getOutputPos(slot: number): [number, number];
   configure(serialized: Record<string, unknown>): void;
   setSize(size: [number, number]): void;
   computeSize(): [number, number];
@@ -54,9 +75,33 @@ export interface FakeNode {
   [key: string]: unknown;
 }
 
+/** A LiteGraph link: which output feeds which input. */
+export interface FakeLink {
+  id: number;
+  origin_id: string | number;
+  origin_slot: number;
+  target_id: string | number;
+  target_slot: number;
+}
+
+/**
+ * What `node.graph` looks like from inside a node — the shape `switch.ts`
+ * and `style_mixer.ts` read (`node.graph.links`, `node.graph.getNodeById`).
+ * A bare node built by `createNode()` gets an isolated, empty one; call
+ * `createGraph()` to share a real registry (and working `connect()`) across
+ * a set of nodes instead.
+ */
+export interface FakeNodeGraph {
+  links: Record<number, FakeLink | { target_slot?: number } | undefined>;
+  getNodeById?: (id: string | number) => FakeNode | null;
+  setDirtyCanvas?: (a?: boolean, b?: boolean) => void;
+}
+
 export interface FakeNodeSpec {
   id?: string | number;
   comfyClass?: string;
+  /** Header text. Real nodes carry one; only code that names a node reads it. */
+  title?: string;
   inputs?: FakeSlot[];
   outputs?: FakeSlot[];
   widgets?: Array<{ name: string; value: unknown }>;
@@ -80,6 +125,7 @@ export function createNode(spec: FakeNodeSpec = {}): FakeNode {
     id: spec.id ?? 1,
     comfyClass: spec.comfyClass ?? "FiLStyleMixer",
     type: spec.comfyClass ?? "FiLStyleMixer",
+    title: spec.title,
     inputs: spec.inputs ? spec.inputs.map((s) => ({ ...s })) : [],
     outputs: spec.outputs ? spec.outputs.map((s) => ({ ...s })) : [],
     widgets: spec.widgets ? spec.widgets.map((w) => ({ ...w })) : [],
@@ -89,6 +135,13 @@ export function createNode(spec: FakeNodeSpec = {}): FakeNode {
     flags: {},
     graph: { links: {} },
     size: [380, 320],
+    pos: [0, 0],
+    getInputPos(slot: number): [number, number] {
+      return [node.pos[0], node.pos[1] + 20 + slot * 20];
+    },
+    getOutputPos(slot: number): [number, number] {
+      return [node.pos[0] + node.size[0], node.pos[1] + 20 + slot * 20];
+    },
     strokeStyles: {
       error: () => undefined,
       selected: () => undefined,
@@ -122,6 +175,131 @@ export function createNode(spec: FakeNodeSpec = {}): FakeNode {
     setDirtyCanvas(): void {},
   };
   return node;
+}
+
+export interface FakeGraph {
+  _nodes: FakeNode[];
+  links: Record<number, FakeLink | undefined>;
+  getNodeById(id: string | number): FakeNode | null;
+  /** Present only on graphs built via `createSubgraphTree` — see its docstring. */
+  id?: string | number;
+  rootGraph?: FakeGraph;
+  subgraphs?: Map<string | number, FakeGraph>;
+}
+
+/**
+ * Share one graph across a set of nodes: `node.graph` points at it, and each
+ * node gets a `connect()` that behaves like LiteGraph's real one — stamp a
+ * fresh link id onto the target input, append it to the origin output's
+ * `links`, register it in `graph.links`. Nothing in the pack created real
+ * links from a test before wireless needed to simulate `applyWirelessLinks`
+ * wiring the actual graph and then rolling it back.
+ */
+export function createGraph(nodes: FakeNode[]): FakeGraph {
+  let nextLinkId = 1;
+  const graph: FakeGraph = {
+    _nodes: nodes,
+    links: {},
+    getNodeById(id) {
+      return nodes.find((n) => String(n.id) === String(id)) ?? null;
+    },
+  };
+
+  for (const node of nodes) {
+    node.graph = graph;
+    node.connect = (originSlot, target, targetSlot) => {
+      const output = node.outputs[originSlot];
+      const input = target.inputs[targetSlot];
+      if (!output || !input) return null;
+      const id = nextLinkId++;
+      const link: FakeLink = {
+        id,
+        origin_id: node.id,
+        origin_slot: originSlot,
+        target_id: target.id,
+        target_slot: targetSlot,
+      };
+      graph.links[id] = link;
+      output.links = output.links ? [...output.links, id] : [id];
+      input.link = id;
+      return link;
+    };
+  }
+
+  return graph;
+}
+
+/**
+ * A root graph plus one or more subgraph definitions, wired the way real
+ * LiteGraph relates them: every graph's `rootGraph` points at the same root
+ * (`LGraph.ts`'s own `get rootGraph()`), and the root's `subgraphs` is a
+ * `Map<id, graph>` (`get subgraphs() { return this.rootGraph._subgraphs }`) —
+ * the exact shape `graphTree.ts`'s `graphsInTree` reads.
+ *
+ * Each graph gets its own independent `createGraph()` — its own `links`
+ * registry and its own link-id counter — because that independence is the
+ * point under test: a link made in one graph is never visible from another.
+ */
+export function createSubgraphTree(
+  rootNodes: FakeNode[],
+  subgraphs: Array<{ id: string | number; nodes: FakeNode[] }>,
+): FakeGraph {
+  const root = createGraph(rootNodes);
+  root.rootGraph = root;
+  root.subgraphs = new Map(
+    subgraphs.map(({ id, nodes }) => {
+      const sub = createGraph(nodes);
+      sub.id = id;
+      sub.rootGraph = root;
+      return [id, sub];
+    }),
+  );
+  return root;
+}
+
+/** What a drawing pass did, without a real 2D context — jsdom has none. */
+export interface DrawRecord {
+  strokes: number;
+  fills: number;
+  texts: string[];
+  dashes: number[][];
+}
+
+/**
+ * A canvas 2D context that records instead of painting.
+ *
+ * Only the calls the overlay makes are implemented; anything it starts using
+ * later will throw here, which is the intended signal to come back and decide
+ * whether the new call is worth asserting on.
+ */
+export function createDrawContext(): { ctx: unknown; record: DrawRecord } {
+  const record: DrawRecord = { strokes: 0, fills: 0, texts: [], dashes: [] };
+  const ctx = {
+    font: "",
+    fillStyle: "" as unknown,
+    strokeStyle: "" as unknown,
+    lineWidth: 0,
+    save() {},
+    restore() {},
+    beginPath() {},
+    moveTo() {},
+    bezierCurveTo() {},
+    roundRect() {},
+    measureText: (text: string) => ({ width: text.length * 6 }),
+    setLineDash(dash: number[]) {
+      if (dash.length) record.dashes.push([...dash]);
+    },
+    stroke() {
+      record.strokes += 1;
+    },
+    fill() {
+      record.fills += 1;
+    },
+    fillText(text: string) {
+      record.texts.push(text);
+    },
+  };
+  return { ctx, record };
 }
 
 /** Node modes, as LiteGraph numbers them. */
@@ -177,11 +355,45 @@ export interface FakeApp {
    * this fake defined it, so every test agreed with the mistake. A DOM-rendered
    * node is found in the document by `[data-node-id]`; see `addNodeEl`.
    */
-  canvas: { setDirty(foreground: boolean, background?: boolean): void; dirtyCount: number };
+  canvas: {
+    setDirty(foreground: boolean, background?: boolean): void;
+    dirtyCount: number;
+    /** The graph being drawn. LiteGraph's canvas carries its own reference, not the app's. */
+    graph?: FakeGraph;
+    /** Zoom, which the overlay reads to decide whether labels are legible. */
+    ds: { scale: number };
+    /**
+     * The seam LiteGraph offers for drawing behind nodes and real connections
+     * — a plain property (`LGraphCanvas.ts:637`), not a prototype method, so
+     * an extension replaces it and calls whatever was there before. Null
+     * until something claims it.
+     */
+    onDrawBackground: ((ctx: unknown, area?: unknown) => void) | null;
+  };
   graph: {
     _nodes: FakeNode[];
     getNodeById(id: string | number): FakeNode | null;
+    links?: Record<number, FakeLink | undefined>;
+    /** Present when `options.graph` came from `createSubgraphTree` — see the constructor's own comment. */
+    rootGraph?: FakeGraph;
+    subgraphs?: Map<string | number, FakeGraph>;
+    id?: string | number;
   };
+  /**
+   * Serialize the graph, as `utils/executionUtil.ts` does — reduced to the one
+   * fact a test needs: which link fed which input at the moment of the call.
+   * Extensions are deliberately not consulted, because core does not consult
+   * them here either.
+   */
+  graphToPrompt(graph?: unknown): Promise<{ output: PromptEdge[] }>;
+  /**
+   * Queue a run the way `ComfyApp.queuePrompt` does: `await
+   * this.graphToPrompt(this.graph)`. Through `this` and with the graph passed
+   * explicitly — both are load-bearing (`scripts/app.ts:1666`), since that is
+   * what lets an own property on the app instance shadow the method and see
+   * the right graph.
+   */
+  queuePrompt(): Promise<{ output: PromptEdge[] }>;
   extensionManager: { setting: { get(id: string): unknown } };
   ui: { settings: { getSettingValue(id: string): unknown } };
   registerExtension(extension: Record<string, unknown>): void;
@@ -201,8 +413,17 @@ export interface FakeApp {
   addNodeEl(id: string | number, node?: FakeNode): HTMLElement;
 }
 
+/** One `input ← link` pair as the serialized prompt records it. */
+export interface PromptEdge {
+  node: string | number;
+  input: string;
+  origin: string | number;
+}
+
 export interface FakeAppOptions {
   nodes?: FakeNode[];
+  /** A graph from `createGraph()`, when the test needs `app.graph` to have real links. */
+  graph?: FakeGraph;
 }
 
 /**
@@ -218,7 +439,7 @@ export interface FakeAppOptions {
 export function createApp(options: FakeAppOptions = {}): FakeApp {
   const listeners = new Map<string, Array<(event: Event) => void>>();
   const registered = new Map<string, unknown>();
-  const nodes = options.nodes ?? [];
+  const nodes = options.graph?._nodes ?? options.nodes ?? [];
 
   const app: FakeApp = {
     api: {
@@ -239,6 +460,9 @@ export function createApp(options: FakeAppOptions = {}): FakeApp {
       setDirty() {
         app.canvas.dirtyCount += 1;
       },
+      graph: options.graph,
+      ds: { scale: 1 },
+      onDrawBackground: null,
     },
 
     graph: {
@@ -254,6 +478,33 @@ export function createApp(options: FakeAppOptions = {}): FakeApp {
       getNodeById(this: { _nodes: FakeNode[] }, id) {
         return this._nodes.find((node) => String(node.id) === String(id)) ?? null;
       },
+      links: options.graph?.links,
+      // Carried over, not rebuilt: `graphsInTree` (`graphTree.ts`) resolves the
+      // workflow's subgraphs through `graph.rootGraph.subgraphs`, and this
+      // object is a fresh wrapper around `options.graph`'s `_nodes`/`links`,
+      // not the same reference — without these, a test built on
+      // `createSubgraphTree` would see `app.graph` as the only graph that
+      // exists, silently dropping every subgraph.
+      rootGraph: options.graph?.rootGraph,
+      subgraphs: options.graph?.subgraphs,
+      id: options.graph?.id,
+    },
+
+    async graphToPrompt(graph?: unknown) {
+      const source = (graph as FakeGraph | undefined) ?? (app.graph as unknown as FakeGraph);
+      const output: PromptEdge[] = [];
+      for (const node of source._nodes ?? []) {
+        for (const input of node.inputs ?? []) {
+          if (input.link == null) continue;
+          const link = source.links?.[input.link];
+          if (link) output.push({ node: node.id, input: input.name, origin: link.origin_id });
+        }
+      }
+      return { output };
+    },
+
+    async queuePrompt() {
+      return await app.graphToPrompt(app.graph);
     },
 
     extensionManager: {

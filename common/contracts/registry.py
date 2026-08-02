@@ -588,6 +588,20 @@ _SWITCH = NodeContract(
     ],
 )
 
+_CHANNEL = NodeContract(
+    id="FiLChannel",
+    title="📡 Channel",
+    category=f"{CATEGORY_ROOT}/Tools",
+    description="Send data across the graph without wires.",
+    min_size=(220, 80),
+    family="tool",
+    # No widgets at all. The node's only inputs are the autogrowing `value*`
+    # sockets, and a channel is named by its slot label — a single name widget
+    # could only ever name one of many inputs. See `nodes/node_channel.py`.
+    inputs=NodeInputs(required=[]),
+    outputs=[],
+)
+
 _DATASET_FORGE = NodeContract(
     id="FiLDatasetForge",
     title="📚 LoRA Dataset Forge",
@@ -647,6 +661,7 @@ NODE_SCHEMAS: dict[str, NodeContract] = {
         _COLOR_WIZARD,
         _SWITCH,
         _DATASET_FORGE,
+        _CHANNEL,
     )
 }
 

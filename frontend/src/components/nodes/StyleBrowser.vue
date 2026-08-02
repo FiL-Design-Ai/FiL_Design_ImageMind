@@ -42,6 +42,7 @@ import { noteRecent, recentsFor } from "@/stores/browserRecents";
 import { rankItems, type SearchField } from "@/lib/browserSearch";
 import type { BrowserItem, BrowserSidebarSection } from "@/lib/browserTypes";
 import { useI18n } from "@/composables/useI18n";
+import { CATEGORY_LABEL_KEY } from "@/constants/styleCategories";
 
 const props = defineProps<{ sources: StyleSource[] }>();
 
@@ -67,6 +68,20 @@ const RECENT_SCOPE = "styles";
 const splitAt = (key: string) => key.indexOf("/");
 const categoryOf = (key: string) => (splitAt(key) === -1 ? "" : key.slice(0, splitAt(key)));
 const nameOf = (key: string) => (splitAt(key) === -1 ? key : key.slice(splitAt(key) + 1));
+
+/**
+ * The category as the user should read it.
+ *
+ * The word inside the key is Russian (see constants/styleCategories.ts for why
+ * it stays that way), so it is looked up rather than shown raw. An unmapped
+ * category — one just added on the Python side — falls back to the stripped
+ * key, which is what this used to show for all of them.
+ */
+function categoryLabel(category: string): string {
+  const key = CATEGORY_LABEL_KEY[category];
+  const raw = stripEmoji(category);
+  return key ? t(key, raw) : raw;
+}
 
 /** Emoji and text are stored together; the tiles want them apart. */
 const LEADING_EMOJI = /^[\p{Emoji_Presentation}\p{Extended_Pictographic}️\s]+/u;
@@ -100,7 +115,7 @@ const entries = computed<StyleEntry[]>(() => {
         sourceLabel: source.label,
         key,
         category,
-        categoryText: stripEmoji(category),
+        categoryText: categoryLabel(category),
         name: nameOf(key),
       });
     }
@@ -250,7 +265,7 @@ const sidebarSections = computed<BrowserSidebarSection[]>(() => {
         { id: "category:all", label: t("sb_category_all", "All categories"), count: countWhere("category", () => true) },
         ...categories.value.map(([cat, count]) => ({
           id: `category:${cat}`,
-          label: stripEmoji(cat),
+          label: categoryLabel(cat),
           icon: leadingEmoji(cat),
           count,
         })),

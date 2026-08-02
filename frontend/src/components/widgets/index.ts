@@ -25,3 +25,4 @@ export { default as FilTextArea } from "./FilTextArea.vue";
 export { default as FilTextInput } from "./FilTextInput.vue";
 export { default as FilToastStack } from "./FilToastStack.vue";
 export { default as FilToggle } from "./FilToggle.vue";
+export { default as FilWirelessDiagnostics } from "./FilWirelessDiagnostics.vue";
