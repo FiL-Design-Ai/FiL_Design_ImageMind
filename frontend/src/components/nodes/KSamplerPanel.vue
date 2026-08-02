@@ -106,16 +106,20 @@ const vaeDecodeOptions = computed(() => comboOptions("vae_decode", ["true", "tru
       v-model="cfg" :min="0" :max="100" :step="0.1" :disabled="isLinked('cfg')"
       :label="t('ksp_cfg', '🎯 CFG')"
       :title="linkedTip('cfg', t('ks_cfg', 'Classifier-free guidance scale.'))" />
+
+    <FilSelect :ref="(el: unknown) => setFieldEl('sampler_name', el)"
+      v-model="samplerName" :options="samplerOptions" :disabled="isLinked('sampler_name')"
+      :label="t('ksp_sampler', '🎲 Sampler')"
+      :title="linkedTip('sampler_name', t('ks_sampler', 'Sampling algorithm.'))" />
+    <FilSelect :ref="(el: unknown) => setFieldEl('scheduler', el)"
+      v-model="scheduler" :options="schedulerOptions" :disabled="isLinked('scheduler')"
+      :label="t('ksp_scheduler', '📈 Scheduler')"
+      :title="linkedTip('scheduler', t('ks_scheduler', 'Noise schedule.'))" />
     <FilSlider :ref="(el: unknown) => setFieldEl('denoise', el)"
       :model-value="denoise" :min="0" :max="1" :step="0.01" :disabled="isLinked('denoise')"
       :label="t('ksp_denoise', '🌫️ Denoise')"
       :title="linkedTip('denoise', t('ks_denoise', 'Denoise strength (1.0 = full).'))"
       @update:model-value="(v: number) => (denoise = v)" />
-
-    <FilSelect v-model="samplerName" :options="samplerOptions"
-      :label="t('ksp_sampler', '🎲 Sampler')" :title="t('ks_sampler', 'Sampling algorithm.')" />
-    <FilSelect v-model="scheduler" :options="schedulerOptions"
-      :label="t('ksp_scheduler', '📈 Scheduler')" :title="t('ks_scheduler', 'Noise schedule.')" />
 
     <FilSection :title="t('ksp_section_advanced', '⚙️ Advanced')"
       :model-value="isCollapsed('advanced')" @update:model-value="(v: boolean) => setCollapsed('advanced', v)" />
