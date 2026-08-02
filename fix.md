@@ -8,6 +8,45 @@ bug can be traced to the commit that closed it.
 Add an entry when you fix something. Format: `` `hash` — one line saying what
 was broken`` , then a sentence on the cause where it is not obvious.
 
+## 1.1.1 (tag `v1.1.1`)
+
+Everything the full 2026-07-29 audit found and fixed — cut-off model answers,
+112 unselectable NSFW-adjacent styles, the seed cap, `^` as XOR, the settings
+panel losing four of ten entries, style previews, and the rest — is narrated
+in `audit.md`, not repeated here; that document is this release's real fix
+log. What follows is what happened after the audit closed, getting the
+release itself out.
+
+Worth knowing next time: **a release tag does not mean released.** `b03d63a`
+("release: 1.1.1") was six commits before the tag actually went out — FilBrowser
+(a full picker/browser rewrite) landed on `main` in between, undocumented,
+before anyone tagged anything. Tag on the commit you mean to ship, not on the
+commit that bumps the version number.
+
+- `e4dbfb8` — **two FilBrowser source files never reached git.** `.gitignore`'s
+  `lib/` rule (meant for a Python build artifact at the repo root) has no
+  leading slash, so it also matched `frontend/src/lib/` and `git add` silently
+  skipped `browserTypes.ts` and `browserSearch.ts`. The working tree had both
+  files, so local typecheck and build stayed green; a clean checkout — CI, and
+  therefore the registry publish — did not, and `v1.1.1`'s first publish run
+  failed on `Cannot find module '@/lib/...'` before the publish step ever
+  reached the registry. Anchored the rule to `/lib/`, confirmed the fix against
+  an actual fresh clone rather than the working copy that had hidden the bug.
+- `8ea0951` — **the registry flagged 1.1.0 and 1.1.1 as unreviewable, and
+  1.1.0's publish is what changed.** That release excluded the frontend
+  sourcemap to save 2.3 MB, which left the published archive as 619 KB of
+  minified, name-mangled JavaScript with no source alongside it —
+  `frontend/src/` is excluded too. The registry's own standards ban obfuscated
+  code because it blocks security review, and 1.0.0 (sourcemap shipped) is
+  Active while 1.1.0 and 1.1.1 (sourcemap excluded) are both Flagged. Not
+  proven — the registry does not publish scan findings — but it is the one
+  difference between the version that passed and the ones that did not, and
+  the map is what makes the bundle readable at all. Restored, with a test that
+  fails if it is dropped again. Manual review requested:
+  <https://github.com/Comfy-Org/ComfyUI-Manager/issues/3121>.
+- `e55e3ba` — `CHANGELOG.md` was three commits behind by the time `v1.1.1` was
+  tagged; FilBrowser had no user-facing entry at all.
+
 ## 1.1.0 (tag `v1.1.0`)
 
 Everything under this heading ships in 1.1.0, and the number skipped a step.
