@@ -91,11 +91,13 @@ const seedMode = computed({
 });
 const seedValue = computed({
   get: () => Number(props.state.nodeState.seed ?? 0) || 0,
-  // Write the native seed widget directly, not just nodeState: the
-  // createSyncedNodeState mirror doesn't reach the seed widget (its value is
-  // a prototype accessor tied to control_after_generate's linked-widget
-  // machinery, unlike the plain numeric widgets), so a fixed seed set only
-  // via nodeState never reaches the queued prompt. Direct assignment sticks.
+  // Belt and braces. This used to say the createSyncedNodeState mirror could
+  // not reach the seed widget, because its `value` is a prototype accessor tied
+  // to control_after_generate's linked-widget machinery. Measured against a
+  // live ComfyUI 1.47.10 on 2026-08-02: the accessor has a working setter and
+  // the mirror does reach it here. The direct write is kept — it costs nothing
+  // and a fixed seed that silently fails to queue is expensive — but do not
+  // copy it into a new panel believing the mirror is broken. It is not.
   set: (v: number) => {
     props.state.nodeState.seed = v;
     const w = props.state.node ? findFilWidget(props.state.node, "seed") : null;

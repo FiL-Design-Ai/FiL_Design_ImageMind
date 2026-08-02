@@ -1,13 +1,35 @@
 <script setup lang="ts">
+/**
+ * The model picker for FiLProviderLoader, on the shared `FilBrowser` frame.
+ *
+ * What changed from the fixed-width dialog it replaces, and why:
+ *
+ *   - The provider tabs and the three rows of segmented filters moved into the
+ *     left column, each row carrying a COUNT. Before, narrowing OpenRouter's
+ *     367 models to free vision ones meant reading three separate controls and
+ *     finding out how many were left only afterwards.
+ *
+ *   - Search ranks instead of filtering. `gpt-4o` used to sit below every
+ *     longer name containing it, because a substring filter keeps the
+ *     provider's own order.
+ *
+ *   - Recently used is a filter of its own. Favourites answer "the four I
+ *     always use"; nothing answered "the one I tried twenty minutes ago".
+ *
+ * The picker still owns everything about providers, tiers and vision flags —
+ * the browser knows none of it. It is handed `BrowserItem[]` and reports the
+ * id that was picked.
+ */
 import { computed, ref, watch } from "vue";
-import FilModal from "@/components/widgets/FilModal.vue";
-import FilIcon from "@/components/widgets/FilIcon.vue";
+import FilBrowser from "@/components/widgets/FilBrowser.vue";
+import FilBrowserSidebar from "@/components/widgets/FilBrowserSidebar.vue";
 import FilButton from "@/components/widgets/FilButton.vue";
-import FilInfo from "@/components/widgets/FilInfo.vue";
-import FilSegmented from "@/components/widgets/FilSegmented.vue";
 import { useProviderStore, PROVIDER_LIST } from "@/stores/providerStore";
 import { isFavourite, toggleFavourite, favouriteCountFor } from "@/stores/modelFavourites";
+import { noteRecent, recentCountFor, recentsFor } from "@/stores/browserRecents";
 import { PROVIDER_LABEL, PROVIDER_ICON } from "@/composables/providerMeta";
+import { rankItems, type SearchField } from "@/lib/browserSearch";
+import type { BrowserItem, BrowserSidebarSection, BrowserTag } from "@/lib/browserTypes";
 import { useI18n } from "@/composables/useI18n";
 import { toast } from "@/stores/toastStore";
 
@@ -17,7 +39,7 @@ const props = withDefaults(
     provider: string;
     model: string;
   }>(),
-  { open: false, provider: "ollama", model: "" }
+  { open: false, provider: "ollama", model: "" },
 );
 
 const emit = defineEmits<{
@@ -32,11 +54,12 @@ const selectedProvider = ref<string>(props.provider);
 const selectedModel = ref<string>(props.model);
 const searchQuery = ref<string>("");
 
-// Reads go through `recall`, not bare `localStorage`. These run at module
-// scope, and `localStorage` is not guaranteed to exist — a blocked-storage
-// browser profile, a file:// origin or an opaque one leaves it undefined or
-// makes the getter throw, and an unguarded read there takes the whole picker
-// module down on import. Writes were already wrapped; reads were not.
+/**
+ * Reads go through this, not bare `localStorage`. These run at module scope,
+ * and `localStorage` is not guaranteed to exist — a blocked-storage profile, a
+ * `file://` origin or an opaque one leaves it undefined or makes the getter
+ * throw, and an unguarded read there takes the whole picker down on import.
+ */
 function recall(key: string): string | null {
   try {
     return localStorage.getItem(key);
@@ -44,83 +67,215 @@ function recall(key: string): string | null {
     return null;
   }
 }
-
-const typeFilter = ref<"all" | "vision" | "text">(
-  (recall("fil_model_picker_type_filter") as "all" | "vision" | "text") || "all"
-);
-const tierFilter = ref<"all" | "free" | "paid" | "local">(
-  (recall("fil_model_picker_tier_filter") as "all" | "free" | "paid" | "local") || "all"
-);
-
-const STORAGE_KEY_VIEW = "fil_model_picker_view_mode";
-const STORAGE_KEY_TYPE = "fil_model_picker_type_filter";
-const STORAGE_KEY_TIER = "fil_model_picker_tier_filter";
-const STORAGE_KEY_FAV_ONLY = "fil_model_picker_fav_only";
-const favOnly = ref<boolean>(recall(STORAGE_KEY_FAV_ONLY) === "1");
-const viewMode = ref<"list" | "grid">((recall(STORAGE_KEY_VIEW) as "list" | "grid") || "list");
-
 function remember(key: string, value: string) {
   try {
     localStorage.setItem(key, value);
   } catch {
-    // ignore storage quota/security restriction
+    // quota, or a profile that forbids writes
   }
 }
 
-function setViewMode(mode: "list" | "grid") {
-  viewMode.value = mode;
-  remember(STORAGE_KEY_VIEW, mode);
-}
+const STORAGE_KEY_VIEW = "fil_model_picker_view_mode";
+const STORAGE_KEY_TYPE = "fil_model_picker_type_filter";
+const STORAGE_KEY_TIER = "fil_model_picker_tier_filter";
+const STORAGE_KEY_ONLY = "fil_model_picker_only_filter";
 
-// The filters survive closing the picker, the way the view mode already did.
-// They used to be wiped on every open, so a user who narrowed the 367-model
-// OpenRouter list to free vision models had to redo it each time.
+type TypeFilter = "all" | "vision" | "text";
+type TierFilter = "all" | "free" | "paid" | "local";
+type OnlyFilter = "all" | "fav" | "recent";
+
+// The filters survive closing the picker, the way the view mode already did:
+// somebody who narrowed 367 models to free vision ones should not redo it on
+// every visit.
+const typeFilter = ref<TypeFilter>((recall(STORAGE_KEY_TYPE) as TypeFilter) || "all");
+const tierFilter = ref<TierFilter>((recall(STORAGE_KEY_TIER) as TierFilter) || "all");
+const onlyFilter = ref<OnlyFilter>((recall(STORAGE_KEY_ONLY) as OnlyFilter) || "all");
+const viewMode = ref<"list" | "grid">((recall(STORAGE_KEY_VIEW) as "list" | "grid") || "list");
+
 watch(typeFilter, (v) => remember(STORAGE_KEY_TYPE, v));
 watch(tierFilter, (v) => remember(STORAGE_KEY_TIER, v));
-watch(favOnly, (v) => remember(STORAGE_KEY_FAV_ONLY, v ? "1" : "0"));
+watch(onlyFilter, (v) => remember(STORAGE_KEY_ONLY, v));
+watch(viewMode, (v) => remember(STORAGE_KEY_VIEW, v));
 
-// Filter option sets + labels for the FilSegmented controls. Tier options are
-// provider-dependent: local providers (ollama/lmstudio) only ever have "local"
-// models, remote ones split into free/paid.
-const TYPE_OPTIONS = ["all", "vision", "text"] as const;
-const TYPE_LABELS = computed<Record<string, string>>(() => ({
-  all: t("pmp_all_types", "All Types"),
-  vision: t("pmp_tag_vision_opt", "👁 Vision"),
-  text: t("pmp_tag_text_opt", "📝 Text"),
-}));
-const TIER_LABELS = computed<Record<string, string>>(() => ({
-  all: t("pmp_all_tiers", "All Tiers"),
-  local: t("pmp_tier_local", "💻 Local"),
-  free: t("pmp_tier_free", "🆓 Free"),
-  paid: t("pmp_tier_paid", "💎 Paid"),
-}));
-const VIEW_OPTIONS = ["list", "grid"] as const;
-const VIEW_LABELS = computed<Record<string, string>>(() => ({
-  list: t("pmp_view_list", "☰ List"),
-  grid: t("pmp_view_grid", "⊞ Tiles"),
-}));
+/** Where this provider's recents are kept — the same id under two providers is
+ *  two different things, the rule `modelFavourites` already follows. */
+const recentScope = computed(() => `models:${selectedProvider.value}`);
 
-const tierOptions = computed<string[]>(() =>
-  selectedProvider.value === "ollama" || selectedProvider.value === "lmstudio"
-    ? ["all", "local"]
-    : ["all", "free", "paid"]
+// ── the provider's list ──────────────────────────────────────────────────────
+
+const currentModels = computed(() => store.modelsFor(selectedProvider.value));
+const visionModels = computed(() => store.visionModelsFor(selectedProvider.value));
+const isLoading = computed(() => store.isLoading(selectedProvider.value));
+const probe = computed(() => store.probeState[selectedProvider.value]);
+const ageLabel = computed(() => store.cachedAgeLabel(selectedProvider.value, t));
+
+const isLocalProvider = computed(
+  () => selectedProvider.value === "ollama" || selectedProvider.value === "lmstudio",
 );
 
-watch(
-  () => props.open,
-  (isOpen) => {
-    if (isOpen) {
-      selectedProvider.value = props.provider || "ollama";
-      selectedModel.value = props.model || "";
-      // Search is per-visit — a leftover query silently hiding every model is
-      // worse than retyping it. The segmented filters are visible on screen,
-      // so they can safely persist.
-      searchQuery.value = "";
-      if (!tierOptions.value.includes(tierFilter.value)) tierFilter.value = "all";
-      void loadCurrentProviderModels();
-    }
+function getTier(m: string, p: string): "local" | "free" | "paid" {
+  if (p === "ollama" || p === "lmstudio") return "local";
+  if (m.toLowerCase().includes(":free")) return "free";
+  return "paid";
+}
+
+/**
+ * A Set, not `visionModels.includes(m)`.
+ *
+ * This is asked once per model while filtering and twice more for every row
+ * that renders, so a linear scan made the whole thing quadratic: OpenRouter
+ * lists 367 models, and each keystroke walked the vision list about a thousand
+ * times over. Rebuilt only when the provider's list is replaced.
+ */
+const visionSet = computed(() => new Set(visionModels.value));
+const isVision = (m: string) => visionSet.value.has(m);
+
+// `isFavourite` reads a module-level ref, so calling it from a computed is
+// enough for Vue to track it — a toggle replaces the Set and everything that
+// read it re-evaluates.
+const starred = (m: string) => isFavourite(selectedProvider.value, m);
+
+// ── filters ──────────────────────────────────────────────────────────────────
+
+/** Everything except the axis being counted, so each row's number answers
+ *  "how many would be left if I clicked this" rather than "how many exist". */
+function passes(m: string, skip: "type" | "tier" | "only" | null): boolean {
+  const p = selectedProvider.value;
+  if (skip !== "type" && typeFilter.value !== "all") {
+    if (typeFilter.value === "vision" ? !isVision(m) : isVision(m)) return false;
   }
-);
+  if (skip !== "tier" && tierFilter.value !== "all" && getTier(m, p) !== tierFilter.value) return false;
+  if (skip !== "only" && onlyFilter.value !== "all") {
+    if (onlyFilter.value === "fav" ? !starred(m) : !recentsFor(recentScope.value).includes(m)) return false;
+  }
+  return true;
+}
+
+const SEARCH_FIELDS: SearchField<BrowserItem>[] = [{ weight: 100, read: (item) => item.id }];
+
+function tagsFor(m: string): BrowserTag[] {
+  const tier = getTier(m, selectedProvider.value);
+  return [
+    isVision(m)
+      ? { label: t("pmp_tag_vision", "Vision"), tone: "accent" as const }
+      : { label: t("pmp_tag_text", "Text"), tone: "neutral" as const },
+    {
+      label:
+        tier === "local"
+          ? t("pmp_tag_local", "Local")
+          : tier === "free"
+            ? t("pmp_tag_free", "Free")
+            : t("pmp_tag_paid", "Paid"),
+      tone: tier === "free" ? ("ok" as const) : ("neutral" as const),
+    },
+  ];
+}
+
+function toItem(m: string): BrowserItem {
+  return { id: m, label: m, title: m, icon: isVision(m) ? "👁" : "📝", tags: tagsFor(m) };
+}
+
+/** Filtered, then ranked. Built once — mapping to items, back to ids and to
+ *  items again ran `tagsFor` twice per model on every keystroke. */
+const browserItems = computed<BrowserItem[]>(() => {
+  const items = currentModels.value.filter((m) => passes(m, null)).map(toItem);
+  return rankItems(items, searchQuery.value, SEARCH_FIELDS);
+});
+
+// ── the left column ──────────────────────────────────────────────────────────
+
+const countIf = (skip: "type" | "tier" | "only", test: (m: string) => boolean) =>
+  currentModels.value.filter((m) => passes(m, skip) && test(m)).length;
+
+const sidebarSections = computed<BrowserSidebarSection[]>(() => {
+  const models = currentModels.value;
+  const scope = recentScope.value;
+
+  const sections: BrowserSidebarSection[] = [
+    {
+      id: "providers",
+      heading: t("pmp_group_provider", "Provider"),
+      rows: PROVIDER_LIST.map((p) => ({
+        id: `provider:${p}`,
+        label: PROVIDER_LABEL[p] ?? p,
+        iconName: PROVIDER_ICON[p],
+        // No number while a provider has never been opened: a bare 0 there
+        // reads as "this one is empty" rather than "not loaded yet".
+        count: store.modelsFor(p).length || null,
+      })),
+    },
+    {
+      id: "only",
+      heading: t("pmp_group_show", "Show"),
+      rows: [
+        { id: "only:all", label: t("pmp_only_all", "All models"), count: countIf("only", () => true) },
+        {
+          id: "only:fav",
+          label: t("pmp_only_fav", "Favourites"),
+          icon: "⭐",
+          count: favouriteCountFor(selectedProvider.value, models),
+        },
+        {
+          id: "only:recent",
+          label: t("pmp_only_recent", "Recently used"),
+          icon: "🕐",
+          count: recentCountFor(scope, models),
+        },
+      ],
+    },
+    {
+      id: "type",
+      heading: t("pmp_group_type", "Type"),
+      rows: [
+        { id: "type:all", label: t("pmp_all_types", "All types"), count: countIf("type", () => true) },
+        { id: "type:vision", label: t("pmp_type_vision", "Vision"), icon: "👁", count: countIf("type", isVision) },
+        { id: "type:text", label: t("pmp_type_text", "Text"), icon: "📝", count: countIf("type", (m) => !isVision(m)) },
+      ],
+    },
+  ];
+
+  // Local providers only ever have local models, so free/paid would be two
+  // rows that always read 0.
+  const tierRows = isLocalProvider.value
+    ? [{ id: "tier:local", label: t("pmp_tier_local", "Local"), icon: "💻", count: models.length }]
+    : [
+        { id: "tier:free", label: t("pmp_tier_free", "Free"), icon: "🆓", count: countIf("tier", (m) => getTier(m, selectedProvider.value) === "free") },
+        { id: "tier:paid", label: t("pmp_tier_paid", "Paid"), icon: "💎", count: countIf("tier", (m) => getTier(m, selectedProvider.value) === "paid") },
+      ];
+  sections.push({
+    id: "tier",
+    heading: t("pmp_group_tier", "Tier"),
+    rows: [
+      { id: "tier:all", label: t("pmp_all_tiers", "All tiers"), count: countIf("tier", () => true) },
+      ...tierRows,
+    ],
+  });
+
+  return sections;
+});
+
+/** Four axes are in force at once, which is why the sidebar takes a list. */
+const activeRows = computed(() => [
+  `provider:${selectedProvider.value}`,
+  `only:${onlyFilter.value}`,
+  `type:${typeFilter.value}`,
+  `tier:${tierFilter.value}`,
+]);
+
+function onSidebarPick(id: string) {
+  const [group, value] = [id.slice(0, id.indexOf(":")), id.slice(id.indexOf(":") + 1)];
+  if (group === "provider") {
+    switchProvider(value);
+    return;
+  }
+  // Clicking the row that is already on turns it back off, so a facet never
+  // needs its own "All" to be hunted for.
+  if (group === "only") onlyFilter.value = onlyFilter.value === value ? "all" : (value as OnlyFilter);
+  else if (group === "type") typeFilter.value = typeFilter.value === value ? "all" : (value as TypeFilter);
+  else if (group === "tier") tierFilter.value = tierFilter.value === value ? "all" : (value as TierFilter);
+}
+
+// ── provider switching and loading ───────────────────────────────────────────
 
 async function loadCurrentProviderModels(force = false) {
   try {
@@ -131,608 +286,258 @@ async function loadCurrentProviderModels(force = false) {
 }
 
 function switchProvider(p: string) {
+  if (p === selectedProvider.value) return;
   selectedProvider.value = p;
   searchQuery.value = "";
-  // Drop the tier only when the new provider has no such tier — local
-  // providers offer "local" and nothing else, so a kept "free" would filter
-  // the list down to nothing. A tier that still exists is left alone.
-  if (!tierOptions.value.includes(tierFilter.value)) tierFilter.value = "all";
-  const models = store.modelsFor(p);
-  if (models.length > 0) {
-    selectedModel.value = models[0];
-  } else {
-    selectedModel.value = "";
+  // Drop a tier the new provider cannot have — a kept "free" on Ollama filters
+  // the list down to nothing and looks like a broken provider.
+  if (isLocalProvider.value) {
+    if (tierFilter.value === "free" || tierFilter.value === "paid") tierFilter.value = "all";
+  } else if (tierFilter.value === "local") {
+    tierFilter.value = "all";
   }
+  selectedModel.value = store.modelsFor(p)[0] ?? "";
   void loadCurrentProviderModels();
 }
 
-const currentModels = computed(() => store.modelsFor(selectedProvider.value));
-const visionModels = computed(() => store.visionModelsFor(selectedProvider.value));
-const isLoading = computed(() => store.isLoading(selectedProvider.value));
-const probe = computed(() => store.probeState[selectedProvider.value]);
-const ageLabel = computed(() => store.cachedAgeLabel(selectedProvider.value, t));
+watch(
+  () => props.open,
+  (isOpen) => {
+    if (!isOpen) return;
+    selectedProvider.value = props.provider || "ollama";
+    selectedModel.value = props.model || "";
+    // Search is per-visit: a leftover query silently hiding every model is
+    // worse than retyping it. The sidebar filters are visible on screen, so
+    // they can safely persist.
+    searchQuery.value = "";
+    if (isLocalProvider.value && (tierFilter.value === "free" || tierFilter.value === "paid")) {
+      tierFilter.value = "all";
+    }
+    if (!isLocalProvider.value && tierFilter.value === "local") tierFilter.value = "all";
+    void loadCurrentProviderModels();
+  },
+);
 
-function getTier(m: string, p: string): "local" | "free" | "paid" {
-  if (p === "ollama" || p === "lmstudio") return "local";
-  if (m.toLowerCase().includes(":free")) return "free";
-  return "paid";
+// ── the right-hand pane ──────────────────────────────────────────────────────
+
+const detailTags = computed(() => (selectedModel.value ? tagsFor(selectedModel.value) : []));
+
+async function copyModelId() {
+  const id = selectedModel.value;
+  if (!id) return;
+  // `navigator.clipboard` needs a SECURE context, and ComfyUI is very often
+  // reached over plain http on a LAN address where the whole API is simply
+  // absent — so the textarea trick is the fallback rather than an afterthought.
+  try {
+    await navigator.clipboard.writeText(id);
+    toast.success(t("pmp_copied", "Copied"));
+    return;
+  } catch {
+    // no secure context, or permission refused
+  }
+  const ta = document.createElement("textarea");
+  ta.value = id;
+  ta.style.cssText = "position:fixed;top:-1000px;left:-1000px;";
+  document.body.append(ta);
+  ta.select();
+  let ok: boolean;
+  try {
+    ok = document.execCommand("copy");
+  } catch {
+    ok = false;
+  }
+  ta.remove();
+  toast[ok ? "success" : "warning"](ok ? t("pmp_copied", "Copied") : id);
 }
 
-function isVision(m: string): boolean {
-  return visionModels.value.includes(m);
-}
+// ── the window ───────────────────────────────────────────────────────────────
 
-// `isFavourite` reads a module-level ref, so calling it from the template is
-// enough for Vue to track it — a toggle replaces the Set and everything that
-// read it re-renders. No manual invalidation needed.
-function starred(m: string): boolean {
-  return isFavourite(selectedProvider.value, m);
-}
+const isOpen = computed({
+  get: () => props.open,
+  set: (v: boolean) => emit("update:open", v),
+});
+
+const countText = computed(() => {
+  const shown = browserItems.value.length;
+  const total = currentModels.value.length;
+  const noun = tPlural("prov_models", shown, "model", "models", "models");
+  return shown === total ? `${total} ${noun}` : `${shown} / ${total} ${noun}`;
+});
+
 function toggleStar(m: string) {
   toggleFavourite(selectedProvider.value, m);
 }
-const favCount = computed(() => favouriteCountFor(selectedProvider.value, currentModels.value));
 
-const filteredModels = computed(() => {
-  let list = currentModels.value;
-  const q = searchQuery.value.trim().toLowerCase();
-  const p = selectedProvider.value;
-
-  if (q) {
-    list = list.filter((m) => m.toLowerCase().includes(q));
-  }
-
-  if (typeFilter.value === "vision") {
-    list = list.filter((m) => isVision(m));
-  } else if (typeFilter.value === "text") {
-    list = list.filter((m) => !isVision(m));
-  }
-
-  if (tierFilter.value !== "all") {
-    list = list.filter((m) => getTier(m, p) === tierFilter.value);
-  }
-
-  if (favOnly.value) {
-    list = list.filter((m) => isFavourite(p, m));
-  }
-
-  return list;
-});
-
-function pickModel(m: string) {
-  selectedModel.value = m;
-}
-
-function confirmSelection() {
-  if (!selectedModel.value) return;
-  emit("select", { provider: selectedProvider.value, model: selectedModel.value });
-  emit("update:open", false);
-}
-
-function closeModal() {
+function confirmSelection(id?: string) {
+  const model = id || selectedModel.value;
+  if (!model) return;
+  selectedModel.value = model;
+  noteRecent(recentScope.value, model);
+  emit("select", { provider: selectedProvider.value, model });
   emit("update:open", false);
 }
 </script>
 
 <template>
-  <FilModal
-    :open="open"
-    width="860px"
-    :title="t('pmp_title', '🔌 Choose Provider &amp; Model')"
-    @update:open="(v) => emit('update:open', v)"
-    @close="closeModal"
+  <FilBrowser
+    v-model:open="isOpen"
+    v-model:query="searchQuery"
+    v-model:selected="selectedModel"
+    v-model:view="viewMode"
+    :title="t('pmp_title', '🔌 Provider & model')"
+    storage-key="fil_model_picker_rect"
+    :items="browserItems"
+    :count-text="countText"
+    :search-placeholder="t('pmp_search', 'Search models…')"
+    :search-title="t('pmp_search_tt', 'Ranks by how well the name matches, best first')"
+    :empty-text="t('pmp_no_match', 'No models match these filters.')"
+    :loading="isLoading"
+    :loading-text="t('pmp_loading_provider', 'Loading models from provider…')"
+    starrable
+    :is-starred="starred"
+    :pref-width="1060"
+    @star="toggleStar"
+    @confirm="confirmSelection"
   >
-    <div class="picker-container">
-      <!-- Provider Tabs -->
-      <div class="provider-tabs">
-        <button
-          v-for="p in PROVIDER_LIST"
-          :key="p"
-          type="button"
-          class="tab-btn"
-          :class="{ active: p === selectedProvider }"
-          @click="switchProvider(p)"
-        >
-          <FilIcon :name="PROVIDER_ICON[p]" :size="18" />
-          <span class="tab-label">{{ PROVIDER_LABEL[p] ?? p }}</span>
-          <span v-if="store.modelsFor(p).length" class="tab-badge">
-            {{ store.modelsFor(p).length }}
-          </span>
-        </button>
+    <template #sidebar>
+      <FilBrowserSidebar :sections="sidebarSections" :active="activeRows" @select="onSidebarPick" />
+    </template>
+
+    <template #toolbar>
+      <span class="pmp-status">
+        <span v-if="isLoading" class="pmp-badge loading">⏳ {{ t('pmp_loading', 'Loading…') }}</span>
+        <span v-else-if="probe && probe.status && probe.status !== 'available'" class="pmp-badge error">
+          ⚠️ {{ probe.message || probe.status }}
+        </span>
+        <span v-else class="pmp-badge online">● {{ t('pmp_online', 'Online') }}</span>
+        <span v-if="ageLabel" class="pmp-age">{{ ageLabel }}</span>
+      </span>
+      <FilButton
+        variant="sm"
+        :label="t('pmp_refresh', '↻ Refresh')"
+        :loading="isLoading"
+        :title="t('tt_refresh', 'Reload models list')"
+        @click="loadCurrentProviderModels(true)"
+      />
+    </template>
+
+    <template #detail>
+      <div v-if="!selectedModel" class="pmp-det-empty">
+        {{ t('pmp_pick_to_see', 'Pick a model to see what it is.') }}
       </div>
-
-      <!-- Provider Header Status -->
-      <div class="provider-status-bar">
-        <div class="status-info">
-          <span class="provider-name">{{ PROVIDER_LABEL[selectedProvider] ?? selectedProvider }}</span>
-          <span v-if="isLoading" class="status-badge loading">⏳ {{ t('pmp_loading', 'Loading...') }}</span>
-          <span v-else-if="probe && probe.status && probe.status !== 'available'" class="status-badge error">
-            ⚠️ {{ probe.message || probe.status }}
-          </span>
-          <span v-else class="status-badge online">
-            ● {{ t('pmp_online', 'Online') }} ({{ currentModels.length }} {{ tPlural('prov_models', currentModels.length, 'model', 'models', 'models') }})
-          </span>
-          <span v-if="ageLabel" class="age-label">{{ t('pmp_updated', 'Updated') }}: {{ ageLabel }}</span>
+      <div v-else class="pmp-det">
+        <div class="pmp-det-provider">{{ PROVIDER_LABEL[selectedProvider] ?? selectedProvider }}</div>
+        <!-- The full id, wrapped rather than clipped: this is the one place it
+             has to be readable in full, and model names run very long. -->
+        <div class="pmp-det-id">{{ selectedModel }}</div>
+        <div class="pmp-det-tags">
+          <span v-for="tag in detailTags" :key="tag.label" class="pmp-det-tag" :class="tag.tone">{{ tag.label }}</span>
         </div>
-        <FilButton
-          variant="sm"
-          :label="t('pmp_refresh', '↻ Refresh')"
-          :loading="isLoading"
-          :title="t('tt_refresh', 'Reload models list')"
-          @click="loadCurrentProviderModels(true)"
-        />
-      </div>
-
-      <!-- Controls & Filters -->
-      <div class="filter-controls">
-        <div class="search-row">
-        <div class="search-input-wrap">
-          <FilIcon name="search" :size="14" class="search-icon" />
-          <input
-            v-model="searchQuery"
-            type="text"
-            class="search-input"
-            :placeholder="t('pmp_search', 'Search models...')"
-          />
-          <button
-            v-if="searchQuery"
-            type="button"
-            class="clear-search"
-            :title="t('tt_clear_search', 'Clear search')"
-            @click="searchQuery = ''"
-          >✕</button>
-        </div>
-
-        <!-- Favourites is a toggle, not a fourth segmented row: it is
-             orthogonal to type and tier, and the three existing rows already
-             fill the width. -->
-        <button
-          type="button"
-          class="fav-filter"
-          :class="{ active: favOnly }"
-          :aria-pressed="favOnly"
-          :title="t('pmp_fav_only_tt', 'Show only starred models')"
-          @click="favOnly = !favOnly"
-        >
-          <span class="fav-filter-star">{{ favOnly ? '★' : '☆' }}</span>
-          <span>{{ t('pmp_fav_only', 'Favourites') }}</span>
-          <span v-if="favCount" class="fav-filter-count">{{ favCount }}</span>
-        </button>
-        </div>
-
-        <div class="filter-segments">
-          <FilSegmented
-            :options="[...TYPE_OPTIONS]"
-            :option-labels="TYPE_LABELS"
-            :model-value="typeFilter"
-            @update:model-value="(v: string) => (typeFilter = v as 'all' | 'vision' | 'text')"
-          />
-          <FilSegmented
-            :options="tierOptions"
-            :option-labels="TIER_LABELS"
-            :model-value="tierFilter"
-            @update:model-value="(v: string) => (tierFilter = v as 'all' | 'free' | 'paid' | 'local')"
-          />
-          <FilSegmented
-            :options="[...VIEW_OPTIONS]"
-            :option-labels="VIEW_LABELS"
-            :model-value="viewMode"
-            @update:model-value="(v: string) => setViewMode(v as 'list' | 'grid')"
-          />
-        </div>
-      </div>
-
-      <!-- Models List / Grid Container -->
-      <div class="models-list-wrapper">
-        <div v-if="isLoading && !currentModels.length" class="empty-state">
-          <FilInfo :text="t('pmp_loading_provider', 'Loading models from provider...')" />
-        </div>
-        <div v-else-if="!filteredModels.length" class="empty-state">
-          <span>{{ t('pmp_no_match', 'No models matching criteria') }}</span>
-        </div>
-        <div v-else :class="['models-container', viewMode]">
-          <!-- A real <button>, not a clickable <div>: the card is the primary
-               control in this dialog, and every other interactive element in the
-               codebase is a button, so keyboard users and screen readers were
-               the only ones locked out of picking a model. -->
-          <!-- The star is a sibling of the card, never a child: a <button>
-               inside a <button> is invalid markup, and browsers resolve it by
-               dropping one of them — starring would have selected the model
-               instead, or stopped working entirely. -->
-          <div v-for="m in filteredModels" :key="m" class="model-row">
-            <button
-              type="button"
-              class="model-card"
-              :class="{ selected: m === selectedModel }"
-              :aria-pressed="m === selectedModel"
-              @click="pickModel(m)"
-            >
-              <div class="model-main">
-                <span class="type-icon">{{ isVision(m) ? '👁' : '📝' }}</span>
-                <span class="model-name" :title="m">{{ m }}</span>
-              </div>
-              <div class="model-tags">
-                <span v-if="isVision(m)" class="tag vision">{{ t('pmp_tag_vision', 'Vision') }}</span>
-                <span v-else class="tag text">{{ t('pmp_tag_text', 'Text') }}</span>
-
-                <span v-if="getTier(m, selectedProvider) === 'local'" class="tag local">{{ t('pmp_tag_local', 'Local') }}</span>
-                <span v-else-if="getTier(m, selectedProvider) === 'free'" class="tag free">{{ t('pmp_tag_free', 'Free') }}</span>
-                <span v-else class="tag paid">{{ t('pmp_tag_paid', 'Paid') }}</span>
-              </div>
-            </button>
-            <button
-              type="button"
-              class="fav-btn"
-              :class="{ on: starred(m) }"
-              :aria-pressed="starred(m)"
-              :aria-label="starred(m) ? t('pmp_unstar', 'Remove from favourites') : t('pmp_star', 'Add to favourites')"
-              :title="starred(m) ? t('pmp_unstar', 'Remove from favourites') : t('pmp_star', 'Add to favourites')"
-              @click="toggleStar(m)"
-            >{{ starred(m) ? '★' : '☆' }}</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Footer Buttons -->
-      <div class="picker-footer">
-        <div class="selection-summary">
-          <span v-if="selectedModel">{{ t('pmp_selected', 'Selected') }}: <strong>{{ selectedModel }}</strong></span>
-          <span v-else class="muted">{{ t('pmp_none_selected', 'No model selected') }}</span>
-        </div>
-        <div class="footer-actions">
-          <FilButton :label="t('pmp_cancel', 'Cancel')" :title="t('pmp_cancel_tt', 'Close without changing the model')" @click="closeModal" />
+        <div class="pmp-det-acts">
           <FilButton
-            variant="accent"
-            :label="t('pmp_apply', '✔ Apply Selection')"
-            :title="t('pmp_apply_tt', 'Use the selected model')"
-            :disabled="!selectedModel"
-            @click="confirmSelection"
+            variant="sm"
+            :label="starred(selectedModel) ? t('pmp_unstar', '★ Remove from favourites') : t('pmp_star', '☆ Add to favourites')"
+            @click="toggleStar(selectedModel)"
           />
+          <FilButton variant="sm" :label="t('pmp_copy_id', '⧉ Copy id')" @click="copyModelId" />
         </div>
       </div>
-    </div>
-  </FilModal>
+    </template>
+
+    <template #footer>
+      <FilButton
+        :label="t('pmp_cancel', 'Cancel')"
+        :title="t('pmp_cancel_tt', 'Close without changing the model')"
+        @click="isOpen = false"
+      />
+      <FilButton
+        variant="accent"
+        :label="t('pmp_apply', '✔ Use this model')"
+        :title="t('pmp_apply_tt', 'Use the selected model')"
+        :disabled="!selectedModel"
+        @click="confirmSelection()"
+      />
+    </template>
+  </FilBrowser>
 </template>
 
 <style scoped>
-.picker-container {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  color: var(--fil-text);
-}
-
-.provider-tabs {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  padding-bottom: 6px;
-  scrollbar-width: thin;
-}
-.tab-btn {
+.pmp-status {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 10px;
-  border-radius: 8px;
-  border: 1px solid var(--fil-pill-border);
-  background: var(--fil-pill-bg);
-  color: var(--fil-muted);
-  font-size: 12px;
-  cursor: pointer;
-  white-space: nowrap;
   flex-shrink: 0;
-  transition: all 0.15s ease;
-}
-.tab-btn:hover {
-  background: var(--fil-surface-2);
-  color: var(--fil-text);
-}
-.tab-btn.active {
-  background: var(--fil-panel-alt);
-  border-color: var(--fil-accent);
-  color: var(--fil-accent-text);
-  font-weight: 600;
-}
-.tab-badge {
-  font-size: 10px;
-  background: var(--fil-pill-bg);
-  padding: 1px 5px;
-  border-radius: 99px;
-}
-
-.provider-status-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: rgba(0, 0, 0, 0.2);
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 12px;
-}
-.status-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.provider-name {
-  font-weight: 600;
-}
-.status-badge {
   font-size: 11px;
-  padding: 2px 6px;
-  border-radius: 4px;
+  white-space: nowrap;
 }
-.status-badge.online {
+.pmp-badge.online {
   color: var(--fil-ok);
 }
-.status-badge.loading {
+.pmp-badge.loading {
   color: var(--fil-accent-text);
 }
-.status-badge.error {
+.pmp-badge.error {
   color: var(--fil-danger);
-}
-.age-label {
-  font-size: 10px;
-  color: var(--fil-muted);
-}
-
-.filter-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.search-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.search-input-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-  flex: 1;
-  min-width: 0;
-}
-.fav-filter {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-  height: var(--fil-control-h);
-  padding: 0 12px;
-  background: var(--fil-panel-alt);
-  border: 1px solid var(--fil-border);
-  border-radius: var(--fil-field-radius);
-  color: var(--fil-muted);
-  font: inherit;
-  font-size: 12px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.15s ease;
-}
-.fav-filter:hover {
-  background: var(--fil-surface-2);
-  color: var(--fil-text);
-}
-.fav-filter.active {
-  border-color: var(--fil-accent);
-  color: var(--fil-accent-text);
-  font-weight: 600;
-}
-.fav-filter:focus-visible {
-  outline: 2px solid var(--fil-accent);
-  outline-offset: -2px;
-}
-.fav-filter-star {
-  font-size: 14px;
-  line-height: 1;
-}
-.fav-filter-count {
-  font-size: 10px;
-  background: var(--fil-pill-bg);
-  padding: 1px 5px;
-  border-radius: 99px;
-}
-.search-icon {
-  position: absolute;
-  left: 10px;
-  color: var(--fil-muted);
-}
-.search-input {
-  width: 100%;
-  box-sizing: border-box;
-  height: var(--fil-control-h);
-  padding: 6px 30px;
-  background: var(--fil-panel-alt);
-  border: 1px solid var(--fil-border);
-  border-radius: var(--fil-field-radius);
-  color: var(--fil-text);
-  font-size: 12px;
-  outline: none;
-}
-.search-input:focus {
-  border-color: var(--fil-accent);
-}
-.clear-search {
-  position: absolute;
-  right: 10px;
-  background: none;
-  border: none;
-  color: var(--fil-muted);
-  cursor: pointer;
-}
-
-.filter-segments {
-  display: flex;
-  gap: 8px;
-  min-width: 0;
-}
-/* FilSegmented roots are width:100%; let each take an equal share of the row. */
-.filter-segments > * {
-  flex: 1;
-  min-width: 0;
-}
-
-.models-list-wrapper {
-  height: 320px;
-  overflow-y: auto;
-  background: var(--fil-inset);
-  border-radius: 8px;
-  border: 1px solid var(--fil-border);
-  padding: 8px;
-}
-.empty-state {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: var(--fil-muted);
-  font-size: 12px;
-}
-.models-container.list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.models-container.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-  gap: 8px;
-}
-/* The row is the flex/grid item now; the card inside it takes the space the
-   card itself used to. */
-.model-row {
-  display: flex;
-  align-items: stretch;
-  gap: 4px;
-  min-width: 0;
-}
-.fav-btn {
-  flex-shrink: 0;
-  width: 34px;
-  background: var(--fil-surface-1);
-  border: 1px solid var(--fil-border);
-  border-radius: 6px;
-  color: var(--fil-muted);
-  font-size: 16px;
-  line-height: 1;
-  cursor: pointer;
-  padding: 0;
-  transition: all 0.12s ease;
-}
-.fav-btn:hover {
-  background: var(--fil-surface-2);
-  color: var(--fil-text);
-}
-.fav-btn.on {
-  color: var(--fil-accent-text);
-  border-color: var(--fil-accent);
-}
-.fav-btn:focus-visible {
-  outline: 2px solid var(--fil-accent);
-  outline-offset: -2px;
-}
-.models-container.grid .model-card {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 10px 12px;
-}
-.models-container.grid .model-main {
-  width: 100%;
-}
-.models-container.grid .model-tags {
-  width: 100%;
-  justify-content: flex-start;
-}
-.model-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex: 1;
-  min-width: 0;
-  padding: 8px 12px;
-  background: var(--fil-surface-1);
-  border: 1px solid var(--fil-border);
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.12s ease;
-  /* Button resets — the card became a real <button> for keyboard access. */
-  width: 100%;
-  box-sizing: border-box;
-  text-align: left;
-  font: inherit;
-  color: inherit;
-  appearance: none;
-  -webkit-appearance: none;
-}
-.model-card:focus-visible {
-  outline: 2px solid var(--fil-accent);
-  outline-offset: -2px;
-}
-.model-card:hover {
-  background: var(--fil-surface-2);
-  border-color: var(--fil-border);
-}
-.model-card.selected {
-  background: rgba(240, 138, 69, 0.15);
-  border-color: var(--fil-accent);
-}
-.model-main {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-.type-icon {
-  font-size: 14px;
-}
-.model-name {
-  font-size: 12px;
-  font-weight: 500;
-  white-space: nowrap;
+  max-width: 190px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.model-tags {
-  display: flex;
-  gap: 4px;
-  flex-shrink: 0;
+.pmp-age {
+  color: var(--fil-muted);
+  font-size: 10px;
 }
-.tag {
-  font-size: 9px;
+
+.pmp-det-empty {
+  color: var(--fil-muted);
+  font-size: 12px;
+  text-align: center;
+  padding-top: 24px;
+}
+.pmp-det {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pmp-det-provider {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fil-muted);
+}
+.pmp-det-id {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--fil-text);
+  overflow-wrap: anywhere;
+}
+.pmp-det-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.pmp-det-tag {
   padding: 2px 6px;
   border-radius: 4px;
+  background: var(--fil-pill-bg);
+  color: var(--fil-muted);
+  font-size: 9px;
   font-weight: 600;
   text-transform: uppercase;
 }
-.tag.vision {
-  background: rgba(240, 138, 69, 0.15);
+.pmp-det-tag.accent {
+  background: color-mix(in srgb, var(--fil-accent) 18%, transparent);
   color: var(--fil-accent-text);
 }
-.tag.text,
-.tag.local,
-.tag.free,
-.tag.paid {
-  background: var(--fil-pill-bg);
-  color: var(--fil-muted);
+.pmp-det-tag.ok {
+  background: color-mix(in srgb, var(--fil-ok) 18%, transparent);
+  color: var(--fil-ok);
 }
-
-.picker-footer {
+.pmp-det-acts {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 8px;
-}
-.selection-summary {
-  font-size: 12px;
-}
-.selection-summary .muted {
-  color: var(--fil-muted);
-}
-.footer-actions {
-  display: flex;
-  gap: 8px;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 2px;
 }
 </style>

@@ -2,6 +2,8 @@
  * Import from `@/components/widgets` to keep deep-imports stable.
  * Keep this list in sync with the *.vue files in this folder.
  */
+export { default as FilBrowser } from "./FilBrowser.vue";
+export { default as FilBrowserSidebar } from "./FilBrowserSidebar.vue";
 export { default as FilButton } from "./FilButton.vue";
 export { default as FilChipGrid } from "./FilChipGrid.vue";
 export { default as FilChipList } from "./FilChipList.vue";

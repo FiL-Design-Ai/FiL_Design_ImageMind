@@ -1,16 +1,17 @@
 <script setup lang="ts">
 /** FiLOpticScanner — image analysis / prompt expansion via LLM. */
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import {
-  FilChipGrid, FilChipList, FilSegmented, FilSection, FilButton, FilModal,
-  FilStylePicker, FilTextArea, FilSeedRow,
+  FilChipGrid, FilChipList, FilSegmented, FilSection, FilButton,
+  FilTextArea, FilSeedRow,
 } from "@/components/widgets";
+import StyleBrowser, { type StyleSource } from "@/components/nodes/StyleBrowser.vue";
 import { toast } from "@/stores/toastStore";
 import { NODE_CONTRACTS, type WidgetSpec } from "@/api/contracts";
 import type { FilNodeState } from "@/nodes2/filState";
 import { useI18n } from "@/composables/useI18n";
 import { findFilWidget } from "@/nodes2/util";
-import { anchorWidgetInputSockets, readLinkedInputs } from "@/nodes2/widgetInputSockets";
+import { useWidgetSockets } from "@/composables/useWidgetSockets";
 
 const props = defineProps<{ state: FilNodeState }>();
 const { t } = useI18n();
@@ -110,63 +111,32 @@ const SOCKET_FIELD_NAMES = ["prompt", "negative_prompt", "custom_style"];
 /** Fields that absorb the height the user drags past the panel's content. */
 const GROWABLE_FIELD_NAMES = new Set(["prompt", "negative_prompt"]);
 
-const fieldEls: Record<string, HTMLElement | null> = {};
-
-/**
- * `el` is whatever Vue hands a template ref. For the FilTextArea fields that is
- * the component instance, so unwrap `$el` — `anchorWidgetInputSockets` measures
- * a real DOM node. FilTextArea is single-root and label-less here, so `$el` is
- * the `<textarea>` itself, exactly what the raw `<textarea ref>` used to give.
- */
-function setFieldEl(name: string, el: unknown): void {
-  const node = (el as { $el?: unknown } | null)?.$el ?? el;
-  fieldEls[name] = (node as HTMLElement | null) ?? null;
-}
-
 function isSocketField(name: string): boolean {
   return SOCKET_FIELD_NAMES.includes(name);
 }
 function isGrowable(name: string): boolean {
   return GROWABLE_FIELD_NAMES.has(name);
 }
-const linkedFields = ref<Record<string, boolean>>({});
 
-function isLinked(name: string): boolean {
-  return Boolean(linkedFields.value[name]);
-}
+// The socket dots have to follow the fields: they move whenever a section is
+// collapsed, the node is resized, or the panel is stretched. This node used to
+// re-measure them on a 300ms interval that ran for as long as the node existed
+// — three scanners on a canvas meant ten DOM measurement passes a second with
+// nothing on screen moving. `useWidgetSockets` is the event-driven version of
+// the same job (a ResizeObserver and a MutationObserver on the panel, plus the
+// `linkVersion` counter for a wire being connected, which no DOM change
+// accompanies); it was extracted FROM this component and every other panel had
+// already moved over. The counter only arrives because scanner.ts installs
+// `installWidgetSocketSync` — without that, connecting a wire would leave the
+// field looking editable.
+const { setFieldEl, isLinked } = useWidgetSockets(props.state, SOCKET_FIELD_NAMES);
+
 function fieldTooltip(w: WidgetSpec): string {
   if (isLinked(w.name)) return t("scn_field_linked_tt", "Driven by the connected input — disconnect it to type here.");
   return widgetTooltip(w);
 }
 
-// The socket dots have to follow the fields: they move whenever a section is
-// collapsed, the node is resized, or the panel is stretched. LiteGraph owns the
-// canvas draw loop and the link table, so a cheap poll is what keeps both the
-// dots and the "driven by a link" state in step — same rationale as the
-// backstop poll in domWidgetHost.ts. Nothing here re-renders unless something
-// actually changed: `anchorWidgetInputSockets` only re-arranges on a real move,
-// and the link map is only reassigned when a link came or went.
-function syncTextFieldSockets(): void {
-  const node = props.state.node;
-  if (!node) return;
-  anchorWidgetInputSockets(node, SOCKET_FIELD_NAMES.map((name) => ({ name, el: fieldEls[name] })));
-  const linked = readLinkedInputs(node, SOCKET_FIELD_NAMES);
-  if (SOCKET_FIELD_NAMES.some((name) => linked[name] !== Boolean(linkedFields.value[name]))) {
-    linkedFields.value = linked;
-  }
-}
-
-let socketPoll = 0;
-onMounted(() => {
-  syncTextFieldSockets();
-  socketPoll = window.setInterval(syncTextFieldSockets, 300);
-});
-onBeforeUnmount(() => {
-  if (socketPoll) window.clearInterval(socketPoll);
-});
-
 const isUnifiedStylePickerOpen = ref<boolean>(false);
-const activeStyleTab = ref<string>("photo_style");
 
 function parseDisplayStyles(value: string): string[] {
   if (!value || value === "None") return [];
@@ -212,13 +182,29 @@ const styleTabs = [
 function getStyleValue(name: string): string {
   return String(getValue(name, "None") || "None");
 }
-function setStyleValue(name: string, val: string) {
-  setValue(name, val);
-}
 function getStyleOptions(name: string): string[] {
   const w = widgets.find((x) => x.name === name);
   return w?.values || [];
 }
+
+/**
+ * The four lists, handed to the browser as one pool.
+ *
+ * The four tabs the picker used to have are rows in its left column now, so a
+ * search finds a style whichever list it lives in — which is the whole reason
+ * this stopped being four separate pickers. What gets STORED is unchanged: one
+ * `"None"`-or-`"a | b"` string per widget, exactly as before.
+ */
+const styleSources = computed<StyleSource[]>(() =>
+  styleTabs.map((tab) => ({
+    id: tab.id,
+    label: t(tab.labelKey, tab.fallback),
+    icon: tab.icon,
+    options: getStyleOptions(tab.id),
+    value: getStyleValue(tab.id),
+  })),
+);
+
 function clearAllStyles() {
   setValue("photo_style", "None");
   setValue("nsfw_photo_style", "None");
@@ -274,10 +260,11 @@ const seedMode = computed({
 });
 const seedValue = computed({
   get: () => Number(props.state.nodeState.seed ?? -1) || -1,
-  // Write the native seed widget directly, not just nodeState: the
-  // createSyncedNodeState mirror doesn't reach the seed widget the same way
-  // control_after_generate expects, so a fixed seed set only via nodeState
-  // can fail to reach the queued prompt. Direct assignment sticks.
+  // Belt and braces — see the same note in HiResFix.vue. The claim that the
+  // createSyncedNodeState mirror cannot reach the seed widget was measured
+  // false against a live ComfyUI 1.47.10 on 2026-08-02; the direct write stays
+  // because a fixed seed that silently fails to queue is expensive, not because
+  // the mirror is broken.
   set: (v) => {
     props.state.nodeState.seed = v;
     const w = props.state.node ? findFilWidget(props.state.node, "seed") : null;
@@ -346,48 +333,12 @@ function newFixedSeed() {
               <FilButton variant="standard" label="🧹 Clear Style" @click="clearAllStyles" style="flex: 1" />
             </div>
 
-            <FilModal
-              :open="isUnifiedStylePickerOpen"
-              :title="t('scn_unified_style_title', '🎨 Style Selection')"
-              width="680px"
-              @update:open="(v: boolean) => (isUnifiedStylePickerOpen = v)"
-            >
-              <div class="fil-unified-style-modal">
-                <div class="fil-style-tab-bar">
-                  <button
-                    v-for="tab in styleTabs"
-                    :key="tab.id"
-                    type="button"
-                    class="fil-style-tab-btn"
-                    :class="{ active: activeStyleTab === tab.id, 'has-value': getStyleValue(tab.id) !== 'None' }"
-                    @click="activeStyleTab = tab.id"
-                  >
-                    <span class="fil-tab-icon">{{ tab.icon }}</span>
-                    <span class="fil-tab-title">{{ t(tab.labelKey, tab.fallback) }}</span>
-                    <span v-if="getStyleValue(tab.id) !== 'None'" class="fil-tab-badge">✓</span>
-                  </button>
-                </div>
-
-                <div class="fil-style-picker-body">
-                  <FilStylePicker
-                    :styles="getStyleOptions(activeStyleTab)"
-                    :model-value="getStyleValue(activeStyleTab)"
-                    :multi="true"
-                    @select="(v: string) => setStyleValue(activeStyleTab, v)"
-                  />
-                </div>
-
-                <div class="fil-style-modal-footer">
-                  <button
-                    type="button"
-                    class="fil-clear-styles-btn"
-                    @click="clearAllStyles"
-                  >
-                    {{ t("scn_clear_all_styles", "🗑️ Clear all styles") }}
-                  </button>
-                </div>
-              </div>
-            </FilModal>
+            <StyleBrowser
+              v-model:open="isUnifiedStylePickerOpen"
+              :sources="styleSources"
+              @update:source="(p: { id: string; value: string }) => setValue(p.id, p.value)"
+              @clear-all="clearAllStyles"
+            />
           </div>
 
           <div
@@ -472,91 +423,6 @@ function newFixedSeed() {
 .fil-w-row :deep(.fil-w-textarea) { min-height: 48px; }
 .fil-w-row.is-growable :deep(.fil-w-textarea) { flex: 1 1 auto; height: auto; }
 .fil-single-style-block { margin-top: 2px; }
-
-.fil-unified-style-modal {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 4px 0;
-}
-.fil-style-tab-bar {
-  display: flex;
-  gap: 6px;
-  background: var(--fil-inset);
-  padding: 4px;
-  border-radius: 8px;
-  border: 1px solid var(--fil-border);
-}
-.fil-style-tab-btn {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  height: var(--fil-control-h-lg);
-  border-radius: 6px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--fil-muted);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.12s ease;
-}
-.fil-style-tab-btn:hover {
-  color: var(--fil-text);
-  background: var(--fil-surface-2);
-}
-.fil-style-tab-btn.active {
-  background: var(--fil-accent);
-  color: var(--fil-accent-ink);
-  border-color: var(--fil-accent);
-  font-weight: 700;
-  box-shadow: 0 0 10px color-mix(in srgb, var(--fil-accent) 30%, transparent);
-}
-/* "this tab has a selection" checkmark — `--fil-ok` is exactly that meaning,
- * and the hardcoded #00ff88 clashed with every palette but cyberpunk. */
-.fil-tab-badge {
-  font-size: 10px;
-  color: var(--fil-ok);
-}
-.fil-style-tab-btn.active .fil-tab-badge {
-  color: var(--fil-accent-ink);
-}
-.fil-style-picker-body {
-  min-height: 320px;
-  max-height: 480px;
-  overflow-y: auto;
-}
-.fil-style-modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  border-top: 1px solid var(--fil-border);
-  padding-top: 8px;
-}
-.fil-clear-styles-btn {
-  padding: 6px 12px;
-  border-radius: 6px;
-  border: 1px solid color-mix(in srgb, var(--fil-danger) 40%, transparent);
-  background: color-mix(in srgb, var(--fil-danger) 12%, transparent);
-  color: var(--fil-danger);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.12s, border-color 0.12s, color 0.12s;
-}
-/* Hover filled the button with red and set `color:#ffffff`, which is white text
- * on a light-red wash in the light theme. Deepening the tint and keeping the
- * label on `--fil-text` reads as "armed" without the contrast cliff. */
-.fil-clear-styles-btn:hover {
-  background: color-mix(in srgb, var(--fil-danger) 28%, transparent);
-  border-color: var(--fil-danger);
-  color: var(--fil-text);
-}
-.fil-clear-styles-btn:focus-visible {
-  outline: 2px solid var(--fil-accent);
-  outline-offset: 1px;
-}
 
 /* The seed row is FilSeedRow now — shared with HiResFix. */
 

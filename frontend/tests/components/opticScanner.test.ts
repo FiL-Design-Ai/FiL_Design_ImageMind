@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { nextTick } from "vue";
 import { mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
@@ -77,5 +77,15 @@ describe("OpticScanner.vue", () => {
     const linked = wrapper.findAll("textarea.fil-w-textarea.is-linked");
     expect(linked.length).toBe(1);
     expect(linked[0].attributes("readonly")).toBeDefined();
+  });
+  // The socket dots follow the fields through a ResizeObserver and a
+  // MutationObserver (useWidgetSockets), not the 300ms interval this panel used
+  // to run. That interval re-measured three fields for as long as the node
+  // existed, on every scanner on the canvas, with nothing on screen moving.
+  it("installs no polling timer", () => {
+    const spy = vi.spyOn(window, "setInterval");
+    mount(OpticScannerVue, { props: { state: makeState() } });
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
   });
 });

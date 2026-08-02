@@ -31,6 +31,9 @@ export const useProviderStore = defineStore("fil/providers", () => {
   const probeState = ref<Record<string, ProbeResponse | undefined>>({});
   const displayNames = ref<Record<string, string>>({});
   const lastError = ref<string | null>(null);
+  /** Model requests already on the wire, so simultaneous callers share one.
+   *  Deliberately NOT a ref: nothing renders from it. */
+  const inFlight = new Map<string, Promise<string[]>>();
 
   const configuredProviders = computed(() => {
     return Object.fromEntries(
@@ -88,6 +91,32 @@ export const useProviderStore = defineStore("fil/providers", () => {
         return existing.list;
       }
     }
+    // Everything that wants a model list calls this, and several of them want it
+    // at the same moment: two Provider Loader nodes on the same provider mount
+    // together, and opening the picker over them adds a third. The TTL above
+    // cannot collapse those — nothing has been cached yet when the second call
+    // arrives — so each one used to open its own request to the provider. For a
+    // remote provider that is three round trips and three hits against the rate
+    // limit for one answer.
+    //
+    // `force` is part of the key rather than ignored: it is passed on to the
+    // backend to bypass ITS cache, so a refresh must not be quietly served by a
+    // plain load that is already in the air.
+    const flightKey = `${provider}::${force ? "force" : "cached"}`;
+    const pending = inFlight.get(flightKey);
+    if (pending) return pending;
+
+    const request = fetchModels(provider, force).finally(() => {
+      inFlight.delete(flightKey);
+    });
+    inFlight.set(flightKey, request);
+    return request;
+  }
+
+  /** The actual request. Split out so `loadModels` stays the place that decides
+   *  whether one is needed at all. */
+  async function fetchModels(provider: string, force: boolean): Promise<string[]> {
+    const existing = modelsByProvider.value[provider];
     if (existing) existing.loading = true;
     else {
       modelsByProvider.value[provider] = { list: [], visionModels: [], cachedAt: 0, loading: true };

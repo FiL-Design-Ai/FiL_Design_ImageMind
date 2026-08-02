@@ -3,7 +3,7 @@ import type { ComfyNodeData } from "@/types/comfy";
 import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
-import { findFilWidget, sanitizeWidgetValue } from "@/nodes2/util";
+import { createSyncedNodeState, findFilWidget, sanitizeWidgetValue } from "@/nodes2/util";
 import { applyFxComposables } from "@/nodes2/applyFxComposables";
 
 const SwitchVue = defineAsyncComponent(() => import("@/components/nodes/Switch.vue"));
@@ -100,9 +100,13 @@ export const switchNode: NodeModule = {
       if (enableWidget) (enableWidget as { hidden?: boolean }).hidden = true;
 
       const state = {
-        nodeState: {
+        // Synced, like every other node module — see the note in seed.ts. This
+        // panel drove the native `enable` widget by hand, which is why a dead
+        // watcher (fixed in 4f278d5) could leave the widget stale while the
+        // button looked right: there was no second path.
+        nodeState: createSyncedNodeState(node, {
           enable: initialEnable,
-        },
+        }),
         initialValues: { enable: initialEnable },
         ui: {},
       };

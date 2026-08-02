@@ -28,12 +28,17 @@ const EXPECTED_NODE_COUNT = 15;
  * Spelled out rather than counted, because a node whose panel silently stops
  * mounting would otherwise just drop out of the sample and take its own
  * assertion with it. Update this deliberately when a node gains or loses a
- * panel; the remaining five drive ComfyUI's native widgets instead.
+ * panel; only FiLTileAssembly is left out, and only because it has no widgets
+ * for a panel to hold.
  */
 const NODES_WITH_PANELS = [
   "FiLColorWizard",
   "FiLDatasetForge",
   "FiLHighResFix",
+  "FiLImageDecomposer",
+  "FiLKSampler",
+  "FiLNeuroCleaner",
+  "FiLNoiseControl",
   "FiLOpticScanner",
   "FiLProviderLoader",
   "FiLSeed",

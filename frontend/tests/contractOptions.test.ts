@@ -28,6 +28,10 @@ const NODE_ID_BY_FILE: Record<string, string> = {
   "Seed.vue": "FiLSeed",
   "Switch.vue": "FiLSignalSwitch",
   "DatasetForge.vue": "FiLDatasetForge",
+  "KSamplerPanel.vue": "FiLKSampler",
+  "NoiseControlPanel.vue": "FiLNoiseControl",
+  "CleanerPanel.vue": "FiLNeuroCleaner",
+  "ImageDecomposerPanel.vue": "FiLImageDecomposer",
 };
 
 /**
@@ -37,6 +41,16 @@ const NODE_ID_BY_FILE: Record<string, string> = {
  * common/contracts/registry.py.
  */
 const UI_ONLY_LITERALS = new Set(["ON", "OFF"]);
+
+/**
+ * Files in this folder that are not node panels.
+ *
+ * Both are pickers a panel opens — they receive the options they show as a
+ * prop from the panel that owns them, so there is no node id to check them
+ * against and nothing here is hand-typed. Listed by name rather than skipped
+ * by a pattern, so a genuinely unmapped panel still fails loudly.
+ */
+const NOT_A_NODE_PANEL = new Set(["ProviderModelPicker.vue", "StyleBrowser.vue"]);
 
 // The generated JSON carries explicit nulls for unset fields, so the spec type
 // has to allow them; casting through `unknown` keeps vue-tsc happy about the
@@ -76,9 +90,7 @@ describe("node panel option literals match the backend contract", () => {
   it("covers every node component file", () => {
     // Fails loudly if a component is added without being mapped here, rather
     // than silently skipping it.
-    const unmapped = vueFiles.filter(
-      (f) => !(f in NODE_ID_BY_FILE) && f !== "ProviderModelPicker.vue",
-    );
+    const unmapped = vueFiles.filter((f) => !(f in NODE_ID_BY_FILE) && !NOT_A_NODE_PANEL.has(f));
     expect(unmapped, `unmapped node components: ${unmapped.join(", ")}`).toEqual([]);
   });
 

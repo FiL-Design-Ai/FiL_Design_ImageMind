@@ -1,28 +1,83 @@
+import { defineAsyncComponent } from "vue";
 import type { ComfyNodeData } from "@/types/comfy";
 import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
+import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
+import { createSyncedNodeState, findFilWidget, sanitizeWidgetValue } from "@/nodes2/util";
 import { applyFxComposables } from "@/nodes2/applyFxComposables";
+
+const CleanerVue = defineAsyncComponent(() => import("@/components/nodes/CleanerPanel.vue"));
+
+const boolDefaults: Record<string, boolean> = { clean_vram: true, unload_models: true };
 
 export const cleanerNode: NodeModule = {
   id: "FiLNeuroCleaner",
   register(nodeType: unknown, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
-      // Height measured from the real layout: LiteGraph's own computeSize()
-      // reports 82px for the title, the `anything` socket row and two toggles.
-      // A taller floor would only stop the user shrinking the node back to the
-      // size it takes by itself.
-      minSize: [240, 82],
+      // Was 82px, measured off the two native widgets this panel replaced. The
+      // panel is two switch rows plus its own padding; computeSize() wins via
+      // Math.max in domWidgetHost.ts either way, so this only has to cover the
+      // first paint.
+      minSize: [260, 110],
       family: "tool",
       description: "GPU VRAM and loaded model memory cleanup.",
       badges: [{ text: "utility", color: "#888", text_color: "#fff" }],
     });
 
-    // No Vue panel: the node is two booleans, and native ComfyUI widgets cover
-    // them completely — `label_on`/`label_off` carry the switch text, localized
-    // from node_cleaner.py. A DOM widget here bought nothing and cost the whole
-    // reconciliation between the browser's layout and LiteGraph's: hidden
-    // widgets, a synced state proxy, and a resize observer per node. Same
-    // pattern as ksampler.ts / noise_control.ts.
+    const proto = nodeType as {
+      prototype: {
+        onNodeCreated?: (...a: unknown[]) => unknown;
+        onConfigure?: (...a: unknown[]) => unknown;
+        onRemoved?: (...a: unknown[]) => unknown;
+      };
+    };
+    const p = proto.prototype;
+
+    // No `exposeWidgetInputSockets` here, unlike every other panelled node: both
+    // widgets are booleans with no socket worth offering, and the `anything`
+    // passthrough is a real input LiteGraph lays out itself.
+    const syncAll = (node: unknown, target: Record<string, unknown>) => {
+      for (const name of Object.keys(boolDefaults)) {
+        target[name] = sanitizeWidgetValue(findFilWidget(node, name), "boolean", boolDefaults[name]);
+      }
+    };
+
+    const originalCreated = p.onNodeCreated;
+    p.onNodeCreated = function (this: unknown, ...args: unknown[]) {
+      const result = originalCreated?.apply(this, args);
+      const node = this as { widgets?: unknown[]; _filCleanerState?: unknown };
+      const initial: Record<string, unknown> = {};
+      syncAll(node, initial);
+      for (const name of Object.keys(boolDefaults)) {
+        const w = findFilWidget(node, name);
+        if (w) (w as { hidden?: boolean }).hidden = true;
+      }
+      const state = {
+        nodeState: createSyncedNodeState(node, initial),
+        initialValues: { ...initial },
+        ui: {},
+      };
+      Object.defineProperty(state, "node", { value: node, enumerable: false, configurable: true });
+      node._filCleanerState = state;
+      addFilDomWidget(node, "fil_cleaner_view", CleanerVue, { state, height: 90 });
+      return result;
+    };
+
+    const originalConfigure = p.onConfigure;
+    p.onConfigure = function (this: unknown, ...args: unknown[]) {
+      const result = originalConfigure?.apply(this, args);
+      const node = this as { widgets?: unknown[]; _filCleanerState?: { nodeState: Record<string, unknown> } };
+      if (!node._filCleanerState) return result;
+      syncAll(node, node._filCleanerState.nodeState);
+      return result;
+    };
+
+    const originalRemoved = p.onRemoved;
+    p.onRemoved = function (this: unknown, ...args: unknown[]) {
+      unmountAllFilWidgets(this);
+      return originalRemoved?.apply(this, args);
+    };
+
     applyFxComposables(nodeType as { prototype?: unknown });
   },
 };

@@ -3,7 +3,7 @@ import type { ComfyNodeData } from "@/types/comfy";
 import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
-import { findFilWidget, sanitizeWidgetValue } from "@/nodes2/util";
+import { createSyncedNodeState, findFilWidget, sanitizeWidgetValue } from "@/nodes2/util";
 import { applyFxComposables } from "@/nodes2/applyFxComposables";
 
 const SeedVue = defineAsyncComponent(() => import("@/components/nodes/Seed.vue"));
@@ -49,10 +49,18 @@ export const seedNode: NodeModule = {
       if (controlWidget) (controlWidget as { hidden?: boolean }).hidden = true;
 
       const state = {
-        nodeState: {
+        // Synced, like every other node module. This one and switch.ts were the
+        // two that built a plain object instead, which made their panels the
+        // only ones where a write to `nodeState` did not reach the native
+        // widget the prompt builder reads — safe only for as long as every
+        // setter remembered to write the widget by hand as well. Nothing
+        // enforced that, and the 🔀 Switch bug fixed in 4f278d5 was exactly the
+        // case where the hand-written path was the only one and it was dead.
+        // `mode` has no widget of that name, so the mirror is a no-op for it.
+        nodeState: createSyncedNodeState(node, {
           mode: "random",
           seed: initialSeed,
-        },
+        }),
         initialValues: { seed: initialSeed },
         ui: {},
         lastRunSeed: null,
