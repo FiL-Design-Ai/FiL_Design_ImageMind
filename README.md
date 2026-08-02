@@ -435,7 +435,7 @@ The node never upscales. Sources smaller than their bucket are still written, co
 #### 🎨 FiL Design/Values · Tools
 
 <details>
-<summary><b>♻️ Seed</b> — <code>FiLSeed</code> · <b>🧹 Cleaner</b> — <code>FiLNeuroCleaner</code> · <b>🔀 Cyber Switch</b> — <code>FiLSignalSwitch</code> · <b>📡 Channel</b> — <code>FiLChannel</code></summary>
+<summary><b>♻️ Seed</b> — <code>FiLSeed</code> · <b>🧹 Cleaner</b> — <code>FiLNeuroCleaner</code> · <b>🔀 Cyber Switch</b> — <code>FiLSignalSwitch</code></summary>
 
 **♻️ Seed** — `seed` INT (0 – 2⁶⁴-1) → `SEED` INT. Panel is one row: the value plus 🔀 randomize,
 ♻️ reuse last, 🎲 new fixed random. Typing digits switches it to fixed and applies the value.
@@ -462,13 +462,6 @@ point: a consumer that took this signal on an *optional* input still executes, j
 node that needed a real LATENT/IMAGE will of course raise on the `None`, and the error will name
 that node rather than the switch. ON with nothing connected is a different case — a misconfigured
 graph, not muting — and it returns an `ExecutionBlocker` carrying a message that says so.
-
-**📡 Channel** — `value` (ANY, optional) + `channel_name` STRING, no outputs. Plug something in and
-free inputs of the same type across the graph pick it up, with no wire drawn. Leave the name empty
-and the channel is named after its data type (`MODEL`, `VAE`); name it when you have more than one
-channel of the same type. **Not finished yet** — the node exists and can be placed, but the graph
-rewriting behind it is still being built, so it currently does nothing on its own. It is held back
-from the node menu by the release gate until it does.
 
 </details>
 
@@ -1100,7 +1093,7 @@ Python самого ComfyUI (`python_embeded`, `venv` или `.venv`), став�
 #### 🎨 FiL Design/Values · Tools
 
 <details>
-<summary><b>♻️ Seed</b> — <code>FiLSeed</code> · <b>🧹 Cleaner</b> — <code>FiLNeuroCleaner</code> · <b>🔀 Cyber Switch</b> — <code>FiLSignalSwitch</code> · <b>📡 Channel</b> — <code>FiLChannel</code></summary>
+<summary><b>♻️ Seed</b> — <code>FiLSeed</code> · <b>🧹 Cleaner</b> — <code>FiLNeuroCleaner</code> · <b>🔀 Cyber Switch</b> — <code>FiLSignalSwitch</code></summary>
 
 **♻️ Seed** — `seed` INT (0 – 2⁶⁴-1) → `SEED` INT. Панель в одну строку: значение и три кнопки —
 🔀 рандом, ♻️ повторить прошлый, 🎲 новый фиксированный. Ввод цифр переключает в режим fixed и
@@ -1129,12 +1122,6 @@ Python самого ComfyUI (`python_embeded`, `venv` или `.venv`), став�
 нужен настоящий LATENT/IMAGE, на `None` разумеется упадёт, и в ошибке будет её имя, а не имя
 выключенного шлюза. ON без подключённого входа — другой случай: это не глушение, а неправильно
 собранный граф, и он возвращает `ExecutionBlocker` с текстом, который об этом говорит.
-
-**📡 Channel** — `value` (ANY, опц.) + `channel_name` STRING, выходов нет. Воткните что-нибудь — и
-свободные входы того же типа по всему графу подхватят это без единого провода. Имя пустое — канал
-называется по типу данных (`MODEL`, `VAE`); задайте имя, когда каналов одного типа несколько.
-**Ещё не закончено** — нода есть и её можно поставить, но перестроение графа за ней пока делается,
-так что сама по себе она ничего не делает. До готовности её не пускает в меню релизный гейт.
 
 </details>
 
