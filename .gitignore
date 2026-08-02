@@ -68,8 +68,16 @@ pytest_run_tmp/
 .kilo/
 .pi/
 .claude/settings.local.json
+.claude/launch.json
 .claude/worktrees/
 .agents/
+
+# Internal dev docs — not for the public repo view
+CLAUDE.md
+audit.md
+audit-next.md
+fix.md
+wireless.md
 
 # Local runtime/cache
 .fil_cache/
