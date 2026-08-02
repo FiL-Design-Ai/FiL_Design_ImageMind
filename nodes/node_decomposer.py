@@ -86,7 +86,12 @@ class FiLImageDecomposer(io.ComfyNode):
                 FilProviderConfig.Input("config", tooltip="Provider Loader config connection."),
                 io.Image.Input("image", optional=True, tooltip="Optional input image for visual decomposition."),
                 io.String.Input("prompt", default="", multiline=True, optional=True, tooltip="Optional text description."),
-                io.Combo.Input("language", options=LANGUAGES, default="English", optional=True, tooltip="Language for decomposed component outputs."),
+                # `default` has to be one of `options`. It was "English", which
+                # is not in LANGUAGES (["en", "ru"]) — so the widget fell back
+                # to the first entry while `execute()`'s own default stayed
+                # "English", and the two disagreed about what an untouched node
+                # sends. Both now name the same value.
+                io.Combo.Input("language", options=LANGUAGES, default=LANGUAGES[0], optional=True, tooltip="Language for decomposed component outputs."),
             ],
             outputs=[
                 io.String.Output(id="subject", display_name="subject"),
@@ -104,7 +109,7 @@ class FiLImageDecomposer(io.ComfyNode):
         config=None,
         image=None,
         prompt="",
-        language="English",
+        language=LANGUAGES[0],
         **_kwargs,
     ) -> Any:
         image_key: Any = None
@@ -138,7 +143,7 @@ class FiLImageDecomposer(io.ComfyNode):
         config: Dict[str, Any],
         image: Any | None = None,
         prompt: str = "",
-        language: str = "English",
+        language: str = LANGUAGES[0],
     ) -> io.NodeOutput:
         if not config or not isinstance(config, dict):
             return io.NodeOutput("⚠️ Ошибка: подключи Provider Loader.", "", "", "", "")
