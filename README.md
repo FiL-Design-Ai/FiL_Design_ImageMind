@@ -21,6 +21,7 @@
 - [Installation](#installation)
 - [Provider setup](#provider-setup)
 - [Quick start](#quick-start)
+- [Examples](#examples)
 - [Node reference](#node-reference)
 - [Tiled upscale pipeline](#tiled-upscale-pipeline)
 - [Prompting system](#prompting-system)
@@ -141,6 +142,21 @@ Building it by hand takes three nodes:
 2. **🕵️ Optic Scanner** — wire `config` in, connect an `image` (or type into `prompt`), choose an
    agent and a `model_type`, and wire your target `width`/`height` in (they are sockets, not fields).
 3. Wire `prompt` into your CLIP Text Encode and queue.
+
+### Examples
+
+Four less obvious things the pack does in one pass, each a short node chain:
+
+- **Batch a LoRA dataset.** `LoadImage` (a folder batch) → **📚 LoRA Dataset Forge** — one caption
+  per frame, aspect-bucketed, written straight into a `kohya_ss`-ready folder. `config` is optional;
+  skip it and pass your own `captions` instead.
+- **Blend a reference photo with a style preset.** `LoadImage` → **🎛️ Style Mixer** (`image_1` +
+  `style_1`, each with its own `weight`) → `styled_prompt` into your CLIP Text Encode. `Weighted
+  Stack` needs no LLM call.
+- **Vary one detail, hold the rest fixed.** `LoadImage` → **👁️‍🗨️ Image Decomposer** → keep `subject`,
+  `composition` and `style` as they came out, rewrite only `lighting` before recombining.
+- **Match a batch's colour to one reference frame.** `LoadImage` → **🎨 Color Wizard** with
+  `reference` wired to your target look; turn on `preserve_skin` for portraits.
 
 ### Node reference
 
@@ -682,6 +698,7 @@ Further reading: [architecture](docs/architecture.md) ·
 - [Установка](#установка)
 - [Настройка провайдеров](#настройка-провайдеров)
 - [Быстрый старт](#быстрый-старт)
+- [Примеры](#примеры)
 - [Справочник по узлам](#справочник-по-узлам)
 - [Конвейер тайлового апскейла](#конвейер-тайлового-апскейла)
 - [Система промптинга](#система-промптинга)
@@ -802,6 +819,22 @@ Python самого ComfyUI (`python_embeded`, `venv` или `.venv`), став�
 2. **🕵️ Optic Scanner** — подключить `config`, подать `image` (или писать в `prompt`), выбрать
    агента и `model_type`, подать целевые `width`/`height` (это сокеты, а не поля панели).
 3. Вывод `prompt` — в CLIP Text Encode, и в очередь.
+
+### Примеры
+
+Четыре не самых очевидных вещи, которые пакет умеет одним проходом, каждая — короткая цепочка узлов:
+
+- **Собрать LoRA-датасет батчем.** `LoadImage` (батч из папки) → **📚 LoRA Dataset Forge** — одна
+  подпись на кадр, бакеты по соотношению сторон, готовая папка под `kohya_ss`. `config` не
+  обязателен: без него подписи берутся из своих `captions`.
+- **Смешать референсное фото с пресетом стиля.** `LoadImage` → **🎛️ Style Mixer** (`image_1` +
+  `style_1`, у каждого свой `weight`) → `styled_prompt` в CLIP Text Encode. `Weighted Stack`
+  работает без обращения к LLM.
+- **Поменять одну деталь, остальное не трогать.** `LoadImage` → **👁️‍🗨️ Image Decomposer** →
+  `subject`, `composition` и `style` оставить как есть, переписать только `lighting` перед сборкой
+  обратно.
+- **Подогнать цвет партии кадров под один референс.** `LoadImage` → **🎨 Color Wizard** с
+  `reference`, подключённым к эталонному кадру; для портретов включить `preserve_skin`.
 
 ### Справочник по узлам
 
