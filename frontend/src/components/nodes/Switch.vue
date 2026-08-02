@@ -90,7 +90,7 @@ watch(
   justify-content: center;
   gap: 8px;
   width: 100%;
-  height: var(--fil-control-h-lg);
+  height: var(--fil-control-h);
   box-sizing: border-box;
   border: 1px solid transparent;
   border-radius: var(--fil-field-radius);

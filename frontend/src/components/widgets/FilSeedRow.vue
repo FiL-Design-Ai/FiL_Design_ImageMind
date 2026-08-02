@@ -67,14 +67,14 @@ function onInput(e: Event) {
   flex: 1.3;
   min-width: 0;
   box-sizing: border-box;
-  height: var(--fil-control-h-lg);
+  height: var(--fil-control-h);
   background: var(--fil-inset);
   border: 1px solid var(--fil-border);
   border-radius: var(--fil-pill-radius);
   padding: 0 12px;
   color: var(--fil-text);
   font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
-  font-size: 13px;
+  font-size: 12px;
   text-align: center;
   outline: none;
   transition: border-color 0.08s;
@@ -94,7 +94,7 @@ function onInput(e: Event) {
   flex: 1;
   min-width: 0;
   box-sizing: border-box;
-  height: var(--fil-control-h-lg);
+  height: var(--fil-control-h);
   padding: 0 8px;
   /* Same reasoning as FilSegmented: without this the Russian "Новый фикс."
    * wrapped to two lines inside HiResFix's narrower node and pushed the row

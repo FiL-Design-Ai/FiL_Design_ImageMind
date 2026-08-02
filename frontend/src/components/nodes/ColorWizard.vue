@@ -179,7 +179,7 @@ function applyPreset(preset: "warm" | "cool" | "skin" | "contrast") {
   gap: 6px;
 }
 .fil-cw-preset-btn {
-  height: 28px;
+  height: var(--fil-control-h);
   border-radius: 6px;
   border: 1px solid var(--fil-border);
   background: var(--fil-surface-1);

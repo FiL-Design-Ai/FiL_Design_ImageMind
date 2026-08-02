@@ -151,4 +151,90 @@ test.describe("widget input sockets in a real graph", () => {
       `no dot moved when the panel re-laid out (before ${JSON.stringify(result.before)})`,
     ).not.toEqual(result.before);
   });
+
+  /**
+   * KSampler's two combos, which were the last widgets in the pack without a
+   * socket. They are worth their own case rather than trusting the scanner's:
+   * the objection that kept them socket-less was about the *type* on the wire,
+   * and the answer to it — LiteGraph refuses a plain STRING and accepts a
+   * COMBO/wildcard — is a host behaviour, exactly the kind this suite exists to
+   * pin down. The fallback rows in `exposeWidgetInputSockets` would satisfy a
+   * "has a y" assertion on their own, so this compares against the panel's real
+   * geometry: the dot has to sit on the row it feeds.
+   */
+  test("the sampler and scheduler combos get a dot on their own row", async ({ page }) => {
+    await page.goto("/");
+    await openBlankWorkflow(page);
+
+    const result = await page.evaluate(async () => {
+      const frames = async (count: number) => {
+        for (let i = 0; i < count; i++) await new Promise((r) => requestAnimationFrame(r));
+      };
+
+      interface WidgetLike { name?: string; y?: number }
+      interface GraphNode {
+        pos: [number, number];
+        size: [number, number];
+        widgets?: WidgetLike[];
+        inputs?: Array<{ name?: string; type?: string; alwaysVisible?: boolean }>;
+        _filVueApps?: Record<string, { host: HTMLElement }>;
+      }
+      const node = window.LiteGraph.createNode("FiLKSampler") as GraphNode | null;
+      if (!node) throw new Error("FiLKSampler would not instantiate");
+      node.pos = [40, 40];
+      window.app.graph.add(node);
+      await frames(90);
+
+      const host = Object.values(node._filVueApps ?? {})[0]?.host;
+      if (!host) throw new Error("the sampler mounted no panel");
+
+      const rowOf = (label: string) =>
+        Array.from(host.querySelectorAll<HTMLElement>(".fil-w-select")).find((el) =>
+          (el.querySelector("label")?.textContent ?? "").includes(label),
+        );
+      const dotY = (name: string) => (node.widgets ?? []).find((w) => w.name === name)?.y ?? null;
+
+      // Node-local pixels, the same space `widget.y` lives in. `pos[1]` is the
+      // node's body origin, so a field's centre minus it is directly comparable.
+      const scale = window.app.canvas?.ds?.scale ?? 1;
+      const offsetY = window.app.canvas?.ds?.offset?.[1] ?? 0;
+      const canvasTop = window.app.canvas?.canvas?.getBoundingClientRect().top ?? 0;
+      const fieldCentre = (label: string) => {
+        const el = rowOf(label);
+        if (!el) return null;
+        const r = el.getBoundingClientRect();
+        return (r.top + r.height / 2 - canvasTop) / scale - offsetY - node.pos[1];
+      };
+
+      const slot = (name: string) => (node.inputs ?? []).find((i) => i.name === name);
+      return {
+        types: { sampler: slot("sampler_name")?.type, scheduler: slot("scheduler")?.type },
+        shown: {
+          sampler: slot("sampler_name")?.alwaysVisible === true,
+          scheduler: slot("scheduler")?.alwaysVisible === true,
+        },
+        dots: { sampler: dotY("sampler_name"), scheduler: dotY("scheduler") },
+        centres: { sampler: fieldCentre("Sampler"), scheduler: fieldCentre("Scheduler") },
+      };
+    });
+
+    expect(result.types).toEqual({ sampler: "COMBO", scheduler: "COMBO" });
+    expect(result.shown, "the combo sockets are not being drawn").toEqual({
+      sampler: true,
+      scheduler: true,
+    });
+    // `_arrangeWidgetInputSlots` draws the dot at `widget.y + 10`, so that is
+    // what has to land on the field's centre. A couple of pixels of slack for
+    // the rounding in anchorWidgetInputSockets.
+    for (const name of ["sampler", "scheduler"] as const) {
+      const dot = result.dots[name];
+      const centre = result.centres[name];
+      expect(typeof dot, `${name} never got a row`).toBe("number");
+      expect(typeof centre, `${name}'s field was not found in the panel`).toBe("number");
+      expect(
+        Math.abs((dot as number) + 10 - (centre as number)),
+        `${name}'s dot sits at ${dot} but its field is centred at ${centre}`,
+      ).toBeLessThanOrEqual(2);
+    }
+  });
 });

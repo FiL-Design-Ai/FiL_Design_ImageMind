@@ -91,6 +91,39 @@ class FiLKSampler(io.ComfyNode):
             is_output_node=True,
         )
 
+    @classmethod
+    def _reject_unknown_choices(cls, sampler_name, scheduler):
+        """Fail loudly when a linked sampler/scheduler name is not installed.
+
+        Both widgets expose an input socket (KSAMPLER_SOCKET_INPUTS in
+        nodes2/nodes/ksampler.ts), so these two can arrive as an arbitrary
+        string from upstream instead of being picked from the combo. ComfyUI
+        validates combo *widget* values against the schema, but a linked input
+        is only type-checked — the string goes straight through to
+        comfy.samplers, which indexes its tables by it and raises a bare
+        KeyError several frames deep. Say what was wrong and what is available.
+
+        Deliberately re-reads the lists here rather than calling
+        `_sampler_list()`: that helper answers `["euler"], ["normal"]` when the
+        import fails, and validating against a two-item fallback would reject
+        every real name. No lists means no check.
+        """
+        try:
+            import comfy.samplers as _samplers
+
+            allowed = {
+                "sampler_name": list(_samplers.KSampler.SAMPLERS),
+                "scheduler": list(_samplers.KSampler.SCHEDULERS),
+            }
+        except Exception:  # pragma: no cover — sampling will fail on its own terms
+            return
+        for name, value in (("sampler_name", sampler_name), ("scheduler", scheduler)):
+            if value not in allowed[name]:
+                raise ValueError(
+                    f"⚡ KSampler: {name} = {value!r} is not installed. "
+                    f"Available: {', '.join(allowed[name])}"
+                )
+
     @staticmethod
     def _empty_image():
         import torch
@@ -121,6 +154,8 @@ class FiLKSampler(io.ComfyNode):
             latent = kwargs.get("latent_image")
         if vae is None:
             vae = kwargs.get("optional_vae")
+
+        cls._reject_unknown_choices(sampler_name, scheduler)
 
         if vae is None:
             vae_decode = "false"

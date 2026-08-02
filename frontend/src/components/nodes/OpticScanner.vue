@@ -438,7 +438,7 @@ function newFixedSeed() {
 .fil-style-picker-btn {
   flex: 2;
   box-sizing: border-box;
-  min-height: var(--fil-control-h-lg);
+  min-height: var(--fil-control-h);
   border-radius: var(--fil-pill-radius);
   background: var(--fil-pill-bg);
   border: 1px solid var(--fil-pill-border);
