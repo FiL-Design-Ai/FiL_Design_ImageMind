@@ -117,6 +117,18 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
     getHeight: () => heights.height(),
     ...(opts.onDraw ? { onDraw: opts.onDraw } : {}),
   });
+
+  // The right-side Properties Panel has no Vue renderer for "custom" DOM
+  // widgets (frontend's widgetRegistry.ts only knows the built-in types) and
+  // falls back to WidgetLegacy.vue, which draws the widget into a blank
+  // <canvas> sized to whatever `getHeight()` reports — stretching the panel
+  // to our real content height (500-1000+px) with nothing visible in it.
+  // `canvasOnly` is the flag the panel's own widget filter
+  // (rightSidePanel/shared.ts) checks to skip a widget entirely; it doesn't
+  // touch canvas rendering. Verified against comfyui_frontend_package 1.47.10.
+  const wOpts = widget as { options?: Record<string, unknown> };
+  wOpts.options = { ...wOpts.options, canvasOnly: true };
+
   heights.attachWidget(widget);
 
   // Mount a fresh Vue app onto the host. Pinia is reused so cross-widget
