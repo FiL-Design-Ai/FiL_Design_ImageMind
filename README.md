@@ -2,6 +2,7 @@
 
 > **AI-powered ComfyUI node pack** — LLM vision analysis, prompt engineering, tiled upscaling, sampling and colour work in one coherent, themed UI.
 
+[![CI](https://github.com/FiL-Design-Ai/FiL_Design_ImageMind/actions/workflows/ci.yml/badge.svg)](https://github.com/FiL-Design-Ai/FiL_Design_ImageMind/actions/workflows/ci.yml)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776ab?style=flat-square&logo=python)](https://www.python.org/)
 [![ComfyUI 0.3.60+](https://img.shields.io/badge/ComfyUI-0.3.60%2B-00cc00?style=flat-square)](https://github.com/comfyanonymous/ComfyUI)
 [![V3 API](https://img.shields.io/badge/ComfyUI_API-V3-7c5cff?style=flat-square)](https://docs.comfy.org/custom-nodes/backend/lifecycle)
@@ -451,7 +452,7 @@ The node never upscales. Sources smaller than their bucket are still written, co
 #### 🎨 FiL Design/Values · Tools
 
 <details>
-<summary><b>♻️ Seed</b> — <code>FiLSeed</code> · <b>🧹 Cleaner</b> — <code>FiLNeuroCleaner</code> · <b>🔀 Cyber Switch</b> — <code>FiLSignalSwitch</code></summary>
+<summary><b>♻️ Seed</b> — <code>FiLSeed</code> · <b>🧹 Cleaner</b> — <code>FiLNeuroCleaner</code> · <b>🔀 Cyber Switch</b> — <code>FiLSignalSwitch</code> · <b>📡 Channel</b> — <code>FiLChannel</code></summary>
 
 **♻️ Seed** — `seed` INT (0 – 2⁶⁴-1) → `SEED` INT. Panel is one row: the value plus 🔀 randomize,
 ♻️ reuse last, 🎲 new fixed random. Typing digits switches it to fixed and applies the value.
@@ -479,6 +480,15 @@ node that needed a real LATENT/IMAGE will of course raise on the `None`, and the
 that node rather than the switch. ON with nothing connected is a different case — a misconfigured
 graph, not muting — and it returns an `ExecutionBlocker` carrying a message that says so.
 
+**📡 Channel** — `value0`, `value1`, ... (ANY, optional, they grow as you use them), no outputs.
+Plug something in and free inputs of the same type across the graph pick it up, with no wire drawn.
+One node carries one channel per wired input, so a single Channel can broadcast the model, the VAE
+and the CLIP at once. A channel is named after its data type (`MODEL`, `VAE`); to name it yourself,
+rename the slot — there is no name widget, because one widget could not name several inputs.
+**Not finished yet** — the node can be placed and its links do reach the prompt, but there is no way
+to resolve a clash between two channels of the same type, and nothing reports one. The release gate
+keeps it out of the node menu until there is.
+
 </details>
 
 ### Tiled upscale pipeline
@@ -505,20 +515,146 @@ is an RGB-specific interpolation and does not belong in latent space.
 
 ### Prompting system
 
-- **Agents** (21 + None) set the analysis lens — Portrait pulls facial and lighting detail, Products pulls
-  material and packaging detail, and so on. Tag output is `response_format = tags`, so it
-  composes with any agent instead of replacing it.
-- **Model profiles** rewrite the output for the target generator: Z-Image Turbo, FLUX, SDXL, QWEN,
-  Krea 2, Ideogram 4. Rules live in `common/model_prompt_adapters.py`; the reasoning and sources are
-  in [`docs/MODEL_PROMPTING_GUIDE.md`](docs/MODEL_PROMPTING_GUIDE.md), including an "Official guidance"
-  subsection per model.
-- **Ideogram 4 JSON schema** activates only when `response_format="json"` — see
-  [`docs/MODEL_PROMPTING_GUIDE.md#7-ideogram-4---plain-text-optimization`](docs/MODEL_PROMPTING_GUIDE.md#7-ideogram-4---plain-text-optimization).
-- **Prompt modes:** `Hybrid` is a single enriched call; `Two-Stage` analyses first, then writes the
-  prompt from that analysis, falling back to stage 1 if stage 2 comes back too short; `Auto` picks
-  between them.
-- **Styles:** 163 photo + 129 art presets in `common/styles/`, browsable through a searchable picker
-  with preview tiles. See [`docs/styles.md`](docs/styles.md).
+🕵️ **Optic Scanner is the node that matters most in this pack** — everything else feeds it or
+consumes what it writes. Its output is not one template with a text box; it's five independent
+axes that stack (`agent`, `agent_focus`, `detail_level`, `model_type`, style), plus `prompt` and
+`negative_prompt` steering on top. Knowing what each one actually changes — not just that it
+exists — is the difference between guessing at the panel and getting the exact prompt you want.
+
+#### What `prompt` and `negative_prompt` actually do
+
+- **With an image connected**, `prompt` is *not* the description — the image is the source of
+  truth, and the agent template already tells the model what to look at. `prompt` is a targeted
+  instruction layered on top of that. Write `emphasize the fabric texture and stitching` and the
+  agent's usual field order stays the same, but that field gets pulled out and expanded. Write
+  `describe this like a fashion catalog listing` and the tone shifts without inventing anything
+  that isn't in the photo. Leave it empty and the node falls back to "Describe this image in
+  detail."
+- **Without an image**, `prompt` becomes the entire text input — a text-only idea to expand into a
+  full generation prompt, with no photo underneath to keep it honest.
+- **`negative_prompt`** never reaches the model as a literal "negative prompt" the way SDXL uses
+  one — it's rewritten to fit the target model. For **FLUX / Z-Image / Krea 2 / Ideogram 4** (which
+  read better as positive constraints) it becomes `Constraints (do not include these — express the
+  scene positively without them): <your text>`; for everything else it's a plain `Avoid: <your
+  text>`. Type `blurry, watermark` with `model_type = FLUX` and the exact same text with
+  `model_type = SDXL` produces two different sentences in the actual system call — same intent,
+  model-appropriate phrasing chosen for you.
+
+#### `agent` — what the model is told to look at, and what to ignore
+
+Twelve subject lenses plus a neutral default (⚪ None). Each is a fixed list of fields to describe,
+an order to describe them in, and things to explicitly *not* say — not a vague mood:
+
+| Agent | Pulls out | Deliberately ignores |
+|---|---|---|
+| 👤 Portrait | hair, facial micro-expression, gaze, pose, body tension, clothing, skin | emotion labels ("nervous") — described as physical markers instead |
+| 📦 Products | shape, material/finish, branding, lighting, reflections, ports/buttons on devices | value judgments ("premium", "high-quality") |
+| 🌿 Nature & Landscape | terrain, vegetation, water, sky/cloud type, weather, depth layers | "majestic", "peaceful" |
+| 🎨 Art & Illustration | medium, technique, palette, style, composition, surface texture | "masterpiece", guessed artistic intent |
+| 👗 Fashion | garment cut, fabric/drape, colour/pattern, accessories, brand hardware | trend opinions ("chic", "outdated") |
+| 🐾 Animals | species/breed cues, coat markings, build, head/face, environment | anthropomorphic emotion ("sad eyes") |
+| 🏛 Architecture | building type, structural logic, materials, facade elements, scale | style labels without visible evidence ("brutalist" unless clear) |
+| 🪑 Interior | room type, furniture, layout, materials, lighting fixtures | "cozy", "luxurious" |
+| 🌆 City | street elements, building density, infrastructure, atmosphere | neighbourhood-quality judgment |
+| 🚗 Transport | vehicle type/make cues, body style, condition, wheels | performance speculation, owner identity |
+| 🍽 Food | dish type, visible ingredients, plating, texture, freshness cues | taste, dietary category |
+| 🎮 Games | genre, graphics style, HUD/UI elements, character/environment quality | review opinion, story narrative |
+
+**Example:** run a product photo through 📦 Products and you get "anodized unibody, MagSafe and two
+USB-C on the left edge, lid closed." Run the *same photo* through 👤 Portrait and the model still
+tries to chase hair/pose/skin fields that simply aren't in the frame — the output gets visibly
+worse. Matching the agent to the actual subject is the single biggest quality lever on this node.
+`response_format = tags` composes with any agent instead of replacing it — it changes the *shape*
+of the output (flat tags vs prose), not which fields get pulled out.
+
+#### `agent_focus` — a craft layer laid on top, never a replacement
+
+`agent_focus` never overrides the agent — it appends a second instruction block asking the model to
+weigh one layer heavier while still covering everything the agent already asks for:
+
+| Focus | Weighs heavier |
+|---|---|
+| 📐 Composition | shot type, camera angle, crop, subject placement, depth of field, lens feel |
+| 💡 Lighting & Color | light source/direction/contrast, palette, reflections, atmosphere |
+| 🔬 Ultra Detail | pores, fibre/grain, wear/patina, gloss level, fabric weave — the finest observable grain |
+| 🎬 Cinematic | lens character, depth of field, colour grading, frame geometry — read as a film still |
+
+`agent = 🚗 Transport` + `agent_focus = 💡 Lighting & Color` still describes the car (make/model,
+body, wheels) but pushes noticeably more words into how it's lit — useful when the plain agent
+output undersells the lighting you actually need to match downstream.
+
+#### `detail_level` — a real word budget, not just "more adjectives"
+
+Each level is a target word count the model is instructed to hit: `tiny` (20–50 words), `short`
+(40–80), `normal` (100–250), `detailed` (250–500), `ultra` (500–1200). Past `detailed` you're
+trading generation time and tokens for coverage of increasingly minor details — reach for `ultra`
+when one small cue (a logo, a scar, a specific fabric pattern) keeps getting dropped at `normal`.
+
+#### `prompt_mode` — one call or two
+
+- **Hybrid** — a single LLM call that already knows the style. Fastest, cheapest.
+- **Two-Stage** — stage 1 writes a plain factual description with no style at all; stage 2 takes
+  *that locked description* and restyles it. If stage 2 comes back too short or empty, the node
+  quietly falls back to the stage-1 description instead of failing outright.
+- **Auto** (the default) switches to Two-Stage the instant any style is selected, Hybrid otherwise
+  — restyling an already-locked factual description is more reliable than asking one call to invent
+  facts and style at the same time. You rarely need to touch this yourself.
+
+#### Presets rename the photo, they don't repaint it
+
+Picking a preset (`photo_style` / `art_style`, or the 18+ variants) hands the model a contract, not
+a free hand: required cue words it must use, forbidden words it must avoid, and — only in
+**Two-Stage mode**, where a separate factual description exists to check against — a live support
+check. Each preset defines its own "support signals" (words meaning the photo actually shows what
+the style expects) and "contradiction signals" (words meaning it plainly doesn't). Pick a
+neon-cyberpunk-city preset on a daylight countryside photo in Two-Stage mode and the contradictions
+outweigh the support: the mode drops to **BLOCKED**, and the model is told to keep the preset as
+background flavour instead of inventing neon signs into a field where they aren't. In **Hybrid**
+mode this check doesn't run at all — there's no separate factual pass to check against — which is
+one more reason `Auto` reaches for Two-Stage the moment a style is picked. Separately from all
+that, `metadata_dict.response_outcome` always reports whether the *final* text actually used the
+required cues and avoided the forbidden words, whichever mode ran — check it when a style
+"didn't take." `custom_style` free text is appended after the preset and is not covered by this
+contract at all — it's for a specific instruction the preset library doesn't have.
+
+#### `response_format` — three different consumers
+
+- **text** — a normal prose paragraph, for a CLIP Text Encode.
+- **tags** — flat comma-separated tags ordered by visual weight, no prose (`"cyberpunk street, neon
+  signs, wet asphalt, holographic advertisement, rain, purple and blue lighting"`).
+- **json** — structured output; only meaningfully different for Ideogram 4, which has its own JSON
+  prompt schema (see
+  [`docs/MODEL_PROMPTING_GUIDE.md#7-ideogram-4---plain-text-optimization`](docs/MODEL_PROMPTING_GUIDE.md#7-ideogram-4---plain-text-optimization)).
+
+#### Model profiles
+
+`model_type` rewrites phrasing style and length ceiling for the target generator — Z-Image Turbo,
+FLUX, SDXL, QWEN, Krea 2, Ideogram 4 — it never touches which facts the agent pulled out. Rules
+live in `common/model_prompt_adapters.py`; the reasoning and per-model "Official guidance" sources
+are in [`docs/MODEL_PROMPTING_GUIDE.md`](docs/MODEL_PROMPTING_GUIDE.md).
+
+#### Other nodes, the tricks worth knowing
+
+- **⚡ KSampler scripts** — `🔬 HighRes Fix` and `🎛️ Noise Control` both produce a `script` object
+  instead of sampling on their own; chain them by wiring one script's `script` input into the
+  other, then the combined result into `KSampler.script`. Both merge into the same pass.
+- **🎛️ Style Mixer fusion modes** — `Weighted Stack (Fast)` is deterministic string composition, no
+  LLM call — use it for a fast iteration loop. Switch to `Smart LLM Fusion (Gen-Mix)` (needs
+  `config`) the moment the stacked result reads like a list of disconnected clauses instead of one
+  coherent scene.
+- **🎨 Color Wizard `reference` vs `wb_mask`** — `reference` grades your image to match another
+  photo's overall palette; `wb_mask` is a white-balance pick — mask the one area that *should* be
+  neutral grey, and the node corrects the whole image's colour temperature from that sample alone.
+  They solve different problems and combine fine (white-balance first, then palette match).
+- **🧩 Tiled upscale pipeline** — see the dedicated section above; the short version is: plan the
+  grid once with 🔍 Upscaler Advanced/Simple, process `tiles` (or `latent_tiles`) individually, and
+  always feed the *same* `layout` back into 🧩 Tile Assembly — it's what tells the assembler where
+  the feathered seams go.
+
+#### Styles catalog
+
+163 photo + 129 art presets in `common/styles/`, browsable through a searchable picker with preview
+tiles. See [`docs/styles.md`](docs/styles.md).
 
 ### Settings
 
@@ -1126,7 +1262,7 @@ Python самого ComfyUI (`python_embeded`, `venv` или `.venv`), став�
 #### 🎨 FiL Design/Values · Tools
 
 <details>
-<summary><b>♻️ Seed</b> — <code>FiLSeed</code> · <b>🧹 Cleaner</b> — <code>FiLNeuroCleaner</code> · <b>🔀 Cyber Switch</b> — <code>FiLSignalSwitch</code></summary>
+<summary><b>♻️ Seed</b> — <code>FiLSeed</code> · <b>🧹 Cleaner</b> — <code>FiLNeuroCleaner</code> · <b>🔀 Cyber Switch</b> — <code>FiLSignalSwitch</code> · <b>📡 Channel</b> — <code>FiLChannel</code></summary>
 
 **♻️ Seed** — `seed` INT (0 – 2⁶⁴-1) → `SEED` INT. Панель в одну строку: значение и три кнопки —
 🔀 рандом, ♻️ повторить прошлый, 🎲 новый фиксированный. Ввод цифр переключает в режим fixed и
@@ -1156,6 +1292,15 @@ Python самого ComfyUI (`python_embeded`, `venv` или `.venv`), став�
 выключенного шлюза. ON без подключённого входа — другой случай: это не глушение, а неправильно
 собранный граф, и он возвращает `ExecutionBlocker` с текстом, который об этом говорит.
 
+**📡 Channel** — `value0`, `value1`, … (ANY, опц., входы отрастают по мере использования), выходов
+нет. Воткните что-нибудь — и свободные входы того же типа по всему графу подхватят это без единого
+провода. Один узел несёт по каналу на каждый занятый вход, так что одна нода может раздавать модель,
+VAE и CLIP разом. Канал называется по типу данных (`MODEL`, `VAE`); чтобы задать имя, переименуйте
+слот — отдельного поля для имени нет, одним полем несколько входов не назовёшь.
+**Ещё не закончено** — ноду можно поставить, и её связи доходят до промпта, но разрешить спор двух
+каналов одного типа нечем, и никто о нём не сообщает. До готовности ноду не пускает в меню релизный
+гейт.
+
 </details>
 
 ### Конвейер тайлового апскейла
@@ -1182,20 +1327,149 @@ lanczos это RGB-специфичная интерполяция, в лате�
 
 ### Система промптинга
 
-- **Агенты** (21 + None) задают оптику анализа: Portrait вытягивает детали лица и света, Products —
-  материалы и упаковку и т.д. Теги — это `response_format = tags`, он сочетается с любым
-  агентом, а не заменяет его.
-- **Профили моделей** переписывают вывод под целевой генератор: Z-Image Turbo, FLUX, SDXL, QWEN,
-  Krea 2, Ideogram 4. Правила — в `common/model_prompt_adapters.py`, обоснование и источники — в
-  [`docs/MODEL_PROMPTING_GUIDE.md`](docs/MODEL_PROMPTING_GUIDE.md), включая раздел "Official guidance"
-  для каждой модели.
-- **JSON-схема Ideogram 4** включается только при `response_format="json"` — см.
-  [`docs/MODEL_PROMPTING_GUIDE.md#7-ideogram-4---plain-text-optimization`](docs/MODEL_PROMPTING_GUIDE.md#7-ideogram-4---plain-text-optimization).
-- **Режимы промпта:** `Hybrid` — один обогащённый вызов; `Two-Stage` — сначала анализ, затем промпт
-  по этому анализу, с откатом на первую стадию, если вторая вернула слишком короткий текст; `Auto`
-  выбирает между ними.
-- **Стили:** 163 фото + 129 арт-пресетов в `common/styles/`, доступны через поисковый пикер с
-  плитками превью. См. [`docs/styles.md`](docs/styles.md).
+🕵️ **Optic Scanner — самый важный узел в паке**: всё остальное либо кормит его данными, либо
+потребляет то, что он написал. Его вывод — не один шаблон с полем текста, а пять независимых осей,
+которые складываются друг с другом (`agent`, `agent_focus`, `detail_level`, `model_type`, стиль),
+плюс `prompt` и `negative_prompt` поверх них. Понимать, что именно меняет каждая ось — не просто что
+она существует — это разница между угадыванием в панели и получением ровно того промпта, который
+нужен.
+
+#### Что на самом деле делают `prompt` и `negative_prompt`
+
+- **Если подключена картинка**, `prompt` — это *не* описание: изображение является источником
+  истины, а что смотреть, уже задаёт шаблон агента. `prompt` — прицельная инструкция поверх этого.
+  Напишите `сделай акцент на текстуре ткани и строчке` — обычный порядок полей агента сохранится, но
+  это поле вытянется и распишется подробнее. Напишите `опиши это как для каталога модной одежды` —
+  сместится тон, но ничего не выдумается сверх того, что есть на фото. Пустой `prompt` откатывается
+  на «Опиши это изображение подробно».
+- **Без картинки** `prompt` становится всем текстовым вводом целиком — идея-затравка, которую нужно
+  развернуть в полноценный промпт для генерации, без фото под ней, которое держало бы модель в
+  рамках реальности.
+- **`negative_prompt`** никогда не попадает в модель как буквальный «негативный промпт» в духе SDXL
+  — он переписывается под конкретную целевую модель. Для **FLUX / Z-Image / Krea 2 / Ideogram 4**
+  (которые лучше воспринимают позитивные ограничения) он превращается в `Constraints (do not
+  include these — express the scene positively without them): <ваш текст>`; для всех остальных —
+  простое `Avoid: <ваш текст>`. Напишите `blurry, watermark` при `model_type = FLUX` — и тот же
+  текст при `model_type = SDXL` — в реальном системном вызове получатся два разных предложения:
+  один и тот же смысл, но фразировка подобрана под конкретную модель за вас.
+
+#### `agent` — на что модели велено смотреть, а что игнорировать
+
+Двенадцать предметных линз плюс нейтральный вариант по умолчанию (⚪ None). У каждой — жёсткий
+список полей для описания, порядок их перечисления и то, что явно нельзя говорить — не расплывчатое
+настроение:
+
+| Агент | Вытягивает | Сознательно игнорирует |
+|---|---|---|
+| 👤 Portrait | волосы, микровыражение лица, взгляд, поза, напряжение тела, одежда, кожа | ярлыки эмоций («нервничает») — вместо них физические маркеры |
+| 📦 Products | форму, материал/отделку, брендинг, свет, отражения, порты/кнопки у гаджетов | оценочные суждения («премиум», «высокое качество») |
+| 🌿 Nature & Landscape | рельеф, растительность, воду, тип неба/облаков, погоду, слои глубины | «величественный», «умиротворяющий» |
+| 🎨 Art & Illustration | технику, материал, палитру, стиль, композицию, фактуру поверхности | «шедевр», угаданный творческий замысел |
+| 👗 Fashion | крой, ткань/драпировку, цвет/принт, аксессуары, фурнитуру бренда | оценки моды («стильно», «немодно») |
+| 🐾 Animals | признаки вида/породы, окрас, сложение, морду/голову, окружение | очеловеченные эмоции («грустные глаза») |
+| 🏛 Architecture | тип здания, конструктивную логику, материалы, фасадные элементы, масштаб | ярлыки стиля без визуальных подтверждений («брутализм», если не очевидно) |
+| 🪑 Interior | тип комнаты, мебель, планировку, материалы, световые приборы | «уютно», «роскошно» |
+| 🌆 City | уличные элементы, плотность застройки, инфраструктуру, атмосферу | оценку района («опасный», «престижный») |
+| 🚗 Transport | тип/марку транспорта, кузов, состояние, колёса | домыслы о характеристиках, личность владельца |
+| 🍽 Food | тип блюда, видимые ингредиенты, подачу, текстуру, признаки свежести | вкус, категорию диеты |
+| 🎮 Games | жанр, графический стиль, элементы HUD/UI, качество персонажей/окружения | оценочное мнение, сюжет |
+
+**Пример:** прогоните фото товара через 📦 Products — получите «anodized unibody, MagSafe и два
+USB-C слева, крышка закрыта». Прогоните *то же фото* через 👤 Portrait — модель всё равно попытается
+вытянуть поля волос/позы/кожи, которых в кадре просто нет, и результат заметно просядет. Совпадение
+агента с реальным сюжетом — самый сильный рычаг качества у этого узла. `response_format = tags`
+сочетается с любым агентом, а не заменяет его — он меняет *форму* вывода (плоские теги вместо прозы),
+а не то, какие поля вытягиваются.
+
+#### `agent_focus` — слой поверх агента, никогда не замена
+
+`agent_focus` никогда не отменяет агента — он добавляет второй блок инструкции: попросить модель
+сильнее взвесить один слой, продолжая покрывать всё, что и так требует агент:
+
+| Фокус | Взвешивает сильнее |
+|---|---|
+| 📐 Composition | тип кадра, ракурс, кроп, расположение объекта, глубину резкости, характер объектива |
+| 💡 Lighting & Color | источник/направление/контраст света, палитру, отражения, атмосферу |
+| 🔬 Ultra Detail | поры, волокна/зерно, износ/патину, уровень глянца, фактуру ткани — тончайший наблюдаемый уровень |
+| 🎬 Cinematic | характер объектива, глубину резкости, цветокоррекцию, геометрию кадра — читать как кадр из фильма |
+
+`agent = 🚗 Transport` + `agent_focus = 💡 Lighting & Color` по-прежнему описывает машину (марку,
+кузов, колёса), но добавляет заметно больше слов о том, как она освещена — пригодится, когда обычный
+вывод агента недодаёт по свету, который важен именно вам.
+
+#### `detail_level` — реальный бюджет слов, а не просто «больше прилагательных»
+
+Каждый уровень — это цель по числу слов, к которой модель стремится: `tiny` (20–50 слов), `short`
+(40–80), `normal` (100–250), `detailed` (250–500), `ultra` (500–1200). После `detailed` вы меняете
+скорость генерации и токены на покрытие всё более мелких деталей — берите `ultra`, когда одна мелкая
+деталь (логотип, шрам, конкретный узор ткани) постоянно теряется на `normal`.
+
+#### `prompt_mode` — один вызов или два
+
+- **Hybrid** — один обогащённый вызов, который сразу знает про стиль. Быстрее и дешевле всего.
+- **Two-Stage** — первая стадия пишет чисто фактическое описание без всякого стиля; вторая берёт
+  *это зафиксированное описание* и переоформляет его под стиль. Если вторая стадия вернулась слишком
+  коротким или пустым текстом, узел тихо откатывается на описание первой стадии вместо ошибки.
+- **Auto** (по умолчанию) переключается на Two-Stage в тот момент, когда выбран любой стиль, иначе
+  остаётся на Hybrid — переоформить уже зафиксированное фактическое описание надёжнее, чем просить
+  один вызов одновременно придумывать факты и стиль. Трогать это вручную почти никогда не нужно.
+
+#### Пресеты переодевают фото, а не перерисовывают его
+
+Выбор пресета (`photo_style` / `art_style` или их 18+ варианты) даёт модели не карт-бланш, а
+контракт: обязательные слова-подсказки, которые нужно использовать, запрещённые слова, которых
+нужно избегать, и — только в режиме **Two-Stage**, где есть отдельное фактическое описание для
+сверки — живую проверку поддержки. У каждого пресета свой набор «сигналов поддержки» (слова,
+означающие, что на фото реально есть то, чего ждёт стиль) и «сигналов противоречия» (слова,
+означающие, что явно нет). Выберите неоново-киберпанковый пресет на дневном фото сельской местности
+в режиме Two-Stage — противоречий окажется больше, чем поддержки: режим упадёт до **BLOCKED**, и
+модели скажут оставить пресет лишь лёгким фоновым оттенком, а не выдумывать неоновые вывески там,
+где их явно нет. В режиме **Hybrid** эта проверка вообще не выполняется — там нет отдельного
+фактического прохода для сверки, — и это ещё одна причина, почему `Auto` переключается на Two-Stage
+в момент выбора стиля. Отдельно от всего этого `metadata_dict.response_outcome` всегда сообщает,
+использовал ли *итоговый* текст обязательные слова-подсказки и избежал ли запрещённых — независимо
+от того, какой режим отработал; проверяйте это, когда стиль «не взялся». Свободный текст
+`custom_style` добавляется после пресета и этим контрактом вообще не покрывается — это поле для
+конкретной инструкции, которой нет в библиотеке пресетов.
+
+#### `response_format` — три разных потребителя
+
+- **text** — обычный связный абзац, для CLIP Text Encode.
+- **tags** — плоский список тегов через запятую по визуальному весу, без прозы (`"cyberpunk
+  street, neon signs, wet asphalt, holographic advertisement, rain, purple and blue lighting"`).
+- **json** — структурированный вывод; предметно отличается только для Ideogram 4, у которой своя
+  JSON-схема промпта (см.
+  [`docs/MODEL_PROMPTING_GUIDE.md#7-ideogram-4---plain-text-optimization`](docs/MODEL_PROMPTING_GUIDE.md#7-ideogram-4---plain-text-optimization)).
+
+#### Профили моделей
+
+`model_type` переписывает фразировку и потолок длины под целевой генератор — Z-Image Turbo, FLUX,
+SDXL, QWEN, Krea 2, Ideogram 4 — и никогда не трогает сами факты, которые вытянул агент. Правила —
+в `common/model_prompt_adapters.py`, обоснование и источники по каждой модели — в
+[`docs/MODEL_PROMPTING_GUIDE.md`](docs/MODEL_PROMPTING_GUIDE.md).
+
+#### Другие узлы: приёмы, которые стоит знать
+
+- **⚡ KSampler-скрипты** — `🔬 HighRes Fix` и `🎛️ Noise Control` оба производят объект `script`,
+  а не сэмплируют сами; сцепляются проводом одного `script`-входа в другой, а итоговый результат — в
+  `KSampler.script`. Оба сливаются в один проход.
+- **🎛️ Режимы Style Mixer** — `Weighted Stack (Fast)` — детерминированная сборка строки, без
+  вызова LLM — берите для быстрой итерации. Переключайтесь на `Smart LLM Fusion (Gen-Mix)` (нужен
+  `config`), как только собранный стек читается как список несвязанных фраз, а не единая сцена.
+- **🎨 Color Wizard: `reference` против `wb_mask`** — `reference` подгоняет общую палитру вашего
+  изображения под другое фото; `wb_mask` — это точка баланса белого: маскируете участок, который
+  *должен* быть нейтрально-серым, и узел выправляет цветовую температуру всего изображения по этому
+  образцу. Это разные задачи, и их можно комбинировать (сначала баланс белого, затем подгонка под
+  референс).
+- **🧩 Конвейер тайлового апскейла** — см. раздел выше; коротко: спланируйте сетку один раз через
+  🔍 Upscaler Advanced/Simple, обработайте `tiles` (или `latent_tiles`) по отдельности и всегда
+  подавайте тот же самый `layout` обратно в 🧩 Tile Assembly — именно он говорит сборщику, где
+  проходят растушёванные швы.
+
+#### Каталог стилей
+
+163 фото + 129 арт-пресетов в `common/styles/`, доступны через поисковый пикер с плитками превью.
+См. [`docs/styles.md`](docs/styles.md).
 
 ### Настройки
 
