@@ -4696,6 +4696,23 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   ],
   "family": "llm"
 },
+  "FiLChannel": {
+  "id": "FiLChannel",
+  "title": "📡 Channel",
+  "category": "🎨 FiL Design/Tools",
+  "description": "Send data across the graph without wires.",
+  "inputs": {
+    "required": [],
+    "optional": [],
+    "hidden": []
+  },
+  "outputs": [],
+  "min_size": [
+    220,
+    80
+  ],
+  "family": "tool"
+},
 };
 
 export type NodeId = keyof typeof NODE_CONTRACTS;

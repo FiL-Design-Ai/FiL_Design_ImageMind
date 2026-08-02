@@ -21,6 +21,7 @@ import { styleMixerNode } from "@/nodes2/nodes/style_mixer";
 import { colorWizardNode } from "@/nodes2/nodes/color_wizard";
 import { switchNode } from "@/nodes2/nodes/switch";
 import { datasetForgeNode } from "@/nodes2/nodes/dataset";
+import { channelNode } from "@/nodes2/nodes/channel";
 
 export interface NodeModule {
   id: string;
@@ -43,6 +44,7 @@ const modules: NodeModule[] = [
   colorWizardNode,
   switchNode,
   datasetForgeNode,
+  channelNode,
 ];
 
 export const NODE_MODULES: Record<string, NodeModule> = Object.fromEntries(

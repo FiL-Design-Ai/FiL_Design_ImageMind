@@ -43,12 +43,14 @@ describe("settings panel layout", () => {
     expect(strays.map((s) => s.id)).toEqual([]);
   });
 
-  it("keeps the panel to three sections", () => {
+  it("keeps the panel to four sections", () => {
     // Sections are sorted alphabetically by the host, and a section holding one
     // row is a heading that earns nothing — this used to be six sections for
-    // ten settings, four of them singletons.
+    // ten settings, four of them singletons. Wireless is the one section that
+    // is not a generic bucket: all three of its settings belong to one node
+    // (📡 Channel), so it gets pulled out of "Canvas" instead of hiding there.
     const sections = [...new Set(ALL_SETTINGS.map((s) => (s.category as string[])[1]))].sort();
-    expect(sections).toEqual(["Appearance", "Canvas", "General"]);
+    expect(sections).toEqual(["Appearance", "Canvas", "General", "Wireless"]);
   });
 
   it("leaves no section with a single row", () => {

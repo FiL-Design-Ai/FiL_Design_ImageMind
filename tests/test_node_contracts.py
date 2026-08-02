@@ -31,6 +31,7 @@ EXPECTED_IDS = {
     "FiLColorWizard",
     "FiLSignalSwitch",
     "FiLDatasetForge",
+    "FiLChannel",
 }
 
 

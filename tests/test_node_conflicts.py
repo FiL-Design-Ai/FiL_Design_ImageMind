@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import importlib
+import os
 import re
 from collections import Counter
 from pathlib import Path
@@ -13,9 +14,25 @@ _ID_RE = re.compile(r"""\bid:\s*["'](FiL\w+)["']""")
 
 
 def _backend_schemas():
+    """Every node class the package declares, staged ones included.
+
+    The release gate is bypassed on purpose. Without it these checks only see
+    the nodes already promoted, so a node held back for hardening — which is the
+    entire point of the gate — reads as a frontend module with no backend node
+    and fails `test_frontend_ids_match_backend_node_ids`. Uniqueness of ids and
+    display names is also worth knowing before a node ships, not after.
+    """
     package = importlib.import_module("FiL_Design_ImageMind")
-    ext = asyncio.run(package.comfy_entrypoint())
-    node_classes = asyncio.run(ext.get_node_list())
+    previous = os.environ.get("FIL_RELEASE_ALL")
+    os.environ["FIL_RELEASE_ALL"] = "1"
+    try:
+        ext = asyncio.run(package.comfy_entrypoint())
+        node_classes = asyncio.run(ext.get_node_list())
+    finally:
+        if previous is None:
+            del os.environ["FIL_RELEASE_ALL"]
+        else:
+            os.environ["FIL_RELEASE_ALL"] = previous
     return [c.GET_SCHEMA() for c in node_classes]
 
 

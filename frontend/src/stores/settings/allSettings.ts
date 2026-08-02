@@ -5,9 +5,13 @@
  * renders rather than what the definitions say:
  *
  * 1. **Sections are sorted alphabetically by ComfyUI**, not by the order here.
- *    So the section names decide the running order, and there are exactly three
- *    — Appearance, Canvas, General. It used to be six, four of which held a
- *    single row: a heading per setting is noise, not organisation.
+ *    So the section names decide the running order, and there are exactly four
+ *    — Appearance, Canvas, General, Wireless. It used to be more, most holding a
+ *    single row: a heading per setting is noise, not organisation. A section
+ *    earns its own heading once it groups more than one setting that belongs to
+ *    the same thing — Wireless has three, all for the 📡 Channel node, so it
+ *    gets pulled out of the catch-all "Canvas" bucket instead of hiding there
+ *    next to the mouse wheel and the run highlight.
  *
  * 2. **Within a section the host renders in reverse registration order.**
  *    Verified against core's own "Node Search Box" group, which is declared
@@ -28,6 +32,7 @@ import { SCROLL_GUARD_SETTINGS } from "@/stores/settings/scrollGuardSettings";
 import { CONNECTION_FX_SETTINGS } from "@/stores/settings/connectionFxSettings";
 import { RUN_FX_SETTINGS } from "@/stores/settings/runFxSettings";
 import { SHORTCUTS_SETTINGS } from "@/stores/settings/shortcutsSettings";
+import { WIRELESS_SETTINGS } from "@/stores/settings/wirelessSettings";
 
 export const ALL_SETTINGS: ComfyExtensionSettings[] = [
   // Appearance, to read as: Theme → Theme applies to → Theme animations.
@@ -44,4 +49,7 @@ export const ALL_SETTINGS: ComfyExtensionSettings[] = [
   ...LOGGING_SETTINGS,
   ...LANGUAGE_SETTINGS,
   ...MIND_SETTINGS,
+
+  // Wireless (📡 Channel node), to read as: Wireless channels → Draw wireless links → Channel name at the input.
+  ...WIRELESS_SETTINGS,
 ];

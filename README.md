@@ -484,10 +484,13 @@ graph, not muting — and it returns an `ExecutionBlocker` carrying a message th
 Plug something in and free inputs of the same type across the graph pick it up, with no wire drawn.
 One node carries one channel per wired input, so a single Channel can broadcast the model, the VAE
 and the CLIP at once. A channel is named after its data type (`MODEL`, `VAE`); to name it yourself,
-rename the slot — there is no name widget, because one widget could not name several inputs.
-**Not finished yet** — the node can be placed and its links do reach the prompt, but there is no way
-to resolve a clash between two channels of the same type, and nothing reports one. The release gate
-keeps it out of the node menu until there is.
+rename the slot — there is no name widget, because one widget could not name several inputs. When
+two channels could feed the same input, or a node offers two identical inputs a channel could not
+tell apart (a KSampler's `positive`/`negative`, say), nothing auto-wires and the input waits for a
+manual pick — open the gear on the Channel's own panel to choose targets by hand, or check the
+"Wireless" tab in the bottom panel (next to Essential/View Controls) for a graph-wide list of every
+channel and everything currently unresolved. A subgraph is its own scope: a Channel placed inside
+one serves receivers inside that same subgraph only, never the parent workflow or a sibling.
 
 </details>
 
@@ -1296,10 +1299,13 @@ Python самого ComfyUI (`python_embeded`, `venv` или `.venv`), став�
 нет. Воткните что-нибудь — и свободные входы того же типа по всему графу подхватят это без единого
 провода. Один узел несёт по каналу на каждый занятый вход, так что одна нода может раздавать модель,
 VAE и CLIP разом. Канал называется по типу данных (`MODEL`, `VAE`); чтобы задать имя, переименуйте
-слот — отдельного поля для имени нет, одним полем несколько входов не назовёшь.
-**Ещё не закончено** — ноду можно поставить, и её связи доходят до промпта, но разрешить спор двух
-каналов одного типа нечем, и никто о нём не сообщает. До готовности ноду не пускает в меню релизный
-гейт.
+слот — отдельного поля для имени нет, одним полем несколько входов не назовёшь. Если на один вход
+претендуют два канала, или у ноды два одинаковых входа, которые канал не может различить (`positive`
+и `negative` у KSampler, например) — автоматика не подключает ничего, вход ждёт ручного выбора:
+шестерёнка на панели самого Channel открывает список адресатов с галочками, а вкладка «Wireless» в
+нижней панели (рядом с Essential/View Controls) показывает все каналы графа и всё, что осталось
+неразрешённым. Подграф — своя область видимости: Channel внутри подграфа обслуживает только приёмники
+внутри него самого, наружу и в соседние подграфы не выходит.
 
 </details>
 
