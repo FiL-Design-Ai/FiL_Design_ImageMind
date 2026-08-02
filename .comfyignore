@@ -49,11 +49,18 @@ audit-next.md
 
 # Frontend sources — only frontend/dist ships. frontend/public is a
 # byte-for-byte duplicate of dist/style-previews, so shipping both doubles
-# 1.5 MB of preview images for nothing. The sourcemap goes for the same
-# reason: 1.8 MB, and its `sourcesContent` inlines all 164 files that the
-# next line excludes. Devtools will 404 on it, which costs nothing to anyone
-# who is not debugging the bundle, and anyone who is has the repository.
-frontend/dist/fil_design_imagemind.js.map
+# 1.5 MB of preview images for nothing.
+#
+# The sourcemap STAYS IN THE ARCHIVE, and the saved 2.3 MB is not worth what
+# dropping it costs. `frontend/dist/fil_design_imagemind.js` is 619 KB of
+# minified, name-mangled JavaScript, and the next line keeps `frontend/src/`
+# out — so without the map the published archive carries the frontend as
+# unreadable code with nothing to check it against. The registry forbids
+# "obfuscated code" precisely because it prevents security review
+# (https://docs.comfy.org/registry/standards), and 1.0.0 — which shipped the
+# map — passed review while 1.1.0 — the release that first excluded it — was
+# flagged. The map's `sourcesContent` inlines every source file, so shipping
+# it is what makes the bundle reviewable. Do not exclude it again.
 frontend/src/
 frontend/public/
 frontend/tests/

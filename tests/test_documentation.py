@@ -369,7 +369,10 @@ def test_comfyignore_keeps_dev_tooling_and_repo_only_docs_out():
         "CLAUDE.md", "audit.md", "audit-next.md", "fix.md", "docs/add-theme.md",
         "frontend/src/App.vue", "frontend/public/style-previews/x.webp",
         "frontend/tests/widgets3.test.ts", "frontend/node_modules/vue/package.json",
-        "frontend/package.json", "frontend/dist/fil_design_imagemind.js.map",
+        "frontend/package.json",
+        # The sourcemap deliberately is NOT here: it has to ship, or the bundle
+        # is unreadable minified code on its own. See
+        # test_comfyignore_ships_the_sourcemap_so_the_bundle_stays_reviewable.
     ]
     missed = [p for p in must_exclude if not _comfyignore_excludes(p, patterns)]
     assert not missed, f".comfyignore would ship these: {missed}"
@@ -388,3 +391,24 @@ def test_comfyignore_still_ships_what_the_pack_needs_to_run():
     ]
     shipped_anyway = [p for p in must_ship if _comfyignore_excludes(p, patterns)]
     assert not shipped_anyway, f".comfyignore wrongly excludes: {shipped_anyway}"
+
+
+def test_comfyignore_ships_the_sourcemap_so_the_bundle_stays_reviewable():
+    """The shipped frontend must not be unreadable minified code on its own.
+
+    `fil_design_imagemind.js` is 619 KB of minified, name-mangled JavaScript
+    and `frontend/src/` is excluded, so the sourcemap is the only thing in the
+    archive that a reviewer — or the registry's scanner — can read the bundle
+    against; its `sourcesContent` inlines every source file. The registry
+    forbids obfuscated code because it prevents security review, and the
+    version history matches: 1.0.0 shipped the map and went Active, 1.1.0
+    dropped it and was flagged. Excluding it saves 2.3 MB and risks the
+    release, so this asserts it cannot be dropped again quietly.
+    """
+    patterns = _comfyignore_lines()
+    sourcemap = "frontend/dist/fil_design_imagemind.js.map"
+    assert not _comfyignore_excludes(sourcemap, patterns), (
+        f".comfyignore excludes {sourcemap}: the published bundle would be "
+        "minified code with no readable source, which is what got 1.1.0 flagged"
+    )
+    assert (ROOT / sourcemap).exists(), f"{sourcemap} is missing from the build"
