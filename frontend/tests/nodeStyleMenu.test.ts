@@ -85,4 +85,46 @@ describe("getExtraMenuOptions accessor", () => {
     expect((fix as { callback: unknown }).callback).not.toBe(foreignCallback);
     expect(options.filter((o) => (o as { content?: string })?.content?.startsWith("Fix node"))).toHaveLength(1);
   });
+
+  /**
+   * cg-use-everywhere's actual pattern (js/use_everywhere_settings.js,
+   * `add_extra_menu_items`): read `node.getExtraMenuOptions` once, wrap it,
+   * and assign the wrapper back onto the *node instance* — not the
+   * prototype. It relies on that assignment shadowing per-instance, the way
+   * it would for any plain prototype method. Reproduces the live bug: every
+   * node of a styled type used to leak one extra layer of its menu wrapper
+   * into every other node of that same type.
+   */
+  function patchLikeAnInstanceExtension(node: Record<string, unknown>, label: string) {
+    if (node.__patched) return;
+    const original = node.getExtraMenuOptions as ((...a: unknown[]) => unknown) | undefined;
+    node.getExtraMenuOptions = function (this: unknown, ...args: unknown[]) {
+      original?.apply(this, args);
+      (args[1] as unknown[]).push({ content: label });
+    };
+    node.__patched = true;
+  }
+
+  it("does not leak an instance-level patch (cg-use-everywhere pattern) across sibling nodes", () => {
+    const nodeType = makeNodeType();
+    registerStyledNode(nodeType, {});
+
+    const nodeA = Object.create(nodeType.prototype) as Record<string, unknown>;
+    nodeA.properties = {};
+    patchLikeAnInstanceExtension(nodeA, "UE block");
+
+    const nodeB = Object.create(nodeType.prototype) as Record<string, unknown>;
+    nodeB.properties = {};
+    patchLikeAnInstanceExtension(nodeB, "UE block");
+
+    const nodeC = Object.create(nodeType.prototype) as Record<string, unknown>;
+    nodeC.properties = {};
+    patchLikeAnInstanceExtension(nodeC, "UE block");
+
+    const options: unknown[] = [];
+    (nodeC.getExtraMenuOptions as (...a: unknown[]) => unknown).call(nodeC, {}, options);
+
+    const ueItems = options.filter((o) => (o as { content?: string })?.content === "UE block");
+    expect(ueItems).toHaveLength(1);
+  });
 });

@@ -74,13 +74,17 @@ function onKeydown(e: KeyboardEvent, index: number) {
 <style scoped>
 .fil-w-segmented {
   display: grid;
-  grid-template-columns: minmax(auto, max-content) minmax(60px, 1fr);
+  grid-template-columns: minmax(0, var(--fil-label-col)) minmax(60px, 1fr);
   align-items: center;
   gap: var(--fil-node-gap);
   width: 100%;
 }
 .fil-w-segmented-label {
   grid-column: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 11px;
   color: var(--fil-muted);
   font-family: inherit;
@@ -90,6 +94,11 @@ function onKeydown(e: KeyboardEvent, index: number) {
   display: flex;
   gap: 0;
   min-width: 0;
+  /* Explicit height, not "whatever 3px + a 6px button + a line of 12px text
+   * adds up to" — that came out ~33px and made this the third distinct field
+   * height in any node that mixes a segmented row with a select. */
+  height: var(--fil-control-h);
+  box-sizing: border-box;
   background: var(--fil-surface-2);
   border-radius: 7px;
   padding: 3px;
@@ -109,6 +118,7 @@ function onKeydown(e: KeyboardEvent, index: number) {
   text-overflow: ellipsis;
   white-space: nowrap;
   text-align: center;
+  box-sizing: border-box;
   padding: 6px;
   border: none;
   border-radius: 5px;

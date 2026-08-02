@@ -190,8 +190,32 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
       };
       return wrapped;
     },
-    set(value: MenuFn) {
-      current = value;
+    // `this` here is the assignment's receiver, not necessarily `p` — an
+    // inherited accessor's setter runs with `this` bound to whatever object
+    // the assignment was written on (JS spec, not our choice). Most
+    // extensions patch the classic way, on the prototype itself
+    // (`nodeType.prototype.getExtraMenuOptions = ...`), and that path needs
+    // to keep landing in the shared `current` so the lazy getter above still
+    // sees it. But cg-use-everywhere (and others) patch per node *instance*
+    // (`node.getExtraMenuOptions = ...`), expecting the assignment to shadow
+    // on that one node the way a plain prototype method would. Before this
+    // check both paths wrote to the same `current` closure, so every
+    // FiLOpticScanner (or any styled node) dropped on the graph re-wrapped
+    // the one shared function one more layer deep — the "Reject UE Links /
+    // UE Connectable Inputs / Add UE broadcasting" block from cg-use-
+    // everywhere came back once per node of that type that had ever been
+    // created, stacked into a single node's context menu.
+    set(this: unknown, value: MenuFn) {
+      if (this === p) {
+        current = value;
+      } else {
+        Object.defineProperty(this as object, "getExtraMenuOptions", {
+          value,
+          writable: true,
+          configurable: true,
+          enumerable: true,
+        });
+      }
     },
   });
 }

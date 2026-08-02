@@ -136,7 +136,7 @@ div.fil-seed-root { width: 100%; box-sizing: border-box; min-width: 0;
   backdrop-filter: none;
 }
 .fil-seed-display {
-  flex: 1; min-width: 0; box-sizing: border-box; height: var(--fil-control-h-lg);
+  flex: 1; min-width: 0; box-sizing: border-box; height: var(--fil-control-h);
   background: var(--fil-glass-bg); border: 1px solid var(--fil-glass-border); border-radius: var(--fil-field-radius);
   padding: 6px 8px; color: var(--fil-text);
   font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
@@ -145,5 +145,5 @@ div.fil-seed-root { width: 100%; box-sizing: border-box; min-width: 0;
 .fil-seed-display:focus { border-color: var(--fil-accent); }
 .fil-seed-display[readonly] { color: var(--fil-muted); font-style: italic; }
 .fil-seed-actions { display: flex; gap: 5px; flex-shrink: 0; }
-.fil-seed-actions :deep(.fil-w-btn) { padding: 0; width: var(--fil-control-h-lg); height: var(--fil-control-h-lg); font-size: 16px; }
+.fil-seed-actions :deep(.fil-w-btn) { padding: 0; width: var(--fil-control-h); height: var(--fil-control-h); font-size: 16px; }
 </style>

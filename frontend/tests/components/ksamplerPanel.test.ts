@@ -102,4 +102,35 @@ describe("KSamplerPanel.vue", () => {
     await seedInput.trigger("keydown", { key: "Enter" });
     expect(state.nodeState.seed).toBe(123456);
   });
+
+  // The sampler and scheduler combos were deliberately left without an input
+  // socket for a long time (see the comment on KSAMPLER_SOCKET_INPUTS). Now
+  // that they have one, the panel has to react to a wire the same way the
+  // numeric fields do — an editable combo next to a live link would let the
+  // user set a value the graph immediately overwrites.
+  it("locks the sampler combo while its input socket carries a link", async () => {
+    const node = {
+      ...nodeWithSamplers(["euler", "dpmpp_2m"]),
+      inputs: [
+        { name: "sampler_name", widget: {}, link: 7 },
+        { name: "scheduler", widget: {}, link: null },
+      ],
+    };
+    const wrapper = mount(KSamplerPanel, { props: { state: makeState({ node }) as never } });
+    // useWidgetSockets reads the links in onMounted, so the lock lands on the
+    // render after the first one.
+    await nextTick();
+    const selects = wrapper.findAll("select");
+    // [0] control_after_generate, [1] sampler_name, [2] scheduler.
+    expect((selects[1].element as HTMLSelectElement).disabled).toBe(true);
+    expect((selects[2].element as HTMLSelectElement).disabled).toBe(false);
+  });
+
+  it("leaves both combos editable when nothing is connected", () => {
+    const node = nodeWithSamplers(["euler", "dpmpp_2m"]);
+    const wrapper = mount(KSamplerPanel, { props: { state: makeState({ node }) as never } });
+    const selects = wrapper.findAll("select");
+    expect((selects[1].element as HTMLSelectElement).disabled).toBe(false);
+    expect((selects[2].element as HTMLSelectElement).disabled).toBe(false);
+  });
 });

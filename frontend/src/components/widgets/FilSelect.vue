@@ -31,13 +31,17 @@ const modelValue = defineModel<T>({ required: true });
 <style scoped>
 .fil-w-select {
   display: grid;
-  grid-template-columns: minmax(auto, max-content) minmax(60px, 1fr);
+  grid-template-columns: minmax(0, var(--fil-label-col)) minmax(60px, 1fr);
   align-items: center;
   gap: var(--fil-node-gap);
   width: 100%;
 }
 .fil-w-select-label {
   grid-column: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 11px;
   color: var(--fil-muted);
   font-family: inherit;
@@ -49,7 +53,7 @@ const modelValue = defineModel<T>({ required: true });
   height: var(--fil-control-h);
   background: var(--fil-panel-alt);
   border: 1px solid var(--fil-border);
-  border-radius: 6px;
+  border-radius: var(--fil-field-radius);
   padding: 5px 8px;
   color: var(--fil-text);
   font-family: inherit;

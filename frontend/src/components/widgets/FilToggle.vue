@@ -45,13 +45,26 @@ function toggle() {
 <style scoped>
 .fil-w-toggle {
   display: grid;
-  grid-template-columns: minmax(auto, max-content) minmax(60px, 1fr);
+  grid-template-columns: minmax(0, var(--fil-label-col)) minmax(60px, 1fr);
   align-items: center;
   gap: var(--fil-node-gap);
   width: 100%;
+  /* The switch itself is 20px and stays that way — a control this small looks
+   * wrong scaled up. The ROW still occupies a full control height so the
+   * vertical rhythm of a settings stack does not stutter around it. */
+  min-height: var(--fil-control-h);
+}
+/* …except in `bare` mode, which is an inline chip inside someone else's row
+ * (see the flex override below) and must not pad that row out. */
+.fil-w-toggle.bare {
+  min-height: 0;
 }
 .fil-w-toggle-label {
   grid-column: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 11px;
   color: var(--fil-muted);
   font-family: inherit;

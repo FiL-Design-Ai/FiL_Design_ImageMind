@@ -926,9 +926,18 @@ const SURFACE_VARS_LIGHT =
  *   whole set at 5.17–11.01:1 while keeping the hue recognisable. Derived rather
  *   than hand-listed so a future palette is safe without extra bookkeeping.
  *   Icons stay on the raw accent — glyphs are non-text and only need 3:1.
- * - `--fil-control-h` (30px) — the standard height for select/text/number
- *   fields, so a stack of mixed widgets lines up. `--fil-control-h-lg` (34px)
- *   is the deliberate exception for seed rows and icon buttons.
+ * - `--fil-control-h` (30px) — the height of EVERY interactive control, with no
+ *   exceptions. There used to be a `--fil-control-h-lg` (34px) for seed rows and
+ *   icon buttons; the "deliberate exception" simply read as three different
+ *   field sizes stacked in one node (KSampler showed 34/30/33px in a row) and is
+ *   gone. A new control gets this token or it does not line up.
+ * - `--fil-label-col` (38%) — the width of the label column in every labelled
+ *   row. Each row widget used to size its own label track to its own text
+ *   (`minmax(auto, max-content)`), so the left edge of the *controls* moved from
+ *   row to row: "CFG" started its field 40px earlier than "After generate". One
+ *   shared width is what makes a stack of rows read as a column. Labels that do
+ *   not fit are ellipsised, and a node with unusually long labels can widen the
+ *   track by setting the variable on its own root.
  *
  * Inject the FiL_Design_ImageMind CSS variables on `:root` exactly once, plus three extra
  * (initially empty) `<style>` tags reserved for runtime theme switching —
@@ -946,7 +955,7 @@ export function injectFilBrandVars(): void {
   if (document.getElementById("fil-brand-vars")) return;
   const el = document.createElement("style");
   el.id = "fil-brand-vars";
-  el.textContent = `:root{${paletteCssVars(FIL_PALETTE)}--fil-radius:8px;--fil-node-pad:6px 8px 14px 8px;--fil-node-gap:4px;--fil-row-pad:4px 6px;--fil-control-h:30px;--fil-control-h-lg:34px;--fil-input-border:rgba(240,138,69,0.35);${SURFACE_VARS_CYAN}${OVERLAY_VARS_DARK}}
+  el.textContent = `:root{${paletteCssVars(FIL_PALETTE)}--fil-radius:8px;--fil-node-pad:6px 8px 14px 8px;--fil-node-gap:4px;--fil-row-pad:4px 6px;--fil-control-h:30px;--fil-label-col:38%;--fil-input-border:rgba(240,138,69,0.35);${SURFACE_VARS_CYAN}${OVERLAY_VARS_DARK}}
 /* The light palette used to live here under a .comfy-theme-light selector. That
  * class is absent on current ComfyUI builds, so the block never matched — it is
  * emitted into the fil-theme-base tag now, driven by detectComfyBase(). */

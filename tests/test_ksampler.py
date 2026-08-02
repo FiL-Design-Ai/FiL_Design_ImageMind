@@ -154,3 +154,73 @@ def test_preview_is_saved_with_the_workflow_attached(monkeypatch):
     assert result.ui["images"] == [{"filename": "fake.png"}]
     assert "prompt" in seen, "the preview branch never ran — it was swallowed again"
     assert seen["prompt"] is not None, "preview saved with no workflow attached"
+
+
+def test_linked_sampler_name_that_is_not_installed_fails_with_a_readable_error(monkeypatch):
+    """A wire can hand `sampler_name` any string at all.
+
+    Both combos now expose an input socket (KSAMPLER_SOCKET_INPUTS in
+    frontend/src/nodes2/nodes/ksampler.ts). ComfyUI validates a combo's *widget*
+    value against the schema, but a linked input is only type-checked, so an
+    unknown name reaches comfy.samplers and dies there as a bare KeyError with
+    no hint about which field was at fault. Goes through the harness so the
+    check is exercised on the same call path the executor uses.
+    """
+    import pytest
+
+    from executor_harness import as_the_executor_calls_it
+
+    monkeypatch.setattr(sampling, "sample_unified", lambda *a, **kw: {"samples": "BASE"})
+
+    execute = as_the_executor_calls_it(FiLKSampler)
+    with pytest.raises(ValueError) as err:
+        execute(
+            model="MODEL", seed=1, steps=1, cfg=7.0,
+            sampler_name="euler_ancestral_typo", scheduler="normal",
+            positive="P", negative="N", latent={"samples": "L"}, vae_decode="false",
+        )
+    message = str(err.value)
+    assert "sampler_name" in message
+    assert "euler_ancestral_typo" in message
+    assert "euler" in message, "the error should list what is actually installed"
+
+
+def test_linked_scheduler_that_is_not_installed_is_rejected_too(monkeypatch):
+    import pytest
+
+    from executor_harness import as_the_executor_calls_it
+
+    monkeypatch.setattr(sampling, "sample_unified", lambda *a, **kw: {"samples": "BASE"})
+
+    execute = as_the_executor_calls_it(FiLKSampler)
+    with pytest.raises(ValueError, match="scheduler"):
+        execute(
+            model="MODEL", seed=1, steps=1, cfg=7.0,
+            sampler_name="euler", scheduler="not_a_schedule",
+            positive="P", negative="N", latent={"samples": "L"}, vae_decode="false",
+        )
+
+
+def test_installed_sampler_and_scheduler_still_pass_straight_through(monkeypatch):
+    """The guard must not become a second, stricter copy of the schema."""
+    import comfy.samplers
+
+    from executor_harness import as_the_executor_calls_it
+
+    seen: dict = {}
+
+    def _capture(*_a, **kw):
+        seen.update(kw)
+        return {"samples": "BASE"}
+
+    monkeypatch.setattr(sampling, "sample_unified", _capture)
+
+    execute = as_the_executor_calls_it(FiLKSampler)
+    execute(
+        model="MODEL", seed=1, steps=1, cfg=7.0,
+        sampler_name=comfy.samplers.KSampler.SAMPLERS[-1],
+        scheduler=comfy.samplers.KSampler.SCHEDULERS[-1],
+        positive="P", negative="N", latent={"samples": "L"}, vae_decode="false",
+    )
+    assert seen["sampler_name"] == comfy.samplers.KSampler.SAMPLERS[-1]
+    assert seen["scheduler"] == comfy.samplers.KSampler.SCHEDULERS[-1]

@@ -215,15 +215,15 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .fil-combo {
-  display: grid; grid-template-columns: minmax(auto, max-content) minmax(60px, 1fr);
+  display: grid; grid-template-columns: minmax(0, var(--fil-label-col)) minmax(60px, 1fr);
   align-items: center; gap: var(--fil-node-gap); width: 100%;
 }
-.fil-combo-label { grid-column: 1; font-size: 11px; color: var(--fil-muted); font-family: inherit; }
+.fil-combo-label { grid-column: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; color: var(--fil-muted); font-family: inherit; }
 .fil-combo-trigger {
   grid-column: 2;
   width: 100%; box-sizing: border-box; height: var(--fil-control-h);
   display: flex; align-items: center; gap: 6px;
-  background: var(--fil-panel-alt); border: 1px solid var(--fil-border); border-radius: 6px;
+  background: var(--fil-panel-alt); border: 1px solid var(--fil-border); border-radius: var(--fil-field-radius);
   padding: 5px 8px; color: var(--fil-text); font-family: inherit; font-size: 12px;
   outline: none; cursor: pointer; text-align: left; appearance: none; -webkit-appearance: none;
 }

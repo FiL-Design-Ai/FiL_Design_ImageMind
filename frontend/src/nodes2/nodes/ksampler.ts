@@ -14,11 +14,21 @@ const KSamplerVue = defineAsyncComponent(() => import("@/components/nodes/KSampl
  * native widget, which hides its input slot with it — `exposeWidgetInputSockets`
  * gives the slot a row and a visible dot back.
  *
- * The combos are deliberately not here. A sampler name arriving over a wire is
- * a STRING that has to match the installed list exactly, and a dot inviting
- * that is a dot inviting a failed prompt.
+ * `sampler_name`/`scheduler` are here too, and they are the only combos in the
+ * pack that are. The objection to them was real — a name arriving over a wire
+ * has to match the installed list exactly, and nothing on this side can check
+ * that — so the check lives where the value is finally used: `execute()` in
+ * nodes/node_ksampler.py rejects an unknown name against
+ * `comfy.samplers.KSampler.SAMPLERS/SCHEDULERS` and names the valid ones,
+ * instead of letting it fall through to a bare KeyError inside the sampler.
+ *
+ * `control_after_generate`, `preview_method` and `vae_decode` stay off the
+ * list: they steer this node's own behaviour rather than the sampling, and
+ * there is nothing upstream that would sensibly drive them.
  */
-export const KSAMPLER_SOCKET_INPUTS = ["seed", "steps", "cfg", "denoise", "eta"];
+export const KSAMPLER_SOCKET_INPUTS = [
+  "seed", "steps", "cfg", "denoise", "eta", "sampler_name", "scheduler",
+];
 
 const numericDefaults: Record<string, number> = {
   seed: 0, steps: 20, cfg: 7.0, denoise: 1.0, eta: 1.0,
