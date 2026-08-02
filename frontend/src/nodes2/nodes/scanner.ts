@@ -4,7 +4,7 @@ import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
 import { createSyncedNodeState, findFilWidget, sanitizeWidgetValue } from "@/nodes2/util";
-import { exposeWidgetInputSockets } from "@/nodes2/widgetInputSockets";
+import { exposeWidgetInputSockets, installWidgetSocketSync } from "@/nodes2/widgetInputSockets";
 import { applyFxComposables } from "@/nodes2/applyFxComposables";
 import { FIL_STATE_KEY, installFilStatePersistence, restoreFilState } from "@/nodes2/statePersistence";
 
@@ -155,6 +155,12 @@ export const scannerNode: NodeModule = {
       unmountAllFilWidgets(this);
       return originalRemoved?.apply(this, args);
     };
+
+    // Connecting or cutting a wire changes nothing in the panel's DOM, so the
+    // observers in `useWidgetSockets` cannot see it. This bumps the counter they
+    // watch (and re-exposes the sockets a re-connect may have hidden), which is
+    // what replaced the panel's own 300ms poll.
+    installWidgetSocketSync(p, SCANNER_TEXT_INPUTS, "_filScannerSeedState");
 
     // Apply visual effects (Connection FX, Adaptive Title Color)
     applyFxComposables(nodeType as { prototype?: unknown });

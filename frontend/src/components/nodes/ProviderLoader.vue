@@ -6,7 +6,7 @@
  *
  * Uses ProviderModelPicker modal for easy provider & model browsing.
  */
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { FilSlider, FilInfo, FilIcon } from "@/components/widgets";
 import ProviderModelPicker from "@/components/nodes/ProviderModelPicker.vue";
 import { useProviderStore } from "@/stores/providerStore";
@@ -20,7 +20,6 @@ const props = defineProps<{ state: FilNodeState }>();
 const store = useProviderStore();
 const { t } = useI18n();
 
-const REFRESH_INTERVAL = 300_000; // 5 minutes
 const pickerOpen = ref(false);
 
 function field<T>(name: string, fallback: T): { get: () => T; set: (v: T) => void } {
@@ -51,8 +50,6 @@ const state = props.state;
 const loading = computed(() => store.isLoading(provider.value));
 const probe = computed(() => store.probeState[provider.value]);
 const ageLabel = computed(() => store.cachedAgeLabel(provider.value, t));
-
-let refreshTimer: ReturnType<typeof setInterval> | null = null;
 
 // Restore from a loaded workflow (setValue replaces nodeState).
 watch(() => props.state.nodeState, () => {}, { deep: true });
@@ -95,14 +92,19 @@ onMounted(async () => {
       toast.error(err instanceof Error ? err.message : String(err));
     }
   }
-  refreshTimer = setInterval(() => {
-    void store.loadModels(provider.value, true);
-  }, REFRESH_INTERVAL);
 });
 
-onUnmounted(() => {
-  if (refreshTimer) clearInterval(refreshTimer);
-});
+// No background refresh timer here any more. It re-fetched the model list every
+// five minutes with `force: true` — bypassing both the store's TTL and the
+// backend's cache — once PER NODE, for as long as the workflow was open, and
+// whether or not the tab was even in the foreground. Three Provider Loaders on
+// one provider meant three calls out to it every five minutes to answer a
+// question nobody had asked; on a metered or rate-limited provider that is a
+// bill and a 429 for nothing.
+//
+// What actually needs a fresh list already asks for one: opening the picker
+// loads it, its ↻ button forces it, and saving credentials refreshes it. The
+// store's five-minute TTL covers everything else.
 </script>
 
 <template>

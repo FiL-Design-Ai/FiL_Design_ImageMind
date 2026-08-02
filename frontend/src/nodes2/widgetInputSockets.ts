@@ -19,6 +19,7 @@
  * renderer to draw the dot unconditionally — `drawSlots()` otherwise only
  * shows a widget socket while the pointer is over it or a link is attached.
  */
+import { reactive } from "vue";
 import { findFilWidget } from "@/nodes2/util";
 
 /** Half of LiteGraph's `NODE_SLOT_HEIGHT` — the offset `_arrangeWidgetInputSlots` adds to `widget.y`. */
@@ -31,6 +32,8 @@ interface SlotLike {
   name?: string;
   link?: number | null;
   alwaysVisible?: boolean;
+  /** Set by ComfyUI on the slot it mirrors a widget with; absent on real inputs. */
+  widget?: unknown;
   /** `[x, y, width, height]` in graph coordinates — LiteGraph's hit-test box. */
   boundingRect?: ArrayLike<number>;
 }
@@ -58,6 +61,14 @@ export interface WidgetSocketAnchor {
  */
 export function exposeWidgetInputSockets(node: unknown, names: string[]): void {
   const n = node as NodeLike;
+  // Start the stack below the node's real inputs. It used to start at row 1,
+  // which put every fallback dot *inside* the real input column: on 🔍 Upscaler
+  // Simple the three fallback rows landed on `upscale_model`, on `latent`, and
+  // one row under it, so the only one the user could see read as a stray
+  // unlabelled socket — and the two hidden ones shared a hit box with a real
+  // input. Rows are `widget.y + 10` against `i * 20 + 10` for input `i`, so
+  // starting at the real-input count is the first row that cannot collide.
+  const firstFreeRow = countRealInputs(n);
   let row = 0;
   for (const name of names) {
     const slot = n.inputs?.find((i) => i.name === name);
@@ -70,10 +81,15 @@ export function exposeWidgetInputSockets(node: unknown, names: string[]): void {
     // of the next. Only a field the panel can measure gets a better row, from
     // `anchorWidgetInputSockets` — a field inside a collapsed section has no box
     // to measure and keeps the row assigned here.
-    if (w) w.y = SLOT_PITCH * (row + 1);
+    if (w) w.y = SLOT_PITCH * (firstFreeRow + row);
     row += 1;
   }
   requestArrange(n);
+}
+
+/** Inputs LiteGraph lays out itself — every slot that is not a widget mirror. */
+function countRealInputs(n: NodeLike): number {
+  return (n.inputs ?? []).filter((i) => !i.widget).length;
 }
 
 /**
@@ -94,7 +110,21 @@ export function anchorWidgetInputSockets(node: unknown, anchors: WidgetSocketAnc
 
   let moved = false;
   for (const { name, el } of anchors) {
-    if (!el) continue;
+    if (!el) {
+      // No element at all means the panel is not rendering that field: a
+      // collapsed section, or a socket-only input like Color Wizard's
+      // `saturate`. There is nothing on screen for the dot to sit beside, so it
+      // would keep its fallback row and read as an orphan. Stop drawing it
+      // unconditionally — LiteGraph still draws a socket that has a link, and
+      // opening the section brings the dot back with its field.
+      //
+      // Deliberately keyed off the element being *absent*, not off a zero-size
+      // rect: rects go to zero for a frame during any relayout, and hiding on
+      // that would make every dot flicker.
+      setAlwaysVisible(node as NodeLike, name, false);
+      continue;
+    }
+    setAlwaysVisible(node as NodeLike, name, true);
     const w = findFilWidget(node, name);
     if (!w) continue;
     const rect = el.getBoundingClientRect();
@@ -110,7 +140,10 @@ export function anchorWidgetInputSockets(node: unknown, anchors: WidgetSocketAnc
   // Also ask for one while a socket still has no hit-test box: LiteGraph resets
   // those to a zero-size rect whenever it rebuilds a node's slots, and a socket
   // without a box cannot be clicked or dropped onto.
-  if (moved || hasUnmeasuredSocket(node as NodeLike, anchors)) requestArrange(node as NodeLike);
+  // Only the dots that are actually drawn: one we just hid has no hit box by
+  // design, and counting it here would ask for a re-layout on every sync.
+  const shown = anchors.filter((a) => a.el);
+  if (moved || hasUnmeasuredSocket(node as NodeLike, shown)) requestArrange(node as NodeLike);
 }
 
 /** `true` for every named input that currently has a link attached. */
@@ -132,7 +165,21 @@ export function installWidgetSocketSync(prototype: unknown, names: string[], sta
     const result = original?.apply(this, args);
     exposeWidgetInputSockets(this, names);
     const state = (this as Record<string, unknown>)[stateKey] as { ui?: Record<string, unknown> } | undefined;
-    if (state?.ui) state.ui.linkVersion = ((state.ui.linkVersion as number) ?? 0) + 1;
+    // Through `reactive()`, not the raw object the node module parked here.
+    // `addFilDomWidget` mounts the panel against `reactive(state)`, and a write
+    // to the RAW target fires no proxy trap — the value changes and nothing that
+    // watches it ever hears. The counter looked like it worked (reading it back
+    // through the proxy shows the new number) while every watcher stayed silent,
+    // so a field driven by a link kept looking editable until something else
+    // happened to re-render the panel. Caught by the smoke suite against a real
+    // LiteGraph; the component suite could not see it, because its hand-made
+    // state is reactive from the start.
+    //
+    // `reactive()` caches per target, so this is the SAME proxy the panel holds.
+    if (state?.ui) {
+      const live = reactive(state) as { ui: Record<string, unknown> };
+      live.ui.linkVersion = ((live.ui.linkVersion as number) ?? 0) + 1;
+    }
     return result;
   };
 }
@@ -145,6 +192,11 @@ export function readLinkedInputs(node: unknown, names: string[]): Record<string,
     linked[name] = slot?.link != null;
   }
   return linked;
+}
+
+function setAlwaysVisible(n: NodeLike, name: string, visible: boolean): void {
+  const slot = n.inputs?.find((i) => i.name === name);
+  if (slot) slot.alwaysVisible = visible;
 }
 
 function hasUnmeasuredSocket(n: NodeLike, anchors: WidgetSocketAnchor[]): boolean {

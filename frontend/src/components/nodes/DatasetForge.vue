@@ -6,7 +6,7 @@
  * order reads top to bottom instead of being a flat pile of 19 widgets:
  * 1) who/what this dataset is  2) file format  3) captions  4) write to disk.
  */
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import {
   FilSection, FilSegmented, FilSelect, FilComboBox, FilTextInput, FilTextArea,
   FilNumberInput, FilToggle, FilInfo,
@@ -112,23 +112,21 @@ const dontCaption = strField("dont_caption", "");
 const captionInstruction = strField("caption_instruction", "");
 const needsLlm = computed(() => captionMode.value !== "none" && !manualCaptions.value.trim());
 
-// Config is a real input socket, not a widget — polled the same way
-// OpticScanner.vue tracks its socket-linked text fields, so the "connect a
-// provider" hint disappears the moment the user actually wires one up.
+// Config is a real input socket, not a widget, so `useWidgetSockets` above does
+// not cover it. It rides the same signal instead of a timer: `linkVersion` is
+// bumped from the node's `onConnectionsChange` (dataset.ts), which fires for
+// EVERY input including this one, so the "connect a provider" hint disappears
+// on the same frame the wire lands rather than up to 300ms later. The 300ms
+// interval this replaces ran for the lifetime of the node, whether or not
+// anything was ever connected.
 const configConnected = ref(false);
 function syncConfigLink(): void {
   const node = props.state.node as { inputs?: { name?: string; link?: unknown }[] } | undefined;
   const input = node?.inputs?.find((i) => i.name === "config");
   configConnected.value = input != null && input.link != null;
 }
-let configPoll = 0;
-onMounted(() => {
-  syncConfigLink();
-  configPoll = window.setInterval(syncConfigLink, 300);
-});
-onBeforeUnmount(() => {
-  if (configPoll) window.clearInterval(configPoll);
-});
+watch(() => (props.state.ui as Record<string, unknown> | undefined)?.linkVersion, syncConfigLink);
+onMounted(syncConfigLink);
 
 // ── 4) write to disk ─────────────────────────────────────────────────────
 const dryRun = boolToggle("dry_run", false);

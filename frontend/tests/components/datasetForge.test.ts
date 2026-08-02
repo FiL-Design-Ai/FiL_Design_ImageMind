@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { reactive, nextTick } from "vue";
 import { mount, type VueWrapper } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
@@ -28,8 +28,6 @@ function textInput(wrapper: VueWrapper, label: string) {
   return row.find<HTMLInputElement>("input.fil-w-text-input");
 }
 
-// DatasetForge polls the `config` input socket on a 300ms interval — unmount
-// after every test so the leftover timers don't outlive the test file.
 let wrapper: VueWrapper | null = null;
 afterEach(() => {
   wrapper?.unmount();
@@ -155,5 +153,31 @@ describe("DatasetForge socket-linked fields", () => {
     wrapper = mount(DatasetForgeVue, { props: { state: makeState({ node }) as never } });
     await nextTick();
     expect(textInput(wrapper, "Dataset name").attributes("disabled")).toBeDefined();
+  });
+  // `config` is a real input socket rather than a widget, so it rides
+  // `ui.linkVersion` (bumped from the node's onConnectionsChange in dataset.ts)
+  // instead of the DOM observers. It used to ride a 300ms interval that ran for
+  // the lifetime of the node; this is what has to work in its place.
+  it("drops the connect-a-provider hint when a wire lands on config", async () => {
+    const node = { inputs: [{ name: "config", link: null as number | null }] };
+    const state = makeState({ node });
+    wrapper = mount(DatasetForgeVue, { props: { state: state as never } });
+    await nextTick();
+    expect(wrapper.text()).toContain("Connect");
+
+    node.inputs[0].link = 3;
+    state.ui.linkVersion = ((state.ui.linkVersion as number) ?? 0) + 1;
+    await nextTick();
+    expect(wrapper.text()).not.toContain("Connect");
+  });
+
+  // The panel must not leave a timer behind. Two of these nodes on a canvas were
+  // two DOM passes a second for as long as the workflow stayed open, whether or
+  // not anything was ever wired to them.
+  it("installs no polling timer", () => {
+    const spy = vi.spyOn(window, "setInterval");
+    wrapper = mount(DatasetForgeVue, { props: { state: makeState() as never } });
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
   });
 });
