@@ -85,6 +85,14 @@ untouched, but a workflow using one of the five will get a different prompt.
   to every configured provider and verifies the description it gets back
   against what was actually drawn. Kept out of the automated test suite
   because CI carries no provider keys.
+- **FilBrowser, a shared browsing frame, replaces the separate pickers for
+  provider models and prompt styles.** A resizable window with a left column
+  of filter groups that each carry a count, ranked search, favourites, and a
+  recently-used list kept distinct from favourites. Search ranks instead of
+  filtering: `gpt-4o` used to sit below every longer name that merely
+  contained it, because a substring filter kept the provider's own order.
+  🧹 Cleaner, ⚡ KSampler, 🎛️ Noise Control and 👁️‍🗨️ Image Decomposer gain
+  Vue panels of their own, built on the same frame.
 
 ## 1.1.0 (2026-07-29)
 
