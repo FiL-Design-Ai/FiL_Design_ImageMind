@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useProviderStore, PROVIDER_LIST } from "@/stores/providerStore";
 import FilButton from "@/components/widgets/FilButton.vue";
 import FilIcon from "@/components/widgets/FilIcon.vue";
@@ -10,8 +10,10 @@ import {
   PROVIDER_ACCOUNT_LINK,
   PROVIDER_EDITS_BASE_URL,
 } from "@/composables/providerMeta";
+import { useI18n } from "@/composables/useI18n";
 
 const store = useProviderStore();
+const { t } = useI18n();
 
 const editing = ref<Record<string, { key: string; base_url: string; account_id: string }>>(
   Object.fromEntries(PROVIDER_LIST.map((pid) => [pid, { key: "", base_url: "", account_id: "" }]))
@@ -90,20 +92,20 @@ function keyState(pid: string): { kind: string; label: string; hint: string } | 
   const hint = acct.key_hint ?? "";
   switch (acct.key_source) {
     case "file":
-      return { kind: "file", label: hint, hint: "Key saved in data/auth.json — Delete removes it." };
+      return { kind: "file", label: hint, hint: t("pm_key_file_hint", "Key saved in data/auth.json — Delete removes it.") };
     case "env":
       return { kind: "env", label: `${hint} · env`, hint: `Key comes from the ${acct.env_var} environment variable, not from this panel. Saving one here overrides it.` };
     case "config":
       return { kind: "env", label: `${hint} · config.yaml`, hint: `Key comes from ${acct.env_var} in config.yaml, not from this panel. Saving one here overrides it.` };
     default:
-      return { kind: "none", label: "no key", hint: "No API key for this provider yet." };
+      return { kind: "none", label: t("pm_no_key", "no key"), hint: t("pm_no_key_hint", "No API key for this provider yet.") };
   }
 }
 
 function keyPlaceholder(pid: string): string {
   const state = keyState(pid);
   if (!state || state.kind === "none") return "sk-...";
-  return `${state.label} — type to replace`;
+  return `${state.label} — ${t("pm_type_to_replace", "type to replace")}`;
 }
 
 /**
@@ -148,11 +150,13 @@ function providerStatus(pid: string): PmStatus {
   return "off";
 }
 
-const STATUS_LABEL: Record<PmStatus, string> = {
-  connected: "Connected",
-  configured: "Configured",
-  off: "Not connected",
-};
+// `computed`, not a plain const: useI18n fetches the locale asynchronously and
+// a const evaluated once at setup would freeze the English fallbacks.
+const STATUS_LABEL = computed<Record<PmStatus, string>>(() => ({
+  connected: t("pm_status_connected", "Connected"),
+  configured: t("pm_status_configured", "Configured"),
+  off: t("pm_status_off", "Not connected"),
+}));
 
 // Only unconfigured ("off") providers collapse; a configured/connected one is
 // always shown expanded regardless of the toggle.
@@ -256,7 +260,7 @@ const hasChanges = (pid: string) => {
       <div class="fil-pm-fields">
         <label v-if="showApiKey(pid)" class="fil-pm-field">
           <span class="fil-pm-field-head">
-            <span class="fil-pm-field-label">API Key</span>
+            <span class="fil-pm-field-label">{{ t("pm_api_key", "API Key") }}</span>
             <!-- The masked key lives in the input's own placeholder; a chip
                  repeating it beside the label showed the same `AQ.…ilyg`
                  twice. Which account is in play still matters, so the source
@@ -283,7 +287,7 @@ const hasChanges = (pid: string) => {
 
         <label v-if="showBaseUrl(pid)" class="fil-pm-field">
           <span class="fil-pm-field-head">
-            <span class="fil-pm-field-label">Base URL</span>
+            <span class="fil-pm-field-label">{{ t("pm_base_url", "Base URL") }}</span>
             <!-- Local servers have no key field to carry their link. -->
             <a
               v-if="!showApiKey(pid) && credentialLink[pid]"
@@ -306,7 +310,7 @@ const hasChanges = (pid: string) => {
 
         <label v-if="needsAccountId(pid)" class="fil-pm-field">
           <span class="fil-pm-field-head">
-            <span class="fil-pm-field-label">Account ID</span>
+            <span class="fil-pm-field-label">{{ t("pm_account_id", "Account ID") }}</span>
             <a
               v-if="accountLink[pid]"
               class="fil-pm-link"
@@ -329,23 +333,23 @@ const hasChanges = (pid: string) => {
       <div class="fil-pm-actions">
         <FilButton
           variant="accent"
-          :label="hasChanges(pid) ? 'Save' : 'Saved'"
+          :label="hasChanges(pid) ? t('pm_save', 'Save') : t('pm_saved', 'Saved')"
           :disabled="!hasChanges(pid)"
           @click="doSave(pid)"
         />
         <span v-if="!hasChanges(pid) && store.cachedAgeLabel(pid)" class="fil-pm-age">
-          {{ store.cachedAgeLabel(pid) }} ago
+          {{ store.cachedAgeLabel(pid) }} {{ t("pm_ago", "ago") }}
         </span>
         <FilButton
           variant="danger"
-          label="Delete"
+          :label="t('pm_delete', 'Delete')"
           :disabled="!hasStoredCredentials(pid)"
           :title="deleteHint(pid)"
           @click="doDelete(pid)"
         />
         <FilButton
           variant="standard"
-          label="Probe"
+          :label="t('pm_probe', 'Probe')"
           :loading="probing[pid]"
           :flashing="probedOk[pid]"
           :disabled="!store.accounts[pid]?.local && !store.accounts[pid]?.configured && !editing[pid].key && !editing[pid].base_url"
@@ -353,7 +357,7 @@ const hasChanges = (pid: string) => {
         />
         <FilButton
           variant="standard"
-          label="Load Models"
+          :label="t('pm_load_models', 'Load Models')"
           :loading="loadingModels[pid]"
           @click="doLoadModels(pid)"
         />
@@ -373,7 +377,7 @@ const hasChanges = (pid: string) => {
       <div v-if="store.modelsFor(pid).length > 0" class="fil-pm-models">
         <span class="fil-pm-model-tag" v-for="m in store.modelsFor(pid)" :key="m">
           {{ m }}
-          <span v-if="store.visionModelsFor(pid).includes(m)" class="fil-pm-vision-badge" title="Vision-capable">👁</span>
+          <span v-if="store.visionModelsFor(pid).includes(m)" class="fil-pm-vision-badge" :title="t('pm_vision_capable', 'Vision-capable')">👁</span>
         </span>
       </div>
 

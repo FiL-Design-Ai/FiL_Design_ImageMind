@@ -107,6 +107,13 @@ export default defineConfig(({ command }) => ({
     globals: true,
     setupFiles: ["./tests/setup.ts"],
     include: ["tests/**/*.test.ts"],
+    // The default worker pool (forks, and `threads`) crashes on Node 24 with
+    // vitest 4.1.10 — every file dies at collection with "Cannot read
+    // properties of undefined (reading 'config')" / "Vitest failed to find the
+    // runner", even a file that imports nothing. CI runs Node 22 where forks is
+    // fine; `vmThreads` is a first-class pool that works on both, so pin it
+    // rather than force a specific local Node version.
+    pool: "vmThreads",
     // Tests run with the real Vue/Pinia from node_modules (not external);
     // the production `external` config above only applies to `vite build`.
   },
