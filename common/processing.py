@@ -1,7 +1,9 @@
 import base64
 import io
 import logging
-from typing import Any, List, Tuple
+import threading
+from contextlib import contextmanager
+from typing import Any, Iterator, List, Tuple
 
 import numpy as np
 from PIL import Image
@@ -50,6 +52,28 @@ class ImageProcessor:
         img_cfg = cfg.get_image_config()
         self.max_side = max_side or img_cfg.get("max_side", 1024)
         self.quality = quality or img_cfg.get("quality", 80)
+        self._lock = threading.Lock()
+
+    @contextmanager
+    def with_max_side(self, max_side: int) -> Iterator["ImageProcessor"]:
+        """Apply a per-call `max_side` for the duration of one use, atomically.
+
+        The nodes used to assign `self.max_side` and then process, but ComfyUI
+        runs nodes on a thread pool — two concurrent executions of the same node
+        could overwrite each other's size mid-flight. Holding the lock across the
+        whole set-and-use keeps the two steps atomic without leaking the change.
+        """
+        requested = int(max_side or 0)
+        if requested <= 0:
+            yield self
+            return
+        with self._lock:
+            previous = self.max_side
+            self.max_side = requested
+            try:
+                yield self
+            finally:
+                self.max_side = previous
 
     def tensor_to_pil(self, tensor) -> Image.Image:
         if tensor.ndim == 4:

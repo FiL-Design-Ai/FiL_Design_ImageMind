@@ -10,10 +10,11 @@ from typing import Any, Optional
 
 from comfy_api.latest import io
 from ..common.brand import BRAND, CATEGORY_ROOT
+from ..common.config import is_model_vision_capable
 from ..common.data import get_all_style_keys, get_style_prompt
 from ..common.io_types import FilProviderConfig
 from ..common.models import ModelClient
-from ..common.processing import ImageProcessor
+from ..common.processing import ImageProcessor, is_valid_model_name, normalize_model_name
 from ..common.provider_runtime import safe_provider_error
 
 logger = logging.getLogger(f"{BRAND}.StyleMixer")
@@ -278,19 +279,32 @@ class FiLStyleMixer(io.ComfyNode):
         image_style_parts: list[str] = []
         smart_fusion_prompt: str = ""
 
-        # Check provider config for Vision capabilities
-        has_config = (
-            isinstance(config, dict)
-            and bool(config.get("provider"))
-            and bool(config.get("model"))
-        )
+        # Resolve the provider config up front. Analysing a reference image is a
+        # vision task, so a wired config whose model is a placeholder — or that
+        # cannot see images — is a misconfiguration to report, not a reason to
+        # silently fall back to the no-LLM placeholders. Mirrors the preflight
+        # the scanner / decomposer already run.
+        config_is_dict = isinstance(config, dict) and bool(config.get("provider"))
+        provider = str(config.get("provider")) if config_is_dict else ""
+        model = normalize_model_name(str(config.get("model", ""))) if config_is_dict else ""
+        has_config = config_is_dict and is_valid_model_name(model)
 
         if active_images:
-            if has_config and config is not None:
-                provider = str(config.get("provider"))
-                model = str(config.get("model"))
+            can_analyze = False
+            if has_config:
+                if is_model_vision_capable(provider, model):
+                    can_analyze = True
+                else:
+                    failures.append(
+                        f"модель '{model}' не поддерживает анализ изображений — "
+                        "выбери vision-модель (Qwen-VL, Gemini, GPT-4o) или отключи эталоны"
+                    )
+            elif config_is_dict:
+                # Config wired, but the model slot is empty or a placeholder.
+                failures.append("в Provider Loader не выбрана действующая модель")
+
+            if can_analyze:
                 temperature = float(config.get("temperature", 0.7))
-                seed = int(config.get("seed", -1))
                 rate_limit = int(config.get("rate_limit_ms", 100))
 
                 if fusion_mode == "Smart LLM Fusion (Gen-Mix)":
@@ -325,7 +339,6 @@ class FiLStyleMixer(io.ComfyNode):
                             user_prompt=user_msg,
                             images=b64_list,
                             temperature=temperature,
-                            seed=seed,
                             rate_limit_ms=rate_limit,
                         ).strip()
                     except Exception as exc:
@@ -348,7 +361,6 @@ class FiLStyleMixer(io.ComfyNode):
                                 user_prompt="Extract visual style features.",
                                 images=[b64],
                                 temperature=temperature,
-                                seed=seed,
                                 rate_limit_ms=rate_limit,
                             ).strip()
                             if desc:
@@ -359,8 +371,8 @@ class FiLStyleMixer(io.ComfyNode):
                         except Exception as exc:
                             logger.error("[StyleMixer] Failed to analyze image_%d: %s", idx, exc)
                             failures.append(f"image_{idx}: {safe_provider_error(exc)}")
-            else:
-                # Fallback when no config/provider is connected
+            elif not config_is_dict:
+                # No config wired at all — deterministic placeholders, no LLM.
                 for idx, _img, w, focus, _b64 in active_images:
                     image_style_parts.append(f"(image {idx} visual style [{focus}]:{w:.2f})")
 

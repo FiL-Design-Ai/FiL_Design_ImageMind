@@ -2,6 +2,7 @@
 FiL_Design_ImageMind API Routes — минимальные REST-эндпоинты для управления.
 """
 
+import asyncio
 import logging
 
 from aiohttp import web
@@ -128,7 +129,11 @@ def register_routes():
     async def get_models(request):
         provider = request.match_info.get("provider", "")
         force = request.query.get("force", "0") == "1"
-        payload, status = build_models_response(provider, force=force)
+        # `fetch_models_with_status` is a blocking network call (up to its 15 s
+        # timeout). Running it inline froze the ComfyUI event loop — progress
+        # WebSocket, queue and every other route — for the whole request, so it
+        # goes to a worker thread.
+        payload, status = await asyncio.to_thread(build_models_response, provider, force)
         return web.json_response(payload, status=status)
 
     @server.routes.get(f"/{ROUTE_SLUG}/providers")
@@ -147,7 +152,9 @@ def register_routes():
             data = await request.json()
         except Exception:
             return web.json_response({"error": "invalid JSON"}, status=400)
-        payload, status = apply_auth_payload(data)
+        # Writes auth.json and re-reads the provider accounts — disk I/O that
+        # should not hold the event loop.
+        payload, status = await asyncio.to_thread(apply_auth_payload, data)
         return web.json_response(payload, status=status)
 
     @server.routes.post(f"/{ROUTE_SLUG}/provider_probe")
@@ -162,7 +169,11 @@ def register_routes():
         model = str(data.get("model", "")).strip()
         if provider not in PROVIDERS:
             return web.json_response({"error": "unknown provider"}, status=404)
-        return web.json_response(probe_provider(provider, model))
+        # The probe lists the models and then runs a real generation — up to the
+        # provider's full timeout. Inline it stalled the whole ComfyUI server
+        # (event loop) for the entire probe, so it runs in a worker thread.
+        result = await asyncio.to_thread(probe_provider, provider, model)
+        return web.json_response(result)
 
 
     @server.routes.get(f"/{ROUTE_SLUG}/locale/{{lang}}")

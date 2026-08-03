@@ -390,3 +390,62 @@ def test_style_mixer_without_images_is_unaffected_by_failure_reporting():
         styled_prompt, _ = output.args if hasattr(output, "args") else output
         assert "⚠️" not in styled_prompt
         assert "lion" in styled_prompt
+
+
+# ---------------------------------------------------------------------------
+# Decomposer error contract — an error must surface on the first output but
+# never flow out of `full_prompt`, or a downstream node would consume the
+# message as a prompt.
+# ---------------------------------------------------------------------------
+
+
+def test_decomposer_vision_error_does_not_leak_into_full_prompt():
+    config = {"provider": "ollama", "model": "plain-text-model"}
+    output = FiLImageDecomposer.execute(config=config, image=object(), prompt="x")
+    subject, lighting, composition, style, full_prompt = output.args if hasattr(output, "args") else output
+    assert "не поддерживает анализ изображений" in subject
+    assert full_prompt == ""
+    assert lighting == "" and composition == "" and style == ""
+
+
+def test_decomposer_fingerprint_changes_when_a_later_frame_changes():
+    """Hashing only image[0] returned a stale result when frames 2..N changed."""
+    import torch
+
+    config = {"provider": "ollama", "model": "llava"}
+    base = torch.zeros(2, 4, 4, 3)
+    fp1 = FiLImageDecomposer.fingerprint_inputs(config=config, image=base)
+
+    modified = base.clone()
+    modified[1] += 0.5  # change only the second frame
+    fp2 = FiLImageDecomposer.fingerprint_inputs(config=config, image=modified)
+
+    assert fp1 != fp2
+
+
+# ---------------------------------------------------------------------------
+# Style Mixer preflight — a wired config with a placeholder or non-vision model
+# is a misconfiguration to report, not a silent fallback to placeholders.
+# ---------------------------------------------------------------------------
+
+
+def test_style_mixer_rejects_non_vision_model_for_image_analysis():
+    config = {"provider": "ollama", "model": "plain-text-model"}
+    with patch("FiL_Design_ImageMind.nodes.node_style_mixer._processor.tensor_to_base64", return_value="b64"):
+        output = FiLStyleMixer.execute(
+            config=config, base_prompt="Hero", image_1=MagicMock(), img_weight_1=0.9
+        )
+    styled_prompt, _ = output.args if hasattr(output, "args") else output
+    assert "⚠️" in styled_prompt
+    assert "не поддерживает анализ изображений" in styled_prompt
+
+
+def test_style_mixer_rejects_placeholder_model_for_image_analysis():
+    config = {"provider": "openai", "model": "(loading...)"}
+    with patch("FiL_Design_ImageMind.nodes.node_style_mixer._processor.tensor_to_base64", return_value="b64"):
+        output = FiLStyleMixer.execute(
+            config=config, base_prompt="Hero", image_1=MagicMock(), img_weight_1=0.9
+        )
+    styled_prompt, _ = output.args if hasattr(output, "args") else output
+    assert "⚠️" in styled_prompt
+    assert "не выбрана действующая модель" in styled_prompt

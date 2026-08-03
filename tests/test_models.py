@@ -217,3 +217,98 @@ def test_the_penalty_expires_so_one_bad_minute_does_not_slow_the_session(monkeyp
     later = time.time() + network.RATE_LIMIT_PENALTY_TTL_S + 1
     monkeypatch.setattr(network.time, "time", lambda: later)
     assert limiter._penalty_ms("google") == 0
+
+
+# ---------------------------------------------------------------------------
+# Multi-image payloads — every strategy used to send only images[0], silently
+# discarding the other reference images (Style Mixer Smart Fusion wired up to
+# four and three of them never reached the model).
+# ---------------------------------------------------------------------------
+
+
+def test_ollama_build_payload_sends_every_image():
+    strategy = _strategy(OllamaStrategy)
+    payload = strategy.build_payload(
+        {"model": "llava"}, "sys", "user",
+        images=["aaa", "data:image/jpeg;base64,bbb"],
+    )
+    assert payload["messages"][-1]["images"] == ["aaa", "bbb"]
+
+
+def test_openai_build_payload_sends_every_image_as_content_parts():
+    strategy = _strategy(OpenAIStrategy)
+    payload = strategy.build_payload(
+        {"model": "gpt-4o", "provider": "openai"}, "sys", "user",
+        images=["aaa", "data:image/jpeg;base64,bbb"],
+    )
+    content = payload["messages"][0]["content"]
+    image_parts = [p for p in content if p["type"] == "image_url"]
+    assert [p["image_url"]["url"] for p in image_parts] == [
+        "data:image/jpeg;base64,aaa",
+        "data:image/jpeg;base64,bbb",
+    ]
+    assert any(p["type"] == "text" for p in content)
+
+
+def test_google_build_payload_sends_every_image_before_the_text():
+    strategy = _strategy(GoogleStrategy)
+    payload = strategy.build_payload(
+        {"model": "gemini-2.0-flash"}, "sys", "user",
+        images=["aaa", "data:image/jpeg;base64,bbb"],
+    )
+    parts = payload["contents"][0]["parts"]
+    assert parts[0] == {"inline_data": {"mime_type": "image/jpeg", "data": "aaa"}}
+    assert parts[1] == {"inline_data": {"mime_type": "image/jpeg", "data": "bbb"}}
+    assert "text" in parts[-1]
+
+
+def test_generate_passes_every_image_to_the_strategy(monkeypatch):
+    client = ModelClient()
+    seen = {}
+
+    def fake_build_payload(cfg, system, user, images=None, **kwargs):
+        seen["images"] = images
+        return {"model": cfg["model"]}
+
+    monkeypatch.setattr(client.http_client, "post", lambda *a, **kw: _FakeResponse())
+    monkeypatch.setattr(client._strategies["ollama"], "build_payload", fake_build_payload)
+
+    client.generate(provider="ollama", model="llava", system_prompt="s", user_prompt="u", images=["a", "b", "c"])
+    assert seen["images"] == ["a", "b", "c"]
+
+
+# ---------------------------------------------------------------------------
+# RateLimiter must not hold its global lock while sleeping — doing so
+# serialized every provider (and penalize) for the whole duration of a wait.
+# ---------------------------------------------------------------------------
+
+
+def test_rate_limiter_releases_the_lock_while_it_waits(monkeypatch):
+    from FiL_Design_ImageMind.common.network import RateLimiter
+
+    limiter = RateLimiter(default_ms=100)
+    limiter._last["ollama"] = time.time()  # force a wait
+    lock_free = []
+
+    def fake_sleep(_s):
+        got = limiter._lock.acquire(blocking=False)
+        lock_free.append(got)
+        if got:
+            limiter._lock.release()
+
+    monkeypatch.setattr(time, "sleep", fake_sleep)
+    limiter.wait_if_needed(100, "ollama")
+    assert lock_free == [True], "other providers must not block while one waits"
+
+
+def test_rate_limiter_reserves_slots_so_concurrent_waiters_line_up(monkeypatch):
+    from FiL_Design_ImageMind.common.network import RateLimiter
+
+    limiter = RateLimiter(default_ms=100)
+    monkeypatch.setattr(time, "time", lambda: 1000.0)
+    waits = []
+    monkeypatch.setattr(time, "sleep", lambda s: waits.append(round(s, 6)))
+    limiter.wait_if_needed(100, "p")  # first caller — nothing scheduled yet
+    limiter.wait_if_needed(100, "p")  # lines up one interval behind
+    limiter.wait_if_needed(100, "p")  # lines up two intervals behind
+    assert waits == [0.1, 0.2]

@@ -8,7 +8,7 @@ A preset may strengthen or change medium, render language, palette, material tre
 
 ### Photo presets
 
-`common/styles/photo.py` contains **157** visible photo presets.
+`common/styles/photo.py` contains **163** visible photo presets.
 
 Current category layout:
 

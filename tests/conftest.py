@@ -32,7 +32,9 @@ _comfy_args.cpu = True
 def _clear_model_cache():
     """Clear the TTL model cache between tests to avoid stale state."""
     from FiL_Design_ImageMind.common.provider_runtime import invalidate_model_cache
+    from FiL_Design_ImageMind.common.provider_resilience import invalidate_openrouter_catalog_cache
     invalidate_model_cache()
+    invalidate_openrouter_catalog_cache()
 
 
 class _StubModelClient:

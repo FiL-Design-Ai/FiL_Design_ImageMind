@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import logging
 import re
+import time
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -226,10 +227,28 @@ def is_timeout_error(exc: BaseException) -> bool:
 # ---------------------------------------------------------------------------
 
 
+# The catalog backs the free-vision fallback and was re-fetched on every vision
+# generation — an extra network round (with its own 15 s timeout) before each
+# call. It changes on the scale of hours, not seconds, so it gets the same TTL
+# treatment as the model listing in provider_runtime. Only a successful fetch is
+# cached; a failure returns the uncached empty answer so the next call retries.
+_OPENROUTER_CATALOG_TTL = 300  # seconds
+_openrouter_catalog_cache: Tuple[float, List[Dict[str, Any]]] = (0.0, [])
+
+
+def invalidate_openrouter_catalog_cache() -> None:
+    global _openrouter_catalog_cache
+    _openrouter_catalog_cache = (0.0, [])
+
+
 def _fetch_openrouter_catalog(api_key: str) -> Tuple[List[Dict[str, Any]], bool]:
     """Fetch the OpenRouter /models catalog. Returns (data, catalog_available)."""
+    global _openrouter_catalog_cache
     if not api_key:
         return [], False
+    cached_at, cached = _openrouter_catalog_cache
+    if cached and time.time() - cached_at < _OPENROUTER_CATALOG_TTL:
+        return cached, True
     try:
         client = HTTPClient(max_retries=0, default_timeout=15)
         base_url = PROVIDERS["openrouter"].base_url
@@ -239,6 +258,7 @@ def _fetch_openrouter_catalog(api_key: str) -> Tuple[List[Dict[str, Any]], bool]
             quiet=True,
         )
         data = resp.json().get("data", [])
+        _openrouter_catalog_cache = (time.time(), data)
         return data, True
     except Exception:
         return [], False
@@ -262,9 +282,9 @@ def get_openrouter_candidates(
     Falls back to OPENROUTER_PREFERRED_VISION_MODELS when the catalog is
     unavailable (e.g. offline) so the node still has something to try.
     """
-    # get_api_key() reads auth.json (the Provider Manager UI) *and* the env vars;
-    # get_provider_config() only sees the env, so a UI-saved key was ignored here
-    # and the catalog silently degraded to the static fallback list.
+    # get_api_key() reads auth.json (the Provider Manager UI) *and* the env vars,
+    # so a key saved through the UI is seen here too — an env-only lookup used
+    # to miss it and silently degrade the catalog to the static fallback list.
     from .provider_accounts import get_api_key
 
     api_key = get_api_key("openrouter") or ""

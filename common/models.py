@@ -91,6 +91,11 @@ def _next_budget(planned: int, spent: int) -> int:
     return max(planned, spent * 2 + ANSWER_HEADROOM)
 
 
+def _strip_data_uri(b64: str) -> str:
+    """Providers take raw base64; the processor may hand over a data URI."""
+    return b64.split(",", 1)[1] if "," in b64 else b64
+
+
 class ModelStrategy(ABC):
     def __init__(self, http_client: HTTPClient, rate_limiter: RateLimiter):
         self.http_client = http_client
@@ -101,7 +106,7 @@ class ModelStrategy(ABC):
         ...
 
     @abstractmethod
-    def build_payload(self, config: Dict[str, Any], system: str, user: str, img: Optional[str] = None, **kwargs) -> Dict[str, Any]:
+    def build_payload(self, config: Dict[str, Any], system: str, user: str, images: Optional[List[str]] = None, **kwargs) -> Dict[str, Any]:
         ...
 
     @abstractmethod
@@ -120,14 +125,13 @@ class OllamaStrategy(ModelStrategy):
     def get_headers(self, config):
         return {}
 
-    def build_payload(self, config, system, user, img=None, **kwargs):
+    def build_payload(self, config, system, user, images=None, **kwargs):
         messages = [
             {"role": "system", "content": system},
             {"role": "user", "content": user},
         ]
-        if img:
-            clean = img.split(",", 1)[1] if "," in img else img
-            messages[-1]["images"] = [clean]
+        if images:
+            messages[-1]["images"] = [_strip_data_uri(img) for img in images]
         payload = {
             "model": config["model"],
             "messages": messages,
@@ -174,7 +178,7 @@ class OpenAIStrategy(ModelStrategy):
             return {prov.header_name: key_part} if prov.header_name else {}
         return {"Authorization": f"Bearer {api_key}"} if api_key else {}
 
-    def build_payload(self, config, system, user, img=None, **kwargs):
+    def build_payload(self, config, system, user, images=None, **kwargs):
         model_name = normalize_model_name(config["model"])
 
         if system and user:
@@ -182,14 +186,15 @@ class OpenAIStrategy(ModelStrategy):
         else:
             merged = user or system
 
-        messages = [{"role": "user", "content": merged}]
-        if img:
-            clean_img = img.split(",", 1)[1] if "," in img else img
-            content = [
-                {"type": "text", "text": merged},
-                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{clean_img}"}},
-            ]
+        if images:
+            content: List[Dict[str, Any]] = [{"type": "text", "text": merged}]
+            for img in images:
+                content.append(
+                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{_strip_data_uri(img)}"}}
+                )
             messages = [{"role": "user", "content": content}]
+        else:
+            messages = [{"role": "user", "content": merged}]
 
         payload = {
             "model": model_name,
@@ -273,11 +278,14 @@ class GoogleStrategy(ModelStrategy):
             headers["x-goog-api-key"] = api_key
         return headers
 
-    def build_payload(self, config, system, user, img=None, **kwargs):
-        parts = [{"text": f"{system}\n\n{user}" if system else user}]
-        if img:
-            clean_img = img.split(",", 1)[1] if "," in img else img
-            parts.insert(0, {"inline_data": {"mime_type": "image/jpeg", "data": clean_img}})
+    def build_payload(self, config, system, user, images=None, **kwargs):
+        text_part = {"text": f"{system}\n\n{user}" if system else user}
+        image_parts = (
+            [{"inline_data": {"mime_type": "image/jpeg", "data": _strip_data_uri(img)}} for img in images]
+            if images
+            else []
+        )
+        parts = image_parts + [text_part]
         generation_config: Dict[str, Any] = {"temperature": kwargs.get("temperature", 0.7)}
         seed = kwargs.get("seed", -1)
         if seed is not None and seed >= 0:
@@ -409,9 +417,8 @@ class ModelClient:
             if api_prov_config:
                 cfg["models_endpoint"] = api_prov_config.models_endpoint
                 cfg["chat_endpoint"] = api_prov_config.chat_endpoint
-            img = images[0] if images else None
             pl = strategy.build_payload(
-                cfg, system_prompt, user_prompt, img=img,
+                cfg, system_prompt, user_prompt, images=images or None,
                 temperature=temperature, seed=seed, max_tokens=budget,
                 response_format=response_format, stream=stream or stream_callback is not None,
             )

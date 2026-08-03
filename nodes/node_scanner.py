@@ -91,8 +91,8 @@ description=(
                              tooltip=t("tt_width", "Target image width in pixels. Helps tailor prompt composition to aspect ratio if > 0.")),
                 io.Int.Input("height", default=0, min=0, max=16384, step=8, optional=True, force_input=True,
                              tooltip=t("tt_height", "Target image height in pixels. Helps tailor prompt composition to aspect ratio if > 0.")),
-                io.String.Input("prompt", default="", multiline=True, optional=True, tooltip=t("tt_prompt", "User instruction or standalone text prompt. If image is connected, this becomes the instruction; without image, it is the full text input.")),
-                io.String.Input("negative_prompt", default="", multiline=True, optional=True, tooltip=t("tt_neg_prompt", "What to avoid in the generated prompt."), advanced=True),
+                io.String.Input("prompt", default="", multiline=True, optional=True, tooltip=t("tt_prompt", "Without an image — the idea itself, expanded into a finished prompt. With an image — what to focus on and what the text is for; subject, pose and object count come from the image and cannot be changed here. Details: docs/scanner-prompts.md")),
+                io.String.Input("negative_prompt", default="", multiline=True, optional=True, tooltip=t("tt_neg_prompt", "Removes words from the generated text, not objects from the image. Short nouns, comma-separated. Under FLUX / Z-Image Turbo / Krea 2 the list is flipped into positive wording. Details: docs/scanner-prompts.md"), advanced=True),
                 io.Combo.Input("detail_level", options=list(DETAIL_LEVELS), default=default_detail_level(DETAIL_LEVELS), advanced=True,
                                tooltip=t("tt_detail", "How much detail to include in the generated description.")),
                 io.Combo.Input("language", options=LANGUAGES, default=first_or_default(LANGUAGES, "ru"), advanced=True,
@@ -185,7 +185,8 @@ description=(
                       model_type, prompt, effective_mode, hybrid_timeout,
                       two_stage_timeout, agent_key="None", detail_level="normal",
                       language="ru", rate_limit_ms=100, contract=None, enforcement="",
-                      width=0, height=0, focus_key="None", has_image=True):
+                      width=0, height=0, focus_key="None", has_image=True,
+                      neg_clause=""):
         fb = None
         if effective_mode == "Two-Stage" and style_block.strip():
             bundle = _prompt_gen.build_system_prompt_two_stage_bundle(
@@ -249,12 +250,21 @@ description=(
                 if support_block:
                     stage2_sys = f"{stage2_sys}\n\n{support_block}"
 
-            second_seed = seed + 1 if seed > 0 else -1
+            # `seed >= 0`, not `seed > 0`: 0 is a valid fixed seed — the widget
+            # allows it (min=-1), stage 1 passes it through and ModelClient caches
+            # on `seed >= 0`. Using `> 0` sent stage 2 a random seed when the user
+            # fixed seed=0, silently breaking two-stage reproducibility.
+            second_seed = seed + 1 if seed >= 0 else -1
             stage2_user = _prompt_gen.build_stage2_user_prompt(
                 description, prompt, detail_level=detail_level,
                 model_type=model_type,
             )
             stage2_user = append_response_format_instruction(stage2_user, model_type, response_format)
+            # Stage 2 is where the text the user actually receives gets written,
+            # so the negative clause has to be repeated here: carrying it only in
+            # stage 1 let the rewrite reintroduce whatever was banned.
+            if neg_clause:
+                stage2_user = f"{stage2_user}\n\n{neg_clause}"
             try:
                 stage2_result = _model_client.generate(
                     provider=provider, model=model,
@@ -417,14 +427,14 @@ description=(
         images_b64 = []
         image_hash = None
         if has_image:
-            _processor.max_side = config.get("max_image_side", 1024)
-            try:
-                images_b64, w, h = _processor.process_batch(image)
-                sample = image[0].cpu().numpy().tobytes()[:1024]
-                image_hash = hashlib.md5(sample, usedforsecurity=False).hexdigest()
-            except Exception as exc:
-                err_meta = {"status": "error", "message": str(exc), "error_code": "IMAGE_PROCESSING_ERROR"}
-                return io.NodeOutput(f"Ошибка: {exc}", json.dumps(err_meta, ensure_ascii=False), err_meta)
+            with _processor.with_max_side(config.get("max_image_side", 1024)) as processor:
+                try:
+                    images_b64, w, h = processor.process_batch(image)
+                    sample = image[0].cpu().numpy().tobytes()[:1024]
+                    image_hash = hashlib.md5(sample, usedforsecurity=False).hexdigest()
+                except Exception as exc:
+                    err_meta = {"status": "error", "message": str(exc), "error_code": "IMAGE_PROCESSING_ERROR"}
+                    return io.NodeOutput(f"Ошибка: {exc}", json.dumps(err_meta, ensure_ascii=False), err_meta)
 
         effective_mode = prompt_mode
         if effective_mode == "Auto":
@@ -463,6 +473,7 @@ description=(
                         contract=contract, enforcement=enforcement,
                         width=width, height=height,
                         focus_key=focus_key, has_image=has_image,
+                        neg_clause=neg_clause or "",
                     )
                     per_image_results.append(single_result)
                     image_runs.append({
@@ -489,6 +500,7 @@ description=(
                     contract=contract, enforcement=enforcement,
                     width=width, height=height,
                     focus_key=focus_key, has_image=has_image,
+                    neg_clause=neg_clause or "",
                 )
         except FiLError as exc:
             clean_msg = sanitize_sensitive_data(exc.message)
