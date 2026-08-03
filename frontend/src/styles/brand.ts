@@ -502,6 +502,25 @@ const THEME_EFFECTS: Record<FilThemeName, string> = {
 :root[data-fil-theme="cyber_punch"] button:hover:not(:disabled) {
   box-shadow: 0 0 12px rgba(255, 208, 0, 0.35) !important;
 }
+/* A compact node (Cleaner's two switches, Seed's one field) has almost no
+ * surface for the glass card itself to read as themed — the reference
+ * treatment gets its presence from glowing CONTENT (the active segment, the
+ * accent button), not from the shell. A plain flat toggle or icon button on
+ * an otherwise-empty card is how "Cyber Punch" ends up reading as "dark grey
+ * box with a yellow rectangle in it". These give exactly those elements a
+ * persistent glow at rest, not just on hover. */
+:root[data-fil-theme="cyber_punch"] .fil-w-switch.on {
+  box-shadow: 0 0 10px rgba(255, 208, 0, 0.55) !important;
+}
+:root[data-fil-theme="cyber_punch"] .fil-w-switch:not(.on) {
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+}
+:root[data-fil-theme="cyber_punch"] .fil-w-btn-accent {
+  box-shadow: 0 0 12px rgba(255, 208, 0, 0.45) !important;
+}
+:root[data-fil-theme="cyber_punch"] .fil-w-btn-accent:hover:not(:disabled) {
+  box-shadow: 0 0 18px rgba(255, 208, 0, 0.65) !important;
+}
 `,
   cyber_punch_hud: `
 :root[data-fil-theme="cyber_punch_hud"] .fil-node-shell [class$="-root"] {
