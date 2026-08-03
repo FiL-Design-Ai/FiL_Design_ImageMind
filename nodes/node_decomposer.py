@@ -115,8 +115,13 @@ class FiLImageDecomposer(io.ComfyNode):
         image_key: Any = None
         if image is not None:
             try:
-                sample = image[0].flatten()[:256].cpu().numpy().tobytes()
-                image_key = (tuple(image.shape), hashlib.md5(sample, usedforsecurity=False).hexdigest())
+                # Every frame contributes, not just image[0]: hashing only the
+                # first frame returned a stale result whenever frames 2..N
+                # changed but frame 1 stayed the same (same fix as the scanner).
+                digest = hashlib.md5(usedforsecurity=False)
+                for frame in range(image.shape[0]):
+                    digest.update(image[frame].flatten()[:256].cpu().numpy().tobytes())
+                image_key = (tuple(image.shape), digest.hexdigest())
             except Exception:
                 image_key = id(image)
         return hash((str(config), str(prompt or ""), str(language or ""), image_key))
@@ -160,8 +165,12 @@ class FiLImageDecomposer(io.ComfyNode):
         img_b64 = None
         if has_image:
             if not is_model_vision_capable(provider, model):
+                # The message is shown on the first output, but it must not also
+                # come out of `full_prompt` — a downstream node would then
+                # consume the error text as a prompt. The other error paths all
+                # leave the remaining outputs empty; this one does the same.
                 err_msg = f"⚠️ Ошибка: модель '{model}' не поддерживает анализ изображений. Выберите vision-модель (например, Qwen-VL, Gemini, GPT-4o) или отключите изображение."
-                return io.NodeOutput(err_msg, "", "", "", err_msg)
+                return io.NodeOutput(err_msg, "", "", "", "")
             try:
                 img_b64 = _processor.tensor_to_base64(image)
             except Exception as exc:

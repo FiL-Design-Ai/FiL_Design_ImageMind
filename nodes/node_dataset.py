@@ -306,8 +306,8 @@ class FiLDatasetForge(io.ComfyNode):
     @classmethod
     def _caption_all(cls, images, config, *, mode, language, max_words, class_token,
                      dont_caption, extra_instruction, seed, unique_id) -> list[str]:
-        _processor.max_side = config.get("max_image_side", 1024)
-        images_b64 = [_processor.to_base64(image) for image in images]
+        with _processor.with_max_side(config.get("max_image_side", 1024)) as processor:
+            images_b64 = [processor.to_base64(image) for image in images]
 
         raw_max_tokens = config.get("max_tokens")
         max_tokens = None if raw_max_tokens in (0, None) else raw_max_tokens

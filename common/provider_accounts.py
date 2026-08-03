@@ -226,10 +226,6 @@ def get_safe_provider_accounts() -> Dict[str, Dict[str, Any]]:
     return result
 
 
-def get_all_provider_accounts() -> Dict[str, Any]:
-    return _load_auth_json()
-
-
 def read_auth() -> Dict[str, Any]:
     """Return the local provider account document."""
     return _load_auth_json()

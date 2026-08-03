@@ -1,7 +1,5 @@
 import logging
 import os
-import time
-import threading
 from dataclasses import dataclass
 from enum import Enum
 from functools import lru_cache
@@ -16,81 +14,6 @@ try:
     import yaml
 except ImportError:
     yaml = None
-
-
-class ProviderStatus(str, Enum):
-    UNKNOWN = "unknown"
-    CONFIGURED = "configured"
-    MISSING_API_KEY = "missing_api_key"
-    ONLINE = "online"
-    OFFLINE = "offline"
-    TIMEOUT = "timeout"
-    AUTH_ERROR = "auth_error"
-    RATE_LIMITED = "rate_limited"
-    PAYMENT_REQUIRED = "payment_required"
-    TERMS_NOT_ACCEPTED = "terms_not_accepted"
-
-
-class ModelAvailabilityStatus(str, Enum):
-    AVAILABLE = "available"
-    RATE_LIMITED = "rate_limited"
-    PAYMENT_REQUIRED = "payment_required"
-    OFFLINE = "offline"
-    UNVERIFIED = "unverified"
-
-
-@dataclass
-class HealthInfo:
-    status: ProviderStatus
-    last_check: float
-    message: str = ""
-    model_count: int = 0
-
-
-class ProviderHealthManager:
-    _instance: Optional["ProviderHealthManager"] = None
-    _health_data: Dict[str, HealthInfo] = {}
-    _lock = threading.Lock()
-
-    def __new__(cls) -> "ProviderHealthManager":
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
-
-    def update_status(self, provider: str, status: ProviderStatus, message: str = "", model_count: int = 0):
-        with self._lock:
-            self._health_data[provider] = HealthInfo(status=status, last_check=time.time(), message=message, model_count=model_count)
-
-    def get_status(self, provider: str) -> HealthInfo:
-        with self._lock:
-            return self._health_data.get(provider, HealthInfo(ProviderStatus.UNKNOWN, 0))
-
-    def get_all_statuses(self) -> Dict[str, Dict[str, Any]]:
-        with self._lock:
-            return {k: {"status": v.status.value, "last_check": v.last_check, "message": v.message, "model_count": v.model_count} for k, v in self._health_data.items()}
-
-
-def get_health_manager() -> ProviderHealthManager:
-    return ProviderHealthManager()
-
-
-class ModelAvailabilityManager:
-    _instance: Optional["ModelAvailabilityManager"] = None
-    _availability_data: Dict[str, ModelAvailabilityStatus] = {}
-    _lock = threading.Lock()
-
-    def __new__(cls) -> "ModelAvailabilityManager":
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
-
-    def update_status(self, provider: str, model: str, status: ModelAvailabilityStatus):
-        with self._lock:
-            self._availability_data[f"{provider}:{model}"] = status
-
-    def get_status(self, provider: str, model: str) -> ModelAvailabilityStatus:
-        with self._lock:
-            return self._availability_data.get(f"{provider}:{model}", ModelAvailabilityStatus.UNVERIFIED)
 
 
 class AuthType(str, Enum):
@@ -288,26 +211,6 @@ RECOMMENDED_VISION_MODELS: Dict[str, set] = {
         "@cf/google/gemma-4-26b-a4b-it",
     },
 }
-
-
-def get_provider_config(provider: str) -> Optional[Dict[str, Any]]:
-    prov = PROVIDERS.get(provider)
-    if not prov:
-        return None
-    cfg = prov.to_dict()
-    config_obj = get_config()
-    env_var = cfg.get("environment_var")
-    if env_var:
-        api_key = config_obj.get(env_var)
-        if api_key:
-            cfg["api_key"] = api_key
-    if provider == "cloudflare":
-        account_id = config_obj.get("CLOUDFLARE_ACCOUNT_ID", "").strip()
-        cfg["account_id"] = account_id
-        if account_id:
-            cfg["base_url"] = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/v1"
-    cfg["url"] = cfg.get("base_url", "")
-    return cfg
 
 
 def get_provider_key(display_name: Any) -> str:

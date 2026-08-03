@@ -26,7 +26,8 @@ Use the same Loader and Scanner, leave `image` disconnected, and enter the sourc
 
 - `Seed`: fixed seed or random value when set to `-1`.
 - `Cleaner`: optional VRAM/RAM cleanup with value passthrough.
-- `Compare`: comparison preview, swap, and optional resize.
+- `Cyber Switch`: gate a signal on/off; off passes nothing downstream.
+- `Channel`: broadcast a value wirelessly to same-type inputs across the graph.
 - `Upscaler`: tile, grid, latent-size, denoise, and warning calculation.
 
-All nodes are available under `FiL_Design_ImageMind/...`. Use `FiL_Design_ImageMind: help` in a node context menu for a short explanation.
+All nodes are available under the `🎨 FiL Design/` category in the node browser.

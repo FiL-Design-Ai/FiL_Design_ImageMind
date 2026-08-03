@@ -272,3 +272,83 @@ def test_sanitize_sensitive_data():
     sanitized_hdr = pr.sanitize_sensitive_data(raw_header)
     assert "MY_SECRET_KEY_12345" not in sanitized_hdr
     assert "***REDACTED***" in sanitized_hdr
+
+
+# ---------------------------------------------------------------------------
+# OpenRouter catalog TTL cache — it used to be re-fetched on every vision
+# generation, an extra network round before each call.
+# ---------------------------------------------------------------------------
+
+
+class _FakeCatalogResponse:
+    def __init__(self, data):
+        self._data = data
+
+    def json(self):
+        return {"data": self._data}
+
+
+def _install_fake_catalog_http(monkeypatch, calls, data):
+    class FakeClient:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def get(self, url, **kwargs):
+            calls.append(url)
+            return _FakeCatalogResponse(data)
+
+    monkeypatch.setattr(pr, "HTTPClient", FakeClient)
+
+
+def test_openrouter_catalog_is_fetched_once_within_ttl(monkeypatch):
+    pr.invalidate_openrouter_catalog_cache()
+    calls = []
+    _install_fake_catalog_http(monkeypatch, calls, [_mock_catalog_item("x/y:free")])
+
+    data_a, ok_a = pr._fetch_openrouter_catalog("key")
+    data_b, ok_b = pr._fetch_openrouter_catalog("key")
+
+    assert ok_a and ok_b
+    assert data_a == data_b
+    assert len(calls) == 1, "the second call must be served from the cache"
+
+
+def test_openrouter_catalog_is_refetched_after_ttl(monkeypatch):
+    pr.invalidate_openrouter_catalog_cache()
+    calls = []
+    _install_fake_catalog_http(monkeypatch, calls, [_mock_catalog_item("x/y:free")])
+    now = [1000.0]
+    monkeypatch.setattr(pr.time, "time", lambda: now[0])
+
+    pr._fetch_openrouter_catalog("key")
+    now[0] += pr._OPENROUTER_CATALOG_TTL + 1
+    pr._fetch_openrouter_catalog("key")
+
+    assert len(calls) == 2
+
+
+def test_openrouter_catalog_failure_is_not_cached(monkeypatch):
+    pr.invalidate_openrouter_catalog_cache()
+    calls = []
+
+    class BrokenClient:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def get(self, url, **kwargs):
+            calls.append(url)
+            raise RuntimeError("offline")
+
+    monkeypatch.setattr(pr, "HTTPClient", BrokenClient)
+
+    data, ok = pr._fetch_openrouter_catalog("key")
+    assert (data, ok) == ([], False)
+    # A failed fetch must not be cached — the next call retries the provider.
+    pr._fetch_openrouter_catalog("key")
+    assert len(calls) == 2
+
+
+def test_openrouter_catalog_needs_a_key():
+    pr.invalidate_openrouter_catalog_cache()
+    data, ok = pr._fetch_openrouter_catalog("")
+    assert (data, ok) == ([], False)

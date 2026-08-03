@@ -11,8 +11,9 @@ Canonical node ids:
 - `FiLStyleMixer` — Styling
 - `FiLKSampler`, `FiLHighResFix`, `FiLNoiseControl` — Sampling
 - `FiLUpscaleTileCalc`, `FiLUpscaleSimple`, `FiLTileAssembly`, `FiLColorWizard` — Image
+- `FiLDatasetForge` — Dataset
 - `FiLSeed` — Values
-- `FiLNeuroCleaner`, `FiLSignalSwitch` — Tools
+- `FiLNeuroCleaner`, `FiLSignalSwitch`, `FiLChannel` — Tools
 
 `FiLBeforeAfterCompare` was removed in 1.0.0 along with its `/compare/save` route and output folder.
 

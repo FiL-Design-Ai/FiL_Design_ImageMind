@@ -156,12 +156,18 @@ class RateLimiter:
     def wait_if_needed(self, ms: Optional[int] = None, provider: str = "") -> None:
         key = (provider or "").strip().lower()
         requested = ms if ms is not None else self._default
+        wait_s = 0.0
         with self._lock:
+            # Reserve the send slot, then sleep OUTSIDE the lock. Holding the
+            # lock across time.sleep serialized every provider (and penalize())
+            # for the whole wait, not just this one.
             interval = max(requested, self._penalty_ms(key)) / 1000.0
             elapsed = time.time() - self._last.get(key, 0.0)
             if elapsed < interval:
-                time.sleep(min(interval - elapsed, 5.0))
-            self._last[key] = time.time()
+                wait_s = min(interval - elapsed, 5.0)
+            self._last[key] = time.time() + wait_s
+        if wait_s > 0:
+            time.sleep(wait_s)
 
     def penalize(self, provider: str, retry_after_s: Optional[float] = None) -> int:
         """Widen this provider's spacing after it answered 429.
