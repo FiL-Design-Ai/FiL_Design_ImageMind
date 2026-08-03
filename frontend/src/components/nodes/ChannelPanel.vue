@@ -20,6 +20,15 @@
  * anything needed a decision was a row in the "Wireless" bottom-panel tab, and
  * nothing pointed a user there right when the decision became necessary — see
  * `wireless.md` for the incident that prompted adding it.
+ *
+ * `channel.ts` cannot call straight into this component for it: it is an async
+ * component, so a wire drawn the instant the node exists can fire
+ * `onConnectionsChange` before `onMounted` here has run — confirmed live, not
+ * theoretical. `channel.ts` instead leaves a note on the plain node object
+ * (`_filPendingAmbiguityChecks`), and `refresh()` below drains it every time it
+ * runs — on mount, so a check made before this component existed still lands,
+ * and on every poll after, as the fallback if `onMounted` itself is what was
+ * too slow.
  */
 import { computed, onMounted, onUnmounted, ref, shallowRef } from "vue";
 import type { FilNodeState } from "@/nodes2/filState";
@@ -72,6 +81,7 @@ function refresh(): void {
   const next = livePlan(graph);
   if (next !== plan.value) plan.value = next;
   syncSlots(graph);
+  drainPendingAmbiguityChecks();
 }
 
 /**
@@ -103,33 +113,38 @@ onMounted(() => {
   // A wire landing on this node has to show up at once, not on the next tick —
   // `channel.ts` calls this from `onConnectionsChange`.
   props.state.ui.refresh = refresh;
-  props.state.ui.promptAmbiguity = promptAmbiguity;
   timer = window.setInterval(refresh, POLL_MS);
 });
 onUnmounted(() => {
   if (timer !== undefined) window.clearInterval(timer);
   if (props.state.ui.refresh === refresh) delete props.state.ui.refresh;
-  if (props.state.ui.promptAmbiguity === promptAmbiguity) delete props.state.ui.promptAmbiguity;
 });
 
 /**
- * Called from `channel.ts` right after a new wire lands in `slotIndex` — never
- * on load, never for a disconnect, and never for a wire drawn anywhere else in
- * the graph, so this only ever fires at the one moment a user could plausibly
- * expect an answer: they just plugged something in.
+ * Consume every slot `channel.ts` flagged since the last drain, and open the
+ * target list for the first one that turns out ambiguous (rule 3 or rule 7).
  *
- * `refresh()` first, deliberately: the plan has to reflect *this* wire before
- * asking whether it created an ambiguity, and `livePlan`'s cache would
- * otherwise still be holding the answer from before it existed.
+ * Called from inside `refresh()`, after `plan.value` is already current for
+ * this tick — checking `resolution.ambiguous` here does not need its own
+ * fresh resolve. Slots that were never ambiguous (the common case: the wire
+ * just resolved cleanly) are consumed just the same, so they are not
+ * re-checked on the next poll.
  */
-function promptAmbiguity(slotIndex: number): void {
-  refresh();
-  const channel = channels.value.find((c) => c.slotIndex === slotIndex);
-  if (!channel) return;
-  const isNewlyAmbiguous = (plan.value?.resolution.ambiguous ?? []).some((a) =>
-    a.candidates.includes(channel.name),
-  );
-  if (isNewlyAmbiguous) openTargets(channel);
+function drainPendingAmbiguityChecks(): void {
+  const node = hostNode() as (WirelessNode & { _filPendingAmbiguityChecks?: number[] }) | undefined;
+  const pending = node?._filPendingAmbiguityChecks;
+  if (!node || !pending?.length) return;
+  node._filPendingAmbiguityChecks = [];
+
+  for (const slotIndex of pending) {
+    const channel = channels.value.find((c) => c.slotIndex === slotIndex);
+    if (!channel) continue;
+    const isAmbiguous = (plan.value?.resolution.ambiguous ?? []).some((a) => a.candidates.includes(channel.name));
+    if (isAmbiguous) {
+      openTargets(channel);
+      break; // one modal at a time — any further pending slots stay resolvable via the gear
+    }
+  }
 }
 
 /** The channels this node carries — one per wired input, in slot order. */

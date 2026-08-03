@@ -173,15 +173,43 @@ describe("ChannelPanel.vue", () => {
   });
 
   /**
-   * `channel.ts` calls `state.ui.promptAmbiguity(slotIndex)` right after a new
-   * wire lands in that slot — this is the other end of that contract, exercised
-   * the same way `refresh` already is above: through `state.ui`, not by reaching
-   * into the component's internals.
+   * `channel.ts` never calls into this component directly — it leaves a note
+   * on the plain node object (`_filPendingAmbiguityChecks`), because it can
+   * fire before this async component has mounted. These drive that same note,
+   * the way `channel.ts` writes it, and let `state.ui.refresh()` (the one
+   * call `channel.ts` *does* make unconditionally) drain it — never by calling
+   * a component-internal function directly.
    */
-  describe("promptAmbiguity", () => {
-    it("opens the target list on its own when the new wire creates an ambiguity", async () => {
+  describe("draining a pending ambiguity check", () => {
+    function flag(node: FakeNode, ...slots: number[]): void {
+      (node as unknown as { _filPendingAmbiguityChecks?: number[] })._filPendingAmbiguityChecks = slots;
+    }
+
+    it("opens the target list once refresh runs, for a check queued before mount", async () => {
       // Two MODEL channels: rule 3 — neither auto-wires, so plugging the second
       // one in is exactly the moment a user needs to be asked which one wins.
+      // Queuing the flag *before* `panelFor` mounts reproduces the live gap
+      // this whole mechanism exists for: a wire drawn in the same tick the
+      // node was created, before the async panel has had a chance to mount at
+      // all — confirmed on a real ComfyUI page, not assumed.
+      const srcA = loader(1);
+      const chA = transmitter(2);
+      const srcB = loader(3);
+      const chB = transmitter(4);
+      const ks = createNode({ id: 5, comfyClass: "KSampler", inputs: [slot("model", "MODEL")] });
+      ks.title = "Sampler";
+      createGraph([srcA, chA, srcB, chB, ks]);
+      srcA.connect!(0, chA, 0);
+      srcB.connect!(0, chB, 0);
+      flag(chB, 0); // what channel.ts would have already written by the time this mounts
+
+      await panelFor(chB); // refresh() runs in onMounted — no separate trigger needed
+
+      expect(modal().querySelectorAll(".fil-channel-target")).toHaveLength(1);
+      expect(modal().querySelector(".fil-channel-target")?.textContent).toContain("Sampler");
+    });
+
+    it("opens it from a later poll too, once the check is queued after mount", async () => {
       const srcA = loader(1);
       const chA = transmitter(2);
       const srcB = loader(3);
@@ -195,29 +223,32 @@ describe("ChannelPanel.vue", () => {
       expect(modal().querySelector(".fil-channel-target")).toBeNull(); // not open yet
 
       srcB.connect!(0, chB, 0); // the wire channel.ts would have just seen land
-      state.ui.promptAmbiguity?.(0);
+      flag(chB, 0);
+      state.ui.refresh?.(); // the one call channel.ts actually makes
       await nextTick();
 
       expect(modal().querySelectorAll(".fil-channel-target")).toHaveLength(1);
-      expect(modal().querySelector(".fil-channel-target")?.textContent).toContain("Sampler");
     });
 
-    it("stays closed when the new wire resolves cleanly", async () => {
+    it("consumes the queue even when nothing turns out ambiguous", async () => {
       const { ch } = scene(); // the one-channel, one-receiver case — never ambiguous
       const { state } = await panelWithState(ch);
 
-      state.ui.promptAmbiguity?.(0);
+      flag(ch, 0);
+      state.ui.refresh?.();
       await nextTick();
 
       expect(modal().querySelector(".fil-channel-target")).toBeNull();
+      expect((ch as unknown as { _filPendingAmbiguityChecks?: number[] })._filPendingAmbiguityChecks).toEqual([]);
     });
 
-    it("does nothing for a slot that is not a live channel", async () => {
+    it("does nothing for a queued slot that is not a live channel", async () => {
       const ch = transmitter(2); // nothing plugged in
       createGraph([ch]);
       const { state } = await panelWithState(ch);
 
-      expect(() => state.ui.promptAmbiguity?.(0)).not.toThrow();
+      flag(ch, 0);
+      expect(() => state.ui.refresh?.()).not.toThrow();
       await nextTick();
       expect(modal().querySelector(".fil-channel-target")).toBeNull();
     });
