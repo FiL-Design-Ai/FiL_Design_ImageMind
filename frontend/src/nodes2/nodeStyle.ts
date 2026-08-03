@@ -16,6 +16,61 @@ export interface StyledNodeOptions {
 
 const DEFAULT_FAMILY = "fil";
 
+/**
+ * A node's declared `badges` (the `opts.badges` this file assigns to the
+ * prototype below) never reach LiteGraph's own `drawBadges()`: `LGraphNode`
+ * declares `badges: (...)[] = []` as a class field, which — same trap as
+ * `color`/`bgcolor` above — runs in every instance's constructor and shadows
+ * whatever the prototype holds. `node.badges` reads back `[]` on every node
+ * this pack has ever registered a badge for; nothing has ever drawn one.
+ * That is a real, separate bug (LiteGraph's built-in badge slot floats
+ * *above* the node besides, not inside the title row this reads for) — worth
+ * fixing on its own, not silently absorbed into a title-bar treatment. This
+ * reads the ORIGINAL prototype value directly, past the instance shadow, so
+ * the pill below can use the text a node already declares without waiting on
+ * that fix.
+ */
+function firstDeclaredBadge(node: unknown): { text: string; color?: string; text_color?: string } | undefined {
+  const proto = Object.getPrototypeOf(node) as { badges?: Array<{ text: string; color?: string; text_color?: string }> } | null;
+  return proto?.badges?.[0];
+}
+
+/**
+ * The pill sitting inline in the title row, right-aligned — e.g. Optic
+ * Scanner's "LLM". Sized to its own text so a longer label never overlaps
+ * the title on a narrow node.
+ */
+function drawInlineBadge(
+  ctx: CanvasRenderingContext2D,
+  badge: { text: string; color?: string; text_color?: string },
+  titleHeight: number,
+  nodeWidth: number,
+): void {
+  const label = badge.text.toUpperCase();
+  ctx.font = "700 10px ui-monospace, monospace";
+  const textWidth = ctx.measureText(label).width;
+  const padX = 8;
+  const pillWidth = textWidth + padX * 2;
+  const pillHeight = 18;
+  const right = nodeWidth - 10;
+  const top = -titleHeight / 2 - pillHeight / 2;
+
+  ctx.fillStyle = badge.color ? `${badge.color}33` : "rgba(255, 208, 0, 0.12)";
+  ctx.strokeStyle = badge.color ?? "rgba(255, 208, 0, 0.45)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.roundRect(right - pillWidth, top, pillWidth, pillHeight, pillHeight / 2);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = badge.text_color ?? badge.color ?? "#ffd000";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(label, right - pillWidth / 2, top + pillHeight / 2 + 1);
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+}
+
 export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = {}): void {
   const proto = nodeType as {
     prototype: {
@@ -156,18 +211,15 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
       ctx.fillRect(size[0] - 10, -titleHeight + 2, 8, 2);
       ctx.fillRect(size[0] - 4, -titleHeight + 2, 2, 8);
     } else if (isCyberPunch) {
-      // Cyber Punch — glass: a single soft yellow stripe. The reference
-      // treatment (`.v-neon_glass` in the ui-lab sandbox this theme was taken
-      // from) is a white-tinted glass panel with ONE accent colour, yellow —
-      // red only ever appears on the primary button in that file. A first
-      // pass drew two glowing stripes (yellow + red) here; that red halo has
-      // no source in the treatment being ported and fought the calmer body
-      // once the body was corrected to match its actual source.
-      ctx.shadowColor = "rgba(255, 208, 0, 0.6)";
-      ctx.shadowBlur = 8;
-      ctx.fillStyle = "#ffd000";
-      ctx.fillRect(0, -titleHeight, 4, titleHeight);
-      ctx.shadowBlur = 0;
+      // Cyber Punch — glass: no left stripe. The user's own reference
+      // screenshot (a real Optic Scanner under this theme) shows a plain dark
+      // bar flush with the glass body below it and a pill sitting inline at
+      // the right — title and body read as one card because nothing marks a
+      // seam between them, not because a stripe bridges it. A first pass
+      // kept a yellow accent stripe here from the theme's older revisions;
+      // that stripe has no source in the approved reference and is gone.
+      const badge = firstDeclaredBadge(this);
+      if (badge) drawInlineBadge(ctx, badge, titleHeight, size[0]);
     } else if (isCyberPunchHud) {
       // Cyber Punch — HUD: yellow outline plus diagonal corner brackets
       // (top-left + bottom-right only), matching `.v-hud .spec`'s own
