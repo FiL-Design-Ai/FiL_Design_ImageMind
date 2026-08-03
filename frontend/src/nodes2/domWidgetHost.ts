@@ -126,8 +126,19 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
   // `canvasOnly` is the flag the panel's own widget filter
   // (rightSidePanel/shared.ts) checks to skip a widget entirely; it doesn't
   // touch canvas rendering. Verified against comfyui_frontend_package 1.47.10.
+  //
+  // `serialize: false` keeps the panel state out of the queued prompt:
+  // graphToPrompt (utils/executionUtil.ts) puts EVERY widget into the node's
+  // API inputs unless `widget.options?.serialize === false`, so without this
+  // the whole `{nodeState, initialValues, ui}` object ships as an undeclared
+  // input. Server-side, CacheKeySetInputSignature hashes every prompt input
+  // into the cache key, so any change to that object defeats the execution
+  // cache ("cached" never fires, the sampler re-runs every queue). Note this
+  // flag only controls prompt inclusion — workflow persistence is
+  // `widget.serialize` + getValue/setValue (per the same core comment), which
+  // stay untouched, so panels still save/load as before.
   const wOpts = widget as { options?: Record<string, unknown> };
-  wOpts.options = { ...wOpts.options, canvasOnly: true };
+  wOpts.options = { ...wOpts.options, canvasOnly: true, serialize: false };
 
   heights.attachWidget(widget);
 
