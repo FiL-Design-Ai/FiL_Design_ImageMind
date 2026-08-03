@@ -220,14 +220,16 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
       // near #272727. A title ~21 steps darker than the body it sits on IS
       // the seam, whatever else is or isn't drawn on it.
       //
-      // Repainting the same two layers here lands the identical composite by
+      // Repainting the body's own fill here lands the identical colour by
       // construction rather than by a hand-matched hex, so the boundary stays
-      // invisible if either token is ever retuned.
+      // invisible if the token is ever retuned. One layer, not two: this
+      // theme's node body has no inner glass card (see THEME_EFFECTS
+      // `cyber_punch`), so the body is `bgcolor` and nothing else — adding a
+      // 5% wash here would put the title back out of step by the exact amount
+      // that wash is worth.
       ctx.fillStyle = ACTIVE_PALETTE.panelAlt;
       ctx.beginPath();
       ctx.roundRect(0, -titleHeight, size[0], titleHeight, collapsed ? [radius] : [radius, radius, 0, 0]);
-      ctx.fill();
-      ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
       ctx.fill();
 
       const badge = firstDeclaredBadge(this);

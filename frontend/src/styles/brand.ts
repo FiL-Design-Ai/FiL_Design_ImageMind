@@ -456,10 +456,19 @@ const THEME_EFFECTS: Record<FilThemeName, string> = {
   // conceptual match was used (`.fil-w-section` ~ `.spec-label`/`.spec-badge`,
   // `.fil-w-seedrow-pill` ~ `.spec-cta`) rather than a new invention.
   cyber_punch: `
+/* No panel of its own. Every other theme gives the node body a glass card —
+ * tint, border, radius, shadow — but that card sits INSIDE the node box
+ * LiteGraph already draws, so a node with little content (Cleaner's two
+ * switches, Seed's one row) reads as a box drawn inside another box. The
+ * reference this theme follows has a single surface with the fields sitting
+ * directly on it, so the inner card is removed here and the node's own
+ * surface is the only one. The fields keep their own --fil-glass-* tint,
+ * which is what gives the remaining two levels their separation. */
 :root[data-fil-theme="cyber_punch"] .fil-node-shell [class$="-root"] {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  background: none;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
 }
 :root[data-fil-theme="cyber_punch"] .fil-w-section {
   background: none !important;
