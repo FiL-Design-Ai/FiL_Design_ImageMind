@@ -211,13 +211,25 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
       ctx.fillRect(size[0] - 10, -titleHeight + 2, 8, 2);
       ctx.fillRect(size[0] - 4, -titleHeight + 2, 2, 8);
     } else if (isCyberPunch) {
-      // Cyber Punch — glass: no left stripe. The user's own reference
-      // screenshot (a real Optic Scanner under this theme) shows a plain dark
-      // bar flush with the glass body below it and a pill sitting inline at
-      // the right — title and body read as one card because nothing marks a
-      // seam between them, not because a stripe bridges it. A first pass
-      // kept a yellow accent stripe here from the theme's older revisions;
-      // that stripe has no source in the approved reference and is gone.
+      // Cyber Punch — glass: ONE continuous surface, title and body alike.
+      //
+      // Removing the accent stripe was not enough to fuse them, because the
+      // shared fill above paints `ACTIVE_PALETTE.panel` (#121212) while the
+      // body underneath is `node.bgcolor` — `panelAlt`, #1c1c1c — with the
+      // DOM panel's `--fil-surface-bg` (white at 5%) laid over it, landing
+      // near #272727. A title ~21 steps darker than the body it sits on IS
+      // the seam, whatever else is or isn't drawn on it.
+      //
+      // Repainting the same two layers here lands the identical composite by
+      // construction rather than by a hand-matched hex, so the boundary stays
+      // invisible if either token is ever retuned.
+      ctx.fillStyle = ACTIVE_PALETTE.panelAlt;
+      ctx.beginPath();
+      ctx.roundRect(0, -titleHeight, size[0], titleHeight, collapsed ? [radius] : [radius, radius, 0, 0]);
+      ctx.fill();
+      ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
+      ctx.fill();
+
       const badge = firstDeclaredBadge(this);
       if (badge) drawInlineBadge(ctx, badge, titleHeight, size[0]);
     } else if (isCyberPunchHud) {
