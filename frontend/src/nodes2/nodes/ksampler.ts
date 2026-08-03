@@ -6,6 +6,7 @@ import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
 import { createSyncedNodeState, findFilWidget, sanitizeWidgetValue } from "@/nodes2/util";
 import { exposeWidgetInputSockets, installWidgetSocketSync } from "@/nodes2/widgetInputSockets";
 import { applyFxComposables } from "@/nodes2/applyFxComposables";
+import { FIL_STATE_KEY, installFilStatePersistence, restoreFilState, type PersistedPanelState } from "@/nodes2/statePersistence";
 
 const KSamplerVue = defineAsyncComponent(() => import("@/components/nodes/KSamplerPanel.vue"));
 
@@ -69,15 +70,15 @@ export const ksamplerNode: NodeModule = {
     };
     const p = proto.prototype;
 
-    const syncAll = (node: unknown, target: Record<string, unknown>) => {
+    const syncAll = (node: unknown, target: Record<string, unknown>, quiet = false) => {
       for (const name of Object.keys(numericDefaults)) {
-        target[name] = sanitizeWidgetValue(findFilWidget(node, name), "number", numericDefaults[name]);
+        target[name] = sanitizeWidgetValue(findFilWidget(node, name), "number", numericDefaults[name], quiet);
       }
       for (const name of Object.keys(stringDefaults)) {
-        target[name] = sanitizeWidgetValue(findFilWidget(node, name), "string", stringDefaults[name]);
+        target[name] = sanitizeWidgetValue(findFilWidget(node, name), "string", stringDefaults[name], quiet);
       }
       for (const name of Object.keys(boolDefaults)) {
-        target[name] = sanitizeWidgetValue(findFilWidget(node, name), "boolean", boolDefaults[name]);
+        target[name] = sanitizeWidgetValue(findFilWidget(node, name), "boolean", boolDefaults[name], quiet);
       }
     };
 
@@ -98,6 +99,13 @@ export const ksamplerNode: NodeModule = {
       };
       Object.defineProperty(state, "node", { value: node, enumerable: false, configurable: true });
       node._filKSamplerState = state;
+      // ComfyUI core's `control_after_generate` companion of the seed widget
+      // is created with `serialize: false`, so it never lands in
+      // `widgets_values` and silently comes back as "randomize" on every
+      // workflow/page load — the user's "fixed" choice dies with the page.
+      // `fil_state` carries it (and the rest of the panel state) across
+      // saves, same as scanner.ts / style_mixer.ts.
+      installFilStatePersistence(node, state);
       addFilDomWidget(node, "fil_ksampler_view", KSamplerVue, { state, height: 240 });
       exposeWidgetInputSockets(this, KSAMPLER_SOCKET_INPUTS);
       return result;
@@ -108,10 +116,17 @@ export const ksamplerNode: NodeModule = {
     const originalConfigure = p.onConfigure;
     p.onConfigure = function (this: unknown, ...args: unknown[]) {
       const result = originalConfigure?.apply(this, args);
-      const node = this as { widgets?: unknown[]; _filKSamplerState?: { nodeState: Record<string, unknown> } };
+      const node = this as { widgets?: unknown[]; _filKSamplerState?: PersistedPanelState };
       const state = node._filKSamplerState;
       if (!state) return result;
-      syncAll(node, state.nodeState);
+      // With `fil_state` present the values re-read below are overwritten by
+      // restoreFilState() — the one that matters is `control_after_generate`,
+      // which core never serializes, so by this point it has already reset to
+      // "randomize". quiet = hasFilState: a shifted positional array is
+      // exactly what `fil_state` exists to survive (see scanner.ts).
+      const hasFilState = Boolean((args[0] as Record<string, unknown> | undefined)?.[FIL_STATE_KEY]);
+      syncAll(node, state.nodeState, hasFilState);
+      restoreFilState(state, args[0]);
       exposeWidgetInputSockets(this, KSAMPLER_SOCKET_INPUTS);
       return result;
     };
