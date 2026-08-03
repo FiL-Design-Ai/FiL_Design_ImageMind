@@ -225,7 +225,11 @@ const FIL_PALETTE_CYBER_PUNCH: FilPalette = {
   panelAlt: "#1c1c1c",
   text: "#ffffff",
   muted: "#bdbdbd", // 9.63:1 composited over the glass surface tint
-  danger: "#ff0022", // 4.71:1 on panel/panelAlt
+  // Text-role only — every visible red accent (the seed-row pill, HUD's
+  // active segment) stays the literal #ff0022 brand red; this is what a
+  // plain danger MESSAGE renders in, and #ff0022 read 3.74:1 once the glass
+  // surface tint changed from red- to white-tinted (a brighter backdrop).
+  danger: "#ff3a4a", // 4.24:1 on the (now white-tinted) glass surface
   ok: "#ffd000",
 };
 
@@ -440,21 +444,31 @@ const THEME_EFFECTS: Record<FilThemeName, string> = {
   letter-spacing: 0.06em;
 }
 `,
+  // Both cyber_punch blocks below port values straight off
+  // `components/lab/UiLabPanel.vue`'s `.v-neon_glass`/`.v-hud` rules (ui-lab
+  // branch, never merged) rather than improvising from another theme's
+  // idiom. The first cut of these two didn't do that — it reused
+  // cyberpunk_2077's dual-glow-stripe/diagonal-hazard-stripe/pill-everywhere
+  // vocabulary with this palette's colours swapped in, which is a different
+  // look wearing the same hex values. Every radius, opacity and shadow figure
+  // here has a line-for-line source in that file; where a real component's
+  // class has no equivalent in the lab's fixed demo markup, the nearest
+  // conceptual match was used (`.fil-w-section` ~ `.spec-label`/`.spec-badge`,
+  // `.fil-w-seedrow-pill` ~ `.spec-cta`) rather than a new invention.
   cyber_punch: `
 :root[data-fil-theme="cyber_punch"] .fil-node-shell [class$="-root"] {
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 0 0 28px rgba(255, 0, 34, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.14);
-  border: 1px solid rgba(255, 208, 0, 0.3);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 :root[data-fil-theme="cyber_punch"] .fil-w-section {
-  background: linear-gradient(90deg, rgba(255, 0, 34, 0.22) 0%, rgba(255, 208, 0, 0.06) 100%) !important;
-  border-left: 3px solid #ff0022 !important;
-  border-radius: 9999px !important;
-  padding-left: 12px !important;
+  background: none !important;
+  border-left: none !important;
   color: #ffd000 !important;
-  font-weight: 700;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 :root[data-fil-theme="cyber_punch"] .fil-w-section:hover:not(:disabled) {
-  background: linear-gradient(90deg, rgba(255, 0, 34, 0.32) 0%, rgba(255, 208, 0, 0.14) 100%) !important;
   color: #ffffff !important;
 }
 :root[data-fil-theme="cyber_punch"] .fil-w-seg.active,
@@ -463,82 +477,85 @@ const THEME_EFFECTS: Record<FilThemeName, string> = {
 :root[data-fil-theme="cyber_punch"] .fil-w-chip.active {
   background: #ffd000 !important;
   color: #121212 !important;
-  box-shadow: 0 0 20px rgba(255, 208, 0, 0.6), 0 0 10px rgba(255, 0, 34, 0.4) !important;
+  box-shadow: 0 0 14px rgba(255, 208, 0, 0.5) !important;
   border-color: #ffd000 !important;
-  border-radius: 9999px !important;
+  border-radius: 8px !important;
   font-weight: 700;
 }
 :root[data-fil-theme="cyber_punch"] .fil-w-seedrow-pill.is-accent {
   background: #ff0022 !important;
-  border-color: #ffd000 !important;
+  border-color: #ff0022 !important;
   color: #ffffff !important;
   border-radius: 9999px !important;
-  font-weight: 800;
-  box-shadow: 0 0 16px rgba(255, 0, 34, 0.55) !important;
+  font-weight: 700;
+  box-shadow: 0 0 18px rgba(255, 0, 34, 0.6) !important;
 }
 :root[data-fil-theme="cyber_punch"] .fil-w-seedrow-pill.is-accent:hover {
   background: #d40016 !important;
-  box-shadow: 0 0 24px rgba(255, 0, 34, 0.8) !important;
+  box-shadow: 0 0 24px rgba(255, 0, 34, 0.75) !important;
 }
 :root[data-fil-theme="cyber_punch"] input:focus,
 :root[data-fil-theme="cyber_punch"] textarea:focus {
   border-color: #ffd000 !important;
-  box-shadow: 0 0 18px rgba(255, 208, 0, 0.45) !important;
+  box-shadow: 0 0 14px rgba(255, 208, 0, 0.35) !important;
 }
 :root[data-fil-theme="cyber_punch"] button:hover:not(:disabled) {
-  box-shadow: 0 0 16px rgba(255, 208, 0, 0.4) !important;
-}
-:root[data-fil-theme="cyber_punch"] .lg-node-header {
-  letter-spacing: 0.03em;
+  box-shadow: 0 0 12px rgba(255, 208, 0, 0.35) !important;
 }
 `,
   cyber_punch_hud: `
 :root[data-fil-theme="cyber_punch_hud"] .fil-node-shell [class$="-root"] {
-  box-shadow: 0 0 22px rgba(255, 208, 0, 0.25), inset 0 0 14px rgba(255, 0, 34, 0.18);
-  border: 1px solid rgba(255, 208, 0, 0.5);
-  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
+  border: 1px solid rgba(255, 208, 0, 0.25);
+  box-shadow: none;
+  background:
+    linear-gradient(#ffd000, #ffd000) 0 0 / 14px 2px no-repeat,
+    linear-gradient(#ffd000, #ffd000) 0 0 / 2px 14px no-repeat,
+    linear-gradient(#ffd000, #ffd000) 100% 100% / 14px 2px no-repeat,
+    linear-gradient(#ffd000, #ffd000) 100% 100% / 2px 14px no-repeat,
+    var(--fil-surface-bg);
 }
 :root[data-fil-theme="cyber_punch_hud"] .fil-w-section {
-  background: repeating-linear-gradient(-45deg, rgba(255, 0, 34, 0.18) 0px, rgba(255, 0, 34, 0.18) 6px, transparent 6px, transparent 12px) !important;
-  border-left: 3px solid #ffd000 !important;
+  background: none !important;
+  border-left: none !important;
   color: #ffd000 !important;
-  font-weight: 800;
+  font-size: 10px;
+  font-weight: 600;
   letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 :root[data-fil-theme="cyber_punch_hud"] .fil-w-section:hover:not(:disabled) {
-  background: repeating-linear-gradient(-45deg, rgba(255, 208, 0, 0.25) 0px, rgba(255, 208, 0, 0.25) 6px, transparent 6px, transparent 12px) !important;
   color: #ffffff !important;
 }
 :root[data-fil-theme="cyber_punch_hud"] .fil-w-seg.active,
 :root[data-fil-theme="cyber_punch_hud"] .fil-combo-trigger.open,
 :root[data-fil-theme="cyber_punch_hud"] .fil-combo-trigger:focus-visible,
 :root[data-fil-theme="cyber_punch_hud"] .fil-w-chip.active {
-  background: #ffd000 !important;
-  color: #121212 !important;
-  box-shadow: 0 0 18px rgba(255, 208, 0, 0.7) !important;
+  background: #ff0022 !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
   border-color: #ff0022 !important;
-  font-weight: 800;
-  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 0 100%);
+  border-radius: 0 !important;
+  font-weight: 700;
 }
 :root[data-fil-theme="cyber_punch_hud"] .fil-w-seedrow-pill.is-accent {
   background: #ff0022 !important;
-  border-color: #ffd000 !important;
+  border-color: #ff0022 !important;
   color: #ffffff !important;
-  font-weight: 800;
-  box-shadow: 0 0 14px rgba(255, 0, 34, 0.6) !important;
-  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 0 100%);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  box-shadow: none !important;
+  clip-path: polygon(0 0, 100% 0, 100% 60%, 92% 100%, 0 100%);
 }
 :root[data-fil-theme="cyber_punch_hud"] .fil-w-seedrow-pill.is-accent:hover {
   background: #d40016 !important;
-  box-shadow: 0 0 20px rgba(255, 0, 34, 0.85) !important;
 }
 :root[data-fil-theme="cyber_punch_hud"] input:focus,
 :root[data-fil-theme="cyber_punch_hud"] textarea:focus {
   border-color: #ffd000 !important;
-  box-shadow: 0 0 16px rgba(255, 208, 0, 0.5) !important;
+  box-shadow: none !important;
 }
 :root[data-fil-theme="cyber_punch_hud"] button:hover:not(:disabled) {
-  box-shadow: 0 0 14px rgba(255, 208, 0, 0.5) !important;
+  box-shadow: none !important;
 }
 :root[data-fil-theme="cyber_punch_hud"] .lg-node-header {
   letter-spacing: 0.08em;
@@ -1000,43 +1017,51 @@ const SURFACE_VARS_CYBERPUNK_2077 =
   "--fil-input-border:#fcee0a;";
 
 /**
- * Cyber Punch — glass variant. Translucent red-black glass, wide blur, rounded
- * — the "Neon Glass" treatment tried in the ui-lab sandbox node before this.
+ * Cyber Punch — glass variant. Every figure here is copied off
+ * `.v-neon_glass .spec` in `components/lab/UiLabPanel.vue` (ui-lab branch):
+ * `border-radius:14px`, `background:rgba(255,255,255,.05)`,
+ * `border:1px solid rgba(255,255,255,.14)`, `backdrop-filter:blur(10px)`,
+ * `box-shadow:0 10px 30px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.12)`
+ * — a soft white-tinted glass, not the red-tinted one the first cut of this
+ * theme used.
  */
 const SURFACE_VARS_CYBER_PUNCH =
-  "--fil-surface-bg:rgba(255,0,34,0.05);" +
-  "--fil-surface-border:rgba(255,208,0,0.3);" +
-  "--fil-surface-radius:18px;" +
-  "--fil-surface-blur:18px;" +
-  "--fil-surface-shadow:0 18px 38px rgba(0,0,0,0.7), 0 0 26px rgba(255,0,34,0.3), inset 0 1px 0 rgba(255,255,255,0.14);" +
-  "--fil-glass-bg:rgba(28,20,20,0.55);" +
-  "--fil-glass-border:rgba(255,208,0,0.35);" +
-  "--fil-field-radius:12px;" +
+  "--fil-surface-bg:rgba(255,255,255,0.05);" +
+  "--fil-surface-border:rgba(255,255,255,0.14);" +
+  "--fil-surface-radius:14px;" +
+  "--fil-surface-blur:10px;" +
+  "--fil-surface-shadow:0 10px 30px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.12);" +
+  "--fil-glass-bg:rgba(255,255,255,0.06);" +
+  "--fil-glass-border:rgba(255,255,255,0.1);" +
+  "--fil-field-radius:8px;" +
   "--fil-pill-radius:9999px;" +
-  "--fil-pill-bg:rgba(255,208,0,0.08);" +
-  "--fil-pill-border:rgba(255,208,0,0.4);" +
-  "--fil-border:rgba(255,0,34,0.35);" +
-  "--fil-input-border:rgba(255,208,0,0.5);";
+  "--fil-pill-bg:rgba(255,208,0,0.12);" +
+  "--fil-pill-border:rgba(255,208,0,0.45);" +
+  "--fil-border:rgba(255,255,255,0.14);" +
+  "--fil-input-border:rgba(255,208,0,0.45);";
 
 /**
- * Cyber Punch — HUD variant. Same palette, opposite instinct: near-opaque,
- * small radius, a tight glow instead of a wide one — the "Prицел"/HUD
- * treatment from the same sandbox pass, corner brackets and a chamfered
- * corner supplied by `THEME_EFFECTS.cyber_punch_hud`'s `clip-path`.
+ * Cyber Punch — HUD variant. Copied off `.v-hud .spec`: `border:1px solid
+ * rgba(255,208,0,.25)`, no box-shadow, no backdrop-filter — the corner
+ * brackets are the whole visual, four `linear-gradient` bars at 14px/2px each
+ * corner (top-left + bottom-right only), carried onto
+ * `THEME_EFFECTS.cyber_punch_hud`'s node-root background. Radius near 0:
+ * `.spec-field`/`.spec-cta` never got a radius override in the lab file
+ * either — HUD's sharpness is literal, not a design metaphor.
  */
 const SURFACE_VARS_CYBER_PUNCH_HUD =
-  "--fil-surface-bg:rgba(18,18,18,0.94);" +
-  "--fil-surface-border:rgba(255,208,0,0.5);" +
-  "--fil-surface-radius:3px;" +
-  "--fil-surface-blur:6px;" +
-  "--fil-surface-shadow:0 0 20px rgba(255,208,0,0.25), inset 0 0 12px rgba(255,0,34,0.15);" +
-  "--fil-glass-bg:rgba(10,10,10,0.7);" +
-  "--fil-glass-border:rgba(255,0,34,0.4);" +
+  "--fil-surface-bg:#141414;" +
+  "--fil-surface-border:rgba(255,208,0,0.25);" +
+  "--fil-surface-radius:2px;" +
+  "--fil-surface-blur:0px;" +
+  "--fil-surface-shadow:none;" +
+  "--fil-glass-bg:#101010;" +
+  "--fil-glass-border:rgba(255,255,255,0.1);" +
   "--fil-field-radius:2px;" +
-  "--fil-pill-radius:3px;" +
-  "--fil-pill-bg:rgba(255,208,0,0.06);" +
-  "--fil-pill-border:rgba(255,208,0,0.45);" +
-  "--fil-border:rgba(255,0,34,0.4);" +
+  "--fil-pill-radius:2px;" +
+  "--fil-pill-bg:transparent;" +
+  "--fil-pill-border:rgba(255,208,0,0.5);" +
+  "--fil-border:rgba(255,255,255,0.1);" +
   "--fil-input-border:#ffd000;";
 
 const THEME_SURFACES: Partial<Record<FilThemeName, string>> = {

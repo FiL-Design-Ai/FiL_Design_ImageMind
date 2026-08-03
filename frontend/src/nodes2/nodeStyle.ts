@@ -98,7 +98,7 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
     const isHollywoodTeal = theme === "hollywood_teal";
     const isCyberPunch = theme === "cyber_punch";
     const isCyberPunchHud = theme === "cyber_punch_hud";
-    const radius = (isCyberpunk || isCyberpunk2077) ? 2 : (isPipboy || isCyberPunchHud) ? 4 : isHollywoodTeal ? 12 : (isNeoEmerald || isNftVibe) ? 16 : isCyberPunch ? 18 : (globalThis as { LiteGraph?: { ROUND_RADIUS?: number } }).LiteGraph?.ROUND_RADIUS ?? 8;
+    const radius = (isCyberpunk || isCyberpunk2077) ? 2 : isCyberPunchHud ? 2 : isPipboy ? 4 : isHollywoodTeal ? 12 : (isNeoEmerald || isNftVibe) ? 16 : isCyberPunch ? 14 : (globalThis as { LiteGraph?: { ROUND_RADIUS?: number } }).LiteGraph?.ROUND_RADIUS ?? 8;
     const collapsed = Boolean(this.collapsed);
     ctx.fillStyle = ACTIVE_PALETTE.panel;
     ctx.beginPath();
@@ -156,26 +156,26 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
       ctx.fillRect(size[0] - 10, -titleHeight + 2, 8, 2);
       ctx.fillRect(size[0] - 4, -titleHeight + 2, 2, 8);
     } else if (isCyberPunch) {
-      // Cyber Punch — glass: soft dual-glow stripe, yellow accent over red.
-      // The blur/translucency the name refers to lives in the CSS surface
-      // tokens (backdrop-filter can't reach the canvas); this stripe is the
-      // one thing about the treatment the title bar can still carry.
-      ctx.shadowColor = "rgba(255, 208, 0, 0.75)";
-      ctx.shadowBlur = 10;
+      // Cyber Punch — glass: a single soft yellow stripe. The reference
+      // treatment (`.v-neon_glass` in the ui-lab sandbox this theme was taken
+      // from) is a white-tinted glass panel with ONE accent colour, yellow —
+      // red only ever appears on the primary button in that file. A first
+      // pass drew two glowing stripes (yellow + red) here; that red halo has
+      // no source in the treatment being ported and fought the calmer body
+      // once the body was corrected to match its actual source.
+      ctx.shadowColor = "rgba(255, 208, 0, 0.6)";
+      ctx.shadowBlur = 8;
       ctx.fillStyle = "#ffd000";
       ctx.fillRect(0, -titleHeight, 4, titleHeight);
-
-      ctx.shadowColor = "rgba(255, 0, 34, 0.7)";
-      ctx.shadowBlur = 10;
-      ctx.fillStyle = "#ff0022";
-      ctx.fillRect(4, -titleHeight, 3, titleHeight);
       ctx.shadowBlur = 0;
     } else if (isCyberPunchHud) {
-      // Cyber Punch — HUD: yellow outline plus top corner brackets, same
-      // idiom Pipboy uses for its terminal chassis, recoloured. The chamfered
-      // top-right cut lives in the CSS body treatment (THEME_EFFECTS,
-      // `.fil-node-shell [class$="-root"]`'s clip-path) — canvas title bars
-      // in this file have never cut a corner, only DOM ones have.
+      // Cyber Punch — HUD: yellow outline plus diagonal corner brackets
+      // (top-left + bottom-right only), matching `.v-hud .spec`'s own
+      // four-gradient corner trick in the ui-lab sandbox exactly — that file
+      // never draws all four corners or a chamfer, and a first pass here did
+      // both (a top-right cut, yellow+red brackets on opposite corners).
+      // Flat, no glow: the source treatment has no box-shadow on this
+      // surface at all.
       ctx.strokeStyle = "#ffd000";
       ctx.lineWidth = 1;
       ctx.beginPath();
@@ -185,9 +185,8 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
       ctx.fillStyle = "#ffd000";
       ctx.fillRect(2, -titleHeight + 2, 8, 2);
       ctx.fillRect(2, -titleHeight + 2, 2, 8);
-      ctx.fillStyle = "#ff0022";
-      ctx.fillRect(size[0] - 10, -titleHeight + 2, 8, 2);
-      ctx.fillRect(size[0] - 4, -titleHeight + 2, 2, 8);
+      ctx.fillRect(size[0] - 10, -2, 8, 2);
+      ctx.fillRect(size[0] - 2, -10, 2, 8);
     } else if (isNeoEmerald || isNftVibe) {
       // Sleek Neon Glow Accent Stripe
       ctx.shadowColor = isNftVibe ? "rgba(208, 255, 0, 0.7)" : "rgba(0, 255, 136, 0.6)";
