@@ -15,6 +15,8 @@ const THEME_VALUE_TO_NAME: Record<string, FilThemeName> = {
   "Neo Emerald": "neo_emerald",
   "NFT Vibe": "nft_vibe",
   "Hollywood Teal": "hollywood_teal",
+  "Cyber Punch": "cyber_punch",
+  "Cyber Punch HUD": "cyber_punch_hud",
 };
 
 /**
@@ -38,7 +40,7 @@ export const THEME_SETTINGS: ComfyExtensionSettings[] = [
     name: "Theme",
     type: "combo",
     defaultValue: "Default",
-    options: ["Default", "Cyberpunk", "Cyberpunk 2077", "Fallout", "Pipboy", "FiL Green", "Pixaroma", "Neo Emerald", "NFT Vibe", "Hollywood Teal"],
+    options: ["Default", "Cyberpunk", "Cyberpunk 2077", "Fallout", "Pipboy", "FiL Green", "Pixaroma", "Neo Emerald", "NFT Vibe", "Hollywood Teal", "Cyber Punch", "Cyber Punch HUD"],
     // The third level is required, and the comment that used to sit here had it
     // backwards: it claimed a third level "put this entry behind an extra
     // heading of its own". It does not — the visible heading is the second
@@ -47,7 +49,7 @@ export const THEME_SETTINGS: ComfyExtensionSettings[] = [
     // collided and only the last registered survived. This picker was one of
     // the four that silently vanished from the panel.
     category: [SETTINGS_CATEGORY, "Appearance", "Theme"],
-    tooltip: "Recolors every FiL_Design_ImageMind node panel. Options: Cyberpunk Neon, official Cyberpunk 2077 High-Voltage Yellow, Vault-Tec CRT Fallout/Pipboy, FiL Green, Web3 Neo Emerald, NFT Vibe, Hollywood Teal. Applies instantly, no reload.",
+    tooltip: "Recolors every FiL_Design_ImageMind node panel. Options: Cyberpunk Neon, official Cyberpunk 2077 High-Voltage Yellow, Vault-Tec CRT Fallout/Pipboy, FiL Green, Web3 Neo Emerald, NFT Vibe, Hollywood Teal, Cyber Punch (glass) and Cyber Punch HUD. Applies instantly, no reload.",
     onChange: onThemeChange,
   },
 ];

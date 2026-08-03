@@ -201,7 +201,35 @@ const FIL_PALETTE_CYBERPUNK_2077: FilPalette = {
   ok: "#fcee0a",
 };
 
-export type FilThemeName = "default" | "cyberpunk" | "fallout" | "travelmate" | "pipboy" | "pixaroma" | "neo_emerald" | "nft_vibe" | "hollywood_teal" | "cyberpunk_2077";
+/**
+ * "Cyber Punch" — brand kit sampled directly from a reference swatch card
+ * (@PIXELAPHIC): #FF0022 red, #121212 near-black, #FFD000 yellow, #FFFFFF
+ * white, no fifth colour. Two THEMES entries share this one palette object —
+ * `cyber_punch` (glass) and `cyber_punch_hud` — the same brand, two different
+ * surface/effect treatments, the way `cyberpunk`/`cyberpunk_2077` are two takes
+ * on one aesthetic rather than the same theme name twice.
+ *
+ * `accent` is the yellow, not the red: red at full saturation reads 3.98:1
+ * against white and needs a dark ink same as every other vivid accent here,
+ * which the ink swatch already provides — but yellow's own luminance is high
+ * enough that ink-on-yellow clears AA with the widest margin of any theme
+ * (12.74:1), so the accent role goes to whichever swatch that margin favours.
+ * Red keeps the role it already reads as: danger. `ok` has no green in the kit
+ * to spend, so it reuses the accent — the same move `cyberpunk_2077` makes
+ * for the same reason.
+ */
+const FIL_PALETTE_CYBER_PUNCH: FilPalette = {
+  accent: "#ffd000",
+  accentInk: "#121212", // 12.74:1 on #ffd000 (white was 1.47:1)
+  panel: "#121212",
+  panelAlt: "#1c1c1c",
+  text: "#ffffff",
+  muted: "#bdbdbd", // 9.63:1 composited over the glass surface tint
+  danger: "#ff0022", // 4.71:1 on panel/panelAlt
+  ok: "#ffd000",
+};
+
+export type FilThemeName = "default" | "cyberpunk" | "fallout" | "travelmate" | "pipboy" | "pixaroma" | "neo_emerald" | "nft_vibe" | "hollywood_teal" | "cyberpunk_2077" | "cyber_punch" | "cyber_punch_hud";
 
 const THEMES: Record<FilThemeName, FilPalette> = {
   default: FIL_PALETTE,
@@ -214,6 +242,8 @@ const THEMES: Record<FilThemeName, FilPalette> = {
   nft_vibe: FIL_PALETTE_NFT_VIBE,
   hollywood_teal: FIL_PALETTE_HOLLYWOOD_TEAL,
   cyberpunk_2077: FIL_PALETTE_CYBERPUNK_2077,
+  cyber_punch: FIL_PALETTE_CYBER_PUNCH,
+  cyber_punch_hud: FIL_PALETTE_CYBER_PUNCH,
 };
 
 /**
@@ -408,6 +438,110 @@ const THEME_EFFECTS: Record<FilThemeName, string> = {
 }
 :root[data-fil-theme="cyberpunk_2077"] .lg-node-header {
   letter-spacing: 0.06em;
+}
+`,
+  cyber_punch: `
+:root[data-fil-theme="cyber_punch"] .fil-node-shell [class$="-root"] {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 0 0 28px rgba(255, 0, 34, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 208, 0, 0.3);
+}
+:root[data-fil-theme="cyber_punch"] .fil-w-section {
+  background: linear-gradient(90deg, rgba(255, 0, 34, 0.22) 0%, rgba(255, 208, 0, 0.06) 100%) !important;
+  border-left: 3px solid #ff0022 !important;
+  border-radius: 9999px !important;
+  padding-left: 12px !important;
+  color: #ffd000 !important;
+  font-weight: 700;
+}
+:root[data-fil-theme="cyber_punch"] .fil-w-section:hover:not(:disabled) {
+  background: linear-gradient(90deg, rgba(255, 0, 34, 0.32) 0%, rgba(255, 208, 0, 0.14) 100%) !important;
+  color: #ffffff !important;
+}
+:root[data-fil-theme="cyber_punch"] .fil-w-seg.active,
+:root[data-fil-theme="cyber_punch"] .fil-combo-trigger.open,
+:root[data-fil-theme="cyber_punch"] .fil-combo-trigger:focus-visible,
+:root[data-fil-theme="cyber_punch"] .fil-w-chip.active {
+  background: #ffd000 !important;
+  color: #121212 !important;
+  box-shadow: 0 0 20px rgba(255, 208, 0, 0.6), 0 0 10px rgba(255, 0, 34, 0.4) !important;
+  border-color: #ffd000 !important;
+  border-radius: 9999px !important;
+  font-weight: 700;
+}
+:root[data-fil-theme="cyber_punch"] .fil-w-seedrow-pill.is-accent {
+  background: #ff0022 !important;
+  border-color: #ffd000 !important;
+  color: #ffffff !important;
+  border-radius: 9999px !important;
+  font-weight: 800;
+  box-shadow: 0 0 16px rgba(255, 0, 34, 0.55) !important;
+}
+:root[data-fil-theme="cyber_punch"] .fil-w-seedrow-pill.is-accent:hover {
+  background: #d40016 !important;
+  box-shadow: 0 0 24px rgba(255, 0, 34, 0.8) !important;
+}
+:root[data-fil-theme="cyber_punch"] input:focus,
+:root[data-fil-theme="cyber_punch"] textarea:focus {
+  border-color: #ffd000 !important;
+  box-shadow: 0 0 18px rgba(255, 208, 0, 0.45) !important;
+}
+:root[data-fil-theme="cyber_punch"] button:hover:not(:disabled) {
+  box-shadow: 0 0 16px rgba(255, 208, 0, 0.4) !important;
+}
+:root[data-fil-theme="cyber_punch"] .lg-node-header {
+  letter-spacing: 0.03em;
+}
+`,
+  cyber_punch_hud: `
+:root[data-fil-theme="cyber_punch_hud"] .fil-node-shell [class$="-root"] {
+  box-shadow: 0 0 22px rgba(255, 208, 0, 0.25), inset 0 0 14px rgba(255, 0, 34, 0.18);
+  border: 1px solid rgba(255, 208, 0, 0.5);
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
+}
+:root[data-fil-theme="cyber_punch_hud"] .fil-w-section {
+  background: repeating-linear-gradient(-45deg, rgba(255, 0, 34, 0.18) 0px, rgba(255, 0, 34, 0.18) 6px, transparent 6px, transparent 12px) !important;
+  border-left: 3px solid #ffd000 !important;
+  color: #ffd000 !important;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+:root[data-fil-theme="cyber_punch_hud"] .fil-w-section:hover:not(:disabled) {
+  background: repeating-linear-gradient(-45deg, rgba(255, 208, 0, 0.25) 0px, rgba(255, 208, 0, 0.25) 6px, transparent 6px, transparent 12px) !important;
+  color: #ffffff !important;
+}
+:root[data-fil-theme="cyber_punch_hud"] .fil-w-seg.active,
+:root[data-fil-theme="cyber_punch_hud"] .fil-combo-trigger.open,
+:root[data-fil-theme="cyber_punch_hud"] .fil-combo-trigger:focus-visible,
+:root[data-fil-theme="cyber_punch_hud"] .fil-w-chip.active {
+  background: #ffd000 !important;
+  color: #121212 !important;
+  box-shadow: 0 0 18px rgba(255, 208, 0, 0.7) !important;
+  border-color: #ff0022 !important;
+  font-weight: 800;
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 0 100%);
+}
+:root[data-fil-theme="cyber_punch_hud"] .fil-w-seedrow-pill.is-accent {
+  background: #ff0022 !important;
+  border-color: #ffd000 !important;
+  color: #ffffff !important;
+  font-weight: 800;
+  box-shadow: 0 0 14px rgba(255, 0, 34, 0.6) !important;
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 0 100%);
+}
+:root[data-fil-theme="cyber_punch_hud"] .fil-w-seedrow-pill.is-accent:hover {
+  background: #d40016 !important;
+  box-shadow: 0 0 20px rgba(255, 0, 34, 0.85) !important;
+}
+:root[data-fil-theme="cyber_punch_hud"] input:focus,
+:root[data-fil-theme="cyber_punch_hud"] textarea:focus {
+  border-color: #ffd000 !important;
+  box-shadow: 0 0 16px rgba(255, 208, 0, 0.5) !important;
+}
+:root[data-fil-theme="cyber_punch_hud"] button:hover:not(:disabled) {
+  box-shadow: 0 0 14px rgba(255, 208, 0, 0.5) !important;
+}
+:root[data-fil-theme="cyber_punch_hud"] .lg-node-header {
+  letter-spacing: 0.08em;
 }
 `,
   fallout: `
@@ -865,6 +999,46 @@ const SURFACE_VARS_CYBERPUNK_2077 =
   "--fil-border:rgba(0,240,255,0.4);" +
   "--fil-input-border:#fcee0a;";
 
+/**
+ * Cyber Punch — glass variant. Translucent red-black glass, wide blur, rounded
+ * — the "Neon Glass" treatment tried in the ui-lab sandbox node before this.
+ */
+const SURFACE_VARS_CYBER_PUNCH =
+  "--fil-surface-bg:rgba(255,0,34,0.05);" +
+  "--fil-surface-border:rgba(255,208,0,0.3);" +
+  "--fil-surface-radius:18px;" +
+  "--fil-surface-blur:18px;" +
+  "--fil-surface-shadow:0 18px 38px rgba(0,0,0,0.7), 0 0 26px rgba(255,0,34,0.3), inset 0 1px 0 rgba(255,255,255,0.14);" +
+  "--fil-glass-bg:rgba(28,20,20,0.55);" +
+  "--fil-glass-border:rgba(255,208,0,0.35);" +
+  "--fil-field-radius:12px;" +
+  "--fil-pill-radius:9999px;" +
+  "--fil-pill-bg:rgba(255,208,0,0.08);" +
+  "--fil-pill-border:rgba(255,208,0,0.4);" +
+  "--fil-border:rgba(255,0,34,0.35);" +
+  "--fil-input-border:rgba(255,208,0,0.5);";
+
+/**
+ * Cyber Punch — HUD variant. Same palette, opposite instinct: near-opaque,
+ * small radius, a tight glow instead of a wide one — the "Prицел"/HUD
+ * treatment from the same sandbox pass, corner brackets and a chamfered
+ * corner supplied by `THEME_EFFECTS.cyber_punch_hud`'s `clip-path`.
+ */
+const SURFACE_VARS_CYBER_PUNCH_HUD =
+  "--fil-surface-bg:rgba(18,18,18,0.94);" +
+  "--fil-surface-border:rgba(255,208,0,0.5);" +
+  "--fil-surface-radius:3px;" +
+  "--fil-surface-blur:6px;" +
+  "--fil-surface-shadow:0 0 20px rgba(255,208,0,0.25), inset 0 0 12px rgba(255,0,34,0.15);" +
+  "--fil-glass-bg:rgba(10,10,10,0.7);" +
+  "--fil-glass-border:rgba(255,0,34,0.4);" +
+  "--fil-field-radius:2px;" +
+  "--fil-pill-radius:3px;" +
+  "--fil-pill-bg:rgba(255,208,0,0.06);" +
+  "--fil-pill-border:rgba(255,208,0,0.45);" +
+  "--fil-border:rgba(255,0,34,0.4);" +
+  "--fil-input-border:#ffd000;";
+
 const THEME_SURFACES: Partial<Record<FilThemeName, string>> = {
   cyberpunk: SURFACE_VARS_CYBERPUNK,
   pipboy: SURFACE_VARS_PIPBOY,
@@ -873,6 +1047,8 @@ const THEME_SURFACES: Partial<Record<FilThemeName, string>> = {
   nft_vibe: SURFACE_VARS_NFT_VIBE,
   hollywood_teal: SURFACE_VARS_HOLLYWOOD_TEAL,
   cyberpunk_2077: SURFACE_VARS_CYBERPUNK_2077,
+  cyber_punch: SURFACE_VARS_CYBER_PUNCH,
+  cyber_punch_hud: SURFACE_VARS_CYBER_PUNCH_HUD,
 };
 
 /**

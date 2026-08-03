@@ -46,7 +46,7 @@ into `frontend/dist`. It covers four areas:
 | 🧠 **LLM & vision** | Seven providers (local and cloud), 21 analysis agents, model-specific prompt profiles for Z-Image, FLUX, SDXL, QWEN, Krea 2 and Ideogram 4 |
 | 🖼️ **Image pipeline** | Tile-grid planning with real overlap maths, model upscaling, per-tile crops in pixel *and* latent space, feathered re-assembly, automatic colour correction |
 | 🎛️ **Sampling** | A full KSampler with every sampler/scheduler, passthrough sockets, built-in preview, plus HighRes-fix and Noise-Control scripts |
-| 🎨 **UI** | Every node draws a real Vue panel — ten themes, full ru/en localization, compact toggles, numeric steppers, contract-driven option lists |
+| 🎨 **UI** | Every node draws a real Vue panel — twelve themes, full ru/en localization, compact toggles, numeric steppers, contract-driven option lists |
 
 **Design rules the pack follows:** node files stay thin (schema + orchestration) while the logic
 lives in `common/`; the widget contract in `common/contracts/` is the single source of truth and is
@@ -687,7 +687,9 @@ The **Providers** tab in the same panel manages accounts and API keys (stored in
 
 **Themes** (applied live, no reload): `Default`, `Cyberpunk`, `Cyberpunk 2077`, `Fallout`,
 `Pipboy`, `FiL Green`, `Pixaroma` (matches the ComfyUI-Pixaroma pack's colors, for graphs that
-mix both), `Neo Emerald`, `NFT Vibe`, `Hollywood Teal`. **Theme applies to** extends the tint to
+mix both), `Neo Emerald`, `NFT Vibe`, `Hollywood Teal`, `Cyber Punch` (translucent red/black
+glass, wide blur), `Cyber Punch HUD` (same palette, sharp edges, chamfered corner, corner-bracket
+accents). **Theme applies to** extends the tint to
 nodes wired to this pack's, or to every node — title bar only, never the node body, since body
 colour is saved into the workflow file. **Theme animations** stops the looping flourishes and
 is off by default when the system asks for reduced motion.
@@ -861,7 +863,7 @@ Further reading: [architecture](docs/architecture.md) ·
 | 🧠 **LLM и зрение** | Семь провайдеров (локальные и облачные), 21 агент анализа, профили промптов под Z-Image, FLUX, SDXL, QWEN, Krea 2 и Ideogram 4 |
 | 🖼️ **Работа с изображением** | Планирование сетки тайлов с честной математикой нахлёста, апскейл моделью, реальные кропы тайлов в пиксельном *и* латентном пространстве, сборка с растушёвкой, авто-цветокоррекция |
 | 🎛️ **Сэмплинг** | Полноценный KSampler со всеми сэмплерами/планировщиками, passthrough-сокетами и встроенным превью, плюс скрипты HighRes Fix и Noise Control |
-| 🎨 **Интерфейс** | У каждого узла настоящая Vue-панель — десять тем, полная ru/en локализация, компактные тумблеры, степперы у числовых полей, списки опций из контракта |
+| 🎨 **Интерфейс** | У каждого узла настоящая Vue-панель — двенадцать тем, полная ru/en локализация, компактные тумблеры, степперы у числовых полей, списки опций из контракта |
 
 **Правила, которым следует пакет:** файлы нод тонкие (схема + оркестрация), логика живёт в
 `common/`; контракт виджетов в `common/contracts/` — единственный источник истины, из него
@@ -1505,7 +1507,9 @@ SDXL, QWEN, Krea 2, Ideogram 4 — и никогда не трогает сам�
 
 **Темы** (применяются на лету, без перезагрузки): `Default`, `Cyberpunk`, `Cyberpunk 2077`,
 `Fallout`, `Pipboy`, `FiL Green`, `Pixaroma` (повторяет цвета пака ComfyUI-Pixaroma — для графов,
-где смешаны оба), `Neo Emerald`, `NFT Vibe`, `Hollywood Teal`. **Theme applies to** распространяет
+где смешаны оба), `Neo Emerald`, `NFT Vibe`, `Hollywood Teal`, `Cyber Punch` (полупрозрачное
+красно-чёрное стекло, широкое размытие), `Cyber Punch HUD` (та же палитра, острые углы, срезанный
+уголок, акценты-скобки по углам). **Theme applies to** распространяет
 подкраску на ноды, соединённые с нашими, или на все — только заголовок, не тело: цвет тела
 сохраняется внутрь воркфлоу. **Theme animations** останавливает бесконечные эффекты и выключается
 сам, если система просит уменьшить движение.
