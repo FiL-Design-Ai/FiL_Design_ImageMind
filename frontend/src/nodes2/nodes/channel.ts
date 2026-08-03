@@ -61,11 +61,11 @@ export const channelNode: NodeModule = {
     const originalConnections = proto.onConnectionsChange as ((...a: unknown[]) => unknown) | undefined;
     proto.onConnectionsChange = function (this: unknown, ...args: unknown[]) {
       const result = originalConnections?.apply(this, args);
-      const state = (this as {
-        _filChannelState?: { ui?: { refresh?: () => void; promptAmbiguity?: (slot: number) => void } };
-      })._filChannelState;
+      const node = this as {
+        _filChannelState?: { ui?: { refresh?: () => void } };
+        _filPendingAmbiguityChecks?: number[];
+      };
       invalidateWirelessPlan();
-      state?.ui?.refresh?.();
 
       // LiteGraph's own signature (`LGraphNode.ts`): (NodeSlotType, slot,
       // connected, link_info, ioInfo). `NodeSlotType.INPUT === 1` — checked
@@ -73,10 +73,22 @@ export const channelNode: NodeModule = {
       // this node's own `value*` inputs should ever raise the panel
       // unprompted: not a disconnect (nothing to decide), and not this node's
       // output side (it has none).
+      //
+      // Recorded on the plain node object, not handed straight to the panel:
+      // `ChannelPanelVue` is an async component (`defineAsyncComponent`), so
+      // its `onMounted` — the only place `state.ui` gets anything on it — can
+      // still be pending when this fires, which a synchronous callback here
+      // would silently miss. Confirmed live: creating the node and wiring it
+      // in the same tick (an automated script, not a human drag) skipped the
+      // prompt entirely, no error, because `state.ui` was still empty. A
+      // pending list survives that gap; `ChannelPanel.vue`'s own `refresh()`
+      // — run on mount and every poll after — is what drains it.
       const [side, slot, connected] = args as [number, number, boolean];
       if (side === 1 && connected === true && typeof slot === "number") {
-        state?.ui?.promptAmbiguity?.(slot);
+        (node._filPendingAmbiguityChecks ??= []).push(slot);
       }
+
+      node._filChannelState?.ui?.refresh?.();
       return result;
     };
 
