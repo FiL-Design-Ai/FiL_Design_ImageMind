@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **Two "Cyber Punch" themes** — same brand palette (`#FF0022` red, `#121212`
+  ink, `#FFD000` yellow, `#FFFFFF` white), two different treatments. `Cyber
+  Punch` is translucent red/black glass with a wide blur; `Cyber Punch HUD` is
+  the opposite instinct — near-opaque, sharp corners, a chamfered top-right cut
+  and corner-bracket accents on the title bar. Both were tried first as
+  variants on a throwaway sandbox node (`ui-lab` branch, never merged) before
+  either reached the shared theme layer.
+
 ## 1.1.1 (2026-07-30)
 
 Repairs found by a full audit of 1.1.0 — code, tests, the ComfyUI host seam,

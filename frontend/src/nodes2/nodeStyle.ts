@@ -96,7 +96,9 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
     const isNeoEmerald = theme === "neo_emerald";
     const isNftVibe = theme === "nft_vibe";
     const isHollywoodTeal = theme === "hollywood_teal";
-    const radius = (isCyberpunk || isCyberpunk2077) ? 2 : isPipboy ? 4 : isHollywoodTeal ? 12 : (isNeoEmerald || isNftVibe) ? 16 : (globalThis as { LiteGraph?: { ROUND_RADIUS?: number } }).LiteGraph?.ROUND_RADIUS ?? 8;
+    const isCyberPunch = theme === "cyber_punch";
+    const isCyberPunchHud = theme === "cyber_punch_hud";
+    const radius = (isCyberpunk || isCyberpunk2077) ? 2 : (isPipboy || isCyberPunchHud) ? 4 : isHollywoodTeal ? 12 : (isNeoEmerald || isNftVibe) ? 16 : isCyberPunch ? 18 : (globalThis as { LiteGraph?: { ROUND_RADIUS?: number } }).LiteGraph?.ROUND_RADIUS ?? 8;
     const collapsed = Boolean(this.collapsed);
     ctx.fillStyle = ACTIVE_PALETTE.panel;
     ctx.beginPath();
@@ -151,6 +153,39 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
       ctx.fillStyle = "#00ff00";
       ctx.fillRect(2, -titleHeight + 2, 8, 2);
       ctx.fillRect(2, -titleHeight + 2, 2, 8);
+      ctx.fillRect(size[0] - 10, -titleHeight + 2, 8, 2);
+      ctx.fillRect(size[0] - 4, -titleHeight + 2, 2, 8);
+    } else if (isCyberPunch) {
+      // Cyber Punch — glass: soft dual-glow stripe, yellow accent over red.
+      // The blur/translucency the name refers to lives in the CSS surface
+      // tokens (backdrop-filter can't reach the canvas); this stripe is the
+      // one thing about the treatment the title bar can still carry.
+      ctx.shadowColor = "rgba(255, 208, 0, 0.75)";
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = "#ffd000";
+      ctx.fillRect(0, -titleHeight, 4, titleHeight);
+
+      ctx.shadowColor = "rgba(255, 0, 34, 0.7)";
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = "#ff0022";
+      ctx.fillRect(4, -titleHeight, 3, titleHeight);
+      ctx.shadowBlur = 0;
+    } else if (isCyberPunchHud) {
+      // Cyber Punch — HUD: yellow outline plus top corner brackets, same
+      // idiom Pipboy uses for its terminal chassis, recoloured. The chamfered
+      // top-right cut lives in the CSS body treatment (THEME_EFFECTS,
+      // `.fil-node-shell [class$="-root"]`'s clip-path) — canvas title bars
+      // in this file have never cut a corner, only DOM ones have.
+      ctx.strokeStyle = "#ffd000";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(0, -titleHeight, size[0], titleHeight, collapsed ? [radius] : [radius, radius, 0, 0]);
+      ctx.stroke();
+
+      ctx.fillStyle = "#ffd000";
+      ctx.fillRect(2, -titleHeight + 2, 8, 2);
+      ctx.fillRect(2, -titleHeight + 2, 2, 8);
+      ctx.fillStyle = "#ff0022";
       ctx.fillRect(size[0] - 10, -titleHeight + 2, 8, 2);
       ctx.fillRect(size[0] - 4, -titleHeight + 2, 2, 8);
     } else if (isNeoEmerald || isNftVibe) {
