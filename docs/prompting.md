@@ -310,7 +310,9 @@ Runtime diagnostics for Two-Stage are derived from the exact Stage 1 and Stage 2
 - medium descriptive style
 - logical scene readability
 - follows a subject → environment → style → technical-specs hierarchy (per `docs.bfl.ml`); FLUX's attention mechanism makes explicit emphasis syntax largely unnecessary — natural sentence structure and ordering already signal what matters
-- length follows the selected `detail_level`, not a separate model cap
+- length follows the selected `detail_level`, not a separate model cap — BFL publishes no word limit; the tool's 160-word cap is an internal heuristic (T5-XXL context is 512 tokens)
+- no negative-prompt mechanism: BFL's official "Working Without Negative Prompts" guide prescribes the same positive-replacement strategy this tool uses
+- `json` mode emits this tool's own caption schema; BFL's official JSON prompting documents a different schema and only for FLUX.2
 
 ### QWEN
 
@@ -320,9 +322,9 @@ Runtime diagnostics for Two-Stage are derived from the exact Stage 1 and Stage 2
 
 ### SDXL
 
-- full natural-language sentences, not comma-separated SD1.5-style tags — official guidance (Stability AI / SDXL prompting guides) is explicit that tag-lists underperform on SDXL
+- full natural-language sentences, not comma-separated SD1.5-style tags — SDXL was trained on descriptive captions and reads coherent prose better than tag lists
 - subject/action leads, environment and lighting as their own sentences, style and quality words trail as a short comma-tagged tail
-- optional negative prompt supported (kept minimal, not a long SD1.5-style exclusion list)
+- optional negative prompt supported (kept minimal, not a long SD1.5-style exclusion list); weaker effect than on SD 1.x — Stability's own SDXL demo marks it unused, the ecosystem applies it via CFG
 - roughly 2-4 sentences depending on scene complexity
 
 ### Video

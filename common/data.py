@@ -89,6 +89,15 @@ MODEL_PROMPT_RULES: Dict[str, Dict[str, Any]] = {
         "supports_negative_prompt": False,
         "negative_strategy": "positive_constraints",
         "max_words": 160,
+        # Verified 2026-08-04 (docs.bfl.ai, api.bfl.ai/openapi.json): DiT that
+        # prefers descriptive natural language — tags are tolerated ("there is
+        # no single correct format"), descriptions recommended. No endpoint
+        # exposes a negative-prompt parameter, and BFL's "Working Without
+        # Negative Prompts" guide prescribes the same positive-replacement
+        # strategy this profile uses. The 160-word cap is a project heuristic
+        # (BFL publishes no limit; T5-XXL context is 512 tokens). The "flux"
+        # json_schema is our own caption shape: BFL's official JSON prompting
+        # documents a different schema, and only for FLUX.2.
         "json_schema": "flux",
         "target_prompt_format": None,
         "force_response_format": None,
@@ -101,6 +110,15 @@ MODEL_PROMPT_RULES: Dict[str, Dict[str, Any]] = {
         "supports_negative_prompt": True,
         "negative_strategy": "standard",
         "max_words": None,
+        # Verified 2026-08-04 (HF stabilityai/stable-diffusion-xl-base-1.0,
+        # arXiv:2307.01952, stability-ai/api-interfaces): dual-CLIP UNet that
+        # works from short prompts; over-long prompts truncate at the CLIP
+        # token ceiling (the "77 tokens" figure comes from diffusers'
+        # truncation warning, not Stability prose). Negative prompts stay on:
+        # the v1 API expressed them as negative prompt weights and the
+        # ecosystem (ComfyUI/A1111) applies them via CFG — but Stability's own
+        # SDXL demo marks negative_prompt unused, so expect a weaker effect
+        # than on SD 1.x.
         "json_schema": None,
         "target_prompt_format": None,
         "force_response_format": None,
