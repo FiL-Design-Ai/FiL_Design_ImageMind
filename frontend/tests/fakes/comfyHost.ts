@@ -49,6 +49,8 @@ export interface FakeNode {
   graph: FakeNodeGraph;
   /** Wired by `createGraph()`; absent on a node built without one. */
   connect?: (originSlot: number, target: FakeNode, targetSlot: number) => FakeLink | null;
+  /** The mirror of `connect`, the way LiteGraph's "Remove Link" behaves. */
+  disconnectInput?: (slot: number) => boolean;
   size: [number, number];
   /**
    * Core's own stroke registry, seeded exactly as `LGraphNode`'s constructor
@@ -173,6 +175,24 @@ export function createNode(spec: FakeNodeSpec = {}): FakeNode {
       return [380, 320];
     },
     setDirtyCanvas(): void {},
+
+    // The mirror of what `createGraph()`'s connect stamps: drop the link from
+    // the registry, the origin output's fan-out, and the input itself — the
+    // three places a link lives, as `applyLinks.ts`' restore already knows.
+    disconnectInput(slot: number): boolean {
+      const input = node.inputs[slot];
+      if (!input || input.link == null) return false;
+      const linkId = input.link;
+      const link = node.graph.links?.[linkId];
+      if (link && "origin_id" in link) {
+        const origin = node.graph.getNodeById?.(link.origin_id);
+        const outSlot = origin?.outputs?.[link.origin_slot];
+        if (outSlot?.links) outSlot.links = outSlot.links.filter((id) => id !== linkId);
+        delete node.graph.links[linkId];
+      }
+      input.link = null;
+      return true;
+    },
   };
   return node;
 }

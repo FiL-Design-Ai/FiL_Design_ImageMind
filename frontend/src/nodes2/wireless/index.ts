@@ -28,7 +28,15 @@ export {
   type DiagnosticRow,
   type GraphedDiagnosticRow,
 } from "./diagnostics";
-export { applySlotNames, isAutoLabel, AUTO_LABEL_PROPERTY, type SlotNaming } from "./slotLabels";
+export {
+  applySlotNames,
+  isAutoLabel,
+  setUserSlotName,
+  restoreUserSlotNames,
+  AUTO_LABEL_PROPERTY,
+  USER_NAMES_PROPERTY,
+  type SlotNaming,
+} from "./slotLabels";
 export { applySlotColors } from "./slotColors";
 export { resolveWireless } from "./resolve";
 export {
@@ -46,8 +54,11 @@ export {
   channelTargets,
   isTargetBlocked,
   setChannelTarget,
+  takeOverWiredInput,
+  undoTakeOver,
   type ChannelTarget,
   type ChannelTargetState,
+  type TakeOverUndo,
 } from "./targets";
 export { applyWirelessLinks, type AppliedWireless } from "./applyLinks";
 export { isChannelNode } from "./graphAccess";

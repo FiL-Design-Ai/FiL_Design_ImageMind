@@ -99,11 +99,53 @@ export function noteChannelPairs(entries: ReadonlyArray<{ channelName: string; i
   persist();
 }
 
+/**
+ * The "positive or negative?" question remembers its last answer, so the next
+ * time it opens the matching button is pre-highlighted — one click to confirm
+ * instead of a fresh choice. A highlight only, never an auto-answer: the user
+ * still presses the button, so a wrong suggestion costs a different click, not
+ * a silent miswire.
+ */
+const NAMING_KEY = "fil_wireless_naming";
+
+const naming = ref<string | null>(loadNaming());
+
+function loadNaming(): string | null {
+  try {
+    const raw = localStorage.getItem(NAMING_KEY);
+    return typeof raw === "string" && raw ? raw : null;
+  } catch {
+    return null;
+  }
+}
+
+function persistNaming(): void {
+  try {
+    if (naming.value == null) localStorage.removeItem(NAMING_KEY);
+    else localStorage.setItem(NAMING_KEY, naming.value);
+  } catch {
+    // Same trade as the pair map: works this session, just does not return.
+  }
+}
+
+/** Record the answer the user confirmed to the naming question. */
+export function noteNamingAnswer(answer: string): void {
+  naming.value = answer;
+  persistNaming();
+}
+
+/** The answer to pre-highlight next time the naming question opens. */
+export function namingAnswerHint(): string | null {
+  return naming.value;
+}
+
 /** Test seam — the panel never calls this. */
 export function _resetWirelessMemory(): void {
   pairs.value = {};
+  naming.value = null;
   try {
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(NAMING_KEY);
   } catch {
     // nothing to do
   }

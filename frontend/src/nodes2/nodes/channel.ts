@@ -64,6 +64,7 @@ export const channelNode: NodeModule = {
       const node = this as {
         _filChannelState?: { ui?: { refresh?: () => void } };
         _filPendingAmbiguityChecks?: number[];
+        _filPendingNamingChecks?: number[];
       };
       invalidateWirelessPlan();
 
@@ -89,10 +90,14 @@ export const channelNode: NodeModule = {
       // to an already-open tab — re-announces every existing link the same
       // way a brand-new one arrives, side 1, connected true. Without this
       // check, a channel resolved and left alone since the file was saved
-      // popped the same modal again on every single switch.
+      // popped the same modal again on every single switch. It is also what
+      // makes the "positive or negative?" question a once-per-wire one: the
+      // answer lands on the slot's label, the label serialises with the
+      // workflow, and a restored wire never queues either check.
       const [side, slot, connected] = args as [number, number, boolean];
       if (side === 1 && connected === true && typeof slot === "number" && !graphBeingConfigured()) {
         (node._filPendingAmbiguityChecks ??= []).push(slot);
+        (node._filPendingNamingChecks ??= []).push(slot);
       }
 
       node._filChannelState?.ui?.refresh?.();

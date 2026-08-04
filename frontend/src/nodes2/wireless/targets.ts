@@ -32,7 +32,8 @@ import { invalidateWirelessPlan } from "./livePlan";
 export type ChannelTargetState =
   | "on" // receiving, whether by auto-distribution or an explicit tick
   | "off" // free and eligible, but unticked
-  | "wired" // a real wire already feeds it — the wire always wins (rule 1)
+  | "wired" // a real wire already feeds it — automatics never touch it (rule 1),
+  // but the user may take it over explicitly (`takeOverWiredInput`)
   | "otherChannel" // explicitly subscribed to a different channel
   | "selfLoop"; // this node feeds the channel; connecting it would be a cycle
 
@@ -203,4 +204,79 @@ export function assignCluster(node: WirelessNode, assignments: ReadonlyArray<{ i
   // here is invisible to the cache until it is told (`livePlan.ts`). Only
   // invalidate when something actually changed.
   if (wrote) invalidateWirelessPlan();
+}
+
+/**
+ * Replace a real wire with this channel, by the user's own hand.
+ *
+ * Rule 1 says a real wire always wins — and it does, against everything
+ * automatic. But the row in the target list is not automatic: the user looked
+ * at "already wired" and chose the channel anyway. So the wire goes, through
+ * the host's own `disconnectInput` (the same call a right-click "Remove Link"
+ * makes, which keeps its bookkeeping and undo consistent), and a subscription
+ * takes its place. Nothing here ever runs without that explicit click.
+ *
+ * Refuses, and reports null, when there is no wire to take over, when the
+ * channel would feed the node its own output (rule 6 — a loop is never a
+ * choice), or when the host has no disconnect of its own.
+ *
+ * On success returns a descriptor of the wire that was removed, so the caller
+ * can offer an Undo: re-connect `origin` to the same slot and drop the
+ * subscription. The descriptor is the only thing that knows what the wire was,
+ * because after `disconnectInput` the link is gone from the graph.
+ */
+export interface TakeOverUndo {
+  origin_id: NodeId;
+  origin_slot: number;
+  slotIndex: number;
+  inputName: string;
+  channelName: string;
+}
+
+export function takeOverWiredInput(
+  graph: WirelessGraph,
+  node: WirelessNode,
+  inputName: string,
+  channel: WirelessChannel,
+): TakeOverUndo | null {
+  const slotIndex = (node.inputs ?? []).findIndex((s) => s.name === inputName);
+  if (slotIndex < 0) return null;
+  const input = node.inputs![slotIndex];
+  if (input.link == null) return null; // nothing to take over
+  if (String(channel.origin_id) === String(node.id)) return null; // rule 6
+  const host = node as { disconnectInput?: (slot: number) => unknown };
+  if (typeof host.disconnectInput !== "function") return null;
+
+  // Remember what the wire was before it is gone.
+  const link = graph.links?.[input.link];
+  const origin_id = link?.origin_id;
+  const origin_slot = link?.origin_slot;
+  if (origin_id == null || origin_slot == null) return null;
+
+  host.disconnectInput(slotIndex);
+  if (input.link != null) return null; // the host declined to drop it
+
+  subscribeInput(node, inputName, channel.name);
+  invalidateWirelessPlan();
+  return { origin_id, origin_slot, slotIndex, inputName, channelName: channel.name };
+}
+
+/**
+ * Reverse a takeover: drop the subscription and put the original wire back.
+ * Returns true when the wire was restored.
+ */
+export function undoTakeOver(
+  graph: WirelessGraph,
+  node: WirelessNode,
+  undo: TakeOverUndo,
+): boolean {
+  unsubscribeInput(node, undo.inputName);
+  const origin = graph.getNodeById?.(undo.origin_id);
+  if (!origin || typeof origin.connect !== "function") {
+    invalidateWirelessPlan();
+    return false;
+  }
+  origin.connect(undo.origin_slot, node, undo.slotIndex);
+  invalidateWirelessPlan();
+  return true;
 }
