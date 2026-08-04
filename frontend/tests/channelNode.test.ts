@@ -11,8 +11,9 @@
  * mounted yet when this fires — see `channel.ts`'s own comment on why a direct
  * callback was tried first and dropped.
  */
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { channelNode } from "@/nodes2/nodes/channel";
+import { beginGraphConfigure, endGraphConfigure } from "@/nodes2/wireless";
 import { createNode } from "./fakes/comfyHost";
 
 vi.mock("@/nodes2/domWidgetHost", () => ({
@@ -91,5 +92,50 @@ describe("channel.ts — onConnectionsChange dispatch", () => {
       (nodeType.prototype.onConnectionsChange as (...a: unknown[]) => unknown).call(node, 1, 0, true, {}, {}),
     ).not.toThrow();
     expect((node as unknown as ChannelNode)._filPendingAmbiguityChecks).toEqual([0]);
+  });
+
+  /**
+   * The live bug a workflow switch produced: restoring a saved graph
+   * re-announces every existing link to `onConnectionsChange` the same shape
+   * as a brand-new one, side 1, connected true — so without this guard, every
+   * open (fresh or a tab switch back) re-queued a check for links that had
+   * been resolved and left alone since the file was saved.
+   */
+  describe("while a graph is loading", () => {
+    afterEach(() => {
+      endGraphConfigure(); // clamps at zero — safe even if a test below balanced its own
+    });
+
+    it("does not queue a check for a link the loader is restoring, not the user", () => {
+      const { node, nodeType } = buildChannelNode();
+      beginGraphConfigure();
+
+      (nodeType.prototype.onConnectionsChange as (...a: unknown[]) => unknown).call(node, 1, 0, true, {}, {});
+
+      expect(node._filPendingAmbiguityChecks).toBeUndefined();
+    });
+
+    it("still refreshes during a load — the channel list and colours must stay correct either way", () => {
+      const { node, nodeType, state } = buildChannelNode();
+      const refresh = vi.fn();
+      state.ui.refresh = refresh;
+      beginGraphConfigure();
+
+      (nodeType.prototype.onConnectionsChange as (...a: unknown[]) => unknown).call(node, 1, 0, true, {}, {});
+
+      expect(refresh).toHaveBeenCalledTimes(1);
+    });
+
+    it("resumes queuing checks once the load ends", () => {
+      const { node, nodeType } = buildChannelNode();
+      beginGraphConfigure();
+      (nodeType.prototype.onConnectionsChange as (...a: unknown[]) => unknown).call(node, 1, 0, true, {}, {});
+      endGraphConfigure();
+
+      // A real wire the user draws after the workflow has finished opening.
+      (nodeType.prototype.onConnectionsChange as (...a: unknown[]) => unknown).call(node, 1, 1, true, {}, {});
+
+      expect(node._filPendingAmbiguityChecks).toEqual([1]);
+    });
   });
 });

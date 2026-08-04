@@ -754,6 +754,10 @@ The pack registers these routes on the ComfyUI server (prefix from `common/brand
 |---|---|---|
 | ![Seed](docs/images/seed.png) | ![Cyber Switch](docs/images/cyber-switch.png) | ![Cleaner](docs/images/cleaner.png) |
 
+**Wireless** — one 📡 Channel carries a MODEL and a VAE at once; free inputs of the same type pick their channel up when the prompt is queued.
+
+![Channel broadcasting a MODEL and a VAE](docs/images/channel.png)
+
 **Provider settings** — keys are stored in `data/auth.json` and shown redacted.
 
 ![Provider settings](docs/images/settings.png)
@@ -1584,6 +1588,10 @@ H2/H3, Wan 2.x, HunyuanVideo, LTX Video, Kling и другие DiT-видео-м
 | Seed | Cyber Switch | Cleaner |
 |---|---|---|
 | ![Seed](docs/images/seed.png) | ![Cyber Switch](docs/images/cyber-switch.png) | ![Cleaner](docs/images/cleaner.png) |
+
+**Wireless** — один 📡 Channel несёт сразу MODEL и VAE; свободные входы того же типа подхватывают свой канал при постановке в очередь.
+
+![Channel раздаёт MODEL и VAE](docs/images/channel.png)
 
 **Настройки провайдеров** — ключи хранятся в `data/auth.json` и показываются скрытыми.
 

@@ -19,7 +19,13 @@
  * like a KSampler's `positive`/`negative`). Without this, the only sign
  * anything needed a decision was a row in the "Wireless" bottom-panel tab, and
  * nothing pointed a user there right when the decision became necessary — see
- * `wireless.md` for the incident that prompted adding it.
+ * `wireless.md` for the incident that prompted adding it. What opens depends
+ * on the ambiguity's shape: a whole same-type cluster on one node gets the
+ * cluster modal (every input as a row, every channel as a chip, one confirm
+ * for all of it, pre-selected from what the user confirmed before —
+ * `wirelessMemory.ts`); a single input with rival channels keeps the target
+ * list. Rule 8 (`resolve.ts`) settles name-pairable clusters before either
+ * modal is needed, so both only appear when names did not already answer.
  *
  * `channel.ts` cannot call straight into this component for it: it is an async
  * component, so a wire drawn the instant the node exists can fire
@@ -33,17 +39,23 @@
 import { computed, onMounted, onUnmounted, ref, shallowRef } from "vue";
 import type { FilNodeState } from "@/nodes2/filState";
 import { useI18n } from "@/composables/useI18n";
+import FilButton from "@/components/widgets/FilButton.vue";
 import FilIcon from "@/components/widgets/FilIcon.vue";
 import FilModal from "@/components/widgets/FilModal.vue";
 import FilToggle from "@/components/widgets/FilToggle.vue";
+import { noteChannelPairs, pairedInputFor } from "@/stores/wirelessMemory";
 import {
   applySlotColors,
   applySlotNames,
+  assignCluster,
   channelColor,
   channelColorSoft,
   channelTargets,
+  isBlocked,
   livePlan,
   setChannelTarget,
+  subscribedChannel,
+  type AmbiguousEntry,
   type ChannelTarget,
   type WirelessChannel,
   type WirelessGraph,
@@ -80,6 +92,7 @@ function refresh(): void {
   if (!graph || !Array.isArray(graph._nodes)) return;
   const next = livePlan(graph);
   if (next !== plan.value) plan.value = next;
+  closeResolvedCluster();
   syncSlots(graph);
   drainPendingAmbiguityChecks();
 }
@@ -127,8 +140,14 @@ onUnmounted(() => {
  * Called from inside `refresh()`, after `plan.value` is already current for
  * this tick — checking `resolution.ambiguous` here does not need its own
  * fresh resolve. Slots that were never ambiguous (the common case: the wire
- * just resolved cleanly) are consumed just the same, so they are not
- * re-checked on the next poll.
+ * just resolved cleanly, or rule 8 paired it by name) are consumed just the
+ * same, so they are not re-checked on the next poll.
+ *
+ * Which modal opens depends on the shape of what is ambiguous. Two or more
+ * same-type inputs colliding on one node (rule 7 — `positive`/`negative`) is
+ * one decision about several inputs, so it gets the cluster modal, one screen
+ * for all of them. Anything else — one input, several rival channels (rule
+ * 3) — is a decision about one channel and keeps the channel's target list.
  */
 function drainPendingAmbiguityChecks(): void {
   const node = hostNode() as (WirelessNode & { _filPendingAmbiguityChecks?: number[] }) | undefined;
@@ -136,14 +155,36 @@ function drainPendingAmbiguityChecks(): void {
   if (!node || !pending?.length) return;
   node._filPendingAmbiguityChecks = [];
 
+  const ambiguous = plan.value?.resolution.ambiguous ?? [];
+
+  // One decision per node: a cluster is whatever same-type inputs on one node
+  // are ambiguous together, whatever channel happens to be asking.
+  const groups = new Map<string, AmbiguousEntry[]>();
+  for (const entry of ambiguous) {
+    const key = `${String(entry.node_id)}:${entry.type}`;
+    const group = groups.get(key);
+    if (group) group.push(entry);
+    else groups.set(key, [entry]);
+  }
+
   for (const slotIndex of pending) {
     const channel = channels.value.find((c) => c.slotIndex === slotIndex);
     if (!channel) continue;
-    const isAmbiguous = (plan.value?.resolution.ambiguous ?? []).some((a) => a.candidates.includes(channel.name));
-    if (isAmbiguous) {
-      openTargets(channel);
-      break; // one modal at a time — any further pending slots stay resolvable via the gear
+    if (!ambiguous.some((a) => a.candidates.includes(channel.name))) continue;
+
+    let cluster: AmbiguousEntry | undefined;
+    for (const group of groups.values()) {
+      if (group.length < 2) continue;
+      const involves = group.find((a) => a.candidates.includes(channel.name));
+      if (involves) {
+        cluster = involves;
+        break;
+      }
     }
+
+    if (cluster) openCluster(cluster.node_id, cluster.type);
+    else openTargets(channel);
+    break; // one modal at a time — any further pending slots stay resolvable via the gear
   }
 }
 
@@ -209,6 +250,146 @@ function reason(target: ChannelTarget): string {
   }
 }
 
+/*
+ * The cluster modal — one screen for one node's same-type inputs (rule 7's
+ * `positive`/`negative` being the case that motivated it). The per-channel
+ * target list asks "where does this channel go"; this one asks the paired
+ * question "which channel goes to each of these inputs", and answers all of
+ * it with one confirm.
+ */
+
+interface ClusterRow {
+  inputName: string;
+  inputLabel: string;
+  /** The channel name currently picked for this input, if any. */
+  chosen: string | null;
+}
+
+const clusterOpen = ref(false);
+const clusterReceiver = shallowRef<WirelessNode | null>(null);
+const clusterType = ref("");
+const clusterRows = ref<ClusterRow[]>([]);
+
+const clusterCandidates = computed<WirelessChannel[]>(() =>
+  (plan.value?.channels ?? []).filter((c) => c.type === clusterType.value),
+);
+
+const clusterNodeName = computed(() => {
+  const node = clusterReceiver.value;
+  return node?.title?.trim() || node?.comfyClass || node?.type || "";
+});
+
+const clusterHasChoices = computed(() => clusterRows.value.some((row) => row.chosen));
+
+/**
+ * The modal exists to answer a question; when the graph stops asking it, the
+ * modal goes away. Wiring the inputs one at a time is the live case: after
+ * the first wire the pair cannot complete, so the modal rightly opens — and
+ * after the second, rule 8 (or a hand-drawn wire, or a subscription) settles
+ * the cluster, leaving the question stale. Without this, an answered question
+ * stayed on screen until the user noticed and closed it by hand.
+ */
+function closeResolvedCluster(): void {
+  if (!clusterOpen.value || !clusterReceiver.value) return;
+  const nodeId = String(clusterReceiver.value.id);
+  const type = clusterType.value;
+  const stillAsked = (plan.value?.resolution.ambiguous ?? []).some(
+    (entry) => String(entry.node_id) === nodeId && entry.type === type,
+  );
+  if (!stillAsked) clusterOpen.value = false;
+}
+
+function openCluster(nodeId: string | number, type: string): void {
+  const graph = hostNode()?.graph;
+  const receiver = graph?.getNodeById?.(nodeId);
+  if (!receiver) return;
+
+  clusterReceiver.value = receiver;
+  clusterType.value = type;
+
+  // The decision's rows: this node's inputs of the cluster type that are
+  // still open. A real wire (rule 1) and a subscription (rule 2) have both
+  // already settled what they settle; neither is this modal's to revisit.
+  const rows: ClusterRow[] = [];
+  for (const input of receiver.inputs ?? []) {
+    if (!input || input.type !== type) continue;
+    if (input.link != null) continue;
+    if (subscribedChannel(receiver, input.name)) continue;
+    rows.push({ inputName: input.name, inputLabel: input.label?.trim() || input.name, chosen: null });
+  }
+
+  // Pre-select what the user already confirmed once: a remembered pair whose
+  // input is one of these rows and whose channel is still on offer. A
+  // preference only — every row stays editable until the confirm below.
+  const taken = new Set<string>();
+  for (const channel of clusterCandidates.value) {
+    const remembered = pairedInputFor(channel.name);
+    if (!remembered) continue;
+    const row = rows.find((r) => r.inputName === remembered && !r.chosen);
+    if (!row || taken.has(channel.name)) continue;
+    if (isBlocked(receiver, row.inputName, channel.name)) continue;
+    if (String(channel.origin_id) === String(receiver.id)) continue;
+    row.chosen = channel.name;
+    taken.add(channel.name);
+  }
+
+  clusterRows.value = rows;
+  clusterOpen.value = true;
+}
+
+function chooseClusterChannel(row: ClusterRow, channelName: string): void {
+  // A channel lands on one input of the cluster: picking it here takes it
+  // back wherever another row had it. Clicking the picked chip clears it.
+  for (const other of clusterRows.value) {
+    if (other !== row && other.chosen === channelName) other.chosen = null;
+  }
+  row.chosen = row.chosen === channelName ? null : channelName;
+}
+
+type ClusterOptionState = "chosen" | "taken" | "blocked" | "selfLoop" | "free";
+
+function clusterOptionState(row: ClusterRow, channel: WirelessChannel): ClusterOptionState {
+  const receiver = clusterReceiver.value;
+  if (!receiver) return "free";
+  if (row.chosen === channel.name) return "chosen";
+  if (clusterRows.value.some((r) => r !== row && r.chosen === channel.name)) return "taken";
+  if (isBlocked(receiver, row.inputName, channel.name)) return "blocked";
+  if (String(channel.origin_id) === String(receiver.id)) return "selfLoop";
+  return "free";
+}
+
+/** The disabled chips explain themselves, the way the target list's rows do. */
+function clusterOptionReason(row: ClusterRow, channel: WirelessChannel): string {
+  switch (clusterOptionState(row, channel)) {
+    case "taken":
+      return t("channel_cluster_taken", "already picked for another input");
+    case "blocked":
+      return t("channel_cluster_blocked", "excluded from this input");
+    case "selfLoop":
+      return t("channel_target_self", "feeds this channel");
+    default:
+      return "";
+  }
+}
+
+function confirmCluster(): void {
+  const receiver = clusterReceiver.value;
+  if (!receiver) return;
+  const assignments = clusterRows.value
+    .filter((row): row is ClusterRow & { chosen: string } => row.chosen !== null)
+    .map((row) => ({ inputName: row.inputName, channelName: row.chosen }));
+  if (assignments.length === 0) return;
+
+  assignCluster(receiver, assignments);
+  // Remembered for the next cluster that asks the same question — never for
+  // wiring anything on its own (`wirelessMemory.ts`).
+  noteChannelPairs(assignments);
+
+  clusterOpen.value = false;
+  refresh();
+  redraw();
+}
+
 const emptyHint = computed(() =>
   t("channel_panel_empty", "Plug something in — every wired input becomes its own channel."),
 );
@@ -216,6 +397,13 @@ const gearHint = computed(() => t("channel_panel_gear", "Choose where this chann
 const noTargetsHint = computed(() =>
   t("channel_targets_none", "Nothing in the graph has a free input of this type."),
 );
+const clusterHint = computed(() =>
+  t(
+    "channel_cluster_hint",
+    "Several inputs of one type on this node. Pick a channel for each — nothing is connected until you confirm.",
+  ),
+);
+const clusterOkLabel = computed(() => t("channel_cluster_connect", "Connect"));
 </script>
 
 <template>
@@ -263,6 +451,38 @@ const noTargetsHint = computed(() =>
           />
         </li>
       </ul>
+    </FilModal>
+
+    <FilModal
+      v-model:open="clusterOpen"
+      :title="`${t('channel_cluster_title', 'Where do the channels go?')} — ${clusterNodeName}`"
+      width="460px"
+    >
+      <p class="fil-channel-empty">{{ clusterHint }}</p>
+      <div class="fil-channel-cluster">
+        <div v-for="row in clusterRows" :key="row.inputName" class="fil-channel-cluster-row">
+          <span class="fil-channel-cluster-input" :title="row.inputName">{{ row.inputLabel }}</span>
+          <div class="fil-channel-cluster-options">
+            <button
+              v-for="channel in clusterCandidates"
+              :key="channel.name"
+              type="button"
+              class="fil-channel-chip"
+              :class="{ 'is-chosen': clusterOptionState(row, channel) === 'chosen' }"
+              :disabled="clusterOptionState(row, channel) !== 'free' && clusterOptionState(row, channel) !== 'chosen'"
+              :title="clusterOptionReason(row, channel)"
+              :style="{ borderColor: clusterOptionState(row, channel) === 'chosen' ? channelColor(channel.name) : undefined }"
+              @click="chooseClusterChannel(row, channel.name)"
+            >
+              <span class="fil-channel-dot" :style="{ background: channelColor(channel.name) }" />
+              <span class="fil-channel-chip-name">{{ channel.name }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="fil-channel-cluster-footer">
+        <FilButton variant="accent" :label="clusterOkLabel" :disabled="!clusterHasChoices" @click="confirmCluster" />
+      </div>
     </FilModal>
   </div>
 </template>
@@ -401,5 +621,78 @@ const noTargetsHint = computed(() =>
   font-size: 10px;
   color: var(--fil-muted);
   opacity: 0.8;
+}
+
+.fil-channel-cluster {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.fil-channel-cluster-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 6px;
+  border-radius: var(--fil-field-radius);
+  background: var(--fil-surface-2);
+}
+
+.fil-channel-cluster-input {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fil-text);
+}
+
+.fil-channel-cluster-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.fil-channel-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 4px 8px;
+  border: 1px solid var(--fil-border);
+  border-radius: var(--fil-field-radius);
+  background: var(--fil-surface-1);
+  color: var(--fil-text);
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, opacity 0.12s;
+}
+
+.fil-channel-chip:hover:not(:disabled) {
+  background: var(--fil-surface-3);
+}
+
+.fil-channel-chip.is-chosen {
+  background: var(--fil-surface-3);
+}
+
+.fil-channel-chip:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.fil-channel-chip:focus-visible {
+  outline: 2px solid var(--fil-accent);
+  outline-offset: 1px;
+}
+
+.fil-channel-chip-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fil-channel-cluster-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
 }
 </style>

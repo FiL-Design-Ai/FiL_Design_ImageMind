@@ -95,6 +95,15 @@ export interface ComfyExtension {
   getCustomWidgets?(canvas: unknown): unknown;
   beforeRegisterNodeDef?(nodeType: unknown, nodeData: ComfyNodeData): void | Promise<void>;
   graphToPrompt?(prompt: unknown): unknown | Promise<unknown>;
+  /**
+   * Bracket a graph load — `app.loadGraphData` (`scripts/app.ts`) invokes
+   * these around configuring a workflow, and it is the one path both a fresh
+   * open *and* a tab switch go through. See
+   * `nodes2/wireless/graphLoadGuard.ts` for why a wireless-specific hook needs
+   * to know when this is happening.
+   */
+  beforeConfigureGraph?(...args: unknown[]): unknown | Promise<unknown>;
+  afterConfigureGraph?(...args: unknown[]): unknown | Promise<unknown>;
 }
 
 export interface ComfyApp {

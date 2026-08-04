@@ -176,3 +176,31 @@ export function setChannelTarget(
 export function isTargetBlocked(node: WirelessNode, inputName: string, channelName: string): boolean {
   return isBlocked(node, inputName, channelName);
 }
+
+/**
+ * Settle a whole cluster of same-type inputs in one stroke — what the
+ * transmitter's cluster modal writes when the user assigns several of a node's
+ * inputs at once (the `positive`/`negative` case).
+ *
+ * Every pair becomes an explicit subscription. The modal only opens where
+ * auto-distribution has stood down — two or more channels of one type (rule 3)
+ * or two or more same-type inputs on this node (rule 7) — so by the time a
+ * choice lands here it always needs to be remembered, not merely unblocked.
+ * Each subscription also clears any stale block for that pair, the way
+ * `setChannelTarget`'s ticking does.
+ *
+ * `assignments` is input-name → channel-name. Empty entries are skipped so a
+ * half-filled modal writes only the rows the user actually decided.
+ */
+export function assignCluster(node: WirelessNode, assignments: ReadonlyArray<{ inputName: string; channelName: string }>): void {
+  let wrote = false;
+  for (const { inputName, channelName } of assignments) {
+    if (!inputName || !channelName.trim()) continue;
+    subscribeInput(node, inputName, channelName);
+    wrote = true;
+  }
+  // The fingerprint deliberately does not watch node properties, so a write
+  // here is invisible to the cache until it is told (`livePlan.ts`). Only
+  // invalidate when something actually changed.
+  if (wrote) invalidateWirelessPlan();
+}

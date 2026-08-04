@@ -22,6 +22,7 @@ import { installHelpToolbar } from "@/nodes2/installers/helpToolbar";
 import { installShortcuts } from "@/nodes2/installers/shortcuts";
 import { installWireless } from "@/nodes2/installers/wireless";
 import { wirelessBottomPanelTab } from "@/nodes2/installers/wirelessPanel";
+import { beginGraphConfigure, endGraphConfigure } from "@/nodes2/wireless";
 import { filCommands, filKeybindings } from "@/composables/useShortcuts";
 import { paletteCommands } from "@/styles/comfyPalette";
 import { ALL_SETTINGS } from "@/stores/settings/allSettings";
@@ -158,6 +159,21 @@ export function createFilExtension(app: ComfyApp): ComfyExtension {
 
     async graphToPrompt(prompt: unknown): Promise<unknown> {
       return graphToPromptPreflight(prompt);
+    },
+
+    // Bracket workflow restores for the wireless guard. Loading a graph —
+    // fresh open or tab switch, both funnel through `app.loadGraphData` —
+    // re-announces every existing link via `onConnectionsChange` in exactly
+    // the shape of a wire the user just drew, which made 📡 Channel's
+    // target-list modal re-pop on every tab switch. `channel.ts` checks
+    // `graphBeingConfigured()` before queueing an ambiguity check; these two
+    // hooks are what move that counter. See `nodes2/wireless/graphLoadGuard.ts`.
+    async beforeConfigureGraph(): Promise<void> {
+      beginGraphConfigure();
+    },
+
+    async afterConfigureGraph(): Promise<void> {
+      endGraphConfigure();
     },
   };
 }

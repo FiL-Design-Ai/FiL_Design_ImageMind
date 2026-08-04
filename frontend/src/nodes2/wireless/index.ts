@@ -42,6 +42,7 @@ export {
   unsubscribeInput,
 } from "./subscriptions";
 export {
+  assignCluster,
   channelTargets,
   isTargetBlocked,
   setChannelTarget,
@@ -62,6 +63,7 @@ export {
   type WirelessTreePlanEntry,
 } from "./plan";
 export { channelColor, channelColorSoft } from "./channelColor";
+export { beginGraphConfigure, endGraphConfigure, graphBeingConfigured } from "./graphLoadGuard";
 export { invalidateWirelessPlan, livePlan, liveTreePlan } from "./livePlan";
 export { installWirelessOverlay } from "./overlay";
 export {

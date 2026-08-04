@@ -48,6 +48,10 @@ export interface ResolvedOrigin {
   origin_id: NodeId;
   origin_slot: number;
   type: string;
+  /** The slot's own name — what `label` has to differ from to count as renamed. */
+  slotName?: string;
+  /** The origin slot's label — a rename, or the host echoing the slot's own name. */
+  label?: string;
 }
 
 /**
@@ -62,5 +66,7 @@ export function resolveLinkOrigin(graph: WirelessGraph, linkId: number): Resolve
   const originNode = graph.getNodeById?.(link.origin_id);
   const originSlot = originNode?.outputs?.[link.origin_slot];
   const type = originSlot?.type || link.type || "*";
-  return { origin_id: link.origin_id, origin_slot: link.origin_slot, type };
+  const slotName = originSlot?.name?.trim() || undefined;
+  const label = originSlot?.label?.trim() || undefined;
+  return { origin_id: link.origin_id, origin_slot: link.origin_slot, type, slotName, label };
 }
