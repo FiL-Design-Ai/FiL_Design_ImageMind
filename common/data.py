@@ -146,6 +146,14 @@ MODEL_PROMPT_RULES: Dict[str, Dict[str, Any]] = {
     # HunyuanVideo, LTX Video, Kling and Veo/Sora-class DiT video models.
     # They all read one continuous natural-language shot description and
     # have no negative-prompt input, so constraints are flipped positive.
+    # Checked against platform.minimax.io (H3 API reference + prompt guide,
+    # 2026-08-04): free text is the only documented user prompt shape, the v2
+    # API has no negative-prompt parameter, sound and per-reference roles
+    # ("Image 1: mood, setting...") are first-class, and the [Shot N]/timeline
+    # structure is what the separate H3-Context-IR enrichment call returns —
+    # users never hand-write timestamps. Stays partially_verified because H3
+    # is the one member checked against vendor docs; the rest ride on the
+    # class-wide practice above.
     "Video": {
         "label": "Video",
         "uses_dit_prompting": True,

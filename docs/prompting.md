@@ -333,11 +333,14 @@ class instead of a node per vendor.
 
 - one continuous natural-language shot description in the present tense — 2-4 sentences, roughly 40-150 words, capped at 150
 - covers, in order: subject and its action, scene/environment, camera framing and movement, lighting, mood, style
-- motion is mandatory content: what moves, how, in which direction, plus explicit camera behavior (locked, pan, tilt, dolly, orbit, handheld, zoom)
+- motion is mandatory content: what moves, how, in which direction, plus explicit camera behavior (locked, pan, tilt, dolly, orbit, handheld, zoom); a static shot says "locked-off static shot" outright — unstated, video models default to a slow push-in
+- one clause of sound design (ambience, foley, music mood): models with native audio invent a random ambience when sound goes undescribed
+- with a wired image, each reference gets a role ("the image sets the scene and lighting; the subject keeps its identity")
 - no shot lists, no timestamps, no field labels — post-conversion normalizes only, never restructures into component buckets
 - no negative-prompt mechanism: manual exclusions are flipped into positive composition constraints, same policy as FLUX / Z-Image Turbo / Krea 2
-- literal on-screen text is put in quotes
+- literal on-screen text is put in quotes, plus "only that text appears" — no other lettering, no subtitles
 - works both directions of image-to-video prompting: with a wired image it narrates the motion into the existing frame; text-only it expands an idea into a shot
+- verified against MiniMax's official docs (platform.minimax.io, 2026-08-04): H3 takes one free-text prompt (up to 7000 chars) with no negative-prompt parameter, understands sound and per-reference roles, and supports first/last frame; the `[Shot N]`/timeline structure is the output of the separate H3-Context-IR enrichment call, so hand-written timestamps stay out of this profile
 
 ## Negative Prompt Policy
 
