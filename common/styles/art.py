@@ -289,8 +289,11 @@ ART_STYLES = {
     "💻 ЦИФРОВАЯ/🏙️ Urban Fashion Editorial Anime": (
         "urban fashion editorial anime, avant-garde streetwear layering, oversized silhouette, metallic fabric sheen, city-rooftop golden-hour backdrop, magazine crop composition, bold accessory focus, sharp anime face styling with editorial blank expression, high-contrast palette between garment and sky, polished vogue-level illustration finish."
     ),
+    # Direct parallel to the photo library's own Atmospheric Sci-Fi Mist,
+    # which read as generic fog with nothing sci-fi about it until a live
+    # render caught it and one concrete anchor fixed it. Same anchor here.
     "💻 ЦИФРОВАЯ/🌫️ Atmospheric Sci-Fi Mist": (
-        "atmospheric sci-fi mist digital concept art, dense fog layers, soft glowing lights, futuristic silhouette, low visibility depth, moody cinematic palette, volumetric haze, mysterious sci-fi environment, immersive atmosphere"
+        "atmospheric sci-fi mist digital concept art, dense fog layers, soft glowing lights, a futuristic silhouette with one faint cybernetic limb catching the light through the haze, low visibility depth, moody cinematic palette, volumetric haze, mysterious sci-fi environment, immersive atmosphere"
     ),
     "💻 ЦИФРОВАЯ/🌆 Neo-Tokyo Anime Adventure": (
         "Neo-Tokyo anime adventure, dense futuristic city, vertical neon signs, rainy streets, anime protagonist, cinematic perspective, saturated signage, deep urban layers, action-ready atmosphere, cyberpunk storytelling frame"
