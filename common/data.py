@@ -483,6 +483,31 @@ AGENT_FOCUSES: Dict[str, str] = {
         "CONCRETE: \"shallow DoF with bokeh highlights, teal/orange grade, backlit haze, lines converging at the upper third\" not \"looks like a movie\".\n"
         "IGNORE: plot, character motivation, genre labels."
     ),
+    # The other four are craft layers — how the picture was made. This one is
+    # about what is going on inside it, the axis every other layer skips: the
+    # four above can describe a frame completely without ever saying that the
+    # subject is mid-step or that the jaw is set. Portrait already carries body
+    # language, but only Portrait does, and a moving car or a crowd needs the
+    # same reading. Hence a focus rather than a fourteenth agent.
+    #
+    # It keeps the discipline the whole pack runs on: physical markers, never
+    # the label. "Nervous" is a conclusion the model cannot see; a lowered brow
+    # and rolled shoulders are in the pixels.
+    "Emotion & Motion": (
+        "FOCUS OVERLAY — Emotion & Motion: weigh the subject's state and the stage of the action above other layers.\n"
+        "COVER: facial state (brow and lid position, mouth-corner tension, jaw set, asymmetry between the two halves of the face), "
+        "gaze (direction, focused or unfocused, eyelid coverage, blink stage), "
+        "body tension (shoulder line, hand and finger tension, weight distribution, spine load, contact pressure), "
+        "motion stage (what has just happened and what is about to — mid-step, mid-turn, mid-gesture, settling, recoiling, holding still under load), "
+        "momentum (direction of travel, lean into or against it, what would happen next if the shutter stayed open), "
+        "physical evidence of movement (displaced hair and fabric, blur, dust, spray, deformation at contact points, wake).\n"
+        "FOR NON-HUMAN SUBJECTS: the same reading — animals (ear and tail position, gait phase, muscle load), "
+        "vehicles (body attitude, suspension compression, wheel rotation, spray), crowds (density, flow direction, whether the group moves as one).\n"
+        "CONCRETE: \"weight already shifted onto the front foot, trailing heel off the ground, coat still swinging behind\" not \"walking energetically\"; "
+        "\"outer brow raised, lower lid tight, mouth corner pulled back on one side only\" not \"happy\".\n"
+        "IGNORE: emotion labels, mood words, motive, backstory, what the subject feels or intends — describe the body, not the story.\n"
+        "If the frame is genuinely still, say what holds it still (weight settled, hands at rest) rather than inventing motion."
+    ),
 }
 
 FOCUS_EMOJIS: Dict[str, str] = {
@@ -491,6 +516,9 @@ FOCUS_EMOJIS: Dict[str, str] = {
     "Lighting & Color": "💡",
     "Ultra Detail": "🔬",
     "Cinematic": "🎬",
+    # Free again: the retired Character Performance Agent used to wear it, and
+    # this is where that agent's job actually belongs.
+    "Emotion & Motion": "🎭",
 }
 
 # ── Legacy agent migration ─────────────────────────────────────────────────

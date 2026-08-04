@@ -25,6 +25,17 @@
 
 ### Added
 
+- **A fifth Scanner craft layer: `🎭 Emotion & Motion`.** The other four
+  describe how the picture was made; this one describes what is going on inside
+  it — facial state, gaze, body tension, the stage of the action, momentum, and
+  the physical evidence movement leaves behind. It is a focus rather than a
+  fourteenth agent because 👤 Portrait already carries body language and nothing
+  else did: a car mid-corner, an animal mid-gait and a crowd flowing one way are
+  the same question asked of a different subject, so the layer has to compose
+  with the agent instead of replacing it. It holds the pack's markers-over-labels
+  rule hardest of all — "outer brow raised, lower lid tight, mouth corner pulled
+  back on one side only", never "happy" — and on a genuinely still frame it says
+  what holds the subject still rather than inventing movement.
 - **Eight movement modifiers in `⏱️ ЗАХВАТ`** — Wind Gust, Panning Follow,
   Gesture Smear, Long Exposure Ghost, Rolling Shutter Skew, Rear-Curtain Sync,
   Zoom Burst and Handheld Grab Shot. The photo library described the camera in

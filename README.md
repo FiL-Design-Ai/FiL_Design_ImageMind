@@ -43,7 +43,7 @@ into `frontend/dist`. It covers four areas:
 
 | Area | What you get |
 |---|---|
-| 🧠 **LLM & vision** | Seven providers (local and cloud), 12 subject agents plus a neutral describer — each composable with 4 craft focuses — model-specific prompt profiles for Z-Image, FLUX, SDXL, QWEN, Krea 2, Ideogram 4 and a universal Video profile for video models |
+| 🧠 **LLM & vision** | Seven providers (local and cloud), 12 subject agents plus a neutral describer — each composable with 5 craft focuses — model-specific prompt profiles for Z-Image, FLUX, SDXL, QWEN, Krea 2, Ideogram 4 and a universal Video profile for video models |
 | 🖼️ **Image pipeline** | Tile-grid planning with real overlap maths, model upscaling, per-tile crops in pixel *and* latent space, feathered re-assembly, automatic colour correction |
 | 🎛️ **Sampling** | A full KSampler with every sampler/scheduler, passthrough sockets, built-in preview, plus HighRes-fix and Noise-Control scripts |
 | 🎨 **UI** | Every node draws a real Vue panel — twelve themes, full ru/en localization, compact toggles, numeric steppers, contract-driven option lists |
@@ -195,7 +195,7 @@ target diffusion model. Prompt fields are resizable and also work as input socke
 |---|---|---|---|
 | `config` | FilProviderConfig | — | from Provider Loader |
 | `agent` | COMBO | `⚪ None` | subject domain, 13 options — Portrait, Products, Nature & Landscape, Art & Illustration, Fashion, Animals, Architecture, Interior, City, Transport, Food, Games |
-| `agent_focus` | COMBO | `⚪ None` | craft layer laid over the agent — 📐 Composition, 💡 Lighting & Color, 🔬 Ultra Detail, 🎬 Cinematic |
+| `agent_focus` | COMBO | `⚪ None` | craft layer laid over the agent — 📐 Composition, 💡 Lighting & Color, 🔬 Ultra Detail, 🎬 Cinematic, 🎭 Emotion & Motion |
 | `image` | IMAGE (optional) | — | leave empty for text-only mode |
 | `width` / `height` | INT socket (optional) | `0` | connection-only — wire the target resolution in from Empty Latent Image or a resolution picker; > 0 tailors the prompt to that aspect ratio |
 | `prompt` | STRING (optional) | `""` | your idea / seed text |
@@ -582,10 +582,19 @@ weigh one layer heavier while still covering everything the agent already asks f
 | 💡 Lighting & Color | light source/direction/contrast, palette, reflections, atmosphere |
 | 🔬 Ultra Detail | pores, fibre/grain, wear/patina, gloss level, fabric weave — the finest observable grain |
 | 🎬 Cinematic | lens character, depth of field, colour grading, frame geometry — read as a film still |
+| 🎭 Emotion & Motion | facial state, gaze, body tension, the stage of the action, momentum, the physical evidence movement leaves behind |
 
 `agent = 🚗 Transport` + `agent_focus = 💡 Lighting & Color` still describes the car (make/model,
 body, wheels) but pushes noticeably more words into how it's lit — useful when the plain agent
 output undersells the lighting you actually need to match downstream.
+
+🎭 Emotion & Motion is the odd one out: the other four describe how the picture was *made*, this one
+describes what is going on *inside* it — the axis the rest can skip entirely. 👤 Portrait already
+carries body language, but only Portrait does, and a car mid-corner or a crowd flowing one way is
+the same question asked of a different subject, which is why this is a focus rather than a
+fourteenth agent. It keeps the pack's rule about markers over labels, and holds it hardest here:
+"outer brow raised, lower lid tight, mouth corner pulled back on one side only" — never "happy". On
+a genuinely still frame it says what holds the subject still rather than inventing movement.
 
 #### `detail_level` — a real word budget, not just "more adjectives"
 
@@ -1025,7 +1034,7 @@ Python самого ComfyUI (`python_embeded`, `venv` или `.venv`), став�
 |---|---|---|---|
 | `config` | FilProviderConfig | — | от Provider Loader |
 | `agent` | COMBO | `⚪ None` | предметная область, 13 вариантов — Portrait, Products, Nature & Landscape, Art & Illustration, Fashion, Animals, Architecture, Interior, City, Transport, Food, Games |
-| `agent_focus` | COMBO | `⚪ None` | акцент поверх агента — 📐 Composition, 💡 Lighting & Color, 🔬 Ultra Detail, 🎬 Cinematic |
+| `agent_focus` | COMBO | `⚪ None` | акцент поверх агента — 📐 Composition, 💡 Lighting & Color, 🔬 Ultra Detail, 🎬 Cinematic, 🎭 Emotion & Motion |
 | `image` | IMAGE (опц.) | — | пусто = текстовый режим |
 | `width` / `height` | INT-сокет (опц.) | `0` | только соединением — целевое разрешение приходит от Empty Latent Image или пикера разрешений; при > 0 промпт подстраивается под эту пропорцию |
 | `prompt` | STRING (опц.) | `""` | ваша идея / затравка |
@@ -1414,10 +1423,19 @@ USB-C слева, крышка закрыта». Прогоните *то же �
 | 💡 Lighting & Color | источник/направление/контраст света, палитру, отражения, атмосферу |
 | 🔬 Ultra Detail | поры, волокна/зерно, износ/патину, уровень глянца, фактуру ткани — тончайший наблюдаемый уровень |
 | 🎬 Cinematic | характер объектива, глубину резкости, цветокоррекцию, геометрию кадра — читать как кадр из фильма |
+| 🎭 Emotion & Motion | состояние лица, взгляд, напряжение тела, стадию действия, инерцию и физические следы, которые оставляет движение |
 
 `agent = 🚗 Transport` + `agent_focus = 💡 Lighting & Color` по-прежнему описывает машину (марку,
 кузов, колёса), но добавляет заметно больше слов о том, как она освещена — пригодится, когда обычный
 вывод агента недодаёт по свету, который важен именно вам.
+
+🎭 Emotion & Motion стоит особняком: остальные четыре описывают, *как снят* кадр, а этот — что в нём
+*происходит*, ось, которую все прочие могут пропустить целиком. 👤 Portrait уже несёт язык тела, но
+только он один, а машина в повороте или толпа, текущая в одну сторону, — тот же вопрос, заданный про
+другой объект; поэтому это слой, а не четырнадцатый агент. Правило пака «маркеры вместо ярлыков» он
+держит жёстче всех: «внешний край брови поднят, нижнее веко напряжено, уголок рта оттянут только с
+одной стороны» — но не «счастлив». На действительно статичном кадре он скажет, чем объект удерживает
+неподвижность, а не выдумает движение.
 
 #### `detail_level` — реальный бюджет слов, а не просто «больше прилагательных»
 

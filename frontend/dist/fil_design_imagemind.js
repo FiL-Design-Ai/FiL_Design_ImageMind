@@ -9807,7 +9807,8 @@ var ub, db = n((() => {
 							"📐 Composition",
 							"💡 Lighting & Color",
 							"🔬 Ultra Detail",
-							"🎬 Cinematic"
+							"🎬 Cinematic",
+							"🎭 Emotion & Motion"
 						],
 						columns: 3,
 						searchable: null,

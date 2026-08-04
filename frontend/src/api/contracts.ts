@@ -461,7 +461,8 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
           "📐 Composition",
           "💡 Lighting & Color",
           "🔬 Ultra Detail",
-          "🎬 Cinematic"
+          "🎬 Cinematic",
+          "🎭 Emotion & Motion"
         ],
         "columns": 3,
         "searchable": null,
