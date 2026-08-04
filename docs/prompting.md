@@ -288,6 +288,7 @@ Runtime diagnostics for Two-Stage are derived from the exact Stage 1 and Stage 2
 - short detail levels preserve exploratory variation; higher levels progressively specify medium, style, composition, movement, and light
 - no quality-tag spam or contradictory style stacks
 - no automatic negative prompt; manual exclusions are converted into positive composition constraints
+- the krea-2 API's `creativity` parameter controls server-side prompt expansion (`raw` disables it): when the generated text must reach the model verbatim, the downstream call should use `raw` — the default expander rewrites short or vague prompts
 
 ### Ideogram 4
 
