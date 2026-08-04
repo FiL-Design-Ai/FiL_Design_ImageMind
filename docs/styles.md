@@ -40,6 +40,40 @@ and `Handheld Grab Shot`, which live renders prove work; a rule requiring
 augmentation presets to name a body part had a 60% false-positive rate. Prose
 shape does not predict whether an image comes back right. Render it and look.
 
+### The photo library has been swept
+
+Every one of the 171 `common/styles/photo.py` presets has now been rendered on
+one fixed seed and one fixed subject, category by category, and checked by
+eye. 12 came back broken; all 12 were fixed and re-verified:
+
+- `🦾 КИБЕРПАНК` — 8 of 30 (no body part to hang the augmentation on, plus the
+  "nothing else in frame" contradiction in `White Android Minimal Studio`)
+- `🧪 ЭФФЕКТЫ` — 2 of 31 (`HDR Dynamic` named the process, not the visible
+  tell; `Цифровой муар` named a pattern with nothing to interfere with)
+- `⏱️ ЗАХВАТ` — 2 of 11 (`Gesture Smear` had no movement to smear;
+  `Rolling Shutter Skew` leaned on an object — spokes, a propeller — that most
+  scenes don't contain)
+- `🗺️ СЦЕНЫ` — repaired earlier in the same pass of work; 0 further breaks
+- the remaining 8 categories (`РЕТРО`, `КАМЕРЫ`, `СРЕДА`, `ФЭШН`, `ИНТЕРЬЕР`,
+  `ЖАНРЫ`, `МОДИФИКАТОРЫ`, `КИНО`, `РЕПОРТАЖ` — 63 presets) — 0 breaks
+
+Two things worth knowing if a future sweep turns something up that looks like
+a bug but isn't:
+
+- A style may collide with the *test subject*, not with the model. `🏜️ ЖАНРЫ/🔬
+  Macro Micro-world` wants an extreme close crop on an eye; a full-length
+  standing test subject forces an odd composite. That is a harness mismatch,
+  not a preset defect — the preset's own wording is unambiguous.
+- A style may surface an unrelated model quirk. Three presets this sweep
+  (`Vintage 70s Portra`, `Portrait Bokeh`, `Glamour Glow`) rendered nude with
+  no such word anywhere in their text — all three just pair "skin" with
+  "intimate" or "glamour" on a close crop, vocabulary every portrait preset
+  needs. The fix was in the test harness's placeholder subject (give it
+  clothes), not in the presets — dictating wardrobe from inside a style would
+  break the same neutrality this whole page is about.
+
+The art library and both NSFW libraries have not been swept this way.
+
 ## Current style libraries
 
 ### Photo presets

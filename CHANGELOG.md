@@ -25,6 +25,16 @@
 
 ### Changed
 
+- **The photo library has been fully swept live.** `🏠 ИНТЕРЬЕР`, `🏜️ ЖАНРЫ`,
+  `📐 МОДИФИКАТОРЫ`, `🎬 КИНО` and `📸 РЕПОРТАЖ` — the last 27 unchecked
+  presets — came back with zero breaks, closing out a category-by-category
+  live sweep of all 171 `common/styles/photo.py` entries. Final count: 12
+  broken, 12 fixed — 8 in `🦾 КИБЕРПАНК`, 2 in `🧪 ЭФФЕКТЫ`, 2 in `⏱️ ЗАХВАТ`,
+  plus the earlier `🗺️ СЦЕНЫ` repair — against 159 that held up on inspection.
+  Full tally and the two known false-positive traps (a style colliding with
+  the *test subject* rather than the model; a style surfacing an unrelated
+  model quirk) are recorded in `docs/styles.md`. The art library and both
+  NSFW libraries have not been swept this way.
 - **`⏱️ ЗАХВАТ`, `🕰️ РЕТРО`, `📷 КАМЕРЫ`, `🏙️ СРЕДА`, `👗 ФЭШН` swept live — 2 of
   47 needed fixing.** Both in `⏱️ ЗАХВАТ`, and both the same disease from a new
   angle: `Gesture Smear` described the smear and never the movement to smear —
