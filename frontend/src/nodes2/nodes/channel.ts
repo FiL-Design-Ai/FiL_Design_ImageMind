@@ -4,7 +4,7 @@ import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
 import { applyFxComposables } from "@/nodes2/applyFxComposables";
-import { invalidateWirelessPlan } from "@/nodes2/wireless";
+import { graphBeingConfigured, invalidateWirelessPlan } from "@/nodes2/wireless";
 
 const ChannelPanelVue = defineAsyncComponent(() => import("@/components/nodes/ChannelPanel.vue"));
 
@@ -83,8 +83,15 @@ export const channelNode: NodeModule = {
       // prompt entirely, no error, because `state.ui` was still empty. A
       // pending list survives that gap; `ChannelPanel.vue`'s own `refresh()`
       // — run on mount and every poll after — is what drains it.
+      //
+      // `graphBeingConfigured()` guards the other live bug this hook produced:
+      // restoring a saved workflow — opening it fresh, or just switching back
+      // to an already-open tab — re-announces every existing link the same
+      // way a brand-new one arrives, side 1, connected true. Without this
+      // check, a channel resolved and left alone since the file was saved
+      // popped the same modal again on every single switch.
       const [side, slot, connected] = args as [number, number, boolean];
-      if (side === 1 && connected === true && typeof slot === "number") {
+      if (side === 1 && connected === true && typeof slot === "number" && !graphBeingConfigured()) {
         (node._filPendingAmbiguityChecks ??= []).push(slot);
       }
 

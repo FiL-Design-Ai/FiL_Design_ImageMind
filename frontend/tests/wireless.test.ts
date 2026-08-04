@@ -120,6 +120,40 @@ describe("collectChannels", () => {
     expect(collectChannels(graph)[0]?.name).toBe("Base model");
   });
 
+  it("borrows the origin slot's label when its own slot was never renamed", () => {
+    // A router whose outputs somebody renamed already knows what the wire
+    // carries — the unnamed channel says so instead of just its type.
+    const src = source(1, "CONDITIONING");
+    src.outputs[0].label = "negative";
+    const ch = channel(2, ["CONDITIONING"]);
+    const graph = createGraph([src, ch]);
+    wire(src, ch);
+
+    expect(collectChannels(graph)[0]?.name).toBe("negative");
+  });
+
+  it("its own rename still wins over the origin's label", () => {
+    const src = source(1, "CONDITIONING");
+    src.outputs[0].label = "negative";
+    const ch = channel(2, ["CONDITIONING"], ["My cond"]);
+    const graph = createGraph([src, ch]);
+    wire(src, ch);
+
+    expect(collectChannels(graph)[0]?.name).toBe("My cond");
+  });
+
+  it("a label the host echoed from the origin slot's own name is not a rename", () => {
+    // The host fills an untouched slot's label with its own name; that echo is
+    // a default, not a choice — the channel must fall back to its type.
+    const src = createNode({ id: 1, comfyClass: "SomethingElse", outputs: [slot("OUT", "CONDITIONING")] });
+    src.outputs[0].label = "OUT";
+    const ch = channel(2, ["CONDITIONING"]);
+    const graph = createGraph([src, ch]);
+    wire(src, ch);
+
+    expect(collectChannels(graph)[0]?.name).toBe("CONDITIONING");
+  });
+
   it("ignores inputs that are not value sockets", () => {
     const src = source(1);
     const ch = channel(2);
@@ -566,6 +600,208 @@ describe("resolveWireless", () => {
     expect(resolution.ambiguous).toEqual([]);
     expect(resolution.links).toMatchObject([{ target_slot: 0 }]);
   });
+
+  /**
+   * Rule 8 — name pairing. Rules 3/7 refuse to guess between same-typed
+   * things; when the names actually tell them apart, and in exactly one way,
+   * the refusal has nothing left to protect. Everything here asserts both
+   * halves: the deduction fires when it is one, and stays silent the moment
+   * it would stop being one.
+   */
+  describe("rule 8 — name pairing", () => {
+    it("pairs channels named after the sampler's inputs with those inputs", () => {
+      const pos = source(1, "CONDITIONING");
+      const neg = source(2, "CONDITIONING");
+      const ch = channel(3, ["CONDITIONING", "CONDITIONING"], ["positive", "negative"]);
+      const ks = receiver(4, [
+        ["positive", "CONDITIONING"],
+        ["negative", "CONDITIONING"],
+      ]);
+      const graph = createGraph([pos, neg, ch, ks]);
+      pos.connect!(0, ch, 0);
+      neg.connect!(0, ch, 1);
+
+      const { resolution } = planWireless(graph);
+      expect(resolution.ambiguous).toEqual([]);
+      expect(resolution.links).toMatchObject([
+        { channelName: "positive", target_id: 4, target_slot: 0 },
+        { channelName: "negative", target_id: 4, target_slot: 1 },
+      ]);
+    });
+
+    it("pos/neg abbreviations pair through the alias table", () => {
+      const pos = source(1, "CONDITIONING");
+      const neg = source(2, "CONDITIONING");
+      const ch = channel(3, ["CONDITIONING", "CONDITIONING"], ["pos", "neg"]);
+      const ks = receiver(4, [
+        ["positive", "CONDITIONING"],
+        ["negative", "CONDITIONING"],
+      ]);
+      const graph = createGraph([pos, neg, ch, ks]);
+      pos.connect!(0, ch, 0);
+      neg.connect!(0, ch, 1);
+
+      const { resolution } = planWireless(graph);
+      expect(resolution.ambiguous).toEqual([]);
+      expect(resolution.links).toMatchObject([
+        { channelName: "pos", target_slot: 0 },
+        { channelName: "neg", target_slot: 1 },
+      ]);
+    });
+
+    it("a partial name match leaves the whole cluster ambiguous", () => {
+      // One input explained, one not — wiring the explained half alone would
+      // pre-decide what the still-open half can take. The rule is all or nothing.
+      const pos = source(1, "CONDITIONING");
+      const other = source(2, "CONDITIONING");
+      const ch = channel(3, ["CONDITIONING", "CONDITIONING"], ["positive", "unrelated"]);
+      const ks = receiver(4, [
+        ["positive", "CONDITIONING"],
+        ["negative", "CONDITIONING"],
+      ]);
+      const graph = createGraph([pos, other, ch, ks]);
+      pos.connect!(0, ch, 0);
+      other.connect!(0, ch, 1);
+
+      const { resolution } = planWireless(graph);
+      expect(resolution.links).toEqual([]);
+      expect(resolution.ambiguous.map((a) => a.input).sort()).toEqual(["negative", "positive"]);
+    });
+
+    it("two channels with the same tokens are two matchings, which is none", () => {
+      // `neg` and `neg 2` both reduce to the one token `negative` — the
+      // numbering is list bookkeeping, not meaning — so the matching is no
+      // longer unique and the cluster stays with the user.
+      const a = source(1, "CONDITIONING");
+      const b = source(2, "CONDITIONING");
+      const ch = channel(3, ["CONDITIONING", "CONDITIONING"], ["neg", "neg"]);
+      const ks = receiver(4, [
+        ["positive", "CONDITIONING"],
+        ["negative", "CONDITIONING"],
+      ]);
+      const graph = createGraph([a, b, ch, ks]);
+      a.connect!(0, ch, 0);
+      b.connect!(0, ch, 1);
+
+      const { resolution } = planWireless(graph);
+      expect(resolution.links).toEqual([]);
+      expect(resolution.ambiguous.map((a) => a.input).sort()).toEqual(["negative", "positive"]);
+      expect(resolution.unusedChannels.sort()).toEqual(["neg", "neg 2"]);
+    });
+
+    it("a lone named channel cannot complete a two-input cluster", () => {
+      const neg = source(1, "CONDITIONING");
+      const ch = channel(2, ["CONDITIONING"], ["negative"]);
+      const ks = receiver(3, [
+        ["positive", "CONDITIONING"],
+        ["negative", "CONDITIONING"],
+      ]);
+      const graph = createGraph([neg, ch, ks]);
+      wire(neg, ch);
+
+      const { resolution } = planWireless(graph);
+      expect(resolution.links).toEqual([]);
+      expect(resolution.ambiguous.map((a) => a.input).sort()).toEqual(["negative", "positive"]);
+      expect(resolution.unusedChannels).toEqual(["negative"]);
+    });
+
+    it("a block on one input breaks the pairing for the whole cluster", () => {
+      const pos = source(1, "CONDITIONING");
+      const neg = source(2, "CONDITIONING");
+      const ch = channel(3, ["CONDITIONING", "CONDITIONING"], ["positive", "negative"]);
+      const ks = createNode({
+        id: 4,
+        comfyClass: "KSampler",
+        inputs: [slot("positive", "CONDITIONING"), slot("negative", "CONDITIONING")],
+        properties: { fil_wireless: { blocked: { negative: ["negative"] } } },
+      });
+      const graph = createGraph([pos, neg, ch, ks]);
+      pos.connect!(0, ch, 0);
+      neg.connect!(0, ch, 1);
+
+      const { resolution } = planWireless(graph);
+      expect(resolution.links).toEqual([]);
+      expect(resolution.ambiguous.map((a) => a.input).sort()).toEqual(["negative", "positive"]);
+    });
+
+    it("a subscription on one sibling leaves the rest to pair among themselves", () => {
+      const pos = source(1, "CONDITIONING");
+      const neg = source(2, "CONDITIONING");
+      const ch = channel(3, ["CONDITIONING", "CONDITIONING"], ["positive", "negative"]);
+      const ks = receiver(
+        4,
+        [
+          ["positive", "CONDITIONING"],
+          ["negative", "CONDITIONING"],
+        ],
+        { positive: "positive" },
+      );
+      const graph = createGraph([pos, neg, ch, ks]);
+      pos.connect!(0, ch, 0);
+      neg.connect!(0, ch, 1);
+
+      const { resolution } = planWireless(graph);
+      // `positive` lands by its subscription (rule 2), `negative` by pairing
+      // over what is left — neither rule second-guesses the other.
+      expect(resolution.links).toMatchObject([
+        { channelName: "positive", target_slot: 0 },
+        { channelName: "negative", target_slot: 1 },
+      ]);
+      expect(resolution.ambiguous).toEqual([]);
+    });
+
+    it("pairing on one node does not settle another node's unnamed input", () => {
+      const pos = source(1, "CONDITIONING");
+      const neg = source(2, "CONDITIONING");
+      const ch = channel(3, ["CONDITIONING", "CONDITIONING"], ["positive", "negative"]);
+      const ks = receiver(4, [
+        ["positive", "CONDITIONING"],
+        ["negative", "CONDITIONING"],
+      ]);
+      const plain = receiver(5, [["cond", "CONDITIONING"]]);
+      const graph = createGraph([pos, neg, ch, ks, plain]);
+      pos.connect!(0, ch, 0);
+      neg.connect!(0, ch, 1);
+
+      const { resolution } = planWireless(graph);
+      expect(resolution.links).toHaveLength(2);
+      // The second node's input is called `cond` — nothing in either name
+      // picks it out, so rule 3 still owns it.
+      expect(resolution.ambiguous).toEqual([
+        { node_id: 5, input: "cond", type: "CONDITIONING", candidates: ["positive", "negative"] },
+      ]);
+    });
+
+    it("a self-fed channel is excluded from the pairing, the way it is from auto-distribution", () => {
+      const pos = source(1, "CONDITIONING");
+      const ks = receiver(5, [
+        ["positive", "CONDITIONING"],
+        ["negative", "CONDITIONING"],
+      ]);
+      // Node 4 both feeds the `negative` channel and wants to receive it —
+      // rule 6 forbids the loop, and pairing must not smuggle it back in.
+      const loop = createNode({
+        id: 4,
+        comfyClass: "ConditioningMixer",
+        inputs: [slot("positive", "CONDITIONING"), slot("negative", "CONDITIONING")],
+        outputs: [slot("CONDITIONING", "CONDITIONING")],
+      });
+      const ch = channel(3, ["CONDITIONING", "CONDITIONING"], ["positive", "negative"]);
+      const graph = createGraph([pos, loop, ch, ks]);
+      pos.connect!(0, ch, 0);
+      loop.connect!(0, ch, 1);
+
+      const { resolution } = planWireless(graph);
+      // The KSampler pairs cleanly; node 4's cluster cannot complete without
+      // the self-fed channel, so it stays ambiguous instead of looping.
+      expect(resolution.links).toMatchObject([
+        { target_id: 5, target_slot: 0, channelName: "positive" },
+        { target_id: 5, target_slot: 1, channelName: "negative" },
+      ]);
+      expect(resolution.ambiguous.map((a) => a.input).sort()).toEqual(["negative", "positive"]);
+      expect(resolution.ambiguous.every((a) => a.node_id === 4)).toBe(true);
+    });
+  });
 });
 
 /**
@@ -811,6 +1047,35 @@ describe("applyWirelessLinks", () => {
     expect(ks.inputs[0].link).not.toBeNull();
     const link = graph.links[ks.inputs[0].link as number];
     expect(link).toMatchObject({ origin_id: 1, target_id: 3, target_slot: 0 });
+  });
+
+  it("wires a name-paired cluster into the graph for real, and takes it all back", () => {
+    // Rule 8's links travel the same apply path as every other's: at queue
+    // time each paired input must end up fed by its own distinct origin —
+    // the whole point of the rule is that they never share one.
+    const pos = source(1, "CONDITIONING");
+    const neg = source(2, "CONDITIONING");
+    const ch = channel(3, ["CONDITIONING", "CONDITIONING"], ["positive", "negative"]);
+    const ks = receiver(4, [
+      ["positive", "CONDITIONING"],
+      ["negative", "CONDITIONING"],
+    ]);
+    const graph = createGraph([pos, neg, ch, ks]);
+    pos.connect!(0, ch, 0);
+    neg.connect!(0, ch, 1);
+
+    const before = JSON.stringify({ links: graph.links, nodes: graph._nodes.map((n) => ({ i: n.inputs, o: n.outputs })) });
+
+    const { resolution } = planWireless(graph);
+    const applied = applyWirelessLinks(graph, resolution.links);
+
+    expect(applied.created).toBe(2);
+    expect(graph.links[ks.inputs[0].link as number]).toMatchObject({ origin_id: 1, target_id: 4, target_slot: 0 });
+    expect(graph.links[ks.inputs[1].link as number]).toMatchObject({ origin_id: 2, target_id: 4, target_slot: 1 });
+
+    applied.restore();
+    const after = JSON.stringify({ links: graph.links, nodes: graph._nodes.map((n) => ({ i: n.inputs, o: n.outputs })) });
+    expect(after).toBe(before);
   });
 
   it("restore puts the graph back exactly as it was", () => {

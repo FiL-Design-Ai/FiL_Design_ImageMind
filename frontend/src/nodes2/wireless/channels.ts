@@ -11,6 +11,15 @@
  * "Rename Slot" writes (`LGraphCanvas.ts:8840`). No label means the channel is
  * named after its data type. Deliberately not a widget: with many inputs on one
  * node, one widget could only ever name one of them.
+ *
+ * One refinement to "no label": before falling all the way back to the bare
+ * type, the channel borrows the *origin* slot's label when that slot was
+ * renamed — a router whose outputs say `positive`/`negative` already knows
+ * what each wire carries, and the channel might as well say so too. This is
+ * only a better default for an unnamed slot; a name typed on the transmitter
+ * always wins, and a subscription the user saved under an older name simply
+ * reports `unknownChannel` once the name moves, which the diagnostics panel
+ * surfaces rather than hiding.
  */
 
 import {
@@ -20,7 +29,7 @@ import {
   type WirelessNode,
   type WirelessSlot,
 } from "./types";
-import { allNodes, isChannelNode, resolveLinkOrigin } from "./graphAccess";
+import { allNodes, isChannelNode, resolveLinkOrigin, type ResolvedOrigin } from "./graphAccess";
 import { nameChannels, type RawChannel } from "./channelNaming";
 import { isAutoLabel } from "./slotLabels";
 
@@ -38,6 +47,22 @@ import { isAutoLabel } from "./slotLabels";
 function slotName(node: WirelessNode, slot: WirelessSlot): string | undefined {
   const label = slot.label?.trim();
   if (!label || isAutoLabel(node, slot)) return undefined;
+  return label;
+}
+
+/**
+ * A name borrowed from where the wire comes from, when that slot was renamed.
+ *
+ * Only a rename counts: the host also echoes a slot's own name into its label
+ * for slots nobody touched (`fakes/comfyHost.ts` carries the receipt), and an
+ * echo is a default, not a choice. So the label must both exist and differ
+ * from the slot's name. When nothing qualifies the result is undefined and the
+ * channel falls back to its type, as before.
+ */
+function originName(origin: ResolvedOrigin): string | undefined {
+  const label = origin.label;
+  if (!label) return undefined;
+  if (origin.slotName && label === origin.slotName) return undefined;
   return label;
 }
 
@@ -69,7 +94,7 @@ function collectFromNode(graph: WirelessGraph, node: WirelessNode, raw: RawChann
       type: origin.type,
       origin_id: origin.origin_id,
       origin_slot: origin.origin_slot,
-      customName: slotName(node, input),
+      customName: slotName(node, input) ?? originName(origin),
     });
   });
 }

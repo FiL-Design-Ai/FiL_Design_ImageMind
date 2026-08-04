@@ -12,7 +12,8 @@ import { mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import ChannelPanel from "@/components/nodes/ChannelPanel.vue";
 import { createGraph, createNode, slot, type FakeNode } from "../fakes/comfyHost";
-import { invalidateWirelessPlan } from "@/nodes2/wireless";
+import { invalidateWirelessPlan, subscribeInput } from "@/nodes2/wireless";
+import { _resetWirelessMemory, noteChannelPairs, pairedInputFor } from "@/stores/wirelessMemory";
 
 function transmitter(id: number, types: string[] = ["MODEL"]): FakeNode {
   return createNode({
@@ -251,6 +252,137 @@ describe("ChannelPanel.vue", () => {
       expect(() => state.ui.refresh?.()).not.toThrow();
       await nextTick();
       expect(modal().querySelector(".fil-channel-target")).toBeNull();
+    });
+  });
+
+  /**
+   * The cluster modal — rule 7's shape (a KSampler's `positive`/`negative`,
+   * both bare CONDITIONING) gets one screen for all the colliding inputs
+   * instead of a per-channel question. Driven through the same pending note
+   * `channel.ts` writes, the way the drain tests above do.
+   */
+  describe("the cluster modal", () => {
+    function flag(node: FakeNode, ...slots: number[]): void {
+      (node as unknown as { _filPendingAmbiguityChecks?: number[] })._filPendingAmbiguityChecks = slots;
+    }
+
+    /** Two unnamed CONDITIONING channels, one sampler with both inputs free. */
+    function conditioningScene(): { chB: FakeNode; ks: FakeNode } {
+      const srcA = loader(1, "CONDITIONING", "CLIPTextEncode");
+      const chA = transmitter(2, ["CONDITIONING"]);
+      const srcB = loader(3, "CONDITIONING", "CLIPTextEncode");
+      const chB = transmitter(4, ["CONDITIONING"]);
+      const ks = createNode({
+        id: 5,
+        comfyClass: "KSampler",
+        inputs: [slot("positive", "CONDITIONING"), slot("negative", "CONDITIONING")],
+      });
+      ks.title = "Sampler";
+      createGraph([srcA, chA, srcB, chB, ks]);
+      srcA.connect!(0, chA, 0);
+      srcB.connect!(0, chB, 0);
+      return { chB, ks };
+    }
+
+    function chips(row: Element): HTMLButtonElement[] {
+      return Array.from(row.querySelectorAll<HTMLButtonElement>(".fil-channel-chip"));
+    }
+
+    beforeEach(() => {
+      _resetWirelessMemory();
+    });
+
+    it("opens for a same-type collision, one row per input, one chip per channel", async () => {
+      const { chB } = conditioningScene();
+      flag(chB, 0);
+      await panelFor(chB);
+
+      const rows = modal().querySelectorAll(".fil-channel-cluster-row");
+      expect(rows).toHaveLength(2);
+      expect(rows[0].textContent).toContain("positive");
+      expect(rows[1].textContent).toContain("negative");
+      expect(chips(rows[0])).toHaveLength(2);
+      expect(chips(rows[1])).toHaveLength(2);
+      expect(modal().querySelector(".fil-modal-title")?.textContent).toContain("Sampler");
+      // Nothing picked yet, so the confirm has nothing to do.
+      expect((modal().querySelector(".fil-channel-cluster-footer button") as HTMLButtonElement).disabled).toBe(true);
+      // The per-channel target list stayed closed — this shape gets one screen.
+      expect(modal().querySelector(".fil-channel-target")).toBeNull();
+    });
+
+    it("confirming subscribes every chosen input and remembers the pairs", async () => {
+      const { chB, ks } = conditioningScene();
+      flag(chB, 0);
+      await panelFor(chB);
+
+      chips(modal().querySelectorAll(".fil-channel-cluster-row")[0])[0].click(); // CONDITIONING → positive
+      await nextTick();
+      chips(modal().querySelectorAll(".fil-channel-cluster-row")[1])[1].click(); // CONDITIONING 2 → negative
+      await nextTick();
+
+      (modal().querySelector(".fil-channel-cluster-footer button") as HTMLElement).click();
+      await nextTick();
+
+      expect(ks.properties.fil_wireless).toEqual({
+        subs: { positive: "CONDITIONING", negative: "CONDITIONING 2" },
+      });
+      expect(pairedInputFor("CONDITIONING")).toBe("positive");
+      expect(pairedInputFor("CONDITIONING 2")).toBe("negative");
+      expect(modal().querySelector(".fil-channel-cluster")).toBeNull(); // the modal closed
+    });
+
+    it("pre-selects from what the user confirmed before", async () => {
+      noteChannelPairs([
+        { channelName: "CONDITIONING", inputName: "negative" },
+        { channelName: "CONDITIONING 2", inputName: "positive" },
+      ]);
+      const { chB } = conditioningScene();
+      flag(chB, 0);
+      await panelFor(chB);
+
+      const rows = modal().querySelectorAll(".fil-channel-cluster-row");
+      expect(rows[0].querySelector(".fil-channel-chip.is-chosen .fil-channel-chip-name")?.textContent).toBe(
+        "CONDITIONING 2",
+      );
+      expect(rows[1].querySelector(".fil-channel-chip.is-chosen .fil-channel-chip-name")?.textContent).toBe(
+        "CONDITIONING",
+      );
+    });
+
+    it("once a channel is picked, the other rows stop offering it", async () => {
+      const { chB } = conditioningScene();
+      flag(chB, 0);
+      await panelFor(chB);
+
+      chips(modal().querySelectorAll(".fil-channel-cluster-row")[0])[0].click();
+      await nextTick();
+
+      const rows = modal().querySelectorAll(".fil-channel-cluster-row");
+      const rival = chips(rows[1])[0];
+      expect(rival.disabled).toBe(true);
+      expect(rival.title).toContain("already picked for another input");
+      expect(rows[1].querySelector(".fil-channel-chip.is-chosen")).toBeNull();
+    });
+
+    it("closes on its own once the cluster stops being ambiguous", async () => {
+      // Wiring the inputs one at a time is the live case: after the first wire
+      // the pair cannot complete, so the modal opens. When something else then
+      // settles the cluster — here a subscription written on the receiver, the
+      // way another surface would — the question is stale and the modal must
+      // go away instead of waiting to be closed by hand.
+      const { chB, ks } = conditioningScene();
+      flag(chB, 0);
+      const { wrapper, state } = await panelWithState(chB);
+      expect(modal().querySelectorAll(".fil-channel-cluster-row")).toHaveLength(2);
+
+      subscribeInput(ks, "positive", "CONDITIONING");
+      subscribeInput(ks, "negative", "CONDITIONING 2");
+      invalidateWirelessPlan();
+      state.ui.refresh?.();
+      await nextTick();
+
+      expect(modal().querySelector(".fil-channel-cluster-row")).toBeNull();
+      wrapper.unmount();
     });
   });
 });
