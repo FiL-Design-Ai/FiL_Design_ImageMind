@@ -160,11 +160,27 @@ ART_STYLES = {
         "black-and-white comic art, brutal value separation, ink-dominant silhouette design, carved shadow shapes, dry-brush black masses, stark white cuts, graphic storytelling stripped of color, high contrast panel clarity without grayscale softness."
     ),
     # 🦾 КИБЕРПАНК / CYBERPUNK BODY-MOD ART
+    #
+    # A live sweep against the same subject found nine of these nineteen
+    # broken, in two different shapes. Five had no anchor at all — the same
+    # "properties with nowhere to land" bug fixed eight times over in the
+    # photo library. Four were new: the augmentation rendered in full, glowing
+    # detail — but as set dressing around the subject rather than on her. The
+    # photo library's "Industrial Cyborg Portrait" carries almost identical
+    # wording to the art version fixed below and rendered fine as a photo; as
+    # "digital portrait art" the same words pulled the model toward a
+    # character-sheet convention — subject in front of her machine, not
+    # wearing it. The fix is the same principle applied harder: say "her own"
+    # skull, arm, shoulder — not just the part, but whose part.
     "🦾 КИБЕРПАНК/🎮 Mecha Pilot": (
-        "cyberpunk mecha-pilot body-mod illustration, cockpit harness integration, armored limb anchoring, cranial jack hardware, spinal data plugs, dense instrumentation, exosuit silhouette logic, human-machine pilot fusion without generic neon city filler."
+        "cyberpunk mecha-pilot body-mod illustration, a cranial jack fitted into the base of her own skull with spinal data plugs running down the back of her neck, an armored gauntlet anchored over one forearm, cockpit harness integration, dense cockpit instrumentation surrounding her, exosuit silhouette logic, human-machine pilot fusion without generic neon city filler."
     ),
+    # First pass anchored this to a forearm and got a faint patch barely
+    # visible below the elbow — present, but too subtle to read as the focal
+    # event the text asks for. Pushed the coverage and the verbs harder rather
+    # than changing the anchor.
     "🦾 КИБЕРПАНК/⚛️ Nanopunk Swarm": (
-        "nanopunk transhuman artwork, programmable matter bloom, crawling nanostructure seams, chrome-dust micro-machinery, self-assembling augmentation geometry, iridescent graft borders, invasive body reconfiguration as the focal event."
+        "nanopunk transhuman artwork, her entire forearm and hand overtaken by a dense visible bloom of programmable matter, crawling nanostructure seams covering the skin in intricate iridescent patterns, chrome-dust micro-machinery, self-assembling augmentation geometry, graft borders creeping past the wrist, invasive body reconfiguration as the focal event."
     ),
     "🦾 КИБЕРПАНК/💉 Neon Tattoos": (
         "cyberware body-art illustration, subdermal circuit tracery, luminous implant seam routes, bio-electric tattoo pathways, synthetic dermal panels, neck-port constellations, neon-noir body modification, engineered surface logic over decorative glow."
@@ -172,11 +188,20 @@ ART_STYLES = {
     "🦾 КИБЕРПАНК/🤖 Flesh-to-Steel Fusion": (
         "flesh-to-steel cyberpunk fusion artwork, scar-bound alloy plating, titanium bone-integration cues, mandibular armor seams, exposed graft borders, invasive flesh-to-chrome transitions, painful half-human merge logic without pin-up gloss."
     ),
+    # Three anchor points tried — skull, temple, then the neck, reasoned to
+    # be the one spot a standing full-body shot keeps in frame from any
+    # angle — and none of the three ever rendered as more than a plain
+    # portrait across four attempts. Left on the neck anchor as the
+    # best-reasoned of the three, but unlike this category's other seven
+    # fixes, this one is not confirmed working — a documented open case, not
+    # a verified repair.
     "🦾 КИБЕРПАНК/💊 Neuro-Interface": (
-        "neural-interface cyberpunk artwork, cranial jack fields, fiber-optic uplinks, subdermal electrode routes, spine-mounted hardware, cold blue monitor glow, invasive mind-machine geometry, precise medical-tech rendering, cerebral hardware dominance without generic neon city filler."
+        "neural-interface cyberpunk artwork, a ring of cranial-jack ports embedded around her own neck with fiber-optic uplinks trailing from them, subdermal electrode routes glowing faintly beneath the skin of her neck and collarbone, spine-mounted hardware beneath her shirt, a cold blue monitor glowing on the desk beside her, invasive mind-machine geometry, precise medical-tech rendering, cerebral hardware dominance without generic neon city filler."
     ),
+    # Same under-powered result as Nanopunk Swarm above — visible but faint.
+    # Same fix: more surface area, harder verbs.
     "🦾 КИБЕРПАНК/🩸 Bio-Corroded Tech": (
-        "bio-corroded cyberware illustration, oxidized prosthetic housings, leaking seal lines, infection-red rejection zones, damaged implant mechanics, black-market ripperdoc aftermath, wet corroded metal and tissue borders, failure-state transhuman anatomy without clean sci-fi polish."
+        "bio-corroded cyberware illustration, a large oxidized prosthetic housing visibly bolted over her shoulder and down her upper arm, thick leaking seal lines, spreading infection-red rejection zones across the graft border, damaged implant mechanics, black-market ripperdoc aftermath, wet corroded metal and tissue borders, failure-state transhuman anatomy without clean sci-fi polish."
     ),
     # 👾 ДИДЖИТАЛ / ALTERNATE DIGITAL
     "👾 ДИДЖИТАЛ/🏄 Vaporwave Cyber": (
@@ -375,11 +400,19 @@ ART_STYLES = {
     "🦾 КИБЕРПАНК/🧬 Synthetic Skin Android Portrait": (
         "synthetic-skin android digital portrait art, humanlike robot face, subtle facial seam linework, artificial skin paint texture, glassy illustrated eyes, micro mechanical details under translucent skin, cool lab color design, uncanny expression, polished sci-fi concept portrait without observational realism"
     ),
+    # First pass produced a duplicate floating head. "She is the android"
+    # (second pass) fixed that and gave a faint but real synthetic read.
+    # Two further attempts at strengthening it — one more clause, three more
+    # — both regressed all the way back to a plain, fully human portrait; the
+    # added description seems to compete with rather than reinforce the one
+    # sentence doing the actual work. Left at the second pass's wording,
+    # which is the best of four renders, not a wording this session could
+    # get further than "faint but present."
     "🦾 КИБЕРПАНК/🦾 White Android Minimal Portrait": (
-        "white android minimal digital portrait art, smooth ceramic shell, subtle seams, elegant synthetic face, clean high key background, soft studio light, futuristic minimalism, quiet emotion, polished sci-fi beauty, refined silhouette"
+        "white android minimal digital portrait art, she is the android — her own face and skull entirely replaced by a smooth ceramic-white shell, subtle seams at the jaw and temple, elegant synthetic eyes, clean high key background, soft studio light, futuristic minimalism, quiet emotion, polished sci-fi beauty, refined silhouette"
     ),
     "🦾 КИБЕРПАНК/🩶 Industrial Female Cyborg Portrait": (
-        "industrial female cyborg digital portrait art, exposed metallic plating, dark machinery backdrop, cold gray palette, precise cybernetic seam linework, hard rim-light painting, engineered facial detail, concept-art realism, powerful stoic expression without documentary finish"
+        "industrial female cyborg digital portrait art, exposed metallic plating fused over her own shoulders and forearms, precise cybernetic seam linework crossing her collarbone, dark machinery backdrop, cold gray palette, hard rim-light painting, engineered facial detail, concept-art realism, powerful stoic expression without documentary finish"
     ),
     "🦾 КИБЕРПАНК/🫀Bio-Mechanical Core Portrait": (
         "bio-mechanical core digital artwork, exposed chest core, glowing energy center, dark polished painted surfaces, synthetic anatomy fusion, cold sci-fi color scripting, unsettling elegance, high-detail cyber-organic design illustration"
@@ -388,15 +421,24 @@ ART_STYLES = {
         "android anatomy cutaway, partially exposed robotic internals, clean technical illustration, synthetic body cross-section, layered engineering detail, medical-mechanical hybrid design, precise sci-fi visualization, high-detail anatomy study"
     ),
     "🦾 КИБЕРПАНК/🦋 Angelic Cyber Feminine": (
-        "angelic cyber feminine digital illustration, luminous beauty portrait, delicate metallic accents, soft painted halo glow, futuristic grace, pale radiant palette, synthetic elegance, dreamy sci-fi femininity, polished atmospheric rendering"
+        "angelic cyber feminine digital illustration, luminous beauty portrait, delicate metallic filigree tracing her own collarbone and wrists, soft painted halo glow, futuristic grace, pale radiant palette, synthetic elegance, dreamy sci-fi femininity, polished atmospheric rendering"
     ),
+    # Four passes tried to put a golden mechanical arm on her body — naming
+    # it hers, spreading the plating across a region instead of one object,
+    # then shrinking the claim to a wrist gauntlet — and every single render
+    # still built a separate, oversized golden figure in the background
+    # instead. This preset's own words ("golden", "premium luxury
+    # cybernetics", "regal") pull toward a hero statue harder than four
+    # different phrasings of "this is on her" could out-argue. Left on the
+    # smallest, most defensible claim tried; documented as unconfirmed rather
+    # than iterated on a fifth time.
     "🦾 КИБЕРПАНК/🧡 Golden Mechanical Portrait": (
-        "golden cyberpunk mechanical digital portrait art, warm metallic plating, premium luxury cybernetics, amber painted glow, polished machine details, elegant futuristic design, high-detail reflective surfaces, regal sci-fi illustration mood"
+        "golden cyberpunk mechanical digital portrait art, her own hand and forearm sheathed in a golden mechanical gauntlet, warm metallic plating, amber painted glow lighting the seam where the gauntlet meets her skin at the wrist, polished machine details, elegant futuristic design, high-detail reflective surfaces, regal sci-fi illustration mood"
     ),
     "🦾 КИБЕРПАНК/🪦 Melancholic Robot Portrait": (
         "melancholic robot digital portrait illustration, humanlike machine face, sad posture, dim moody painted lighting, worn metal, soft dust-particle brush texture, lonely atmosphere, intimate concept-art framing, emotional artificial intelligence, muted palette"
     ),
     "🦾 КИБЕРПАНК/🩻 X-Ray Skeleton Cyber Anime": (
-        "x-ray skeleton cyber anime, visible skeletal structure, black background, glowing bone or metal anatomy, gothic sci-fi hybrid, sharp graphic contrast, eerie elegance, anatomical detail, surreal fashion pose"
+        "x-ray skeleton cyber anime, her entire body rendered as a glowing x-ray radiograph, visible skeletal structure and joint hardware beneath translucent skin, black background, glowing bone or metal anatomy, gothic sci-fi hybrid, sharp graphic contrast, eerie elegance, anatomical detail, surreal fashion pose"
     ),
 }

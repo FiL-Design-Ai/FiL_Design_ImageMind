@@ -4,6 +4,27 @@
 
 ### Changed
 
+- **The art library's `🦾 КИБЕРПАНК` category (19 presets) got the same live
+  sweep the photo library already went through — first review of the 129-entry
+  art library since it shipped.** 9 of 19 came back with no augmentation
+  visible on the subject at all, worse than the photo cyberpunk category's 8
+  of 30. Five had the familiar bug — properties named with no body part to
+  land on (`Nanopunk Swarm`, `Bio-Corroded Tech`, `Angelic Cyber Feminine`,
+  `X-Ray Skeleton Cyber Anime`, `White Android Minimal Portrait`). Four showed
+  a shape this session hadn't seen before: the augmentation rendered in full,
+  glowing detail — as scenery around the subject rather than on her
+  (`Mecha Pilot`'s cockpit, `Neuro-Interface`'s monitor, `Industrial Female
+  Cyborg Portrait`'s machinery backdrop, `Golden Mechanical Portrait`'s gold
+  hall). The photo library's own `Industrial Cyborg Portrait` carries nearly
+  identical wording and rendered fine as a photograph; the same words as
+  "digital portrait art" pulled toward a character-sheet convention instead —
+  subject standing in front of her machine, not wearing it. Fixed by saying
+  whose the part is, not just naming it: "her own skull", "her own shoulder".
+  6 of 9 confirmed fixed on the first or second attempt. Two — `Neuro-Interface`
+  and `Golden Mechanical Portrait` — resisted three to four structurally
+  different rewrites each and are left in their best-reasoned state,
+  documented in-file as unconfirmed rather than iterated on indefinitely; the
+  art library's remaining 110 presets have not been swept.
 - **64 presets no longer close on the word "realism".** A third of the photo
   library ended in an adjective plus `realism` — "cinematic movement realism",
   "moody urban realism", "tactile engineering realism" — which names no camera,
