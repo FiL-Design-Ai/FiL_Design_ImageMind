@@ -25,6 +25,19 @@
 
 ### Changed
 
+- **A written rule for style prose, and one narrow test instead of a broad
+  one.** `docs/styles.md` now opens with how to write a preset: the
+  comma-separated noun-phrase shape is deliberate (a style stacks *under* the
+  user's prompt and must stay neutral), and the real failure is naming a
+  property with nothing to attach it to — the single cause behind the ЗАХВАТ,
+  СЦЕНЫ and КИБЕРПАНК repairs. Two attempts to enforce that automatically were
+  built and thrown away: a "connective phrasing" regex failed `Long Exposure
+  Ghost` and `Handheld Grab Shot`, both proven working by live render, and a
+  rule requiring augmentation presets to name a body part had a 60%
+  false-positive rate — full-body armour needs no address. Only the
+  unambiguous half is now a test: no preset may order the frame emptied, the
+  contradiction that made `White Android Minimal Studio` delete its own
+  subject.
 - **Eight `🦾 КИБЕРПАНК` presets rewritten after a live sweep of all 30 came back
   showing no cyberware at all.** `Wirehead Junkie`, `Corpo-Cyborg`, `Military
   Cyborg`, `Post-Apoc Cyber` and `Solarpunk Hybrid` listed materials —

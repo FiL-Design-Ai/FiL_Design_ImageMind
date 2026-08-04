@@ -4,6 +4,42 @@ FiL_Design_ImageMind style presets are **overlays**, not scene rewrites.
 
 A preset may strengthen or change medium, render language, palette, material treatment, light, atmosphere, environment, wardrobe/coverage, props, era/weather, explicitness, and generation-facing wording. A preset must preserve the locked core: main subject, subject/object count, main action, main pose, composition essence, focal anchor, object relationships, and age readability.
 
+## Writing a style preset
+
+Every preset in these libraries is a comma-separated chain of noun phrases, and
+that shape is deliberate: a style stacks *under* the user's own prompt through
+Style Mixer, so it has to stay neutral about what is in the frame. The shape is
+not the problem. What breaks is when a property is named with nothing to attach
+it to.
+
+**Bind every property to a place, a bearer, or a moment.** A live sweep of the
+`🦾 КИБЕРПАНК` category found five presets that listed "exposed wires, damaged
+cyberware, rusted metal parts" and rendered as an ordinary person in ordinary
+clothes: the model had no location to put any of it, so it dropped all of it.
+The presets that always worked named where — chest, arm, the base of the neck.
+Same failure, different category: `🗺️ СЦЕНЫ` described rooms with the lights on
+and nobody in them until each got something that was just happening (a lid
+propped open, a bell still swinging, dust turning in a beam), and `⏱️ ЗАХВАТ`
+had three presets about photographing movement and no vocabulary for movement
+itself.
+
+Two exceptions worth knowing, both found by rendering rather than reading:
+
+- **Full coverage is its own binding.** `Cyber-Samurai` and `Industrial Cyborg
+  Portrait` name no body part and are fine, because the armour or the shell
+  covers everything. Only partial augmentation needs an address.
+- **Never order the frame emptied.** `White Android Minimal Studio` said
+  "nothing else in frame" while describing a standalone bust — correct for the
+  library's own subject-less preview, and a direct instruction to delete the
+  user's subject everywhere else. This one *is* enforced, in
+  `tests/test_photo_style_library.py`.
+
+**Do not try to enforce the rest with a regex.** Two attempts were made and
+both were dropped: a "connective phrasing" pattern failed `Long Exposure Ghost`
+and `Handheld Grab Shot`, which live renders prove work; a rule requiring
+augmentation presets to name a body part had a 60% false-positive rate. Prose
+shape does not predict whether an image comes back right. Render it and look.
+
 ## Current style libraries
 
 ### Photo presets

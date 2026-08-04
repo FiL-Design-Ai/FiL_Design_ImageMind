@@ -107,6 +107,44 @@ def test_no_photo_style_resolves_to_a_category_that_forbids_photographs() -> Non
     assert not offenders, f"photo styles routed into anti-photographic categories: {offenders}"
 
 
+def test_no_style_demands_an_empty_frame() -> None:
+    """A preset may not instruct the model to erase the subject it lands on.
+
+    `White Android Minimal Studio` said "nothing else in frame" while
+    describing a standalone android bust. Fine for the library's own preview,
+    which renders with no subject at all — and a straight contradiction the
+    moment the same preset stacks underneath a person through Style Mixer: the
+    style was ordering the model to remove the very thing it was applied to. A
+    live render showed exactly that, two ordinary people in an empty studio and
+    no android anywhere.
+
+    Deliberately narrow. Two broader guards were tried first — one on
+    "connective phrasing", one requiring augmentation styles to name a body
+    part — and both were dropped after live renders proved them wrong: styles
+    that work fine failed them, at a 60% false-positive rate on the second. The
+    general rule about binding a property to a place lives in `docs/styles.md`,
+    where a human applies judgement. Only the unambiguous half is enforced here.
+    """
+    from FiL_Design_ImageMind.common.styles.art import ART_STYLES
+    from FiL_Design_ImageMind.common.styles.nsfw_art import NSFW_ART_STYLES
+    from FiL_Design_ImageMind.common.styles.nsfw_photo import NSFW_PHOTO_STYLES
+
+    erases_the_subject = re.compile(
+        r"nothing else in frame|no visible background elements|empty frame"
+        r"|no subject|nothing else visible",
+        re.IGNORECASE,
+    )
+    offenders = [
+        name
+        for library in (PHOTO_STYLES, ART_STYLES, NSFW_PHOTO_STYLES, NSFW_ART_STYLES)
+        for name, text in library.items()
+        if text and erases_the_subject.search(text)
+    ]
+    assert not offenders, (
+        f"these styles order the model to empty the frame they are applied to: {offenders}"
+    )
+
+
 def test_no_photo_style_ends_on_the_word_realism() -> None:
     """62 of 163 presets closed on the same word, and it was doing no work.
 
