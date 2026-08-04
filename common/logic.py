@@ -60,7 +60,11 @@ MODEL_TYPE_GUIDANCE: Dict[str, str] = {
         "scene, composition, lighting, mood, medium/style, technical detail. Krea 2 "
         "does not need a giant prompt — do not stack many style adjectives, it can "
         "muddy the output, especially if a style/moodboard reference is also in play. "
-        "No negatives — express all constraints positively. No markdown."
+        "No negatives — express all constraints positively. No markdown. The official "
+        "docs name subject, setting, lighting and mood as the details that sharpen "
+        "results most. Downstream, the krea-2 API's creativity parameter controls "
+        "server-side prompt expansion — raw passes this text through unchanged, the "
+        "default expander rewrites short prompts."
     ),
     "Ideogram 4": (
         "Target generator: Ideogram 4.0. Write a plain natural-language descriptive "
