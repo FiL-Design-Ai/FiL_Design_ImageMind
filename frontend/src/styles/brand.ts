@@ -532,15 +532,16 @@ const THEME_EFFECTS: Record<FilThemeName, string> = {
 }
 `,
   cyber_punch_hud: `
+/* Same reasoning as cyber_punch above: no card of its own. This one also
+ * carried its corner brackets here, on the INNER panel — which is why they
+ * appeared to float mid-node instead of marking the node's own corners. The
+ * brackets move to the canvas (nodes2/nodeStyle.ts), where the node's real
+ * outline is, and this element goes fully transparent. */
 :root[data-fil-theme="cyber_punch_hud"] .fil-node-shell [class$="-root"] {
-  border: 1px solid rgba(255, 208, 0, 0.25);
+  background: none;
+  border: none;
   box-shadow: none;
-  background:
-    linear-gradient(#ffd000, #ffd000) 0 0 / 14px 2px no-repeat,
-    linear-gradient(#ffd000, #ffd000) 0 0 / 2px 14px no-repeat,
-    linear-gradient(#ffd000, #ffd000) 100% 100% / 14px 2px no-repeat,
-    linear-gradient(#ffd000, #ffd000) 100% 100% / 2px 14px no-repeat,
-    var(--fil-surface-bg);
+  backdrop-filter: none;
 }
 :root[data-fil-theme="cyber_punch_hud"] .fil-w-section {
   background: none !important;
