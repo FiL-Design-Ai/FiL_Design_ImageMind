@@ -45,7 +45,7 @@ NSFW_STYLE_OVERLAY = (
 
 PROMPT_MODE_OPTIONS = ["Auto", "Hybrid", "Two-Stage"]
 
-MODEL_TYPE_OPTIONS = ["Auto/None", "Z-Image Turbo", "FLUX", "SDXL", "QWEN", "Krea 2", "Ideogram 4"]
+MODEL_TYPE_OPTIONS = ["Auto/None", "Z-Image Turbo", "FLUX", "SDXL", "QWEN", "Krea 2", "Ideogram 4", "Video"]
 
 # Per model_type generation contract. Consumed by the prompt pipeline
 # (system-prompt assembly, response-format instructions, negative-prompt
@@ -141,6 +141,22 @@ MODEL_PROMPT_RULES: Dict[str, Dict[str, Any]] = {
         "target_prompt_format": None,
         "force_response_format": None,
         "source_status": "verified",
+    },
+    # Universal video-generation profile: covers MiniMax H2/H3, Wan 2.x,
+    # HunyuanVideo, LTX Video, Kling and Veo/Sora-class DiT video models.
+    # They all read one continuous natural-language shot description and
+    # have no negative-prompt input, so constraints are flipped positive.
+    "Video": {
+        "label": "Video",
+        "uses_dit_prompting": True,
+        "post_convert_text": True,
+        "supports_negative_prompt": False,
+        "negative_strategy": "positive_constraints",
+        "max_words": 150,
+        "json_schema": None,
+        "target_prompt_format": "video_natural_language",
+        "force_response_format": None,
+        "source_status": "partially_verified",
     },
 }
 

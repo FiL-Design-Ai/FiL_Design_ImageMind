@@ -488,7 +488,8 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
           "SDXL",
           "QWEN",
           "Krea 2",
-          "Ideogram 4"
+          "Ideogram 4",
+          "Video"
         ],
         "columns": 3,
         "searchable": null,

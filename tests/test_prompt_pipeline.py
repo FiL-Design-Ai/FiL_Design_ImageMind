@@ -17,7 +17,7 @@ _PHOTO_STYLE_KEY = get_visible_style_keys("photo_style")[0]  # first real style
 
 
 def test_model_type_guidance_present_for_supported_models():
-    for model_type in ("Z-Image Turbo", "FLUX", "QWEN", "SDXL", "Krea 2", "Ideogram 4"):
+    for model_type in ("Z-Image Turbo", "FLUX", "QWEN", "SDXL", "Krea 2", "Ideogram 4", "Video"):
         assert build_model_type_guidance(model_type), f"{model_type} has no guidance"
 
 
@@ -51,6 +51,20 @@ def test_system_prompt_bundle_auto_has_no_model_guidance():
     )
     # No model-type guidance section for Auto
     assert "Target generator:" not in system_prompt
+
+
+def test_system_prompt_bundle_includes_video_guidance():
+    # The universal video profile must teach the LLM to write a motion-aware
+    # shot description for video models (MiniMax H2/H3, Wan, HunyuanVideo, ...)
+    system_prompt, _agent, _style = pg.build_system_prompt_bundle(
+        agent_key="Universal", detail_level="normal", language="en", model_type="Video"
+    )
+    assert "video generation models" in system_prompt
+    assert "MiniMax" in system_prompt
+    assert "MOTION" in system_prompt
+    assert "camera" in system_prompt
+    # Video models have no negative-prompt mechanism — constraints stay positive
+    assert "positively" in system_prompt
 
 
 # ---------------------------------------------------------------------------
@@ -133,7 +147,7 @@ def test_negative_clause_empty_for_no_negative():
 
 
 def test_negative_clause_applies_to_all_positive_models():
-    for model_type in ("FLUX", "Z-Image Turbo", "Krea 2"):
+    for model_type in ("FLUX", "Z-Image Turbo", "Krea 2", "Video"):
         clause = negative_to_positive_clause("x", model_type)
         assert "Avoid:" not in clause, f"{model_type} should use positive constraints"
 

@@ -69,6 +69,21 @@ MODEL_TYPE_GUIDANCE: Dict[str, str] = {
         "end; do not try to build a structured caption object yourself. Put any exact "
         "on-image text in quotes."
     ),
+    "Video": (
+        "Target generators: video generation models — MiniMax H2/H3, Wan 2.x, "
+        "HunyuanVideo, LTX Video, Kling, Veo/Sora-class DiT video models. Write ONE "
+        "continuous natural-language shot description in the present tense, as if "
+        "narrating the clip to another person. Cover in order: the subject and its "
+        "action, the scene/environment, camera framing and movement, lighting, mood, "
+        "style. MOTION is the point of a video prompt — name what moves, how and in "
+        "which direction, and how the camera behaves (locked, slow pan, tilt, dolly "
+        "in/out, orbit, handheld, zoom). Keep it to one smooth paragraph of 2-4 "
+        "sentences, roughly 40-150 words: video models follow short concrete shots "
+        "better than dense walls of text. No shot lists, no timestamps, no markdown, "
+        "no field labels, no commentary. Express all constraints positively — most "
+        "video models have no negative-prompt mechanism. Put any text that must "
+        "appear on screen in quotes."
+    ),
     "Auto/None": "",
 }
 
@@ -80,9 +95,10 @@ def build_model_type_guidance(model_type: str) -> str:
 def negative_to_positive_clause(negative_prompt: str, model_type: str) -> str:
     """Build the negative-prompt clause appropriate for ``model_type``.
 
-    Positive-constraint models (FLUX, Z-Image, Ideogram 4, Krea 2) are told to
-    avoid the listed elements by describing what IS present instead. Standard
-    models get a plain 'Avoid:' clause.
+    Positive-constraint models (FLUX, Z-Image Turbo, Krea 2) are told to avoid
+    the listed elements by describing what IS present instead. Standard models
+    — including Ideogram 4, which has a real negative_prompt field — get a
+    plain 'Avoid:' clause.
     """
     neg = (negative_prompt or "").strip()
     if not neg:

@@ -43,7 +43,7 @@ into `frontend/dist`. It covers four areas:
 
 | Area | What you get |
 |---|---|
-| 🧠 **LLM & vision** | Seven providers (local and cloud), 21 analysis agents, model-specific prompt profiles for Z-Image, FLUX, SDXL, QWEN, Krea 2 and Ideogram 4 |
+| 🧠 **LLM & vision** | Seven providers (local and cloud), 21 analysis agents, model-specific prompt profiles for Z-Image, FLUX, SDXL, QWEN, Krea 2, Ideogram 4 and a universal Video profile for video models |
 | 🖼️ **Image pipeline** | Tile-grid planning with real overlap maths, model upscaling, per-tile crops in pixel *and* latent space, feathered re-assembly, automatic colour correction |
 | 🎛️ **Sampling** | A full KSampler with every sampler/scheduler, passthrough sockets, built-in preview, plus HighRes-fix and Noise-Control scripts |
 | 🎨 **UI** | Every node draws a real Vue panel — twelve themes, full ru/en localization, compact toggles, numeric steppers, contract-driven option lists |
@@ -202,7 +202,7 @@ target diffusion model. Prompt fields are resizable and also work as input socke
 | `negative_prompt` | STRING (optional) | `""` | passed through to the metadata |
 | `detail_level` | COMBO | `normal` | tiny, short, normal, detailed, ultra |
 | `language` | COMBO | `en` | en, ru |
-| `model_type` | COMBO | `Auto/None` | Z-Image Turbo, FLUX, SDXL, QWEN, Krea 2, Ideogram 4 |
+| `model_type` | COMBO | `Auto/None` | Z-Image Turbo, FLUX, SDXL, QWEN, Krea 2, Ideogram 4, Video (universal video profile) |
 | `prompt_mode` | COMBO | `Auto` | Auto, Hybrid, Two-Stage |
 | `photo_style` / `art_style` | COMBO | `None` | 163 photo + 129 art presets, grouped by category |
 | `nsfw_photo_style` / `nsfw_art_style` | COMBO | `None` | separate 18+ catalogs |
@@ -536,12 +536,13 @@ exists — is the difference between guessing at the panel and getting the exact
 - **Without an image**, `prompt` becomes the entire text input — a text-only idea to expand into a
   full generation prompt, with no photo underneath to keep it honest.
 - **`negative_prompt`** never reaches the model as a literal "negative prompt" the way SDXL uses
-  one — it's rewritten to fit the target model. For **FLUX / Z-Image / Krea 2 / Ideogram 4** (which
-  read better as positive constraints) it becomes `Constraints (do not include these — express the
-  scene positively without them): <your text>`; for everything else it's a plain `Avoid: <your
-  text>`. Type `blurry, watermark` with `model_type = FLUX` and the exact same text with
-  `model_type = SDXL` produces two different sentences in the actual system call — same intent,
-  model-appropriate phrasing chosen for you.
+  one — it's rewritten to fit the target model. For **FLUX / Z-Image / Krea 2 / Video** (which
+  read better as positive constraints — none of them has a negative-prompt input) it becomes
+  `Constraints (do not include these — express the scene positively without them): <your text>`;
+  for everything else — including Ideogram 4, whose API has a real negative-prompt field — it's a
+  plain `Avoid: <your text>`. Type `blurry, watermark` with `model_type = FLUX` and the exact same
+  text with `model_type = SDXL` produces two different sentences in the actual system call — same
+  intent, model-appropriate phrasing chosen for you.
 
 #### `agent` — what the model is told to look at, and what to ignore
 
@@ -635,6 +636,14 @@ contract at all — it's for a specific instruction the preset library doesn't h
 FLUX, SDXL, QWEN, Krea 2, Ideogram 4 — it never touches which facts the agent pulled out. Rules
 live in `common/model_prompt_adapters.py`; the reasoning and per-model "Official guidance" sources
 are in [`docs/MODEL_PROMPTING_GUIDE.md`](docs/MODEL_PROMPTING_GUIDE.md).
+
+**Video** is the odd one out on purpose: it targets a whole class instead of one product —
+MiniMax H2/H3, Wan 2.x, HunyuanVideo, LTX Video, Kling and other DiT video models all read the
+same shape of prompt. The profile asks for one continuous present-tense shot description with
+explicit motion and camera direction, caps it at ~150 words, and flips any `negative_prompt` into
+positive wording, because video models have no negative-prompt input. Pair it with a text idea
+(image left empty) to write image-to-video prompts, or feed a still frame and ask for the motion
+to add.
 
 #### Other nodes, the tricks worth knowing
 
@@ -860,7 +869,7 @@ Further reading: [architecture](docs/architecture.md) ·
 
 | Направление | Что даёт |
 |---|---|
-| 🧠 **LLM и зрение** | Семь провайдеров (локальные и облачные), 21 агент анализа, профили промптов под Z-Image, FLUX, SDXL, QWEN, Krea 2 и Ideogram 4 |
+| 🧠 **LLM и зрение** | Семь провайдеров (локальные и облачные), 21 агент анализа, профили промптов под Z-Image, FLUX, SDXL, QWEN, Krea 2, Ideogram 4 и универсальный Video-профиль для видео-моделей |
 | 🖼️ **Работа с изображением** | Планирование сетки тайлов с честной математикой нахлёста, апскейл моделью, реальные кропы тайлов в пиксельном *и* латентном пространстве, сборка с растушёвкой, авто-цветокоррекция |
 | 🎛️ **Сэмплинг** | Полноценный KSampler со всеми сэмплерами/планировщиками, passthrough-сокетами и встроенным превью, плюс скрипты HighRes Fix и Noise Control |
 | 🎨 **Интерфейс** | У каждого узла настоящая Vue-панель — двенадцать тем, полная ru/en локализация, компактные тумблеры, степперы у числовых полей, списки опций из контракта |
@@ -1019,7 +1028,7 @@ Python самого ComfyUI (`python_embeded`, `venv` или `.venv`), став�
 | `negative_prompt` | STRING (опц.) | `""` | пробрасывается в метаданные |
 | `detail_level` | COMBO | `normal` | tiny, short, normal, detailed, ultra |
 | `language` | COMBO | `en` | en, ru |
-| `model_type` | COMBO | `Auto/None` | Z-Image Turbo, FLUX, SDXL, QWEN, Krea 2, Ideogram 4 |
+| `model_type` | COMBO | `Auto/None` | Z-Image Turbo, FLUX, SDXL, QWEN, Krea 2, Ideogram 4, Video (универсальный видео-профиль) |
 | `prompt_mode` | COMBO | `Auto` | Auto, Hybrid, Two-Stage |
 | `photo_style` / `art_style` | COMBO | `None` | 163 фото + 129 арт-пресетов по категориям |
 | `nsfw_photo_style` / `nsfw_art_style` | COMBO | `None` | отдельные 18+ каталоги |
@@ -1354,12 +1363,14 @@ lanczos это RGB-специфичная интерполяция, в лате�
   развернуть в полноценный промпт для генерации, без фото под ней, которое держало бы модель в
   рамках реальности.
 - **`negative_prompt`** никогда не попадает в модель как буквальный «негативный промпт» в духе SDXL
-  — он переписывается под конкретную целевую модель. Для **FLUX / Z-Image / Krea 2 / Ideogram 4**
-  (которые лучше воспринимают позитивные ограничения) он превращается в `Constraints (do not
-  include these — express the scene positively without them): <ваш текст>`; для всех остальных —
-  простое `Avoid: <ваш текст>`. Напишите `blurry, watermark` при `model_type = FLUX` — и тот же
-  текст при `model_type = SDXL` — в реальном системном вызове получатся два разных предложения:
-  один и тот же смысл, но фразировка подобрана под конкретную модель за вас.
+  — он переписывается под конкретную целевую модель. Для **FLUX / Z-Image / Krea 2 / Video**
+  (которые лучше воспринимают позитивные ограничения — ни у одной из них нет входа для
+  негативного промпта) он превращается в `Constraints (do not include these — express the scene
+  positively without them): <ваш текст>`; для всех остальных — включая Ideogram 4, у API которой
+  есть настоящее поле negative_prompt, — простое `Avoid: <ваш текст>`. Напишите `blurry, watermark`
+  при `model_type = FLUX` — и тот же текст при `model_type = SDXL` — в реальном системном вызове
+  получатся два разных предложения: один и тот же смысл, но фразировка подобрана под конкретную
+  модель за вас.
 
 #### `agent` — на что модели велено смотреть, а что игнорировать
 
@@ -1455,6 +1466,14 @@ USB-C слева, крышка закрыта». Прогоните *то же �
 SDXL, QWEN, Krea 2, Ideogram 4 — и никогда не трогает сами факты, которые вытянул агент. Правила —
 в `common/model_prompt_adapters.py`, обоснование и источники по каждой модели — в
 [`docs/MODEL_PROMPTING_GUIDE.md`](docs/MODEL_PROMPTING_GUIDE.md).
+
+**Video** сознательно стоит особняком: он нацелен не на один продукт, а на целый класс — MiniMax
+H2/H3, Wan 2.x, HunyuanVideo, LTX Video, Kling и другие DiT-видео-модели читают промпт одной и
+той же формы. Профиль требует одно связное описание кадра в настоящем времени с явным движением
+и указаниями камере, ограничивает его ~150 словами и выворачивает любой `negative_prompt` в
+положительные формулировки — у видео-моделей нет входа для негативного промпта. Работает и как
+генератор промптов image-to-video: подключите кадр и попросите описать движение для него, либо
+оставьте вход картинки пустым и разверните текстовую идею.
 
 #### Другие узлы: приёмы, которые стоит знать
 
