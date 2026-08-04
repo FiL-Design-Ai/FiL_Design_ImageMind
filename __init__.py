@@ -29,6 +29,7 @@ class FiLExtension(ComfyExtension):
         from .nodes.node_noise_control import FiLNoiseControl
         from .nodes.node_decomposer import FiLImageDecomposer
         from .nodes.node_style_mixer import FiLStyleMixer
+        from .nodes.node_cinema_rig import FiLCinemaRig
         from .nodes.node_color_wizard import FiLColorWizard
         from .nodes.node_switch import FiLSignalSwitch
         from .nodes.node_dataset import FiLDatasetForge
@@ -46,6 +47,7 @@ class FiLExtension(ComfyExtension):
             FiLNoiseControl,
             FiLImageDecomposer,
             FiLStyleMixer,
+            FiLCinemaRig,
             FiLColorWizard,
             FiLSignalSwitch,
             FiLDatasetForge,

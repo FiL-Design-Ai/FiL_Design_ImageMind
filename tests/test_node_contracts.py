@@ -28,6 +28,7 @@ EXPECTED_IDS = {
     "FiLNoiseControl",
     "FiLImageDecomposer",
     "FiLStyleMixer",
+    "FiLCinemaRig",
     "FiLColorWizard",
     "FiLSignalSwitch",
     "FiLDatasetForge",

@@ -18,6 +18,7 @@ import { hiresfixNode } from "@/nodes2/nodes/hiresfix";
 import { noiseControlNode } from "@/nodes2/nodes/noise_control";
 import { decomposerNode } from "@/nodes2/nodes/decomposer";
 import { styleMixerNode } from "@/nodes2/nodes/style_mixer";
+import { cinemaRigNode } from "@/nodes2/nodes/cinema_rig";
 import { colorWizardNode } from "@/nodes2/nodes/color_wizard";
 import { switchNode } from "@/nodes2/nodes/switch";
 import { datasetForgeNode } from "@/nodes2/nodes/dataset";
@@ -41,6 +42,7 @@ const modules: NodeModule[] = [
   noiseControlNode,
   decomposerNode,
   styleMixerNode,
+  cinemaRigNode,
   colorWizardNode,
   switchNode,
   datasetForgeNode,
