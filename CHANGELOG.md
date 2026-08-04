@@ -2,8 +2,39 @@
 
 ## Unreleased
 
+### Added
+
+- **🎬 Cinema Rig (`FiLCinemaRig`) — a camera-department shot builder.** Style
+  Mixer blends flat style overlays; Cinema Rig assembles a shot from five
+  orthogonal rig axes — camera body, lens, focal length, aperture and color
+  grade — the way a cinematographer actually specs a frame. 6 bodies, 6 lenses,
+  6 focal lengths, 5 apertures and 14 grades combine into a deterministic
+  assembly (no API call), wrapped in film or digital medium language depending
+  on the camera's type so the output always names a capture. Two modes:
+  `Original Shot` rides the user's scene through the rig untouched, and
+  `Reshoot` locks a reference image's identity/pose/props and only changes the
+  camera treatment. An optional `LLM Polish` rewrites the assembly into fluent
+  prose through the provider model, falling back to the deterministic rig on
+  any failure. Outputs both the `rigged_prompt` and the `rig_overlay` (camera
+  treatment alone, stackable under any prompt). Presets are original to this
+  pack and held by the same guards as the photo library.
+
 ### Changed
 
+- **Text review of the art library's remaining 110 presets (everything outside
+  `🦾 КИБЕРПАНК`), one confirmed fix.** `🎨 ЖИВОПИСЬ`, `✏️ ГРАФИКА`, `🏛️ ИСТОРИЯ`,
+  `💥 КОМИКС` and `👾 ДИДЖИТАЛ` describe medium and technique only — nothing
+  claims an attached part the way cyberware does, so the anchor bug that broke
+  9 of 19 `🦾 КИБЕРПАНК` presets has nowhere to occur. One direct parallel
+  found anyway: `💻 ЦИФРОВАЯ/🌫️ Atmospheric Sci-Fi Mist` carried the exact same
+  wording as the photo library's own Atmospheric Sci-Fi Mist before *that* one
+  was fixed earlier this session — generic fog with nothing sci-fi about it.
+  Same anchor applied, confirmed by a live before/after render. Two things
+  spotted but left alone pending a live sweep: six presets in `🔬 СТИЛИЗАЦИЯ`
+  read as close variations of one dark-gothic-portrait concept (worth checking
+  whether they're actually distinct on screen); a couple of presets elsewhere
+  in `💻 ЦИФРОВАЯ` name decorative accents with no clear location, but
+  low-stakes enough not to act on without a render to confirm.
 - **The art library's `🦾 КИБЕРПАНК` category (19 presets) got the same live
   sweep the photo library already went through — first review of the 129-entry
   art library since it shipped.** 9 of 19 came back with no augmentation
