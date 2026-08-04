@@ -649,9 +649,11 @@ describe("resolveWireless", () => {
       ]);
     });
 
-    it("a partial name match leaves the whole cluster ambiguous", () => {
-      // One input explained, one not — wiring the explained half alone would
-      // pre-decide what the still-open half can take. The rule is all or nothing.
+    it("one named channel settles its pair, and exclusion settles the leftover", () => {
+      // The canonical second-wire case: `positive` takes the input of the
+      // same name by rule 8, and the unnamed channel takes `negative`
+      // because nothing else is left on either side — not a guess about what
+      // it carries, just the only slot it can still occupy.
       const pos = source(1, "CONDITIONING");
       const other = source(2, "CONDITIONING");
       const ch = channel(3, ["CONDITIONING", "CONDITIONING"], ["positive", "unrelated"]);
@@ -664,8 +666,47 @@ describe("resolveWireless", () => {
       other.connect!(0, ch, 1);
 
       const { resolution } = planWireless(graph);
+      expect(resolution.ambiguous).toEqual([]);
+      expect(resolution.links).toMatchObject([
+        { channelName: "positive", target_slot: 0 },
+        { channelName: "unrelated", target_slot: 1 },
+      ]);
+    });
+
+    it("no names anywhere means no exclusion — the leftover could be either", () => {
+      const a = source(1, "CONDITIONING");
+      const b = source(2, "CONDITIONING");
+      const ch = channel(3, ["CONDITIONING", "CONDITIONING"], ["first", "second"]);
+      const ks = receiver(4, [
+        ["positive", "CONDITIONING"],
+        ["negative", "CONDITIONING"],
+      ]);
+      const graph = createGraph([a, b, ch, ks]);
+      a.connect!(0, ch, 0);
+      b.connect!(0, ch, 1);
+
+      const { resolution } = planWireless(graph);
       expect(resolution.links).toEqual([]);
       expect(resolution.ambiguous.map((a) => a.input).sort()).toEqual(["negative", "positive"]);
+    });
+
+    it("no exclusion when the cluster has more inputs than channels", () => {
+      const pos = source(1, "CONDITIONING");
+      const neg = source(2, "CONDITIONING");
+      const ch = channel(3, ["CONDITIONING", "CONDITIONING"], ["positive", "negative"]);
+      const ks = receiver(4, [
+        ["positive", "CONDITIONING"],
+        ["negative", "CONDITIONING"],
+        ["extra", "CONDITIONING"],
+      ]);
+      const graph = createGraph([pos, neg, ch, ks]);
+      pos.connect!(0, ch, 0);
+      neg.connect!(0, ch, 1);
+
+      const { resolution } = planWireless(graph);
+      // Two of the three inputs pair by name, but the third has nothing left
+      // to take — the cluster as a whole is still unresolved.
+      expect(resolution.ambiguous.map((a) => a.input).sort()).toEqual(["extra", "negative", "positive"]);
     });
 
     it("two channels with the same tokens are two matchings, which is none", () => {

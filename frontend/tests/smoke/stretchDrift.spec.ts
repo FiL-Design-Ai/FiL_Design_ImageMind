@@ -168,19 +168,30 @@ test.describe("the growable panel's stretch", () => {
         setDirty?(a: boolean, b: boolean): void;
       };
       canvas.ds.scale = 1;
-      canvas.centerOnNode?.(node);
+
+      // The resize grip sits in the bottom-right corner of the node box.
+      // Place THAT POINT, not the node: the host keeps its own floating
+      // controls (the Run/queue button group) pinned to the canvas panel's
+      // bottom-right corner, confirmed live with `document.elementFromPoint`
+      // — a grip landing under them sends the drag to a button, and the node
+      // never resizes. Aim the grip at an open spot well clear of the corner
+      // instead of centring the node and hoping.
+      const rect = canvas.canvas.getBoundingClientRect();
+      const grip = {
+        x: node.pos[0] + node.size[0] - 6,
+        y: node.pos[1] + node.size[1] - 6,
+      };
+      const target = {
+        x: rect.left + rect.width * 0.4,
+        y: rect.top + rect.height * 0.4,
+      };
+      // toPage(x, y) = rect.topleft + (graph + offset) * scale, so this puts
+      // the grip exactly on the target at scale 1.
+      canvas.ds.offset = [target.x - rect.left - grip.x, target.y - rect.top - grip.y];
       canvas.setDirty?.(true, true);
       await frames(30);
 
-      // Graph coordinates → page pixels, the conversion LiteGraph draws with.
-      const rect = canvas.canvas.getBoundingClientRect();
-      const { scale, offset } = canvas.ds;
-      const toPage = (x: number, y: number) => ({
-        x: rect.left + (x + offset[0]) * scale,
-        y: rect.top + (y + offset[1]) * scale,
-      });
-      // The resize grip sits in the bottom-right corner of the node box.
-      return toPage(node.pos[0] + node.size[0] - 6, node.pos[1] + node.size[1] - 6);
+      return target;
     });
 
     // A drag, not a jump: LiteGraph only starts resizing on a move after the

@@ -27,14 +27,29 @@
  * list. Rule 8 (`resolve.ts`) settles name-pairable clusters before either
  * modal is needed, so both only appear when names did not already answer.
  *
+ * A third question opens the moment a CONDITIONING wire lands, before either
+ * of those: "positive or negative?" The sampler's two inputs are both bare
+ * CONDITIONING and nothing downstream can tell them apart, so the one who
+ * plugs the wire in is asked once, and the answer is written onto the slot
+ * (`setUserSlotName`). Because that rides on the node, it serialises with the
+ * workflow — reopen the file, or restart ComfyUI and open it, and the slot is
+ * already named, so the question is asked once per wire, never once per
+ * session. Naming the channel is also what lets rule 8 settle the cluster,
+ * which is why this question runs ahead of the ambiguity ones — and why the
+ * second of the canonical pair never asks at all: once the first answer
+ * names one channel, exclusion (rule 8's leftover deduction) settles the
+ * other wire's place, and a question whose answer is already implied is not
+ * a question.
+ *
  * `channel.ts` cannot call straight into this component for it: it is an async
  * component, so a wire drawn the instant the node exists can fire
  * `onConnectionsChange` before `onMounted` here has run — confirmed live, not
  * theoretical. `channel.ts` instead leaves a note on the plain node object
- * (`_filPendingAmbiguityChecks`), and `refresh()` below drains it every time it
- * runs — on mount, so a check made before this component existed still lands,
- * and on every poll after, as the fallback if `onMounted` itself is what was
- * too slow.
+ * (`_filPendingAmbiguityChecks` for the where-to questions,
+ * `_filPendingNamingChecks` for the positive/negative one), and `refresh()`
+ * below drains them every time it runs — on mount, so a check made before this
+ * component existed still lands, and on every poll after, as the fallback if
+ * `onMounted` itself is what was too slow.
  */
 import { computed, onMounted, onUnmounted, ref, shallowRef } from "vue";
 import type { FilNodeState } from "@/nodes2/filState";
@@ -43,7 +58,8 @@ import FilButton from "@/components/widgets/FilButton.vue";
 import FilIcon from "@/components/widgets/FilIcon.vue";
 import FilModal from "@/components/widgets/FilModal.vue";
 import FilToggle from "@/components/widgets/FilToggle.vue";
-import { noteChannelPairs, pairedInputFor } from "@/stores/wirelessMemory";
+import { noteChannelPairs, pairedInputFor, noteNamingAnswer, namingAnswerHint } from "@/stores/wirelessMemory";
+import { useToastStore } from "@/stores/toastStore";
 import {
   applySlotColors,
   applySlotNames,
@@ -51,12 +67,18 @@ import {
   channelColor,
   channelColorSoft,
   channelTargets,
+  invalidateWirelessPlan,
+  isAutoLabel,
   isBlocked,
   livePlan,
   setChannelTarget,
+  setUserSlotName,
   subscribedChannel,
+  takeOverWiredInput,
+  undoTakeOver,
   type AmbiguousEntry,
   type ChannelTarget,
+  type TakeOverUndo,
   type WirelessChannel,
   type WirelessGraph,
   type WirelessNode,
@@ -94,6 +116,7 @@ function refresh(): void {
   if (next !== plan.value) plan.value = next;
   closeResolvedCluster();
   syncSlots(graph);
+  drainPendingNamingChecks();
   drainPendingAmbiguityChecks();
 }
 
@@ -153,6 +176,10 @@ function drainPendingAmbiguityChecks(): void {
   const node = hostNode() as (WirelessNode & { _filPendingAmbiguityChecks?: number[] }) | undefined;
   const pending = node?._filPendingAmbiguityChecks;
   if (!node || !pending?.length) return;
+  // One question at a time: while the naming question is up, leave this queue
+  // where it is — the refresh after it closes drains it. A name often settles
+  // the ambiguity too (rule 8), so asking "where to" first would ask twice.
+  if (namingOpen.value) return;
   node._filPendingAmbiguityChecks = [];
 
   const ambiguous = plan.value?.resolution.ambiguous ?? [];
@@ -202,6 +229,43 @@ function redraw(): void {
   hostNode()?.graph?.setDirtyCanvas?.(true, true);
 }
 
+const toasts = useToastStore();
+
+/*
+ * Inline rename — the pencil on a channel row. Naming is what powers rule 8's
+ * pairing and the positive/negative question, yet the only way to name a
+ * channel before this was LiteGraph's hidden "Rename Slot". Writing goes
+ * through `setUserSlotName`, exactly like the naming question, so a rename is
+ * the user's word (no receipt) and survives a reload via `fil_channel_names`.
+ */
+const renamingSlot = ref<number | null>(null);
+const renameDraft = ref("");
+
+const renameHint = computed(() => t("channel_rename_hint", "Rename this channel"));
+
+function startRename(channel: WirelessChannel): void {
+  renamingSlot.value = channel.slotIndex;
+  renameDraft.value = channel.name;
+}
+
+function commitRename(): void {
+  const node = hostNode();
+  const slotIndex = renamingSlot.value;
+  renamingSlot.value = null;
+  if (!node || slotIndex == null) return;
+  const slot = node.inputs?.[slotIndex];
+  if (!slot) return;
+  if (setUserSlotName(node, slot, renameDraft.value)) {
+    invalidateWirelessPlan();
+    refresh();
+    redraw();
+  }
+}
+
+function cancelRename(): void {
+  renamingSlot.value = null;
+}
+
 const modalOpen = ref(false);
 const editing = shallowRef<WirelessChannel | null>(null);
 const targets = shallowRef<ChannelTarget[]>([]);
@@ -236,11 +300,49 @@ function toggleTarget(target: ChannelTarget): void {
   redraw();
 }
 
+/**
+ * The "already wired" row's switch: the user's explicit choice to drop the
+ * real wire and take this channel instead (`targets.ts` does the actual
+ * swap). Rule 1 keeps automatics off a wired input — it does not bind the
+ * user's own hand.
+ */
+function takeOver(target: ChannelTarget): void {
+  const graph = hostNode()?.graph;
+  const node = graph?.getNodeById?.(target.nodeId);
+  if (!graph || !node || !editing.value) return;
+
+  const undo = takeOverWiredInput(graph, node, target.inputName, editing.value);
+  refresh();
+  editing.value = plan.value?.channels.find((c) => c.name === editing.value?.name) ?? editing.value;
+  syncTargets();
+  redraw();
+
+  // A takeover drops a wire the user drew, so give them a way back while the
+  // toast lives. Undo re-connects the origin and removes the subscription.
+  if (undo) offerTakeOverUndo(graph, node, undo);
+}
+
+function offerTakeOverUndo(graph: HostGraph, node: WirelessNode, undo: TakeOverUndo): void {
+  toasts.success(t("channel_takeover_done", "Channel replaced the wire"), {
+    action: {
+      label: t("channel_takeover_undo", "Undo"),
+      onClick: () => {
+        undoTakeOver(graph, node, undo);
+        refresh();
+        syncTargets();
+        redraw();
+      },
+    },
+  });
+}
+
+const takeoverHint = computed(() =>
+  t("channel_target_takeover", "Replace the real wire with this channel"),
+);
+
 /** The greyed-out rows explain themselves, rather than looking broken. */
 function reason(target: ChannelTarget): string {
   switch (target.state) {
-    case "wired":
-      return t("channel_target_wired", "already wired");
     case "otherChannel":
       return `${t("channel_target_other", "on channel")} ${target.otherChannelName ?? ""}`.trim();
     case "selfLoop":
@@ -390,6 +492,120 @@ function confirmCluster(): void {
   redraw();
 }
 
+/*
+ * The naming question — asked the moment a CONDITIONING wire lands in one of
+ * this node's own sockets: "positive or negative?" The sampler's two inputs
+ * are both bare CONDITIONING, and nothing about the data itself says which is
+ * which (rule 7), so the one who plugs the wire in is the only one who knows.
+ * Asking *then* is what makes the answer cheap and certain — and writing it
+ * onto the slot is what makes it asked only once.
+ *
+ * The answer goes through `setUserSlotName`, which is exactly core's "Rename
+ * Slot": the label on the slot, and no receipt. That is load-bearing twice
+ * over — the pack never overwrites it again, and it serialises with the
+ * workflow, so reopening the file (or restarting ComfyUI and opening it) finds
+ * the slot already named and never queues this question. `channel.ts`'s
+ * `graphBeingConfigured` guard is the other half: a restored wire never
+ * queues a check at all.
+ */
+
+const namingOpen = ref(false);
+/** The transmitter slot the question is about; null while no question is up. */
+const namingSlotIndex = ref<number | null>(null);
+/** The answer to pre-highlight, remembered from the last time this was asked. */
+const namingSuggested = ref<string | null>(null);
+
+const namingHint = computed(() =>
+  t(
+    "channel_ask_hint",
+    "Name it once — the answer is saved in the workflow and decides which sampler input the channel feeds.",
+  ),
+);
+
+/** True while a slot's channel is called nothing but its type (numbered or not). */
+function isTypeOnlyChannelName(channel: WirelessChannel): boolean {
+  return channel.name === channel.type || channel.name.startsWith(`${channel.type} `);
+}
+
+function drainPendingNamingChecks(): void {
+  const node = hostNode() as (WirelessNode & { _filPendingNamingChecks?: number[] }) | undefined;
+  const pending = node?._filPendingNamingChecks;
+  if (!node || !pending?.length) return;
+  // While any question is up, leave the queue where it is — the refresh that
+  // follows closing it drains this one. Consuming now would swallow the ask.
+  if (namingOpen.value || clusterOpen.value || modalOpen.value) return;
+
+  // One question at a time, and none at all when a name would change nothing:
+  // slots are consumed one by one, whatever stays unasked goes back on the
+  // queue for the refresh after this question is answered. That is also how
+  // the leftover deduction keeps the second pos/neg wire click-free: the
+  // answer to the first names it, exclusion settles the cluster, and the
+  // second slot's check below simply finds nothing left to ask about.
+  const remaining: number[] = [];
+  for (let i = 0; i < pending.length; i++) {
+    const slotIndex = pending[i];
+    if (namingOpen.value) {
+      remaining.push(slotIndex);
+      continue;
+    }
+    const channel = channels.value.find((c) => c.slotIndex === slotIndex);
+    if (!channel || channel.type !== "CONDITIONING") continue;
+
+    const slot = node.inputs?.[slotIndex];
+    if (!slot) continue;
+    if (!isAutoLabel(node, slot)) continue; // already named — the once-only promise
+    if (!isTypeOnlyChannelName(channel)) continue; // the origin already says what it is
+
+    // Skip only a wire whose name would change nothing *and* is already put to
+    // use: nothing stuck on it (no ambiguity mentions it) and it feeds at
+    // least one input (a resolution link). That is the second pos/neg wire —
+    // the first answer and exclusion already settled where it goes. An unused
+    // channel still earns the question: with no receiver in the graph yet,
+    // the name is exactly what a sampler added later will resolve by.
+    const ambiguous = plan.value?.resolution.ambiguous ?? [];
+    const isStuck = ambiguous.some((a) => a.candidates.includes(channel.name));
+    const isFeeding = (plan.value?.resolution.links ?? []).some((l) => l.channelName === channel.name);
+    if (!isStuck && isFeeding) continue;
+
+    namingSlotIndex.value = slotIndex;
+    namingSuggested.value = namingAnswerHint();
+    namingOpen.value = true;
+  }
+  node._filPendingNamingChecks = remaining;
+}
+
+/**
+ * Answer the question. `answer` is the name picked; null means "leave it
+ * unnamed" (closing without choosing reads the same). Either way the question
+ * is spent — it does not come back for this wire.
+ */
+function answerNaming(answer: string | null): void {
+  const node = hostNode() as (WirelessNode & { _filPendingAmbiguityChecks?: number[] }) | undefined;
+  const slotIndex = namingSlotIndex.value;
+  namingOpen.value = false;
+  namingSlotIndex.value = null;
+
+  if (answer) noteNamingAnswer(answer);
+
+  if (node && slotIndex != null && answer) {
+    const slot = node.inputs?.[slotIndex];
+    if (slot && setUserSlotName(node, slot, answer)) {
+      // The name changed, so the plan — and anything rule 8 can now settle —
+      // has to be recomputed before the next read.
+      invalidateWirelessPlan();
+    }
+    // The ambiguity check this same wire queued is now stale: a name changes
+    // what the wire can resolve, and a modal asking "where to" right after
+    // "what is" would ask twice for one wire. Drop it. A skip keeps its
+    // check — with no name, the where-to question still stands.
+    if (node._filPendingAmbiguityChecks) {
+      node._filPendingAmbiguityChecks = node._filPendingAmbiguityChecks.filter((s) => s !== slotIndex);
+    }
+  }
+  refresh();
+  redraw();
+}
+
 const emptyHint = computed(() =>
   t("channel_panel_empty", "Plug something in — every wired input becomes its own channel."),
 );
@@ -417,8 +633,27 @@ const clusterOkLabel = computed(() => t("channel_cluster_connect", "Connect"));
       :style="{ borderColor: channelColorSoft(channel.name, 0.55) }"
     >
       <span class="fil-channel-dot" :style="{ background: channelColor(channel.name) }" />
-      <span class="fil-channel-name" :title="channel.name">{{ channel.name }}</span>
+      <input
+        v-if="renamingSlot === channel.slotIndex"
+        v-model="renameDraft"
+        class="fil-channel-rename"
+        type="text"
+        @keyup.enter="commitRename"
+        @keyup.escape="cancelRename"
+        @blur="commitRename"
+      />
+      <span v-else class="fil-channel-name" :title="channel.name">{{ channel.name }}</span>
       <span class="fil-channel-count">{{ receivers(channel.name) }}</span>
+      <button
+        v-if="renamingSlot !== channel.slotIndex"
+        type="button"
+        class="fil-channel-pencil"
+        :title="renameHint"
+        :aria-label="renameHint"
+        @click="startRename(channel)"
+      >
+        <FilIcon name="pencil" :size="14" />
+      </button>
       <button
         type="button"
         class="fil-channel-gear"
@@ -442,7 +677,14 @@ const clusterOkLabel = computed(() => t("channel_cluster_connect", "Connect"));
             <span class="fil-channel-target-node">{{ target.title }}</span>
             <span class="fil-channel-target-input">{{ target.inputLabel }}</span>
           </span>
-          <span v-if="target.disabled" class="fil-channel-target-reason">{{ reason(target) }}</span>
+          <FilToggle
+            v-if="target.state === 'wired'"
+            bare
+            :title="takeoverHint"
+            model-value="OFF"
+            @update:model-value="takeOver(target)"
+          />
+          <span v-else-if="target.disabled" class="fil-channel-target-reason">{{ reason(target) }}</span>
           <FilToggle
             v-else
             bare
@@ -482,6 +724,30 @@ const clusterOkLabel = computed(() => t("channel_cluster_connect", "Connect"));
       </div>
       <div class="fil-channel-cluster-footer">
         <FilButton variant="accent" :label="clusterOkLabel" :disabled="!clusterHasChoices" @click="confirmCluster" />
+      </div>
+    </FilModal>
+
+    <FilModal
+      v-model:open="namingOpen"
+      :title="t('channel_ask_title', 'Positive or negative?')"
+      width="380px"
+      @close="namingSlotIndex = null"
+    >
+      <p class="fil-channel-empty">{{ namingHint }}</p>
+      <div class="fil-channel-naming-actions">
+        <FilButton
+          variant="accent"
+          :class="{ 'is-suggested': namingSuggested === 'positive' }"
+          :label="t('channel_ask_positive', 'Positive')"
+          @click="answerNaming('positive')"
+        />
+        <FilButton
+          variant="danger"
+          :class="{ 'is-suggested': namingSuggested === 'negative' }"
+          :label="t('channel_ask_negative', 'Negative')"
+          @click="answerNaming('negative')"
+        />
+        <FilButton :label="t('channel_ask_skip', 'Leave unnamed')" @click="answerNaming(null)" />
       </div>
     </FilModal>
   </div>
@@ -546,7 +812,8 @@ const clusterOkLabel = computed(() => t("channel_cluster_connect", "Connect"));
   color: var(--fil-muted);
 }
 
-.fil-channel-gear {
+.fil-channel-gear,
+.fil-channel-pencil {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -561,12 +828,14 @@ const clusterOkLabel = computed(() => t("channel_cluster_connect", "Connect"));
   transition: background 0.12s, color 0.12s;
 }
 
-.fil-channel-gear:hover {
+.fil-channel-gear:hover,
+.fil-channel-pencil:hover {
   background: var(--fil-surface-3);
   color: var(--fil-text);
 }
 
-.fil-channel-gear:focus-visible {
+.fil-channel-gear:focus-visible,
+.fil-channel-pencil:focus-visible {
   outline: 2px solid var(--fil-accent);
   outline-offset: 1px;
 }
@@ -694,5 +963,32 @@ const clusterOkLabel = computed(() => t("channel_cluster_connect", "Connect"));
   display: flex;
   justify-content: flex-end;
   margin-top: 12px;
+}
+
+.fil-channel-naming-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* The remembered answer, pre-highlighted in the naming question. A ring, not a
+   pressed state — the user still has to click it. */
+.fil-channel-naming-actions .is-suggested {
+  outline: 2px solid var(--fil-accent);
+  outline-offset: 1px;
+}
+
+.fil-channel-rename {
+  flex: 1 1 auto;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 2px 6px;
+  border: 1px solid var(--fil-accent);
+  border-radius: var(--fil-field-radius);
+  background: var(--fil-surface-1);
+  color: var(--fil-text);
+  font-size: 12px;
+  outline: none;
 }
 </style>

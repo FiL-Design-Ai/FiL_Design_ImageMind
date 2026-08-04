@@ -13,7 +13,13 @@ import { createPinia, setActivePinia } from "pinia";
 import ChannelPanel from "@/components/nodes/ChannelPanel.vue";
 import { createGraph, createNode, slot, type FakeNode } from "../fakes/comfyHost";
 import { invalidateWirelessPlan, subscribeInput } from "@/nodes2/wireless";
-import { _resetWirelessMemory, noteChannelPairs, pairedInputFor } from "@/stores/wirelessMemory";
+import {
+  _resetWirelessMemory,
+  noteChannelPairs,
+  noteNamingAnswer,
+  pairedInputFor,
+} from "@/stores/wirelessMemory";
+import { useToastStore } from "@/stores/toastStore";
 
 function transmitter(id: number, types: string[] = ["MODEL"]): FakeNode {
   return createNode({
@@ -169,8 +175,56 @@ describe("ChannelPanel.vue", () => {
     await wrapper.find(".fil-channel-gear").trigger("click");
     await nextTick();
 
-    expect(modal().querySelector(".fil-channel-target-reason")?.textContent).toContain("already wired");
-    expect(modal().querySelector("button.fil-w-switch")).toBeNull();
+    // A wired input is not hidden — it offers the takeover switch. The hint
+    // lives on the toggle's wrapper, the way FilToggle renders `title`.
+    const takeover = modal().querySelector(".fil-channel-target .fil-w-toggle");
+    expect(takeover).not.toBeNull();
+    expect(takeover?.getAttribute("title")).toContain("Replace the real wire");
+  });
+
+  it("taking over a wired input drops the real wire and subscribes the channel", async () => {
+    const src = loader(1);
+    const ch = transmitter(2);
+    const ks = createNode({ id: 3, comfyClass: "KSampler", inputs: [slot("model", "MODEL")] });
+    const other = loader(5, "MODEL", "UNETLoader");
+    const graph = createGraph([src, ch, ks, other]);
+    src.connect!(0, ch, 0);
+    other.connect!(0, ks, 0); // the real wire the user is about to replace
+
+    const wrapper = await panelFor(ch);
+    await wrapper.find(".fil-channel-gear").trigger("click");
+    await nextTick();
+
+    (modal().querySelector("button.fil-w-switch") as HTMLElement).click();
+    await nextTick();
+
+    // The wire is gone from the graph, and the channel now owns the input.
+    expect(ks.inputs[0].link).toBeNull();
+    expect(Object.keys(graph.links)).toHaveLength(1); // only src→ch remains
+    expect(ks.properties.fil_wireless).toEqual({ subs: { model: "MODEL" } });
+    // The row is now a normal "on" tick.
+    expect(modal().querySelector("button.fil-w-switch")?.getAttribute("aria-checked")).toBe("true");
+  });
+
+  it("still explains a target it cannot offer, rather than dropping it", async () => {
+    // A node that feeds the channel can never receive it back (rule 6) —
+    // that row stays a reason, not a switch.
+    const feeder = createNode({
+      id: 6,
+      comfyClass: "CheckpointLoaderSimple",
+      inputs: [slot("model", "MODEL")],
+      outputs: [slot("MODEL", "MODEL")],
+    });
+    const ch = transmitter(2);
+    createGraph([feeder, ch]);
+    feeder.connect!(0, ch, 0); // feeder supplies the channel...
+    // ...and also has a free MODEL input of its own, which would be a loop.
+
+    const wrapper = await panelFor(ch);
+    await wrapper.find(".fil-channel-gear").trigger("click");
+    await nextTick();
+
+    expect(modal().querySelector(".fil-channel-target-reason")?.textContent).toContain("feeds this channel");
   });
 
   /**
@@ -383,6 +437,359 @@ describe("ChannelPanel.vue", () => {
 
       expect(modal().querySelector(".fil-channel-cluster-row")).toBeNull();
       wrapper.unmount();
+    });
+  });
+
+  /**
+   * The "positive or negative?" question — asked once, the moment an unnamed
+   * CONDITIONING wire lands, and never again: the answer is written the way
+   * core's "Rename Slot" writes, so it serialises with the workflow. These
+   * drive the pending note `channel.ts` writes for it, the same way the drain
+   * tests above drive the ambiguity one.
+   */
+  describe("the naming question", () => {
+    function flagNaming(node: FakeNode, ...slots: number[]): void {
+      (node as unknown as { _filPendingNamingChecks?: number[] })._filPendingNamingChecks = slots;
+    }
+
+    /** One CONDITIONING source wired into the transmitter — nothing else. */
+    function conditioningWire(): { ch: FakeNode } {
+      const src = loader(1, "CONDITIONING", "CLIPTextEncode");
+      const ch = transmitter(2, ["CONDITIONING"]);
+      createGraph([src, ch]);
+      src.connect!(0, ch, 0);
+      return { ch };
+    }
+
+    function answerButtons(): HTMLElement[] {
+      return Array.from(modal().querySelectorAll<HTMLElement>(".fil-channel-naming-actions button"));
+    }
+
+    it("asks when an unnamed CONDITIONING wire lands", async () => {
+      const { ch } = conditioningWire();
+      flagNaming(ch, 0);
+      await panelFor(ch);
+
+      expect(modal().querySelector(".fil-modal-title")?.textContent).toContain("Positive or negative?");
+      expect(answerButtons().map((b) => b.textContent?.trim())).toEqual(["Positive", "Negative", "Leave unnamed"]);
+    });
+
+    it("answering names the slot the way Rename Slot does, and the row shows it", async () => {
+      const { ch } = conditioningWire();
+      flagNaming(ch, 0);
+      const wrapper = await panelFor(ch);
+
+      answerButtons()[0].click(); // Positive
+      await nextTick();
+
+      // The label carries the answer, and no receipt — the pack must treat it
+      // as the user's from now on, exactly like core's "Rename Slot".
+      expect(ch.inputs[0].label).toBe("positive");
+      expect(ch.properties.fil_channel_auto).toBeUndefined();
+      // And the answer is vaulted where a reload cannot drop the label.
+      expect(ch.properties.fil_channel_names).toEqual({ "value.value0": "positive" });
+      expect(modal().querySelector(".fil-channel-naming-actions")).toBeNull();
+      expect(wrapper.text()).toContain("positive");
+    });
+
+    it("skipping leaves the slot pack-named, so the pack may still write it", async () => {
+      const { ch } = conditioningWire();
+      flagNaming(ch, 0);
+      await panelFor(ch);
+
+      answerButtons()[2].click(); // Leave unnamed
+      await nextTick();
+
+      // The panel's own naming then labels it after the channel, with a
+      // receipt — still the pack's slot, not a user's choice. And nothing was
+      // vaulted: a skip is not an answer.
+      expect(ch.properties.fil_channel_auto).toEqual({ "value.value0": "CONDITIONING" });
+      expect(ch.properties.fil_channel_names).toBeUndefined();
+      expect(modal().querySelector(".fil-channel-naming-actions")).toBeNull();
+    });
+
+    it("does not ask for a slot the user already named", async () => {
+      const src = loader(1, "CONDITIONING", "CLIPTextEncode");
+      const ch = transmitter(2, ["CONDITIONING"]);
+      ch.inputs[0].label = "My cond"; // a rename done before the wire landed
+      createGraph([src, ch]);
+      src.connect!(0, ch, 0);
+
+      flagNaming(ch, 0);
+      await panelFor(ch);
+
+      expect(modal().querySelector(".fil-channel-naming-actions")).toBeNull();
+    });
+
+    it("does not ask for a wire that is not CONDITIONING", async () => {
+      const src = loader(1); // MODEL
+      const ch = transmitter(2);
+      createGraph([src, ch]);
+      src.connect!(0, ch, 0);
+
+      flagNaming(ch, 0);
+      await panelFor(ch);
+
+      expect(modal().querySelector(".fil-channel-naming-actions")).toBeNull();
+    });
+
+    it("never asks twice for the same answered wire", async () => {
+      const { ch } = conditioningWire();
+      flagNaming(ch, 0);
+      const { state } = await panelWithState(ch);
+
+      answerButtons()[0].click(); // Positive
+      await nextTick();
+      expect(modal().querySelector(".fil-channel-naming-actions")).toBeNull();
+
+      // Even if a check for the slot lands again, the label answers it.
+      flagNaming(ch, 0);
+      state.ui.refresh?.();
+      await nextTick();
+      expect(modal().querySelector(".fil-channel-naming-actions")).toBeNull();
+    });
+
+    /** The same wire, with a sampler whose `positive`/`negative` are both free. */
+    function conditioningWireWithSampler(): { ch: FakeNode } {
+      const src = loader(1, "CONDITIONING", "CLIPTextEncode");
+      const ch = transmitter(2, ["CONDITIONING"]);
+      const ks = createNode({
+        id: 3,
+        comfyClass: "KSampler",
+        inputs: [slot("positive", "CONDITIONING"), slot("negative", "CONDITIONING")],
+      });
+      createGraph([src, ch, ks]);
+      src.connect!(0, ch, 0);
+      return { ch };
+    }
+
+    function flagAmbiguity(node: FakeNode, ...slots: number[]): void {
+      (node as unknown as { _filPendingAmbiguityChecks?: number[] })._filPendingAmbiguityChecks = slots;
+    }
+
+    it("an answer spends the wire's ambiguity check — no where-to modal right after", async () => {
+      // channel.ts queues both checks for one wire; answering the name makes
+      // the where-to one stale, so a second modal must not follow the first.
+      const { ch } = conditioningWireWithSampler();
+      flagNaming(ch, 0);
+      flagAmbiguity(ch, 0);
+      await panelFor(ch);
+
+      answerButtons()[0].click(); // Positive
+      await nextTick();
+
+      // Rule 8 paired it with `positive`; nothing else needs asking.
+      expect(modal().querySelector(".fil-channel-cluster-row")).toBeNull();
+      expect(modal().querySelector(".fil-channel-target")).toBeNull();
+    });
+
+    it("a skip keeps the ambiguity check — the where-to question still stands", async () => {
+      const { ch } = conditioningWireWithSampler();
+      flagNaming(ch, 0);
+      flagAmbiguity(ch, 0);
+      await panelFor(ch);
+
+      answerButtons()[2].click(); // Leave unnamed
+      await nextTick();
+
+      // One unnamed channel, two same-type inputs: the cluster modal asks.
+      expect(modal().querySelectorAll(".fil-channel-cluster-row")).toHaveLength(2);
+    });
+
+    it("after a reload that drops the labels, the vaulted names come back and nothing is re-asked", async () => {
+      // Two wires, answered one after the other.
+      const srcA = loader(1, "CONDITIONING", "CLIPTextEncode");
+      const srcB = loader(3, "CONDITIONING", "CLIPTextEncode");
+      const ch = transmitter(2, ["CONDITIONING", "CONDITIONING"]);
+      createGraph([srcA, ch, srcB]);
+      srcA.connect!(0, ch, 0);
+
+      const { wrapper, state } = await panelWithState(ch);
+      flagNaming(ch, 0);
+      state.ui.refresh?.();
+      await nextTick();
+      answerButtons()[0].click(); // Positive
+      await nextTick();
+      srcB.connect!(0, ch, 1);
+      flagNaming(ch, 1);
+      state.ui.refresh?.();
+      await nextTick();
+      answerButtons()[1].click(); // Negative
+      await nextTick();
+      expect(ch.properties.fil_channel_names).toEqual({
+        "value.value0": "positive",
+        "value.value1": "negative",
+      });
+
+      // A real reload, the way the host actually behaves (confirmed live):
+      // the *first* wired slot keeps its label, every later one falls back to
+      // the host default — but `node.properties` rides it out. `configure`
+      // hands the node a fresh inputs array, then we drop the second label the
+      // way `loadGraphData` does.
+      const saved = JSON.parse(JSON.stringify({ inputs: ch.inputs })) as Record<string, unknown>;
+      ch.configure(saved);
+      ch.inputs[1].label = "value1";
+
+      flagNaming(ch, 0, 1);
+      state.ui.refresh?.();
+      await nextTick();
+
+      // Nothing asked — and the dropped name is back on the slot.
+      expect(modal().querySelector(".fil-channel-naming-actions")).toBeNull();
+      expect(ch.inputs[1].label).toBe("negative");
+      expect(wrapper.text()).toContain("negative");
+    });
+
+    it("the second wire asks nothing — the first answer and exclusion settle it", async () => {
+      const srcA = loader(1, "CONDITIONING", "CLIPTextEncode");
+      const srcB = loader(3, "CONDITIONING", "CLIPTextEncode");
+      const ch = transmitter(2, ["CONDITIONING", "CONDITIONING"]);
+      const ks = createNode({
+        id: 4,
+        comfyClass: "KSampler",
+        inputs: [slot("positive", "CONDITIONING"), slot("negative", "CONDITIONING")],
+      });
+      createGraph([srcA, ch, srcB, ks]);
+      srcA.connect!(0, ch, 0);
+
+      const { wrapper, state } = await panelWithState(ch);
+
+      // First wire: asked, answered "positive".
+      flagNaming(ch, 0);
+      state.ui.refresh?.();
+      await nextTick();
+      answerButtons()[0].click();
+      await nextTick();
+      expect(ch.inputs[0].label).toBe("positive");
+
+      // Second wire lands: no question — the named channel took `positive`,
+      // and exclusion puts the unnamed one on `negative`, the only slot left.
+      srcB.connect!(0, ch, 1);
+      flagNaming(ch, 1);
+      state.ui.refresh?.();
+      await nextTick();
+
+      expect(modal().querySelector(".fil-channel-naming-actions")).toBeNull();
+      expect(modal().querySelector(".fil-channel-cluster-row")).toBeNull();
+      // Both channels feed one input each — the second stayed pack-named,
+      // because nothing needed its own word. No numbering either: with the
+      // first channel called `positive`, it is the only `CONDITIONING` around.
+      expect(wrapper.findAll(".fil-channel-count").map((n) => n.text())).toEqual(["1", "1"]);
+      expect(ch.inputs[1].label).toBe("CONDITIONING");
+    });
+
+    it("two wires queued before the first drain are asked one after the other", async () => {
+      // Both wires land inside one poll interval, so a single drain sees both
+      // checks at once. The first opens the question; the second must go back
+      // on the queue instead of being dropped — with nothing downstream yet,
+      // the second unnamed CONDITIONING still earns its own ask, and losing
+      // it would leave the wire forever unnamed.
+      const srcA = loader(1, "CONDITIONING", "CLIPTextEncode");
+      const srcB = loader(3, "CONDITIONING", "CLIPTextEncode");
+      const ch = transmitter(2, ["CONDITIONING", "CONDITIONING"]);
+      createGraph([srcA, ch, srcB]);
+      srcA.connect!(0, ch, 0);
+      srcB.connect!(0, ch, 1);
+
+      flagNaming(ch, 0, 1);
+      await panelFor(ch);
+
+      // The first question is up, for slot 0.
+      expect(modal().querySelector(".fil-modal-title")?.textContent).toContain("Positive or negative?");
+      answerButtons()[0].click(); // Positive
+      await nextTick();
+
+      // The answer's refresh drains what the first drain parked — slot 1
+      // asks now instead of having been swallowed.
+      expect(modal().querySelector(".fil-channel-naming-actions")).not.toBeNull();
+      answerButtons()[1].click(); // Negative
+      await nextTick();
+
+      expect(ch.inputs[0].label).toBe("positive");
+      expect(ch.inputs[1].label).toBe("negative");
+      expect(ch.properties.fil_channel_names).toEqual({
+        "value.value0": "positive",
+        "value.value1": "negative",
+      });
+      expect(modal().querySelector(".fil-channel-naming-actions")).toBeNull();
+    });
+
+    it("pre-highlights the answer remembered from last time", async () => {
+      noteNamingAnswer("negative");
+      const src = loader(1, "CONDITIONING", "CLIPTextEncode");
+      const ch = transmitter(2, ["CONDITIONING"]);
+      const ks = createNode({
+        id: 3,
+        comfyClass: "KSampler",
+        inputs: [slot("positive", "CONDITIONING"), slot("negative", "CONDITIONING")],
+      });
+      createGraph([src, ch, ks]);
+      src.connect!(0, ch, 0);
+
+      flagNaming(ch, 0);
+      await panelFor(ch);
+
+      // The remembered answer is ringed, not pressed — still a click to confirm.
+      expect(answerButtons()[1].classList.contains("is-suggested")).toBe(true);
+      expect(answerButtons()[0].classList.contains("is-suggested")).toBe(false);
+    });
+  });
+
+  describe("inline rename", () => {
+    it("the pencil turns the row into an input and renames the channel", async () => {
+      const src = loader(1);
+      const ch = transmitter(2);
+      createGraph([src, ch]);
+      src.connect!(0, ch, 0);
+
+      const wrapper = await panelFor(ch);
+      await wrapper.find(".fil-channel-pencil").trigger("click");
+      await nextTick();
+
+      const input = wrapper.find("input.fil-channel-rename");
+      expect(input.exists()).toBe(true);
+      await input.setValue("base model");
+      await input.trigger("keyup.enter");
+      await nextTick();
+
+      // The slot carries the user's word, vaulted for reload, and the row shows it.
+      expect(ch.inputs[0].label).toBe("base model");
+      expect(ch.properties.fil_channel_names).toEqual({ "value.value0": "base model" });
+      expect(wrapper.text()).toContain("base model");
+    });
+  });
+
+  describe("takeover undo", () => {
+    it("the toast's Undo puts the real wire back and drops the subscription", async () => {
+      const src = loader(1);
+      const ch = transmitter(2);
+      const ks = createNode({ id: 3, comfyClass: "KSampler", inputs: [slot("model", "MODEL")] });
+      const other = loader(5, "MODEL", "UNETLoader");
+      createGraph([src, ch, ks, other]);
+      src.connect!(0, ch, 0);
+      other.connect!(0, ks, 0);
+
+      const wrapper = await panelFor(ch);
+      await wrapper.find(".fil-channel-gear").trigger("click");
+      await nextTick();
+
+      (modal().querySelector("button.fil-w-switch") as HTMLElement).click();
+      await nextTick();
+
+      // Taken over: wire gone, subscription present.
+      expect(ks.inputs[0].link).toBeNull();
+      expect(ks.properties.fil_wireless).toEqual({ subs: { model: "MODEL" } });
+
+      // The toast offers an Undo; running it restores the wire.
+      const toasts = useToastStore();
+      expect(toasts.items).toHaveLength(1);
+      const action = toasts.items[0].action;
+      expect(action).not.toBeNull();
+      action!.onClick(new MouseEvent("click"));
+      await nextTick();
+
+      expect(ks.inputs[0].link).not.toBeNull();
+      expect(ks.properties.fil_wireless).toBeUndefined();
     });
   });
 });

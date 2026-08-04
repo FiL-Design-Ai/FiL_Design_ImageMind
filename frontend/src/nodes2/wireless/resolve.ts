@@ -36,6 +36,15 @@
  *      input (rules 1/2) is not part of it — pairing settles what is left,
  *      it does not second-guess what is settled (`nameMatch.ts`).
  *
+ *      One sanctioned extension, same safety bar: the leftover deduction.
+ *      When names settle every pair but exactly one — `positive` named and
+ *      taken, one unnamed channel and the `negative` input all that remain —
+ *      that last pair is made by exclusion: it is the only slot either side
+ *      can still occupy, so there is nothing left to guess. The deduction
+ *      still has to be unique; two unnamed channels (either could be the
+ *      leftover) leave the cluster ambiguous as before. This is what makes
+ *      the second of the canonical pos/neg wires connect without a question.
+ *
  * No priorities, regexes, group/colour scoping, or per-type special cases —
  * deliberately absent, see `wireless.md` §2. Rule 8's name pairing is the
  * single exception, and only because its uniqueness requirement makes it a
@@ -56,7 +65,7 @@ import type {
 } from "./types";
 import { allNodes, isChannelNode } from "./graphAccess";
 import { isBlocked, subscriptionsOf } from "./subscriptions";
-import { namesMatch, uniqueFullMatch } from "./nameMatch";
+import { forcedLeftoverMatch, namesMatch, uniqueFullMatch } from "./nameMatch";
 
 function claimKey(nodeId: unknown, inputName: string): string {
   return `${String(nodeId)}:${inputName}`;
@@ -196,11 +205,16 @@ export function resolveWireless(graph: WirelessGraph, channels: WirelessChannel[
       // pairing there would add nothing but a second path to the same answer.
       if (inputs.length < 2 && ofType.length < 2) continue;
 
-      const match = uniqueFullMatch(inputs, ofType, (input, channel) =>
-        !feedsChannel(node.id, channel) &&
-        !isBlocked(node, input.name, channel.name) &&
-        namesMatch(input.name, channel.name),
-      );
+      const allowed = (input: { name: string }, channel: WirelessChannel) =>
+        !feedsChannel(node.id, channel) && !isBlocked(node, input.name, channel.name);
+      const matchesByName = (input: { name: string }, channel: WirelessChannel) =>
+        namesMatch(input.name, channel.name);
+
+      // Strict pairing first; the leftover deduction only where names alone
+      // fell one pair short (`nameMatch.ts`).
+      const match =
+        uniqueFullMatch(inputs, ofType, (input, channel) => allowed(input, channel) && matchesByName(input, channel)) ??
+        forcedLeftoverMatch(inputs, ofType, allowed, matchesByName);
       if (!match) continue;
       for (const [input, channel] of match) {
         pairedChannel.set(claimKey(node.id, input.name), channel);

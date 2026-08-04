@@ -95,3 +95,67 @@ export function uniqueFullMatch<TInput, TChannel>(
   place(0);
   return count === 1 ? only : null;
 }
+
+/**
+ * The leftover deduction: a complete distinct assignment where every pair but
+ * at most *one* is backed by matching names — and where exactly one such
+ * assignment exists.
+ *
+ * The one-pair allowance is what makes the canonical case click-free: a
+ * KSampler's inputs `positive`/`negative`, one channel already named
+ * `positive`, and one still unnamed — the name settles the first pair, and
+ * exclusion settles the second ("only this input and this channel are left").
+ * Nothing about the unnamed pair's meaning is guessed: it is the only slot
+ * either side can still occupy.
+ *
+ * The same all-or-nothing safety as `uniqueFullMatch` applies, twice over:
+ * zero assignments mean the names do not reach far enough, and two or more
+ * mean the leftover itself could have gone either way — both come back null
+ * and the cluster stays with the user.
+ */
+export function forcedLeftoverMatch<TInput, TChannel>(
+  inputs: readonly TInput[],
+  channels: readonly TChannel[],
+  eligible: (input: TInput, channel: TChannel) => boolean,
+  nameMatches: (input: TInput, channel: TChannel) => boolean,
+): Map<TInput, TChannel> | null {
+  if (inputs.length < 2) return null; // a lone pair needs nothing but auto-distribution
+  if (channels.length < inputs.length) return null;
+
+  // The walk's tally lives on an object, not in local variables: `place`
+  // mutates it from inside a closure the compiler's flow analysis cannot see,
+  // and locals would still be read narrowed to their pre-walk values below.
+  const found: { count: number; match: Map<TInput, TChannel> | null } = { count: 0, match: null };
+  const chosen = new Map<TInput, TChannel>();
+  const used = new Set<TChannel>();
+
+  function place(index: number, budget: number): void {
+    if (found.count > 1) return;
+    if (index === inputs.length) {
+      found.count += 1;
+      if (found.count === 1) found.match = new Map(chosen);
+      return;
+    }
+    const input = inputs[index];
+    for (const channel of channels) {
+      if (used.has(channel) || !eligible(input, channel)) continue;
+      const cost = nameMatches(input, channel) ? 0 : 1;
+      if (cost > budget) continue;
+      chosen.set(input, channel);
+      used.add(channel);
+      place(index + 1, budget - cost);
+      chosen.delete(input);
+      used.delete(channel);
+      if (found.count > 1) return;
+    }
+  }
+
+  place(0, 1);
+  // Exactly one assignment, and it must actually spend the allowance — a
+  // zero-cost one belongs to `uniqueFullMatch`, which already had its say.
+  if (found.count !== 1 || !found.match) return null;
+  for (const [input, channel] of found.match) {
+    if (!nameMatches(input, channel)) return found.match;
+  }
+  return null;
+}

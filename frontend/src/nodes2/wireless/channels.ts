@@ -31,7 +31,7 @@ import {
 } from "./types";
 import { allNodes, isChannelNode, resolveLinkOrigin, type ResolvedOrigin } from "./graphAccess";
 import { nameChannels, type RawChannel } from "./channelNaming";
-import { isAutoLabel } from "./slotLabels";
+import { isAutoLabel, restoreUserSlotNames } from "./slotLabels";
 
 /**
  * The name the user gave this slot, if any.
@@ -71,6 +71,10 @@ export function collectChannels(graph: WirelessGraph): WirelessChannel[] {
 
   for (const node of allNodes(graph)) {
     if (!isChannelNode(node)) continue;
+    // A reload drops the labels of all but the first wired slot (see
+    // `slotLabels.ts`); put the user's picked names back before reading them,
+    // so every plan — the panel's and the queue-time one alike — sees them.
+    restoreUserSlotNames(node);
     collectFromNode(graph, node, raw);
   }
 
