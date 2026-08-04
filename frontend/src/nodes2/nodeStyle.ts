@@ -235,24 +235,25 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
       const badge = firstDeclaredBadge(this);
       if (badge) drawInlineBadge(ctx, badge, titleHeight, size[0]);
     } else if (isCyberPunchHud) {
-      // Cyber Punch — HUD: yellow outline plus diagonal corner brackets
-      // (top-left + bottom-right only), matching `.v-hud .spec`'s own
-      // four-gradient corner trick in the ui-lab sandbox exactly — that file
-      // never draws all four corners or a chamfer, and a first pass here did
-      // both (a top-right cut, yellow+red brackets on opposite corners).
-      // Flat, no glow: the source treatment has no box-shadow on this
-      // surface at all.
-      ctx.strokeStyle = "#ffd000";
-      ctx.lineWidth = 1;
+      // Cyber Punch — HUD: the title carries nothing of its own but the badge.
+      //
+      // It used to stroke a full yellow rectangle around the TITLE and drop
+      // two bracket arms at the title's corners — which read as a separate
+      // boxed strip stuck on top of the node, because that is literally what
+      // it was. The outline and the brackets belong to the node's own
+      // silhouette and are drawn once, around everything, in
+      // `onDrawForeground` below.
+      //
+      // Fill matches the body for the same reason as the glass variant: the
+      // shared fill above is `panel` (#121212) while the body is `panelAlt`,
+      // so leaving it would keep the seam this pass exists to remove.
+      ctx.fillStyle = ACTIVE_PALETTE.panelAlt;
       ctx.beginPath();
       ctx.roundRect(0, -titleHeight, size[0], titleHeight, collapsed ? [radius] : [radius, radius, 0, 0]);
-      ctx.stroke();
+      ctx.fill();
 
-      ctx.fillStyle = "#ffd000";
-      ctx.fillRect(2, -titleHeight + 2, 8, 2);
-      ctx.fillRect(2, -titleHeight + 2, 2, 8);
-      ctx.fillRect(size[0] - 10, -2, 8, 2);
-      ctx.fillRect(size[0] - 2, -10, 2, 8);
+      const hudBadge = firstDeclaredBadge(this);
+      if (hudBadge) drawInlineBadge(ctx, hudBadge, titleHeight, size[0]);
     } else if (isNeoEmerald || isNftVibe) {
       // Sleek Neon Glow Accent Stripe
       ctx.shadowColor = isNftVibe ? "rgba(208, 255, 0, 0.7)" : "rgba(0, 255, 136, 0.6)";
@@ -270,6 +271,69 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
       ctx.roundRect(0, -titleHeight, stripeWidth, titleHeight, collapsed ? [radius, 0, 0, radius] : [radius, 0, 0, 0]);
       ctx.fill();
     }
+  };
+
+  /**
+   * Cyber Punch HUD's frame — the outline and the two corner brackets, drawn
+   * once around the WHOLE node instead of around its title.
+   *
+   * Both used to live in two wrong places at once: the outline was stroked
+   * around the title bar in `onDrawTitleBar`, and the brackets were CSS
+   * background layers on the inner DOM panel. So the outline boxed a strip
+   * and the brackets marked the panel's corners, which sit inset from the
+   * node's own — hence "жёлтые штрихи в случайных местах". Neither could
+   * reach the node's real silhouette from where it was.
+   *
+   * `onDrawForeground` can: it runs after the body and badges are painted
+   * (LGraphCanvas `drawNode`), in node-local coordinates, with the title at
+   * negative Y — so one path covers title and body together and nothing
+   * clips it.
+   *
+   * Guarded twice. Every other theme returns on the first line, since this
+   * hook now exists on all 16 node types. And below the host's
+   * level-of-detail threshold it returns too: 14px bracket arms are
+   * indistinguishable there, and the DOM panel is hidden anyway
+   * (`DomWidgets.vue` honours `hideOnZoom`).
+   */
+  const originalForeground = (p as { onDrawForeground?: (...a: unknown[]) => unknown }).onDrawForeground;
+  (p as { onDrawForeground?: (...a: unknown[]) => unknown }).onDrawForeground = function (
+    this: { size?: [number, number]; flags?: { collapsed?: boolean } },
+    ...args: unknown[]
+  ) {
+    const result = originalForeground?.apply(this, args);
+    if (activeThemeName() !== "cyber_punch_hud") return result;
+    if (this.flags?.collapsed) return result;
+
+    const canvas = (globalThis as { app?: { canvas?: { low_quality?: boolean } } }).app?.canvas;
+    if (canvas?.low_quality) return result;
+
+    const ctx = args[0] as CanvasRenderingContext2D | undefined;
+    const width = this.size?.[0];
+    const height = this.size?.[1];
+    if (!ctx || !width || !height) return result;
+
+    const titleHeight = (globalThis as { LiteGraph?: { NODE_TITLE_HEIGHT?: number } }).LiteGraph?.NODE_TITLE_HEIGHT ?? 30;
+    const top = -titleHeight;
+    const bottom = height;
+    const arm = 14;
+    const thick = 2;
+
+    ctx.save();
+    ctx.strokeStyle = "rgba(255, 208, 0, 0.25)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(0.5, top + 0.5, width - 1, height + titleHeight - 1, [2]);
+    ctx.stroke();
+
+    // Top-left and bottom-right only — the diagonal pair the sandbox
+    // treatment used. Four corners reads as a plain border with lumps.
+    ctx.fillStyle = "#ffd000";
+    ctx.fillRect(0, top, arm, thick);
+    ctx.fillRect(0, top, thick, arm);
+    ctx.fillRect(width - arm, bottom - thick, arm, thick);
+    ctx.fillRect(width - thick, bottom - arm, thick, arm);
+    ctx.restore();
+    return result;
   };
 
   type MenuFn = (...a: unknown[]) => unknown;
