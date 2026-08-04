@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Changed
+
+- **20 of the 36 `🗺️ СЦЕНЫ` presets now have a moment passing in them.** The
+  scenes were the stillest group in the library — an empty set with the lights
+  on and nobody in it, which is most of why the photo half read as a postcard.
+  `Piano Studio` was polished wood and window light; it now has the lid propped
+  open, the bench pushed back and a pencil across the open score. What each one
+  gained is evidence rather than plot: dust turning in a beam, a shop bell still
+  swinging, a gap in the shelf where something was just lifted out. None of them
+  gives the subject an action to perform — a scene preset stacks under the
+  user's own prompt and must not decide what the person in it is doing.
+
 ### Added
 
 - **Eight movement modifiers in `⏱️ ЗАХВАТ`** — Wind Gust, Panning Follow,
