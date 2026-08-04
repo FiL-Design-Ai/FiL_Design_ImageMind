@@ -225,12 +225,14 @@ def test_restructure_sdxl_low_comma_count():
     assert text_needs_dit_restructure("a plain description without commas here", "SDXL", 500) is True
 
 
-def test_dit_convert_qwen_forces_restructure_of_plain_prose():
+def test_dit_convert_qwen_plain_prose_not_bucketed():
     plain = "a serene mountain lake at dawn with mist rising"
     output, meta = convert_to_dit_format(plain, "QWEN", detail_level="normal")
-    # QWEN forces restructure -> labeled clauses
-    assert "Scene type:" in output or "Main subject:" in output or "Details:" in output
-    assert meta["mode"] == "restructured"
+    # Clean prose passes normalized; the labeled breakdown is a repair path for
+    # messy LLM output only (Qwen-Image's own examples are dense prose).
+    assert "Scene type:" not in output
+    assert meta["mode"] == "normalize_only"
+    assert output == plain
 
 
 def test_dit_convert_sdxl_plain_prose_comma_joined():

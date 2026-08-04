@@ -421,6 +421,12 @@ def format_for_flux_json(description: str) -> Dict[str, Any]:
             elif kind == "angle" and not result["camera"]["angle"]:
                 result["camera"]["angle"] = match.group(1)
 
+        # Camera cues may come from any line — a lens mention lives inside the
+        # scene sentence. The scene line itself must not be copied wholesale
+        # into the other fields: for single-paragraph prose it is every line,
+        # and the schema would fill with truncated repeats of the same text.
+        if line == lines[0]:
+            continue
         lower = line.lower()
         if not result["lighting"] and any(hint in lower for hint in _FLUX_LIGHTING_HINTS):
             result["lighting"] = line[:150]
@@ -711,7 +717,12 @@ def convert_to_dit_format(
     if model_type == "Z-Image Turbo":
         return _normalize_prompt_ready_text(raw, max_words), {**base_meta, "mode": "normalize_only"}
 
-    force_restructure = model_type in {"QWEN", "SDXL"}
+    # SDXL's bucket-and-rejoin prose beats raw LLM output even when that output
+    # is clean. QWEN only gets restructured when the LLM produced messy markup
+    # (text_needs_dit_restructure): Qwen-Image's own examples are dense prose and
+    # the QWEN guidance likewise asks for brief prose, so a forced labeled
+    # breakdown would undo a good answer.
+    force_restructure = model_type == "SDXL"
     needs_restructure = force_restructure or text_needs_dit_restructure(raw, model_type, max_words)
 
     if not needs_restructure:
