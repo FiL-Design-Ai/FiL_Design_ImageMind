@@ -462,20 +462,28 @@ PHOTO_STYLES = {
     # Scenes described a place and nothing else — the single largest group with
     # no medium named at all. Each now carries the lens and light the shot would
     # actually be taken with.
+    #
+    # They were also the stillest group in the library: an empty set with the
+    # lights on and nobody in it, which is what made the whole photo half read as
+    # a postcard. What they carry now is evidence that a moment is passing —
+    # something still swinging, dust still turning, a gap where an object was
+    # just lifted out. Never an action for the subject: a scene preset stacks
+    # under the user's own prompt, and the one thing it must not do is decide
+    # what the person in it is doing.
     "🗺️ СЦЕНЫ/🎪 Circus Big Top": (
-        "photograph inside a circus tent, 35mm lens at f/2, high ISO, spotlight beams cutting through haze, sawdust floor texture, striped fabric canopy, warm theatrical lighting, high contrast shadows, available-light performance capture."
+        "photograph inside a circus tent, 35mm lens at f/2, high ISO, spotlight beams cutting through haze, sawdust floor scuffed with fresh drag marks, an empty trapeze still swinging overhead, chalk dust hanging in the beam, striped fabric canopy, warm theatrical lighting, high contrast shadows, available-light performance capture."
     ),
     "🗺️ СЦЕНЫ/🛁 Bathroom Mirror": (
-        "photograph of a bathroom mirror, 35mm lens at f/2.8, steam condensation beading on the glass, soft indoor lighting, skin moisture highlights, tiled surfaces, the camera faintly visible in the reflection, intimate available-light capture."
+        "photograph of a bathroom mirror, 35mm lens at f/2.8, steam condensation beading on the glass, one palm-wiped streak cleared through the fog and already misting over again, droplets running in tracks down the pane, soft indoor lighting, skin moisture highlights, tiled surfaces, the camera faintly visible in the reflection, intimate available-light capture."
     ),
     "🗺️ СЦЕНЫ/🔮 Crystal Ball": (
-        "photograph of a crystal ball, 100mm macro lens at f/8, dark room, point light highlights, glass refraction inverting the scene inside the sphere, glowing sphere effect, high contrast lighting, in-camera optical capture."
+        "photograph of a crystal ball, 100mm macro lens at f/8, dark room, point light highlights, glass refraction inverting the scene inside the sphere, dust motes turning slowly in the beam beside it, glowing sphere effect, high contrast lighting, in-camera optical capture."
     ),
     "🗺️ СЦЕНЫ/🖼️ Art Gallery": (
-        "interior photograph of a modern gallery, 24mm tilt-shift lens at f/8, corrected verticals, white cube walls, track lighting, clean shadows, polished floor reflections, minimal composition, architectural exhibition capture."
+        "interior photograph of a modern gallery, 24mm tilt-shift lens at f/8, corrected verticals, white cube walls, track lighting, clean shadows, polished floor reflections, a visitor thinned to a half-transparent smear by the long exposure, minimal composition, architectural exhibition capture."
     ),
     "🗺️ СЦЕНЫ/🛒 Grocery Store": (
-        "photograph of a supermarket aisle, 28mm lens at f/4, flat fluorescent lighting with a slight green cast, product shelves receding, reflective floor, high detail packaging textures, handheld documentary capture."
+        "photograph of a supermarket aisle, 28mm lens at f/4, flat fluorescent lighting with a slight green cast, product shelves receding, a trolley abandoned at an angle across the aisle, one gap in the packed shelf where something was just lifted out, reflective floor, high detail packaging textures, handheld documentary capture."
     ),
     "🗺️ СЦЕНЫ/🛩️ Airplane Window": (
         "airplane window view from passenger seat, curved plastic window edge and wing strut in foreground, cotton-wool cloud layer far below, thin atmospheric haze gradient to horizon, high-altitude sunlight casting hard shadows across the wing, scratched double-pane window surface catching side flare, compressed cloud texture from cruise altitude, 35mm lens at f/5.6 held close to the pane, travel documentary photograph without fisheye or ultra-wide distortion."
@@ -487,31 +495,31 @@ PHOTO_STYLES = {
         "photograph of a breaking wave, 400mm telephoto at 1/2000s, water spray particles frozen mid-air, sunlight reflections, dynamic water surface, high detail liquid texture, salt spray on the front element, surf-photography capture."
     ),
     "🗺️ СЦЕНЫ/🏊 Swimming Pool": (
-        "photograph of a swimming pool, 24mm lens at f/8, polarising filter cutting the surface glare, clear blue water, caustic light patterns on the tiled bottom, bright sunlight reflections, overhead midday capture."
+        "photograph of a swimming pool, 24mm lens at f/8, polarising filter cutting the surface glare, clear blue water still ringed by the spreading wake of something that just went under, wet footprints darkening the tiles along the edge, caustic light patterns on the tiled bottom, bright sunlight reflections, overhead midday capture."
     ),
     "🗺️ СЦЕНЫ/🏜️ Desert Road": (
-        "two-lane desert highway vanishing to a horizon point, heat-shimmer distortion rising from dark asphalt, bleached sand and dry brush shoulder texture, harsh overhead sun blowing out distant detail, mirage-like water reflection on road surface far ahead, empty landscape scale emphasized by small roadside signage, high-temperature atmospheric clarity, long-exposure travel realism."
+        "two-lane desert highway vanishing to a horizon point, heat-shimmer distortion rising from dark asphalt, a dust plume still hanging over the shoulder where something has just passed, bleached sand and dry brush shoulder texture, harsh overhead sun blowing out distant detail, mirage-like water reflection on road surface far ahead, empty landscape scale emphasized by small roadside signage, high-temperature atmospheric clarity, long-exposure travel realism."
     ),
     "🗺️ СЦЕНЫ/🍄 Fairy Forest": (
-        "dense woodland interior with layered canopy, moss-covered tree trunks and exposed root systems, soft mist settling knee-high between trees, low-angle sunlight piercing through leaves in scattered god rays, damp bark texture and wet fern detail, tiny bioluminescent sparkle dots in shadow pockets, rich green and brown organic palette, 35mm lens at f/4 on a tripod, atmospheric woodland photograph without fantasy glow excess."
+        "dense woodland interior with layered canopy, moss-covered tree trunks and exposed root systems, soft mist settling knee-high between trees and curling where something has just moved through it, low-angle sunlight piercing through leaves in scattered god rays, damp bark texture and wet fern detail, tiny bioluminescent sparkle dots in shadow pockets, rich green and brown organic palette, 35mm lens at f/4 on a tripod, atmospheric woodland photograph without fantasy glow excess."
     ),
     "🗺️ СЦЕНЫ/🗿 Ancient Ruins": (
-        "weathered stone ruin structure against open sky, cracked and moss-stained masonry block texture, partial wall or column collapse geometry, erosion-rounded edges on carved detail, warm late-afternoon light raking across stone surfaces, scattered rubble and weed-overgrown base, historical decay evidence visible in material stratification, 24mm lens at f/11, documentary archaeological photograph."
+        "weathered stone ruin structure against open sky, cracked and moss-stained masonry block texture, partial wall or column collapse geometry, erosion-rounded edges on carved detail, warm late-afternoon light raking across stone surfaces, long shadows visibly creeping over the blocks, dry grass bending in the wind at the base, scattered rubble and weed-overgrown base, historical decay evidence visible in material stratification, 24mm lens at f/11, documentary archaeological photograph."
     ),
     "🗺️ СЦЕНЫ/🎹 Piano Studio": (
-        "interior photograph of a piano studio, 35mm lens at f/2.8, polished wood surfaces, soft side window light, instrument reflections, sheet music detail, quiet available-light capture."
+        "interior photograph of a piano studio, 35mm lens at f/2.8, polished wood surfaces, the lid propped open and the bench pushed back at an angle, sheet music left open mid-page with a pencil lying across it, soft side window light, instrument reflections, quiet available-light capture."
     ),
     "🗺️ СЦЕНЫ/🧖 Spa Towel": (
-        "spa treatment room, neatly folded towel stacks on heated stone bench, humid air softening the light, steam-diffused window glow, polished teak wood surfaces with water droplets, smooth river-stone accent wall, eucalyptus or greenery detail in corner, calm low-contrast lighting, 50mm lens at f/2.8, wellness editorial photograph with tactile fabric and stone surface truth."
+        "spa treatment room, neatly folded towel stacks on heated stone bench with one towel shaken out and left where someone sat, humid air softening the light, steam curling up off the hot stones, steam-diffused window glow, polished teak wood surfaces with water droplets still tracking down them, smooth river-stone accent wall, eucalyptus or greenery detail in corner, calm low-contrast lighting, 50mm lens at f/2.8, wellness editorial photograph with tactile fabric and stone surface truth."
     ),
     "🗺️ СЦЕНЫ/📚 Library Shelf": (
-        "interior photograph of library shelves, 35mm lens at f/2.8, book spine texture detail, warm lamp lighting, wooden surfaces, quiet reading environment, available-light capture."
+        "interior photograph of library shelves, 35mm lens at f/2.8, book spine texture detail, one volume pulled out and left lying flat across the row with the gap it came from still open, dust turning slowly in the lamp beam, warm lamp lighting, wooden surfaces, quiet reading environment, available-light capture."
     ),
     "🗺️ СЦЕНЫ/🪜 Construction Site": (
         "active construction site, steel scaffolding lattice against building face, raw concrete pour surfaces with form-tie holes, exposed rebar and conduit detail, orange safety netting accent, dust particles lit by harsh midday sun, portable light-stand and cable clutter, bare plywood and gravel ground texture, 28mm lens at f/8, industrial work-in-progress photograph."
     ),
     "🗺️ СЦЕНЫ/🏚️ Abandoned Building": (
-        "abandoned interior space, layered peeling paint revealing older color underneath, thick dust coating every horizontal surface, broken window glass fragments on floor, cold blue daylight entering through gaps, rusted metal fixture and exposed lath texture, decayed wallpaper or rotted fabric remnants, 24mm lens at f/8 on a tripod, urbex photograph with real material decomposition evidence."
+        "abandoned interior space, layered peeling paint revealing older color underneath, thick dust coating every horizontal surface, broken window glass fragments on floor, cold blue daylight entering through gaps, a torn curtain lifting and falling in the draught, dust turning in the light shaft, rusted metal fixture and exposed lath texture, decayed wallpaper or rotted fabric remnants, 24mm lens at f/8 on a tripod, urbex photograph with real material decomposition evidence."
     ),
     "🗺️ СЦЕНЫ/🖤 Black Light Party": (
         "UV nightclub environment, ultraviolet tube fixtures casting purple-black ambient light, fluorescent fabric and body-paint glowing sharply against dark background, white garments shifted to electric blue-violet, crowd silhouettes with glowing accents, haze machine scattering UV light into visible beams, high-contrast neon party atmosphere, real club photography lighting physics."
@@ -520,19 +528,19 @@ PHOTO_STYLES = {
         "nighttime lantern festival, hundreds of paper lanterns suspended at varying heights, warm amber and red glow cast on surrounding crowd faces, dark twilight sky as contrast backdrop, wooden stall and string-light details in background, floating sky lanterns as small bright dots in distance, smoke haze softening distant lanterns, 85mm lens at f/1.8 handheld, festive night photograph with real fire-lit color temperature."
     ),
     "🗺️ СЦЕНЫ/🔦 Flashlight Beam": (
-        "dark environment, focused flashlight beam, sharp light cone, strong falloff, dust particles in light, search lighting realism."
+        "dark environment, focused flashlight beam at 1/40s, sharp light cone caught mid-sweep, strong falloff, dust swirling through the air the beam has just crossed, search lighting realism."
     ),
     "🗺️ СЦЕНЫ/🏺 Pottery Studio": (
-        "ceramic workshop with potter's wheel, wet clay on wheel surface with spiral throwing marks, damp earthy smell implied by diffused natural light, plaster and wooden rib tools on workbench, unfired pots on drying shelves in background, splattered clay droplets on floor and apron, warm side window lighting emphasizing clay texture, 50mm lens at f/2.8, artisan workspace photograph."
+        "ceramic workshop with potter's wheel, wet clay on wheel surface with spiral throwing marks, the wheel still turning fast enough to smear at 1/40s, fresh wet fingerprints on the rim and down the apron, damp earthy smell implied by diffused natural light, plaster and wooden rib tools on workbench, unfired pots on drying shelves in background, splattered clay droplets on floor, warm side window lighting emphasizing clay texture, 50mm lens at f/2.8, artisan workspace photograph."
     ),
     "🗺️ СЦЕНЫ/🕯️ Candle Meditation": (
         "candle-lit quiet room, single flame light source casting warm flickering glow, soft shadow pools around the room's edges, reflective surfaces catching tiny flame highlights, calm intimate atmosphere with minimal furniture silhouette, smoke trail from recently extinguished match, low ambient light with extreme warm color temperature, 50mm lens wide open at f/1.4, ISO 3200, meditative available-light photograph."
     ),
     "🗺️ СЦЕНЫ/🪴 Plant Nursery": (
-        "greenhouse or plant nursery interior, long rows of potted plants on metal shelving, humid air creating soft light diffusion, translucent roof panels casting even overhead light, varied leaf textures from glossy to matte, drip irrigation tubing and small watering can details, earthy potting mix and terracotta pot surfaces, 35mm lens at f/4, botanical environment photograph with genuine growing-space clutter."
+        "greenhouse or plant nursery interior, long rows of potted plants on metal shelving, humid air creating soft light diffusion, water still dripping from the just-watered trays onto the concrete, a hose left uncoiled with a dark wet trail behind it, translucent roof panels casting even overhead light, varied leaf textures from glossy to matte, drip irrigation tubing and small watering can details, earthy potting mix and terracotta pot surfaces, 35mm lens at f/4, botanical environment photograph with genuine growing-space clutter."
     ),
     "🗺️ СЦЕНЫ/🎤 Recording Studio": (
-        "interior photograph of a recording studio, 24mm lens at f/2.8, microphone setup, acoustic panels, low light environment, equipment reflections and LED meter glow, available-light capture."
+        "interior photograph of a recording studio, 24mm lens at f/2.8, microphone setup, headphones left hanging on the stand, the booth door standing half open, acoustic panels, low light environment, equipment reflections and LED meters caught mid-bounce at 1/60s, available-light capture."
     ),
     "🗺️ СЦЕНЫ/🧸 Cozy Bedroom": (
         "cozy bedroom interior, rumpled duvet and layered pillow textures, warm bedside lamp pool on nightstand, soft window light filtering through curtain edge, personal clutter on dresser, folded clothes on chair corner, intimate domestic atmosphere with real lived-in surface detail, relaxed composition, 35mm lens at f/2, available-light photograph without hotel sterility."
@@ -550,7 +558,7 @@ PHOTO_STYLES = {
         "rock climbing scene, textured granite or sandstone surface close-up, climber's hand on hold with chalk dust visible, tension in arm and finger tendons, harness and rope detail against rock, harsh outdoor sunlight casting sharp shadow on cliff face, safety equipment metal hardware glint, dramatic downward perspective, 24mm lens at f/5.6 shot from a rope above, adventure photograph with genuine climbing-texture detail."
     ),
     "🗺️ СЦЕНЫ/🛒 Vintage Store": (
-        "vintage shop interior, densely packed shelves with mixed-era objects, retro signage and tin advertising panels, warm incandescent lighting creating amber glow, worn wooden floorboards, glass display case reflections, stacked vinyl records and paperback books, 35mm lens at f/2.8, nostalgic clutter composition photographed with real aged-surface and paper-patina texture."
+        "vintage shop interior, densely packed shelves with mixed-era objects, retro signage and tin advertising panels, warm incandescent lighting creating amber glow, the shop bell still swinging on its bracket above the door, dust turning in the shaft from the window, worn wooden floorboards, glass display case reflections, stacked vinyl records and paperback books, 35mm lens at f/2.8, nostalgic clutter composition photographed with real aged-surface and paper-patina texture."
     ),
     "🗺️ СЦЕНЫ/🌉 Golden Gate": (
         "Golden Gate Bridge framed through coastal fog layer, International Orange paint texture on cable and tower surface, suspension cable geometry against mist-white sky, bridge tower fading into fog above, car and pedestrian scale detail on roadway, damp sea air softening distant structure edges, cold blue-gray fog against warm rust-orange metal, landmark photography realism."
@@ -559,10 +567,10 @@ PHOTO_STYLES = {
         "rain on glass surface viewed from indoors, water droplet lensing creating distorted view of outside, individual droplet tracks and splash patterns on pane, soft indoor light reflecting on wet glass, blurred city or garden shapes behind moisture layer, condensation ring at glass bottom edge, interior-exterior contrast with real droplet physics and surface tension detail."
     ),
     "🗺️ СЦЕНЫ/🪐 Neon Desert": (
-        "open desert at night, single neon sign structure planted in sand, dark starry sky with minimal light pollution, neon glow spilling across sandy ground and casting colored shadows, distant mesas or rock formations faintly visible, reflective surfaces on sign frame catching the glow, retrofuture roadside atmosphere, 24mm lens on a tripod, 20-second exposure at f/2.8, desert-night photography realism."
+        "open desert at night, single neon sign structure planted in sand with one tube flickering out of sync with the rest, moths streaking through the glow across the long exposure, dark starry sky with minimal light pollution, neon glow spilling across sandy ground and casting colored shadows, distant mesas or rock formations faintly visible, reflective surfaces on sign frame catching the glow, retrofuture roadside atmosphere, 24mm lens on a tripod, 20-second exposure at f/2.8, desert-night photography realism."
     ),
     "🗺️ СЦЕНЫ/🥾 Hiking Trail": (
-        "mountain trail curving through terrain, packed dirt and loose gravel texture underfoot, wild grass and low brush on trail edges, natural daylight with cloud-softened shadows, distant mountain layers fading in atmospheric haze, backpack and pole detail in frame edge, outdoor adventure photography with real terrain and vegetation truth."
+        "mountain trail curving through terrain, packed dirt and loose gravel texture underfoot, dust still hanging where a boot has just scuffed it, wild grass and low brush bending along the trail edges, natural daylight with cloud-softened shadows, distant mountain layers fading in atmospheric haze, backpack and pole detail in frame edge, outdoor adventure photography with real terrain and vegetation truth."
     ),
     "🗺️ СЦЕНЫ/🌾 Rice Terraces": (
         "tiered rice terraces carved into hillside, water-filled paddies reflecting sky, young rice plant rows breaking the water surface, earthen retaining wall detail between levels, humid mountain atmosphere softening distance, water-buffalo or farmer silhouette on narrow path, 70-200mm telephoto compression from a ridge, polarising filter holding the reflections, landscape photograph with mirror-like water surfaces and genuine cultivation detail."
