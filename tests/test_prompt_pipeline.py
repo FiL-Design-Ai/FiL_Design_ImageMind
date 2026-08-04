@@ -17,7 +17,7 @@ _PHOTO_STYLE_KEY = get_visible_style_keys("photo_style")[0]  # first real style
 
 
 def test_model_type_guidance_present_for_supported_models():
-    for model_type in ("Z-Image Turbo", "FLUX", "QWEN", "SDXL", "Krea 2", "Ideogram 4", "Video"):
+    for model_type in ("Z-Image Turbo", "FLUX", "QWEN", "SDXL", "Krea 2", "Ideogram 4", "Video", "MiniMax H3"):
         assert build_model_type_guidance(model_type), f"{model_type} has no guidance"
 
 
@@ -155,7 +155,7 @@ def test_negative_clause_empty_for_no_negative():
 
 
 def test_negative_clause_applies_to_all_positive_models():
-    for model_type in ("FLUX", "Z-Image Turbo", "Krea 2", "Ideogram 4", "Video"):
+    for model_type in ("FLUX", "Z-Image Turbo", "Krea 2", "Ideogram 4", "Video", "MiniMax H3"):
         clause = negative_to_positive_clause("x", model_type)
         assert "Avoid:" not in clause, f"{model_type} should use positive constraints"
 

@@ -82,6 +82,7 @@ def test_target_prompt_format_explicit_vs_computed():
     # explicit
     assert get_target_prompt_format("Krea 2", "text") == "krea2_natural_language"
     assert get_target_prompt_format("Video", "text") == "video_natural_language"
+    assert get_target_prompt_format("MiniMax H3", "text") == "video_timeline_blocks"
     # computed (Ideogram 4 no longer has an explicit target_prompt_format —
     # it uses the same computed fallback as any other plain-text model)
     assert get_target_prompt_format("Ideogram 4", "json") == "ideogram_4_json"
@@ -110,6 +111,7 @@ def test_positive_constraints_flags():
     assert model_uses_positive_constraints("Krea 2") is True
     assert model_uses_positive_constraints("Video") is True
     assert model_uses_positive_constraints("Ideogram 4") is True
+    assert model_uses_positive_constraints("MiniMax H3") is True
     # standard: SDXL, QWEN, Auto
     assert model_uses_positive_constraints("SDXL") is False
     assert model_uses_positive_constraints("QWEN") is False
@@ -150,6 +152,7 @@ def test_negative_prompt_support():
     assert model_supports_negative_prompt("Ideogram 4") is False
     assert model_supports_negative_prompt("Krea 2") is False
     assert model_supports_negative_prompt("Video") is False
+    assert model_supports_negative_prompt("MiniMax H3") is False
 
 
 def test_max_words():

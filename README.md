@@ -43,7 +43,7 @@ into `frontend/dist`. It covers four areas:
 
 | Area | What you get |
 |---|---|
-| 🧠 **LLM & vision** | Seven providers (local and cloud), 21 analysis agents, model-specific prompt profiles for Z-Image, FLUX, SDXL, QWEN, Krea 2, Ideogram 4 and a universal Video profile for video models |
+| 🧠 **LLM & vision** | Seven providers (local and cloud), 12 subject agents plus a neutral describer — each composable with 4 craft focuses — model-specific prompt profiles for Z-Image, FLUX, SDXL, QWEN, Krea 2, Ideogram 4 and a universal Video profile for video models |
 | 🖼️ **Image pipeline** | Tile-grid planning with real overlap maths, model upscaling, per-tile crops in pixel *and* latent space, feathered re-assembly, automatic colour correction |
 | 🎛️ **Sampling** | A full KSampler with every sampler/scheduler, passthrough sockets, built-in preview, plus HighRes-fix and Noise-Control scripts |
 | 🎨 **UI** | Every node draws a real Vue panel — twelve themes, full ru/en localization, compact toggles, numeric steppers, contract-driven option lists |
@@ -202,7 +202,7 @@ target diffusion model. Prompt fields are resizable and also work as input socke
 | `negative_prompt` | STRING (optional) | `""` | passed through to the metadata |
 | `detail_level` | COMBO | `normal` | tiny, short, normal, detailed, ultra |
 | `language` | COMBO | `en` | en, ru |
-| `model_type` | COMBO | `Auto/None` | Z-Image Turbo, FLUX, SDXL, QWEN, Krea 2, Ideogram 4, Video (universal video profile) |
+| `model_type` | COMBO | `Auto/None` | Z-Image Turbo, FLUX, SDXL, QWEN, Krea 2, Ideogram 4, Video (universal video profile), MiniMax H3 (timeline shot-blocks) |
 | `prompt_mode` | COMBO | `Auto` | Auto, Hybrid, Two-Stage |
 | `photo_style` / `art_style` | COMBO | `None` | 163 photo + 129 art presets, grouped by category |
 | `nsfw_photo_style` / `nsfw_art_style` | COMBO | `None` | separate 18+ catalogs |
@@ -873,7 +873,7 @@ Further reading: [architecture](docs/architecture.md) ·
 
 | Направление | Что даёт |
 |---|---|
-| 🧠 **LLM и зрение** | Семь провайдеров (локальные и облачные), 21 агент анализа, профили промптов под Z-Image, FLUX, SDXL, QWEN, Krea 2, Ideogram 4 и универсальный Video-профиль для видео-моделей |
+| 🧠 **LLM и зрение** | Семь провайдеров (локальные и облачные), 12 предметных агентов плюс нейтральный описатель — каждый сочетается с 4 фокус-оверлеями, профили промптов под Z-Image, FLUX, SDXL, QWEN, Krea 2, Ideogram 4 и универсальный Video-профиль для видео-моделей |
 | 🖼️ **Работа с изображением** | Планирование сетки тайлов с честной математикой нахлёста, апскейл моделью, реальные кропы тайлов в пиксельном *и* латентном пространстве, сборка с растушёвкой, авто-цветокоррекция |
 | 🎛️ **Сэмплинг** | Полноценный KSampler со всеми сэмплерами/планировщиками, passthrough-сокетами и встроенным превью, плюс скрипты HighRes Fix и Noise Control |
 | 🎨 **Интерфейс** | У каждого узла настоящая Vue-панель — двенадцать тем, полная ru/en локализация, компактные тумблеры, степперы у числовых полей, списки опций из контракта |
@@ -1032,7 +1032,7 @@ Python самого ComfyUI (`python_embeded`, `venv` или `.venv`), став�
 | `negative_prompt` | STRING (опц.) | `""` | пробрасывается в метаданные |
 | `detail_level` | COMBO | `normal` | tiny, short, normal, detailed, ultra |
 | `language` | COMBO | `en` | en, ru |
-| `model_type` | COMBO | `Auto/None` | Z-Image Turbo, FLUX, SDXL, QWEN, Krea 2, Ideogram 4, Video (универсальный видео-профиль) |
+| `model_type` | COMBO | `Auto/None` | Z-Image Turbo, FLUX, SDXL, QWEN, Krea 2, Ideogram 4, Video (универсальный видео-профиль), MiniMax H3 (таймлайн-блоки) |
 | `prompt_mode` | COMBO | `Auto` | Auto, Hybrid, Two-Stage |
 | `photo_style` / `art_style` | COMBO | `None` | 163 фото + 129 арт-пресетов по категориям |
 | `nsfw_photo_style` / `nsfw_art_style` | COMBO | `None` | отдельные 18+ каталоги |
