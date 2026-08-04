@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build && node scripts/sourceHash.mjs --write",
+    "build:watch": "vite build --watch",
     "check:bundle": "node scripts/sourceHash.mjs --check",
     "typecheck": "vue-tsc --noEmit",
     "preview": "vite preview",
@@ -16,7 +17,8 @@
     "test:smoke": "playwright test -c playwright.comfy.config.ts",
     "test:all": "npm run typecheck && npm run test && npm run test:e2e && npm run build",
     "lint": "eslint \"src/**/*.{ts,vue}\"",
-    "gen:contracts": "node scripts/gen_contracts.mjs"
+    "gen:contracts": "node scripts/gen_contracts.mjs",
+    "scan:comfy-vars": "node scripts/scanComfyCssVars.mjs"
   },
   "dependencies": {
     "pinia": "^4.0.2",
