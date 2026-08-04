@@ -307,14 +307,21 @@ PHOTO_STYLES = {
     "🦾 КИБЕРПАНК/🪞 Chrome Android": (
         "studio photograph of a chrome-plated practical mask, 85mm lens at f/4, fully reflective polished metal skull retaining exact human facial structure and expression, the shooting environment visible warped in the reflection, cold blue rim lighting against a near-black background, razor-sharp specular highlights along cheekbone and brow, dripping wet-metal sheen, on-set practical-effects capture."
     ),
+    # These three used to describe cyberware as a pile of adjectives with
+    # nowhere to land — "exposed wires, damaged cyberware, rusted metal parts"
+    # names materials but never a body part, and a live render came back as an
+    # ordinary person on an ordinary street: nothing in the sentence told the
+    # model where on the body to put any of it. Bio-Mechanical Core (chest) and
+    # Cybernetic Arm Close-Up (arm) never had this problem, because they always
+    # named the location. Fixed by naming one here too.
     "🦾 КИБЕРПАНК/💉 Wirehead Junkie": (
-        "gritty street photograph, 35mm lens at f/2, high ISO grain, street-level cyberpunk augmentation built as practical prosthetics, exposed wires, neural implant scars in makeup, damaged cyberware, rusted metal parts, glowing faulty implants, available-light urban decay, documentary capture."
+        "gritty street photograph of a street-level cyborg, 35mm lens at f/2, high ISO grain, a neural jack embedded at the base of the neck with exposed wiring trailing down into the collar, a forearm patched with mismatched practical prosthetic plating, damaged cyberware, rusted metal parts, a faulty implant glowing at the wrist, neural implant scars in makeup, available-light urban decay, documentary capture."
     ),
     "🦾 КИБЕРПАНК/🏢 Corpo-Cyborg": (
-        "corporate editorial photograph, 85mm lens at f/4, clean surgical implant appliances, gold and carbon fiber materials, precise panel seams, polished surfaces, controlled studio lighting, high-end tech aesthetic, practical prosthetics photographed on set."
+        "corporate editorial photograph of a corpo cyborg, 85mm lens at f/4, one hand replaced by a clean surgical prosthetic in gold and carbon fiber with precise panel seams, a matching implant plate set into the temple, polished surfaces, controlled studio lighting, high-end tech aesthetic, practical prosthetics photographed on set."
     ),
     "🦾 КИБЕРПАНК/🎖️ Military Cyborg": (
-        "photograph of a practical armoured prosthetic build, 50mm lens at f/4, reinforced joints, tactical plating, weapon-grade materials with real scuffing, combat-ready design, harsh directional light, on-location capture of built props, field-documentary framing."
+        "photograph of a soldier with a practical armoured prosthetic arm, 50mm lens at f/4, reinforced joints at the elbow and wrist, tactical plating overlapping the shoulder, weapon-grade materials with real scuffing, combat-ready design, harsh directional light, on-location capture of built props, field-documentary framing."
     ),
     "🦾 КИБЕРПАНК/⚔️ Cyber-Samurai": (
         "studio portrait photograph, 85mm lens at f/5.6, cyberpunk samurai armour built as a practical costume, segmented metal plating catching a single hard rim light, katana-ready augmentations, static disciplined stance against a dark seamless backdrop, no environment or weather, controlled high contrast studio lighting."
@@ -326,10 +333,10 @@ PHOTO_STYLES = {
         "close-up photograph of practical silicone prosthetics, 100mm macro lens at f/5.6, thick pulsing subdermal circuitry visible through translucent appliance, wet glistening membrane stretched over glowing bio-implants, greenish bio-luminescent veins, warm humid lab lighting, on-set makeup-effects capture."
     ),
     "🦾 КИБЕРПАНК/🌱 Solarpunk Hybrid": (
-        "photograph of solarpunk prosthetics, 50mm lens at f/2.8, organic materials with embedded tech, soft bioluminescent elements, clean natural daylight, eco-tech integration, smooth surfaces, built props photographed on location."
+        "photograph of a solarpunk cyborg, 50mm lens at f/2.8, a leaf-patterned prosthetic forearm grown from organic materials with embedded tech, soft bioluminescent veins glowing along the plating, clean natural daylight, eco-tech integration, smooth surfaces, built props photographed on location."
     ),
     "🦾 КИБЕРПАНК/💀 Post-Apoc Cyber": (
-        "photograph of scavenged practical cyberware, 35mm lens at f/4, exposed bolts and joints, damaged surfaces, real rust and dirt textures, asymmetrical body modifications, harsh available light, on-location documentary capture of built props."
+        "photograph of a survivor with scavenged practical cyberware bolted to one arm, 35mm lens at f/4, exposed bolts and mismatched joints, damaged surfaces, real rust and dirt textures, an asymmetrical patchwork of plating against bare skin, harsh available light, on-location documentary capture of built props."
     ),
     "🦾 КИБЕРПАНК/🌃 Neon Cyberpunk City Rain": (
         "real night cyberpunk street photography, wide establishing shot with the subject small within the frame amid a rain-soaked street, magenta-cyan neon signage stacked overhead, wet glass storefront reflections, practical LED spill, high ISO grain, lens bloom, deep urban depth, realistic puddle highlights, documentary city-night photography."
@@ -361,8 +368,14 @@ PHOTO_STYLES = {
     "🦾 КИБЕРПАНК/🧬 Synthetic Skin Android Portrait": (
         "realistic synthetic-skin android portrait, one fine seam line visible crossing the temple and jaw where a skin panel meets, a small matte access panel with a hairline gap near the ear, unnaturally uniform pore-less skin next to normal-looking skin, both eyes with a faint circular lens-ring glint instead of natural iris texture, cool clinical lab lighting from directly above, shallow depth of field on the seam detail, a machine that almost passes."
     ),
+    # Used to say "nothing else in frame" while describing an android bust —
+    # fine for the library's own preview, which renders a blank product shot
+    # with no subject, but a contradiction the moment this stacks under an
+    # actual person through Style Mixer: the preset was instructing the model
+    # to erase the very subject it is being applied to. Repointed at the
+    # subject's own head, the way Chrome Android already does.
     "🦾 КИБЕРПАНК/🤍 White Android Minimal Studio": (
-        "studio product photograph, 100mm lens at f/11, a single practical android bust isolated on a seamless white cyclorama, matte ceramic-white shell with no visible background elements, fine hairline panel seams only, flat shadowless high-key softbox lighting from all sides, zero ambient color cast, product-launch keynote sharpness, nothing else in frame, built prop photographed on a tabletop set."
+        "studio portrait photograph of an android, 100mm lens at f/11, matte ceramic-white shell shaped into a human head and shoulders, fine hairline panel seams at the jaw and temple, flat shadowless high-key softbox lighting from all sides on a seamless white cyclorama, zero ambient color cast, product-launch keynote sharpness, built prop photographed on a tabletop set."
     ),
     "🦾 КИБЕРПАНК/🏭 Industrial Cyborg Portrait": (
         "industrial cyborg portrait photography, exposed metallic plating, dark machinery background, cold gray palette, precise cybernetic seams, hard rim light, soot and steel texture, powerful stoic expression, a portrait made on the factory floor."
@@ -374,7 +387,7 @@ PHOTO_STYLES = {
         "studio photograph of a cutaway android display unit, 100mm macro lens at f/8, partially exposed robotic internals behind an open access panel, layered engineering detail, machined cross-section surfaces catching soft overhead light, clean medical lighting, precise mechanical anatomy, shot as laboratory documentation photography."
     ),
     "🦾 КИБЕРПАНК/🧡 Golden Mechanical Luxury": (
-        "golden mechanical cyber portrait photography, warm metallic plating, amber practical glow, polished machine details, luxury prosthetic surfaces, high specular reflections, elegant futuristic design, a product editorial for something regal."
+        "golden mechanical cyborg portrait photography, a luxury prosthetic arm in warm metallic plating running from shoulder to fingertip, amber practical glow lighting the seams, polished machine details, high specular reflections, elegant futuristic design, a product editorial for something regal."
     ),
     "🦾 КИБЕРПАНК/🪦 Melancholic Robot Portrait": (
         "melancholic robot portrait photography, humanlike machine face, worn metal skin, dim moody light, dust particles, muted palette, close-up shallow depth, quiet artificial-intelligence emotion, a built robot sitting for its portrait."
@@ -389,7 +402,7 @@ PHOTO_STYLES = {
         "studio portrait photograph, 85mm lens, the subject's skin and hair coated in molten liquid chrome, mercurial mirror-metal surface flowing and dripping slightly at the jawline and hairline, stretched specular highlight bands wrapping the face, viscous metal sheen catching the studio strobe, high-contrast reflections of the surrounding room bending across the cheek, wet polished material response, futuristic luxury cyber-material portrait."
     ),
     "🦾 КИБЕРПАНК/🌫️ Atmospheric Sci-Fi Mist": (
-        "realistic sci-fi mist photography, dense fog layers, soft glowing practical lights, low visibility depth, futuristic silhouette, wet surface sheen, moody blue-gray palette, volumetric haze, immersive cinematic cyberpunk atmosphere."
+        "realistic sci-fi mist photography, dense fog layers, soft glowing practical lights, low visibility depth, a futuristic silhouette with one faint cybernetic limb catching the light through the haze, wet surface sheen, moody blue-gray palette, volumetric haze, immersive cinematic cyberpunk atmosphere."
     ),
     # 🧪 ЭФФЕКТЫ (дополнительные)
     "🧪 ЭФФЕКТЫ/📡 Тесла-катушка": (
