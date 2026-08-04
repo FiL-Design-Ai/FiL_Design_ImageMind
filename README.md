@@ -259,6 +259,31 @@ stack to the vision model for a coherent rewrite and needs `config`.
 
 </details>
 
+<details>
+<summary><b>🎬 Cinema Rig</b> — <code>FiLCinemaRig</code> — camera-department shot builder</summary>
+
+| Input | Type | Default | Notes |
+|---|---|---|---|
+| `config` | FilProviderConfig (optional) | — | only needed for LLM Polish |
+| `scene_prompt` | STRING | `""` | what is happening in the frame; the rig wraps it without touching it |
+| `mode` | COMBO | `Original Shot` | or `Reshoot` (lock a reference image, change only the camera treatment) |
+| `camera` | COMBO | `RED V-RAPTOR XL` | film bodies wrap the shot in analog stock language, digital in sensor language |
+| `lens` | COMBO | `Helios 44-2 (Vintage)` | spherical or anamorphic optical character |
+| `focal_length` | COMBO | `50mm (Human Eye)` | ultra-wide pressure → telephoto compression |
+| `aperture` | COMBO | `f/11 (Deep Focus)` | how much of the frame holds focus |
+| `color_grading` | COMBO | `Teal & Orange (Blockbuster)` | finish applied over the frame |
+| `enable_grading` | BOOLEAN | `true` | off keeps the rig to hardware and medium only |
+| `polish_mode` | COMBO | `Deterministic (Fast)` | or `LLM Polish (Gen-Rig)` |
+
+**Outputs:** `rigged_prompt` (STRING), `rig_overlay` (STRING)
+
+The five axes are the camera department; the scene rides through them untouched. `Deterministic`
+is pure string assembly (no API call). `LLM Polish` rewrites the assembled rig into fluent prose
+through the provider model and needs `config`; on any failure it falls back to the deterministic rig.
+`rig_overlay` is the camera treatment alone, ready to stack under any prompt elsewhere.
+
+</details>
+
 #### 🎨 FiL Design/Sampling
 
 <details>
@@ -1095,6 +1120,31 @@ Python самого ComfyUI (`python_embeded`, `venv` или `.venv`), став�
 
 `Weighted Stack` — детерминированная сборка строки (без обращения к API). `Smart LLM Fusion`
 отправляет стек vision-модели на связный переписанный вариант, ему нужен `config`.
+
+</details>
+
+<details>
+<summary><b>🎬 Cinema Rig</b> — <code>FiLCinemaRig</code> — конструктор кадра по осям операторского цеха</summary>
+
+| Вход | Тип | По умолчанию | Примечания |
+|---|---|---|---|
+| `config` | FilProviderConfig (опц.) | — | нужен только для LLM-полировки |
+| `scene_prompt` | STRING | `""` | что происходит в кадре; риг оборачивает сцену, не трогая её |
+| `mode` | COMBO | `Original Shot` | либо `Reshoot` (зафиксировать референс, менять только операторскую обработку) |
+| `camera` | COMBO | `RED V-RAPTOR XL` | плёночные тушки оборачивают кадр в язык плёнки, цифровые — в язык сенсора |
+| `lens` | COMBO | `Helios 44-2 (Vintage)` | сферическая или анаморфотная оптика |
+| `focal_length` | COMBO | `50mm (Human Eye)` | от сверхширокого давления окружения до телеобъективного сжатия |
+| `aperture` | COMBO | `f/11 (Deep Focus)` | какая часть кадра остаётся в фокусе |
+| `color_grading` | COMBO | `Teal & Orange (Blockbuster)` | финиш, применяемый поверх кадра |
+| `enable_grading` | BOOLEAN | `true` | выкл — риг остаётся только с железом и медиумом |
+| `polish_mode` | COMBO | `Deterministic (Fast)` | либо `LLM Polish (Gen-Rig)` |
+
+**Выходы:** `rigged_prompt` (STRING), `rig_overlay` (STRING)
+
+Пять осей — это операторский цех; сцена проходит сквозь них нетронутой. `Deterministic` — чистая
+сборка строки (без обращения к API). `LLM Polish` переписывает собранный риг в связную прозу через
+модель провайдера, ему нужен `config`; при любой ошибке он откатывается на детерминированный риг.
+`rig_overlay` — только операторская обработка, её можно подкладывать под любой промпт отдельно.
 
 </details>
 

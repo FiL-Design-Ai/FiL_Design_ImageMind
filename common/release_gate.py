@@ -31,6 +31,7 @@ RELEASE_NODES: set[str] = {
     "FiLNeuroCleaner",
     "FiLImageDecomposer",
     "FiLStyleMixer",
+    "FiLCinemaRig",
     "FiLColorWizard",
     "FiLSignalSwitch",
     "FiLDatasetForge",

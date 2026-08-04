@@ -4100,6 +4100,253 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   ],
   "family": "base"
 },
+  "FiLCinemaRig": {
+  "id": "FiLCinemaRig",
+  "title": "🎬 Cinema Rig",
+  "category": "🎨 FiL Design/Styling",
+  "description": "Assembles a cinematic shot prompt from camera-rig axes: body, lens, focal length, aperture and color grade, wrapped in film or digital medium language, with an optional LLM polish.",
+  "inputs": {
+    "required": [
+      {
+        "name": "scene_prompt",
+        "kind": "string",
+        "label": "Scene",
+        "default": "",
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": true,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "mode",
+        "kind": "segmented",
+        "label": "Mode",
+        "default": "Original Shot",
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": [
+          "Original Shot",
+          "Reshoot"
+        ],
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      }
+    ],
+    "optional": [
+      {
+        "name": "camera",
+        "kind": "chip_list",
+        "label": "Camera",
+        "default": "RED V-RAPTOR XL",
+        "tooltip": null,
+        "values": [
+          "ARRI Alexa 65 (Large Format)",
+          "RED V-RAPTOR XL",
+          "IMAX MSM 9802 70mm",
+          "Kodak Vision3 500T (35mm)",
+          "Sony Venice 2",
+          "Arriflex 416 (16mm)"
+        ],
+        "columns": null,
+        "searchable": true,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "lens",
+        "kind": "chip_list",
+        "label": "Lens",
+        "default": "Helios 44-2 (Vintage)",
+        "tooltip": null,
+        "values": [
+          "Panavision C-Series Anamorphic",
+          "Cooke S4/i Primes",
+          "ARRI Signature Primes",
+          "Helios 44-2 (Vintage)",
+          "Atlas Orion Anamorphic",
+          "Canon K-35 (1970s)"
+        ],
+        "columns": null,
+        "searchable": true,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "focal_length",
+        "kind": "chip_list",
+        "label": "Focal length",
+        "default": "50mm (Human Eye)",
+        "tooltip": null,
+        "values": [
+          "14mm (Ultra Wide)",
+          "24mm (Wide)",
+          "35mm (Classic)",
+          "50mm (Human Eye)",
+          "85mm (Portrait)",
+          "200mm (Telephoto)"
+        ],
+        "columns": null,
+        "searchable": true,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "aperture",
+        "kind": "chip_list",
+        "label": "Aperture",
+        "default": "f/11 (Deep Focus)",
+        "tooltip": null,
+        "values": [
+          "f/0.95 (Dreamlike)",
+          "f/1.4 (Cinematic Shallow)",
+          "f/2.8 (Standard)",
+          "f/5.6 (Contextual)",
+          "f/11 (Deep Focus)"
+        ],
+        "columns": null,
+        "searchable": true,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "enable_grading",
+        "kind": "boolean",
+        "label": "Color grade on",
+        "default": true,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "color_grading",
+        "kind": "chip_list",
+        "label": "Color grade",
+        "default": "Teal & Orange (Blockbuster)",
+        "tooltip": null,
+        "values": [
+          "Teal & Orange (Blockbuster)",
+          "Bleach Bypass (Gritty)",
+          "Fincher Green (Thriller)",
+          "Kodachrome (Vintage)",
+          "Technicolor (1950s)",
+          "Neon Noir (Cyberpunk)",
+          "Pastel Symmetry (Whimsical)",
+          "Film Noir (Monochrome)",
+          "Golden Hour (Dreamy)",
+          "Matrix Green (Dystopia)",
+          "Violet Haze (Teen Night)",
+          "Day for Night (Blue)",
+          "Cross Process (Fashion)",
+          "Bleached Apocalypse"
+        ],
+        "columns": null,
+        "searchable": true,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "polish_mode",
+        "kind": "segmented",
+        "label": "Polish",
+        "default": "Deterministic (Fast)",
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": [
+          "Deterministic (Fast)",
+          "LLM Polish (Gen-Rig)"
+        ],
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      }
+    ],
+    "hidden": []
+  },
+  "outputs": [
+    {
+      "name": "rigged_prompt",
+      "type": "STRING"
+    },
+    {
+      "name": "rig_overlay",
+      "type": "STRING"
+    }
+  ],
+  "min_size": [
+    380,
+    380
+  ],
+  "family": "base"
+},
   "FiLColorWizard": {
   "id": "FiLColorWizard",
   "title": "🎨 Color Wizard",

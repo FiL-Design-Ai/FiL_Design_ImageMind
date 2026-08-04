@@ -17,6 +17,18 @@ from __future__ import annotations
 from typing import Any
 
 from ..brand import CATEGORY_ROOT, SETTINGS_PREFIX
+from ..cinema_rig import (
+    MODE_ORIGINAL,
+    POLISH_DETERMINISTIC,
+    POLISH_MODES,
+    RIG_DEFAULTS,
+    RIG_MODES,
+    aperture_options,
+    camera_options,
+    focal_length_options,
+    grading_options,
+    lens_options,
+)
 from ..color_correction import METHOD_KEYS as COLOR_METHOD_KEYS
 from ..config import PROVIDERS
 from ..dataset.bucketing import BASE_RESOLUTIONS as DATASET_BASE_RESOLUTIONS
@@ -549,6 +561,37 @@ _STYLE_MIXER = NodeContract(
     ],
 )
 
+_CINEMA_RIG = NodeContract(
+    id="FiLCinemaRig",
+    title="🎬 Cinema Rig",
+    category=f"{CATEGORY_ROOT}/Styling",
+    description=(
+        "Assembles a cinematic shot prompt from camera-rig axes: body, lens, focal length, aperture "
+        "and color grade, wrapped in film or digital medium language, with an optional LLM polish."
+    ),
+    family="base",
+    min_size=(380, 380),
+    inputs=NodeInputs(
+        required=[
+            _string("scene_prompt", default="", multiline=True, label="Scene"),
+            _segmented("mode", options=RIG_MODES, default=MODE_ORIGINAL, label="Mode"),
+        ],
+        optional=[
+            _chip_list("camera", values=camera_options(), default=RIG_DEFAULTS["camera"], label="Camera"),
+            _chip_list("lens", values=lens_options(), default=RIG_DEFAULTS["lens"], label="Lens"),
+            _chip_list("focal_length", values=focal_length_options(), default=RIG_DEFAULTS["focal_length"], label="Focal length"),
+            _chip_list("aperture", values=aperture_options(), default=RIG_DEFAULTS["aperture"], label="Aperture"),
+            _bool("enable_grading", default=True, label="Color grade on"),
+            _chip_list("color_grading", values=grading_options(), default=RIG_DEFAULTS["color_grading"], label="Color grade"),
+            _segmented("polish_mode", options=POLISH_MODES, default=POLISH_DETERMINISTIC, label="Polish"),
+        ],
+    ),
+    outputs=[
+        NodeOutput(name="rigged_prompt", type="STRING"),
+        NodeOutput(name="rig_overlay", type="STRING"),
+    ],
+)
+
 _COLOR_WIZARD = NodeContract(
     id="FiLColorWizard",
     title="🎨 Color Wizard",
@@ -658,6 +701,7 @@ NODE_SCHEMAS: dict[str, NodeContract] = {
         _NOISE_CONTROL,
         _DECOMPOSER,
         _STYLE_MIXER,
+        _CINEMA_RIG,
         _COLOR_WIZARD,
         _SWITCH,
         _DATASET_FORGE,

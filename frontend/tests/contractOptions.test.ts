@@ -20,6 +20,7 @@ const NODES_DIR = resolve(HERE, "../src/components/nodes");
 /** ComponentFile.vue -> backend node id. */
 const NODE_ID_BY_FILE: Record<string, string> = {
   "StyleMixer.vue": "FiLStyleMixer",
+  "CinemaRig.vue": "FiLCinemaRig",
   "ColorWizard.vue": "FiLColorWizard",
   "OpticScanner.vue": "FiLOpticScanner",
   "UpscaleTileCalc.vue": "FiLUpscaleTileCalc",
