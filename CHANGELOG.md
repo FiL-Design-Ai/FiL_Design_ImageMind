@@ -23,6 +23,26 @@
   gives the subject an action to perform — a scene preset stacks under the
   user's own prompt and must not decide what the person in it is doing.
 
+### Changed
+
+- **Eight `🦾 КИБЕРПАНК` presets rewritten after a live sweep of all 30 came back
+  showing no cyberware at all.** `Wirehead Junkie`, `Corpo-Cyborg`, `Military
+  Cyborg`, `Post-Apoc Cyber` and `Solarpunk Hybrid` listed materials —
+  "exposed wires, damaged cyberware, rusted metal parts" — without ever naming
+  a body part to put them on, and every one rendered as an ordinary person on
+  an ordinary street. The presets that already worked, `Bio-Mechanical Core`
+  and `Cybernetic Arm Close-Up`, always named where: chest, arm. Each of the
+  five now does too — a prosthetic forearm, a neural jack at the neck, an
+  armoured arm — and a re-render shows a real, unmistakable prosthetic in
+  every one. `White Android Minimal Studio` had a sharper problem: its text
+  demanded "nothing else in frame" while describing a standalone android bust,
+  which is a direct conflict the moment it stacks under an actual subject
+  through Style Mixer. Repointed at the subject's own head, the way `Chrome
+  Android` already does. `Golden Mechanical Luxury` and `Atmospheric Sci-Fi
+  Mist` got the same anchor treatment on a smaller scale. Checked for category
+  drift before and after with the resolver cache built from each library in
+  turn — none.
+
 ### Added
 
 - **A fifth Scanner craft layer: `🎭 Emotion & Motion`.** The other four
