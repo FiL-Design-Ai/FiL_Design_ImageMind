@@ -65,6 +65,14 @@ def test_system_prompt_bundle_includes_video_guidance():
     assert "camera" in system_prompt
     # Video models have no negative-prompt mechanism — constraints stay positive
     assert "positively" in system_prompt
+    # Static shots must be called out, or the model defaults to a slow push-in
+    assert "locked-off" in system_prompt
+    # Native-audio models invent a random ambience unless sound is described
+    assert "sound design" in system_prompt
+    # Wired references get explicit jobs instead of an unstructured image pile
+    assert "reference controls" in system_prompt
+    # On-screen text is quoted verbatim and declared the only lettering
+    assert "only that text appears" in system_prompt
 
 
 # ---------------------------------------------------------------------------
