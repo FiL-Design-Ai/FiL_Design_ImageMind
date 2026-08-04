@@ -1,6 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const BASE_URL = "http://localhost:5173/extensions/FiL_Design_ImageMind/";
+// 127.0.0.1, not localhost: on Windows vite binds [::1] only, and connections
+// to that listener hang — the webServer probe waited out its full timeout.
+const BASE_URL = "http://127.0.0.1:5173/extensions/FiL_Design_ImageMind/";
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -16,7 +18,7 @@ export default defineConfig({
   // instead of two terminals. `--strictPort` makes a port clash fail loudly
   // rather than serving the tests from somewhere they will 404.
   webServer: {
-    command: "npm run dev -- --port 5173 --strictPort",
+    command: "npm run dev -- --host 127.0.0.1 --port 5173 --strictPort",
     url: `${BASE_URL}test-playground.html`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
