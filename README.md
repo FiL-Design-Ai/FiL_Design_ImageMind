@@ -536,13 +536,13 @@ exists — is the difference between guessing at the panel and getting the exact
 - **Without an image**, `prompt` becomes the entire text input — a text-only idea to expand into a
   full generation prompt, with no photo underneath to keep it honest.
 - **`negative_prompt`** never reaches the model as a literal "negative prompt" the way SDXL uses
-  one — it's rewritten to fit the target model. For **FLUX / Z-Image / Krea 2 / Video** (which
-  read better as positive constraints — none of them has a negative-prompt input) it becomes
+  one — it's rewritten to fit the target model. For **FLUX / Z-Image / Krea 2 / Ideogram 4 / Video**
+  (which read better as positive constraints — none of their current APIs takes a negative-prompt
+  input) it becomes
   `Constraints (do not include these — express the scene positively without them): <your text>`;
-  for everything else — including Ideogram 4, whose API has a real negative-prompt field — it's a
-  plain `Avoid: <your text>`. Type `blurry, watermark` with `model_type = FLUX` and the exact same
-  text with `model_type = SDXL` produces two different sentences in the actual system call — same
-  intent, model-appropriate phrasing chosen for you.
+  for everything else it's a plain `Avoid: <your text>`. Type `blurry, watermark` with
+  `model_type = FLUX` and the exact same text with `model_type = SDXL` produces two different
+  sentences in the actual system call — same intent, model-appropriate phrasing chosen for you.
 
 #### `agent` — what the model is told to look at, and what to ignore
 
@@ -1367,14 +1367,13 @@ lanczos это RGB-специфичная интерполяция, в лате�
   развернуть в полноценный промпт для генерации, без фото под ней, которое держало бы модель в
   рамках реальности.
 - **`negative_prompt`** никогда не попадает в модель как буквальный «негативный промпт» в духе SDXL
-  — он переписывается под конкретную целевую модель. Для **FLUX / Z-Image / Krea 2 / Video**
-  (которые лучше воспринимают позитивные ограничения — ни у одной из них нет входа для
-  негативного промпта) он превращается в `Constraints (do not include these — express the scene
-  positively without them): <ваш текст>`; для всех остальных — включая Ideogram 4, у API которой
-  есть настоящее поле negative_prompt, — простое `Avoid: <ваш текст>`. Напишите `blurry, watermark`
-  при `model_type = FLUX` — и тот же текст при `model_type = SDXL` — в реальном системном вызове
-  получатся два разных предложения: один и тот же смысл, но фразировка подобрана под конкретную
-  модель за вас.
+  — он переписывается под конкретную целевую модель. Для **FLUX / Z-Image / Krea 2 / Ideogram 4 /
+  Video** (которые лучше воспринимают позитивные ограничения — ни у одной из их текущих API нет
+  входа для негативного промпта) он превращается в `Constraints (do not include these — express
+  the scene positively without them): <ваш текст>`; для всех остальных — простое
+  `Avoid: <ваш текст>`. Напишите `blurry, watermark` при `model_type = FLUX` — и тот же текст при
+  `model_type = SDXL` — в реальном системном вызове получатся два разных предложения: один и тот
+  же смысл, но фразировка подобрана под конкретную модель за вас.
 
 #### `agent` — на что модели велено смотреть, а что игнорировать
 

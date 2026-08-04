@@ -71,6 +71,12 @@ MODEL_PROMPT_RULES: Dict[str, Dict[str, Any]] = {
         "supports_negative_prompt": False,
         "negative_strategy": "positive_constraints",
         "max_words": 250,
+        # Verified 2026-08-04 (github.com/Tongyi-MAI/Z-Image, HF model card,
+        # tongyi-mai.github.io — Alibaba Tongyi MAI): natural-language S3-DiT.
+        # Turbo REQUIRES guidance_scale=0, so CFG — and with it any negative
+        # prompt — is functionally off (the base Z-Image does support
+        # negatives). The 250-word cap is a project heuristic: the vendor
+        # publishes no length guidance.
         "json_schema": None,
         "target_prompt_format": None,
         "force_response_format": None,
@@ -107,10 +113,15 @@ MODEL_PROMPT_RULES: Dict[str, Dict[str, Any]] = {
         "supports_negative_prompt": True,
         "negative_strategy": "standard",
         "max_words": None,
+        # Verified 2026-08-04 (alibabacloud.com Model Studio, qwen-image API):
+        # MMDiT natural-language model; negative_prompt supported (500 chars);
+        # positive prompt capped at 800 tokens (1300 for the 2.0 series).
+        # prompt_extend=true rewrites the positive prompt server-side by
+        # default — downstream users wanting our exact text should disable it.
         "json_schema": None,
         "target_prompt_format": None,
         "force_response_format": None,
-        "source_status": "partially_verified",
+        "source_status": "verified",
     },
     "Krea 2": {
         "label": "Krea 2",
@@ -119,6 +130,11 @@ MODEL_PROMPT_RULES: Dict[str, Dict[str, Any]] = {
         "supports_negative_prompt": False,
         "negative_strategy": "positive_constraints",
         "max_words": None,
+        # Verified 2026-08-04 (krea.ai/docs): the krea-2 API schema is strict
+        # (additionalProperties: false) with no negative-prompt field, and the
+        # docs recommend descriptive natural language (the technical report
+        # says tags/JSON are handled too). `creativity` controls server-side
+        # prompt expansion; `raw` disables it.
         "json_schema": None,
         "target_prompt_format": "krea2_natural_language",
         "force_response_format": None,
@@ -128,8 +144,8 @@ MODEL_PROMPT_RULES: Dict[str, Dict[str, Any]] = {
         "label": "Ideogram 4",
         "uses_dit_prompting": False,
         "post_convert_text": True,
-        "supports_negative_prompt": True,
-        "negative_strategy": "standard",
+        "supports_negative_prompt": False,
+        "negative_strategy": "positive_constraints",
         "max_words": None,
         # Ideogram 4's own API takes a plain-text prompt (docs.ideogram.ai), so
         # text mode stays plain natural language — but when the user explicitly
@@ -137,6 +153,12 @@ MODEL_PROMPT_RULES: Dict[str, Dict[str, Any]] = {
         # high_level_description/style_description/compositional_deconstruction
         # caption schema (adapt_ideogram4_caption) instead of generic JSON
         # passthrough, so structured captions stay well-formed.
+        # Verified 2026-08-04 (developer.ideogram.ai, docs.ideogram.ai): the v4
+        # generate endpoint exposes NO negative_prompt field (only v3 had one),
+        # and the official prompting guide says to describe the positive visual
+        # opposite of anything excluded — so negatives flip positive, same as
+        # FLUX/Z-Image/Krea 2/Video. Magic Prompt auto-engages on text_prompt;
+        # ~150-160 words, most important first, is the documented sweet spot.
         "json_schema": "ideogram4",
         "target_prompt_format": None,
         "force_response_format": None,

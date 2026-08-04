@@ -294,7 +294,7 @@ Runtime diagnostics for Two-Stage are derived from the exact Stage 1 and Stage 2
 - plain natural-language descriptive prompt — normal sentences, no JSON, no field labels, no markdown
 - Ideogram's own Magic Prompt feature (server-side) handles further enhancement; the tool does not build a structured caption object
 - literal on-image text is put in quotes
-- supports a real `negative_prompt` field (standard negative-prompt policy, not positive-constraint reframing)
+- the v4 API exposes no `negative_prompt` field (v3 had one), so manual exclusions are reframed as positive composition constraints — the same policy the official prompting guide recommends; keep prompts to ~150-160 words, most important first
 - this text-mode default targets the hosted Ideogram API (`docs.ideogram.ai`), where Magic Prompt runs server-side on plain text. The open-weights `ideogram-oss/ideogram4` model was trained exclusively on structured JSON captions — passing it plain text directly is documented to fail/trigger a safety warning. If the downstream consumer is the raw self-hosted model rather than the hosted API, use `response_format: json` (see [MODEL_PROMPTING_GUIDE.md](MODEL_PROMPTING_GUIDE.md#7-ideogram-4---plain-text-optimization)), which the adapter already supports via `adapt_ideogram4_caption`.
 
 ### Z-Image Turbo
@@ -353,7 +353,7 @@ Negative prompt is recommended for:
 - clean commercial shots
 - user-requested precision
 
-Negative prompt is generated only for models that support it. Krea 2, FLUX, Z-Image Turbo, and Video receive no automatic negative prompt — manual exclusions for these models are expressed as positive composition constraints rather than a generated negative-prompt block (video models have no negative-prompt input at all). Ideogram 4 has a real `negative_prompt` field (per `docs.ideogram.ai`) and uses the standard negative-prompt policy like SDXL/QWEN/Auto.
+Negative prompt is generated only for models that support it. Krea 2, FLUX, Z-Image Turbo, Ideogram 4, and Video receive no automatic negative prompt — manual exclusions for these models are expressed as positive composition constraints rather than a generated negative-prompt block (Ideogram 4's v4 API exposes no negative field and its guide recommends positive opposites; video models have no negative-prompt input at all). SDXL/QWEN/Auto keep the standard negative-prompt policy.
 
 The dynamic composer adds only context-relevant negatives:
 
