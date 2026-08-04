@@ -4,6 +4,51 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
+# The kinetic modifiers of ⏱️ ЗАХВАТ all fail the same way: asked for movement
+# over a frame that has none, the model invents a chase. Motion Blur earned its
+# own guardrail for exactly that, and the eight shutter techniques added beside
+# it inherit the posture — the movement lives in the exposure, never in a
+# subject the scene never mentioned.
+_KINETIC_MODIFIER_BASE: Dict[str, Any] = {
+    "forbidden": ["invented chase action", "added stunt or spectacle", "totally static clean frame"],
+    "required_cues": [
+        "shutter or exposure behavior named as the source of the effect",
+        "kinetic residue in edges, highlights, background, or airborne debris",
+        "movement only where the scene already supports it",
+    ],
+    "support_signals": [
+        "visible motion",
+        "body movement",
+        "camera pan",
+        "streaked light",
+        "wind",
+        "airborne debris",
+    ],
+    "contradiction_signals": [
+        "parked product shot",
+        "static studio object",
+        "catalog still life",
+        "formal seated portrait",
+    ],
+    "support_thresholds": {"full": 2, "weak": 1},
+    "default_support_mode": "weak",
+    "no_signal_mode": "weak",
+    "weak_mode_contract": (
+        "Keep the subject doing exactly what the scene says it is doing and carry the kinetic read in shutter timing, edge residue, air, and background only."
+    ),
+    "blocked_mode_contract": (
+        "Drop the movement language back to camera-timing terms alone and preserve the still frame the scene actually describes."
+    ),
+    "drift_targets": ["generic static catalog prose", "invented action spectacle"],
+    "output_obligation": (
+        "The final output must read as a specific shutter technique applied to the given scene, not as a different and busier scene."
+    ),
+    "fallback_behavior": (
+        "If the frame is static, degrade to exposure and camera language instead of inventing something for the subject to do."
+    ),
+}
+
+
 PRESET_STYLE_RULES: Dict[str, Dict[str, Any]] = {
     "⏱️ ЗАХВАТ/💫 Motion Blur": {
         "forbidden": ["parked product shot wording", "totally static clean frame", "invented chase action"],
@@ -40,6 +85,78 @@ PRESET_STYLE_RULES: Dict[str, Dict[str, Any]] = {
         ),
         "fallback_behavior": (
             "If the frame is static, degrade to kinetic camera language and localized streak residue instead of inventing motion."
+        ),
+    },
+    "⏱️ ЗАХВАТ/🌬️ Wind Gust": {
+        **_KINETIC_MODIFIER_BASE,
+        "forbidden": [*_KINETIC_MODIFIER_BASE["forbidden"], "dead still air", "salon-perfect hair"],
+        "transform": (
+            "WIND GUST GUARDRAIL: Put the movement into the air, not into the subject. Lift hair, loose fabric, and light debris "
+            "along one consistent wind direction, blur only the tips of what the wind is actually moving, and keep the face sharp. "
+            "Do not make the subject run, jump, or brace against a storm that was never described."
+        ),
+    },
+    "⏱️ ЗАХВАТ/🏎️ Panning Follow": {
+        **_KINETIC_MODIFIER_BASE,
+        "forbidden": [*_KINETIC_MODIFIER_BASE["forbidden"], "sharp detailed background", "tripod-locked framing"],
+        "transform": (
+            "PANNING GUARDRAIL: The sharpness belongs to the subject and the smear belongs to the background — horizontal streaks "
+            "along the direction of the swing, never a radial or random blur. If nothing in the scene is travelling, keep the "
+            "swing in the camera language and do not invent a vehicle or a chase to follow."
+        ),
+    },
+    "⏱️ ЗАХВАТ/👋 Gesture Smear": {
+        **_KINETIC_MODIFIER_BASE,
+        "forbidden": [*_KINETIC_MODIFIER_BASE["forbidden"], "whole-frame blur", "unreadable subject"],
+        "transform": (
+            "GESTURE SMEAR GUARDRAIL: Blur only what a hand or limb would move during a slow shutter, leave the head, torso, and "
+            "every stationary object crisp. The result must stay a readable frame with a soft trailing edge, not a smudged one, "
+            "and the gesture must be one the scene already implies."
+        ),
+    },
+    "⏱️ ЗАХВАТ/👻 Long Exposure Ghost": {
+        **_KINETIC_MODIFIER_BASE,
+        "forbidden": [*_KINETIC_MODIFIER_BASE["forbidden"], "frozen sharp crowd", "handheld snapshot framing"],
+        "transform": (
+            "LONG EXPOSURE GUARDRAIL: The camera is locked down. Anything fixed stays razor sharp, anything that moved thins into "
+            "a translucent trace or disappears — that contrast is the whole effect. Add ghosting only to things the scene says "
+            "are moving; do not populate an empty frame with phantom crowds."
+        ),
+    },
+    "⏱️ ЗАХВАТ/📳 Rolling Shutter Skew": {
+        **_KINETIC_MODIFIER_BASE,
+        "forbidden": [*_KINETIC_MODIFIER_BASE["forbidden"], "perfectly straight verticals", "film-camera language"],
+        "transform": (
+            "ROLLING SHUTTER GUARDRAIL: This is a sensor readout artifact, not a lens effect. Lean the verticals, wobble the fast "
+            "movement, bend rotating geometry, band the flash across part of the frame. Keep the scene itself unchanged — the "
+            "distortion is in how it was recorded."
+        ),
+    },
+    "⏱️ ЗАХВАТ/⚡ Rear-Curtain Sync": {
+        **_KINETIC_MODIFIER_BASE,
+        "forbidden": [*_KINETIC_MODIFIER_BASE["forbidden"], "trail leading ahead of the subject", "daylight ambient"],
+        "transform": (
+            "REAR-CURTAIN GUARDRAIL: The ambient trail must end at the flash-frozen subject and run behind the direction of "
+            "travel, never in front of it. Warm smeared ambient against cool crisp flash detail. Without movement in the scene, "
+            "keep only the mixed flash-and-ambient colour split."
+        ),
+    },
+    "⏱️ ЗАХВАТ/🎯 Zoom Burst": {
+        **_KINETIC_MODIFIER_BASE,
+        "forbidden": [*_KINETIC_MODIFIER_BASE["forbidden"], "horizontal directional blur", "even overall softness"],
+        "transform": (
+            "ZOOM BURST GUARDRAIL: Every streak radiates outward from the centre of the frame and lengthens toward the edges, "
+            "with the middle comparatively sharp. This is done in camera during the exposure — the subject itself need not move "
+            "at all, so do not add action to justify it."
+        ),
+    },
+    "⏱️ ЗАХВАТ/🏃 Handheld Grab Shot": {
+        **_KINETIC_MODIFIER_BASE,
+        "forbidden": [*_KINETIC_MODIFIER_BASE["forbidden"], "perfectly level horizon", "tack-sharp studio precision"],
+        "transform": (
+            "GRAB SHOT GUARDRAIL: The imperfection lives in the camera work — a few degrees of tilt, focus landing just behind "
+            "the point, a crop clipped at one edge, faint overall softness. The scene stays exactly as described; it simply was "
+            "not photographed carefully."
         ),
     },
     "📐 МОДИФИКАТОРЫ/📹 GoPro POV Action": {

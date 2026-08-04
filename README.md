@@ -204,7 +204,7 @@ target diffusion model. Prompt fields are resizable and also work as input socke
 | `language` | COMBO | `en` | en, ru |
 | `model_type` | COMBO | `Auto/None` | Z-Image Turbo, FLUX, SDXL, QWEN, Krea 2, Ideogram 4, Video (universal video profile), MiniMax H3 (timeline shot-blocks) |
 | `prompt_mode` | COMBO | `Auto` | Auto, Hybrid, Two-Stage |
-| `photo_style` / `art_style` | COMBO | `None` | 163 photo + 129 art presets, grouped by category |
+| `photo_style` / `art_style` | COMBO | `None` | 171 photo + 129 art presets, grouped by category |
 | `nsfw_photo_style` / `nsfw_art_style` | COMBO | `None` | separate 18+ catalogs |
 | `custom_style` | STRING (optional) | `""` | free-form style text, merged with the picks |
 | `seed` | INT | `-1` | -1 – 999999999999 (-1 = random) |
@@ -249,7 +249,7 @@ Wire the individual layers into separate conditioning branches when you want to 
 | `image_1..4` | IMAGE (optional) | — | reference images |
 | `img_weight_1..4` | FLOAT (optional) | 0.8 / 0.6 / 0.4 / 0.2 | influence per reference |
 | `img_focus_1..4` | COMBO (optional) | `Auto / General` | Style & Texture, Color & Lighting, Subject & Composition, Mood & Atmosphere |
-| `style_1..3` | COMBO (optional) | `(None)` | from the full 401-preset catalog (photo, art and both NSFW libraries) |
+| `style_1..3` | COMBO (optional) | `(None)` | from the full 409-preset catalog (photo, art and both NSFW libraries) |
 | `weight_1..3` | FLOAT (optional) | 1.0 / 0.5 / 0.3 | influence per style |
 
 **Outputs:** `styled_prompt` (STRING), `style_overlay` (STRING)
@@ -665,7 +665,7 @@ to add.
 
 #### Styles catalog
 
-163 photo + 129 art presets in `common/styles/`, browsable through a searchable picker with preview
+171 photo + 129 art presets in `common/styles/`, browsable through a searchable picker with preview
 tiles. See [`docs/styles.md`](docs/styles.md).
 
 ### Settings
@@ -1034,7 +1034,7 @@ Python самого ComfyUI (`python_embeded`, `venv` или `.venv`), став�
 | `language` | COMBO | `en` | en, ru |
 | `model_type` | COMBO | `Auto/None` | Z-Image Turbo, FLUX, SDXL, QWEN, Krea 2, Ideogram 4, Video (универсальный видео-профиль), MiniMax H3 (таймлайн-блоки) |
 | `prompt_mode` | COMBO | `Auto` | Auto, Hybrid, Two-Stage |
-| `photo_style` / `art_style` | COMBO | `None` | 163 фото + 129 арт-пресетов по категориям |
+| `photo_style` / `art_style` | COMBO | `None` | 171 фото + 129 арт-пресетов по категориям |
 | `nsfw_photo_style` / `nsfw_art_style` | COMBO | `None` | отдельные 18+ каталоги |
 | `custom_style` | STRING (опц.) | `""` | свой текст стиля, подмешивается к выбранным |
 | `seed` | INT | `-1` | -1 – 999999999999 (-1 = случайный) |
@@ -1079,7 +1079,7 @@ Python самого ComfyUI (`python_embeded`, `venv` или `.venv`), став�
 | `image_1..4` | IMAGE (опц.) | — | референсные изображения |
 | `img_weight_1..4` | FLOAT (опц.) | 0.8 / 0.6 / 0.4 / 0.2 | влияние каждого референса |
 | `img_focus_1..4` | COMBO (опц.) | `Auto / General` | Style & Texture, Color & Lighting, Subject & Composition, Mood & Atmosphere |
-| `style_1..3` | COMBO (опц.) | `(None)` | из полного каталога на 401 пресет (фото, арт и обе NSFW-библиотеки) |
+| `style_1..3` | COMBO (опц.) | `(None)` | из полного каталога на 409 пресет (фото, арт и обе NSFW-библиотеки) |
 | `weight_1..3` | FLOAT (опц.) | 1.0 / 0.5 / 0.3 | влияние каждого стиля |
 
 **Выходы:** `styled_prompt` (STRING), `style_overlay` (STRING)
@@ -1498,7 +1498,7 @@ H2/H3, Wan 2.x, HunyuanVideo, LTX Video, Kling и другие DiT-видео-м
 
 #### Каталог стилей
 
-163 фото + 129 арт-пресетов в `common/styles/`, доступны через поисковый пикер с плитками превью.
+171 фото + 129 арт-пресетов в `common/styles/`, доступны через поисковый пикер с плитками превью.
 См. [`docs/styles.md`](docs/styles.md).
 
 ### Настройки

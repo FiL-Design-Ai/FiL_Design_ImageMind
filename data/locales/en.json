@@ -12,7 +12,7 @@
   "tt_neg_prompt": "Removes WORDS from the generated text, not objects from the image. Pose, subject and composition cannot be changed here — use the prompt field.\n\nPUT HERE what the model adds on its own:\n  cliches: masterpiece, best quality, 8k, highly detailed\n  effects: bokeh, lens flare, dramatic vignette\n  junk: watermark, logo, signature, text overlay\n  defects: extra fingers, plastic skin, waxy texture\n  judgements: beautiful, stunning, breathtaking\n\nShort nouns, comma-separated, 5-10 of them. Not sentences with 'no': under FLUX / Z-Image Turbo / Krea 2 / Ideogram 4 / Video the list is flipped into positive wording, and 'do not make it blurry' has nothing to flip — write blurry.\n\nNot sure what to put? Leave it empty, run once, and pick out the words that bother you in the answer.\nDetails: docs/scanner-prompts.md",
   "tt_lang": "Language of the answer. Auto replies in the language of your prompt.",
   "tt_detail": "How detailed the answer should be.",
-  "tt_model_type": "Target generation model — adjusts prompt syntax, length, and format. Video is a universal profile for video models (MiniMax H2/H3, Wan, HunyuanVideo, LTX Video, Kling).",
+  "tt_model_type": "Target generation model — adjusts prompt syntax, length, and format. Video is a universal profile for video models (MiniMax H2/H3, Wan, HunyuanVideo, LTX Video, Kling); MiniMax H3 gets a dedicated timeline shot-block profile.",
   "tt_prompt_mode": "Auto picks Hybrid or Two-Stage depending on whether a style is selected.",
   "tt_photo_style": "Photographic style overlay applied on top of the base description.",
   "tt_nsfw_photo_style": "Adult-only photographic style overlay (alternative to Photo style).",

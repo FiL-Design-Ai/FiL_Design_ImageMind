@@ -4,6 +4,16 @@
 
 ### Added
 
+- **Eight movement modifiers in `⏱️ ЗАХВАТ`** — Wind Gust, Panning Follow,
+  Gesture Smear, Long Exposure Ghost, Rolling Shutter Skew, Rear-Curtain Sync,
+  Zoom Burst and Handheld Grab Shot. The photo library described the camera in
+  detail and the moment almost never: 90 of its 163 presets opened with a lens
+  and an aperture, 14 said anything about what was happening in front of it,
+  and the one category about movement held three entries. These are shutter
+  techniques rather than subjects, so they stack onto any other preset through
+  Style Mixer, and each carries a guardrail stopping the model from inventing a
+  chase when the scene it lands on is standing still.
+
 - **Two "Cyber Punch" themes** — same brand palette (`#FF0022` red, `#121212`
   ink, `#FFD000` yellow, `#FFFFFF` white), two different treatments. `Cyber
   Punch` is translucent red/black glass with a wide blur; `Cyber Punch HUD` is

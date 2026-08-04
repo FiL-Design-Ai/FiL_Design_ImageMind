@@ -12,7 +12,7 @@
   "tt_neg_prompt": "Убирает СЛОВА из готового текста, а не объекты с картинки. Позу, героя и композицию отсюда не поменять — это в поле prompt.\n\nСЮДА — то, что модель дописывает сама:\n  штампы: masterpiece, best quality, 8k, highly detailed\n  приёмы: bokeh, lens flare, dramatic vignette\n  мусор: watermark, logo, signature, text overlay\n  дефекты: extra fingers, plastic skin, waxy texture\n  оценки: beautiful, stunning, breathtaking\n\nКороткими существительными через запятую, 5–10 штук. Не фразами с «не»: под FLUX / Z-Image Turbo / Krea 2 / Ideogram 4 / Video список выворачивается в положительные формулировки, и «не делай размытым» вывернуть не во что — пишите blurry.\n\nНе знаете, что писать — оставьте пусто, запустите раз и выпишите из ответа слова, которые мешают.\nПодробнее: docs/scanner-prompts.md",
   "tt_lang": "Язык ответа. Auto отвечает на языке твоего промпта.",
   "tt_detail": "Насколько детальным должен быть ответ.",
-  "tt_model_type": "Целевая модель генерации — определяет синтаксис, длину и формат промпта. Video — универсальный профиль для видео-моделей (MiniMax H2/H3, Wan, HunyuanVideo, LTX Video, Kling).",
+  "tt_model_type": "Целевая модель генерации — определяет синтаксис, длину и формат промпта. Video — универсальный профиль для видео-моделей (MiniMax H2/H3, Wan, HunyuanVideo, LTX Video, Kling); MiniMax H3 — отдельный профиль с таймлайн-блоками.",
   "tt_prompt_mode": "Auto выбирает Hybrid или Two-Stage в зависимости от того, выбран ли стиль.",
   "tt_photo_style": "Оверлей фотостиля поверх базового описания.",
   "tt_nsfw_photo_style": "Взрослый (18+) оверлей фотостиля — альтернатива обычному Photo style.",
