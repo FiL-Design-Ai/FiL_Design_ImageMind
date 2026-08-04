@@ -259,6 +259,28 @@ def test_krea2_json_mode():
 
 
 # ─────────────────────────────────────────────────────────────────────────
+# MiniMax H3 - Timeline shot-blocks pass through intact
+# ─────────────────────────────────────────────────────────────────────────
+
+
+def test_minimax_h3_timeline_passthrough():
+    """Time-coded beats are H3's native rich format — never restructured."""
+    timeline = (
+        "10s, 16:9. [0-3s] Close-up of a lion on a cliff at sunset, eyes glowing "
+        "gold, camera slowly pushes in. [3-7s] Energy lines race across its body "
+        "as fur turns to metal plates, sparks flying, camera orbits. [7-10s] The "
+        "transformed robot-lion roars, camera pulls back to a wide silhouette. "
+        "Sound: wind, servo whine, a deep synthetic roar."
+    )
+    output, meta = convert_to_dit_format(timeline, "MiniMax H3", "text")
+
+    assert meta["mode"] == "video_timeline_blocks"
+    for beat in ("[0-3s]", "[3-7s]", "[7-10s]"):
+        assert beat in output
+    assert "Sound:" in output
+
+
+# ─────────────────────────────────────────────────────────────────────────
 # Ideogram 4 - Plain text mode (JSON schema discontinued)
 # ─────────────────────────────────────────────────────────────────────────
 

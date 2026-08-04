@@ -344,6 +344,14 @@ class instead of a node per vendor.
 - literal on-screen text is put in quotes, plus "only that text appears" — no other lettering, no subtitles
 - works both directions of image-to-video prompting: with a wired image it narrates the motion into the existing frame; text-only it expands an idea into a shot
 - verified against MiniMax's official docs (platform.minimax.io, 2026-08-04): H3 takes one free-text prompt (up to 7000 chars) with no negative-prompt parameter, understands sound and per-reference roles, and supports first/last frame; the `[Shot N]`/timeline structure is the output of the separate H3-Context-IR enrichment call, so hand-written timestamps stay out of this profile
+- when the idea unfolds in stages (a transformation, a story arc), the arc is preserved in order — first / then / finally, naming what changes between stages — instead of one static portrait; the requested duration and per-stage camera movement are stated explicitly
+
+### MiniMax H3
+
+- dedicated profile for MiniMax H3: the timeline shot-block shape is H3's native rich format — the official H3-Context-IR enrichment emits `[Shot N]` blocks with timestamps plus `overall_soundscape`, and the Full-2K workflow feeds it straight into generation
+- first line states duration and framing (`10s, 16:9.`), then 2-4 time-coded beats (`[0-3s] …`) covering the whole duration; every beat carries action and camera behavior, because H3 loops motion when a beat runs out of instructions
+- ends with a `Sound:` clause (native stereo audio is generated in the same pass; undescribed sound becomes random ambience)
+- no negative-prompt parameter in the v2 API — exclusions are expressed positively
 
 ## Negative Prompt Policy
 

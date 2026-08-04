@@ -701,9 +701,15 @@ def convert_to_dit_format(
 
     # Natural-language targets (Krea 2, Video) — normalize only, never
     # restructure: bucketing into comma-joined components would undo the
-    # flowing prose their contracts ask the LLM for. Checked before the
-    # post_convert_text gate because Krea 2 has that flag False.
-    if rule.get("target_prompt_format") in ("krea2_natural_language", "video_natural_language"):
+    # flowing prose their contracts ask the LLM for. MiniMax H3's timeline
+    # shot-blocks get the same protection: restructuring would shred the
+    # time-coded beats. Checked before the post_convert_text gate because
+    # Krea 2 has that flag False.
+    if rule.get("target_prompt_format") in (
+        "krea2_natural_language",
+        "video_natural_language",
+        "video_timeline_blocks",
+    ):
         return _normalize_prompt_ready_text(text, max_words), {
             **base_meta,
             "mode": str(rule["target_prompt_format"]),

@@ -45,7 +45,7 @@ NSFW_STYLE_OVERLAY = (
 
 PROMPT_MODE_OPTIONS = ["Auto", "Hybrid", "Two-Stage"]
 
-MODEL_TYPE_OPTIONS = ["Auto/None", "Z-Image Turbo", "FLUX", "SDXL", "QWEN", "Krea 2", "Ideogram 4", "Video"]
+MODEL_TYPE_OPTIONS = ["Auto/None", "Z-Image Turbo", "FLUX", "SDXL", "QWEN", "Krea 2", "Ideogram 4", "Video", "MiniMax H3"]
 
 # Per model_type generation contract. Consumed by the prompt pipeline
 # (system-prompt assembly, response-format instructions, negative-prompt
@@ -205,6 +205,25 @@ MODEL_PROMPT_RULES: Dict[str, Dict[str, Any]] = {
         "target_prompt_format": "video_natural_language",
         "force_response_format": None,
         "source_status": "partially_verified",
+    },
+    "MiniMax H3": {
+        "label": "MiniMax H3",
+        "uses_dit_prompting": True,
+        "post_convert_text": True,
+        "supports_negative_prompt": False,
+        "negative_strategy": "positive_constraints",
+        "max_words": 250,
+        # Verified 2026-08-04 (platform.minimax.io): H3's own enrichment
+        # pipeline (H3-Context-IR) emits shot blocks with [Shot N] headers,
+        # timestamps and an overall_soundscape — the model's native rich
+        # format, used by the official Full-2K workflow. This dedicated
+        # profile lets the LLM write that shape directly; the universal Video
+        # profile stays timestamp-free because other vendors' parsers read
+        # free text only and may render stray timestamps on screen.
+        "json_schema": None,
+        "target_prompt_format": "video_timeline_blocks",
+        "force_response_format": None,
+        "source_status": "verified",
     },
 }
 
