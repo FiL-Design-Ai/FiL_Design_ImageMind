@@ -4,6 +4,15 @@
 
 ### Changed
 
+- **64 presets no longer close on the word "realism".** A third of the photo
+  library ended in an adjective plus `realism` — "cinematic movement realism",
+  "moody urban realism", "tactile engineering realism" — which names no camera,
+  no practice and no context, and left distinct styles reading as variations of
+  each other. Each ending now says who takes this kind of picture and why:
+  "a picture somebody took on their phone", "shot from the photographers' pit",
+  "film that sat in a drawer too long". Two tests hold the line. One category
+  moved as a result, for the better: `Cybernetic Arm Close-Up` now resolves to
+  `cyborg` instead of scraping past `oil_painting` on the photo-library guard.
 - **20 of the 36 `🗺️ СЦЕНЫ` presets now have a moment passing in them.** The
   scenes were the stillest group in the library — an empty set with the lights
   on and nobody in it, which is most of why the photo half read as a postcard.

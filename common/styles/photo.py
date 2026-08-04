@@ -10,16 +10,16 @@ PHOTO_STYLES = {
         "Kodak FunSaver 35mm, direct harsh flash, red-eye reflections, ISO 400 consumer film grain, crushed blacks, blown skin highlights, plastic lens softness, edge vignette, light leaks, candid snapshot realism, cheap flash photography aesthetic."
     ),
     "📷 КАМЕРЫ/📸 Polaroid 600": (
-        "Polaroid 600 instant film, square instant photo look, soft chemical color shifts, milky highlights, teal-magenta emulsion drift, analog grain, low dynamic range, gentle blur, white border aesthetic, nostalgic instant camera realism."
+        "Polaroid 600 instant film, square instant photo look, soft chemical color shifts, milky highlights, teal-magenta emulsion drift, analog grain, low dynamic range, gentle blur, white border aesthetic, the way an instant print actually develops."
     ),
     "📷 КАМЕРЫ/📷 Hasselblad 70mm": (
-        "Hasselblad 500C/M 70mm capture, Zeiss Planar optical sharpness, medium-format clarity, square 6x6 composition, NASA Apollo photographic precision, deep black shadow density, crisp microcontrast, natural film latitude, archival expedition realism."
+        "Hasselblad 500C/M 70mm capture, Zeiss Planar optical sharpness, medium-format clarity, square 6x6 composition, NASA Apollo photographic precision, deep black shadow density, crisp microcontrast, natural film latitude, archival expedition photography."
     ),
     "📷 КАМЕРЫ/🕳️ Pinhole Obscura": (
-        "handmade pinhole camera, lensless photography, infinite depth of field, soft global focus, long exposure softness, extreme natural vignette, curved light falloff, dreamy ethereal blur, analog imperfection, primitive optical realism."
+        "handmade pinhole camera, lensless photography, infinite depth of field, soft global focus, long exposure softness, extreme natural vignette, curved light falloff, dreamy ethereal blur, analog imperfection, the crudest optics there are, with nothing corrected."
     ),
     "📷 КАМЕРЫ/📹 CCTV surveillance": (
-        "low-resolution CCTV surveillance footage, fixed security camera angle, green monochrome tint, high ISO digital noise, compression artifacts, timestamp overlay, wide-angle distortion, motion ghosting, harsh overhead lighting, detached surveillance realism."
+        "low-resolution CCTV surveillance footage, fixed security camera angle, green monochrome tint, high ISO digital noise, compression artifacts, timestamp overlay, wide-angle distortion, motion ghosting, harsh overhead lighting, unattended security footage nobody was meant to look at."
     ),
     "📷 КАМЕРЫ/🚓 Police Dashcam": (
         "police dashcam footage, windshield perspective, LED emergency strobe flares, shaky vehicle-mounted capture, harsh night contrast, blown highlights, road reflection glare, compressed video texture, documentary incident realism, bodycam-adjacent visual truth."
@@ -29,7 +29,7 @@ PHOTO_STYLES = {
     # scrubbed into plastic smoothness, edges over-sharpened. Reads as "a real
     # picture someone took" more reliably than any prestige camera.
     "📷 КАМЕРЫ/📱 Smartphone Computational": (
-        "modern smartphone photo, 26mm equivalent lens at f/1.8, computational HDR stacking lifting every shadow flat, aggressive noise reduction smoothing fine texture into waxy patches, over-sharpened edge halos, slightly oversaturated processing, deep focus across the whole frame, handheld snapshot framing, ordinary phone-camera realism."
+        "modern smartphone photo, 26mm equivalent lens at f/1.8, computational HDR stacking lifting every shadow flat, aggressive noise reduction smoothing fine texture into waxy patches, over-sharpened edge halos, slightly oversaturated processing, deep focus across the whole frame, handheld snapshot framing, a picture somebody took on their phone."
     ),
     # Distinct from the disposable: that is a cheap plastic lens, this is a
     # reporter's flash gun — a hard shadow stamped on the wall behind and
@@ -45,39 +45,39 @@ PHOTO_STYLES = {
         "DJI Mavic low-hover drone photo, elevated three-quarter aerial angle just above head height rather than straight down, subject clearly recognizable and centered in frame, slight downward tilt revealing the ground plane behind them, GPS-stable steady framing, crisp daylight terrain texture below, bird's-eye documentary realism, aerial survey aesthetic."
     ),
     "📐 МОДИФИКАТОРЫ/🔭 Ultra Wide 12mm": (
-        "12mm ultra-wide lens perspective, expanded field of view, strong foreground exaggeration, edge stretching, converging leading lines, deep depth of field, architectural distortion, spatial immersion, dynamic perspective tension, crisp wide-angle realism."
+        "12mm ultra-wide lens perspective, expanded field of view, strong foreground exaggeration, edge stretching, converging leading lines, deep depth of field, architectural distortion, spatial immersion, dynamic perspective tension, crisp rectilinear wide-angle capture."
     ),
     "📐 МОДИФИКАТОРЫ/🌐 Fisheye Lens": (
-        "8mm fisheye lens, 180-degree field of view, strong barrel distortion, curved horizon lines, circular image geometry, warped edges, close-range exaggeration, skate-video perspective, immersive action framing, optical distortion realism."
+        "8mm fisheye lens, 180-degree field of view, strong barrel distortion, curved horizon lines, circular image geometry, warped edges, close-range exaggeration, skate-video perspective, immersive action framing, the distortion this lens actually produces."
     ),
     "📐 МОДИФИКАТОРЫ/📐 Dutch Angle": (
         "15-degree dutch angle composition, tilted horizon, diagonal frame tension, off-balance camera geometry, thriller-style visual unease, asymmetric subject placement, unstable perspective, dramatic blocking, cinematic disorientation without changing scene content."
     ),
     "📐 МОДИФИКАТОРЫ/📹 GoPro POV Action": (
-        "GoPro action camera POV, 170-degree wide-angle field of view, fisheye edge distortion, vibration blur, body-mounted perspective, close foreground exaggeration, high dynamic outdoor contrast, compressed action-camera detail, waterproof housing clarity, immersive first-person realism."
+        "GoPro action camera POV, 170-degree wide-angle field of view, fisheye edge distortion, vibration blur, body-mounted perspective, close foreground exaggeration, high dynamic outdoor contrast, compressed action-camera detail, waterproof housing clarity, immersive first-person action-camera footage."
     ),
     # 🎬 КИНО
     "🎬 КИНО/🎞️ IMAX Production": (
-        "70mm IMAX capture, ultra-high resolution detail, 1.43:1 framing, deep black shadow density, extreme dynamic range, volumetric atmosphere, large-format clarity, natural color fidelity, cinematic depth scale, high-end production realism."
+        "70mm IMAX capture, ultra-high resolution detail, 1.43:1 framing, deep black shadow density, extreme dynamic range, volumetric atmosphere, large-format clarity, natural color fidelity, cinematic depth scale, large-format theatrical production."
     ),
     "🎬 КИНО/🌑 Film Noir": (
         "1940s film noir lighting, high-contrast black and white, hard key light, deep shadow contrast, chiaroscuro lighting, venetian blind shadow patterns, low-key exposure, sharp light falloff, dramatic facial shadows, classic noir cinematography."
     ),
     "🎬 КИНО/🌈 Technicolor 50s": (
-        "3-strip Technicolor process, hyper-saturated primary colors, strong red and cyan separation, high-key studio lighting, even illumination, crisp costume colors, vintage Hollywood palette, controlled exposure, theatrical set lighting realism."
+        "3-strip Technicolor process, hyper-saturated primary colors, strong red and cyan separation, high-key studio lighting, even illumination, crisp costume colors, vintage Hollywood palette, controlled exposure, studio-era theatrical set lighting."
     ),
     "🎬 КИНО/📷 Anamorphic Wide": (
         "Panavision anamorphic lens on 35mm film, 2.39:1 cinematic aspect ratio, oval bokeh highlights, horizontal blue lens flares, compressed perspective, shallow depth of field, cinematic focus falloff, wide frame composition, film-grade optical signature."
     ),
     "🎬 КИНО/🎬 Gangster Cinema": (
-        "35mm crime cinema frame, low-key lighting, warm amber practical lights, deep shadow zones, polished wood reflections, dark fabric textures, cigarette smoke haze, high contrast interior lighting, cinematic tension framing, classic crime film realism."
+        "35mm crime cinema frame, low-key lighting, warm amber practical lights, deep shadow zones, polished wood reflections, dark fabric textures, cigarette smoke haze, high contrast interior lighting, cinematic tension framing, a frame lifted from a classic crime film."
     ),
     # ⏱️ ЗАХВАТ
     "⏱️ ЗАХВАТ/💫 Motion Blur": (
-        "motion blur photography, 180-degree shutter rule, directional blur streaks, moving subject smear, background streaking, light trail elongation, dynamic movement capture, partial edge drag, realistic motion persistence, cinematic movement realism."
+        "motion blur photography, 180-degree shutter rule, directional blur streaks, moving subject smear, background streaking, light trail elongation, dynamic movement capture, partial edge drag, realistic motion persistence, movement as the shutter records it."
     ),
     "⏱️ ЗАХВАТ/📸 Action Freeze": (
-        "high-speed capture, 1/8000s shutter freeze, frozen motion detail, suspended particles, water droplets frozen mid-air, sharp edges, zero motion blur, hyperreal temporal precision, crisp micro-detail capture, high-speed photography realism."
+        "high-speed capture, 1/8000s shutter freeze, frozen motion detail, suspended particles, water droplets frozen mid-air, sharp edges, zero motion blur, hyperreal temporal precision, crisp micro-detail capture, high-speed flash photography."
     ),
     "⏱️ ЗАХВАТ/🎞️ Slo-Mo Bullet Time": (
         "Phantom Flex high-speed camera at 1000fps, 50mm lens at f/4 under heavy continuous light, extreme slow motion effect, suspended motion state, frozen debris and particles, crisp subject isolation, hyper-detailed temporal resolution, single frame pulled from real high-speed footage."
@@ -137,13 +137,13 @@ PHOTO_STYLES = {
         "flatbed scan of an old 10x15 colour print, visible paper grain and matte surface texture, dust specks and a hair on the platen, faint newton rings, magenta cast from decades of dye fade, slightly soft focus from the original print, white border and rounded corners, one bent corner, family photo album scan."
     ),
     "🕰️ РЕТРО/🪞 Daguerreotype": (
-        "1839 daguerreotype process on silvered copper plate, mirror-polished metallic sheen visible in the shadow areas, razor-sharp engraved micro-detail, narrow silvery tonal range with almost no midtones, rigid formal studio pose, dark velvet backdrop, cold blue-silver cast, pristine unblemished plate surface, earliest photography realism."
+        "1839 daguerreotype process on silvered copper plate, mirror-polished metallic sheen visible in the shadow areas, razor-sharp engraved micro-detail, narrow silvery tonal range with almost no midtones, rigid formal studio pose, dark velvet backdrop, cold blue-silver cast, pristine unblemished plate surface, the earliest photography there was."
     ),
     "🕰️ РЕТРО/🧪 Wet Plate Collodion": (
-        "wet plate collodion tintype on blackened lacquered metal, matte low-sheen surface with no mirror gloss, visible wet chemical streaks and swirl marks across the frame edges, uneven emulsion coating with dust specks and scratches, soft focus falloff from a slow lens, olive-black low-contrast tones, heavy dark vignette swallowing the edges, imperfect frontier field-studio realism."
+        "wet plate collodion tintype on blackened lacquered metal, matte low-sheen surface with no mirror gloss, visible wet chemical streaks and swirl marks across the frame edges, uneven emulsion coating with dust specks and scratches, soft focus falloff from a slow lens, olive-black low-contrast tones, heavy dark vignette swallowing the edges, imperfect work out of a frontier field studio."
     ),
     "🕰️ РЕТРО/🟤 Sepia Nostalgia": (
-        "sepia-toned albumen print, warm brown paper base, softened contrast, faded highlights, aged paper texture, archival wear marks, early 20th century family photo aesthetic, nostalgic photographic realism."
+        "sepia-toned albumen print, warm brown paper base, softened contrast, faded highlights, aged paper texture, archival wear marks, early 20th century family photo aesthetic, a print that has aged inside an album."
     ),
     "🕰️ РЕТРО/🎸 Rockabilly 50s": (
         "1950s Americana photography, polished chrome reflections, diner lighting glow, high contrast flash, styled hair structure, vibrant retro colors, clean studio lighting, vintage pop aesthetic, classic rockabilly visual style."
@@ -152,7 +152,7 @@ PHOTO_STYLES = {
         "1920s portrait photography, sepia bias, tailored wool textures, hard side lighting, strong shadow contrast, art deco interior tones, formal pose rigidity, early press portrait realism, prohibition-era aesthetic."
     ),
     "🕰️ РЕТРО/🎬 Nostalgic 8mm": (
-        "8mm home movie frame, low resolution film grain, magenta color drift, flicker exposure variation, soft focus, motion cadence blur, analog degradation, vintage family footage aesthetic, nostalgic film realism."
+        "8mm home movie frame, low resolution film grain, magenta color drift, flicker exposure variation, soft focus, motion cadence blur, analog degradation, vintage family footage aesthetic, a frame off a family reel."
     ),
     # 🏠 ИНТЕРЬЕР
     # Interiors are the category most likely to come back as a 3D visualisation:
@@ -163,7 +163,7 @@ PHOTO_STYLES = {
         "interior photograph of an industrial loft, 24mm tilt-shift lens at f/8, corrected verticals, exposed brick walls, raw concrete floors, steel beam structure, large factory windows, hard directional daylight, dust visible in the window shafts, urban grit texture, available-light architectural capture, warehouse living aesthetic."
     ),
     "🏠 ИНТЕРЬЕР/🌻 Provence Rustic": (
-        "interior photograph of a French Provence house, 24mm tilt-shift lens at f/8, sun-bleached wood surfaces, terracotta floor texture, soft warm daylight through shutters, lavender tones, aged plaster walls, Mediterranean patina, natural material wear, available-light interior capture, rustic countryside realism."
+        "interior photograph of a French Provence house, 24mm tilt-shift lens at f/8, sun-bleached wood surfaces, terracotta floor texture, soft warm daylight through shutters, lavender tones, aged plaster walls, Mediterranean patina, natural material wear, available-light interior capture, a house that is actually lived in."
     ),
     "🏠 ИНТЕРЬЕР/🕉️ Boho Chic": (
         "interior photograph of a bohemian room, 35mm lens at f/4, layered textiles, macrame decor, Moroccan rugs, rattan furniture, warm ambient lamp light, mixed cultural elements, organic clutter composition, soft shadow diffusion, natural-light editorial interior capture."
@@ -185,35 +185,35 @@ PHOTO_STYLES = {
         "high-fashion editorial photography, medium-format clarity, Profoto strobe lighting, high contrast light ratio, sculpted garment silhouette, crisp fabric edge detail, controlled shadow falloff, polished skin texture, studio fashion realism, magazine-grade production."
     ),
     "👗 ФЭШН/👤 Portrait Bokeh": (
-        "85mm f/1.2 portrait lens, shallow depth of field, creamy background bokeh, strong subject isolation, natural skin texture, soft focus falloff, subtle catchlights, compressed perspective, intimate portrait realism."
+        "85mm f/1.2 portrait lens, shallow depth of field, creamy background bokeh, strong subject isolation, natural skin texture, soft focus falloff, subtle catchlights, compressed perspective, intimate available-light portraiture."
     ),
     "👗 ФЭШН/✨ Glamour Glow": (
         "Hollywood glamour portrait, soft key light with fill diffusion, glowing skin highlights, controlled beauty lighting, smooth tonal transitions, glossy hair reflections, symmetrical facial lighting, polished studio aesthetic, classic beauty photography."
     ),
     "👗 ФЭШН/🖤 Chanel Aesthetic": (
-        "black and white luxury fashion photograph, medium-format camera, single softbox, high contrast grayscale, tailored fabric structure, matte skin finish, sharp textile detail, minimal lighting setup, Paris atelier style, refined composition, couture editorial realism."
+        "black and white luxury fashion photograph, medium-format camera, single softbox, high contrast grayscale, tailored fabric structure, matte skin finish, sharp textile detail, minimal lighting setup, Paris atelier style, refined composition, couture editorial photography."
     ),
     "👗 ФЭШН/💋 Pin-up Style": (
-        "1940s pin-up photography, large-format studio camera, high contrast flash lighting, smooth skin highlights, held pose tension, glossy lipstick finish, soft backdrop gradients, vintage beauty lighting, playful retro composition, classic pin-up realism."
+        "1940s pin-up photography, large-format studio camera, high contrast flash lighting, smooth skin highlights, held pose tension, glossy lipstick finish, soft backdrop gradients, vintage beauty lighting, playful retro composition, classic pin-up studio work."
     ),
     "👗 ФЭШН/👔 Business Pro": (
-        "corporate portrait photography, clean directional key light, soft fill balance, neutral color grading, sharp suit texture, confident posture framing, controlled studio environment, professional headshot realism."
+        "corporate portrait photography, clean directional key light, soft fill balance, neutral color grading, sharp suit texture, confident posture framing, controlled studio environment, a professional headshot session."
     ),
     "👗 ФЭШН/👠 Fashion Runway": (
-        "runway fashion photography, 200mm telephoto compression, spotlight falloff, motion stride capture, fabric movement detail, high contrast stage lighting, dark background isolation, fashion show realism."
+        "runway fashion photography, 200mm telephoto compression, spotlight falloff, motion stride capture, fabric movement detail, high contrast stage lighting, dark background isolation, shot from the photographers' pit."
     ),
     "👗 ФЭШН/🛍️ Street Fashion": (
         "street fashion photography, 35mm lens perspective, natural overcast lighting, layered clothing textures, candid pose realism, urban background integration, real fabric behavior, contemporary fashion capture."
     ),
     # 🏙️ СРЕДА
     "🏙️ СРЕДА/🌃 Cyberpunk Neon": (
-        "night street photograph, 35mm lens at f/1.8, high ISO grain, dry urban street, dense layered neon magenta and cyan signage stacked overhead, reflective glass and metal storefronts, high contrast artificial lighting, thin vapor haze from food-stall steam, no rain or standing water, crowded market-alley energy, dark city atmosphere, handheld available-light capture, cyberpunk realism."
+        "night street photograph, 35mm lens at f/1.8, high ISO grain, dry urban street, dense layered neon magenta and cyan signage stacked overhead, reflective glass and metal storefronts, high contrast artificial lighting, thin vapor haze from food-stall steam, no rain or standing water, crowded market-alley energy, dark city atmosphere, handheld available-light capture, cyberpunk street photography."
     ),
     "🏙️ СРЕДА/🌧️ Rainy Neon Noir": (
-        "torrential rain falling in visible streaks under neon light, droplets beading on wet skin and soaked hair, rain-soaked clothing clinging to the subject, deep puddle reflections doubling the neon signage, strong light bloom refracted through raindrops on the lens, high contrast noir shadow, dark atmospheric depth, drenched cinematic rain realism."
+        "torrential rain falling in visible streaks under neon light, droplets beading on wet skin and soaked hair, rain-soaked clothing clinging to the subject, deep puddle reflections doubling the neon signage, strong light bloom refracted through raindrops on the lens, high contrast noir shadow, dark atmospheric depth, everything in the frame thoroughly soaked."
     ),
     "🏙️ СРЕДА/🌫️ Foggy Neon Noir": (
-        "night photograph in dense fog, 50mm lens at f/2, dense fog environment, diffused neon lighting, soft light cones, reduced visibility, atmospheric depth layering, blurred background structures, damp surfaces, low contrast glow, available-light capture, moody urban realism."
+        "night photograph in dense fog, 50mm lens at f/2, dense fog environment, diffused neon lighting, soft light cones, reduced visibility, atmospheric depth layering, blurred background structures, damp surfaces, low contrast glow, available-light capture, a city night with the visibility gone."
     ),
     "🏙️ СРЕДА/🏚️ Dystopian Megacity": (
         "architectural photograph, 70-200mm telephoto compression, massive brutalist architecture, dense urban stacking, concrete textures, industrial decay, polluted atmosphere, harsh shadow contrast, vertical city scale, oppressive environment, documentary urban capture."
@@ -222,7 +222,7 @@ PHOTO_STYLES = {
         "street photograph, 28mm lens at f/5.6, street-level urban environment, worn concrete surfaces, chipped paint textures, graffiti layers, natural harsh midday light, high detail textures, handheld documentary capture, lived-in urban decay."
     ),
     "🏙️ СРЕДА/📷 Street Candid": (
-        "street photography moment, natural available light, spontaneous composition, candid human presence, real-world imperfections, documentary framing, urban life realism."
+        "street photography moment, natural available light, spontaneous composition, candid human presence, real-world imperfections, documentary framing, street life as it happened."
     ),
     "🏙️ СРЕДА/🌅 Magic Hour": (
         "golden hour photograph, 85mm lens at f/2.8 backlit into the sun, low sun angle, warm highlights, long shadows, soft atmospheric haze, warm-cool color contrast, natural light gradient, lens flare across the frame, outdoor available-light capture."
@@ -235,7 +235,7 @@ PHOTO_STYLES = {
     ),
     # 🏜️ ЖАНРЫ
     "🏜️ ЖАНРЫ/🏔️ Пейзажный Landscape": (
-        "landscape photography, f/16 deep focus, full depth of field, atmospheric perspective, distant haze layering, natural light gradient, high detail terrain texture, wide dynamic range, zone-system exposure balance, classic landscape realism."
+        "landscape photography, f/16 deep focus, full depth of field, atmospheric perspective, distant haze layering, natural light gradient, high detail terrain texture, wide dynamic range, zone-system exposure balance, classic large-format landscape work."
     ),
     "🏜️ ЖАНРЫ/🦁 Nat Geo Scale": (
         "candid documentary photography, subject caught mid-motion and unposed as if unaware of the camera, 400mm telephoto compression flattening a wide natural environment behind them, strong subject-background separation, golden hour lighting, natural color fidelity, sharp eye-level detail with a soft compressed background, shallow depth of field, National Geographic-style environmental capture."
@@ -244,16 +244,16 @@ PHOTO_STYLES = {
         "extreme macro close-up crop tightly framed on the eye and surrounding skin, 1:1 magnification with visible iris fiber detail and individual eyelashes, focus-stacked pore-level skin texture, shallow depth of field falling off past the eye, tiny catchlight reflections in the cornea, scientific macro-lens realism, micro-world visual scale."
     ),
     "🏜️ ЖАНРЫ/🌌 Astro Cosmic": (
-        "astrophotography, long exposure night sky, Milky Way core detail, star field density, low noise sky capture, deep space contrast, nebula color emission, high ISO night capture, cosmic realism."
+        "astrophotography, long exposure night sky, Milky Way core detail, star field density, low noise sky capture, deep space contrast, nebula color emission, high ISO night capture, deep-sky astrophotography."
     ),
     "🏜️ ЖАНРЫ/✈️ Travel Adventure": (
-        "travel photography, natural daylight, wide-angle environmental capture, real-world location textures, atmospheric depth, candid exploration framing, balanced exposure, outdoor adventure realism."
+        "travel photography, natural daylight, wide-angle environmental capture, real-world location textures, atmospheric depth, candid exploration framing, balanced exposure, outdoor adventure photography."
     ),
     "🏜️ ЖАНРЫ/🪶 Ethnic Spirit": (
         "cultural documentary photography, traditional textiles detail, natural lighting, authentic environment, skin and fabric texture realism, respectful framing, ethnographic realism, human-centered composition."
     ),
     "🏜️ ЖАНРЫ/🏜️ Saharan Mirage": (
-        "desert landscape photography, heat haze distortion, high temperature light shimmer, sand texture detail, bright sun exposure, low humidity atmosphere, distant visual distortion, harsh daylight desert realism."
+        "desert landscape photography, heat haze distortion, high temperature light shimmer, sand texture detail, bright sun exposure, low humidity atmosphere, distant visual distortion, midday desert with no shade anywhere."
     ),
     # 📸 РЕПОРТАЖ
     "📸 РЕПОРТАЖ/☕ Lifestyle Moment": (
@@ -263,7 +263,7 @@ PHOTO_STYLES = {
         "photojournalism style, raw reality capture, high contrast natural lighting, unposed subjects, environmental context detail, sharp focus, minimal post-processing, documentary realism, real-world event capture."
     ),
     "📸 РЕПОРТАЖ/💼 Stock Quality": (
-        "stock photography standard, high-key lighting, balanced exposure, clean composition, sharp subject clarity, neutral color grading, commercial usability, simple readable frame, professional stock realism."
+        "stock photography standard, high-key lighting, balanced exposure, clean composition, sharp subject clarity, neutral color grading, commercial usability, simple readable frame, shot to be sold as a stock photo."
     ),
     # 🧪 ЭФФЕКТЫ
     "🧪 ЭФФЕКТЫ/🤖 Holographic HUD": (
@@ -273,28 +273,28 @@ PHOTO_STYLES = {
         "photograph lit by hard rim light, 85mm lens at f/1.8, backlit RGB edge glow from practical tubes, high contrast silhouette, dark background separation, light wrap on edges, haze from a smoke machine scattering the beams, nightclub lighting captured on location."
     ),
     "🧪 ЭФФЕКТЫ/🎨 Chromatic Aberration": (
-        "chromatic aberration effect, RGB channel separation, red-blue edge fringing, analog lens distortion, slight blur offset, optical imperfection, vintage video artifact, lens physics realism."
+        "chromatic aberration effect, RGB channel separation, red-blue edge fringing, analog lens distortion, slight blur offset, optical imperfection, vintage video artifact, a lens failing the way lenses fail."
     ),
     "🧪 ЭФФЕКТЫ/💎 Prism Optical Fracture": (
-        "prism light refraction, spectral color splitting, rainbow dispersion, duplicated image fragments, optical ghosting, refracted highlights, lens physics behavior, light spectrum realism."
+        "prism light refraction, spectral color splitting, rainbow dispersion, duplicated image fragments, optical ghosting, refracted highlights, lens physics behavior, light split by real glass."
     ),
     "🧪 ЭФФЕКТЫ/🌫️ Volumetric Tyndall Dust": (
         "photograph of volumetric light rays, 35mm lens stopped down to f/8 against the light source, visible dust particles, Tyndall effect, god rays through atmosphere, soft light scattering, depth haze, illuminated air particles, in-camera light beams with real atmospheric falloff."
     ),
     "🧪 ЭФФЕКТЫ/📼 Expired Chemical Leak": (
-        "expired film effect, light leaks in orange and magenta, chemical burn edges, film emulsion damage, color instability, analog degradation, vintage film artifact realism."
+        "expired film effect, light leaks in orange and magenta, chemical burn edges, film emulsion damage, color instability, analog degradation, film that sat in a drawer too long."
     ),
     "🧪 ЭФФЕКТЫ/☀️ High-Key Airy": (
         "high-key lighting setup, bright exposure, minimal shadows, white background, soft light diffusion, low contrast, commercial photography lighting, clean airy aesthetic."
     ),
     "🧪 ЭФФЕКТЫ/🌈 HDR Dynamic": (
-        "HDR photography, three bracketed exposures merged from raw, extended dynamic range, tone mapping, highlight recovery, shadow lifting, hyper-detailed exposure, tripod-locked frame, high contrast photographic realism."
+        "HDR photography, three bracketed exposures merged from raw, extended dynamic range, tone mapping, highlight recovery, shadow lifting, hyper-detailed exposure, tripod-locked frame, high contrast held across the merged frame."
     ),
     "🧪 ЭФФЕКТЫ/🕯️ Candlelit Mood": (
         "available-light photograph by candlelight, 50mm lens wide open at f/1.4, ISO 3200 with visible grain, warm low color temperature, single flickering source, deep shadow falloff, localized highlights, soft glow on surfaces, handheld low-light capture."
     ),
     "🧪 ЭФФЕКТЫ/🔴 Infrared Surreal": (
-        "infrared photography, 720nm spectrum capture, white foliage effect, dark sky contrast, thermal tonal separation, surreal natural colors, IR sensor realism."
+        "infrared photography, 720nm spectrum capture, white foliage effect, dark sky contrast, thermal tonal separation, surreal natural colors, an IR-converted sensor doing its work."
     ),
     # 🦾 КИБЕРПАНК
     # Cyborgs are the fastest route back to a 3D render: the subject matter is
@@ -332,64 +332,64 @@ PHOTO_STYLES = {
         "photograph of scavenged practical cyberware, 35mm lens at f/4, exposed bolts and joints, damaged surfaces, real rust and dirt textures, asymmetrical body modifications, harsh available light, on-location documentary capture of built props."
     ),
     "🦾 КИБЕРПАНК/🌃 Neon Cyberpunk City Rain": (
-        "real night cyberpunk street photography, wide establishing shot with the subject small within the frame amid a rain-soaked street, magenta-cyan neon signage stacked overhead, wet glass storefront reflections, practical LED spill, high ISO grain, lens bloom, deep urban depth, realistic puddle highlights, documentary city-night realism."
+        "real night cyberpunk street photography, wide establishing shot with the subject small within the frame amid a rain-soaked street, magenta-cyan neon signage stacked overhead, wet glass storefront reflections, practical LED spill, high ISO grain, lens bloom, deep urban depth, realistic puddle highlights, documentary city-night photography."
     ),
     "🦾 КИБЕРПАНК/🚗 JDM Neon Street Racer": (
-        "realistic night street-racing photography, tuned JDM car body, glossy paint reflections, wet asphalt, headlight flare, neon storefront spill, low camera angle, motion-ready curbside framing, premium automotive cyberpunk realism."
+        "realistic night street-racing photography, tuned JDM car body, glossy paint reflections, wet asphalt, headlight flare, neon storefront spill, low camera angle, motion-ready curbside framing, an automotive shoot done after dark."
     ),
     "🦾 КИБЕРПАНК/🌇 Electric Sunset Megacity": (
-        "realistic sci-fi megacity photo look, saturated electric sunset, glass tower reflections, magenta-orange sky gradient, atmospheric haze, long-lens urban compression, reflective façades, grounded architectural scale, high dynamic range city realism."
+        "realistic sci-fi megacity photo look, saturated electric sunset, glass tower reflections, magenta-orange sky gradient, atmospheric haze, long-lens urban compression, reflective façades, grounded architectural scale, a skyline at the top of its dynamic range."
     ),
     "🦾 КИБЕРПАНК/🛰️ Holographic Interface Portrait": (
-        "real cyberpunk portrait photography, transparent AR interface reflections on glasses or skin, blue-yellow screen light, shallow depth of field, crisp facial texture, subtle HUD glow, realistic monitor spill, intelligence-briefing sci-fi realism."
+        "real cyberpunk portrait photography, transparent AR interface reflections on glasses or skin, blue-yellow screen light, shallow depth of field, crisp facial texture, subtle HUD glow, realistic monitor spill, the look of an intelligence briefing."
     ),
     "🦾 КИБЕРПАНК/🗡️ Dark Samurai Street": (
-        "realistic cyber-samurai street photo, black tactical layers, segmented armor materials, neon rim light, wet alley reflections, disciplined stance silhouette, hard side light, grounded costume texture, live-action futuristic warrior realism."
+        "realistic cyber-samurai street photo, black tactical layers, segmented armor materials, neon rim light, wet alley reflections, disciplined stance silhouette, hard side light, grounded costume texture, a costume built and photographed, not imagined."
     ),
     "🦾 КИБЕРПАНК/🤖 Chrome Cyborg Hyperrealism": (
-        "hyperreal macro cyborg photography, tight crop on brushed matte-titanium joints and articulated neck mechanisms, exposed servo cabling and hydraulic lines, synthetic skin meeting metal in a visible stitched seam, soft matte specular highlights rather than mirror gloss, cold studio rim light, precision engineering texture at pore-level detail, real prosthetic-surface realism."
+        "hyperreal macro cyborg photography, tight crop on brushed matte-titanium joints and articulated neck mechanisms, exposed servo cabling and hydraulic lines, synthetic skin meeting metal in a visible stitched seam, soft matte specular highlights rather than mirror gloss, cold studio rim light, precision engineering texture at pore-level detail, prosthetic surfaces at pore-level scale."
     ),
     "🦾 КИБЕРПАНК/🦾 Cybernetic Arm Close-Up": (
-        "realistic cybernetic arm close-up photo, layered prosthetic plates, servo motors, hydraulic joints, worn metal edges, micro LED indicators, skin-to-machine seam detail, workshop side light, tactile engineering realism."
+        "realistic cybernetic arm close-up photo, layered prosthetic plates, servo motors, hydraulic joints, worn metal edges, micro LED indicators, skin-to-machine seam detail, workshop side light, cyberware engineering you could put a hand on."
     ),
     "🦾 КИБЕРПАНК/🧠 Biomechanical Horror Realism": (
         "clinical biomechanical horror photo realism, an open surgical panel on the torso or skull exposing synthetic muscle fiber bundles beneath intact skin, cold sterile operating-room lighting, stainless surgical instruments nearby, unsettling exposed body-tech seams, grounded medical sci-fi atmosphere without cartoon gore."
     ),
     "🦾 КИБЕРПАНК/🕶️ Teal Gold Cyber Noir Portrait": (
-        "teal-gold cyberpunk noir portrait photo, reflective sunglasses, leather or techwear texture, rain specks, wet material highlights, smoky practical light, dark city background, cinematic rim light, premium live-action sci-fi editorial realism."
+        "teal-gold cyberpunk noir portrait photo, reflective sunglasses, leather or techwear texture, rain specks, wet material highlights, smoky practical light, dark city background, cinematic rim light, a premium sci-fi editorial shot on set."
     ),
     "🦾 КИБЕРПАНК/🧬 Synthetic Skin Android Portrait": (
-        "realistic synthetic-skin android portrait, one fine seam line visible crossing the temple and jaw where a skin panel meets, a small matte access panel with a hairline gap near the ear, unnaturally uniform pore-less skin next to normal-looking skin, both eyes with a faint circular lens-ring glint instead of natural iris texture, cool clinical lab lighting from directly above, shallow depth of field on the seam detail, uncanny humanlike machine realism."
+        "realistic synthetic-skin android portrait, one fine seam line visible crossing the temple and jaw where a skin panel meets, a small matte access panel with a hairline gap near the ear, unnaturally uniform pore-less skin next to normal-looking skin, both eyes with a faint circular lens-ring glint instead of natural iris texture, cool clinical lab lighting from directly above, shallow depth of field on the seam detail, a machine that almost passes."
     ),
     "🦾 КИБЕРПАНК/🤍 White Android Minimal Studio": (
         "studio product photograph, 100mm lens at f/11, a single practical android bust isolated on a seamless white cyclorama, matte ceramic-white shell with no visible background elements, fine hairline panel seams only, flat shadowless high-key softbox lighting from all sides, zero ambient color cast, product-launch keynote sharpness, nothing else in frame, built prop photographed on a tabletop set."
     ),
     "🦾 КИБЕРПАНК/🏭 Industrial Cyborg Portrait": (
-        "industrial cyborg portrait photography, exposed metallic plating, dark machinery background, cold gray palette, precise cybernetic seams, hard rim light, soot and steel texture, powerful stoic expression, factory-floor sci-fi realism."
+        "industrial cyborg portrait photography, exposed metallic plating, dark machinery background, cold gray palette, precise cybernetic seams, hard rim light, soot and steel texture, powerful stoic expression, a portrait made on the factory floor."
     ),
     "🦾 КИБЕРПАНК/🫀 Bio-Mechanical Core": (
-        "realistic bio-mechanical core photo, a circular reactor-like power core embedded in the center of the chest radiating bright glowing energy outward through thin skin, dark polished housing ringing the core, light pulsing onto the surrounding face and hands, cold sci-fi lighting, unsettling high-detail cyber-organic realism."
+        "realistic bio-mechanical core photo, a circular reactor-like power core embedded in the center of the chest radiating bright glowing energy outward through thin skin, dark polished housing ringing the core, light pulsing onto the surrounding face and hands, cold sci-fi lighting, unsettling cyber-organic detail held in sharp focus throughout."
     ),
     "🦾 КИБЕРПАНК/🧩 Android Anatomy Cutaway": (
         "studio photograph of a cutaway android display unit, 100mm macro lens at f/8, partially exposed robotic internals behind an open access panel, layered engineering detail, machined cross-section surfaces catching soft overhead light, clean medical lighting, precise mechanical anatomy, shot as laboratory documentation photography."
     ),
     "🦾 КИБЕРПАНК/🧡 Golden Mechanical Luxury": (
-        "golden mechanical cyber portrait photography, warm metallic plating, amber practical glow, polished machine details, luxury prosthetic surfaces, high specular reflections, elegant futuristic design, regal sci-fi product-editorial realism."
+        "golden mechanical cyber portrait photography, warm metallic plating, amber practical glow, polished machine details, luxury prosthetic surfaces, high specular reflections, elegant futuristic design, a product editorial for something regal."
     ),
     "🦾 КИБЕРПАНК/🪦 Melancholic Robot Portrait": (
-        "melancholic robot portrait photography, humanlike machine face, worn metal skin, dim moody light, dust particles, muted palette, close-up shallow depth, quiet artificial-intelligence emotion, grounded live-action robot realism."
+        "melancholic robot portrait photography, humanlike machine face, worn metal skin, dim moody light, dust particles, muted palette, close-up shallow depth, quiet artificial-intelligence emotion, a built robot sitting for its portrait."
     ),
     "🦾 КИБЕРПАНК/🩻 X-Ray Cyber Radiograph": (
         "cyber radiograph photographic effect, grayscale X-ray density mapping revealing mechanical prosthetic bones and metal joint hardware fused with natural skeletal structure, black background, glowing cyan internal-circuit line accents tracing the implants, precise anatomical silhouette, realistic diagnostic sci-fi look."
     ),
     "🦾 КИБЕРПАНК/💎 Prismatic Neon Reflections": (
-        "realistic prismatic neon photography, rainbow-split specular highlights, glossy glass and metal surfaces, refracted light shards, dark cyber backdrop, controlled lens flare, high contrast reflections, premium futuristic nightclub realism."
+        "realistic prismatic neon photography, rainbow-split specular highlights, glossy glass and metal surfaces, refracted light shards, dark cyber backdrop, controlled lens flare, high contrast reflections, a nightclub shot for a premium campaign."
     ),
     "🦾 КИБЕРПАНК/🪞 Molten Liquid Chrome Realism": (
         "studio portrait photograph, 85mm lens, the subject's skin and hair coated in molten liquid chrome, mercurial mirror-metal surface flowing and dripping slightly at the jawline and hairline, stretched specular highlight bands wrapping the face, viscous metal sheen catching the studio strobe, high-contrast reflections of the surrounding room bending across the cheek, wet polished material response, futuristic luxury cyber-material portrait."
     ),
     "🦾 КИБЕРПАНК/🌫️ Atmospheric Sci-Fi Mist": (
-        "realistic sci-fi mist photography, dense fog layers, soft glowing practical lights, low visibility depth, futuristic silhouette, wet surface sheen, moody blue-gray palette, volumetric haze, immersive cinematic cyberpunk realism."
+        "realistic sci-fi mist photography, dense fog layers, soft glowing practical lights, low visibility depth, futuristic silhouette, wet surface sheen, moody blue-gray palette, volumetric haze, immersive cinematic cyberpunk atmosphere."
     ),
     # 🧪 ЭФФЕКТЫ (дополнительные)
     "🧪 ЭФФЕКТЫ/📡 Тесла-катушка": (
@@ -414,7 +414,7 @@ PHOTO_STYLES = {
         "photograph of a solar eclipse, 600mm telephoto with a solar filter, darkened sun disk, corona light halo, partial shadow coverage, high contrast sky, tripod-locked astronomical capture."
     ),
     "🧪 ЭФФЕКТЫ/📠 Факс-аппарат": (
-        "fax machine output, thermal paper texture, grayscale low resolution, horizontal line artifacts, compression distortion, office document aesthetic, analog print realism."
+        "fax machine output, thermal paper texture, grayscale low resolution, horizontal line artifacts, compression distortion, office document aesthetic, a page printed off a thermal roll."
     ),
     "🧪 ЭФФЕКТЫ/🟣 UV Fluorescence": (
         "photograph under UV light, 50mm lens at f/2.8 with a UV-blocking filter, 365nm ultraviolet excitation, glowing reactive surfaces, high contrast dark background, neon color emission, selective material glow, long exposure forensic-lighting capture."
@@ -423,10 +423,10 @@ PHOTO_STYLES = {
         "high-speed flash photograph of shattering glass, 100mm macro lens at f/11, 1/8000s strobe duration freezing the break, glass fragmentation, flying debris, sharp shard edges, frozen explosion moment, particle detail, sound-triggered studio capture."
     ),
     "🧪 ЭФФЕКТЫ/🎨 Light Painting": (
-        "long exposure light painting, moving light trails, colorful streaks, night background, smooth motion curves, glowing paths, exposure-based light drawing realism."
+        "long exposure light painting, moving light trails, colorful streaks, night background, smooth motion curves, glowing paths, written into the frame during the exposure."
     ),
     "🧪 ЭФФЕКТЫ/👯 Double Exposure": (
-        "double exposure photography, overlapping image layers, transparent blending, density stacking, ghosted silhouettes, analog film overlay, multi-layer visual realism."
+        "double exposure photography, overlapping image layers, transparent blending, density stacking, ghosted silhouettes, analog film overlay, two frames laid onto one piece of film."
     ),
     "🧪 ЭФФЕКТЫ/🌑 Silhouette Drama": (
         "backlit photograph exposed for the background, 85mm lens at f/8, dark subject silhouette, bright background source, sharp outline contrast, minimal detail in shadows, in-camera high contrast without fill light."
@@ -438,10 +438,10 @@ PHOTO_STYLES = {
         "photograph inside a working forge, 35mm lens at f/2.8, 1/125s, glowing hot metal blowing out to white, sparks and embers streaking, heat haze distortion, orange light emission on surrounding surfaces, industrial documentary capture."
     ),
     "🧪 ЭФФЕКТЫ/🌡️ Thermal Imager": (
-        "thermal imaging camera, heat signature visualization, false color palette, infrared heat mapping, high contrast temperature zones, thermal sensor realism."
+        "thermal imaging camera, heat signature visualization, false color palette, infrared heat mapping, high contrast temperature zones, output from a working thermal sensor."
     ),
     "🧪 ЭФФЕКТЫ/☢️ X-Ray Radiograph": (
-        "X-ray imaging, bone structure visibility, grayscale density mapping, internal anatomy detail, medical imaging contrast, radiographic realism."
+        "X-ray imaging, bone structure visibility, grayscale density mapping, internal anatomy detail, medical imaging contrast, a clinical radiograph."
     ),
     "🧪 ЭФФЕКТЫ/🌊 Bioluminescence": (
         "long-exposure night photograph of bioluminescence, 24mm lens wide open at f/1.4, 15-second exposure, high ISO grain, blue-green light emission, organic light sources, dark environment contrast, faint glow the eye barely sees gathered by the sensor, natural-history field capture."
@@ -456,7 +456,7 @@ PHOTO_STYLES = {
         "studio photograph with one bare hard light and no fill, 85mm lens at f/8, extreme light-shadow contrast, sharp shadow edges, deep black negative space, sculpted subject form, single-source lighting captured in camera."
     ),
     "🧪 ЭФФЕКТЫ/🔬 Electron Micro": (
-        "scanning electron microscope image, extreme magnification, microstructure detail, grayscale or false color mapping, high contrast surface topology, nanometer scale texture, scientific imaging realism."
+        "scanning electron microscope image, extreme magnification, microstructure detail, grayscale or false color mapping, high contrast surface topology, nanometer scale texture, a lab instrument's own output."
     ),
     # 🗺️ СЦЕНЫ
     # Scenes described a place and nothing else — the single largest group with
@@ -498,7 +498,7 @@ PHOTO_STYLES = {
         "photograph of a swimming pool, 24mm lens at f/8, polarising filter cutting the surface glare, clear blue water still ringed by the spreading wake of something that just went under, wet footprints darkening the tiles along the edge, caustic light patterns on the tiled bottom, bright sunlight reflections, overhead midday capture."
     ),
     "🗺️ СЦЕНЫ/🏜️ Desert Road": (
-        "two-lane desert highway vanishing to a horizon point, heat-shimmer distortion rising from dark asphalt, a dust plume still hanging over the shoulder where something has just passed, bleached sand and dry brush shoulder texture, harsh overhead sun blowing out distant detail, mirage-like water reflection on road surface far ahead, empty landscape scale emphasized by small roadside signage, high-temperature atmospheric clarity, long-exposure travel realism."
+        "two-lane desert highway vanishing to a horizon point, heat-shimmer distortion rising from dark asphalt, a dust plume still hanging over the shoulder where something has just passed, bleached sand and dry brush shoulder texture, harsh overhead sun blowing out distant detail, mirage-like water reflection on road surface far ahead, empty landscape scale emphasized by small roadside signage, high-temperature atmospheric clarity, a long exposure made from the roadside."
     ),
     "🗺️ СЦЕНЫ/🍄 Fairy Forest": (
         "dense woodland interior with layered canopy, moss-covered tree trunks and exposed root systems, soft mist settling knee-high between trees and curling where something has just moved through it, low-angle sunlight piercing through leaves in scattered god rays, damp bark texture and wet fern detail, tiny bioluminescent sparkle dots in shadow pockets, rich green and brown organic palette, 35mm lens at f/4 on a tripod, atmospheric woodland photograph without fantasy glow excess."
@@ -528,7 +528,7 @@ PHOTO_STYLES = {
         "nighttime lantern festival, hundreds of paper lanterns suspended at varying heights, warm amber and red glow cast on surrounding crowd faces, dark twilight sky as contrast backdrop, wooden stall and string-light details in background, floating sky lanterns as small bright dots in distance, smoke haze softening distant lanterns, 85mm lens at f/1.8 handheld, festive night photograph with real fire-lit color temperature."
     ),
     "🗺️ СЦЕНЫ/🔦 Flashlight Beam": (
-        "dark environment, focused flashlight beam at 1/40s, sharp light cone caught mid-sweep, strong falloff, dust swirling through the air the beam has just crossed, search lighting realism."
+        "dark environment, focused flashlight beam at 1/40s, sharp light cone caught mid-sweep, strong falloff, dust swirling through the air the beam has just crossed, a search light doing its actual job."
     ),
     "🗺️ СЦЕНЫ/🏺 Pottery Studio": (
         "ceramic workshop with potter's wheel, wet clay on wheel surface with spiral throwing marks, the wheel still turning fast enough to smear at 1/40s, fresh wet fingerprints on the rim and down the apron, damp earthy smell implied by diffused natural light, plaster and wooden rib tools on workbench, unfired pots on drying shelves in background, splattered clay droplets on floor, warm side window lighting emphasizing clay texture, 50mm lens at f/2.8, artisan workspace photograph."
@@ -561,13 +561,13 @@ PHOTO_STYLES = {
         "vintage shop interior, densely packed shelves with mixed-era objects, retro signage and tin advertising panels, warm incandescent lighting creating amber glow, the shop bell still swinging on its bracket above the door, dust turning in the shaft from the window, worn wooden floorboards, glass display case reflections, stacked vinyl records and paperback books, 35mm lens at f/2.8, nostalgic clutter composition photographed with real aged-surface and paper-patina texture."
     ),
     "🗺️ СЦЕНЫ/🌉 Golden Gate": (
-        "Golden Gate Bridge framed through coastal fog layer, International Orange paint texture on cable and tower surface, suspension cable geometry against mist-white sky, bridge tower fading into fog above, car and pedestrian scale detail on roadway, damp sea air softening distant structure edges, cold blue-gray fog against warm rust-orange metal, landmark photography realism."
+        "Golden Gate Bridge framed through coastal fog layer, International Orange paint texture on cable and tower surface, suspension cable geometry against mist-white sky, bridge tower fading into fog above, car and pedestrian scale detail on roadway, damp sea air softening distant structure edges, cold blue-gray fog against warm rust-orange metal, landmark photography in coastal weather."
     ),
     "🗺️ СЦЕНЫ/🛁 Rainy Window": (
         "rain on glass surface viewed from indoors, water droplet lensing creating distorted view of outside, individual droplet tracks and splash patterns on pane, soft indoor light reflecting on wet glass, blurred city or garden shapes behind moisture layer, condensation ring at glass bottom edge, interior-exterior contrast with real droplet physics and surface tension detail."
     ),
     "🗺️ СЦЕНЫ/🪐 Neon Desert": (
-        "open desert at night, single neon sign structure planted in sand with one tube flickering out of sync with the rest, moths streaking through the glow across the long exposure, dark starry sky with minimal light pollution, neon glow spilling across sandy ground and casting colored shadows, distant mesas or rock formations faintly visible, reflective surfaces on sign frame catching the glow, retrofuture roadside atmosphere, 24mm lens on a tripod, 20-second exposure at f/2.8, desert-night photography realism."
+        "open desert at night, single neon sign structure planted in sand with one tube flickering out of sync with the rest, moths streaking through the glow across the long exposure, dark starry sky with minimal light pollution, neon glow spilling across sandy ground and casting colored shadows, distant mesas or rock formations faintly visible, reflective surfaces on sign frame catching the glow, retrofuture roadside atmosphere, 24mm lens on a tripod, 20-second exposure at f/2.8, a desert night with the tripod out."
     ),
     "🗺️ СЦЕНЫ/🥾 Hiking Trail": (
         "mountain trail curving through terrain, packed dirt and loose gravel texture underfoot, dust still hanging where a boot has just scuffed it, wild grass and low brush bending along the trail edges, natural daylight with cloud-softened shadows, distant mountain layers fading in atmospheric haze, backpack and pole detail in frame edge, outdoor adventure photography with real terrain and vegetation truth."
