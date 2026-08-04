@@ -193,22 +193,23 @@ def test_sdxl_json_mode_wraps():
 
 
 # ─────────────────────────────────────────────────────────────────────────
-# QWEN - Forced restructuring
+# QWEN - clean prose passes, messy output gets repaired
 # ─────────────────────────────────────────────────────────────────────────
 
 
-def test_qwen_forces_restructuring():
-    """QWEN forces restructuring like SDXL."""
+def test_qwen_clean_prose_passes_through():
+    """Clean LLM prose reaches Qwen-Image normalized, not bucketed."""
     prompt = "A simple scene description"
     output, meta = convert_to_dit_format(prompt, "QWEN", "text")
-    assert meta["mode"] == "restructured"
-    assert len(output) > len(prompt)
+    assert meta["mode"] == "normalize_only"
+    assert output == "A simple scene description"
 
 
-def test_qwen_restructure_adds_semantics():
-    """QWEN restructuring adds semantic information."""
-    prompt = "A cyberpunk android with neon implants"
+def test_qwen_messy_output_still_restructured():
+    """Markdown/bullet LLM output is repaired via the labeled restructure."""
+    prompt = "**Subject:** A cyberpunk android\n- neon implants\n- rainy street"
     output, meta = convert_to_dit_format(prompt, "QWEN", "text")
+    assert meta["mode"] == "restructured"
 
     # Must contain original key terms
     assert "android" in output or "neon" in output or "cyberpunk" in output
