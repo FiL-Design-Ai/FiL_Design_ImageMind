@@ -98,7 +98,7 @@ PHOTO_STYLES = {
         "slow shutter at 1/15s on a braced camera, hands and moving limbs dragged into a soft translucent smear while the head and torso stay readable, ghosted trailing edges where a limb crossed the frame, everything stationary staying crisp, available-light frame with real hand-movement energy."
     ),
     "⏱️ ЗАХВАТ/👻 Long Exposure Ghost": (
-        "30-second exposure on a tripod at f/11 behind an ND filter, whatever stayed put comes out razor sharp, whatever moved thins into a translucent ghost or vanishes entirely, smeared crowd trails, silky flattened water, light trails drawn by passing sources, architectural long-exposure technique."
+        "30-second exposure from a locked-off camera at f/11 behind an ND filter, no tripod visible in frame, whatever stayed put comes out razor sharp, everyone who walked through reduced to a transparent streak with no face and no limbs, half-erased figures smeared across the pavement, water flattened to silk, passing lights stretched into continuous lines, architectural long-exposure technique."
     ),
     "⏱️ ЗАХВАТ/📳 Rolling Shutter Skew": (
         "CMOS rolling shutter artifact, vertical lines leaning as the sensor reads the frame line by line, wobbling jello distortion across fast movement, spoke and propeller geometry bent into impossible curves, partial-frame flash banding, cheap-video sensor artifact recorded in camera."
@@ -110,7 +110,7 @@ PHOTO_STYLES = {
         "zoom burst at 1/8s, focal length racked through the exposure, radial streaks exploding outward from the centre of the frame, the middle staying comparatively sharp while the edges stretch into speed lines, explosive in-camera perspective with no post-processing."
     ),
     "⏱️ ЗАХВАТ/🏃 Handheld Grab Shot": (
-        "grabbed handheld frame at 1/60s, camera raised in a hurry, horizon tilted a few degrees off level, focus landing slightly behind the intended point, framing cropped tight and imperfect at one edge, faint motion softness across the whole frame, unrepeatable press-moment capture."
+        "grabbed handheld frame at 1/60s, camera raised in a hurry and fired without looking, the whole frame rotated about ten degrees so the horizon runs diagonally across it, the subject sitting off-centre and clipped by one edge of the frame, focus missed and landing on the background instead, dead space filling half the picture, faint motion softness throughout, unrepeatable press-moment capture."
     ),
     # 🕰️ РЕТРО
     "🕰️ РЕТРО/🎞️ Vintage 70s Portra": (
