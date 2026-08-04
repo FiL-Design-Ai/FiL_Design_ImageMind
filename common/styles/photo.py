@@ -94,14 +94,24 @@ PHOTO_STYLES = {
     "⏱️ ЗАХВАТ/🏎️ Panning Follow": (
         "panning shot at 1/30s, camera swung to follow the movement, subject held sharp while the whole background smears into horizontal streaks, colour bands drawn out along the direction of the pan, slight vertical wobble from the handheld swing, motorsport and street panning technique."
     ),
+    # Described the smear and never the movement to smear — nothing here told
+    # the model a hand was doing anything, so a live render came back as an
+    # ordinary static portrait with "everything crisp" taken literally. Wind
+    # Gust solved the same problem with an outside force (wind) that needs no
+    # cooperation from the subject's pose; a hand has no equivalent, so this
+    # names the smallest, most generic gesture that fits almost any pose.
     "⏱️ ЗАХВАТ/👋 Gesture Smear": (
-        "slow shutter at 1/15s on a braced camera, hands and moving limbs dragged into a soft translucent smear while the head and torso stay readable, ghosted trailing edges where a limb crossed the frame, everything stationary staying crisp, available-light frame with real hand-movement energy."
+        "slow shutter at 1/15s on a braced camera, one hand caught mid-gesture — brushing hair back, adjusting a cuff, a small conversational motion — dragged into a soft translucent smear while the head and torso stay readable, ghosted trailing edges where the hand crossed the frame, everything else stationary staying crisp, available-light frame with real hand-movement energy."
     ),
     "⏱️ ЗАХВАТ/👻 Long Exposure Ghost": (
         "30-second exposure from a locked-off camera at f/11 behind an ND filter, no tripod visible in frame, whatever stayed put comes out razor sharp, everyone who walked through reduced to a transparent streak with no face and no limbs, half-erased figures smeared across the pavement, water flattened to silk, passing lights stretched into continuous lines, architectural long-exposure technique."
     ),
+    # Leaned entirely on "spoke and propeller geometry" — an object most
+    # scenes don't contain — with no fallback, so a live render with neither
+    # in frame came back with no skew at all. Led instead with the one thing
+    # every photograph already has: vertical lines in the background.
     "⏱️ ЗАХВАТ/📳 Rolling Shutter Skew": (
-        "CMOS rolling shutter artifact, vertical lines leaning as the sensor reads the frame line by line, wobbling jello distortion across fast movement, spoke and propeller geometry bent into impossible curves, partial-frame flash banding, cheap-video sensor artifact recorded in camera."
+        "CMOS rolling shutter artifact, every vertical line in the frame — door frames, window mullions, background architecture — leaning at a consistent diagonal as the sensor reads top to bottom, a jello wobble across anything in the scene that is moving, spoke or propeller geometry bent into impossible curves if either is present, partial-frame flash banding, cheap-video sensor artifact recorded in camera."
     ),
     "⏱️ ЗАХВАТ/⚡ Rear-Curtain Sync": (
         "rear-curtain flash sync at 1/4s, ambient light drawing a blurred trail that ends in a crisp flash-frozen subject, streaks running behind the direction of travel rather than ahead of it, warm ambient smear against cool flash-lit detail, night event photography technique."

@@ -25,6 +25,21 @@
 
 ### Changed
 
+- **`⏱️ ЗАХВАТ`, `🕰️ РЕТРО`, `📷 КАМЕРЫ`, `🏙️ СРЕДА`, `👗 ФЭШН` swept live — 2 of
+  47 needed fixing.** Both in `⏱️ ЗАХВАТ`, and both the same disease from a new
+  angle: `Gesture Smear` described the smear and never the movement to smear —
+  nothing told the model a hand was doing anything, so a live render came back
+  as two ordinary static women. Wind Gust solved the equivalent problem with an
+  outside force (wind) that needs no cooperation from the subject's pose; a
+  hand has no such shortcut, so this now names the smallest, most generic
+  gesture that fits almost any pose — brushing hair back, adjusting a cuff.
+  `Rolling Shutter Skew` leaned entirely on "spoke and propeller geometry",
+  which most scenes don't contain and had no fallback; a render with neither in
+  frame came back with no skew at all. Led instead with the one thing every
+  photograph already has — vertical lines in the background — with the
+  spoke/propeller case kept as a bonus when one is present. The other 45 held
+  up, `📷 КАМЕРЫ` and `🏙️ СРЕДА` in particular each reading as nine distinct,
+  unmistakable places rather than variations on each other.
 - **`🧪 ЭФФЕКТЫ` and `🗺️ СЦЕНЫ` swept live — 2 of 67 needed fixing.** `HDR
   Dynamic` described the merging process ("three bracketed exposures, tone
   mapping, highlight recovery") and never the visible signature that process
