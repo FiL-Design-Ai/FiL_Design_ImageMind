@@ -155,13 +155,15 @@ def test_negative_clause_empty_for_no_negative():
 
 
 def test_negative_clause_applies_to_all_positive_models():
-    for model_type in ("FLUX", "Z-Image Turbo", "Krea 2", "Video"):
+    for model_type in ("FLUX", "Z-Image Turbo", "Krea 2", "Ideogram 4", "Video"):
         clause = negative_to_positive_clause("x", model_type)
         assert "Avoid:" not in clause, f"{model_type} should use positive constraints"
 
 
-def test_negative_clause_ideogram4_uses_standard_avoid():
-    # Ideogram 4 has a real negative_prompt field (docs.ideogram.ai), so it
-    # no longer needs the positive-constraint reframing.
+def test_negative_clause_ideogram4_uses_positive_constraints():
+    # Ideogram 4's v4 API exposes no negative_prompt field (only v3 had one)
+    # and its prompting guide recommends positive opposites, so exclusions are
+    # reframed the same way as FLUX/Z-Image/Krea 2/Video.
     clause = negative_to_positive_clause("x", "Ideogram 4")
-    assert clause.startswith("Avoid:")
+    assert "Avoid:" not in clause
+    assert clause.startswith("Constraints")

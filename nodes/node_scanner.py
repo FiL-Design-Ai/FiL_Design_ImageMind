@@ -92,7 +92,7 @@ description=(
                 io.Int.Input("height", default=0, min=0, max=16384, step=8, optional=True, force_input=True,
                              tooltip=t("tt_height", "Target image height in pixels. Helps tailor prompt composition to aspect ratio if > 0.")),
                 io.String.Input("prompt", default="", multiline=True, optional=True, tooltip=t("tt_prompt", "Without an image — the idea itself, expanded into a finished prompt. With an image — what to focus on and what the text is for; subject, pose and object count come from the image and cannot be changed here. Details: docs/scanner-prompts.md")),
-                io.String.Input("negative_prompt", default="", multiline=True, optional=True, tooltip=t("tt_neg_prompt", "Removes words from the generated text, not objects from the image. Short nouns, comma-separated. Under FLUX / Z-Image Turbo / Krea 2 / Video the list is flipped into positive wording. Details: docs/scanner-prompts.md"), advanced=True),
+                io.String.Input("negative_prompt", default="", multiline=True, optional=True, tooltip=t("tt_neg_prompt", "Removes words from the generated text, not objects from the image. Short nouns, comma-separated. Under FLUX / Z-Image Turbo / Krea 2 / Ideogram 4 / Video the list is flipped into positive wording. Details: docs/scanner-prompts.md"), advanced=True),
                 io.Combo.Input("detail_level", options=list(DETAIL_LEVELS), default=default_detail_level(DETAIL_LEVELS), advanced=True,
                                tooltip=t("tt_detail", "How much detail to include in the generated description.")),
                 io.Combo.Input("language", options=LANGUAGES, default=first_or_default(LANGUAGES, "ru"), advanced=True,

@@ -66,8 +66,10 @@ MODEL_TYPE_GUIDANCE: Dict[str, str] = {
         "Target generator: Ideogram 4.0. Write a plain natural-language descriptive "
         "prompt — normal sentences, no JSON, no field labels, no markdown. Ideogram's "
         "own Magic Prompt feature (server-side) handles further enhancement on its "
-        "end; do not try to build a structured caption object yourself. Put any exact "
-        "on-image text in quotes."
+        "end; do not try to build a structured caption object yourself. Keep it to "
+        "about 150-160 words with the most important subject first — longer prompts "
+        "lose accuracy. Put any exact on-image text in quotes, and express exclusions "
+        "as their positive visual opposite: the v4 API has no negative-prompt input."
     ),
     "Video": (
         "Target generators: video generation models — MiniMax H2/H3, Wan 2.x, "
@@ -101,10 +103,11 @@ def build_model_type_guidance(model_type: str) -> str:
 def negative_to_positive_clause(negative_prompt: str, model_type: str) -> str:
     """Build the negative-prompt clause appropriate for ``model_type``.
 
-    Positive-constraint models (FLUX, Z-Image Turbo, Krea 2) are told to avoid
-    the listed elements by describing what IS present instead. Standard models
-    — including Ideogram 4, which has a real negative_prompt field — get a
-    plain 'Avoid:' clause.
+    Positive-constraint models (FLUX, Z-Image Turbo, Krea 2, Ideogram 4,
+    Video) are told to avoid the listed elements by describing what IS present
+    instead — Ideogram 4's v4 API exposes no negative_prompt field (v3 had
+    one), and its prompting guide recommends positive opposites. Standard
+    models get a plain 'Avoid:' clause.
     """
     neg = (negative_prompt or "").strip()
     if not neg:

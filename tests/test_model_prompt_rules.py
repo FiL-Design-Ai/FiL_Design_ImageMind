@@ -102,18 +102,18 @@ def test_dit_prompting_flags():
 
 
 def test_positive_constraints_flags():
-    # positive_constraints: FLUX, Z-Image, Krea 2, Video (no real
-    # negative-prompt support — video models have no negative input)
+    # positive_constraints: FLUX, Z-Image, Krea 2, Ideogram 4, Video (no real
+    # negative-prompt support on their current APIs — Ideogram 4's v4 endpoint
+    # dropped the field v3 had, and its guide recommends positive opposites)
     assert model_uses_positive_constraints("FLUX") is True
     assert model_uses_positive_constraints("Z-Image Turbo") is True
     assert model_uses_positive_constraints("Krea 2") is True
     assert model_uses_positive_constraints("Video") is True
-    # standard: SDXL, QWEN, Auto, Ideogram 4 (Ideogram's API has a real
-    # negative_prompt field per docs.ideogram.ai)
+    assert model_uses_positive_constraints("Ideogram 4") is True
+    # standard: SDXL, QWEN, Auto
     assert model_uses_positive_constraints("SDXL") is False
     assert model_uses_positive_constraints("QWEN") is False
     assert model_uses_positive_constraints("Auto/None") is False
-    assert model_uses_positive_constraints("Ideogram 4") is False
 
 
 def test_json_schema_helpers():
@@ -147,7 +147,7 @@ def test_negative_prompt_support():
     assert model_supports_negative_prompt("QWEN") is True
     assert model_supports_negative_prompt("FLUX") is False
     assert model_supports_negative_prompt("Z-Image Turbo") is False
-    assert model_supports_negative_prompt("Ideogram 4") is True
+    assert model_supports_negative_prompt("Ideogram 4") is False
     assert model_supports_negative_prompt("Krea 2") is False
     assert model_supports_negative_prompt("Video") is False
 
