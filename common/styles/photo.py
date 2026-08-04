@@ -82,6 +82,36 @@ PHOTO_STYLES = {
     "⏱️ ЗАХВАТ/🎞️ Slo-Mo Bullet Time": (
         "Phantom Flex high-speed camera at 1000fps, 50mm lens at f/4 under heavy continuous light, extreme slow motion effect, suspended motion state, frozen debris and particles, crisp subject isolation, hyper-detailed temporal resolution, single frame pulled from real high-speed footage."
     ),
+    # The library described the camera in detail and the moment almost never:
+    # 90 of 163 entries opened with a lens and an aperture, 14 said anything
+    # about what was happening in front of it. These are shutter techniques, not
+    # subjects — they stack onto any other style through Style Mixer and add the
+    # movement the rest of the library has no vocabulary for. Each one therefore
+    # names only how the frame was taken, never who is in it.
+    "⏱️ ЗАХВАТ/🌬️ Wind Gust": (
+        "gust of wind caught at 1/250s, hair strands and loose fabric lifted and streaming sideways, light material blurred at the tips while the face stays sharp, dust and leaf debris carried through the frame, clothing pressed flat on the windward side, natural outdoor light, handheld capture of a real weather moment."
+    ),
+    "⏱️ ЗАХВАТ/🏎️ Panning Follow": (
+        "panning shot at 1/30s, camera swung to follow the movement, subject held sharp while the whole background smears into horizontal streaks, colour bands drawn out along the direction of the pan, slight vertical wobble from the handheld swing, motorsport and street panning technique."
+    ),
+    "⏱️ ЗАХВАТ/👋 Gesture Smear": (
+        "slow shutter at 1/15s on a braced camera, hands and moving limbs dragged into a soft translucent smear while the head and torso stay readable, ghosted trailing edges where a limb crossed the frame, everything stationary staying crisp, available-light frame with real hand-movement energy."
+    ),
+    "⏱️ ЗАХВАТ/👻 Long Exposure Ghost": (
+        "30-second exposure on a tripod at f/11 behind an ND filter, whatever stayed put comes out razor sharp, whatever moved thins into a translucent ghost or vanishes entirely, smeared crowd trails, silky flattened water, light trails drawn by passing sources, architectural long-exposure technique."
+    ),
+    "⏱️ ЗАХВАТ/📳 Rolling Shutter Skew": (
+        "CMOS rolling shutter artifact, vertical lines leaning as the sensor reads the frame line by line, wobbling jello distortion across fast movement, spoke and propeller geometry bent into impossible curves, partial-frame flash banding, cheap-video sensor artifact recorded in camera."
+    ),
+    "⏱️ ЗАХВАТ/⚡ Rear-Curtain Sync": (
+        "rear-curtain flash sync at 1/4s, ambient light drawing a blurred trail that ends in a crisp flash-frozen subject, streaks running behind the direction of travel rather than ahead of it, warm ambient smear against cool flash-lit detail, night event photography technique."
+    ),
+    "⏱️ ЗАХВАТ/🎯 Zoom Burst": (
+        "zoom burst at 1/8s, focal length racked through the exposure, radial streaks exploding outward from the centre of the frame, the middle staying comparatively sharp while the edges stretch into speed lines, explosive in-camera perspective with no post-processing."
+    ),
+    "⏱️ ЗАХВАТ/🏃 Handheld Grab Shot": (
+        "grabbed handheld frame at 1/60s, camera raised in a hurry, horizon tilted a few degrees off level, focus landing slightly behind the intended point, framing cropped tight and imperfect at one edge, faint motion softness across the whole frame, unrepeatable press-moment capture."
+    ),
     # 🕰️ РЕТРО
     "🕰️ РЕТРО/🎞️ Vintage 70s Portra": (
         "Kodak Portra 400 film look, warm skin tones, soft highlight halation, subtle shadow grain, low contrast midtones, analog color shift, sun-faded palette, film softness, vintage editorial realism, 1970s photography aesthetic."

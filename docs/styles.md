@@ -8,23 +8,29 @@ A preset may strengthen or change medium, render language, palette, material tre
 
 ### Photo presets
 
-`common/styles/photo.py` contains **163** visible photo presets.
+`common/styles/photo.py` contains **171** visible photo presets.
 
 Current category layout:
 
-- `📷 КАМЕРЫ` — 7
+- `📷 КАМЕРЫ` — 9
 - `📐 МОДИФИКАТОРЫ` — 5
 - `🎬 КИНО` — 5
-- `⏱️ ЗАХВАТ` — 3
-- `🕰️ РЕТРО` — 7
+- `⏱️ ЗАХВАТ` — 11
+- `🕰️ РЕТРО` — 10
 - `🏠 ИНТЕРЬЕР` — 7
 - `👗 ФЭШН` — 8
 - `🏙️ СРЕДА` — 9
 - `🏜️ ЖАНРЫ` — 7
 - `📸 РЕПОРТАЖ` — 3
-- `🧪 ЭФФЕКТЫ` — 30
+- `🧪 ЭФФЕКТЫ` — 31
 - `🦾 КИБЕРПАНК` — 30
 - `🗺️ СЦЕНЫ` — 36
+
+`⏱️ ЗАХВАТ` is the movement vocabulary: shutter techniques meant to be stacked
+onto another preset through Style Mixer. Each one describes only how the frame
+was taken, so it can ride on any subject, and each carries a guardrail in
+`common/style_engine/presets.py` stopping the model from inventing action when
+the scene it is applied to is standing still.
 
 ### Art presets
 
