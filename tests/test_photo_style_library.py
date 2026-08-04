@@ -107,6 +107,41 @@ def test_no_photo_style_resolves_to_a_category_that_forbids_photographs() -> Non
     assert not offenders, f"photo styles routed into anti-photographic categories: {offenders}"
 
 
+def test_no_photo_style_ends_on_the_word_realism() -> None:
+    """62 of 163 presets closed on the same word, and it was doing no work.
+
+    "cinematic movement realism", "moody urban realism", "tactile engineering
+    realism" — a third of the library ended in an adjective plus `realism`,
+    which names no camera, no practice and no context, and left the styles
+    reading as variations of each other. Endings now say who takes this kind of
+    picture and why. The word is still allowed inside a style; it is the
+    interchangeable closing beat that is not.
+    """
+    from FiL_Design_ImageMind.common.styles.nsfw_photo import NSFW_PHOTO_STYLES
+
+    tail = re.compile(r"realis(m|tic)\W*$", re.IGNORECASE)
+    offenders = [
+        name
+        for library in (PHOTO_STYLES, NSFW_PHOTO_STYLES)
+        for name, text in library.items()
+        if text and tail.search(text.strip())
+    ]
+    assert not offenders, f"these styles close on a bare 'realism': {offenders}"
+
+
+def test_photo_style_endings_are_not_interchangeable() -> None:
+    """The closing segment is the last thing the model reads — make it specific."""
+    from collections import Counter
+
+    endings = Counter(
+        text.strip().rstrip(".").rpartition(",")[2].strip().lower()
+        for text in PHOTO_STYLES.values()
+        if text
+    )
+    repeated = {ending: count for ending, count in endings.items() if count > 2}
+    assert not repeated, f"endings reused across three or more styles: {repeated}"
+
+
 def test_the_guard_leaves_the_art_library_alone() -> None:
     """The guard keys off photo-library membership, not off wording.
 

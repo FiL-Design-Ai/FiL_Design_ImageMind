@@ -179,7 +179,7 @@ NSFW_PHOTO_STYLES = {
         "adult red-light district android photography, rain-soaked window glow, synthetic companion styling, visible nude adult body details, neon shopfront reflections, transparent vinyl and chrome accessories, street-level documentary realism anchored in adult-only cyberpunk nightlife."
     ),
     "🦾 КИБЕРПАНК/🪞 Augmented Mirror Selfie": (
-        "adult augmented-mirror selfie photography, bathroom or dressing-room mirror plane, AR overlay reflections, smartphone-like crop, exposed nude torso and intimate anatomy where visible, neon vanity strips, realistic glass smudges and skin texture, explicit consensual self-shot cyber realism."
+        "adult augmented-mirror selfie photography, bathroom or dressing-room mirror plane, AR overlay reflections, smartphone-like crop, exposed nude torso and intimate anatomy where visible, neon vanity strips, realistic glass smudges and skin texture, an explicit consensual self-shot."
     ),
     "🦾 КИБЕРПАНК/💡 Bioluminescent Body Ports": (
         "adult bioluminescent body-port photography, glowing subdermal connectors, bare skin around implanted sockets, exposed adult nude anatomy, dark clinical backdrop, blue-green practical glow, macro surface detail, explicit transhuman erotic realism without fantasy magic drift."
@@ -200,7 +200,7 @@ NSFW_PHOTO_STYLES = {
         "adult glass-capsule nude photography, transparent containment pod, condensation and fingerprint marks, exposed adult body behind curved glass, medical-blue neon, chrome floor reflections, consensual display staging, realistic refraction and explicit sci-fi boudoir tension."
     ),
     "🦾 КИБЕРПАНК/🏍️ Neon Motorcycle Garage": (
-        "adult cyber motorcycle-garage photography, wet black floor, glowing bike panels, chrome engine reflections on nude or latex-clad skin, exposed adult anatomy where pose reveals it, hard shop LEDs, grease and neon mix, explicit mechanic-cyber realism."
+        "adult cyber motorcycle-garage photography, wet black floor, glowing bike panels, chrome engine reflections on nude or latex-clad skin, exposed adult anatomy where pose reveals it, hard shop LEDs, grease and neon mix, explicit, and shot in a working garage."
     ),
     "🦾 КИБЕРПАНК/🟣 Blacklight Cyber Boudoir": (
         "adult blacklight cyber boudoir photography, ultraviolet body paint, bare skin glow, exposed breasts and intimate adult silhouette, synthetic sheets, neon cables, saturated purple-blue shadows, real bedroom surface detail, explicit adult boudoir without safe fashion softening."
