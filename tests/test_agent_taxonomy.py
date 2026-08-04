@@ -125,6 +125,30 @@ def test_focus_layers_on_top_of_the_agent(stub_scanner_generate):
     assert "FOCUS OVERLAY — Ultra Detail" in system
 
 
+def test_emotion_and_motion_rides_on_a_non_human_agent(stub_scanner_generate):
+    """The reason it is a focus and not a fourteenth agent.
+
+    Portrait already carries body language; nothing else did. A car mid-corner
+    and a crowd flowing one way are the same question asked of a different
+    subject, so the layer has to compose with the agent rather than replace it.
+    """
+    calls = []
+    _run(stub_scanner_generate, calls, agent="🚗 Transport", agent_focus="🎭 Emotion & Motion")
+    system = calls[-1]["system_prompt"]
+    assert "Transport Agent" in system
+    assert "FOCUS OVERLAY — Emotion & Motion" in system
+    assert "suspension compression" in system
+
+
+def test_emotion_and_motion_still_forbids_emotion_labels(stub_scanner_generate):
+    """The pack describes markers, never conclusions — this layer most of all."""
+    calls = []
+    _run(stub_scanner_generate, calls, agent="👤 Portrait", agent_focus="🎭 Emotion & Motion")
+    system = calls[-1]["system_prompt"]
+    assert "IGNORE: emotion labels" in system
+    assert "not \"happy\"" in system
+
+
 def test_no_focus_adds_nothing(stub_scanner_generate):
     calls = []
     _run(stub_scanner_generate, calls, agent="🏛 Architecture")
