@@ -287,8 +287,14 @@ PHOTO_STYLES = {
     "🧪 ЭФФЕКТЫ/☀️ High-Key Airy": (
         "high-key lighting setup, bright exposure, minimal shadows, white background, soft light diffusion, low contrast, commercial photography lighting, clean airy aesthetic."
     ),
+    # Described the process — "three bracketed exposures merged, tone mapping,
+    # highlight recovery" — and never the visible signature that process
+    # leaves behind, so a live render came back as an ordinary daylight photo.
+    # Fixed by naming the tell: detail retained in the sky and the shadow at
+    # once, which no single exposure can do, and the faint halo tone-mapping
+    # leaves along a hard edge.
     "🧪 ЭФФЕКТЫ/🌈 HDR Dynamic": (
-        "HDR photography, three bracketed exposures merged from raw, extended dynamic range, tone mapping, highlight recovery, shadow lifting, hyper-detailed exposure, tripod-locked frame, high contrast held across the merged frame."
+        "HDR photography, three bracketed exposures merged from raw, every cloud edge outlined in a visible glowing halo where the tone-mapping overshoots, colours pushed loud and slightly unreal, gritty overcooked micro-contrast crawling across every flat surface, shadow areas lifted to a milky grey with texture that should not be visible, a faint painterly artificial sheen over the whole frame, tripod-locked frame, the loud over-processed HDR look popular in the early 2010s."
     ),
     "🧪 ЭФФЕКТЫ/🕯️ Candlelit Mood": (
         "available-light photograph by candlelight, 50mm lens wide open at f/1.4, ISO 3200 with visible grain, warm low color temperature, single flickering source, deep shadow falloff, localized highlights, soft glow on surfaces, handheld low-light capture."
@@ -417,8 +423,18 @@ PHOTO_STYLES = {
     "🧪 ЭФФЕКТЫ/🔦 Полицейский прожектор": (
         "photograph lit by a single hard spotlight, 50mm lens at f/4, high intensity beam, sharp shadow edges, strong falloff into darkness, dark surrounding space, dramatic interrogation lighting, on-location available-light capture."
     ),
+    # Named "a fine repeating pattern" without saying where — moire is an
+    # interference effect between two grids, and with nothing in the frame to
+    # supply the second grid, a live render came back as a plain portrait
+    # against a plain wall. Anchored to a perforated grille, which puts the
+    # fine repeating lines in the background rather than dictating the
+    # subject's own clothing. Two words that read naturally here — "screen",
+    # "venetian blind" — are both `cinema` category triggers and would have
+    # pulled "photograph" into "70mm capture" the moment this stacks through
+    # Smart LLM Fusion; checked the replacement word against the full cinema
+    # keyword list before settling on it.
     "🧪 ЭФФЕКТЫ/🌊 Цифровой муар": (
-        "photograph showing sensor moire, fine repeating fabric or screen pattern beating against the sensor grid, interference lines, high-frequency texture distortion, colored aliasing fringes, real optical artifact recorded in camera rather than added afterwards."
+        "photograph showing sensor moire, a perforated metal grille in the background with its repeating holes beating against the sensor's pixel grid, rainbow interference bands rippling across the pattern, colored aliasing fringes, real optical artifact recorded in camera rather than added afterwards."
     ),
     "🧪 ЭФФЕКТЫ/🫧 Мыльные пузыри": (
         "macro photograph of a soap bubble, 100mm macro lens at f/8, thin-film interference, rainbow reflections, iridescent colors, smooth spherical surface, light refraction, soft highlights, focus-stacked optical physics captured in camera."

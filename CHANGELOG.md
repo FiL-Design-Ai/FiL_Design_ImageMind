@@ -25,6 +25,22 @@
 
 ### Changed
 
+- **`🧪 ЭФФЕКТЫ` and `🗺️ СЦЕНЫ` swept live — 2 of 67 needed fixing.** `HDR
+  Dynamic` described the merging process ("three bracketed exposures, tone
+  mapping, highlight recovery") and never the visible signature that process
+  leaves; a render came back as an ordinary daylight photo. Now names the tell
+  — glowing halos on cloud edges, colours pushed loud, shadow texture that
+  shouldn't be visible — the recognisable "loud HDR" look. `Цифровой муар`
+  named "a fine repeating pattern" with nowhere to put it, and moire is an
+  interference effect between two grids — with nothing supplying the second
+  grid, the render was a plain portrait against a plain wall. Anchored to a
+  perforated metal grille in the background. Two more natural word choices for
+  that grille — "screen", "venetian blind" — turned out to be `cinema`
+  category triggers that would have rewritten "photograph" into "70mm capture"
+  the moment the preset stacked through Smart LLM Fusion; checked the final
+  wording against the full keyword list before settling on it. The other 65
+  presets — all 36 `🗺️ СЦЕНЫ` (already repaired earlier this session) plus 29
+  of `🧪 ЭФФЕКТЫ` — held up on inspection.
 - **A written rule for style prose, and one narrow test instead of a broad
   one.** `docs/styles.md` now opens with how to write a preset: the
   comma-separated noun-phrase shape is deliberate (a style stacks *under* the
