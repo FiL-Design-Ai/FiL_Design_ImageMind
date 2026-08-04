@@ -55,7 +55,13 @@ THUMB_PX = 256          # what the committed previews are, and what a tile shows
 RENDER_PX = 1024        # krea-2 native, per its modelspec
 
 HOST = "http://127.0.0.1:8188"
-UNET = "krea2TurboInt8Row_v10.safetensors"
+# Checked against a live /object_info on 2026-08-04. The previous values —
+# `krea2TurboInt8Row_v10.safetensors` and a `TextEncodeKrea2` node — had both
+# disappeared from this install, and every render came back as a bare HTTP 400
+# with no hint as to which of the four names was the dead one. If that happens
+# again, ask the host rather than guessing:
+#   curl -s http://127.0.0.1:8188/object_info | python -c "..."
+UNET = "Krea2\\krea2TurboOfficialComfy_krea2TurboFp8.safetensors"
 CLIP = "Krea2\\qwen3vl_4b_fp8_scaled.safetensors"
 VAE = "krea2RealVae_v10.safetensors"
 SEED = 777001
@@ -145,8 +151,10 @@ def build_graph(prompt: str) -> dict:
         "1": {"class_type": "UNETLoader", "inputs": {"unet_name": UNET, "weight_dtype": "default"}},
         "2": {"class_type": "CLIPLoader", "inputs": {"clip_name": CLIP, "type": "krea2"}},
         "3": {"class_type": "VAELoader", "inputs": {"vae_name": VAE}},
-        "4": {"class_type": "TextEncodeKrea2", "inputs": {"clip": ["2", 0], "prompt": prompt}},
-        "5": {"class_type": "TextEncodeKrea2", "inputs": {"clip": ["2", 0], "prompt": ""}},
+        # Krea2 is encoded through the stock CLIPTextEncode now; the dedicated
+        # TextEncodeKrea2 node this used to call is gone from the host.
+        "4": {"class_type": "CLIPTextEncode", "inputs": {"clip": ["2", 0], "text": prompt}},
+        "5": {"class_type": "CLIPTextEncode", "inputs": {"clip": ["2", 0], "text": ""}},
         "6": {"class_type": "EmptySD3LatentImage",
               "inputs": {"width": RENDER_PX, "height": RENDER_PX, "batch_size": 1}},
         "7": {"class_type": "KSampler", "inputs": {
