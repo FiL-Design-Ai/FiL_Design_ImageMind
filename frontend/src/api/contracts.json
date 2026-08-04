@@ -6244,7 +6244,8 @@
               "SDXL",
               "QWEN",
               "Krea 2",
-              "Ideogram 4"
+              "Ideogram 4",
+              "Video"
             ],
             "columns": 3,
             "searchable": null,

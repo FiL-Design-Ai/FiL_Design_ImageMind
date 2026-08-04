@@ -693,10 +693,15 @@ def convert_to_dit_format(
 
     rule = get_model_prompt_rule(model_type)
 
-    # Krea 2 — natural language, no restructure (checked before the
-    # post_convert_text gate because Krea 2 has that flag False).
-    if rule.get("target_prompt_format") == "krea2_natural_language":
-        return _normalize_prompt_ready_text(text, max_words), {**base_meta, "mode": "krea2_natural_language"}
+    # Natural-language targets (Krea 2, Video) — normalize only, never
+    # restructure: bucketing into comma-joined components would undo the
+    # flowing prose their contracts ask the LLM for. Checked before the
+    # post_convert_text gate because Krea 2 has that flag False.
+    if rule.get("target_prompt_format") in ("krea2_natural_language", "video_natural_language"):
+        return _normalize_prompt_ready_text(text, max_words), {
+            **base_meta,
+            "mode": str(rule["target_prompt_format"]),
+        }
 
     # Text-mode: only convert if the rule says so.
     if not rule.get("post_convert_text") and response_format != "json":

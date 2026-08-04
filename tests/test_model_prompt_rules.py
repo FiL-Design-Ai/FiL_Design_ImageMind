@@ -81,6 +81,7 @@ def test_non_forced_models_passthrough_response_format():
 def test_target_prompt_format_explicit_vs_computed():
     # explicit
     assert get_target_prompt_format("Krea 2", "text") == "krea2_natural_language"
+    assert get_target_prompt_format("Video", "text") == "video_natural_language"
     # computed (Ideogram 4 no longer has an explicit target_prompt_format —
     # it uses the same computed fallback as any other plain-text model)
     assert get_target_prompt_format("Ideogram 4", "json") == "ideogram_4_json"
@@ -93,6 +94,7 @@ def test_dit_prompting_flags():
     assert model_uses_dit_prompting("FLUX") is True
     assert model_uses_dit_prompting("Z-Image Turbo") is True
     assert model_uses_dit_prompting("QWEN") is True
+    assert model_uses_dit_prompting("Video") is True
     assert model_uses_dit_prompting("SDXL") is False
     assert model_uses_dit_prompting("Krea 2") is False
     assert model_uses_dit_prompting("Ideogram 4") is False
@@ -100,10 +102,12 @@ def test_dit_prompting_flags():
 
 
 def test_positive_constraints_flags():
-    # positive_constraints: FLUX, Z-Image, Krea 2 (no real negative-prompt support)
+    # positive_constraints: FLUX, Z-Image, Krea 2, Video (no real
+    # negative-prompt support — video models have no negative input)
     assert model_uses_positive_constraints("FLUX") is True
     assert model_uses_positive_constraints("Z-Image Turbo") is True
     assert model_uses_positive_constraints("Krea 2") is True
+    assert model_uses_positive_constraints("Video") is True
     # standard: SDXL, QWEN, Auto, Ideogram 4 (Ideogram's API has a real
     # negative_prompt field per docs.ideogram.ai)
     assert model_uses_positive_constraints("SDXL") is False
@@ -130,6 +134,9 @@ def test_post_conversion_needs():
     assert model_needs_prompt_post_conversion("FLUX", "text") is True
     assert model_needs_prompt_post_conversion("Auto/None", "text") is False
     assert model_needs_prompt_post_conversion("Krea 2", "text") is False
+    # Video rides the normalize-only natural-language path, but the flag is
+    # True so the node actually calls the converter (truncation + cleanup).
+    assert model_needs_prompt_post_conversion("Video", "text") is True
     # ideogram forced json -> always needs
     assert model_needs_prompt_post_conversion("Ideogram 4", "text") is True
 
@@ -142,11 +149,13 @@ def test_negative_prompt_support():
     assert model_supports_negative_prompt("Z-Image Turbo") is False
     assert model_supports_negative_prompt("Ideogram 4") is True
     assert model_supports_negative_prompt("Krea 2") is False
+    assert model_supports_negative_prompt("Video") is False
 
 
 def test_max_words():
     assert get_model_prompt_max_words("Z-Image Turbo") == 250
     assert get_model_prompt_max_words("FLUX") == 160
+    assert get_model_prompt_max_words("Video") == 150
     assert get_model_prompt_max_words("Auto/None") is None
     assert get_model_prompt_max_words("SDXL") is None
 

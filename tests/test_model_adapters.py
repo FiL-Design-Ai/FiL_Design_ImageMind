@@ -252,6 +252,24 @@ def test_dit_convert_krea2_natural_language():
     assert output == "a scene description"
 
 
+def test_dit_convert_video_natural_language():
+    output, meta = convert_to_dit_format("a woman walks through the market", "Video", "text")
+    assert meta["mode"] == "video_natural_language"
+    assert output == "a woman walks through the market"
+
+
+def test_dit_convert_video_normalizes_markdown_without_comma_restructure():
+    # Video stays flowing prose: markdown is stripped and whitespace collapsed,
+    # but the text is never bucketed into the comma-joined component fallback.
+    raw = "**A woman walks** through a night market.\n\nThe camera dollies in slowly."
+    output, meta = convert_to_dit_format(raw, "Video", "text")
+    assert meta["mode"] == "video_natural_language"
+    assert "**" not in output
+    assert "\n" not in output
+    assert "A woman walks through a night market." in output
+    assert "The camera dollies in slowly." in output
+
+
 def test_dit_convert_flux_json_mode_returns_7_field_schema():
     output, meta = convert_to_dit_format(
         "a scene. 50mm lens f/1.8. red color.", "FLUX", "json"
