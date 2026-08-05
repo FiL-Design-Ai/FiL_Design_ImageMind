@@ -107,7 +107,7 @@ export const hiresfixNode: NodeModule = {
       };
       Object.defineProperty(state, "node", { value: node, enumerable: false, configurable: true });
       node._filHiResFixState = state;
-      // 420 was the old nine-row panel. Six rows show by default now — the
+      // 420 was the old nine-row panel. Seven rows show by default now — the
       // rest sits behind the ADVANCED section — and computeSize() wins via
       // Math.max in domWidgetHost.ts anyway, so a stale larger number here
       // only reserved dead space under the last control.
