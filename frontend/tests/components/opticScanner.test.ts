@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { nextTick } from "vue";
+import { nextTick, reactive } from "vue";
 import { mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import OpticScannerVue from "@/components/nodes/OpticScanner.vue";
@@ -12,6 +12,10 @@ function makeState(overrides: Record<string, unknown> = {}) {
       custom_style: "",
       agent: "Universal",
       model_type: "Auto/None",
+      video_duration: 0,
+      video_aspect: "Auto",
+      video_sound: "Auto",
+      video_camera: "Auto",
       detail_level: "normal",
       language: "en",
       prompt_mode: "Auto",
@@ -87,5 +91,97 @@ describe("OpticScanner.vue", () => {
     mount(OpticScannerVue, { props: { state: makeState() } });
     expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
+  });
+
+  // ── Video shot parameters (model_type-gated Output widgets) ─────────────
+  // The four widgets appear only for the Video / MiniMax H3 profiles and
+  // stay hidden for every image target — hidden values persist in nodeState,
+  // and the backend applies the same gate before injecting anything.
+
+  // The aspect widget is a label-less chip grid (same pattern as detail_level),
+  // so it is recognized by its option values instead of a label.
+  const VIDEO_WIDGET_MARKERS = ["Video Duration", "21:9", "Video Sound", "Video Camera"];
+
+  function mountWithModel(modelType: string) {
+    const state = makeState();
+    state.nodeState.model_type = modelType;
+    return mount(OpticScannerVue, { props: { state } });
+  }
+
+  it("hides the video shot parameters for image model types", () => {
+    for (const modelType of ["Auto/None", "FLUX", "Z-Image Turbo", "Krea 2"]) {
+      const wrapper = mountWithModel(modelType);
+      for (const marker of VIDEO_WIDGET_MARKERS) {
+        expect(wrapper.text()).not.toContain(marker);
+      }
+    }
+  });
+
+  it("shows all four video shot parameters for both video profiles", () => {
+    for (const modelType of ["Video", "MiniMax H3"]) {
+      const wrapper = mountWithModel(modelType);
+      for (const marker of VIDEO_WIDGET_MARKERS) {
+        expect(wrapper.text()).toContain(marker);
+      }
+    }
+  });
+
+  // The duration slider's bounds follow the active profile — MiniMax H3's are
+  // the API's hard limit (4-15 whole seconds), universal Video allows 2-20.
+  it("narrows the duration slider bounds for MiniMax H3", () => {
+    const video = mountWithModel("Video");
+    const videoInput = video.find(".fil-w-numfield input");
+    expect(videoInput.attributes("min")).toBe("2");
+    expect(videoInput.attributes("max")).toBe("20");
+
+    const h3 = mountWithModel("MiniMax H3");
+    const h3Input = h3.find(".fil-w-numfield input");
+    expect(h3Input.attributes("min")).toBe("4");
+    expect(h3Input.attributes("max")).toBe("15");
+  });
+
+  // Switching profiles clamps a stored duration into the new range (mirrors
+  // the backend clamp, so the slider never shows a value the prompt can't use).
+  it("clamps the stored duration when the profile range narrows", async () => {
+    const state = reactive(makeState());
+    state.nodeState.model_type = "Video";
+    state.nodeState.video_duration = 18;
+    const wrapper = mount(OpticScannerVue, { props: { state } });
+
+    state.nodeState.model_type = "MiniMax H3";
+    await nextTick();
+    expect(state.nodeState.video_duration).toBe(15);
+
+    // Auto (0) is never clamped — it means "the LLM decides".
+    state.nodeState.video_duration = 0;
+    state.nodeState.model_type = "Video";
+    await nextTick();
+    expect(state.nodeState.video_duration).toBe(0);
+    wrapper.unmount();
+  });
+
+  // Hidden values survive a model switch: what was set under a video profile
+  // comes back when the user returns to it.
+  it("keeps hidden video values across model switches", () => {
+    const state = makeState();
+    state.nodeState.model_type = "Video";
+    state.nodeState.video_duration = 12;
+    state.nodeState.video_camera = "Orbit";
+
+    const shown = mount(OpticScannerVue, { props: { state } });
+    expect(shown.text()).toContain("Video Camera");
+    shown.unmount();
+
+    state.nodeState.model_type = "FLUX";
+    const hidden = mount(OpticScannerVue, { props: { state } });
+    expect(hidden.text()).not.toContain("Video Camera");
+    hidden.unmount();
+
+    state.nodeState.model_type = "MiniMax H3";
+    const restored = mount(OpticScannerVue, { props: { state } });
+    expect(restored.text()).toContain("Video Camera");
+    expect(state.nodeState.video_camera).toBe("Orbit");
+    expect(state.nodeState.video_duration).toBe(12);
+    restored.unmount();
   });
 });

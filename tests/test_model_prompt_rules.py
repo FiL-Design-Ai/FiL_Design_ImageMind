@@ -159,6 +159,7 @@ def test_max_words():
     assert get_model_prompt_max_words("Z-Image Turbo") == 250
     assert get_model_prompt_max_words("FLUX") == 160
     assert get_model_prompt_max_words("Video") == 150
+    assert get_model_prompt_max_words("MiniMax H3") == 250
     assert get_model_prompt_max_words("Auto/None") is None
     assert get_model_prompt_max_words("SDXL") is None
 

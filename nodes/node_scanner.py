@@ -16,6 +16,11 @@ from ..common.data import (
     MODEL_TYPE_OPTIONS,
     NSFW_STYLE_OVERLAY,
     PROMPT_MODE_OPTIONS,
+    VIDEO_ASPECT_OPTIONS,
+    VIDEO_CAMERA_OPTIONS,
+    VIDEO_DURATION_MAX,
+    VIDEO_SOUND_OPTIONS,
+    clamp_video_duration,
     default_detail_level,
     first_or_default,
     get_agent_output_mode,
@@ -24,6 +29,7 @@ from ..common.data import (
     get_visible_agent_keys,
     get_visible_focus_keys,
     get_visible_style_keys,
+    is_video_model_type,
     migrate_legacy_agent,
     model_needs_prompt_post_conversion,
     resolve_agent_key,
@@ -99,6 +105,17 @@ description=(
                                tooltip=t("tt_lang", "Language of the generated prompt/description.")),
                 io.Combo.Input("model_type", options=list(MODEL_TYPE_OPTIONS), default="Auto/None", advanced=True,
                                tooltip=t("tt_model_type", "Target generation model — adjusts prompt syntax, length, and format. Video is a universal profile for video models.")),
+                # Video shot parameters — the panel shows these four only when
+                # model_type is a video profile. All default to Auto, which
+                # injects nothing, so non-video runs are byte-identical.
+                io.Int.Input("video_duration", default=0, min=0, max=VIDEO_DURATION_MAX, step=1, advanced=True,
+                             tooltip=t("tt_video_duration", "Requested clip length in seconds. 0 = Auto (the LLM decides). Range narrows to the model's API limits — MiniMax H3 accepts 4-15 whole seconds.")),
+                io.Combo.Input("video_aspect", options=list(VIDEO_ASPECT_OPTIONS), default="Auto", advanced=True,
+                               tooltip=t("tt_video_aspect", "Aspect ratio written into the shot framing (for MiniMax H3 — into the timeline header line). Auto leaves it to the LLM.")),
+                io.Combo.Input("video_sound", options=list(VIDEO_SOUND_OPTIONS), default="Auto", advanced=True,
+                               tooltip=t("tt_video_sound", "Sound design mode. Off = silent clip (no sound clause); Layered = mandatory ambience + foley + music clause for audio-capable models.")),
+                io.Combo.Input("video_camera", options=list(VIDEO_CAMERA_OPTIONS), default="Auto", advanced=True,
+                               tooltip=t("tt_video_camera", "Preferred camera move. The LLM builds the shot around it and may adapt per story stage — it is a preference, not a hard lock.")),
                 io.Combo.Input("prompt_mode", options=PROMPT_MODE_OPTIONS, default="Auto", advanced=True,
                                tooltip=t("tt_prompt_mode", "Auto picks Hybrid or Two-Stage depending on whether a style is selected.")),
                 io.Combo.Input("photo_style", options=["None"] + get_visible_style_keys("photo_style"), default="None", advanced=True,
@@ -149,6 +166,7 @@ description=(
                            prompt_mode="Auto", photo_style="None", nsfw_photo_style="None",
                            art_style="None", nsfw_art_style="None", custom_style="", seed=-1,
                            response_format="text", width=0, height=0,
+                           video_duration=0, video_aspect="Auto", video_sound="Auto", video_camera="Auto",
                            **kwargs) -> Any:
         image_key: Any = None
         if image is not None:
@@ -175,6 +193,7 @@ description=(
             str(config), agent, agent_focus, prompt, negative_prompt, detail_level, language,
             model_type, prompt_mode, photo_style, nsfw_photo_style, art_style, nsfw_art_style, custom_style,
             seed, response_format, width, height,
+            video_duration, video_aspect, video_sound, video_camera,
             image_key,
         ))
 
@@ -186,7 +205,8 @@ description=(
                       two_stage_timeout, agent_key="None", detail_level="normal",
                       language="ru", rate_limit_ms=100, contract=None, enforcement="",
                       width=0, height=0, focus_key="None", has_image=True,
-                      neg_clause=""):
+                      neg_clause="", video_duration=0, video_aspect="Auto",
+                      video_sound="Auto", video_camera="Auto"):
         fb = None
         if effective_mode == "Two-Stage" and style_block.strip():
             bundle = _prompt_gen.build_system_prompt_two_stage_bundle(
@@ -199,10 +219,19 @@ description=(
                 focus_key=focus_key,
                 has_image=has_image,
                 response_format=response_format,
+                video_duration=video_duration,
+                video_aspect=video_aspect,
+                video_sound=video_sound,
+                video_camera=video_camera,
                 **style_kwargs,
             )
             stage1_sys = bundle["stage1"]["prompt"]
             stage2_sys = bundle["stage2"]["prompt"]
+            # The bundle returns the language rule separately: stage 1 gets it
+            # right away (no overlays land on stage 1), stage 2 receives it
+            # only after its overlays below.
+            language_hint = bundle["language_hint"]
+            stage1_sys = f"{stage1_sys}\n\n{language_hint}"
             if nsfw_active and style_block.strip():
                 stage2_sys = f"{stage2_sys}\n\n{NSFW_STYLE_OVERLAY}"
             if custom_style and custom_style.strip():
@@ -249,6 +278,10 @@ description=(
                 )
                 if support_block:
                     stage2_sys = f"{stage2_sys}\n\n{support_block}"
+            # Language rule closes stage 2 as well — after every overlay — or
+            # the English style text stacked above it pulls the rewrite into
+            # English (stage 2 is what writes the answer the user keeps).
+            stage2_sys = f"{stage2_sys}\n\n{language_hint}"
 
             # `seed >= 0`, not `seed > 0`: 0 is a valid fixed seed — the widget
             # allows it (min=-1), stage 1 passes it through and ModelClient caches
@@ -317,9 +350,30 @@ description=(
                 prompt_mode="Auto", photo_style="None", nsfw_photo_style="None",
                 art_style="None", nsfw_art_style="None", custom_style="", seed=-1,
                 response_format="text", width=0, height=0,
+                video_duration=0, video_aspect="Auto", video_sound="Auto", video_camera="Auto",
                 **kwargs) -> io.NodeOutput:
         t0 = datetime.now(timezone.utc)
         width, height = _coerce_dimension(width), _coerce_dimension(height)
+        # Hidden video values persist in the workflow after a model switch, so
+        # gate them on the CURRENT model_type: switching back to an image model
+        # must produce exactly the pre-widget prompt. Duration is clamped into
+        # the active profile's range (H3: 4-15, the API hard limit).
+        if is_video_model_type(model_type):
+            eff_video_duration = clamp_video_duration(model_type, video_duration)
+            eff_video_aspect = str(video_aspect or "Auto")
+            eff_video_sound = str(video_sound or "Auto")
+            eff_video_camera = str(video_camera or "Auto")
+        else:
+            eff_video_duration, eff_video_aspect, eff_video_sound, eff_video_camera = 0, "Auto", "Auto", "Auto"
+        try:
+            raw_video_duration = int(video_duration)
+        except (TypeError, ValueError):
+            raw_video_duration = 0
+        video_duration_clamped = (
+            is_video_model_type(model_type)
+            and raw_video_duration > 0
+            and raw_video_duration != eff_video_duration
+        )
         provider = config.get("provider", "ollama")
         model = normalize_model_name(config.get("model", ""))
         # Provider Loader owns temperature/max_tokens/rate_limit_ms — Scanner has
@@ -384,7 +438,7 @@ description=(
             or (nsfw_art_style and nsfw_art_style != "None")
         )
 
-        system_prompt, base_prompt, style_block = _prompt_gen.build_system_prompt_bundle(
+        system_prompt, base_prompt, style_block, language_hint = _prompt_gen.build_system_prompt_bundle(
             agent_key=agent_key,
             detail_level=detail_level,
             language=language,
@@ -394,6 +448,10 @@ description=(
             focus_key=focus_key,
             has_image=has_image,
             response_format=response_format,
+            video_duration=eff_video_duration,
+            video_aspect=eff_video_aspect,
+            video_sound=eff_video_sound,
+            video_camera=eff_video_camera,
             **style_kwargs,
         )
 
@@ -410,6 +468,11 @@ description=(
 
         if custom_style and custom_style.strip():
             system_prompt = f"{system_prompt}\n\nCustom style override:\n{custom_style.strip()}"
+
+        # The language rule closes the system prompt — after every style
+        # overlay — because it is the instruction models drop first; the
+        # bundle returns it separately for exactly this.
+        system_prompt = f"{system_prompt}\n\n{language_hint}"
 
         user_message = _prompt_gen.build_stage1_user_prompt(prompt, has_image)
         effective_format = get_effective_response_format(model_type, response_format)
@@ -474,6 +537,10 @@ description=(
                         width=width, height=height,
                         focus_key=focus_key, has_image=has_image,
                         neg_clause=neg_clause or "",
+                        video_duration=eff_video_duration,
+                        video_aspect=eff_video_aspect,
+                        video_sound=eff_video_sound,
+                        video_camera=eff_video_camera,
                     )
                     per_image_results.append(single_result)
                     image_runs.append({
@@ -501,6 +568,10 @@ description=(
                     width=width, height=height,
                     focus_key=focus_key, has_image=has_image,
                     neg_clause=neg_clause or "",
+                    video_duration=eff_video_duration,
+                    video_aspect=eff_video_aspect,
+                    video_sound=eff_video_sound,
+                    video_camera=eff_video_camera,
                 )
         except FiLError as exc:
             clean_msg = sanitize_sensitive_data(exc.message)
@@ -571,6 +642,16 @@ description=(
             "agent_focus": focus_key,
             "detail": detail_level,
             "model_type": model_type,
+            # User-fixed shot facts for video profiles (None = Auto/unset).
+            # Absent for image targets — hidden values never leak into a run
+            # the moment the model switches away from Video/MiniMax H3.
+            "video_params": {
+                "duration": eff_video_duration or None,
+                "duration_clamped": video_duration_clamped,
+                "aspect": None if eff_video_aspect == "Auto" else eff_video_aspect,
+                "sound": None if eff_video_sound == "Auto" else eff_video_sound,
+                "camera": None if eff_video_camera == "Auto" else eff_video_camera,
+            } if is_video_model_type(model_type) else None,
             "prompt_mode": effective_mode,
             "response_format": response_format,
             "style_applied": style_applied,

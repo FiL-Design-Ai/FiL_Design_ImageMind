@@ -184,27 +184,23 @@ Order: suggested sequence for the description
 | # | Agent | Emoji |
 |---|-------|-------|
 | 1 | None | ⚪ |
-| 2 | Universal | 🌐 |
-| 3 | Portrait | 👤 |
-| 4 | Products | 📦 |
-| 5 | Nature & Landscape | 🌿 |
-| 6 | Art & Illustration | 🎨 |
-| 7 | Ultra Detailed Expert | 🔬 |
-| 8 | Cinematic Master | 🎬 |
-| 9 | 18+ | 🔞 |
-| 10 | Fashion | 👗 |
-| 11 | Animals | 🐾 |
-| 12 | Character Performance Agent | 🎭 |
-| 13 | Architecture | 🏛 |
-| 14 | Interior | 🪑 |
-| 15 | City | 🌆 |
-| 16 | Transport | 🚗 |
-| 17 | Food | 🍽 |
-| 18 | Gadgets | 📱 |
-| 19 | Games | 🎮 |
-| 20 | Composition Agent | 📐 |
-| 21 | Lighting & Color Agent | 💡 |
-| 22 | Professional Tagger | 🏷 |
+| 2 | Portrait | 👤 |
+| 3 | Products | 📦 |
+| 4 | Nature & Landscape | 🌿 |
+| 5 | Art & Illustration | 🎨 |
+| 6 | Fashion | 👗 |
+| 7 | Animals | 🐾 |
+| 8 | Architecture | 🏛 |
+| 9 | Interior | 🪑 |
+| 10 | City | 🌆 |
+| 11 | Transport | 🚗 |
+| 12 | Food | 🍽 |
+| 13 | Games | 🎮 |
+
+The craft layers (Composition, Lighting & Color, Ultra Detail, Cinematic,
+Emotion & Motion) live on a separate `agent_focus` axis; tag output is a
+`response_format`, not an agent. Retired names are mapped by
+`migrate_legacy_agent()` so saved workflows keep their behaviour.
 
 #### Key Functions
 
@@ -221,30 +217,44 @@ Order: suggested sequence for the description
 
 Located in `common/logic.py` → `PromptGenerator`.
 
-#### `build_system_prompt_bundle()` (lines 134-163)
+#### `build_system_prompt_bundle()`
 
-Collects agent template + language hint + detail hint + model guidance into a single system prompt:
+Collects, in priority order (later blocks override earlier defaults):
 
 ```
 [AGENT TEMPLATE]
-
-Answer in Russian / English.
-
-Write a balanced description.
-
-[Model type guidance, e.g. FLUX/Z-Image/SDXL…]
-
+[TEXT-ONLY instruction — when no image is wired]
+[Detail hint]
+[Model type guidance, e.g. FLUX/Z-Image/SDXL/Video/MiniMax H3…]
+[SHOT PARAMETERS — user-fixed video widget facts, only for video profiles]
+[Focus overlay — composition / light / detail / cinematic / emotion]
+[Aspect-ratio guidance from wired width/height — skipped when a video
+ aspect widget is locked: the explicit widget outranks the sockets]
 [Style block — only if styles are selected]
+[Tag-shape override — when response_format=tags]
 ```
 
-Returns tuple: `(system_prompt, agent_template, style_block)`
+The language rule is deliberately NOT in this stack. The node appends style
+overlays (enforcement / NSFW / custom style) on top of the bundle, and the
+language rule must be the last block the model reads (it is the instruction
+models drop first), so the bundle returns it separately and the node closes
+the final system prompt with it.
 
-#### `build_system_prompt_two_stage_bundle()` (lines 186-220)
+Returns tuple: `(system_prompt, agent_template, style_block, language_hint)`
 
-Same as above, but splits into two stages:
+#### `build_system_prompt_two_stage_bundle()`
 
-- **Stage 1**: agent + language + detail + model guidance (NO style)
-- **Stage 2**: agent + language + detail + model guidance + style block
+Same stack, split into two stages:
+
+- **Stage 1**: the stack above WITHOUT the style block (raw description).
+  The node appends the language rule right after it.
+- **Stage 2**: the stack WITH the style block and the tag-shape override.
+  The node stacks its own overlays (NSFW / custom style / enforcement /
+  preset-support) on top and closes with the language rule.
+
+Stage 2 does NOT re-process the image — it restyles stage 1's locked text.
+Returns a dict: `stage1.prompt`, `stage2.prompt`, `style_block`,
+`language_hint`.
 
 #### Detail Hints (`common/data.py:14-20`)
 
@@ -270,7 +280,9 @@ Each model type gets appended to system prompt so the LLM knows what output shap
 | QWEN | 1-3 sentences | — | Standard |
 | SDXL | Comma-separated tags | — | Standard |
 | Krea 2 | Natural language prose | — | Positive constraints |
-| Ideogram 4 | Plain natural language | — | Standard |
+| Ideogram 4 | Plain natural language | — | Positive constraints |
+| Video | One continuous shot description | 150 | Positive constraints |
+| MiniMax H3 | Timeline shot-blocks | 250 | Positive constraints |
 
 ### Two-Stage vs Hybrid
 

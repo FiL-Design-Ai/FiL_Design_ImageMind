@@ -203,6 +203,10 @@ target diffusion model. Prompt fields are resizable and also work as input socke
 | `detail_level` | COMBO | `normal` | tiny, short, normal, detailed, ultra |
 | `language` | COMBO | `en` | en, ru |
 | `model_type` | COMBO | `Auto/None` | Z-Image Turbo, FLUX, SDXL, QWEN, Krea 2, Ideogram 4, Video (universal video profile), MiniMax H3 (timeline shot-blocks) |
+| `video_duration` | INT | `0` | visible for video model types only. Requested clip length in seconds; 0 = Auto. Range follows the profile: Video 2-20, MiniMax H3 4-15 (API limit, clamped at injection) |
+| `video_aspect` | COMBO | `Auto` | visible for video model types only. Auto, 16:9, 9:16, 1:1, 21:9 — written into the shot framing (H3 timeline header) |
+| `video_sound` | COMBO | `Auto` | visible for video model types only. Auto / Off (silent clip) / Layered (mandatory ambience + foley + music clause) |
+| `video_camera` | COMBO | `Auto` | visible for video model types only. Preferred camera move — Locked-off, Dolly in/out, Orbit, Pan, Handheld follow, Crane up, FPV push, Rack focus |
 | `prompt_mode` | COMBO | `Auto` | Auto, Hybrid, Two-Stage |
 | `photo_style` / `art_style` | COMBO | `None` | 171 photo + 129 art presets, grouped by category |
 | `nsfw_photo_style` / `nsfw_art_style` | COMBO | `None` | separate 18+ catalogs |
@@ -1067,6 +1071,10 @@ Python самого ComfyUI (`python_embeded`, `venv` или `.venv`), став�
 | `detail_level` | COMBO | `normal` | tiny, short, normal, detailed, ultra |
 | `language` | COMBO | `en` | en, ru |
 | `model_type` | COMBO | `Auto/None` | Z-Image Turbo, FLUX, SDXL, QWEN, Krea 2, Ideogram 4, Video (универсальный видео-профиль), MiniMax H3 (таймлайн-блоки) |
+| `video_duration` | INT | `0` | виден только для видео-моделей. Длительность клипа в секундах; 0 = Auto. Диапазон следует профилю: Video 2-20, MiniMax H3 4-15 (лимит API, клампится при инъекции) |
+| `video_aspect` | COMBO | `Auto` | виден только для видео-моделей. Auto, 16:9, 9:16, 1:1, 21:9 — вшивается в кадр (у H3 — в заголовок таймлайна) |
+| `video_sound` | COMBO | `Auto` | виден только для видео-моделей. Auto / Off (немой клип) / Layered (обязательный слоёный Sound-клауз) |
+| `video_camera` | COMBO | `Auto` | виден только для видео-моделей. Предпочтительное движение камеры — Locked-off, Dolly in/out, Orbit, Pan, Handheld follow, Crane up, FPV push, Rack focus |
 | `prompt_mode` | COMBO | `Auto` | Auto, Hybrid, Two-Stage |
 | `photo_style` / `art_style` | COMBO | `None` | 171 фото + 129 арт-пресетов по категориям |
 | `nsfw_photo_style` / `nsfw_art_style` | COMBO | `None` | отдельные 18+ каталоги |

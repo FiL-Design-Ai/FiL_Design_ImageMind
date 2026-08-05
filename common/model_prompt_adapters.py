@@ -98,6 +98,51 @@ def _truncate_words(text: str, max_words: Optional[int]) -> str:
     return truncated.rstrip(" ,.;:") + ("..." if truncated and truncated[-1] not in ".!?" else "")
 
 
+def _truncate_video_text(text: str, max_words: Optional[int]) -> str:
+    """Truncate a video prompt without shredding its structure.
+
+    A plain word cap lands mid-sentence and, in timeline prompts, mid-beat or
+    inside a bracket span — the orphaned beat then loops and a trailing
+    ``Sound:`` clause never gets written. Back off to the nearest sentence /
+    beat boundary instead, and never leave an unbalanced bracket behind. No
+    trailing ellipsis: a video prompt that ends in "..." invites the model to
+    treat the shot as unfinished.
+    """
+    text = _clean_text(text)
+    if not max_words or max_words <= 0:
+        return text
+    words = text.split()
+    if len(words) <= max_words:
+        return text
+    cut = " ".join(words[:max_words])
+    if cut.count("[") > cut.count("]"):
+        cut = cut[: cut.rfind("[")]
+    boundary = re.search(r"^(.*[.!?])(?:\s|$)", cut, re.DOTALL)
+    if boundary and boundary.group(1).strip():
+        cut = boundary.group(1)
+    return cut.strip()
+
+
+def _normalize_video_text(text: str, max_words: Optional[int], keep_lines: bool) -> str:
+    """Markdown-strip + structure-aware truncate for video targets.
+
+    ``keep_lines=True`` (timeline shot-blocks) preserves one beat per line;
+    ``False`` (universal video prose) flattens everything into the single
+    paragraph that profile promises.
+    """
+    text = _clean_text(text)
+    if not text:
+        return text
+    text = re.sub(r"\*\*([^*]+)\*\*", r"\1", text)
+    text = re.sub(r"__([^_]+)__", r"\1", text)
+    if keep_lines:
+        lines = [re.sub(r"[ \t]+", " ", line).strip() for line in text.splitlines()]
+        text = "\n".join(line for line in lines if line)
+    else:
+        text = re.sub(r"\s+", " ", text).strip()
+    return _truncate_video_text(text, max_words)
+
+
 def _extract_json_object(value: str) -> Optional[Dict[str, Any]]:
     """Pull the first JSON object out of a possibly fenced / prose-wrapped string."""
     text = _clean_text(value)
@@ -699,20 +744,29 @@ def convert_to_dit_format(
 
     rule = get_model_prompt_rule(model_type)
 
-    # Natural-language targets (Krea 2, Video) — normalize only, never
-    # restructure: bucketing into comma-joined components would undo the
-    # flowing prose their contracts ask the LLM for. MiniMax H3's timeline
-    # shot-blocks get the same protection: restructuring would shred the
-    # time-coded beats. Checked before the post_convert_text gate because
-    # Krea 2 has that flag False.
-    if rule.get("target_prompt_format") in (
-        "krea2_natural_language",
-        "video_natural_language",
-        "video_timeline_blocks",
-    ):
+    # Natural-language targets (Krea 2, Video, MiniMax H3) — normalize only,
+    # never restructure: bucketing into comma-joined components would undo the
+    # flowing prose their contracts ask the LLM for, and restructuring would
+    # shred MiniMax H3's time-coded beats. Checked before the post_convert_text
+    # gate because Krea 2 has that flag False.
+    target_format = rule.get("target_prompt_format")
+    if target_format == "krea2_natural_language":
         return _normalize_prompt_ready_text(text, max_words), {
             **base_meta,
-            "mode": str(rule["target_prompt_format"]),
+            "mode": str(target_format),
+        }
+    if target_format in ("video_natural_language", "video_timeline_blocks"):
+        # Video contracts carry their own word ceiling (Video 150, H3 250) —
+        # video models follow short concrete shots better than dense walls of
+        # text, so the rule cap wins even when a roomier detail level is set.
+        rule_cap = rule.get("max_words")
+        if isinstance(rule_cap, int) and rule_cap > 0:
+            max_words = min(max_words, rule_cap)
+        return _normalize_video_text(
+            text, max_words, keep_lines=(target_format == "video_timeline_blocks")
+        ), {
+            **base_meta,
+            "mode": str(target_format),
         }
 
     # Text-mode: only convert if the rule says so.

@@ -9,7 +9,9 @@ from .data import (
     TAGS_OUTPUT_INSTRUCTION,
     TAGS_RESPONSE_FORMAT,
     _STYLE_SOURCES,
+    clamp_video_duration,
     get_focus_template,
+    is_video_model_type,
     model_uses_positive_constraints,
     resolve_agent_key,
 )
@@ -75,43 +77,90 @@ MODEL_TYPE_GUIDANCE: Dict[str, str] = {
         "lose accuracy. Put any exact on-image text in quotes, and express exclusions "
         "as their positive visual opposite: the v4 API has no negative-prompt input."
     ),
+    # Rewritten 2026-08-05 after a re-read of MiniMax's official prompt guide
+    # (platform.minimax.io/docs/guides/video-prompt): duration + aspect first,
+    # explicit reference roles ("Image 1: ..."), concrete motion verbs, Sound:
+    # clause in prose, edit rhythm named in words. The universal profile stays
+    # timestamp-free because every non-MiniMax parser in this class reads free
+    # text only. The four failure modes this rewrite targets: still-frame
+    # prompts (motion must be the spine), collapsed structure (one paragraph,
+    # no markup), generic sound (layered clause tied to what is on screen),
+    # vague camera (shot size + angle + exactly one named move).
     "Video": (
         "Target generators: video generation models — MiniMax H2/H3, Wan 2.x, "
-        "HunyuanVideo, LTX Video, Kling, Veo/Sora-class DiT video models. Write ONE "
-        "continuous natural-language shot description in the present tense, as if "
-        "narrating the clip to another person. Cover in order: the subject and its "
-        "action, the scene/environment, camera framing and movement, lighting, mood, "
-        "style. MOTION is the point of a video prompt — name what moves, how and in "
-        "which direction, and how the camera behaves (locked, slow pan, tilt, dolly "
-        "in/out, orbit, handheld, zoom); if the shot is static, say 'locked-off "
-        "static shot' outright — unstated, video models default to a slow push-in. "
-        "Add one clause of sound design (ambience, foley, music mood): models with "
-        "native audio invent a random ambience when sound goes undescribed. When an "
-        "image is wired, say what each reference controls ('the image sets the scene "
-        "and lighting; the subject keeps its identity'). If the idea unfolds in "
-        "stages (a transformation, a story arc), preserve the arc: describe the "
-        "stages in order with first / then / finally and name what changes between "
-        "them — never flatten a sequence into one static portrait. State the "
-        "requested duration ('over 10 seconds') and give the camera real movement "
-        "per stage unless the user explicitly wants a static shot. Keep it to one "
-        "smooth paragraph of 2-5 sentences, roughly 40-150 words: video models "
-        "follow short concrete shots better than dense walls of text. No shot "
-        "lists, no timestamps, no markdown, no field labels, no commentary. Express "
-        "all constraints positively — most video models have no negative-prompt "
-        "mechanism. Put any text that must appear on screen in quotes and state "
-        "that only that text appears — no other lettering, no subtitles."
+        "HunyuanVideo, LTX Video, Kling, Veo/Sora-class DiT video models. A video "
+        "prompt is not a picture description — it is a shot unfolding in time, so "
+        "MOTION is the spine of every sentence: name what moves, how fast, and in "
+        "which direction, and what is different between the first and the last "
+        "frame. When an image is wired, treat it as one frozen instant of the shot: "
+        "read the physical evidence of motion in it (mid-step pose, fabric or hair "
+        "in the air, blur, spray, settling dust, light direction) and describe the "
+        "seconds around it — what is still happening and what happens next. Never "
+        "report a still frame. Write ONE continuous natural-language paragraph in "
+        "the present tense, 2-5 sentences, roughly 60-150 words, covering in order: "
+        "(1) the subject and its motion, plus secondary motion — hair, fabric, "
+        "dust, water, background parallax; (2) the scene and how the light changes "
+        "during the shot (sun lowering, neon flickering, headlights sweeping past, "
+        "fog drifting); (3) the camera — one shot size and angle (extreme close-up, "
+        "close-up, medium, wide, establishing; eye level, low, high, Dutch, POV, "
+        "aerial) plus exactly ONE camera move with character (slow dolly in, orbit, "
+        "handheld follow, crane up, FPV push, rack focus): one move per shot is the "
+        "rule, compound camera moves confuse every video model; if the shot is "
+        "static, say 'locked-off static shot' outright — unstated, video models "
+        "default to a slow push-in; (4) one style/treatment anchor ('35mm film "
+        "grain, warm palette', 'clean digital commercial', 'handheld documentary', "
+        "'cel animation'). If the idea unfolds in stages (a transformation, a story "
+        "arc), keep the arc: describe the stages in order with first / then / "
+        "finally, name what changes between them, and give each stage its own "
+        "camera behavior — never flatten a sequence into one static portrait. State "
+        "the requested duration ('over 10 seconds'). Add one concrete sound design "
+        "clause tied to what is on screen — an ambience bed, one or two foley "
+        "sounds from the visible action, and the music mood ('distant traffic and "
+        "rain on glass, cloth rustling, low warm synth pad'): models with native "
+        "audio invent a random ambience when sound goes undescribed. When images "
+        "are wired, say what each reference controls ('Image 1 sets the scene and "
+        "lighting; Image 2 carries the character's identity'). No timestamps, no "
+        "shot lists, no [bracket] tags, no markdown, no field labels, no "
+        "commentary — other vendors' parsers read free text only and may render "
+        "stray markup on screen. Express all constraints positively — most video "
+        "models have no negative-prompt mechanism. Put any text that must appear "
+        "on screen in quotes and state that only that text appears — no other "
+        "lettering, no subtitles."
     ),
+    # H3-specific facts re-verified 2026-08-05 (platform.minimax.io/docs/guides/
+    # video-generation): the API accepts 4-15 whole-second durations, T2V needs
+    # an explicit aspect (no 'adaptive'), camera instructions can be inline tags
+    # ([pan], [zoom], [static]) after key descriptions, and reference media get
+    # explicit roles (first_frame / last_frame / reference_image /
+    # reference_video / reference_audio). The beat structure itself mirrors the
+    # H3-Context-IR enrichment shape this pack verified 2026-08-04.
     "MiniMax H3": (
-        "Target generator: MiniMax H3. Write a timeline shot-block prompt: the first "
-        "line states duration and framing ('10s, 16:9.'), then 2-4 time-coded beats "
-        "like [0-3s], [3-7s], [7-10s] that cover the whole duration in order. Every "
-        "beat names what changes and what moves — H3 loops motion when a beat runs "
-        "out of instructions — plus the camera behavior for that beat (slow dolly "
-        "in, 180° orbit, pull back, locked-off). End with one 'Sound:' clause "
-        "(ambience, foley, music mood) — H3 generates native stereo audio and "
-        "invents a random ambience otherwise. Put on-screen text in quotes and say "
-        "only that text appears. Express constraints positively — the API has no "
-        "negative-prompt input. No markdown headers, no commentary."
+        "Target generator: MiniMax H3 — multimodal DiT with native stereo audio. "
+        "Write a timeline shot-block prompt. The first line states duration and "
+        "framing — '10s, 16:9.'; duration is a whole number of seconds from 4 to "
+        "15 (the API range), use '9:16 vertical' for portrait scenes. If images "
+        "are wired, give each a job on that first line ('Image 1: the character's "
+        "identity; Image 2: the location'). Then 2-4 time-coded beats like [0-3s], "
+        "[3-7s], [7-10s] that cover the whole duration in order — no gaps, no "
+        "overlap. Every beat names one thing that changes or moves, with concrete "
+        "motion detail (speed, direction, secondary motion: fabric, hair, sparks, "
+        "spray) — H3 loops motion when a beat runs out of instructions, so a beat "
+        "never says 'continues' or 'same as before'; if truly nothing changes, "
+        "describe what holds the frame alive (breathing, flicker, drifting smoke) "
+        "or merge the beat — plus the camera behavior for that beat (slow dolly "
+        "in, 180° orbit, handheld follow, pull back, locked-off): one camera move "
+        "per beat, optionally followed by H3's own inline tags [pan], [zoom], "
+        "[static]. Name the subject with the same words in every beat so its "
+        "identity holds across cuts. One short style/tone anchor is welcome "
+        "('premium commercial look', 'ReelShort drama feel', '3A-game "
+        "photorealism'). If the idea is one unbroken moment, a single beat "
+        "covering the full duration is right — do not pad beats. End with one "
+        "'Sound:' clause layered from what is on screen — ambience bed, foley from "
+        "the visible actions, music mood; let the sound evolve with the beats. H3 "
+        "generates native stereo audio and invents a random ambience when sound "
+        "goes undescribed. Put on-screen text in quotes and say only that text "
+        "appears. Express constraints positively — the API has no negative-prompt "
+        "input. No markdown headers, no bullets, no commentary."
     ),
     "Auto/None": "",
 }
@@ -119,6 +168,70 @@ MODEL_TYPE_GUIDANCE: Dict[str, str] = {
 
 def build_model_type_guidance(model_type: str) -> str:
     return MODEL_TYPE_GUIDANCE.get(model_type, "")
+
+
+def build_shot_parameters_block(
+    model_type: str,
+    video_duration: Any = 0,
+    video_aspect: str = "Auto",
+    video_sound: str = "Auto",
+    video_camera: str = "Auto",
+) -> str:
+    """User-fixed shot facts from the video Output widgets.
+
+    Appended right after the model guidance so it reads later than — and
+    therefore overrides — the guidance's defaults. Returns "" when the target
+    is not a video profile or every parameter is Auto: an all-Auto system
+    prompt must stay byte-identical to the pre-widget output.
+    """
+    if not is_video_model_type(model_type):
+        return ""
+    is_h3 = model_type == "MiniMax H3"
+    lines: list = []
+
+    duration = clamp_video_duration(model_type, video_duration)
+    if duration > 0:
+        if is_h3:
+            lines.append(
+                f"- Duration: exactly {duration} seconds — the first line states "
+                f"'{duration}s' and the time-coded beats total this duration."
+            )
+        else:
+            lines.append(
+                f"- Duration: state the requested duration explicitly — over {duration} seconds."
+            )
+
+    aspect = str(video_aspect or "Auto").strip()
+    if aspect and aspect.lower() != "auto":
+        if is_h3:
+            lines.append(f"- Aspect ratio: {aspect} — state it in the framing header line.")
+        else:
+            lines.append(f"- Aspect ratio: frame the shot in {aspect}.")
+
+    sound = str(video_sound or "Auto").strip().lower()
+    if sound == "off":
+        lines.append("- Sound: silent clip — do not write any sound design clause.")
+    elif sound == "layered":
+        lines.append(
+            "- Sound: layered sound design is mandatory — the sound clause must carry "
+            "an ambience bed, foley from the visible actions, and the music mood."
+        )
+
+    camera = str(video_camera or "Auto").strip()
+    if camera and camera.lower() != "auto":
+        if camera.lower() == "locked-off":
+            lines.append(
+                "- Camera: the user wants a locked-off static shot — keep the camera still."
+            )
+        else:
+            lines.append(
+                f"- Camera: {camera.lower()} is the user's preferred move — build the shot "
+                f"around it, adapting per story stage only if the arc needs it."
+            )
+
+    if not lines:
+        return ""
+    return "SHOT PARAMETERS (fixed by the user — these override your defaults):\n" + "\n".join(lines)
 
 
 def negative_to_positive_clause(negative_prompt: str, model_type: str) -> str:
@@ -327,14 +440,21 @@ class PromptGenerator:
         focus_key: str = NONE_FOCUS_KEY,
         has_image: bool = True,
         response_format: str = "text",
+        video_duration: Any = 0,
+        video_aspect: str = "Auto",
+        video_sound: str = "Auto",
+        video_camera: str = "Auto",
         **style_kwargs,
-    ) -> Tuple[str, str, str]:
+    ) -> Tuple[str, str, str, str]:
         resolved_agent = resolve_agent_key(agent_key)
         agent_template = AGENTS.get(resolved_agent, NONE_AGENT_TEMPLATE)
         style_block = self.style_manager.build_style_block(**style_kwargs)
         language_hint = _language_hint(language)
         detail_hint = _detail_hint(detail_level)
         model_guidance = build_model_type_guidance(model_type)
+        shot_parameters = build_shot_parameters_block(
+            model_type, video_duration, video_aspect, video_sound, video_camera
+        )
 
         system_parts = [agent_template]
         if not has_image:
@@ -342,13 +462,25 @@ class PromptGenerator:
         system_parts.append(detail_hint)
         if model_guidance:
             system_parts.append(model_guidance)
+        # After the guidance on purpose: user-fixed shot facts override the
+        # guidance's defaults, so they must read later than them.
+        if shot_parameters:
+            system_parts.append(shot_parameters)
 
         focus_block = get_focus_template(focus_key)
         if focus_block:
             system_parts.append(focus_block)
 
+        # A locked video aspect widget is the user's explicit framing call —
+        # it wins over whatever ratio the wired width/height sockets derive.
+        # The sockets still apply when the widget is Auto (or the target is an
+        # image model), so nothing changes for existing image workflows.
+        video_aspect_locked = (
+            is_video_model_type(model_type)
+            and str(video_aspect or "Auto").strip().lower() != "auto"
+        )
         aspect_info = compute_aspect_ratio_info(width, height)
-        if aspect_info["active"]:
+        if aspect_info["active"] and not video_aspect_locked:
             system_parts.append(aspect_info["guidance"])
 
         if style_block:
@@ -359,13 +491,14 @@ class PromptGenerator:
         if _wants_tags(response_format):
             system_parts.append(TAGS_OUTPUT_INSTRUCTION)
 
-        # After the shape, because they answer different questions and the
-        # language rule is the one models drop first. Third of eight blocks it
-        # was ignored by 29% of them.
-        system_parts.append(language_hint)
-
+        # The language rule is deliberately NOT appended here. The node stacks
+        # style overlays (enforcement / NSFW / custom style) on top of this
+        # bundle, and the language rule must be the very last block the model
+        # reads — it is the instruction models drop first (third of eight
+        # blocks it was ignored by 29% of them). Callers append the returned
+        # `language_hint` after their own overlays.
         system_prompt = "\n\n".join(system_parts)
-        return system_prompt, agent_template, style_block
+        return system_prompt, agent_template, style_block, language_hint
 
     def _build_base_sections(
         self,
@@ -391,8 +524,12 @@ class PromptGenerator:
         focus_key: str = NONE_FOCUS_KEY,
         has_image: bool = True,
         response_format: str = "text",
+        video_duration: Any = 0,
+        video_aspect: str = "Auto",
+        video_sound: str = "Auto",
+        video_camera: str = "Auto",
         **style_kwargs,
-    ) -> Dict[str, Dict[str, str]]:
+    ) -> Dict[str, Any]:
         """Stage 1 = raw description (no style). Stage 2 = styled reformat.
 
         Stage 2 consumes the locked stage-1 result as source truth, so it does
@@ -402,9 +539,18 @@ class PromptGenerator:
             agent_key, detail_level, language, model_type
         )
         style_block = self.style_manager.build_style_block(**style_kwargs)
+        shot_parameters = build_shot_parameters_block(
+            model_type, video_duration, video_aspect, video_sound, video_camera
+        )
 
         aspect_info = compute_aspect_ratio_info(width, height)
         focus_block = get_focus_template(focus_key)
+        # Same priority as the single-stage builder: a locked video aspect
+        # widget outranks the ratio derived from wired width/height sockets.
+        video_aspect_locked = (
+            is_video_model_type(model_type)
+            and str(video_aspect or "Auto").strip().lower() != "auto"
+        )
 
         def _stage_parts() -> list:
             parts = [agent_template]
@@ -413,19 +559,19 @@ class PromptGenerator:
             parts.append(detail_hint)
             if model_guidance:
                 parts.append(model_guidance)
+            # Same override order as the single-stage builder: user-fixed shot
+            # facts read after the guidance defaults in both stages.
+            if shot_parameters:
+                parts.append(shot_parameters)
             if focus_block:
                 parts.append(focus_block)
-            if aspect_info["active"]:
+            if aspect_info["active"] and not video_aspect_locked:
                 parts.append(aspect_info["guidance"])
             return parts
 
         stage1_parts = _stage_parts()
         if not has_image:
             stage1_parts.insert(1, TEXT_ONLY_INSTRUCTION)
-        # Both stages end on the language rule, for the same reason the
-        # single-stage builder does: it is the instruction models drop first,
-        # and stage 2 works from stage 1's text — English there spreads.
-        stage1_parts.append(language_hint)
         stage1_prompt = "\n\n".join(stage1_parts)
 
         stage2_parts = _stage_parts()
@@ -435,13 +581,17 @@ class PromptGenerator:
         # override goes here — stage 1 stays prose for stage 2 to work from.
         if _wants_tags(response_format):
             stage2_parts.append(TAGS_OUTPUT_INSTRUCTION)
-        stage2_parts.append(language_hint)
         stage2_prompt = "\n\n".join(stage2_parts)
 
+        # The language rule is returned, not embedded: the node stacks style
+        # overlays on top of stage 2 and must append the rule after them — it
+        # is the instruction models drop first, and stage 2 works from stage
+        # 1's text, so English left in stage 2 spreads into the final answer.
         return {
             "stage1": {"prompt": stage1_prompt},
             "stage2": {"prompt": stage2_prompt},
             "style_block": style_block,
+            "language_hint": language_hint,
         }
 
     def build_stage1_user_prompt(self, user_prompt: str, has_image: bool) -> str:
