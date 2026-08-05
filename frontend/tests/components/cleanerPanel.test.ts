@@ -19,21 +19,20 @@ describe("CleanerPanel.vue", () => {
     setActivePinia(createPinia());
   });
 
-  it("carries the label_on / label_off text LiteGraph's own boolean widget showed", () => {
-    // The native widget this panel replaced put the action in the caption, not
-    // in the switch position. Dropping that would have made the panel say less
-    // than the plain widget did.
+  it("names the action in each row, the way the owner worded it", () => {
+    // The label is the action ("Flush GPU cache", "Unload models"); the switch
+    // position says whether it will happen. The earlier "name — caption"
+    // compound ellipsised past reading at the 250px node width.
     const wrapper = mount(CleanerPanel, { props: { state: makeState() as never } });
-    expect(wrapper.text()).toContain("Flush cache");
+    expect(wrapper.text()).toContain("Flush GPU cache");
     expect(wrapper.text()).toContain("Unload models");
   });
 
-  it("flips the caption with the switch", async () => {
+  it("keeps the action label regardless of switch state", async () => {
     const wrapper = mount(CleanerPanel, { props: { state: makeState() as never } });
     await switchAt(wrapper, 0).trigger("click");
     await nextTick();
-    expect(wrapper.text()).toContain("Keep cache");
-    expect(wrapper.text()).not.toContain("Flush cache");
+    expect(wrapper.text()).toContain("Flush GPU cache");
   });
 
   it("defaults both switches on, matching node_cleaner.py", () => {

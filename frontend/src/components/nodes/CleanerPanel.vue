@@ -30,28 +30,20 @@ function boolField(name: string, fallback: boolean) {
 const cleanVram = boolField("clean_vram", true);
 const unloadModels = boolField("unload_models", true);
 
-// The switch caption follows the state, exactly as LiteGraph's own boolean
-// widget does with label_on/label_off — "Flush cache" while on, "Keep cache"
-// while off. A fixed caption plus a switch would leave the user reading the
-// switch position to know what it will do.
-const vramCaption = computed(() =>
-  cleanVram.value === "ON"
-    ? t("nc_clean_vram_on", "Flush cache")
-    : t("nc_clean_vram_off", "Keep cache"));
-const modelsCaption = computed(() =>
-  unloadModels.value === "ON"
-    ? t("nc_unload_models_on", "Unload models")
-    : t("nc_unload_models_off", "Keep models"));
+// The label names the action ("Flush GPU cache", "Unload models") and the
+// switch position says whether it will happen — the earlier "name — caption"
+// compound ("GPU cache — flush") ellipsised past reading at the 250px node
+// width, and the owner picked the action-first wording in the live review.
 </script>
 
 <template>
   <div class="fil-clean-root">
     <FilToggle :model-value="cleanVram"
-      :label="`${t('nc_clean_vram_label', '🧹 GPU cache')} — ${vramCaption}`"
+      :label="t('nc_clean_vram_label', '🧹 Flush GPU cache')"
       :title="t('nc_clean_vram', 'Flush GPU CUDA cache.')"
       @update:model-value="(v) => (cleanVram = v)" />
     <FilToggle :model-value="unloadModels"
-      :label="`${t('nc_unload_models_label', '🧠 Loaded models')} — ${modelsCaption}`"
+      :label="t('nc_unload_models_label', '🧠 Unload models')"
       :title="t('nc_unload_models', 'Unload every model ComfyUI currently holds in memory.')"
       @update:model-value="(v) => (unloadModels = v)" />
   </div>
