@@ -188,15 +188,21 @@ ART_STYLES = {
     "🦾 КИБЕРПАНК/🤖 Flesh-to-Steel Fusion": (
         "flesh-to-steel cyberpunk fusion artwork, scar-bound alloy plating, titanium bone-integration cues, mandibular armor seams, exposed graft borders, invasive flesh-to-chrome transitions, painful half-human merge logic without pin-up gloss."
     ),
-    # Three anchor points tried — skull, temple, then the neck, reasoned to
-    # be the one spot a standing full-body shot keeps in frame from any
-    # angle — and none of the three ever rendered as more than a plain
-    # portrait across four attempts. Left on the neck anchor as the
-    # best-reasoned of the three, but unlike this category's other seven
-    # fixes, this one is not confirmed working — a documented open case, not
-    # a verified repair.
+    # Fixed on the fourth attempt. Three passes moved the anchor around the
+    # body — skull, temple, neck — and none rendered anything; each version
+    # also kept "a cold blue monitor glowing on the desk beside her", a full
+    # second scene competing for the same detail budget as a small neck
+    # feature. Dropped the monitor and the desk entirely and forced a tight
+    # crop so the neck has nothing to compete with — same fix in spirit as
+    # Macro Micro-world and Bath Scene earlier this session: the crop itself
+    # is the anchor. Confirmed against a matching portrait-crop subject; a
+    # first render against this session's usual full-body test subject
+    # produced a scale-mismatch artifact (a giant collar dwarfing a tiny
+    # figure) from forcing a full-body distant framing onto a preset that
+    # explicitly asks for an extreme close-up — a test-harness collision, not
+    # a preset defect, the same shape as the earlier Macro Micro-world case.
     "🦾 КИБЕРПАНК/💊 Neuro-Interface": (
-        "neural-interface cyberpunk artwork, a ring of cranial-jack ports embedded around her own neck with fiber-optic uplinks trailing from them, subdermal electrode routes glowing faintly beneath the skin of her neck and collarbone, spine-mounted hardware beneath her shirt, a cold blue monitor glowing on the desk beside her, invasive mind-machine geometry, precise medical-tech rendering, cerebral hardware dominance without generic neon city filler."
+        "extreme close-up neural-interface cyberpunk artwork, tight crop on her bare neck and collarbone filling the frame, a ring of metallic cranial-jack ports embedded directly into the skin, thick fiber-optic cables plugged into the ports and trailing down over her collarbone, glowing blue data light leaking from each port, precise medical-tech rendering, cerebral hardware dominance as the entire subject of the frame."
     ),
     # Same under-powered result as Nanopunk Swarm above — visible but faint.
     # Same fix: more surface area, harder verbs.
@@ -426,17 +432,17 @@ ART_STYLES = {
     "🦾 КИБЕРПАНК/🦋 Angelic Cyber Feminine": (
         "angelic cyber feminine digital illustration, luminous beauty portrait, delicate metallic filigree tracing her own collarbone and wrists, soft painted halo glow, futuristic grace, pale radiant palette, synthetic elegance, dreamy sci-fi femininity, polished atmospheric rendering"
     ),
-    # Four passes tried to put a golden mechanical arm on her body — naming
-    # it hers, spreading the plating across a region instead of one object,
-    # then shrinking the claim to a wrist gauntlet — and every single render
-    # still built a separate, oversized golden figure in the background
-    # instead. This preset's own words ("golden", "premium luxury
-    # cybernetics", "regal") pull toward a hero statue harder than four
-    # different phrasings of "this is on her" could out-argue. Left on the
-    # smallest, most defensible claim tried; documented as unconfirmed rather
-    # than iterated on a fifth time.
+    # Fixed on the fifth attempt. Four passes said "this is on her" in
+    # increasingly specific ways and the model kept building a second,
+    # separate golden figure anyway — the opening words "golden cyberpunk
+    # mechanical...portrait art" set up a golden mechanical *subject* before
+    # "her" is even mentioned, and the two compete for the frame. Dropped
+    # the golden-mechanical framing from the opening entirely — leads with a
+    # plain portrait, states she is otherwise fully human, and moves every
+    # "golden"/"regal"/"luxury" word into a clause that only modifies her
+    # hand, never opens the sentence. Confirmed working.
     "🦾 КИБЕРПАНК/🧡 Golden Mechanical Portrait": (
-        "golden cyberpunk mechanical digital portrait art, her own hand and forearm sheathed in a golden mechanical gauntlet, warm metallic plating, amber painted glow lighting the seam where the gauntlet meets her skin at the wrist, polished machine details, elegant futuristic design, high-detail reflective surfaces, regal sci-fi illustration mood"
+        "portrait digital artwork, an elegant woman otherwise fully human, her forearm and hand cast entirely in warm gilded metal down to the fingertips, articulated knuckle joints, an amber glow along the seam where metal meets her skin at the wrist, polished machine details, high-detail reflective surfaces, cyberpunk mechanical luxury confined to that one golden hand"
     ),
     "🦾 КИБЕРПАНК/🪦 Melancholic Robot Portrait": (
         "melancholic robot digital portrait illustration, humanlike machine face, sad posture, dim moody painted lighting, worn metal, soft dust-particle brush texture, lonely atmosphere, intimate concept-art framing, emotional artificial intelligence, muted palette"
