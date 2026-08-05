@@ -28,17 +28,17 @@ class FiLNeuroCleaner(_io.ComfyNode):
                 # and `unload_models` next to human switch text. The id itself
                 # must not change — saved workflows address widgets by it.
                 _io.Boolean.Input(
-                    "clean_vram", display_name=_t("nc_clean_vram_label", "🧹 GPU cache"),
+                    "clean_vram", display_name=_t("nc_clean_vram_label", "🧹 Flush GPU cache"),
                     default=True,
-                    label_on=_t("nc_clean_vram_on", "Flush cache"),
-                    label_off=_t("nc_clean_vram_off", "Keep cache"),
+                    label_on=_t("nc_clean_vram_on", "flush"),
+                    label_off=_t("nc_clean_vram_off", "keep"),
                     tooltip=_t("nc_clean_vram", "Flush GPU CUDA cache."),
                 ),
                 _io.Boolean.Input(
-                    "unload_models", display_name=_t("nc_unload_models_label", "🧠 Loaded models"),
+                    "unload_models", display_name=_t("nc_unload_models_label", "🧠 Unload models"),
                     default=True,
-                    label_on=_t("nc_unload_models_on", "Unload models"),
-                    label_off=_t("nc_unload_models_off", "Keep models"),
+                    label_on=_t("nc_unload_models_on", "unload"),
+                    label_off=_t("nc_unload_models_off", "keep"),
                     tooltip=_t("nc_unload_models", "Unload every model ComfyUI currently holds in memory."),
                 ),
                 _io.AnyType.Input("anything", optional=True),
