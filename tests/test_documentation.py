@@ -367,7 +367,7 @@ def test_comfyignore_keeps_dev_tooling_and_repo_only_docs_out():
         "scripts/dump_contracts.py", "requirements-dev.txt",
         ".pre-commit-config.yaml", ".github/workflows/ci.yml",
         "CLAUDE.md", "audit.md", "audit-next.md", "fix.md", "docs/add-theme.md",
-        "docs/comfyui-css-variables.md",
+        "docs/comfyui-css-variables.md", "docs/release/RELEASE_CHECKLIST.md",
         "frontend/src/App.vue", "frontend/public/style-previews/x.webp",
         "frontend/tests/widgets3.test.ts", "frontend/node_modules/vue/package.json",
         "frontend/package.json",
