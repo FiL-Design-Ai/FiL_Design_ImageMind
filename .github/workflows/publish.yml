@@ -12,6 +12,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
+    # Creating the GitHub release writes to the repository; nothing else here
+    # needs more than the read the checkout takes.
+    permissions:
+      contents: write
+
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -51,3 +56,31 @@ jobs:
         uses: Comfy-Org/publish-node-action@main
         with:
           personal_access_token: ${{ secrets.REGISTRY_ACCESS_TOKEN || secrets.FIL_DESIGN_IMAGEMIND }}
+
+      # A tag is only a marker on a commit; the Releases page stays empty until
+      # something creates an entry. The notes are the CHANGELOG section for this
+      # version, so the page says the same thing the repository does.
+      - name: Collect the release notes for this tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          awk -v v="$VERSION" '
+            $0 ~ "^## " v "( |$)" { found = 1; next }
+            found && /^## / { exit }
+            found { print }
+          ' CHANGELOG.md > release-notes.md
+          if [ ! -s release-notes.md ]; then
+            echo "::warning::No CHANGELOG section for $VERSION; publishing the release without notes."
+            echo "See CHANGELOG.md for what changed in $VERSION." > release-notes.md
+          fi
+
+      # `gh` ships on the runner and signs in with the run's own token, so this
+      # needs no third-party action and no extra secret.
+      - name: Publish the GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --notes-file release-notes.md
