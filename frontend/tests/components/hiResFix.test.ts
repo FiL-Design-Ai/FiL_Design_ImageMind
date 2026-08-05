@@ -67,12 +67,15 @@ describe("HiResFix.vue advanced / ControlNet section", () => {
     setActivePinia(createPinia());
   });
 
-  it("starts with the ADVANCED section collapsed", () => {
+  it("starts with the ADVANCED section collapsed but keeps Iterations in view", () => {
     const wrapper = mount(HiResFixVue, { props: { state: makeState() as never } });
     expect(wrapper.text()).not.toContain("Hires checkpoint");
+    // Iterations is an everyday control — it lives right after Hires steps,
+    // not behind the ADVANCED fold.
+    expect(wrapper.text()).toContain("Iterations");
   });
 
-  it("expanding ADVANCED reveals the checkpoint/iterations/ControlNet controls, CN fields still hidden", async () => {
+  it("expanding ADVANCED reveals the checkpoint/ControlNet controls, CN fields still hidden", async () => {
     const wrapper = mount(HiResFixVue, { props: { state: makeState() as never } });
     const header = wrapper.findAll(".fil-w-section").find((h) => h.text().includes("ADVANCED"));
     expect(header).toBeTruthy();
@@ -80,7 +83,6 @@ describe("HiResFix.vue advanced / ControlNet section", () => {
     await nextTick();
 
     expect(wrapper.text()).toContain("Hires checkpoint");
-    expect(wrapper.text()).toContain("Iterations");
     expect(wrapper.text()).toContain("Use ControlNet");
     expect(wrapper.text()).not.toContain("ControlNet model");
   });
@@ -167,5 +169,24 @@ describe("HiResFix.vue seed handling", () => {
 
     expect(state.nodeState.seed_mode).toBe("fixed");
     expect(state.nodeState.seed).toBe(777);
+  });
+
+  // Stock ComfyUI grays a linked seed widget out; the panel's seed source
+  // choice and random/fixed pills would edit a value the link overwrites.
+  it("locks the seed source and the own-seed row while the seed socket carries a link", async () => {
+    const node = { widgets: [], inputs: [{ name: "seed", widget: {}, link: 7 }] };
+    const state = makeState({ node, nodeState: { use_same_seed: false } });
+    const wrapper = mount(HiResFixVue, { props: { state: state as never } });
+    await nextTick();
+
+    const group = wrapper.findAll(".fil-w-segmented").find((g) => g.text().includes("Seed source"))!;
+    for (const b of group.findAll("button.fil-w-seg")) {
+      expect((b.element as HTMLButtonElement).disabled).toBe(true);
+    }
+    for (const p of wrapper.findAll(".fil-w-seedrow-pill")) {
+      expect((p.element as HTMLButtonElement).disabled).toBe(true);
+    }
+    const field = wrapper.find<HTMLInputElement>(".fil-w-seedrow-field");
+    expect(field.element.disabled).toBe(true);
   });
 });

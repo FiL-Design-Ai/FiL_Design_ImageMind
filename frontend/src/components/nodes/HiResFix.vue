@@ -20,6 +20,11 @@ const { t } = useI18n();
 // link when the prompt is queued.
 const { setFieldEl, isLinked } = useWidgetSockets(props.state, HIRESFIX_SOCKET_INPUTS);
 
+// A linked seed input owns the seed: the source choice and the random/fixed
+// pills would edit a value the link overwrites at queue time, so they gray
+// out exactly like stock ComfyUI grays a linked seed widget.
+const seedLinked = computed(() => isLinked("seed"));
+
 function numberField(name: string, fallback: number) {
   return computed({
     get: () => Number(props.state.nodeState[name] ?? props.state.initialValues[name] ?? fallback) || fallback,
@@ -177,9 +182,12 @@ function newFixedSeed() {
       :label="t('lbl_hires_steps', '🪜 Hires steps')"
       :title="isLinked('hires_steps') ? t('fld_linked_tt', 'Driven by the connected input — disconnect it to edit here.') : t('hrf_steps', 'Steps for the hires re-sample.')" />
 
+    <FilNumberInput v-model="iterations" :min="0" :max="5" :step="1"
+      :label="t('lbl_iterations', '🔁 Iterations')" :title="t('hrf_iterations', 'How many upscale+resample passes to run.')" />
+
     <FilSegmented :options="['ON', 'OFF']" :option-labels="{ ON: '♻️ same seed', OFF: '🎲 own' }" :model-value="useSameSeed"
-      :label="t('lbl_use_same_seed', '🌱 Seed source')"
-      :title="t('hrf_same_seed', 'Reuse the samplers seed for the hires pass.')"
+      :label="t('lbl_use_same_seed', '🌱 Seed source')" :disabled="seedLinked"
+      :title="seedLinked ? t('fld_linked_tt', 'Driven by the connected input — disconnect it to edit here.') : t('hrf_same_seed', 'Reuse the samplers seed for the hires pass.')"
       @update:model-value="(v) => (useSameSeed = v as 'ON' | 'OFF')" />
 
     <FilSeedRow
@@ -187,6 +195,7 @@ function newFixedSeed() {
       :ref="(el: unknown) => setFieldEl('seed', el)"
       :display="seedDisplay"
       :mode="seedMode"
+      :disabled="seedLinked"
       :field-aria-label="t('hrf_aria_seed_value', 'Hires seed value')"
       :field-title="seedMode === 'fixed' ? t('hrf_seed_locked', 'Locked hires seed') : t('hrf_seed_auto_random', 'Auto-random — a new hires seed is generated each run')"
       :labels="{
@@ -206,9 +215,10 @@ function newFixedSeed() {
     />
 
     <!-- Nine rows always on screen made the node the tallest in the pack, and
-         six of them are set once and never touched again. Same collapsible
+         five of them are set once and never touched again. Same collapsible
          section Optic Scanner uses, collapsed by default: the everyday
-         controls stay in view, the rest is one click away. -->
+         controls stay in view, the rest is one click away. (Iterations used
+         to live in here too — pulled back out, it is an everyday control.) -->
     <FilSection
       :title="t('hrf_sec_advanced', 'ADVANCED')"
       :model-value="isCollapsed('advanced')"
@@ -218,8 +228,6 @@ function newFixedSeed() {
       <FilSelect :options="ckptOptions" :model-value="hiresCkpt"
         :label="t('lbl_hires_ckpt', '📦 Hires checkpoint')" :title="t('hrf_ckpt', 'Checkpoint for the hires pass. (use same) reuses the base model.')"
         @update:model-value="(v: string) => (hiresCkpt = v)" />
-      <FilNumberInput v-model="iterations" :min="0" :max="5" :step="1"
-        :label="t('lbl_iterations', '🔁 Iterations')" :title="t('hrf_iterations', 'How many upscale+resample passes to run.')" />
       <FilSegmented :options="['ON', 'OFF']" :option-labels="{ ON: '🕹️ ON', OFF: 'OFF' }" :model-value="useControlnet"
         :label="t('lbl_use_cn', '🕹️ Use ControlNet')"
         :title="t('hrf_use_cn', 'Guide the hires pass with a ControlNet. Tile ControlNets work without a preprocessor.')"
