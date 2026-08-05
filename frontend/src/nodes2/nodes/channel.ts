@@ -29,7 +29,8 @@ export const channelNode: NodeModule = {
   id: "FiLChannel",
   register(nodeType: unknown, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
-      minSize: [220, 80],
+      minSize: [250, 80],
+      initialWidth: 250,
       family: "tool",
       description: "Send data across the graph without wires.",
       badges: [{ text: "CHANNEL", color: "#a78bfa", text_color: "#000" }],

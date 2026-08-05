@@ -1161,7 +1161,7 @@ const SURFACE_VARS_LIGHT =
  *   icon buttons; the "deliberate exception" simply read as three different
  *   field sizes stacked in one node (KSampler showed 34/30/33px in a row) and is
  *   gone. A new control gets this token or it does not line up.
- * - `--fil-label-col` (38%) — the width of the label column in every labelled
+ * - `--fil-label-col` (32%) — the width of the label column in every labelled
  *   row. Each row widget used to size its own label track to its own text
  *   (`minmax(auto, max-content)`), so the left edge of the *controls* moved from
  *   row to row: "CFG" started its field 40px earlier than "After generate". One
@@ -1185,7 +1185,7 @@ export function injectFilBrandVars(): void {
   if (document.getElementById("fil-brand-vars")) return;
   const el = document.createElement("style");
   el.id = "fil-brand-vars";
-  el.textContent = `:root{${paletteCssVars(FIL_PALETTE)}--fil-radius:8px;--fil-node-pad:6px 8px 14px 8px;--fil-node-gap:4px;--fil-row-pad:4px 6px;--fil-control-h:30px;--fil-label-col:38%;--fil-input-border:rgba(240,138,69,0.35);${SURFACE_VARS_CYAN}${OVERLAY_VARS_DARK}}
+  el.textContent = `:root{${paletteCssVars(FIL_PALETTE)}--fil-radius:8px;--fil-node-pad:6px 8px 14px 8px;--fil-node-gap:4px;--fil-row-pad:4px 6px;--fil-control-h:30px;--fil-label-col:32%;--fil-input-border:rgba(240,138,69,0.35);${SURFACE_VARS_CYAN}${OVERLAY_VARS_DARK}}
 /* The light palette used to live here under a .comfy-theme-light selector. That
  * class is absent on current ComfyUI builds, so the block never matched — it is
  * emitted into the fil-theme-base tag now, driven by detectComfyBase(). */

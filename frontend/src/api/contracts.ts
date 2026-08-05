@@ -154,7 +154,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     }
   ],
   "min_size": [
-    240,
+    250,
     90
   ],
   "family": "value"
@@ -325,7 +325,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     }
   ],
   "min_size": [
-    280,
+    300,
     250
   ],
   "family": "llm"
@@ -1151,7 +1151,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     }
   ],
   "min_size": [
-    260,
+    250,
     110
   ],
   "family": "tool"
@@ -1451,7 +1451,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     }
   ],
   "min_size": [
-    340,
+    300,
     300
   ],
   "family": "image"
@@ -1687,7 +1687,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     }
   ],
   "min_size": [
-    340,
+    300,
     300
   ],
   "family": "image"
@@ -2008,7 +2008,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     }
   ],
   "min_size": [
-    320,
+    300,
     240
   ],
   "family": "sampling"
@@ -2320,7 +2320,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     }
   ],
   "min_size": [
-    380,
+    300,
     230
   ],
   "family": "sampling"
@@ -2422,7 +2422,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     }
   ],
   "min_size": [
-    280,
+    250,
     120
   ],
   "family": "sampling"
@@ -2503,7 +2503,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     }
   ],
   "min_size": [
-    320,
+    300,
     180
   ],
   "family": "llm"
@@ -4095,7 +4095,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     }
   ],
   "min_size": [
-    380,
+    250,
     320
   ],
   "family": "base"
@@ -4342,7 +4342,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     }
   ],
   "min_size": [
-    380,
+    300,
     380
   ],
   "family": "base"
@@ -4486,7 +4486,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     }
   ],
   "min_size": [
-    320,
+    300,
     310
   ],
   "family": "image"
@@ -4973,7 +4973,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     }
   ],
   "min_size": [
-    360,
+    350,
     460
   ],
   "family": "llm"
@@ -4990,7 +4990,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   },
   "outputs": [],
   "min_size": [
-    220,
+    250,
     80
   ],
   "family": "tool"

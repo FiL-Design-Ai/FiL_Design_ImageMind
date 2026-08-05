@@ -51,7 +51,7 @@ function onKeydown(e: KeyboardEvent, index: number) {
 <template>
   <div class="fil-w-segmented" :title="title">
     <label v-if="label" class="fil-w-segmented-label">{{ label }}</label>
-    <div class="fil-w-pill" :class="{ disabled }" role="group" :aria-label="label">
+    <div class="fil-w-pill" :class="{ disabled, few: options.length <= 3 }" role="group" :aria-label="label">
       <button
         v-for="(opt, i) in options"
         :key="opt"
@@ -101,7 +101,7 @@ function onKeydown(e: KeyboardEvent, index: number) {
   box-sizing: border-box;
   background: var(--fil-surface-2);
   border-radius: 7px;
-  padding: 3px;
+  padding: 2px;
 }
 .fil-w-pill.disabled {
   opacity: 0.5;
@@ -119,7 +119,11 @@ function onKeydown(e: KeyboardEvent, index: number) {
   white-space: nowrap;
   text-align: center;
   box-sizing: border-box;
-  padding: 6px;
+  /* 6px all-round padding predated the 350px row nodes; at that width the
+   * equal-split options lost ~8px of text each ("latent" read "late...").
+   * Vertical space is owned by the pill's fixed height, so only the inline
+   * padding matters here. */
+  padding: 0 3px;
   border: none;
   border-radius: 5px;
   background: transparent;
@@ -132,6 +136,15 @@ function onKeydown(e: KeyboardEvent, index: number) {
   -webkit-appearance: none;
   outline: none;
   transition: background 0.08s, color 0.08s;
+}
+/* With two or three options the equal split (flex:1) ellipsises a long active
+ * label ("Original Shot" → "Original Sh…") while its short neighbour sits on
+ * spare space. Sizing options to their text fixes that; five-option pills keep
+ * the equal split, since their combined max-content is what used to push whole
+ * nodes wider. */
+.fil-w-pill.few .fil-w-seg {
+  flex: 1 1 auto;
+  padding: 0 6px;
 }
 .fil-w-seg:hover:not(.active) {
   color: var(--fil-text);

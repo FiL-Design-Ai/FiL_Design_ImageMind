@@ -130,7 +130,7 @@ _SEED = NodeContract(
     title="♻️ Seed",
     category=f"{CATEGORY_ROOT}/Values",
     description="Fixed or randomized seed with reuse buttons.",
-    min_size=(240, 90),
+    min_size=(250, 90),
     family="value",
     inputs=NodeInputs(
         required=[
@@ -159,7 +159,7 @@ _PROVIDER = NodeContract(
     title="🔌 Provider Loader",
     category=f"{CATEGORY_ROOT}/LLM",
     description="Provider and model runtime configuration.",
-    min_size=(280, 250),
+    min_size=(300, 250),
     family="llm",
     inputs=NodeInputs(
         required=[
@@ -290,7 +290,7 @@ _CLEANER = NodeContract(
     title="🧹 Cleaner",
     category=f"{CATEGORY_ROOT}/Tools",
     description="GPU VRAM and loaded model memory cleanup.",
-    min_size=(260, 110),
+    min_size=(250, 110),
     family="tool",
     inputs=NodeInputs(
         required=[
@@ -306,7 +306,7 @@ _UPSCALE = NodeContract(
     title="🔍 Upscaler Advanced",
     category=f"{CATEGORY_ROOT}/Image",
     description="Computes optimal tile grid layout for upscaling.",
-    min_size=(340, 300),
+    min_size=(300, 300),
     family="image",
     inputs=NodeInputs(
         required=[
@@ -359,7 +359,7 @@ _UPSCALE_SIMPLE = NodeContract(
     title="🔍 Upscaler Simple",
     category=f"{CATEGORY_ROOT}/Image",
     description="Upscale + tile an image through a required model — same tiling controls as Advanced.",
-    min_size=(340, 300),
+    min_size=(300, 300),
     family="image",
     inputs=NodeInputs(
         required=[
@@ -407,7 +407,7 @@ _KSAMPLER = NodeContract(
     title="⚡ KSampler",
     category=f"{CATEGORY_ROOT}/Sampling",
     description="Full-featured sampler with every sampler and scheduler.",
-    min_size=(320, 240),
+    min_size=(300, 240),
     family="sampling",
     inputs=NodeInputs(
         required=[
@@ -443,12 +443,8 @@ _HIRESFIX = NodeContract(
     title="🔬 HighRes Fix",
     category=f"{CATEGORY_ROOT}/Sampling",
     description="Packs latent/pixel upscale + re-sample settings into a script.",
-    # 380, not 320: the own-seed row is a readout plus three pills, and the
-    # Russian captions need ~370px before FilSeedRow starts truncating them.
-    # Height dropped from 300 with the ADVANCED section: six rows show by
-    # default instead of nine.
     # Keep in step with nodes2/nodes/hiresfix.ts — test_ui_presentation guards it.
-    min_size=(380, 230),
+    min_size=(300, 230),
     family="sampling",
     inputs=NodeInputs(
         required=[
@@ -489,7 +485,7 @@ _NOISE_CONTROL = NodeContract(
     title="🎛️ Noise Control",
     category=f"{CATEGORY_ROOT}/Sampling",
     description="RNG source + seed-variation script for FiLKSampler.",
-    min_size=(280, 120),
+    min_size=(250, 120),
     family="sampling",
     inputs=NodeInputs(
         required=[
@@ -508,7 +504,7 @@ _DECOMPOSER = NodeContract(
     category=f"{CATEGORY_ROOT}/Analysis",
     description="Decomposes image or prompt into Subject, Lighting, Composition, Style, and Full Prompt outputs.",
     family="llm",
-    min_size=(320, 180),
+    min_size=(300, 180),
     inputs=NodeInputs(
         required=[
             _string("prompt", default="", multiline=True, label="Description"),
@@ -532,7 +528,7 @@ _STYLE_MIXER = NodeContract(
     category=f"{CATEGORY_ROOT}/Styling",
     description="Blends visual styles and reference images with weighted influence sliders and optional Vision LLM fusion.",
     family="base",
-    min_size=(380, 320),
+    min_size=(250, 320),
     inputs=NodeInputs(
         required=[
             _string("base_prompt", default="", multiline=True, label="Base Prompt"),
@@ -570,7 +566,7 @@ _CINEMA_RIG = NodeContract(
         "and color grade, wrapped in film or digital medium language, with an optional LLM polish."
     ),
     family="base",
-    min_size=(380, 380),
+    min_size=(300, 380),
     inputs=NodeInputs(
         required=[
             _string("scene_prompt", default="", multiline=True, label="Scene"),
@@ -598,7 +594,7 @@ _COLOR_WIZARD = NodeContract(
     category=f"{CATEGORY_ROOT}/Image",
     description="Automatically corrects image colours using white balance, LAB contrast enhancement, channel stretching, reference colour matching, and WB picker.",
     family="image",
-    min_size=(320, 310),
+    min_size=(300, 310),
     inputs=NodeInputs(
         required=[
             _combo("method", values=COLOR_METHOD_KEYS, default="Full Auto", label="Method"),
@@ -636,7 +632,7 @@ _CHANNEL = NodeContract(
     title="📡 Channel",
     category=f"{CATEGORY_ROOT}/Tools",
     description="Send data across the graph without wires.",
-    min_size=(220, 80),
+    min_size=(250, 80),
     family="tool",
     # No widgets at all. The node's only inputs are the autogrowing `value*`
     # sockets, and a channel is named by its slot label — a single name widget
@@ -650,7 +646,7 @@ _DATASET_FORGE = NodeContract(
     title="📚 LoRA Dataset Forge",
     category=f"{CATEGORY_ROOT}/Dataset",
     description="Batch → aspect-bucketed images + LLM captions written as a kohya/flat LoRA dataset.",
-    min_size=(360, 460),
+    min_size=(350, 460),
     family="llm",
     inputs=NodeInputs(
         required=[

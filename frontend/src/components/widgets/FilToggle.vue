@@ -45,10 +45,10 @@ function toggle() {
 <style scoped>
 .fil-w-toggle {
   display: grid;
-  /* Deliberately NOT `--fil-label-col` (38%), which every other labelled row
+  /* Deliberately NOT `--fil-label-col` (32%), which every other labelled row
    * uses so their controls line up in a column. A switch is 36px wide and is
    * pinned to the row's right edge (`justify-self: end` below), so it never
-   * sat on that column boundary to begin with — reserving the other 62% for
+   * sat on that column boundary to begin with — reserving the other 68% for
    * it only bought dead space. Measured on a live Cleaner at 262px wide: the
    * label was clipped to 86px needing 143px, with ~94px empty beside it.
    * `auto` gives the switch exactly its own width and the label the rest;

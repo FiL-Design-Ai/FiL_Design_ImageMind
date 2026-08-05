@@ -29,7 +29,8 @@ export const colorWizardNode: NodeModule = {
   id: "FiLColorWizard",
   register(nodeType: unknown, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
-      minSize: [320, 310],
+      minSize: [300, 310],
+      initialWidth: 300,
       family: "image",
       description: "Automatic color correction: white balance, LAB contrast, and skin protection with quick presets.",
       badges: [{ text: "color", color: "#f7768e", text_color: "#0b0e14" }],
