@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { reactive, nextTick } from "vue";
-import { mount } from "@vue/test-utils";
+import { mount, flushPromises } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import KSamplerPanel from "@/components/nodes/KSamplerPanel.vue";
 
@@ -132,5 +132,88 @@ describe("KSamplerPanel.vue", () => {
     const selects = wrapper.findAll("select");
     expect((selects[1].element as HTMLSelectElement).disabled).toBe(false);
     expect((selects[2].element as HTMLSelectElement).disabled).toBe(false);
+  });
+});
+
+/**
+ * Eta / Bongmath grayout. The verdict comes from the backend
+ * (`GET /fil_design_imagemind/sampler_options`), the only place that knows
+ * which installed samplers actually read the options — the panel must gray
+ * the widgets out for samplers that would ignore them, and fail-open (stay
+ * enabled) when the server cannot answer.
+ *
+ * `vi.resetModules()` before every test: the panel caches the fetch promise
+ * at MODULE level (ten nodes on a graph fetch once), so a fresh module per
+ * test is the only way to control what that one fetch returns.
+ */
+describe("KSamplerPanel.vue eta/bongmath grayout", () => {
+  // tests/setup.ts installs a global `api.fetchApi` that answers `{}` to
+  // everything — client.ts prefers it over window.fetch, so the stub has to
+  // replace `api`, not `fetch`.
+  function stubSamplerOptions(payload: unknown) {
+    vi.stubGlobal("api", {
+      apiURL: (route: string) => route,
+      fetchApi: vi.fn(async () => new Response(JSON.stringify(payload), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      })),
+    });
+  }
+
+  async function mountPanel(nodeState: Record<string, unknown>) {
+    const { default: FreshPanel } = await import("@/components/nodes/KSamplerPanel.vue");
+    const state = makeState({ nodeState });
+    (state.ui as Record<string, unknown>).collapsed_advanced = false;
+    const wrapper = mount(FreshPanel, { props: { state: state as never } });
+    await flushPromises();
+    await nextTick();
+    return { wrapper, state };
+  }
+
+  function etaInput(wrapper: ReturnType<typeof mount>) {
+    // FilSlider wraps a FilNumberInput, so with the advanced section open the
+    // number inputs are: [0] seed, [1] steps, [2] cfg, [3] denoise, [4] eta.
+    return wrapper.findAll("input.fil-w-num")[4].element as HTMLInputElement;
+  }
+  function bongmathSwitch(wrapper: ReturnType<typeof mount>) {
+    return wrapper.find("button.fil-w-switch").element as HTMLButtonElement;
+  }
+
+  beforeEach(() => {
+    vi.resetModules();
+    setActivePinia(createPinia());
+  });
+
+  it("grays eta and bongmath out for samplers that ignore them", async () => {
+    stubSamplerOptions({ eta: ["euler_ancestral", "dpmpp_sde"], bongmath: ["rk_beta"] });
+    const { wrapper } = await mountPanel({ sampler_name: "euler" });
+    expect(etaInput(wrapper).disabled).toBe(true);
+    expect(bongmathSwitch(wrapper).disabled).toBe(true);
+  });
+
+  it("keeps both widgets live for samplers that read them", async () => {
+    stubSamplerOptions({ eta: ["euler_ancestral", "rk_beta"], bongmath: ["rk_beta"] });
+    const { wrapper } = await mountPanel({ sampler_name: "rk_beta" });
+    expect(etaInput(wrapper).disabled).toBe(false);
+    expect(bongmathSwitch(wrapper).disabled).toBe(false);
+  });
+
+  it("reacts when the sampler selection changes", async () => {
+    stubSamplerOptions({ eta: ["euler_ancestral"], bongmath: ["rk_beta"] });
+    const { wrapper, state } = await mountPanel({ sampler_name: "euler_ancestral" });
+    expect(etaInput(wrapper).disabled).toBe(false);
+    state.nodeState.sampler_name = "dpmpp_2m";
+    await nextTick();
+    expect(etaInput(wrapper).disabled).toBe(true);
+  });
+
+  it("fails open when the route is unreachable — widgets stay editable", async () => {
+    vi.stubGlobal("api", {
+      apiURL: (route: string) => route,
+      fetchApi: vi.fn(async () => { throw new Error("server gone"); }),
+    });
+    const { wrapper } = await mountPanel({ sampler_name: "euler" });
+    expect(etaInput(wrapper).disabled).toBe(false);
+    expect(bongmathSwitch(wrapper).disabled).toBe(false);
   });
 });

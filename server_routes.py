@@ -176,6 +176,15 @@ def register_routes():
         return web.json_response(result)
 
 
+    @server.routes.get(f"/{ROUTE_SLUG}/sampler_options")
+    async def sampler_options(request):
+        # Which installed samplers read eta / BONGMATH — the KSampler panel
+        # grays the widgets out for samplers that would ignore them. Cheap
+        # pure-Python introspection (cached after the first pass), no thread.
+        from .common.sampling import sampler_option_support
+
+        return web.json_response(sampler_option_support())
+
     @server.routes.get(f"/{ROUTE_SLUG}/locale/{{lang}}")
     async def get_locale(request):
         lang = request.match_info.get("lang", "en")

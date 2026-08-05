@@ -12,16 +12,41 @@
  * invention on top of a hidden seed; a KSampler seed is the one every ComfyUI
  * user already knows how to drive, and replacing it would be a private dialect.
  */
-import { computed } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { FilSlider, FilNumberInput, FilSelect, FilToggle, FilSection } from "@/components/widgets";
 import { useI18n } from "@/composables/useI18n";
 import { findFilWidget } from "@/nodes2/util";
 import { useWidgetSockets } from "@/composables/useWidgetSockets";
 import { KSAMPLER_SOCKET_INPUTS } from "@/nodes2/nodes/ksampler";
+import { providerApi, type SamplerOptionsPayload } from "@/api/client";
 import type { FilNodeState } from "@/nodes2/filState";
 
 const props = defineProps<{ state: FilNodeState }>();
 const { t } = useI18n();
+
+/** Which installed samplers read eta / bongmath — served by the backend
+ * (`GET /fil_design_imagemind/sampler_options`), which is the only place that
+ * knows the real installed set (RES4LYF and friends register at runtime).
+ * Module-level promise so ten KSampler nodes on a graph fetch once. */
+let samplerOptionsPromise: Promise<SamplerOptionsPayload> | null = null;
+function loadSamplerOptions(): Promise<SamplerOptionsPayload> {
+  samplerOptionsPromise ??= providerApi.samplerOptions()
+    .catch((err) => { samplerOptionsPromise = null; throw err; });
+  return samplerOptionsPromise;
+}
+
+const etaSamplers = ref<Set<string> | null>(null);
+const bongmathSamplers = ref<Set<string> | null>(null);
+onMounted(() => {
+  loadSamplerOptions()
+    .then((p) => {
+      etaSamplers.value = new Set(p.eta ?? []);
+      bongmathSamplers.value = new Set(p.bongmath ?? []);
+    })
+    // Fail-open: without the server's verdict every widget stays enabled —
+    // a widget wrongly grayed out is worse than one that does nothing.
+    .catch(() => {});
+});
 
 const { setFieldEl, isLinked } = useWidgetSockets(props.state, KSAMPLER_SOCKET_INPUTS);
 const linkedTip = (name: string, own: string) =>
@@ -81,6 +106,15 @@ const bongmath = boolField("bongmath", true);
 const previewMethod = stringField("preview_method", "auto");
 const vaeDecode = stringField("vae_decode", "true");
 
+/** The selected sampler ignores the widget's value entirely (the backend
+ * drops it before sampling). null = server verdict not in yet → stay enabled. */
+const etaIgnored = computed(
+  () => etaSamplers.value !== null && !etaSamplers.value.has(samplerName.value),
+);
+const bongmathIgnored = computed(
+  () => bongmathSamplers.value !== null && !bongmathSamplers.value.has(samplerName.value),
+);
+
 const controlOptions = computed(() => comboOptions("control_after_generate", ["fixed", "increment", "decrement", "randomize"]));
 const samplerOptions = computed(() => comboOptions("sampler_name", ["euler"]));
 const schedulerOptions = computed(() => comboOptions("scheduler", ["normal"]));
@@ -128,11 +162,16 @@ const vaeDecodeOptions = computed(() => comboOptions("vae_decode", ["true", "tru
          (the same trap already fixed in UpscaleTileCalc.vue). -->
     <template v-if="!isCollapsed('advanced')">
       <FilNumberInput :ref="(el: unknown) => setFieldEl('eta', el)"
-        v-model="eta" :min="0" :max="100" :step="0.01" :disabled="isLinked('eta')"
+        v-model="eta" :min="0" :max="100" :step="0.01" :disabled="isLinked('eta') || etaIgnored"
         :label="t('ksp_eta', '🌀 Eta')"
-        :title="linkedTip('eta', t('ks_eta', 'Noise multiplier for ancestral/SDE samplers (1.0 = standard, 0.0 = deterministic).'))" />
+        :title="linkedTip('eta', etaIgnored
+          ? t('ksp_eta_ignored_tt', 'This sampler ignores eta — only ancestral/SDE samplers use it.')
+          : t('ks_eta', 'Noise multiplier for ancestral/SDE samplers (1.0 = standard, 0.0 = deterministic).'))" />
       <FilToggle :model-value="bongmath" :label="t('ksp_bongmath', '🧮 Bongmath')"
-        :title="t('ks_bongmath', 'Enable bongmath implicit correction for RES4LYF samplers (ignored by standard samplers).')"
+        :disabled="bongmathIgnored"
+        :title="bongmathIgnored
+          ? t('ksp_bongmath_ignored_tt', 'This sampler does not read the bongmath toggle.')
+          : t('ks_bongmath', 'Enable bongmath implicit correction for RES4LYF samplers (ignored by standard samplers).')"
         @update:model-value="(v) => (bongmath = v)" />
       <FilSelect v-model="previewMethod" :options="previewOptions"
         :label="t('ksp_preview', '👁️ Preview')" :title="t('ks_preview', 'How the live sampling preview is rendered.')" />
