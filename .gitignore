@@ -74,6 +74,7 @@ pytest_run_tmp/
 
 # Internal dev docs — not for the public repo view
 CLAUDE.md
+QWEN.md
 audit.md
 audit-next.md
 fix.md
