@@ -161,7 +161,7 @@ Four less obvious things the pack does in one pass, each a short node chain:
 
 ### Node reference
 
-All 16 nodes, grouped by category. Ranges below are the real schema limits.
+All 17 nodes, grouped by category. Ranges below are the real schema limits.
 
 #### 🎨 FiL Design/LLM
 
