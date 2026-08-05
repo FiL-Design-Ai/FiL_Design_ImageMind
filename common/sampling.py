@@ -67,6 +67,18 @@ def _blend_noise(base_noise, variation_noise, weight: float):
 # Ancestral / SDE samplers apply stochastic noise at each step — eta scales it.
 # Deterministic samplers (euler, heun, dpm_2, lms …) do NOT use eta at all;
 # passing it would raise TypeError inside k_diffusion.
+#
+# Membership rule: the registered sampler function itself must take ``eta``.
+# KSAMPLER.sample() unpacks extra_options as ``**kwargs`` into it, so a name
+# listed here whose function has no ``eta`` parameter crashes every generation
+# with TypeError. Two traps already hit while building this list:
+#   - ``er_sde`` / ``sa_solver`` / ``sa_solver_pece`` ARE stochastic but take
+#     ``s_noise``/``tau_func`` instead of ``eta`` — they must stay OUT.
+#   - ``dpm_fast``: its k_diffusion function has ``eta``, but the wrapper
+#     closure comfy.samplers registers for it drops extra_options entirely
+#     (no ``**kwargs``) — it must stay OUT too.
+# tests/test_sample_unified.py drift-checks this set against the installed
+# ComfyUI's real signatures on every run.
 _ETA_SAMPLERS: frozenset[str] = frozenset({
     "euler_ancestral",
     "euler_ancestral_cfg_pp",
@@ -81,26 +93,47 @@ _ETA_SAMPLERS: frozenset[str] = frozenset({
     "dpmpp_2m_sde_heun_gpu",
     "dpmpp_3m_sde",
     "dpmpp_3m_sde_gpu",
-    "er_sde",
+    "exp_heun_2_x0_sde",
+    "dpm_adaptive",
     "res_multistep_ancestral",
     "res_multistep_ancestral_cfg_pp",
-    "sa_solver",
-    "sa_solver_pece",
     "seeds_2",
     "seeds_3",
 })
 
 
-def _sampler_accepts_eta(sampler_name: str) -> bool:
-    """Return True if ``sampler_name`` is a stochastic (ancestral/SDE) sampler
-    that honours the ``eta`` noise-multiplier kwarg.
+# Cache for unknown/custom sampler names checked via inspect.signature.
+_ETA_CACHE: dict[str, bool] = {}
 
-    Uses an explicit allowlist derived from ComfyUI's ``KSAMPLER_NAMES`` so the
-    check is fast, reliable, and immune to ComfyUI's internal wrapper structure
-    (the old ``inspect.signature`` approach broke silently when the wrapper hid
-    the original function's parameters).
+
+def _sampler_accepts_eta(sampler_name: str) -> bool:
+    """Return True if ``sampler_name`` reads ``eta`` from ``extra_options``.
+
+    Two-level strategy (mirrors ``_sampler_accepts_bongmath``):
+    1. Fast allowlist for the stock samplers — pinned by the drift tests in
+       tests/test_sample_unified.py against the installed ComfyUI.
+    2. ``inspect.signature`` fallback for custom samplers (RES4LYF's SDE ones
+       accept eta but never appear in the stock allowlist). Introspecting the
+       REGISTERED function is crash-safe by construction: that is exactly the
+       function KSAMPLER.sample() unpacks extra_options into, so a fixed-
+       signature wrapper without an eta parameter correctly reports False.
+       Only a NAMED eta parameter counts — a bare ``**kwargs`` is too weak
+       evidence that the sampler actually reads it.
     """
-    return sampler_name in _ETA_SAMPLERS
+    if sampler_name in _ETA_SAMPLERS:
+        return True
+    if sampler_name in _ETA_CACHE:
+        return _ETA_CACHE[sampler_name]
+    try:
+        import inspect
+
+        import comfy.samplers as _s
+
+        result = "eta" in inspect.signature(_s.ksampler(sampler_name).sampler_function).parameters
+    except Exception:
+        result = False
+    _ETA_CACHE[sampler_name] = result
+    return result
 
 
 # Samplers that directly accept a ``BONGMATH`` kwarg via ``**extra_options``.
@@ -150,6 +183,23 @@ def _sampler_accepts_bongmath(sampler_name: str) -> bool:
         result = False
     _BONGMATH_CACHE[sampler_name] = result
     return result
+
+
+def sampler_option_support() -> dict[str, list[str]]:
+    """Installed sampler names that read ``eta`` / ``BONGMATH`` from
+    ``extra_options``, for the frontend to gray out widgets the currently
+    selected sampler would ignore (see server_routes.py).
+
+    Computed lazily at request time — by then every sampler pack (RES4LYF
+    etc.) has finished registering, so the lists reflect the real install.
+    """
+    import comfy.samplers
+
+    names = list(comfy.samplers.KSampler.SAMPLERS)
+    return {
+        "eta": [n for n in names if _sampler_accepts_eta(n)],
+        "bongmath": [n for n in names if _sampler_accepts_bongmath(n)],
+    }
 
 
 def _sample_core(
@@ -210,6 +260,18 @@ def _sample_core(
         latent_image=latent_image, denoise_mask=latent.get("noise_mask"),
         callback=callback, disable_pbar=not comfy.utils.PROGRESS_BAR_ENABLED,
         seed=seed,
+    )
+    # Stock common_ksampler goes through comfy.sample.sample, which moves the
+    # result to the intermediate device/dtype after sampling; the direct
+    # comfy.samplers.sample call above skips that. Keep parity or the output
+    # latent sits on the GPU (VRAM) — and stays in the model's compute dtype
+    # on fp16/bf16 setups — where the stock KSampler would hand it downstream
+    # on CPU as fp32.
+    import comfy.model_management
+
+    samples = samples.to(
+        device=comfy.model_management.intermediate_device(),
+        dtype=comfy.model_management.intermediate_dtype(),
     )
     out = latent.copy()
     out.pop("downscale_ratio_spacial", None)
