@@ -18,6 +18,9 @@ defineProps<{
   /** Pill captions and tooltips, supplied by the caller so i18n keys stay node-local. */
   labels: { random: string; useLast: string; newFixed: string };
   titles: { random: string; useLast: string; newFixed: string };
+  /** The node's seed input carries a link — the whole row is read-only, the
+   * same way stock ComfyUI grays a linked seed widget. */
+  disabled?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -33,25 +36,28 @@ function onInput(e: Event) {
 </script>
 
 <template>
-  <div class="fil-w-seedrow">
+  <div class="fil-w-seedrow" :class="{ 'is-disabled': disabled }">
     <input
       :value="display"
       type="text"
       class="fil-w-seedrow-field"
       :class="{ 'is-random': mode === 'random' }"
       :readonly="mode === 'random'"
+      :disabled="disabled"
       :aria-label="fieldAriaLabel"
       :title="fieldTitle"
       @input="onInput"
     />
     <button type="button" class="fil-w-seedrow-pill" :class="{ active: mode === 'random' }"
-      :title="titles.random" @click="emit('random')">
+      :disabled="disabled" :title="titles.random" @click="emit('random')">
       {{ labels.random }}
     </button>
-    <button type="button" class="fil-w-seedrow-pill" :title="titles.useLast" @click="emit('use-last')">
+    <button type="button" class="fil-w-seedrow-pill" :disabled="disabled"
+      :title="titles.useLast" @click="emit('use-last')">
       {{ labels.useLast }}
     </button>
-    <button type="button" class="fil-w-seedrow-pill is-accent" :title="titles.newFixed" @click="emit('new-fixed')">
+    <button type="button" class="fil-w-seedrow-pill is-accent" :disabled="disabled"
+      :title="titles.newFixed" @click="emit('new-fixed')">
       {{ labels.newFixed }}
     </button>
   </div>
@@ -115,8 +121,17 @@ function onInput(e: Event) {
   -webkit-appearance: none;
   outline: none;
 }
-.fil-w-seedrow-pill:hover {
+.fil-w-seedrow-pill:hover:not(:disabled) {
   background: var(--fil-surface-3);
+}
+/* Linked seed input: the row mirrors how stock ComfyUI grays a linked widget —
+   half-faded and inert, not hidden (the value it shows is still the truth). */
+.fil-w-seedrow.is-disabled {
+  opacity: 0.5;
+}
+.fil-w-seedrow-pill:disabled,
+.fil-w-seedrow-field:disabled {
+  cursor: default;
 }
 .fil-w-seedrow-pill:focus-visible {
   outline: 2px solid var(--fil-accent);
@@ -144,7 +159,7 @@ function onInput(e: Event) {
   color: var(--fil-text);
   font-weight: 700;
 }
-.fil-w-seedrow-pill.is-accent:hover {
+.fil-w-seedrow-pill.is-accent:hover:not(:disabled) {
   background: color-mix(in srgb, var(--fil-accent) 24%, transparent);
 }
 </style>
