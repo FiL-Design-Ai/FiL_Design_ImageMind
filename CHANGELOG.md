@@ -21,6 +21,24 @@
 
 ### Changed
 
+- **The two art-library `🦾 КИБЕРПАНК` presets left unconfirmed after four
+  rewrites each are now fixed — on a fifth attempt, using a different lever
+  than "say it's hers" one more time.** `Golden Mechanical Portrait` kept
+  building a separate golden statue because its own opening words — "golden
+  cyberpunk mechanical...portrait art" — set up a golden mechanical *subject*
+  before "her" was ever mentioned; moving every "golden"/"regal"/"luxury"
+  word out of the opening and into a clause that only modifies her hand
+  fixed it outright. `Neuro-Interface` kept rendering nothing because "a cold
+  blue monitor glowing on the desk beside her" was a full second scene
+  competing for the same detail budget as a small neck feature; dropping the
+  monitor and forcing an extreme close-up crop — the same fix as Macro
+  Micro-world and Bath Scene earlier this session — finally got the hardware
+  on screen. The first render of the fixed Neuro-Interface came back as a
+  giant collar dwarfing a tiny figure — this session's usual full-body test
+  subject fighting a preset that explicitly asks for a close-up — and cleared
+  up completely once tested against a matching portrait-crop subject instead,
+  the same test-harness collision already on record for Macro Micro-world.
+  `🦾 КИБЕРПАНК` in the art library is now 9 for 9.
 - **NSFW libraries: photo half live-swept clean, art half partially swept, 3
   text-only fixes unverified.** Testing NSFW presets first needed a checkpoint
   swap — the "official" krea2 checkpoint used for every other sweep this
