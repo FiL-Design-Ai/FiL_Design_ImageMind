@@ -81,6 +81,15 @@ export interface NodeContractsPayload {
   settings_prefix: string;
 }
 
+/** GET /fil_design_imagemind/sampler_options — installed sampler names that
+ * read the given option from `extra_options` (`common/sampling.py`). The
+ * KSampler panel grays its Eta / Bongmath widgets out for samplers that
+ * would ignore the value. */
+export interface SamplerOptionsPayload {
+  eta: string[];
+  bongmath: string[];
+}
+
 async function readJson<T>(response: Response): Promise<T> {
   let data: unknown;
   try {
@@ -151,4 +160,5 @@ export const providerApi = {
     postJson<ProbeResponse>(`${ROUTE_PREFIX}/provider_probe`, { provider, model }),
   listProviders: () => getJson<{ providers: Record<string, string> }>(`${ROUTE_PREFIX}/providers`),
   nodeContracts: () => getJson<NodeContractsPayload>(`${ROUTE_PREFIX}/node_contracts`),
+  samplerOptions: () => getJson<SamplerOptionsPayload>(`${ROUTE_PREFIX}/sampler_options`),
 };
