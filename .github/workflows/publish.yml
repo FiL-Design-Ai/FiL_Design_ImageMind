@@ -52,6 +52,18 @@ jobs:
           npm ci
           npm run build
 
+      # 1.1.0 and 1.1.1 are Flagged in the registry because the archive carried
+      # the minified bundle with no map and no `src/` to read it against, and
+      # the registry forbids unreviewable code. This job builds its own bundle,
+      # so the repository test that guards the map cannot see the result.
+      - name: Check the bundle ships a sourcemap
+        run: |
+          if [ ! -s frontend/dist/fil_design_imagemind.js.map ]; then
+            echo "::error::frontend/dist/fil_design_imagemind.js.map is missing or empty. The registry would receive unreadable minified code and flag the version."
+            exit 1
+          fi
+          echo "Sourcemap present ($(du -h frontend/dist/fil_design_imagemind.js.map | cut -f1))."
+
       - name: Publish Custom Node
         uses: Comfy-Org/publish-node-action@main
         with:
