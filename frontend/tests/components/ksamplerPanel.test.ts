@@ -133,6 +133,20 @@ describe("KSamplerPanel.vue", () => {
     expect((selects[1].element as HTMLSelectElement).disabled).toBe(false);
     expect((selects[2].element as HTMLSelectElement).disabled).toBe(false);
   });
+
+  // Stock ComfyUI grays control_after_generate out while the seed input is
+  // linked — the value the combo would cycle is no longer the widget's own.
+  it("grays the after-generate combo out while the seed socket carries a link", async () => {
+    const node = {
+      ...nodeWithSamplers(["euler", "dpmpp_2m"]),
+      inputs: [{ name: "seed", widget: {}, link: 7 }],
+    };
+    const wrapper = mount(KSamplerPanel, { props: { state: makeState({ node }) as never } });
+    await nextTick();
+    const selects = wrapper.findAll("select");
+    expect((selects[0].element as HTMLSelectElement).disabled).toBe(true);
+    expect((selects[1].element as HTMLSelectElement).disabled).toBe(false);
+  });
 });
 
 /**

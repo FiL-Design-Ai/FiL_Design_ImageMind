@@ -128,9 +128,12 @@ const vaeDecodeOptions = computed(() => comboOptions("vae_decode", ["true", "tru
       v-model="seed" :min="0" :max="0xFFFFFFFFFFFFFFFF" :step="1" :disabled="isLinked('seed')"
       :label="t('ksp_seed', '🌱 Seed')"
       :title="linkedTip('seed', t('ks_seed', 'Noise seed.'))" />
-    <FilSelect v-model="controlAfterGenerate" :options="controlOptions"
+    <!-- Stock ComfyUI grays the after-generate combo out while seed is linked:
+         the seed no longer belongs to the widget, so neither does its cycle
+         control. -->
+    <FilSelect v-model="controlAfterGenerate" :options="controlOptions" :disabled="isLinked('seed')"
       :label="t('ksp_after_generate', '🔁 After generate')"
-      :title="t('ksp_after_generate_tt', 'What ComfyUI does to the seed once the prompt has run.')" />
+      :title="linkedTip('seed', t('ksp_after_generate_tt', 'What ComfyUI does to the seed once the prompt has run.'))" />
 
     <FilNumberInput :ref="(el: unknown) => setFieldEl('steps', el)"
       v-model="steps" :min="1" :max="10000" :step="1" :disabled="isLinked('steps')"

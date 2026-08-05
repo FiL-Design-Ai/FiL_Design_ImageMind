@@ -79,9 +79,11 @@ const RNG_LABELS: Record<string, string> = { cpu: "🖥️ CPU", gpu: "🎮 GPU"
         v-model="seed" :min="0" :max="0xFFFFFFFFFFFFFFFF" :step="1" :disabled="isLinked('seed')"
         :label="t('nscp_seed', '🌱 Variation seed')"
         :title="linkedTip('seed', t('nsc_seed', 'Variation seed (used when Variation is ON).'))" />
-      <FilSelect v-model="controlAfterGenerate" :options="controlOptions"
+      <!-- Stock ComfyUI grays the after-generate combo out while the seed it
+           cycles is linked — same rule as FiLKSampler's panel. -->
+      <FilSelect v-model="controlAfterGenerate" :options="controlOptions" :disabled="isLinked('seed')"
         :label="t('nscp_after_generate', '🔁 After generate')"
-        :title="t('nscp_after_generate_tt', 'What ComfyUI does to the variation seed once the prompt has run.')" />
+        :title="linkedTip('seed', t('nscp_after_generate_tt', 'What ComfyUI does to the variation seed once the prompt has run.'))" />
       <FilSlider :ref="(el: unknown) => setFieldEl('weight', el)"
         :model-value="weight" :min="0" :max="1" :step="0.01" :disabled="isLinked('weight')"
         :label="t('nscp_weight', '⚖️ Variation weight')"

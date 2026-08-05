@@ -56,4 +56,18 @@ describe("NoiseControlPanel.vue", () => {
     expect(labels.join(" ")).toContain("CPU");
     expect(labels.join(" ")).toContain("GPU");
   });
+
+  // Same rule as FiLKSampler: stock ComfyUI disables control_after_generate
+  // while the seed it cycles is driven by a link.
+  it("grays the after-generate combo out while the variation seed socket carries a link", async () => {
+    const node = {
+      widgets: [{ name: "rng_source", value: "cpu", options: { values: ["cpu", "gpu"] } }],
+      inputs: [{ name: "seed", widget: {}, link: 7 }],
+    };
+    const wrapper = mount(NoiseControlPanel, { props: { state: makeState({ node }) as never } });
+    await toggleByLabel(wrapper, "🔀 Variation").trigger("click");
+    await nextTick();
+    const select = wrapper.find("select");
+    expect((select.element as HTMLSelectElement).disabled).toBe(true);
+  });
 });
