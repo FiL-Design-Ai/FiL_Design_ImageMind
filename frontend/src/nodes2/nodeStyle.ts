@@ -9,6 +9,14 @@ import { patchRecreateMenuItem } from "@/nodes2/recreateNode";
 
 export interface StyledNodeOptions {
   minSize?: [number, number];
+  /**
+   * Cap the width LiteGraph computes at creation. Its `computeSize()` measures
+   * the DOM panel's unconstrained content width (a combo's longest option, a
+   * segmented pill's options in a row), which lands row panels at ~400px —
+   * visibly wider than native nodes. New nodes start at this width instead;
+   * saved workflows keep whatever size they were saved with.
+   */
+  initialWidth?: number;
   family?: string;
   description?: string;
   badges?: Array<{ text: string; color?: string; text_color?: string }>;
@@ -79,6 +87,7 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
       _filFamily?: string;
       _filDescription?: string;
       badges?: Array<{ text: string; color?: string; text_color?: string }>;
+      size?: [number, number];
       onMenu?: unknown;
       onNodeCreated?: (...a: unknown[]) => unknown;
       getExtraMenuOptions?: (...a: unknown[]) => unknown;
@@ -110,10 +119,13 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
   p.color = "#ffffff";
   p.bgcolor = ACTIVE_PALETTE.panelAlt;
   const originalCreated = p.onNodeCreated;
-  p.onNodeCreated = function (this: { color?: string; bgcolor?: string }, ...args: unknown[]) {
+  p.onNodeCreated = function (this: { color?: string; bgcolor?: string; size?: [number, number] }, ...args: unknown[]) {
     const result = originalCreated?.apply(this, args);
     this.color = "#ffffff";
     this.bgcolor = ACTIVE_PALETTE.panelAlt;
+    if (opts.initialWidth != null && this.size && this.size[0] > opts.initialWidth) {
+      this.size[0] = opts.initialWidth;
+    }
     return result;
   };
 

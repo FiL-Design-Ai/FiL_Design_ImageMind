@@ -33,7 +33,8 @@ export const decomposerNode: NodeModule = {
     registerStyledNode(nodeType, {
       // Low on purpose — computeSize() wins via Math.max in domWidgetHost.ts.
       // Width is what this floor is for: the prompt box wants the room.
-      minSize: [320, 180],
+      minSize: [300, 180],
+      initialWidth: 300,
       family: "llm",
       description: "Decomposes image or prompt into distinct visual layers.",
       badges: [{ text: "vision", color: "#bb9af7", text_color: "#0b0e14" }],

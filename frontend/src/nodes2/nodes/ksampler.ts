@@ -55,7 +55,8 @@ export const ksamplerNode: NodeModule = {
       // last row. Width is the real reason the floor exists — sampler names
       // ("dpmpp_2m_sde_gpu") need the room, and computeSize()'s width guess
       // ignores the DOM widget's content.
-      minSize: [320, 240],
+      minSize: [300, 240],
+      initialWidth: 300,
       family: "sampling",
       description: "Full sampler/scheduler set, passthrough outputs, preview, HighRes-fix script.",
       badges: [{ text: "sampler", color: "#7aa2f7", text_color: "#0b0e14" }],

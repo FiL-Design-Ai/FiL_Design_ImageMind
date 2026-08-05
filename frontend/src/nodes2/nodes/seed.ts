@@ -20,7 +20,8 @@ export const seedNode: NodeModule = {
   id: "FiLSeed",
   register(nodeType: unknown, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
-      minSize: [240, 90],
+      minSize: [250, 90],
+      initialWidth: 250,
       family: "value",
       description: "Fixed or randomized seed with copy and reuse buttons.",
       badges: [{ text: "seed" }],

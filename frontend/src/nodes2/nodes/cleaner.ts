@@ -18,7 +18,8 @@ export const cleanerNode: NodeModule = {
       // panel is two switch rows plus its own padding; computeSize() wins via
       // Math.max in domWidgetHost.ts either way, so this only has to cover the
       // first paint.
-      minSize: [260, 110],
+      minSize: [250, 110],
+      initialWidth: 250,
       family: "tool",
       description: "GPU VRAM and loaded model memory cleanup.",
       badges: [{ text: "utility", color: "#888", text_color: "#fff" }],

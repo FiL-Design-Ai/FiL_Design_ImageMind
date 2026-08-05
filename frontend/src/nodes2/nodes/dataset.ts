@@ -69,7 +69,8 @@ export const datasetForgeNode: NodeModule = {
   id: "FiLDatasetForge",
   register(nodeType: unknown, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
-      minSize: [360, 460],
+      minSize: [350, 460],
+      initialWidth: 350,
       family: "llm",
       description:
         "Turns an image batch into a LoRA training dataset: aspect buckets, one caption per image, kohya or flat folder on disk.",

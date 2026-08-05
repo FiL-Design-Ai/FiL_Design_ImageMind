@@ -118,7 +118,8 @@ export const styleMixerNode: NodeModule = {
   id: "FiLStyleMixer",
   register(nodeType: unknown, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
-      minSize: [380, 320],
+      minSize: [250, 320],
+      initialWidth: 250,
       family: "base",
       description: "Blends visual styles and reference images with weighted influence sliders and optional Vision LLM fusion.",
       badges: [{ text: "styles", color: "#e0af68", text_color: "#0b0e14" }],

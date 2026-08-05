@@ -39,7 +39,8 @@ export const cinemaRigNode: NodeModule = {
   id: "FiLCinemaRig",
   register(nodeType: unknown, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
-      minSize: [380, 380],
+      minSize: [300, 380],
+      initialWidth: 300,
       family: "base",
       description: "Assembles a cinematic shot prompt from camera, lens, focal length, aperture and color grade axes.",
       badges: [{ text: "cinema", color: "#f7768e", text_color: "#0b0e14" }],

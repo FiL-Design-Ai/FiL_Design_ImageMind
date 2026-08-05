@@ -17,7 +17,8 @@ export const providerNode: NodeModule = {
       // always wins via Math.max in domWidgetHost.ts, so a buffer above it
       // here would just be dead space at the bottom. Width is the actual
       // reason this floor exists (computeSize()'s own width guess ignores it).
-      minSize: [280, 250],
+      minSize: [300, 250],
+      initialWidth: 300,
       family: "llm",
       description: "Provider and model runtime configuration.",
       badges: [{ text: "API key", color: "#d4a04a", text_color: "#1a1a1a" }],

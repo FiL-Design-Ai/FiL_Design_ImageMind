@@ -35,7 +35,8 @@ export const noiseControlNode: NodeModule = {
       // Low on purpose — computeSize() wins via Math.max in domWidgetHost.ts.
       // With Variation off the panel is two rows, so a tall floor here would be
       // permanent empty space under them.
-      minSize: [280, 120],
+      minSize: [250, 120],
+      initialWidth: 250,
       family: "sampling",
       description: "RNG source + seed-variation script for FiLKSampler.",
       badges: [{ text: "script", color: "#7aa2f7", text_color: "#0b0e14" }],

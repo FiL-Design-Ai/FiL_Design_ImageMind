@@ -74,7 +74,8 @@ export const switchNode: NodeModule = {
   id: "FiLSignalSwitch",
   register(nodeType: unknown, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
-      minSize: [220, 52],
+      minSize: [250, 52],
+      initialWidth: 250,
       family: "tool",
       description: "Universal signal pass-through toggle ON/OFF.",
       badges: [{ text: "SWITCH", color: "#38bdf8", text_color: "#000" }],
