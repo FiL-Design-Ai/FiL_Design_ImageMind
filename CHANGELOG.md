@@ -1,6 +1,133 @@
 # Changelog
 
-## Unreleased
+## 1.1.2 (2026-08-06)
+
+The video release, with a wireless heart. Optic Scanner became the pack's
+video department — two new targets (a universal Video profile and MiniMax H3
+timelines), four shot-parameter widgets that only exist for video targets,
+and a prompting rewrite paid for with live renders. Around it: 📡 Channel
+finishes wireless data transfer (conflict picking, a diagnostics tab), 🎬
+Cinema Rig joins the styling department, the style libraries completed their
+first full live-render sweeps, two Cyber Punch themes join the theme layer,
+and a long row of interaction fixes — scrubbing number fields, seed-linked
+controls graying out, the language rule finally closing every system prompt.
+Saved workflows load unchanged. The output that does change: video-target
+prompts (rewritten guidance), Ideogram 4 prompts (the v4 API has no
+negative-prompt field), and the style-library presets whose endings and
+anchors the sweeps rewrote.
+
+### Added
+
+- **🕵️ Optic Scanner grew four video shot parameters — Output widgets that
+  appear the moment `model_type` switches to Video or MiniMax H3 and vanish
+  for every image target.** Selecting a video profile now surfaces ⏱
+  `video_duration` (slider; 0 = Auto; the range follows the profile — Video
+  2-20s, MiniMax H3 4-15s, the API's hard limit, re-clamped at injection so a
+  stale value after a model switch can never produce an invalid prompt), 📐
+  `video_aspect` (Auto/16:9/9:16/1:1/21:9, written into the shot framing —
+  for H3 into the timeline header line), 🔊 `video_sound` (Auto / Off =
+  silent clip / Layered = mandatory ambience+foley+music clause) and 🎥
+  `video_camera` (ten preset moves, injected as a preference the LLM builds
+  the shot around, adapting per story stage). Non-Auto values land in a
+  `SHOT PARAMETERS` block placed after the model guidance in both Hybrid and
+  Two-Stage system prompts, so user-fixed facts override the guidance's
+  defaults; all-Auto runs stay byte-identical to the pre-widget output, and
+  hidden values persist in the workflow — switching back to a video profile
+  restores them on screen. The chosen parameters are echoed in
+  `metadata_dict.video_params` (with a `duration_clamped` flag); the key is
+  absent for image runs. Mechanically this is the first real consumer of the
+  contract schema's dormant `visible_when` / `visible_when_value` fields —
+  OpticScanner.vue now evaluates them generically, and the panel gained a
+  FilSlider branch (its first slider) plus a FilSelect for the ten-option
+  camera list. Both example workflows were re-synced to the wider schema,
+  locales carry EN/RU tooltips, and the feature is locked in by
+  `test_video_shot_parameters.py` (18 tests: clamp ranges, block assembly,
+  byte-identical all-Auto, both bundle stages, node-level metadata/gating)
+  and five new OpticScanner component tests (visibility per model type,
+  dynamic slider bounds, clamp-on-switch, hidden-value persistence).
+
+### Fixed
+
+- **The language rule is now genuinely the last block of the system prompt, in
+  both Hybrid and Two-Stage.** `execute()` stacked the style overlays
+  (enforcement / NSFW overlay / custom style) on top of the bundle *after* the
+  bundle had appended the language rule, so a `language=ru` run with any style
+  selected ended with English style prose after "write in Russian" — the exact
+  burial the 2026-07-29 run over 132 models flagged (29% answered in English
+  when the rule sat mid-prompt). `build_system_prompt_bundle()` and
+  `build_system_prompt_two_stage_bundle()` now return the rule separately and
+  the node appends it after every overlay (stage 2 included), locked in by two
+  node-level tests asserting the final sent system prompt ends on the rule.
+- **A locked `video_aspect` now outranks wired width/height sockets.** With
+  the widget at `16:9` and a 4:3 resolution wired in, the prompt used to carry
+  two contradictory framing instructions, and the socket-derived one read
+  later. The socket guidance is now skipped for video profiles whenever the
+  widget is non-Auto (image targets and Auto keep it, unchanged).
+
+### Changed
+
+- **📖 `docs/ETA_GUIDE.md` rewritten to match the actual code path.** The
+  previous version hand-waved the math ("Noise Added = eta × Standard Noise
+  Factor"), carried an incomplete sampler table, listed a nonexistent
+  "ClownsharKSampler" in the subtitle and framed `eta > 1` as pure artifact
+  risk. The guide now documents the real `get_ancestral_step` split
+  (`sigma_up` / `sigma_down`, including the `sigma_up ≤ sigma_to` clamp that
+  saturates the effect above ~1–2), the full `_ETA_SAMPLERS` allowlist
+  (+`cfg_pp`/`_gpu` variants, `dpm_adaptive`) plus runtime signature-detected
+  RES4LYF samplers (`rk_beta`, whose native default is 0.5), the documented
+  exclusion traps (`er_sde`/`sa_solver`/`dpm_fast`), seed-based
+  reproducibility of the injected noise, and a new section on how FiL KSampler
+  routes eta — silent skip + frontend grayout for samplers that ignore it, so
+  a stale `eta` value can never crash a deterministic sampler with TypeError.
+  Both RU and EN versions updated symmetrically; no code changes.
+
+- **🔬 HighRes Fix's 🔁 Iterations moved out of the ADVANCED fold — it now
+  sits right under 🪜 Hires steps in the always-visible panel.** It was
+  collapsed by default next to set-once controls (Hires checkpoint,
+  ControlNet), but the pass count is an everyday quality knob you tweak
+  run-to-run, so hiding it one click away was friction for no gain. ADVANCED
+  now keeps only the Hires checkpoint and the ControlNet stack. The widget's
+  name, 0–5 range, default and the backend `iterations` behaviour are
+  untouched — saved workflows, socket wiring and packed scripts are all
+  unaffected; `hiResFix.test.ts` updated to assert Iterations is visible with
+  ADVANCED collapsed.
+
+- **🕵️ Optic Scanner's Video and MiniMax H3 prompting was rewritten around four
+  observed failure modes.** Runs against real video targets kept producing (1)
+  still-frame prompts — a caption of the image with nothing actually moving;
+  (2) collapsed structure — timestamps leaking into the universal Video
+  profile, beats missing their `Sound:` clause in H3 timelines; (3) weak or
+  irrelevant sound — one generic ambience word instead of a clause tied to
+  what is on screen; (4) vague camera — "camera moves" with no shot size,
+  angle or move character. The universal **Video** guidance (`common/logic.py`)
+  now opens with the motion-first principle ("a video prompt is a shot
+  unfolding in time, not a picture description"), teaches the LLM to read a
+  wired image as one frozen instant and project its motion evidence forward,
+  demands secondary motion (hair, fabric, dust, parallax), light that changes
+  during the shot, a full shot-size/angle vocabulary, exactly ONE named camera
+  move per shot (compound moves confuse every video model), a style/treatment
+  anchor, a layered sound-design clause (ambience bed + foley from the visible
+  action + music mood) and `Image N` reference roles; it still forbids
+  timestamps/shot lists/bracket tags because every non-MiniMax parser in the
+  class reads free text only. The dedicated **MiniMax H3** guidance was
+  re-verified against platform.minimax.io on 2026-08-05 and gained the API
+  facts: 4–15 whole-second durations, `9:16 vertical` header variant, inline
+  camera tags `[pan]`/`[zoom]`/`[static]`, reference jobs on the first line,
+  no-gaps/no-overlap beat coverage of the whole duration, one motion + one
+  camera move per beat (empty beats get merged, never padded), same-word
+  subject naming for identity across cuts, a style/tone anchor, and a layered
+  `Sound:` clause that evolves with the beats. Post-conversion
+  (`common/model_prompt_adapters.py`) is now video-aware too: timelines keep
+  one beat per line, universal video prose flattens to the promised single
+  paragraph, and truncation retreats to a sentence boundary and never cuts
+  inside a `[beat]` bracket span or leaves a trailing ellipsis, instead of
+  shredding the last beat mid-word. Both video contracts' word ceilings
+  (Video 150, H3 250) are now enforced by the converter even when a roomier
+  detail level is set — video models follow short concrete shots better than
+  dense walls of text. New guidance assertions in `test_prompt_pipeline.py`,
+  adapter/truncation tests in `test_all_models_prompting.py`, and a MiniMax
+  vendor-compliance section in `test_official_vendor_compliance.py` lock all
+  of it in; `docs/prompting.md` updated to match.
 
 ### Added
 
@@ -21,6 +148,19 @@
 
 ### Changed
 
+- **A linked `seed` input now grays out its companion controls, matching stock
+  ComfyUI, in every panel that has one.** FiLKSampler's 🔁 After generate was
+  fixed first; an audit of every socket-exposing node found two more spots
+  where a wire into `seed` left its companions live: FiLNoiseControl's 🔁
+  After generate stayed editable next to a driven variation seed, and
+  FiLHighResFix's Seed source segmented plus the Random / Use last / New fixed
+  row stayed clickable while the link overwrites the value at queue time. All
+  three now disable and show the shared "Driven by the connected input"
+  tooltip; `FilSeedRow` grew a `disabled` prop so HiResFix can gray the whole
+  row. Nodes checked and already correct: DatasetForge (seed grays, its
+  after-generate is intentionally pinned `fixed`), OpticScanner and FiLSeed
+  (no seed socket at all), ColorWizard `saturate` and StyleMixer
+  `base_prompt` (graph-only sockets with no panel field).
 - **The two art-library `🦾 КИБЕРПАНК` presets left unconfirmed after four
   rewrites each are now fixed — on a fifth attempt, using a different lever
   than "say it's hers" one more time.** `Golden Mechanical Portrait` kept
@@ -223,11 +363,216 @@
 
 - **Two "Cyber Punch" themes** — same brand palette (`#FF0022` red, `#121212`
   ink, `#FFD000` yellow, `#FFFFFF` white), two different treatments. `Cyber
-  Punch` is translucent red/black glass with a wide blur; `Cyber Punch HUD` is
-  the opposite instinct — near-opaque, sharp corners, a chamfered top-right cut
-  and corner-bracket accents on the title bar. Both were tried first as
-  variants on a throwaway sandbox node (`ui-lab` branch, never merged) before
-  either reached the shared theme layer.
+  Punch` is translucent glass over the red/black base with a wide blur and a
+  persistent glow on the controls actually carrying state; `Cyber Punch HUD`
+  is the opposite instinct — near-opaque, sharp corners, a thin yellow frame
+  with corner-bracket accents drawn around the whole node, not its title bar.
+  Both were tried first as variants on a throwaway sandbox node (`ui-lab`
+  branch, never merged) before either reached the shared theme layer, then
+  re-verified number for number against that lab treatment — the first cut
+  had ported the palette faithfully but improvised the CSS from other themes'
+  idioms.
+
+### Added
+
+- **📡 Channel (`FiLChannel`) — data across the graph with no wire drawn.**
+  Plug something into a Channel and every free input of the same type
+  elsewhere in the graph picks it up. The pack's 16th node, and it ships
+  finished, with the two things a wireless layer dies without:
+  - When two channels could feed the same input, or a node has two identical
+    inputs a channel can't tell apart (a KSampler's positive/negative),
+    nothing auto-wires — the gear on the Channel's own panel opens a target
+    picker. Same-type inputs pair to channels by name, with the unnamed
+    second wire settled by deduction; a positive/negative question is asked
+    once per wire and vaulted in node properties, so reloads never re-ask it.
+  - A "Wireless" tab in the bottom panel (next to Essential/View Controls)
+    lists every channel in the graph and everything currently unresolved:
+    dormant subscriptions, ambiguous picks, type mismatches, unknown channel
+    names, self-loops, unused channels.
+  - A subgraph is its own scope — a Channel placed inside one serves
+    receivers in that same subgraph only.
+  - The rest of the kit: a cluster modal for the leftovers, takeover of real
+    wires with an Undo toast, inline channel rename, memory pre-highlight of
+    the last answer. One async race closed on the way: a wire drawn the
+    instant the node exists fires `onConnectionsChange` before the panel's
+    async mount has run, so pending ambiguity checks queue on the node itself
+    and drain on mount. While in there: style-library category headers
+    (StyleBrowser's sidebar and tiles) are translated at display time now
+    instead of showing the raw Russian category word from the style key.
+
+- **🎥 Two new Scanner targets for video models: universal `Video` and
+  `MiniMax H3`.** Image profiles shape text for diffusion models; video
+  models need a shot, not a picture. `Video` is a universal profile for any
+  video generator (MiniMax H2, Wan 2.x, whatever reads plain prose) asking
+  for one continuous shot description — motion first, light that changes, a
+  layered sound clause, exactly one named camera move, `Image N` reference
+  roles. `MiniMax H3` writes the platform's timeline format: a header line
+  (duration, aspect, style) and gap-free shot blocks with `Sound:` clauses.
+  Both carry word ceilings (150/250) because video models follow short
+  concrete shots better than dense text. The prompting rewrite further down
+  is what live runs against these first versions surfaced.
+
+### Fixed
+
+- **`eta`/`bongmath` no longer crash the samplers that ignore them — and the
+  panel now says when they would.** `er_sde`/`sa_solver`/`sa_solver_pece` sat
+  in the eta allowlist although their k_diffusion functions take
+  `s_noise`/`tau_func` instead — `KSAMPLER.sample()` unpacks `extra_options`
+  as `**kwargs`, so every generation with them died in a TypeError. The
+  allowlist now matches the real signatures (drift-checked against the
+  installed ComfyUI by tests), and unknown/custom samplers fall back to
+  introspecting the registered function, which puts RES4LYF's
+  `rk`/`legacy_rk`/`rk_beta` on eta. On the frontend, `GET /sampler_options`
+  serves the installed samplers that actually read the values; the KSampler
+  panel grays eta/Bongmath out with an explanatory tooltip when the selected
+  sampler would drop them, and fails open (widgets stay editable) if the
+  route is unreachable. `_sample_core` also moves the result to the
+  intermediate device/dtype, matching stock `common_ksampler`'s sample path.
+
+- **KSampler's `sampler_name` and `scheduler` now take a wire, and a bad
+  linked value gets a readable error.** The two combos stayed widget-only
+  while every other KSampler field exposed a socket; a linked value only gets
+  type-checked by ComfyUI, never validated against the installed list, so an
+  unknown name reached `comfy.samplers` and died there as a bare KeyError
+  with no hint which field was at fault — `execute()` now rejects it naming
+  what's actually installed. Two things this surfaced: `registerStyledNode`'s
+  `getExtraMenuOptions` setter wrote every assignment into one shared closure,
+  so packs that patch per node *instance* (cg-use-everywhere) piled their
+  menu block up once per node ever created, all inside a single node's
+  context menu; and exposing the two combos put three different field
+  heights in one KSampler row — a single `--fil-control-h` now governs every
+  interactive control, and every labelled row shares one label-column width.
+
+- **Selecting a FiL node no longer stretches ComfyUI's Properties Panel into
+  a blank 500–1000px canvas.** The right-side panel has no Vue renderer for
+  custom DOM widgets and falls back to `WidgetLegacy.vue`, which draws the
+  widget into a blank `<canvas>` sized to whatever `getHeight()` reports.
+  `canvasOnly` is the flag the panel's own widget filter checks to skip a
+  widget entirely; canvas rendering is untouched. One shared fix in the DOM
+  widget host covers every node in the pack.
+
+- **Image Decomposer's language widget defaulted to a value it doesn't
+  offer.** `default` was `"English"` while the options are `["en", "ru"]` —
+  the widget silently fell back to the first entry while `execute()`'s own
+  default stayed `"English"`, so an untouched node sent a value the widget
+  never actually showed.
+
+- **Provider calls no longer freeze ComfyUI, and a row of prompt-generation
+  edge cases closed.** Model listing, provider probe and auth writes moved
+  off the aiohttp event loop via `asyncio.to_thread` — a probe could freeze
+  the whole UI for the entire generation, up to the provider timeout. Also:
+  every reference image now reaches the provider (Style Mixer Smart Fusion
+  silently dropped 3 of 4); Style Mixer preflights model validity and vision
+  capability before analysing references; Decomposer keeps error text out of
+  `full_prompt` and hashes every frame into the fingerprint, not just the
+  first; Scanner derives the two-stage second seed from `seed >= 0` so a
+  fixed `seed=0` no longer falls back to a random stage-2 seed;
+  `ImageProcessor.max_side` mutation was replaced with a thread-safe
+  per-call `with_max_side`; the `RateLimiter` reserves its slot and sleeps
+  outside the global lock; and the OpenRouter catalogue is TTL-cached instead
+  of refetched on every vision generation.
+
+- **The published archive ships the bundle's sourcemap again.** Since 1.1.0
+  the 2.3 MB map was excluded to save space, leaving the 619 KB of minified
+  frontend in the archive with nothing to read it against — and the registry
+  forbids obfuscated code because it prevents security review. The version
+  history lines up exactly: 1.0.0 shipped the map and is Active; 1.1.0 first
+  dropped it and is Flagged; 1.1.1 inherited the exclusion. That's a
+  correlation, not a stated reason — but the map's `sourcesContent` inlines
+  every source file, so shipping it is what makes the bundle reviewable. Two
+  tests hold it: one asserts the map both ships and exists on disk, and the
+  dev-tooling exclusion list caught the policy flip.
+
+- **Ideogram 4 lost its negative prompt — the v4 API has no such field.**
+  The profile carried `supports_negative_prompt: true` from the v3 era; the
+  v4 generate endpoint exposes no `negative_prompt`, and Ideogram's own
+  prompting guide says to describe the positive visual opposite of anything
+  excluded. Negatives now flip positive, same as FLUX/Z-Image/Krea 2, and the
+  guidance carries the documented ~150–160-word sweet spot with the most
+  important subject first. Every profile in `MODEL_PROMPT_RULES` gained a
+  dated vendor-verification note saying where each rule came from
+  (Tongyi-MAI, Alibaba Model Studio, krea.ai, ideogram.ai); QWEN moved from
+  `partially_verified` to `verified`.
+
+- **Clean QWEN answers stopped being rewritten, and the FLUX JSON fallback
+  stopped repeating itself.** QWEN was force-restructured like SDXL even when
+  the LLM produced clean prose — but Qwen-Image's own examples are dense
+  prose, and a forced labeled breakdown would undo a good answer; now only
+  SDXL keeps the always-restructure path, and QWEN restructures only on messy
+  markup. And `format_for_flux_json` no longer copies the scene line
+  wholesale into the lighting/camera/style fields — for single-paragraph
+  prose that line is every line, and the schema used to fill with truncated
+  repeats of the same text.
+
+- **Panel state stopped shipping inside the queued prompt, and KSampler's
+  seed mode now survives a reload.** `graphToPrompt` puts every widget into
+  the node's API inputs unless `serialize: false`, so the whole panel state
+  object shipped as an undeclared input — and since the server hashes every
+  prompt input into the execution cache key, any change to it defeated the
+  cache ("cached" never fired; the sampler re-ran every queue). The flag only
+  controls prompt inclusion; workflow persistence is untouched. Separately,
+  ComfyUI core creates the seed widget's `control_after_generate` companion
+  with `serialize: false`, so the user's "fixed" choice silently came back as
+  "randomize" on every load — `fil_state` now carries it across saves, same
+  as Scanner and Style Mixer already did.
+
+- **Toggle labels stopped being clipped next to dead space.** A row reserved
+  38% for the label and 62% for the control — but a switch is 36px wide and
+  pinned to the row's right edge, so the 62% was bought and never used:
+  measured on a live 262px Cleaner, the label clipped to 86px while needing
+  143px, with ~94px of dead space beside it. `minmax(0, 1fr) auto` gives the
+  switch its own width and the label the rest; nothing that was previously
+  aligned moves. Shared widget — seven node panels use it.
+
+- **🧹 Cleaner's switches now name the action.** The old compound labels
+  ("🧹 GPU cache — Flush cache") ellipsised past reading at the node's
+  ~250px width; the label now names the action ("🧹 Flush GPU cache",
+  "🧠 Unload models") and the switch position says whether it will happen.
+  Widget ids untouched — saved workflows load unchanged.
+
+### Changed
+
+- **Number fields now scrub like ComfyUI's own.** FilNumberInput matches
+  ScrubableNumberInput: drag left/right to change the value, a plain click
+  enters text-edit instead. Every commit path (typed, arrow-clicked, dragged)
+  rounds to the decimal precision `step` implies, so repeated bumps land on
+  1.1/1.2/1.3 instead of drifting to 1.2000000000000002. FilSlider drops its
+  separate range track — the scrub gesture replaces it, matching the default
+  widget's look; every node built on FilSlider (Denoise, Provider Loader,
+  HighRes Fix, Color Wizard, Style Mixer, Noise Control) picks this up
+  automatically. KSampler's field order now matches the stock KSampler:
+  denoise moved after sampler_name/scheduler instead of sitting right after
+  cfg.
+
+- **Node widths unified behind an `initialWidth` cap.** LiteGraph's
+  `computeSize()` measures the DOM panel's unconstrained content width (a
+  combo's longest option, a segmented pill's options in a row), which landed
+  row panels at ~400px — visibly wider than native nodes. New nodes now start
+  at the contract's declared width instead; saved workflows keep whatever
+  size they were saved with. The contracts' `min_size` values were re-tuned
+  to the same 250–350 band at the same time.
+
+- **The Provider Manager panel speaks the UI language.** Field labels,
+  buttons, status badges, key-state hints and the cache-age suffix now route
+  through the en/ru dictionaries. Also pins the vitest worker pool to
+  `vmThreads` — the default pools crash on Node 24 with vitest 4.1.10 at
+  collection, while `vmThreads` works on both Node 22 (CI) and Node 24.
+
+- **📖 The README caught up with the pack it describes.** The Russian feature
+  table still said six themes (ten since 1.1.1's four landed), and the
+  settings table never documented *Theme applies to* / *Theme animations*.
+  The prompting system — five bullet points with no examples — was replaced
+  with a per-axis Optic Scanner breakdown (agent table, focus stacking, style
+  contract modes, prompt/negative_prompt semantics) grounded in the actual
+  code, plus short practical tips for the other complex nodes. LoRA Dataset
+  Forge, Style Mixer, Image Decomposer and Color Wizard gained one-line
+  example chains in both languages naming real inputs/outputs. CI badge
+  added.
+
+- **Internal dev docs left git tracking.** CLAUDE.md, audit.md,
+  audit-next.md, fix.md and .claude/launch.json are maintainer-only notes
+  (the last one also hardcoded local disk paths); they stay local now instead
+  of sitting in the public repo view.
 
 ## 1.1.1 (2026-07-30)
 
