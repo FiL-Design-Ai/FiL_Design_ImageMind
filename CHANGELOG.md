@@ -21,6 +21,37 @@
 
 ### Changed
 
+- **NSFW libraries: photo half live-swept clean, art half partially swept, 3
+  text-only fixes unverified.** Testing NSFW presets first needed a checkpoint
+  swap — the "official" krea2 checkpoint used for every other sweep this
+  session suppresses explicit content regardless of what the prompt asks for,
+  confirmed by rendering the identical prompt against both and getting a
+  clothed figure from one and a compliant result from the other. Switched to
+  `darkBeastKrea2` for this pass. With the right checkpoint, `NSFW_PHOTO_STYLES`
+  (66 presets, all 8 categories including `🦾 КИБЕРПАНК`) came back clean — 0
+  confirmed anchor bugs, including three presets predicted high-risk from text
+  alone that all rendered fine. That reverses this session's working
+  assumption: the anchor bug's presence in photo/art `🦾 КИБЕРПАНК` was not
+  proof NSFW cyberpunk would have it too. One separate pattern noted, not
+  fixed: 3 presets that ask for lingerie/swimwear (`Glamour Core`, `Fashion
+  Editorial`, `Swimsuit Campaign`) render fully nude anyway — reads as a
+  checkpoint-level pull the way `Golden Mechanical Portrait` resisted four
+  rewrites, not something preset wording fixes.
+
+  `NSFW_ART_STYLES` (46 presets) is only partially confirmed: `🎨 ИЛЛЮСТРАЦИЯ`
+  (8) and `💻 ЦИФРОВАЯ` (3) rendered clean. The remaining 35 across 8
+  categories never rendered — the sweep was interrupted mid-run twice and was
+  not restarted a third time. Of those, `📜 КЛАССИКА`, `🎯 ЖАНРЫ`, `🖌️ ЖИВОПИСЬ`,
+  `✒️ СКЕТЧ`, `🏰 ФЭНТЕЗИ` and `🕰️ РЕТРО` (26 presets) describe medium and
+  technique only, the same shape that held up clean across ЖИВОПИСЬ/ГРАФИКА/
+  ИСТОРИЯ/КОМИКС/ДИДЖИТАЛ in the main art library — low risk by pattern, but
+  pattern is not proof, as this same session just demonstrated in the other
+  direction. `🚀 SCI-FI` and `🦾 КИБЕРПАНК` (9 presets) is where the anchor bug
+  would actually be expected; three of those — `Cyberpunk NSFW`, `Synthetic
+  Skin`, `Glowing Fiber Optics` — had the unanchored-property shape and were
+  given the same fix already confirmed elsewhere, but with no render behind
+  it this time. Marked `# not yet render-verified` in-file rather than
+  presented as confirmed repairs.
 - **Text review of the art library's remaining 110 presets (everything outside
   `🦾 КИБЕРПАНК`), one confirmed fix.** `🎨 ЖИВОПИСЬ`, `✏️ ГРАФИКА`, `🏛️ ИСТОРИЯ`,
   `💥 КОМИКС` and `👾 ДИДЖИТАЛ` describe medium and technique only — nothing
