@@ -113,8 +113,13 @@ NSFW_ART_STYLES = {
     "🚀 SCI-FI/🛸 Sci-Fi Adult": (
         "adult sci-fi illustration, zero-g staging, space-station interiors, holographic interface glow, engineered body-tech accents, cool synthetic palette, futurist adult rendering through concept-art precision."
     ),
+    # Text-only pass, not yet render-verified: "implanted anatomy cues" named
+    # a property with no body part to land on, the one pattern that has
+    # reliably predicted a broken render across every library this session.
+    # Anchored to a forearm and collarbone, matching the fix already
+    # confirmed working on the same wording elsewhere.
     "🚀 SCI-FI/🤖 Cyberpunk NSFW": (
-        "explicit adult cyberpunk illustration, neon-magenta and cyan contrast, chrome-against-skin rendering, wet tech-noir surfaces, implanted anatomy cues, body-machine tension, hard rim light, erotic sci-fi clarity stronger than plain city-night cyber fluff."
+        "explicit adult cyberpunk illustration, neon-magenta and cyan contrast, a chrome-plated forearm and implanted anatomy cues at the collarbone, chrome-against-skin rendering, wet tech-noir surfaces, body-machine tension, hard rim light, erotic sci-fi clarity stronger than plain city-night cyber fluff."
     ),
     "🚀 SCI-FI/🦾 Mecha-Musume": (
         "adult mecha-musume illustration, anime mechanical grafts, armored limb segmentation, military hard-surface detailing, cel-meets-metal rendering, clean otaku-industrial linework, body-mecha fusion with explicit adult stylization."
@@ -126,8 +131,10 @@ NSFW_ART_STYLES = {
         "adult lava-forged fantasy sci-fi art, obsidian-crack surfaces, magma-core glow, volcanic red-orange palette, heat-scorched anatomy, elemental body design rendered through molten material contrast."
     ),
     # 🦾 КИБЕРПАНК
+    # Same unanchored pattern as the SCI-FI entry above — "access-port edges"
+    # named with no location. Not yet render-verified.
     "🦾 КИБЕРПАНК/👽 Synthetic Skin": (
-        "adult transhuman illustration, silicone-skin overlays with visible panel seam lines and access-port edges, matte-versus-glossy material contrast between synthetic and real skin, soft body versus hard implant contrast, synthetic flesh mechanics, erotic cybernetic rendering without plain glamour drift."
+        "adult transhuman illustration, silicone-skin overlays across her arms and torso with visible panel seam lines and access-port edges at the wrists, matte-versus-glossy material contrast between synthetic and real skin, soft body versus hard implant contrast, synthetic flesh mechanics, erotic cybernetic rendering without plain glamour drift."
     ),
     "🦾 КИБЕРПАНК/👘 Cyber-Geisha": (
         "adult cyber-geisha illustration, silk kimono drape, neon signage spill, lacquer hair masses, geisha makeup geometry, visible augment seams, Neo-Tokyo elegance, stylized line and textile rendering with explicit adult framing."
@@ -138,8 +145,10 @@ NSFW_ART_STYLES = {
     "🦾 КИБЕРПАНК/🧩 Fragmented Body": (
         "adult fragmented-body cyber art, geometric disassembly, wireframe anatomy shards, plasma-core highlights, identity-break motifs, erotic cyber-surrealism driven by fractured composition rather than plain glitch mush."
     ),
+    # Same pattern again — "subdermal fiber-optic lines" with no location.
+    # Not yet render-verified.
     "🦾 КИБЕРПАНК/💡 Glowing Fiber Optics": (
-        "adult cyber-body illustration, subdermal fiber-optic lines, RGB pulse glow under skin, translucent tissue effects, dark tech background, luminous synthetic anatomy, erotic body-tech clarity through controlled render logic."
+        "adult cyber-body illustration, subdermal fiber-optic lines running down her arms and across her chest, RGB pulse glow under skin, translucent tissue effects, dark tech background, luminous synthetic anatomy, erotic body-tech clarity through controlled render logic."
     ),
     # 🕰️ РЕТРО
     "🕰️ РЕТРО/🎭 Retro Cabaret": (
