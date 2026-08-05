@@ -6,9 +6,18 @@ from FiL_Design_ImageMind.common.logic import (
     build_model_type_guidance,
     negative_to_positive_clause,
 )
+from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner
+
+from executor_harness import as_the_executor_calls_it
 
 pg = PromptGenerator()
+_execute = as_the_executor_calls_it(FiLOpticScanner)
 _PHOTO_STYLE_KEY = get_visible_style_keys("photo_style")[0]  # first real style
+_RU_LANGUAGE_TAIL = "Do not answer in English even though these instructions are in English."
+
+
+def _basic_config():
+    return {"provider": "ollama", "model": "llama3.2-vision"}
 
 
 # ---------------------------------------------------------------------------
@@ -26,7 +35,7 @@ def test_model_type_guidance_empty_for_auto():
 
 
 def test_system_prompt_bundle_includes_flux_guidance():
-    system_prompt, _agent, _style = pg.build_system_prompt_bundle(
+    system_prompt, _agent, _style, _lang = pg.build_system_prompt_bundle(
         agent_key="Universal", detail_level="normal", language="en", model_type="FLUX"
     )
     assert "FLUX" in system_prompt
@@ -36,7 +45,7 @@ def test_system_prompt_bundle_includes_flux_guidance():
 def test_system_prompt_bundle_includes_ideogram4_guidance():
     # Ideogram 4's real API takes a plain text prompt (docs.ideogram.ai) —
     # the guidance no longer describes the fabricated JSON caption schema.
-    system_prompt, _agent, _style = pg.build_system_prompt_bundle(
+    system_prompt, _agent, _style, _lang = pg.build_system_prompt_bundle(
         agent_key="Universal", detail_level="normal", language="en", model_type="Ideogram 4"
     )
     assert "Ideogram 4" in system_prompt
@@ -46,7 +55,7 @@ def test_system_prompt_bundle_includes_ideogram4_guidance():
 
 
 def test_system_prompt_bundle_auto_has_no_model_guidance():
-    system_prompt, _agent, _style = pg.build_system_prompt_bundle(
+    system_prompt, _agent, _style, _lang = pg.build_system_prompt_bundle(
         agent_key="Universal", detail_level="normal", language="en", model_type="Auto/None"
     )
     # No model-type guidance section for Auto
@@ -56,7 +65,7 @@ def test_system_prompt_bundle_auto_has_no_model_guidance():
 def test_system_prompt_bundle_includes_video_guidance():
     # The universal video profile must teach the LLM to write a motion-aware
     # shot description for video models (MiniMax H2/H3, Wan, HunyuanVideo, ...)
-    system_prompt, _agent, _style = pg.build_system_prompt_bundle(
+    system_prompt, _agent, _style, _lang = pg.build_system_prompt_bundle(
         agent_key="Universal", detail_level="normal", language="en", model_type="Video"
     )
     assert "video generation models" in system_prompt
@@ -73,6 +82,135 @@ def test_system_prompt_bundle_includes_video_guidance():
     assert "reference controls" in system_prompt
     # On-screen text is quoted verbatim and declared the only lettering
     assert "only that text appears" in system_prompt
+
+
+def test_video_guidance_teaches_motion_camera_sound_structure():
+    # The 2026-08-05 rewrite targets four observed failure modes: still-frame
+    # prompts, collapsed structure, generic sound, vague camera. Each block
+    # below is the guidance that fixes one of them — assert they survive edits.
+    guidance = build_model_type_guidance("Video")
+
+    # Still frames: the prompt is a shot in time; a wired image is one frozen
+    # instant whose motion evidence must be projected forward.
+    assert "shot unfolding in time" in guidance
+    assert "frozen instant" in guidance
+    assert "Never" in guidance and "still frame" in guidance
+
+    # Camera specificity: shot size + angle vocabulary and the one-move rule.
+    assert "shot size" in guidance
+    assert "extreme close-up" in guidance
+    assert "one move per shot" in guidance
+
+    # Motion specificity: secondary motion and light changing over time.
+    assert "secondary motion" in guidance
+    assert "light changes" in guidance
+
+    # Structure: one paragraph, no markup, no timestamps/bracket tags.
+    assert "ONE continuous natural-language paragraph" in guidance
+    assert "timestamps" in guidance
+    assert "[bracket]" in guidance
+
+    # Sound: a layered clause tied to what is on screen, not a generic line.
+    assert "ambience bed" in guidance
+    assert "foley" in guidance
+
+    # Narrative arcs keep their stages instead of flattening into a portrait.
+    assert "first / then / finally" in guidance
+
+
+def test_minimax_h3_guidance_teaches_timeline_blocks():
+    guidance = build_model_type_guidance("MiniMax H3")
+
+    # Header line: duration + aspect, per the official prompt guide examples.
+    assert "16:9" in guidance
+    assert "4 to" in guidance and "15" in guidance  # API duration range
+
+    # Beats: time-coded, covering the whole duration without gaps or overlap.
+    assert "[0-3s]" in guidance
+    assert "no gaps" in guidance
+
+    # Every beat needs a motion instruction — H3 loops otherwise — and a
+    # camera behavior; empty beats must be merged, not padded.
+    assert "loops motion" in guidance
+    assert "one camera move" in guidance
+    assert "do not pad beats" in guidance
+
+    # Vendor-documented inline camera tags (platform.minimax.io, 2026-08-05).
+    assert "[pan]" in guidance and "[zoom]" in guidance and "[static]" in guidance
+
+    # Subject identity must hold across cuts: same words in every beat.
+    assert "same words" in guidance
+
+    # Reference images get explicit jobs on the first line.
+    assert "Image 1:" in guidance
+
+    # Native stereo audio: layered Sound: clause, not a throwaway line.
+    assert "Sound:" in guidance
+    assert "ambience bed" in guidance
+
+    # The API has no negative-prompt input.
+    assert "positively" in guidance
+    assert "no negative-prompt" in guidance
+
+
+# ---------------------------------------------------------------------------
+# language rule closes the final system prompt (node level)
+# ---------------------------------------------------------------------------
+# The bundle returns the language rule separately; the node stacks style
+# overlays on top of the bundle and must append the rule AFTER them, or the
+# English style text pulls small models out of Russian (the 29% incident).
+
+
+def test_language_rule_closes_the_hybrid_system_prompt_after_overlays(stub_scanner_generate):
+    captured = {}
+
+    def fake_generate(**kwargs):
+        captured.update(kwargs)
+        return "неоновая улица под дождём"
+
+    stub_scanner_generate(fake_generate)
+    _execute(
+        config=_basic_config(),
+        agent="None",
+        image=None,
+        prompt="неон",
+        language="ru",
+        photo_style=_PHOTO_STYLE_KEY,
+        custom_style="cyberpunk noir",
+    )
+    system = captured.get("system_prompt", "")
+    assert "Custom style override" in system
+    assert system.rstrip().endswith(_RU_LANGUAGE_TAIL)
+    assert system.index("Custom style override") < system.index("LANGUAGE:")
+    assert system.count("LANGUAGE:") == 1, "stated once — repeating it is not what fixed this"
+
+
+def test_language_rule_closes_stage2_after_its_overlays(stub_scanner_generate):
+    calls = []
+
+    def fake_generate(**kwargs):
+        calls.append(kwargs)
+        return "неоновая улица под дождём, кинематографично"
+
+    stub_scanner_generate(fake_generate)
+    _execute(
+        config=_basic_config(),
+        agent="None",
+        image=None,
+        prompt="неон",
+        language="ru",
+        prompt_mode="Two-Stage",
+        photo_style=_PHOTO_STYLE_KEY,
+        custom_style="cyberpunk noir",
+    )
+    assert len(calls) == 2
+    stage2 = calls[1]["system_prompt"]
+    assert "Style overlay" in stage2
+    assert stage2.rstrip().endswith(_RU_LANGUAGE_TAIL)
+    assert stage2.index("Style overlay") < stage2.index("LANGUAGE:")
+    # Stage 1 carries the rule too — English in stage 1 would spread into
+    # stage 2's source text.
+    assert calls[0]["system_prompt"].rstrip().endswith(_RU_LANGUAGE_TAIL)
 
 
 # ---------------------------------------------------------------------------

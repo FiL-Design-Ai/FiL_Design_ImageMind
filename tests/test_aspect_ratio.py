@@ -57,7 +57,7 @@ def test_compute_aspect_ratio_info_orientations():
 
 def test_prompt_generator_aspect_ratio_integration():
     pg = PromptGenerator()
-    sys_prompt, _, _ = pg.build_system_prompt_bundle(
+    sys_prompt, _, _, _ = pg.build_system_prompt_bundle(
         width=1024, height=1536, model_type="FLUX"
     )
     assert "Target image dimensions: 1024x1536" in sys_prompt

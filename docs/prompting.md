@@ -334,24 +334,57 @@ Universal profile for video-generation targets — MiniMax H2/H3, Wan 2.x, Hunyu
 Kling and Veo/Sora-class DiT video models read the same shape of prompt, so one profile covers the
 class instead of a node per vendor.
 
-- one continuous natural-language shot description in the present tense — 2-4 sentences, roughly 40-150 words, capped at 150
-- covers, in order: subject and its action, scene/environment, camera framing and movement, lighting, mood, style
-- motion is mandatory content: what moves, how, in which direction, plus explicit camera behavior (locked, pan, tilt, dolly, orbit, handheld, zoom); a static shot says "locked-off static shot" outright — unstated, video models default to a slow push-in
-- one clause of sound design (ambience, foley, music mood): models with native audio invent a random ambience when sound goes undescribed
-- with a wired image, each reference gets a role ("the image sets the scene and lighting; the subject keeps its identity")
-- no shot lists, no timestamps, no field labels — post-conversion normalizes only, never restructures into component buckets
+- one continuous natural-language shot description in the present tense — 2-5 sentences, roughly 60-150 words, capped at 150; the cap is a contract ceiling enforced by the converter even when a roomier detail level is set
+- motion is the spine of every sentence: what moves, how fast, in which direction, plus secondary motion (hair, fabric, dust, water, background parallax) and what differs between the first and the last frame; a static shot says "locked-off static shot" outright — unstated, video models default to a slow push-in
+- a wired image is read as one frozen instant of the shot: the prompt projects the motion evidence already in the frame (mid-step pose, fabric in the air, blur, spray) into the seconds around it instead of reporting a still
+- the camera is specified as shot size + angle (extreme close-up…establishing; eye level, low, high, Dutch, POV, aerial) plus exactly ONE named move with character (slow dolly in, orbit, handheld follow, crane up, FPV push, rack focus) — compound moves confuse every video model, one move per shot is the rule
+- the scene clause covers how the light changes during the shot (sun lowering, neon flickering, headlights sweeping past), not just what the light is
+- one style/treatment anchor ("35mm film grain, warm palette", "handheld documentary", "cel animation")
+- one concrete sound design clause tied to what is on screen — ambience bed, one or two foley sounds from the visible action, music mood: models with native audio invent a random ambience when sound goes undescribed
+- with a wired image, each reference gets a role ("Image 1 sets the scene and lighting; Image 2 carries the character's identity")
+- no shot lists, no timestamps, no [bracket] tags, no field labels — post-conversion normalizes only (flattening line breaks into the promised single paragraph), never restructures into component buckets, and truncation retreats to a sentence boundary instead of cutting mid-word
 - no negative-prompt mechanism: manual exclusions are flipped into positive composition constraints, same policy as FLUX / Z-Image Turbo / Krea 2
 - literal on-screen text is put in quotes, plus "only that text appears" — no other lettering, no subtitles
 - works both directions of image-to-video prompting: with a wired image it narrates the motion into the existing frame; text-only it expands an idea into a shot
-- verified against MiniMax's official docs (platform.minimax.io, 2026-08-04): H3 takes one free-text prompt (up to 7000 chars) with no negative-prompt parameter, understands sound and per-reference roles, and supports first/last frame; the `[Shot N]`/timeline structure is the output of the separate H3-Context-IR enrichment call, so hand-written timestamps stay out of this profile
-- when the idea unfolds in stages (a transformation, a story arc), the arc is preserved in order — first / then / finally, naming what changes between stages — instead of one static portrait; the requested duration and per-stage camera movement are stated explicitly
+- verified against MiniMax's official docs (platform.minimax.io, 2026-08-04, re-read 2026-08-05): H3 takes one free-text prompt (up to 7000 chars) with no negative-prompt parameter, understands sound and per-reference roles, and supports first/last frame; the `[Shot N]`/timeline structure is the output of the separate H3-Context-IR enrichment call, so hand-written timestamps stay out of this profile
+- when the idea unfolds in stages (a transformation, a story arc), the arc is preserved in order — first / then / finally, naming what changes between stages and giving each stage its own camera behavior — instead of one static portrait; the requested duration is stated explicitly
 
 ### MiniMax H3
 
 - dedicated profile for MiniMax H3: the timeline shot-block shape is H3's native rich format — the official H3-Context-IR enrichment emits `[Shot N]` blocks with timestamps plus `overall_soundscape`, and the Full-2K workflow feeds it straight into generation
-- first line states duration and framing (`10s, 16:9.`), then 2-4 time-coded beats (`[0-3s] …`) covering the whole duration; every beat carries action and camera behavior, because H3 loops motion when a beat runs out of instructions
-- ends with a `Sound:` clause (native stereo audio is generated in the same pass; undescribed sound becomes random ambience)
+- first line states duration and framing (`10s, 16:9.`, `9:16 vertical` for portrait) — duration is a whole number of seconds from 4 to 15, the API range (re-verified platform.minimax.io, 2026-08-05); wired images get a job on that same line (`Image 1: the character's identity; Image 2: the location`)
+- then 2-4 time-coded beats (`[0-3s] …`) covering the whole duration in order — no gaps, no overlap; every beat carries one concrete change or motion (speed, direction, secondary motion) plus one camera behavior, because H3 loops motion when a beat runs out of instructions; beats that would say "continues" are merged instead — one unbroken moment is a single full-duration beat, not padded beats
+- the subject keeps the same words in every beat so its identity holds across cuts; one short style/tone anchor is welcome ("premium commercial look", "ReelShort drama feel", "3A-game photorealism")
+- H3's documented inline camera tags — `[pan]`, `[zoom]`, `[static]` — may follow a beat's camera move
+- ends with a `Sound:` clause layered from what is on screen — ambience bed, foley from the visible actions, music mood, evolving with the beats (native stereo audio is generated in the same pass; undescribed sound becomes random ambience)
 - no negative-prompt parameter in the v2 API — exclusions are expressed positively
+- post-conversion keeps one beat per line when the LLM writes them that way, and truncation (250-word contract cap) never cuts inside a beat's bracket span and retreats to a sentence boundary instead of a mid-word cut
+
+### Video shot parameters (Output widgets)
+
+Four widgets appear in 📤 Output only while `model_type` is a video profile (Video / MiniMax H3);
+for image targets they are hidden and inert. All default to Auto, which injects nothing — an
+all-Auto system prompt is byte-identical to the pre-widget output, so existing workflows never
+change behavior. Non-Auto values are injected as a `SHOT PARAMETERS` block placed after the model
+guidance in both Hybrid and Two-Stage system prompts, so user-fixed facts override the guidance's
+defaults:
+
+- `video_duration` (0 = Auto) — requested clip length in whole seconds. The widget range follows
+  the profile (Video 2-20; MiniMax H3 4-15, the API hard limit) and the value is clamped into the
+  active profile's range again at injection time, so a stale value after a model switch can never
+  produce an invalid prompt. H3 gets "beats must total this duration"; Video gets "state the
+  requested duration".
+- `video_aspect` (Auto / 16:9 / 9:16 / 1:1 / 21:9) — written into the shot framing; for H3 into
+  the timeline header line.
+- `video_sound` (Auto / Off / Layered) — Off injects "silent clip, no sound design clause";
+  Layered makes the full clause (ambience bed + foley + music mood) mandatory.
+- `video_camera` (Auto / Locked-off / Dolly in / Dolly out / Orbit / Pan / Handheld follow /
+  Crane up / FPV push / Rack focus) — a preference, not a hard lock: the LLM builds the shot
+  around it and may adapt per story stage.
+
+Hidden values persist in the workflow — switching back to a video profile restores them on screen.
+The chosen parameters are echoed in `metadata_dict.video_params` (with a `duration_clamped` flag);
+the key is absent for non-video runs, matching the injection gate.
 
 ## Negative Prompt Policy
 

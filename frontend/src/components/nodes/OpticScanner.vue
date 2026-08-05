@@ -3,7 +3,7 @@
 import { computed, ref, watch } from "vue";
 import {
   FilChipGrid, FilChipList, FilSegmented, FilSection, FilButton,
-  FilTextArea, FilSeedRow,
+  FilSelect, FilSlider, FilTextArea, FilSeedRow,
 } from "@/components/widgets";
 import StyleBrowser, { type StyleSource } from "@/components/nodes/StyleBrowser.vue";
 import { toast } from "@/stores/toastStore";
@@ -63,6 +63,10 @@ const WIDGET_TOOLTIP_KEYS: Record<string, string> = {
   seed: "tt_provider_seed",
   max_tokens: "tt_max_tokens",
   response_format: "tt_response_format",
+  video_duration: "tt_video_duration",
+  video_aspect: "tt_video_aspect",
+  video_sound: "tt_video_sound",
+  video_camera: "tt_video_camera",
 };
 
 function widgetTooltip(w: WidgetSpec): string {
@@ -90,6 +94,10 @@ const FIELD_EMOJIS: Record<string, string> = {
   seed: "🌱",
   max_tokens: "📊",
   image: "🖼️",
+  video_duration: "⏱",
+  video_aspect: "📐",
+  video_sound: "🔊",
+  video_camera: "🎥",
 };
 
 function formatFieldLabel(w: WidgetSpec): string {
@@ -225,6 +233,40 @@ function getValue(name: string, fallback: unknown = ""): unknown {
 }
 function setValue(name: string, v: unknown) { props.state.nodeState[name] = v; }
 
+// Contract-driven visibility: a widget with `visible_when` renders only while
+// the named widget's value matches (`visible_when_value` may be a list). The
+// video shot parameters use it to appear solely for the Video / MiniMax H3
+// model types; hidden values stay in nodeState, so switching back restores
+// them. The backend applies the same gate before injecting anything, so a
+// hidden value can never leak into a non-video run.
+function isWidgetVisible(w: WidgetSpec): boolean {
+  if (!w.visible_when) return true;
+  const current = getValue(w.visible_when, "");
+  const expected = w.visible_when_value;
+  if (Array.isArray(expected)) return expected.includes(current);
+  return current === expected;
+}
+
+// Duration slider bounds follow the active video profile. Mirrors
+// VIDEO_DURATION_RANGES in common/data.py (single source of truth there;
+// the backend clamps again at injection time, so a stale value here can
+// never produce an invalid prompt).
+const VIDEO_DURATION_RANGES: Record<string, [number, number]> = {
+  "Video": [2, 20],
+  "MiniMax H3": [4, 15],
+};
+function videoDurationBounds(): { min: number; max: number } {
+  const range = VIDEO_DURATION_RANGES[String(getValue("model_type", "Auto/None"))];
+  const [min, max] = range ?? [0, 20];
+  return { min, max };
+}
+watch(() => String(getValue("model_type", "Auto/None")), () => {
+  const value = Number(getValue("video_duration", 0)) || 0;
+  if (value <= 0) return;
+  const { min, max } = videoDurationBounds();
+  setValue("video_duration", Math.max(min, Math.min(max, value)));
+});
+
 // Section collapse state lives in `state.ui` (the UI-only bucket documented
 // in FilNodeState) so it survives workflow save/load like everything else
 // here. Previously FilSection was passed a hardcoded `model-value="false"`
@@ -342,6 +384,7 @@ function newFixedSeed() {
           </div>
 
           <div
+            v-if="isWidgetVisible(w)"
             v-show="section === '_' || section === 'prompt' || !isCollapsed(String(section))"
             class="fil-w-row"
             :class="{ 'is-growable': isGrowable(w.name), 'is-linked': isSocketField(w.name) && isLinked(w.name) }"
@@ -355,6 +398,16 @@ function newFixedSeed() {
               :rows="2"
               @update:model-value="(v: string) => setValue(w.name, v)"
             />
+            <FilSlider v-else-if="w.kind === 'slider'"
+              :model-value="Number(getValue(w.name, 0)) || 0"
+              :min="w.name === 'video_duration' ? videoDurationBounds().min : (w.min ?? 0)"
+              :max="w.name === 'video_duration' ? videoDurationBounds().max : (w.max ?? 1)"
+              :step="w.step ?? 1"
+              :label="formatFieldLabel(w)"
+              @update:model-value="(v: number) => setValue(w.name, v)" />
+            <FilSelect v-else-if="w.name === 'video_camera'"
+              :options="w.values || []" :model-value="String(getValue(w.name, 'Auto'))"
+              :label="formatFieldLabel(w)" @update:model-value="(v: string) => setValue(w.name, v)" />
             <FilChipGrid v-else-if="w.kind === 'chip_grid'"
               :options="w.values || []" :model-value="String(getValue(w.name, ''))"
               :columns="w.columns ?? 3" @update:model-value="(v: string) => setValue(w.name, v)" />

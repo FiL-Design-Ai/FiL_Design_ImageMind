@@ -13,6 +13,7 @@ Tests added after reviewing official docs:
 
 from __future__ import annotations
 
+from FiL_Design_ImageMind.common.logic import build_model_type_guidance
 from FiL_Design_ImageMind.common.model_prompt_adapters import (
     convert_to_dit_format,
     build_response_format_instruction,
@@ -270,6 +271,68 @@ def test_sdxl_sentence_style_optimal():
 
     output, meta = convert_to_dit_format(optimal_prompt, "SDXL", "text")
     assert isinstance(output, str)
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# MiniMax H3 - Official MiniMax Platform Documentation
+# ─────────────────────────────────────────────────────────────────────────
+# Checked against platform.minimax.io on 2026-08-05:
+# - /docs/guides/video-generation — 4-15 whole-second durations, explicit
+#   aspect for T2V, inline camera tags ([pan]/[zoom]/[static]), reference
+#   media roles (first_frame / reference_image / reference_video /
+#   reference_audio), no negative-prompt parameter.
+# - /docs/guides/video-prompt — every example leads with duration + aspect
+#   ("15s, 16:9."), assigns reference roles inline ("Image 1: mood..."),
+#   embeds a Sound: clause in prose, and names edit rhythm in words.
+
+
+def test_minimax_h3_guidance_states_api_duration_and_aspect_header():
+    guidance = build_model_type_guidance("MiniMax H3")
+    # Duration is a whole number of seconds in the API range.
+    assert "4 to" in guidance and "15" in guidance
+    # The first line carries duration + aspect, like the official examples.
+    assert "16:9" in guidance
+
+
+def test_minimax_h3_guidance_documents_inline_camera_tags():
+    guidance = build_model_type_guidance("MiniMax H3")
+    for tag in ("[pan]", "[zoom]", "[static]"):
+        assert tag in guidance
+
+
+def test_minimax_h3_guidance_assigns_reference_roles():
+    guidance = build_model_type_guidance("MiniMax H3")
+    assert "Image 1:" in guidance
+
+
+def test_minimax_h3_guidance_sound_clause_is_layered():
+    guidance = build_model_type_guidance("MiniMax H3")
+    assert "Sound:" in guidance
+    assert "ambience" in guidance
+    assert "foley" in guidance
+
+
+def test_minimax_h3_guidance_positive_constraints_only():
+    guidance = build_model_type_guidance("MiniMax H3")
+    assert "positive" in guidance
+    assert "no negative-prompt" in guidance
+
+
+def test_minimax_h3_guidance_beats_cover_full_duration():
+    guidance = build_model_type_guidance("MiniMax H3")
+    assert "whole duration" in guidance
+    assert "no gaps" in guidance
+    # A beat without a motion instruction makes H3 loop — the guidance says
+    # to merge empty beats rather than pad them.
+    assert "do not pad beats" in guidance
+
+
+def test_video_guidance_stays_timestamp_free():
+    # The universal profile targets parsers that read free text only — the
+    # guidance must forbid timestamps, shot lists and bracket tags.
+    guidance = build_model_type_guidance("Video")
+    assert "No timestamps" in guidance
+    assert "[bracket]" in guidance
 
 
 # ─────────────────────────────────────────────────────────────────────────

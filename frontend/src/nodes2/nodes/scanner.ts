@@ -70,7 +70,9 @@ export const scannerNode: NodeModule = {
     const allWidgetNames = [
       "prompt", "negative_prompt", "custom_style",
       "agent", "agent_focus", "model_type", "detail_level", "language",
-      "prompt_mode", "response_format", "photo_style", "nsfw_photo_style", "art_style", "nsfw_art_style",
+      "prompt_mode", "response_format",
+      "video_duration", "video_aspect", "video_sound", "video_camera",
+      "photo_style", "nsfw_photo_style", "art_style", "nsfw_art_style",
       "seed", "control_after_generate"
     ];
 
@@ -84,8 +86,8 @@ export const scannerNode: NodeModule = {
       for (const name of allWidgetNames) {
         const w = findFilWidget(node, name);
         if (!w) continue;
-        const isNum = name === "seed";
-        const fallback = isNum ? -1 : "";
+        const isNum = name === "seed" || name === "video_duration";
+        const fallback = isNum ? (name === "video_duration" ? 0 : -1) : "";
         const value = sanitizeWidgetValue(w, isNum ? "number" : "string", fallback);
         initialValues[name] = value;
         initialNodeState[name] = value;
@@ -133,8 +135,8 @@ export const scannerNode: NodeModule = {
       for (const name of allWidgetNames) {
         const w = findFilWidget(node, name);
         if (!w) continue;
-        const isNum = name === "seed";
-        const fallback = isNum ? -1 : "";
+        const isNum = name === "seed" || name === "video_duration";
+        const fallback = isNum ? (name === "video_duration" ? 0 : -1) : "";
         state.nodeState[name] = sanitizeWidgetValue(w, isNum ? "number" : "string", fallback, hasFilState);
         (w as { hidden?: boolean }).hidden = true;
       }

@@ -43,6 +43,11 @@ from ..data import (
     LANGUAGES,
     MODEL_TYPE_OPTIONS,
     PROMPT_MODE_OPTIONS,
+    VIDEO_ASPECT_OPTIONS,
+    VIDEO_CAMERA_OPTIONS,
+    VIDEO_DURATION_MAX,
+    VIDEO_MODEL_TYPES,
+    VIDEO_SOUND_OPTIONS,
     default_detail_level,
     first_or_default,
     get_default_agent_key,
@@ -248,6 +253,49 @@ _SCANNER = NodeContract(
                 options=list(PROMPT_MODE_OPTIONS),
                 default="Auto",
                 section="output",
+            ),
+            # Video shot parameters — the panel shows these four only when
+            # model_type is a video profile (visible_when mirrors the gate the
+            # backend applies before injecting anything). All default to Auto,
+            # which injects nothing: all-Auto runs stay byte-identical. The
+            # slider's static max is the widest profile range; OpticScanner.vue
+            # narrows it live for MiniMax H3 (4-15, the API hard limit) — the
+            # ranges live in common/data.py (VIDEO_DURATION_RANGES).
+            _slider(
+                "video_duration",
+                default=0,
+                minv=0,
+                maxv=VIDEO_DURATION_MAX,
+                step=1,
+                units="s",
+                section="output",
+                visible_when="model_type",
+                visible_when_value=list(VIDEO_MODEL_TYPES),
+            ),
+            _combo(
+                "video_aspect",
+                values=list(VIDEO_ASPECT_OPTIONS),
+                default="Auto",
+                columns=5,
+                section="output",
+                visible_when="model_type",
+                visible_when_value=list(VIDEO_MODEL_TYPES),
+            ),
+            _segmented(
+                "video_sound",
+                options=list(VIDEO_SOUND_OPTIONS),
+                default="Auto",
+                section="output",
+                visible_when="model_type",
+                visible_when_value=list(VIDEO_MODEL_TYPES),
+            ),
+            _combo(
+                "video_camera",
+                values=list(VIDEO_CAMERA_OPTIONS),
+                default="Auto",
+                section="output",
+                visible_when="model_type",
+                visible_when_value=list(VIDEO_MODEL_TYPES),
             ),
             _chip_list(
                 "photo_style",

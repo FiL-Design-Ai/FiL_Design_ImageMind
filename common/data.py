@@ -47,6 +47,48 @@ PROMPT_MODE_OPTIONS = ["Auto", "Hybrid", "Two-Stage"]
 
 MODEL_TYPE_OPTIONS = ["Auto/None", "Z-Image Turbo", "FLUX", "SDXL", "QWEN", "Krea 2", "Ideogram 4", "Video", "MiniMax H3"]
 
+# ── Video shot parameters ──────────────────────────────────────────────────
+# 📤 Output widgets shown only when model_type is one of VIDEO_MODEL_TYPES.
+# Every widget defaults to Auto, which injects nothing — all-Auto runs stay
+# byte-identical to the pre-widget output, so saved workflows never change
+# behavior just because these inputs now exist.
+VIDEO_MODEL_TYPES = ("Video", "MiniMax H3")
+VIDEO_ASPECT_OPTIONS = ["Auto", "16:9", "9:16", "1:1", "21:9"]
+VIDEO_SOUND_OPTIONS = ["Auto", "Off", "Layered"]
+VIDEO_CAMERA_OPTIONS = [
+    "Auto", "Locked-off", "Dolly in", "Dolly out", "Orbit", "Pan",
+    "Handheld follow", "Crane up", "FPV push", "Rack focus",
+]
+# Per-profile duration ranges in whole seconds. H3's is the API's hard limit
+# (platform.minimax.io, verified 2026-08-05); Video's covers the class
+# (Veo ~8s, Kling 5-10s, Wan-family clips up to ~20s).
+VIDEO_DURATION_RANGES: Dict[str, Tuple[int, int]] = {
+    "Video": (2, 20),
+    "MiniMax H3": (4, 15),
+}
+# Widest upper bound — the widget's hard ceiling.
+VIDEO_DURATION_MAX = max(high for _low, high in VIDEO_DURATION_RANGES.values())
+
+
+def is_video_model_type(model_type: Any) -> bool:
+    return str(model_type or "") in VIDEO_MODEL_TYPES
+
+
+def get_video_duration_range(model_type: str) -> Tuple[int, int]:
+    return VIDEO_DURATION_RANGES.get(str(model_type or ""), VIDEO_DURATION_RANGES["Video"])
+
+
+def clamp_video_duration(model_type: str, seconds: Any) -> int:
+    """Clamp a user-set duration into the profile's range; 0 stays 0 (= Auto)."""
+    try:
+        value = int(seconds)
+    except (TypeError, ValueError):
+        return 0
+    if value <= 0:
+        return 0
+    low, high = get_video_duration_range(model_type)
+    return max(low, min(high, value))
+
 # Per model_type generation contract. Consumed by the prompt pipeline
 # (system-prompt assembly, response-format instructions, negative-prompt
 # strategy) and by the post-conversion adapters. Mirrors the backup's
@@ -187,13 +229,16 @@ MODEL_PROMPT_RULES: Dict[str, Dict[str, Any]] = {
     # They all read one continuous natural-language shot description and
     # have no negative-prompt input, so constraints are flipped positive.
     # Checked against platform.minimax.io (H3 API reference + prompt guide,
-    # 2026-08-04): free text is the only documented user prompt shape, the v2
-    # API has no negative-prompt parameter, sound and per-reference roles
-    # ("Image 1: mood, setting...") are first-class, and the [Shot N]/timeline
-    # structure is what the separate H3-Context-IR enrichment call returns —
-    # users never hand-write timestamps. Stays partially_verified because H3
-    # is the one member checked against vendor docs; the rest ride on the
-    # class-wide practice above.
+    # 2026-08-04; prompt guide re-read 2026-08-05): free text is the only
+    # documented user prompt shape, the v2 API has no negative-prompt
+    # parameter, sound and per-reference roles ("Image 1: mood, setting...")
+    # are first-class, and the [Shot N]/timeline structure is what the
+    # separate H3-Context-IR enrichment call returns — users never hand-write
+    # timestamps. The 150-word cap is the contract ceiling enforced by
+    # convert_to_dit_format: video models follow short concrete shots better
+    # than dense walls of text (guidance targets ~60-150 words). Stays
+    # partially_verified because H3 is the one member checked against vendor
+    # docs; the rest ride on the class-wide practice above.
     "Video": {
         "label": "Video",
         "uses_dit_prompting": True,
@@ -220,6 +265,14 @@ MODEL_PROMPT_RULES: Dict[str, Dict[str, Any]] = {
         # profile lets the LLM write that shape directly; the universal Video
         # profile stays timestamp-free because other vendors' parsers read
         # free text only and may render stray timestamps on screen.
+        # Re-verified 2026-08-05 (platform.minimax.io/docs/guides/
+        # video-generation + /video-prompt): durations are whole seconds
+        # 4-15, T2V needs an explicit aspect (no 'adaptive'), inline camera
+        # tags ([pan], [zoom], [static]) are documented in-prompt camera
+        # control, reference media take explicit roles (first_frame,
+        # reference_image/video/audio), and the official prompt guide leads
+        # every example with duration + aspect ("15s, 16:9."). The 250-word
+        # cap is the contract ceiling enforced by convert_to_dit_format.
         "json_schema": None,
         "target_prompt_format": "video_timeline_blocks",
         "force_response_format": None,

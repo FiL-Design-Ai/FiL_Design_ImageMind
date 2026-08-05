@@ -280,6 +280,115 @@ def test_minimax_h3_timeline_passthrough():
     assert "Sound:" in output
 
 
+def test_minimax_h3_keeps_beat_lines_separate():
+    """LLMs habitually write one beat per line — that structure survives."""
+    timeline = (
+        "10s, 16:9.\n"
+        "[0-3s] Close-up of a lion on a cliff at sunset, camera slowly pushes in.\n"
+        "[3-7s] Energy lines race across its body as fur turns to metal plates.\n"
+        "[7-10s] The robot-lion roars, camera pulls back to a wide silhouette.\n"
+        "Sound: wind, servo whine, a deep synthetic roar."
+    )
+    output, meta = convert_to_dit_format(timeline, "MiniMax H3", "text")
+
+    assert meta["mode"] == "video_timeline_blocks"
+    lines = output.splitlines()
+    assert len(lines) == 5
+    assert lines[0] == "10s, 16:9."
+    assert lines[1].startswith("[0-3s]")
+    assert lines[-1].startswith("Sound:")
+
+
+def test_minimax_h3_truncation_keeps_brackets_balanced():
+    """A word cap must never cut inside a [beat] span or leave a dangling '['."""
+    beats = " ".join(
+        f"[{i}-{i + 2}s] The chrome android sprints across rooftop {i} while "
+        "sparks cascade from the antenna cables and neon signs flicker in "
+        "sequence, coat streaming behind, camera slowly dollies in."
+        for i in range(0, 24, 2)
+    )
+    timeline = f"10s, 16:9. {beats} Sound: rain on metal, servo whine, synth pad."
+    assert len(timeline.split()) > 250  # over the H3 contract cap
+
+    output, meta = convert_to_dit_format(timeline, "MiniMax H3", "text")
+
+    assert meta["mode"] == "video_timeline_blocks"
+    assert len(output.split()) <= 250
+    assert output.count("[") == output.count("]")
+    # Retreated to a sentence/beat boundary instead of a mid-word cut.
+    assert output.endswith((".", "!", "?"))
+    assert "..." not in output
+
+
+def test_minimax_h3_rule_cap_wins_over_roomier_detail_level():
+    """The 250-word contract cap holds even when detail_level allows more."""
+    timeline = "10s, 16:9. " + " ".join(
+        f"[{i}-{i + 1}s] The android walks slowly through corridor {i}, dust "
+        "drifting in the light shafts, camera follows from behind."
+        for i in range(30)
+    )
+    output, _meta = convert_to_dit_format(
+        timeline, "MiniMax H3", "text", detail_level="ultra"  # ultra allows 1200
+    )
+    assert len(output.split()) <= 250
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Video - Universal natural-language shot description
+# ─────────────────────────────────────────────────────────────────────────
+
+
+def test_video_prose_is_normalized_not_restructured():
+    prompt = (
+        "Medium shot, eye level. A rider gallops through the shallow surf at "
+        "sunset, spray fanning behind the hooves, camera tracks alongside. "
+        "Sound: waves, hoofbeats, a low drum pulse."
+    )
+    output, meta = convert_to_dit_format(prompt, "Video", "text")
+
+    assert meta["mode"] == "video_natural_language"
+    assert "gallops" in output and "Sound:" in output
+
+
+def test_video_flattens_newlines_into_one_paragraph():
+    """The universal profile promises ONE paragraph — line breaks flatten."""
+    prompt = (
+        "Wide shot of a harbor at dawn.\n"
+        "Fishing boats drift out while gulls circle the breakwater.\n"
+        "Camera cranes up over the lighthouse."
+    )
+    output, _meta = convert_to_dit_format(prompt, "Video", "text")
+    assert "\n" not in output
+    assert "lighthouse" in output
+
+
+def test_video_truncation_retreats_to_sentence_boundary():
+    """The 150-word cap never cuts mid-sentence and leaves no ellipsis."""
+    prompt = " ".join(
+        f"Shot {i} shows the subject moving through the misty forest scene."
+        for i in range(1, 21)
+    )
+    assert len(prompt.split()) > 150
+
+    output, _meta = convert_to_dit_format(prompt, "Video", "text")
+
+    assert len(output.split()) <= 150
+    assert output.endswith((".", "!", "?"))
+    assert "..." not in output
+
+
+def test_video_rule_cap_wins_over_roomier_detail_level():
+    """The 150-word contract cap holds even when detail_level allows more."""
+    prompt = " ".join(
+        f"Shot {i} shows the subject moving through the misty forest scene."
+        for i in range(1, 40)
+    )
+    output, _meta = convert_to_dit_format(
+        prompt, "Video", "text", detail_level="ultra"  # ultra allows 1200
+    )
+    assert len(output.split()) <= 150
+
+
 # ─────────────────────────────────────────────────────────────────────────
 # Ideogram 4 - Plain text mode (JSON schema discontinued)
 # ─────────────────────────────────────────────────────────────────────────
