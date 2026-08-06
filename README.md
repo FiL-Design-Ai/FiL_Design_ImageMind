@@ -85,9 +85,9 @@ image pipeline with themed controls and predictable backend contracts.
 
 | If you want to... | Start with |
 |---|---|
-| Describe an image or make a prompt from it | `FiL Optic Scanner` + `FiL Provider Loader` |
-| Convert analysis into model-ready text | `FiL Style Mixer` and the model prompt profiles |
-| Upscale large images in a controlled way | `FiL Tile Planner` → `FiL Upscaler` → `FiL Tile Assembly` |
+| Describe an image or make a prompt from it | 🕵️ Optic Scanner + 🔌 Provider Loader |
+| Convert analysis into model-ready text | 🎛️ Style Mixer and the model prompt profiles |
+| Upscale large images in a controlled way | 🔍 Upscaler Advanced → 🧩 Tile Assembly |
 | Try the pack without cloud keys | Ollama or LM Studio as the provider |
 
 ### Interface preview
@@ -978,9 +978,9 @@ ImageMind нужен ComfyUI-сборщикам, которые хотят де�
 
 | Если нужно... | Начните с |
 |---|---|
-| Описать изображение или получить промпт из картинки | `FiL Optic Scanner` + `FiL Provider Loader` |
-| Превратить анализ в текст под модель | `FiL Style Mixer` и профили промптов |
-| Апскейлить большие изображения контролируемо | `FiL Tile Planner` → `FiL Upscaler` → `FiL Tile Assembly` |
+| Описать изображение или получить промпт из картинки | 🕵️ Optic Scanner + 🔌 Provider Loader |
+| Превратить анализ в текст под модель | 🎛️ Style Mixer и профили промптов |
+| Апскейлить большие изображения контролируемо | 🔍 Upscaler Advanced → 🧩 Tile Assembly |
 | Попробовать пакет без облачных ключей | Ollama или LM Studio как провайдер |
 
 ### Превью интерфейса
