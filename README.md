@@ -34,6 +34,9 @@
 ## English
 
 - [What is this](#what-is-this)
+- [Why ImageMind](#why-imagemind)
+- [Start here](#start-here)
+- [Interface preview](#interface-preview)
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Provider setup](#provider-setup)
@@ -70,6 +73,28 @@ generated into the frontend, so a panel can never offer a value the backend reje
 this release went through a hardening checklist (audit → UX → functional fixes → UI → tests →
 contract → live smoke on a running ComfyUI), recorded in
 [`docs/release/HARDENING_LEDGER.md`](docs/release/HARDENING_LEDGER.md).
+
+### Why ImageMind
+
+ImageMind is for ComfyUI builders who want image understanding, prompt craft and upscale utilities
+inside the same graph instead of jumping between separate tools. Use it when you need to inspect an
+image with a vision model, turn that analysis into a model-specific prompt, or build a repeatable
+image pipeline with themed controls and predictable backend contracts.
+
+### Start here
+
+| If you want to... | Start with |
+|---|---|
+| Describe an image or make a prompt from it | `FiL Optic Scanner` + `FiL Provider Loader` |
+| Convert analysis into model-ready text | `FiL Style Mixer` and the model prompt profiles |
+| Upscale large images in a controlled way | `FiL Tile Planner` → `FiL Upscaler` → `FiL Tile Assembly` |
+| Try the pack without cloud keys | Ollama or LM Studio as the provider |
+
+### Interface preview
+
+| Optic Scanner | Style Mixer | Tile workflow |
+|---|---|---|
+| ![FiL Optic Scanner node](docs/images/optic-scanner.png) | ![FiL Style Mixer node](docs/images/style-mixer.png) | ![FiL Tile Assembly node](docs/images/tile-assembly.png) |
 
 ### Requirements
 
@@ -902,6 +927,9 @@ Further reading: [architecture](docs/architecture.md) ·
 ## Русский
 
 - [Что это](#что-это)
+- [Зачем ImageMind](#зачем-imagemind)
+- [С чего начать](#с-чего-начать)
+- [Превью интерфейса](#превью-интерфейса)
 - [Требования](#требования)
 - [Установка](#установка)
 - [Настройка провайдеров](#настройка-провайдеров)
@@ -938,6 +966,28 @@ Further reading: [architecture](docs/architecture.md) ·
 бэкенд; каждая нода в этом релизе прошла чек-лист харденинга (аудит → UX → фиксы функционала → UI →
 тесты → контракт → живой смоук на работающем ComfyUI), см.
 [`docs/release/HARDENING_LEDGER.md`](docs/release/HARDENING_LEDGER.md).
+
+### Зачем ImageMind
+
+ImageMind нужен ComfyUI-сборщикам, которые хотят держать анализ изображения, работу с промптом и
+апскейл в одном графе, без прыжков между отдельными инструментами. Используйте его, когда нужно
+описать изображение через vision-модель, превратить анализ в промпт под конкретную модель или
+собрать повторяемый image pipeline с понятным UI и проверяемыми backend-контрактами.
+
+### С чего начать
+
+| Если нужно... | Начните с |
+|---|---|
+| Описать изображение или получить промпт из картинки | `FiL Optic Scanner` + `FiL Provider Loader` |
+| Превратить анализ в текст под модель | `FiL Style Mixer` и профили промптов |
+| Апскейлить большие изображения контролируемо | `FiL Tile Planner` → `FiL Upscaler` → `FiL Tile Assembly` |
+| Попробовать пакет без облачных ключей | Ollama или LM Studio как провайдер |
+
+### Превью интерфейса
+
+| Optic Scanner | Style Mixer | Tile workflow |
+|---|---|---|
+| ![Узел FiL Optic Scanner](docs/images/optic-scanner.png) | ![Узел FiL Style Mixer](docs/images/style-mixer.png) | ![Узел FiL Tile Assembly](docs/images/tile-assembly.png) |
 
 ### Требования
 
