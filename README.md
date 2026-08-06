@@ -92,9 +92,11 @@ image pipeline with themed controls and predictable backend contracts.
 
 ### Interface preview
 
-| Optic Scanner | Style Mixer | Tile workflow |
+| Optic Scanner | Style Mixer | Tile Assembly |
 |---|---|---|
 | ![FiL Optic Scanner node](docs/images/optic-scanner.png) | ![FiL Style Mixer node](docs/images/style-mixer.png) | ![FiL Tile Assembly node](docs/images/tile-assembly.png) |
+
+The full gallery, grouped by category, is under [Screenshots](#screenshots).
 
 ### Requirements
 
@@ -985,9 +987,11 @@ ImageMind нужен ComfyUI-сборщикам, которые хотят де�
 
 ### Превью интерфейса
 
-| Optic Scanner | Style Mixer | Tile workflow |
+| Optic Scanner | Style Mixer | Tile Assembly |
 |---|---|---|
 | ![Узел FiL Optic Scanner](docs/images/optic-scanner.png) | ![Узел FiL Style Mixer](docs/images/style-mixer.png) | ![Узел FiL Tile Assembly](docs/images/tile-assembly.png) |
+
+Полная галерея по категориям — в разделе [Скриншоты](#скриншоты).
 
 ### Требования
 
