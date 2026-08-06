@@ -1,17 +1,33 @@
-# ⚡ FiL_Design_ImageMind
+<p align="center">
+  <img src="docs/images/hero.png" alt="FiL Design ImageMind" width="100%">
+</p>
 
-> **AI-powered ComfyUI node pack** — LLM vision analysis, prompt engineering, tiled upscaling, sampling and colour work in one coherent, themed UI.
+<h1 align="center">FiL Design ImageMind</h1>
 
-[![CI](https://github.com/FiL-Design-Ai/FiL_Design_ImageMind/actions/workflows/ci.yml/badge.svg)](https://github.com/FiL-Design-Ai/FiL_Design_ImageMind/actions/workflows/ci.yml)
-[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776ab?style=flat-square&logo=python)](https://www.python.org/)
-[![ComfyUI 0.3.60+](https://img.shields.io/badge/ComfyUI-0.3.60%2B-00cc00?style=flat-square)](https://github.com/comfyanonymous/ComfyUI)
-[![V3 API](https://img.shields.io/badge/ComfyUI_API-V3-7c5cff?style=flat-square)](https://docs.comfy.org/custom-nodes/backend/lifecycle)
-[![Nodes](https://img.shields.io/badge/Nodes-16-f08a45?style=flat-square)](#node-reference)
-[![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
+<p align="center">
+  AI-powered ComfyUI node pack for image analysis, prompt engineering, tiled upscaling, sampling and colour work in one coherent, themed UI.
+</p>
 
-[English](#english) · [Русский](#русский)
+<p align="center">
+  <a href="https://github.com/FiL-Design-Ai/FiL_Design_ImageMind/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/FiL-Design-Ai/FiL_Design_ImageMind/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://www.python.org/"><img alt="Python 3.10+" src="https://img.shields.io/badge/Python-3.10%2B-3776ab?style=flat-square&logo=python"></a>
+  <a href="https://github.com/comfyanonymous/ComfyUI"><img alt="ComfyUI 0.3.60+" src="https://img.shields.io/badge/ComfyUI-0.3.60%2B-111111?style=flat-square"></a>
+  <a href="https://docs.comfy.org/custom-nodes/backend/lifecycle"><img alt="ComfyUI API V3" src="https://img.shields.io/badge/ComfyUI_API-V3-7c5cff?style=flat-square"></a>
+  <a href="#node-reference"><img alt="Nodes" src="https://img.shields.io/badge/Nodes-16-f08a45?style=flat-square"></a>
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/License-MIT-yellow?style=flat-square"></a>
+</p>
 
-![FiL Design ImageMind](docs/images/hero.png)
+<p align="center">
+  <a href="#installation">Installation</a> -
+  <a href="#quick-start">Quick start</a> -
+  <a href="#node-reference">Nodes</a> -
+  <a href="#provider-setup">Providers</a> -
+  <a href="#screenshots">Screenshots</a>
+</p>
+
+<p align="center">
+  <a href="#english">English</a> / <a href="#русский">Русский</a>
+</p>
 
 ---
 
