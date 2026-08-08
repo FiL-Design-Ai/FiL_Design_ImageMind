@@ -954,20 +954,38 @@ const SURFACE_VARS_PIPBOY =
   "--fil-border:#00aa00;" +
   "--fil-input-border:#00ff00;";
 
+/**
+ * Field tokens measured against the sibling pack's real node-face CSS
+ * (`ComfyUI-Pixaroma/js/outpaint_stitch/sliders.mjs`, `js/xy_plot/ui.mjs`) —
+ * `.pix-ops-sl`, `.pix-xy-field`, `.pix-xy-input`, `.pix-xy-combo` all share
+ * `background:#1d1d1d; border:1px solid rgba(255,255,255,.14); border-radius:5px`.
+ * The values below used to read `#111111` / `#3a3d40` (from `theme.mjs`, which
+ * is the sibling pack's full-screen paint editor, not its node faces) — one
+ * shade blacker and one solid, opaque border-grey too many.
+ *
+ * `--fil-surface-border` is the one token this pack invents outright: the
+ * sibling pack's nodes carry no card of their own — no border, no radius, no
+ * shadow — because they don't wrap the node at all, only its widget content.
+ * That is a structural difference this pack's shared `.fil-node-shell` card
+ * cannot fully close without a per-theme exception to the wrapper itself, so
+ * the border stays, kept to a translucent white wash (barely visible against
+ * a dark canvas) rather than the previous opaque grey — the compromise between
+ * "faithful" and "still readable as a node".
+ */
 const SURFACE_VARS_PIXAROMA =
   "--fil-surface-bg:#171718;" +
-  "--fil-surface-border:#2a2c2e;" +
+  "--fil-surface-border:rgba(255,255,255,0.08);" +
   "--fil-surface-radius:8px;" +
   "--fil-surface-blur:0px;" +
   "--fil-surface-shadow:none;" +
-  "--fil-glass-bg:#111111;" +
-  "--fil-glass-border:#3a3d40;" +
-  "--fil-field-radius:4px;" +
+  "--fil-glass-bg:#1d1d1d;" +
+  "--fil-glass-border:rgba(255,255,255,0.14);" +
+  "--fil-field-radius:5px;" +
   "--fil-pill-radius:5px;" +
-  "--fil-pill-bg:#1e2022;" +
-  "--fil-pill-border:#3a3d40;" +
-  "--fil-border:#3a3d40;" +
-  "--fil-input-border:#3a3d40;";
+  "--fil-pill-bg:#1d1d1d;" +
+  "--fil-pill-border:rgba(255,255,255,0.14);" +
+  "--fil-border:rgba(255,255,255,0.14);" +
+  "--fil-input-border:rgba(255,255,255,0.14);";
 
 /**
  * Modern High-Tech Web3 / Cyber Emerald Dark Glass surface tokens.

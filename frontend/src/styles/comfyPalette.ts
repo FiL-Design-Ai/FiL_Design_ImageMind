@@ -422,6 +422,8 @@ export const paletteCommands = [
   {
     id: "FiL_Design_ImageMind.exportThemeAsPalette",
     label: "FiL_Design_ImageMind — Save this theme as a ComfyUI color palette",
+    // Short form for the menu bar; the command palette keeps the long label.
+    menubarLabel: "Save theme as palette",
     icon: "🎨",
     function: async () => {
       const { toast } = await import("@/stores/toastStore");

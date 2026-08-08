@@ -33,6 +33,9 @@ export const filCommands: ComfyCommand[] = [
   {
     id: "FiL_Design_ImageMind.helpCheatsheet",
     label: "FiL_Design_ImageMind — Keyboard cheatsheet",
+    // The menu bar shows `menubarLabel` verbatim — kept short like core's
+    // "New"/"Open"; the command-palette `label` above stays the long one.
+    menubarLabel: "Keyboard cheatsheet",
     icon: "?",
     function: openCheatsheet,
   },

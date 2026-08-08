@@ -74,6 +74,19 @@
   `pyproject.toml` package data, the `.comfyignore` shipping note, the two
   documentation tests that open the graphs, and the frontend comments that
   point at them.
+- **📋 The pack's two actions are now in the menu bar under a top-level
+  "FiL Design" group.** The keyboard cheatsheet and "save this theme as a
+  ComfyUI palette" were reachable only through Shift+? and the command
+  palette — which is where discoverability went to die. Both are now
+  registered through the declarative `menuCommands` extension property; the
+  host's menu store creates the top-level group the first time it meets the
+  path, so nothing host-side needs setting up. Each command gained a short
+  `menubarLabel` ("Keyboard cheatsheet", "Save theme as palette"), because the
+  host renders that field verbatim and does not fall back to the longer
+  command-palette label. Locked in by `tests/menuCommands.test.ts`: every
+  menu id must also be a declared command (the host silently drops ones that
+  are not) and every menu-bound command must carry a `menubarLabel` (the
+  entry renders blank without one).
 
 ## 1.1.2 (2026-08-06)
 

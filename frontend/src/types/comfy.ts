@@ -43,6 +43,13 @@ export interface ComfyExtensionSettings {
 export interface ComfyCommand {
   id: string;
   label?: string;
+  /**
+   * Menu-bar label — `menuItemStore.commandIdToMenuItem` reads this field
+   * verbatim for entries registered through `menuCommands`, so a command
+   * meant to appear in the menu bar must set it (the longer palette `label`
+   * is not a fallback).
+   */
+  menubarLabel?: string;
   icon?: string;
   function: () => void;
 }
@@ -90,6 +97,14 @@ export interface ComfyExtension {
   commands?: ComfyCommand[];
   /** Declarative keybindings bound to `commands` above. */
   keybindings?: ComfyKeybinding[];
+  /**
+   * Menu-bar entries. `menuItemStore.loadExtensionMenuCommands` keeps only
+   * ids that are ALSO declared in `commands` above, then calls
+   * `registerCommands(path, ids)` — and `registerMenuGroup` creates the
+   * top-level group the first time it sees a path, so an extension may open
+   * its own top-level menu.
+   */
+  menuCommands?: { path: string[]; commands: string[] }[];
   bottomPanelTabs?: ComfyBottomPanelTab[];
   setup?(...args: unknown[]): unknown | Promise<unknown>;
   getCustomWidgets?(canvas: unknown): unknown;

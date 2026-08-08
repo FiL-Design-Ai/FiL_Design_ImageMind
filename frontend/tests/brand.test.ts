@@ -32,7 +32,7 @@ describe("the Pixaroma skin", () => {
     expect(vars).toContain("--fil-surface-blur:0px");
     expect(vars).toContain("--fil-surface-shadow:none");
     // Palette-derived by default; the flat hairline has to win over it.
-    expect(vars.lastIndexOf("--fil-border:#3a3d40")).toBeGreaterThan(
+    expect(vars.lastIndexOf("--fil-border:rgba(255,255,255,0.14)")).toBeGreaterThan(
       vars.indexOf("--fil-border:color-mix"),
     );
   });

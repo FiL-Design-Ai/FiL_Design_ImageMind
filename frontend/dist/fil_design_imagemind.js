@@ -3635,7 +3635,7 @@ var ac, oc, sc, cc, lc, uc, dc, fc, pc, mc, hc, gc, _c, vc, yc, bc, xc, Sc, Cc, 
 	}, Tc = "\n:root[data-fil-motion=\"off\"] .fil-node-shell [class$=\"-root\"],\n:root[data-fil-motion=\"off\"] .fil-node-shell [class$=\"-root\"]::before,\n:root[data-fil-motion=\"off\"] .fil-node-shell [class$=\"-root\"]::after {\n  animation: none !important;\n}\n", Ec = "--fil-surface-bg:rgba(100,180,220,0.06);--fil-surface-border:rgba(0,255,255,0.18);--fil-surface-radius:20px;--fil-surface-blur:10px;--fil-surface-shadow:0 8px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08);--fil-glass-bg:rgba(50,80,120,0.18);--fil-glass-border:rgba(0,150,200,0.35);--fil-field-radius:10px;--fil-pill-radius:17px;--fil-pill-bg:rgba(255,255,255,0.06);--fil-pill-border:rgba(0,150,200,0.4);", Dc = {
 		cyberpunk: "--fil-surface-bg:rgba(6,9,19,0.95);--fil-surface-border:#00f0ff;--fil-surface-radius:2px;--fil-surface-blur:12px;--fil-surface-shadow:0 0 24px rgba(0,240,255,0.4), inset 0 0 15px rgba(255,0,85,0.25);--fil-glass-bg:rgba(14,21,38,0.7);--fil-glass-border:rgba(0,240,255,0.4);--fil-field-radius:2px;--fil-pill-radius:3px;--fil-pill-bg:rgba(0,240,255,0.08);--fil-pill-border:rgba(0,240,255,0.45);--fil-border:rgba(255,0,85,0.4);--fil-input-border:#00f0ff;",
 		pipboy: "--fil-surface-bg:#020a02;--fil-surface-border:#00ff00;--fil-surface-radius:4px;--fil-surface-blur:0px;--fil-surface-shadow:0 0 18px rgba(0,255,0,0.35), inset 0 0 15px rgba(0,255,0,0.12);--fil-glass-bg:rgba(0,35,0,0.45);--fil-glass-border:rgba(0,255,0,0.45);--fil-field-radius:3px;--fil-pill-radius:3px;--fil-pill-bg:rgba(0,255,0,0.08);--fil-pill-border:rgba(0,255,0,0.5);--fil-border:#00aa00;--fil-input-border:#00ff00;",
-		pixaroma: "--fil-surface-bg:#171718;--fil-surface-border:#2a2c2e;--fil-surface-radius:8px;--fil-surface-blur:0px;--fil-surface-shadow:none;--fil-glass-bg:#111111;--fil-glass-border:#3a3d40;--fil-field-radius:4px;--fil-pill-radius:5px;--fil-pill-bg:#1e2022;--fil-pill-border:#3a3d40;--fil-border:#3a3d40;--fil-input-border:#3a3d40;",
+		pixaroma: "--fil-surface-bg:#171718;--fil-surface-border:rgba(255,255,255,0.08);--fil-surface-radius:8px;--fil-surface-blur:0px;--fil-surface-shadow:none;--fil-glass-bg:#1d1d1d;--fil-glass-border:rgba(255,255,255,0.14);--fil-field-radius:5px;--fil-pill-radius:5px;--fil-pill-bg:#1d1d1d;--fil-pill-border:rgba(255,255,255,0.14);--fil-border:rgba(255,255,255,0.14);--fil-input-border:rgba(255,255,255,0.14);",
 		neo_emerald: "--fil-surface-bg:rgba(9,13,10,0.88);--fil-surface-border:rgba(0,255,136,0.25);--fil-surface-radius:16px;--fil-surface-blur:14px;--fil-surface-shadow:0 16px 36px rgba(0,0,0,0.65), 0 0 24px rgba(0,255,136,0.12), inset 0 1px 0 rgba(255,255,255,0.12);--fil-glass-bg:rgba(16,26,20,0.55);--fil-glass-border:rgba(0,255,136,0.35);--fil-field-radius:10px;--fil-pill-radius:12px;--fil-pill-bg:rgba(0,255,136,0.06);--fil-pill-border:rgba(0,255,136,0.35);--fil-border:rgba(0,255,136,0.3);--fil-input-border:rgba(0,255,136,0.5);",
 		nft_vibe: "--fil-surface-bg:rgba(8,8,10,0.92);--fil-surface-border:rgba(208,255,0,0.35);--fil-surface-radius:20px;--fil-surface-blur:16px;--fil-surface-shadow:0 20px 40px rgba(0,0,0,0.85), 0 0 30px rgba(129,22,224,0.3), inset 0 1px 0 rgba(255,255,255,0.18);--fil-glass-bg:rgba(22,18,30,0.6);--fil-glass-border:rgba(129,22,224,0.4);--fil-field-radius:12px;--fil-pill-radius:9999px;--fil-pill-bg:rgba(208,255,0,0.08);--fil-pill-border:rgba(208,255,0,0.4);--fil-border:rgba(129,22,224,0.35);--fil-input-border:rgba(208,255,0,0.5);",
 		hollywood_teal: "--fil-surface-bg:rgba(13,27,42,0.94);--fil-surface-border:rgba(13,148,136,0.4);--fil-surface-radius:12px;--fil-surface-blur:14px;--fil-surface-shadow:0 16px 36px rgba(0,0,0,0.75), 0 0 24px rgba(249,115,22,0.2), inset 0 1px 0 rgba(255,255,255,0.12);--fil-glass-bg:rgba(19,38,59,0.6);--fil-glass-border:rgba(0,210,190,0.35);--fil-field-radius:8px;--fil-pill-radius:20px;--fil-pill-bg:rgba(0,210,190,0.08);--fil-pill-border:rgba(0,210,190,0.4);--fil-border:rgba(13,148,136,0.35);--fil-input-border:rgba(0,210,190,0.5);",
@@ -16594,6 +16594,7 @@ var aT, oT, sT, cT, lT, uT, dT, fT, pT, mT, hT = n((() => {
 	jc(), aT = "fil_", oT = "Comfy.ColorPalette", sT = "Comfy.CustomColorPalettes", cT = 20, lT = 100, uT = .8, dT = .35, fT = "FiL_Design_ImageMind.previousColorPalette", pT = "dark", mT = [{
 		id: "FiL_Design_ImageMind.exportThemeAsPalette",
 		label: "FiL_Design_ImageMind — Save this theme as a ComfyUI color palette",
+		menubarLabel: "Save theme as palette",
 		icon: "🎨",
 		function: async () => {
 			let { toast: e } = await Promise.resolve().then(() => (Eu(), vu)), t = iT();
@@ -17275,6 +17276,7 @@ ap(), Eu(), Xl();
 var JE = "FiL_Design_ImageMind.Shortcuts.Enabled", YE = "__cheatsheet__", XE = [{
 	id: "FiL_Design_ImageMind.helpCheatsheet",
 	label: "FiL_Design_ImageMind — Keyboard cheatsheet",
+	menubarLabel: "Keyboard cheatsheet",
 	icon: "?",
 	function: eD
 }], ZE = [{
@@ -17517,6 +17519,10 @@ function yD(e) {
 		settings: _D,
 		commands: [...XE, ...mT],
 		keybindings: ZE,
+		menuCommands: [{
+			path: ["FiL Design"],
+			commands: ["FiL_Design_ImageMind.helpCheatsheet", "FiL_Design_ImageMind.exportThemeAsPalette"]
+		}],
 		bottomPanelTabs: [aD()],
 		async setup() {
 			let t = [

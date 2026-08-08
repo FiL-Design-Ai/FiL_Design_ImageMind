@@ -95,6 +95,22 @@ export function createFilExtension(app: ComfyApp): ComfyExtension {
     commands: [...filCommands, ...paletteCommands],
     keybindings: filKeybindings,
 
+    // The same two actions in the menu bar under a top-level "FiL Design"
+    // group — `loadExtensionMenuCommands` only forwards ids that `commands`
+    // above already declares, and `registerMenuGroup` creates a top-level
+    // entry the first time it meets a path, so no host-side setup is needed.
+    // Without this both actions live only in the command palette and behind
+    // Shift+?, which is where discoverability went to die.
+    menuCommands: [
+      {
+        path: ["FiL Design"],
+        commands: [
+          "FiL_Design_ImageMind.helpCheatsheet",
+          "FiL_Design_ImageMind.exportThemeAsPalette",
+        ],
+      },
+    ],
+
     // One tab in the same bottom-panel dock core's own "Shortcuts" tabs live
     // in — the documented extension point (`ComfyBottomPanelTab`'s docstring
     // has the source reference), not a new UI surface bolted on separately.
