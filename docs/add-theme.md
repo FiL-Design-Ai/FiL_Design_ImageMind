@@ -87,7 +87,7 @@ Two things to know before you argue with it:
 
 ## Animations: wire them to the off switch
 
-If your theme animates (Pipboy's scanline sweep, Neo Emerald's pulsing orb),
+If your theme animates (Pipboy's CRT flicker, Neo Emerald's pulsing orb),
 put the animation on the panel root or its `::before`/`::after`. That is what
 `MOTION_OFF_CSS` targets:
 

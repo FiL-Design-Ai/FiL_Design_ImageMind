@@ -3540,7 +3540,7 @@ var ac, oc, sc, cc, lc, uc, dc, fc, pc, mc, hc, gc, _c, vc, yc, bc, xc, Sc, Cc, 
 		panel: "#020c02",
 		panelAlt: "#061a06",
 		text: "#00ff00",
-		muted: "#00b800",
+		muted: "#98ffa1",
 		danger: "#ff3333",
 		ok: "#00ff00"
 	}, uc = {
@@ -3626,7 +3626,7 @@ var ac, oc, sc, cc, lc, uc, dc, fc, pc, mc, hc, gc, _c, vc, yc, bc, xc, Sc, Cc, 
 		cyber_punch: "\n/* No panel of its own. Every other theme gives the node body a glass card —\n * tint, border, radius, shadow — but that card sits INSIDE the node box\n * LiteGraph already draws, so a node with little content (Cleaner's two\n * switches, Seed's one row) reads as a box drawn inside another box. The\n * reference this theme follows has a single surface with the fields sitting\n * directly on it, so the inner card is removed here and the node's own\n * surface is the only one. The fields keep their own --fil-glass-* tint,\n * which is what gives the remaining two levels their separation. */\n:root[data-fil-theme=\"cyber_punch\"] .fil-node-shell [class$=\"-root\"] {\n  background: none;\n  border: none;\n  box-shadow: none;\n  backdrop-filter: none;\n}\n:root[data-fil-theme=\"cyber_punch\"] .fil-w-section {\n  background: none !important;\n  border-left: none !important;\n  color: #ffd000 !important;\n  font-weight: 600;\n  letter-spacing: 0.02em;\n}\n:root[data-fil-theme=\"cyber_punch\"] .fil-w-section:hover:not(:disabled) {\n  color: #ffffff !important;\n}\n:root[data-fil-theme=\"cyber_punch\"] .fil-w-seg.active,\n:root[data-fil-theme=\"cyber_punch\"] .fil-combo-trigger.open,\n:root[data-fil-theme=\"cyber_punch\"] .fil-combo-trigger:focus-visible,\n:root[data-fil-theme=\"cyber_punch\"] .fil-w-chip.active {\n  background: #ffd000 !important;\n  color: #121212 !important;\n  box-shadow: 0 0 14px rgba(255, 208, 0, 0.5) !important;\n  border-color: #ffd000 !important;\n  border-radius: 8px !important;\n  font-weight: 700;\n}\n:root[data-fil-theme=\"cyber_punch\"] .fil-w-seedrow-pill.is-accent {\n  background: #ff0022 !important;\n  border-color: #ff0022 !important;\n  color: #ffffff !important;\n  border-radius: 9999px !important;\n  font-weight: 700;\n  box-shadow: 0 0 18px rgba(255, 0, 34, 0.6) !important;\n}\n:root[data-fil-theme=\"cyber_punch\"] .fil-w-seedrow-pill.is-accent:hover {\n  background: #d40016 !important;\n  box-shadow: 0 0 24px rgba(255, 0, 34, 0.75) !important;\n}\n:root[data-fil-theme=\"cyber_punch\"] input:focus,\n:root[data-fil-theme=\"cyber_punch\"] textarea:focus {\n  border-color: #ffd000 !important;\n  box-shadow: 0 0 14px rgba(255, 208, 0, 0.35) !important;\n}\n:root[data-fil-theme=\"cyber_punch\"] button:hover:not(:disabled) {\n  box-shadow: 0 0 12px rgba(255, 208, 0, 0.35) !important;\n}\n/* A compact node (Cleaner's two switches, Seed's one field) has almost no\n * surface for the glass card itself to read as themed — the reference\n * treatment gets its presence from glowing CONTENT (the active segment, the\n * accent button), not from the shell. A plain flat toggle or icon button on\n * an otherwise-empty card is how \"Cyber Punch\" ends up reading as \"dark grey\n * box with a yellow rectangle in it\". These give exactly those elements a\n * persistent glow at rest, not just on hover. */\n:root[data-fil-theme=\"cyber_punch\"] .fil-w-switch.on {\n  box-shadow: 0 0 10px rgba(255, 208, 0, 0.55) !important;\n}\n:root[data-fil-theme=\"cyber_punch\"] .fil-w-switch:not(.on) {\n  border: 1px solid rgba(255, 255, 255, 0.14) !important;\n}\n:root[data-fil-theme=\"cyber_punch\"] .fil-w-btn-accent {\n  box-shadow: 0 0 12px rgba(255, 208, 0, 0.45) !important;\n}\n:root[data-fil-theme=\"cyber_punch\"] .fil-w-btn-accent:hover:not(:disabled) {\n  box-shadow: 0 0 18px rgba(255, 208, 0, 0.65) !important;\n}\n",
 		cyber_punch_hud: "\n/* Same reasoning as cyber_punch above: no card of its own. This one also\n * carried its corner brackets here, on the INNER panel — which is why they\n * appeared to float mid-node instead of marking the node's own corners. The\n * brackets move to the canvas (nodes2/nodeStyle.ts), where the node's real\n * outline is, and this element goes fully transparent. */\n:root[data-fil-theme=\"cyber_punch_hud\"] .fil-node-shell [class$=\"-root\"] {\n  background: none;\n  border: none;\n  box-shadow: none;\n  backdrop-filter: none;\n}\n:root[data-fil-theme=\"cyber_punch_hud\"] .fil-w-section {\n  background: none !important;\n  border-left: none !important;\n  color: #ffd000 !important;\n  font-size: 10px;\n  font-weight: 600;\n  letter-spacing: 0.08em;\n  text-transform: uppercase;\n}\n:root[data-fil-theme=\"cyber_punch_hud\"] .fil-w-section:hover:not(:disabled) {\n  color: #ffffff !important;\n}\n:root[data-fil-theme=\"cyber_punch_hud\"] .fil-w-seg.active,\n:root[data-fil-theme=\"cyber_punch_hud\"] .fil-combo-trigger.open,\n:root[data-fil-theme=\"cyber_punch_hud\"] .fil-combo-trigger:focus-visible,\n:root[data-fil-theme=\"cyber_punch_hud\"] .fil-w-chip.active {\n  background: #ff0022 !important;\n  color: #ffffff !important;\n  box-shadow: none !important;\n  border-color: #ff0022 !important;\n  border-radius: 0 !important;\n  font-weight: 700;\n}\n:root[data-fil-theme=\"cyber_punch_hud\"] .fil-w-seedrow-pill.is-accent {\n  background: #ff0022 !important;\n  border-color: #ff0022 !important;\n  color: #ffffff !important;\n  font-weight: 700;\n  letter-spacing: 0.03em;\n  box-shadow: none !important;\n  clip-path: polygon(0 0, 100% 0, 100% 60%, 92% 100%, 0 100%);\n}\n:root[data-fil-theme=\"cyber_punch_hud\"] .fil-w-seedrow-pill.is-accent:hover {\n  background: #d40016 !important;\n}\n:root[data-fil-theme=\"cyber_punch_hud\"] input:focus,\n:root[data-fil-theme=\"cyber_punch_hud\"] textarea:focus {\n  border-color: #ffd000 !important;\n  box-shadow: none !important;\n}\n:root[data-fil-theme=\"cyber_punch_hud\"] button:hover:not(:disabled) {\n  box-shadow: none !important;\n}\n:root[data-fil-theme=\"cyber_punch_hud\"] .lg-node-header {\n  letter-spacing: 0.08em;\n}\n",
 		fallout: "\n[data-fil-theme=\"fallout\"] .fil-node-shell [class$=\"-root\"]{\n  background-image:repeating-linear-gradient(0deg,rgba(0,0,0,0.12) 0px,rgba(0,0,0,0.12) 1px,transparent 1px,transparent 3px);\n  border:1px solid rgba(212,160,23,0.2);\n}\n",
-		pipboy: "\n@keyframes fil-pipboy-scanlines {\n  0% { background-position-y: 0px; }\n  100% { background-position-y: 8px; }\n}\n@keyframes fil-pipboy-beam {\n  0% { top: -20%; opacity: 0; }\n  50% { opacity: 0.15; }\n  100% { top: 120%; opacity: 0; }\n}\n:root[data-fil-theme=\"pipboy\"] .fil-node-shell [class$=\"-root\"] {\n  background-image: linear-gradient(rgba(0, 255, 0, 0.08) 50%, rgba(0, 0, 0, 0.35) 50%);\n  background-size: 100% 4px;\n  animation: fil-pipboy-scanlines 1.2s linear infinite;\n  position: relative;\n}\n:root[data-fil-theme=\"pipboy\"] .fil-node-shell [class$=\"-root\"]::after {\n  content: \"\";\n  position: absolute;\n  inset: 0;\n  background-image:\n    linear-gradient(#00ff00, #00ff00), linear-gradient(#00ff00, #00ff00),\n    linear-gradient(#00ff00, #00ff00), linear-gradient(#00ff00, #00ff00),\n    linear-gradient(#00ff00, #00ff00), linear-gradient(#00ff00, #00ff00),\n    linear-gradient(#00ff00, #00ff00), linear-gradient(#00ff00, #00ff00);\n  background-position:\n    left 3px top 3px, left 3px top 3px,\n    right 3px top 3px, right 3px top 3px,\n    left 3px bottom 3px, left 3px bottom 3px,\n    right 3px bottom 3px, right 3px bottom 3px;\n  background-repeat: no-repeat;\n  background-size: 14px 2px, 2px 14px, 14px 2px, 2px 14px, 14px 2px, 2px 14px, 14px 2px, 2px 14px;\n  pointer-events: none;\n  opacity: 0.85;\n  z-index: 10;\n}\n:root[data-fil-theme=\"pipboy\"] .fil-node-shell [class$=\"-root\"]::before {\n  content: \"\";\n  position: absolute;\n  left: 0;\n  width: 100%;\n  height: 25%;\n  background: linear-gradient(180deg, transparent, rgba(0, 255, 0, 0.15), transparent);\n  pointer-events: none;\n  animation: fil-pipboy-beam 6s ease-in-out infinite;\n  z-index: 9;\n}\n:root[data-fil-theme=\"pipboy\"] .lg-node-header,\n:root[data-fil-theme=\"pipboy\"] .fil-node-shell {\n  font-family: \"Roboto Mono\", \"Courier New\", monospace !important;\n}\n:root[data-fil-theme=\"pipboy\"] .fil-w-seg.active,\n:root[data-fil-theme=\"pipboy\"] .fil-combo-trigger.open,\n:root[data-fil-theme=\"pipboy\"] .fil-combo-trigger:focus-visible,\n:root[data-fil-theme=\"pipboy\"] button:hover {\n  box-shadow: 0 0 8px rgba(0, 255, 0, 0.8), inset 0 0 6px rgba(0, 255, 0, 0.3) !important;\n  text-shadow: 0 0 6px #00ff00 !important;\n}\n",
+		pipboy: "\n/* A CRT blips; it does not strobe. 6s of sitting still with one dip near the\n * end, per pip-boy.com's own `crt-flicker`, which replaces a scanline band\n * that used to travel the full node every 1.2s and a beam that swept it every\n * 6s. Both were motion the reference never had, on every visible node at once. */\n@keyframes fil-pipboy-flicker {\n  0%, 90%, 100% { opacity: 1; }\n  93% { opacity: 0.72; }\n  96% { opacity: 1; }\n}\n/* The tube itself: green in the middle falling to black at the corners, where\n * this used to be a flat fill. Same idea as the reference's page-wide\n * `radial-gradient(#001100, #000000)`, applied per node because a node IS the\n * screen here.\n *\n * Border and shadow dropped — `nodeStyle.ts` now draws ONE frame around the\n * whole node (title, slots and this card together) in `onDrawForeground`.\n * Leaving this card's own `--fil-surface-border`/`--fil-surface-shadow` in\n * play drew a second, smaller box around only the widgets, floating below the\n * native slot row with nothing marking it — the \"узел в узле\" shape a user\n * flagged directly from a screenshot. `background`(-color) stays: it is this\n * card's own `--fil-surface-bg`, the base the vignette below paints over. */\n:root[data-fil-theme=\"pipboy\"] .fil-node-shell [class$=\"-root\"] {\n  border: none !important;\n  box-shadow: none !important;\n  background-image: radial-gradient(ellipse at 50% 38%, rgba(0, 255, 0, 0.07) 0%, rgba(0, 0, 0, 0.30) 100%);\n  position: relative;\n}\n/* Scanlines, still and quiet: a 1px line every 4px in white rather than a 2px\n * green/black bar every 4px. `overlay` over a near-black panel lightens instead\n * of laying grime on top, which is what the old 35% black band did.\n *\n * 3.5% where the reference uses 2% — deliberate. It rules a whole fixed\n * viewport; ours has a ~200px node to read across, and at 2% the texture simply\n * disappeared at that size. */\n:root[data-fil-theme=\"pipboy\"] .fil-node-shell [class$=\"-root\"]::before {\n  content: \"\";\n  position: absolute;\n  inset: 0;\n  background-image: repeating-linear-gradient(\n    rgba(255, 255, 255, 0.035) 0px, rgba(255, 255, 255, 0.035) 1px,\n    transparent 1px, transparent 4px\n  );\n  mix-blend-mode: overlay;\n  pointer-events: none;\n  animation: fil-pipboy-flicker 6s linear infinite;\n  z-index: 9;\n}\n:root[data-fil-theme=\"pipboy\"] .lg-node-header,\n:root[data-fil-theme=\"pipboy\"] .fil-node-shell {\n  font-family: \"Roboto Mono\", \"Courier New\", monospace !important;\n}\n:root[data-fil-theme=\"pipboy\"] .fil-w-seg.active,\n:root[data-fil-theme=\"pipboy\"] .fil-combo-trigger.open,\n:root[data-fil-theme=\"pipboy\"] .fil-combo-trigger:focus-visible,\n:root[data-fil-theme=\"pipboy\"] button:hover {\n  box-shadow: 0 0 8px rgba(0, 255, 0, 0.8), inset 0 0 6px rgba(0, 255, 0, 0.3) !important;\n  text-shadow: 0 0 6px #00ff00 !important;\n}\n",
 		travelmate: "\n[data-fil-theme=\"travelmate\"] .fil-node-shell [class$=\"-root\"]{border:none;box-shadow:none;}\n[data-fil-theme=\"travelmate\"] .fil-w-seg.active,\n[data-fil-theme=\"travelmate\"] .fil-combo-trigger.open,\n[data-fil-theme=\"travelmate\"] .fil-combo-trigger:focus-visible{box-shadow:0 0 6px var(--fil-accent),0 0 14px var(--fil-accent);}\n",
 		pixaroma: "\n:root[data-fil-theme=\"pixaroma\"] .fil-node-shell [class$=\"-root\"]{backdrop-filter:none;}\n:root[data-fil-theme=\"pixaroma\"] .fil-w-chip.active,\n:root[data-fil-theme=\"pixaroma\"] .fil-style-tab-btn.active,\n:root[data-fil-theme=\"pixaroma\"] .fil-style-picker-btn.has-styles{\n  background:var(--fil-accent);\n  border-color:var(--fil-accent);\n  color:var(--fil-accent-ink);\n  box-shadow:none;\n}\n:root[data-fil-theme=\"pixaroma\"] .fil-style-picker-btn.has-styles:hover{\n  background:color-mix(in srgb,var(--fil-accent) 85%,#000);\n}\n:root[data-fil-theme=\"pixaroma\"] .fil-w-section{\n  background:transparent;\n  color:var(--fil-accent-text);\n  font-size:9px;\n  letter-spacing:0.06em;\n}\n:root[data-fil-theme=\"pixaroma\"] .fil-w-section:hover:not(:disabled){\n  background:var(--fil-surface-1);\n  color:var(--fil-accent-text);\n}\n",
 		neo_emerald: "\n@keyframes fil-emerald-orb-pulse {\n  0%, 100% { opacity: 0.25; transform: scale(1); }\n  50% { opacity: 0.45; transform: scale(1.15); }\n}\n:root[data-fil-theme=\"neo_emerald\"] .fil-node-shell [class$=\"-root\"] {\n  background-image:\n    radial-gradient(circle at 90% 10%, rgba(0, 255, 136, 0.22) 0%, transparent 40%),\n    radial-gradient(circle at 10% 90%, rgba(0, 229, 255, 0.15) 0%, transparent 40%),\n    radial-gradient(rgba(0, 255, 136, 0.12) 1px, transparent 1px) !important;\n  background-size: 100% 100%, 100% 100%, 16px 16px !important;\n  box-shadow:\n    0 20px 40px rgba(0, 0, 0, 0.75),\n    0 0 30px rgba(0, 255, 136, 0.18),\n    inset 0 1px 1px rgba(255, 255, 255, 0.25) !important;\n  border: 1px solid rgba(0, 255, 136, 0.35) !important;\n  backdrop-filter: blur(16px) !important;\n  position: relative !important;\n}\n:root[data-fil-theme=\"neo_emerald\"] .fil-node-shell [class$=\"-root\"]::before {\n  content: \"\";\n  position: absolute;\n  top: -30px;\n  right: -30px;\n  width: 120px;\n  height: 120px;\n  border-radius: 50%;\n  background: radial-gradient(circle, rgba(0, 255, 136, 0.35) 0%, transparent 70%);\n  pointer-events: none;\n  animation: fil-emerald-orb-pulse 4s ease-in-out infinite;\n  z-index: 1;\n}\n:root[data-fil-theme=\"neo_emerald\"] .fil-w-section {\n  background: linear-gradient(90deg, rgba(0, 255, 136, 0.18) 0%, rgba(0, 229, 255, 0.05) 100%) !important;\n  border-left: 3px solid #00ff88 !important;\n  border-radius: 8px !important;\n  padding: 5px 12px !important;\n  color: #00ff88 !important;\n  font-weight: 700 !important;\n  letter-spacing: 0.06em !important;\n  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;\n}\n:root[data-fil-theme=\"neo_emerald\"] .fil-w-section:hover:not(:disabled) {\n  background: linear-gradient(90deg, rgba(0, 255, 136, 0.3) 0%, rgba(163, 230, 53, 0.12) 100%) !important;\n  color: #ffffff !important;\n  box-shadow: 0 0 16px rgba(0, 255, 136, 0.4) !important;\n}\n:root[data-fil-theme=\"neo_emerald\"] .fil-w-seg.active,\n:root[data-fil-theme=\"neo_emerald\"] .fil-combo-trigger.open,\n:root[data-fil-theme=\"neo_emerald\"] .fil-combo-trigger:focus-visible,\n:root[data-fil-theme=\"neo_emerald\"] .fil-w-chip.active {\n  background: linear-gradient(135deg, #00ff88 0%, #a3e635 50%, #00e5ff 100%) !important;\n  color: #03190e !important;\n  box-shadow:\n    0 0 22px rgba(0, 255, 136, 0.6),\n    0 4px 12px rgba(0, 0, 0, 0.4),\n    inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;\n  border: 1px solid #00ff88 !important;\n  font-weight: 700 !important;\n  letter-spacing: 0.02em !important;\n}\n:root[data-fil-theme=\"neo_emerald\"] .fil-w-seedrow-pill.is-accent {\n  background: linear-gradient(135deg, rgba(0, 255, 136, 0.3) 0%, rgba(0, 229, 255, 0.2) 100%) !important;\n  border: 1px solid #00ff88 !important;\n  color: #ffffff !important;\n  font-weight: 700 !important;\n  box-shadow: 0 0 14px rgba(0, 255, 136, 0.35) !important;\n}\n:root[data-fil-theme=\"neo_emerald\"] .fil-w-seedrow-pill.is-accent:hover {\n  background: linear-gradient(135deg, #00ff88 0%, #00e5ff 100%) !important;\n  color: #03190e !important;\n  box-shadow: 0 0 24px rgba(0, 255, 136, 0.7) !important;\n}\n:root[data-fil-theme=\"neo_emerald\"] input:focus,\n:root[data-fil-theme=\"neo_emerald\"] textarea:focus {\n  border-color: #00ff88 !important;\n  box-shadow: 0 0 18px rgba(0, 255, 136, 0.45) !important;\n}\n:root[data-fil-theme=\"neo_emerald\"] button:hover:not(:disabled) {\n  box-shadow: 0 0 16px rgba(0, 255, 136, 0.45) !important;\n}\n:root[data-fil-theme=\"neo_emerald\"] .lg-node-header {\n  letter-spacing: 0.04em;\n}\n",
@@ -3738,13 +3738,7 @@ function Uc(e, t = {}) {
 		]), e.fill(), o) e.shadowColor = "rgba(255, 0, 128, 0.8)", e.shadowBlur = 10, e.fillStyle = "#ff0080", e.fillRect(0, -t, 4, t), e.shadowColor = "rgba(0, 255, 255, 0.8)", e.shadowBlur = 10, e.fillStyle = "#00ffff", e.fillRect(4, -t, 3, t), e.shadowBlur = 0;
 		else if (s) e.shadowColor = "rgba(252, 238, 10, 0.9)", e.shadowBlur = 12, e.fillStyle = "#fcee0a", e.fillRect(0, -t, 5, t), e.shadowColor = "rgba(0, 240, 255, 0.8)", e.shadowBlur = 10, e.fillStyle = "#00f0ff", e.fillRect(5, -t, 3, t), e.shadowBlur = 0;
 		else if (d) e.shadowColor = "rgba(0, 210, 190, 0.8)", e.shadowBlur = 10, e.fillStyle = "#00d2be", e.fillRect(0, -t, 4, t), e.shadowColor = "rgba(249, 115, 22, 0.8)", e.shadowBlur = 10, e.fillStyle = "#f97316", e.fillRect(4, -t, 3, t), e.shadowBlur = 0;
-		else if (c) e.strokeStyle = "#00ff00", e.lineWidth = 1, e.beginPath(), e.roundRect(0, -t, n[0], t, h ? [m] : [
-			m,
-			m,
-			0,
-			0
-		]), e.stroke(), e.fillStyle = "#00ff00", e.fillRect(2, -t + 2, 8, 2), e.fillRect(2, -t + 2, 2, 8), e.fillRect(n[0] - 10, -t + 2, 8, 2), e.fillRect(n[0] - 4, -t + 2, 2, 8);
-		else if (f) {
+		else if (!c) if (f) {
 			e.fillStyle = vc.panelAlt, e.beginPath(), e.roundRect(0, -t, n[0], t, h ? [m] : [
 				m,
 				m,
@@ -3784,28 +3778,45 @@ function Uc(e, t = {}) {
 			0
 		]), e.fill());
 	};
-	let i = n.onDrawForeground;
+	let i = {
+		cyber_punch_hud: {
+			stroke: "rgba(255, 208, 0, 0.25)",
+			radius: 2,
+			bracket: "#ffd000",
+			arm: 14,
+			thick: 2,
+			corners: "diagonal"
+		},
+		pipboy: {
+			stroke: "#00ff00",
+			radius: 4,
+			bracket: "#00ff00",
+			arm: 8,
+			thick: 2,
+			corners: "all"
+		}
+	}, a = n.onDrawForeground;
 	n.onDrawForeground = function(...e) {
-		let t = i?.apply(this, e);
-		if (Xs() !== "cyber_punch_hud" || this.flags?.collapsed || globalThis.app?.canvas?.low_quality) return t;
-		let n = e[0], r = this.size?.[0], a = this.size?.[1];
-		if (!n || !r || !a) return t;
-		let o = globalThis.LiteGraph?.NODE_TITLE_HEIGHT ?? 30, s = -o, c = a;
-		return n.save(), n.strokeStyle = "rgba(255, 208, 0, 0.25)", n.lineWidth = 1, n.beginPath(), n.roundRect(.5, s + .5, r - 1, a + o - 1, [2]), n.stroke(), n.fillStyle = "#ffd000", n.fillRect(0, s, 14, 2), n.fillRect(0, s, 2, 14), n.fillRect(r - 14, c - 2, 14, 2), n.fillRect(r - 2, c - 14, 2, 14), n.restore(), t;
+		let t = a?.apply(this, e), n = i[Xs()];
+		if (!n || this.flags?.collapsed || globalThis.app?.canvas?.low_quality) return t;
+		let r = e[0], o = this.size?.[0], s = this.size?.[1];
+		if (!r || !o || !s) return t;
+		let c = globalThis.LiteGraph?.NODE_TITLE_HEIGHT ?? 30, l = -c, u = s, { arm: d, thick: f } = n;
+		return r.save(), r.strokeStyle = n.stroke, r.lineWidth = 1, r.beginPath(), r.roundRect(.5, l + .5, o - 1, s + c - 1, [n.radius]), r.stroke(), r.fillStyle = n.bracket, r.fillRect(0, l, d, f), r.fillRect(0, l, f, d), r.fillRect(o - d, u - f, d, f), r.fillRect(o - f, u - d, f, d), n.corners === "all" && (r.fillRect(o - d, l, d, f), r.fillRect(o - f, l, f, d), r.fillRect(0, u - f, d, f), r.fillRect(0, u - d, f, d)), r.restore(), t;
 	};
-	let a = n.getExtraMenuOptions, o, s;
+	let o = n.getExtraMenuOptions, s, c;
 	Object.defineProperty(n, "getExtraMenuOptions", {
 		configurable: !0,
 		get() {
-			if (o && s === a) return o;
-			let e = a;
-			return s = a, o = function(...t) {
+			if (s && c === o) return s;
+			let e = o;
+			return c = o, s = function(...t) {
 				let n = e?.apply(this, t), r = t[1];
 				return Array.isArray(r) && Rc(this, r), n;
-			}, o;
+			}, s;
 		},
 		set(e) {
-			this === n ? a = e : Object.defineProperty(this, "getExtraMenuOptions", {
+			this === n ? o = e : Object.defineProperty(this, "getExtraMenuOptions", {
 				value: e,
 				writable: !0,
 				configurable: !0,
@@ -16445,67 +16456,265 @@ var Uw = Object.fromEntries([
 	PC,
 	ZC,
 	Hw
-].map((e) => [e.id, e]));
+].map((e) => [e.id, e])), Ww = /* @__PURE__ */ r({
+	COMFY_DEFAULT_PALETTE: () => pT,
+	applyThemeToWholeUi: () => tT,
+	buildComfyPalette: () => Zw,
+	canvasGridTile: () => Xw,
+	currentThemeName: () => iT,
+	exportThemeAsComfyPalette: () => Qw,
+	paletteCommands: () => mT,
+	removeExportedPalette: () => rT,
+	restoreUserPalette: () => nT
+});
+function Gw() {
+	return globalThis.app ?? null;
+}
+function Kw(e) {
+	let t = Jw()?.get?.(sT);
+	return !!t && typeof t == "object" && e in t;
+}
+function qw() {
+	return Gw()?.extensionManager?.colorPalette ?? null;
+}
+function Jw() {
+	return Gw()?.extensionManager?.setting ?? null;
+}
+function Yw(e, t) {
+	let n = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(e.trim());
+	if (!n) return e;
+	let [r, i, a] = [
+		1,
+		2,
+		3
+	].map((e) => parseInt(n[e], 16));
+	return `rgba(${r},${i},${a},${t})`;
+}
+function Xw(e) {
+	let t = [];
+	for (let e = 0; e < lT; e += cT) for (let n = 0; n < lT; n += cT) t.push(`<circle cx="${e}" cy="${n}" r="${uT}"/>`);
+	let n = `<svg xmlns="http://www.w3.org/2000/svg" width="${lT}" height="${lT}"><rect width="${lT}" height="${lT}" fill="${e.panel}"/><g fill="${Yw(e.muted, dT)}">${t.join("")}</g></svg>`;
+	return `data:image/svg+xml;utf8,${encodeURIComponent(n)}`;
+}
+function Zw(e, t, n = {}) {
+	let r = e.replace(/_/g, " ").replace(/\b\w/g, (e) => e.toUpperCase());
+	return {
+		id: `${aT}${e}`,
+		name: `FiL — ${r}`,
+		colors: {
+			node_slot: { ...n },
+			litegraph_base: {
+				CLEAR_BACKGROUND_COLOR: t.panel,
+				BACKGROUND_IMAGE: Xw(t),
+				NODE_TITLE_COLOR: t.text,
+				NODE_SELECTED_TITLE_COLOR: t.accent,
+				NODE_TEXT_COLOR: t.text,
+				NODE_TEXT_HIGHLIGHT_COLOR: t.accent,
+				NODE_DEFAULT_COLOR: t.panel,
+				NODE_DEFAULT_BGCOLOR: t.panelAlt,
+				NODE_DEFAULT_BOXCOLOR: t.muted,
+				NODE_BOX_OUTLINE_COLOR: t.accent,
+				NODE_BYPASS_BGCOLOR: "#FF00FF",
+				NODE_ERROR_COLOUR: t.danger,
+				DEFAULT_SHADOW_COLOR: "rgba(0,0,0,0.25)",
+				WIDGET_BGCOLOR: t.panelAlt,
+				WIDGET_OUTLINE_COLOR: t.muted,
+				WIDGET_TEXT_COLOR: t.text,
+				WIDGET_SECONDARY_TEXT_COLOR: t.muted,
+				WIDGET_DISABLED_TEXT_COLOR: Yw(t.muted, .5),
+				LINK_COLOR: t.accent,
+				EVENT_LINK_COLOR: t.ok,
+				CONNECTING_LINK_COLOR: t.ok,
+				BADGE_FG_COLOR: t.text,
+				BADGE_BG_COLOR: t.panelAlt
+			},
+			comfy_base: {
+				"fg-color": t.text,
+				"bg-color": t.panel,
+				"comfy-menu-bg": t.panelAlt,
+				"comfy-menu-secondary-bg": t.panelAlt,
+				"comfy-input-bg": t.panelAlt,
+				"input-text": t.text,
+				"descrip-text": t.muted,
+				"drag-text": t.muted,
+				"error-text": t.danger,
+				"border-color": Yw(t.muted, .35),
+				"tr-even-bg-color": t.panel,
+				"tr-odd-bg-color": t.panelAlt,
+				"content-bg": t.panelAlt,
+				"content-fg": t.text,
+				"content-hover-bg": t.panel,
+				"content-hover-fg": t.accent
+			}
+		}
+	};
+}
+async function Qw(e) {
+	let t = qw();
+	if (!t?.addCustomColorPalette) return null;
+	let n = Zw(e, vc, t.getActiveColorPalette?.()?.colors?.node_slot ?? {}), r = Jw(), i = r?.get?.(oT);
+	return await t.addCustomColorPalette(n), typeof i == "string" && i && i !== n.id && await r?.set?.(oT, i), n;
+}
+function $w(e) {
+	if (!(typeof e != "string" || !e) && !e.startsWith(aT)) try {
+		localStorage.setItem(fT, e);
+	} catch {}
+}
+function eT() {
+	try {
+		let e = localStorage.getItem(fT);
+		return localStorage.removeItem(fT), e;
+	} catch {
+		return null;
+	}
+}
+async function tT(e) {
+	let t = qw(), n = Jw();
+	if (!t?.addCustomColorPalette || !n?.set) return null;
+	$w(n.get?.(oT));
+	let r = Zw(e, vc, t.getActiveColorPalette?.()?.colors?.node_slot ?? {});
+	return Kw(r.id) && await t.deleteCustomColorPalette?.(r.id), await t.addCustomColorPalette(r), t.getActiveColorPalette?.()?.id === r.id ? (await n.set(oT, r.id), r) : null;
+}
+async function nT() {
+	let e = Jw();
+	if (!e?.set) return null;
+	let t = e.get?.(oT);
+	if (typeof t == "string" && t && !t.startsWith(aT)) return eT(), null;
+	let n = eT() || "dark";
+	return await e.set(oT, n), n;
+}
+async function rT(e) {
+	let t = qw(), n = `${aT}${e}`;
+	return !t?.deleteCustomColorPalette || !Kw(n) ? !1 : (await t.deleteCustomColorPalette(n), !0);
+}
+function iT() {
+	return typeof document > "u" ? "default" : document.documentElement.dataset.filTheme || "default";
+}
+var aT, oT, sT, cT, lT, uT, dT, fT, pT, mT, hT = n((() => {
+	jc(), aT = "fil_", oT = "Comfy.ColorPalette", sT = "Comfy.CustomColorPalettes", cT = 20, lT = 100, uT = .8, dT = .35, fT = "FiL_Design_ImageMind.previousColorPalette", pT = "dark", mT = [{
+		id: "FiL_Design_ImageMind.exportThemeAsPalette",
+		label: "FiL_Design_ImageMind — Save this theme as a ComfyUI color palette",
+		icon: "🎨",
+		function: async () => {
+			let { toast: e } = await Promise.resolve().then(() => (Eu(), vu)), t = iT();
+			try {
+				let n = await Qw(t);
+				if (!n) {
+					e.warning("This ComfyUI has no color-palette API to add to.");
+					return;
+				}
+				e.success(`"${n.name}" added. Apply it in Settings → Appearance → Color Palette.`);
+			} catch (t) {
+				e.error(`Could not add the palette: ${String(t?.message ?? t)}`);
+			}
+		}
+	}];
+}));
 Jl(), Xl();
-var Ww = "FiL_Design_ImageMind.Appearance.Scope", Gw = "FiL_Design_ImageMind.Appearance.Animations", Kw = "FiL nodes only", qw = [{
-	id: Ww,
-	name: "Theme applies to",
-	type: "combo",
-	defaultValue: Kw,
-	options: [
-		Kw,
-		"FiL nodes + directly connected",
-		"All nodes"
-	],
-	category: [
-		Wl,
-		"Appearance",
-		"Scope"
-	],
-	tooltip: "How far this pack's theme reaches. Beyond its own nodes it only tints the title bar — never the node body, because body colour is saved into the workflow file and would outlive both the setting and this pack.",
-	onChange: (e) => Jw({ scope: e })
-}, {
-	id: Gw,
-	name: "Theme animations",
-	type: "boolean",
-	defaultValue: !0,
-	category: [
-		Wl,
-		"Appearance",
-		"Animations"
-	],
-	tooltip: "Pipboy's CRT scanline sweep and Neo Emerald's pulsing orb run continuously on every visible panel. Turn this off for a still version of the same theme. Off by default when your system asks for reduced motion.",
-	onChange: (e) => Jw({ animations: e })
-}];
-function Jw(e) {
-	Zw(e);
+var gT = "FiL_Design_ImageMind.Appearance.Scope", _T = "FiL_Design_ImageMind.Appearance.WholeUi", vT = "FiL_Design_ImageMind.Appearance.Animations", yT = "FiL nodes only", bT = [
+	{
+		id: gT,
+		name: "Theme applies to",
+		type: "combo",
+		defaultValue: yT,
+		options: [
+			yT,
+			"FiL nodes + directly connected",
+			"All nodes"
+		],
+		category: [
+			Wl,
+			"Appearance",
+			"Scope"
+		],
+		tooltip: "How far this pack's theme reaches. Beyond its own nodes it only tints the title bar — never the node body, because body colour is saved into the workflow file and would outlive both the setting and this pack.",
+		onChange: (e) => xT({ scope: e })
+	},
+	{
+		id: _T,
+		name: "Theme covers all of ComfyUI",
+		type: "boolean",
+		defaultValue: !1,
+		category: [
+			Wl,
+			"Appearance",
+			"WholeUi"
+		],
+		tooltip: "Repaints the whole application — menus, sidebars, canvas and every other pack's nodes — by building a ComfyUI color palette from this theme and selecting it. Turning it off restores the palette you were on. The generated palette stays in Settings → Appearance → Color Palette, yours to keep or delete.",
+		onChange: (e) => ST(!!e)
+	},
+	{
+		id: vT,
+		name: "Theme animations",
+		type: "boolean",
+		defaultValue: !0,
+		category: [
+			Wl,
+			"Appearance",
+			"Animations"
+		],
+		tooltip: "Pipboy's CRT flicker and Neo Emerald's pulsing orb run continuously on every visible panel. Turn this off for a still version of the same theme — same colours, same scanlines, no movement. Off by default when your system asks for reduced motion.",
+		onChange: (e) => xT({ animations: e })
+	}
+];
+function xT(e) {
+	ET(e);
 	let t = globalThis.app;
 	t && Promise.resolve().then(() => (Kc(), Bc)).then((e) => e.reapplyThemeToGraph(t));
 }
-function Yw() {
-	return Yl(Ww, Kw);
+function ST(e) {
+	(async () => {
+		let { applyThemeToWholeUi: t, restoreUserPalette: n, currentThemeName: r } = await Promise.resolve().then(() => (hT(), Ww)), { toast: i } = await Promise.resolve().then(() => (Eu(), vu));
+		try {
+			if (e) {
+				if (!await t(r())) {
+					i.warning("This ComfyUI has no color-palette API to apply the theme to.");
+					return;
+				}
+			} else await n();
+		} catch (e) {
+			i.error(`Could not change the ComfyUI color palette: ${String(e?.message ?? e)}`);
+			return;
+		}
+		let a = globalThis.app;
+		if (a) {
+			let { reapplyThemeToGraph: e } = await Promise.resolve().then(() => (Kc(), Bc));
+			e(a);
+		}
+	})();
 }
-function Xw(e) {
+function CT(e) {
+	Yl("FiL_Design_ImageMind.Appearance.WholeUi", !1) && (async () => {
+		let { applyThemeToWholeUi: t } = await Promise.resolve().then(() => (hT(), Ww));
+		try {
+			await t(e);
+		} catch {}
+	})();
+}
+function wT() {
+	return Yl(gT, yT);
+}
+function TT(e) {
 	return e ?? Yl("FiL_Design_ImageMind.Appearance.Animations", !0) ? typeof window > "u" || !window.matchMedia || !window.matchMedia("(prefers-reduced-motion: reduce)").matches : !1;
 }
-function Zw(e = {}) {
+function ET(e = {}) {
 	if (typeof document > "u") return;
-	let t = document.documentElement, n = e.scope ?? Yw();
-	t.dataset.filMotion = Xw(e.animations) ? "full" : "off", t.dataset.filScope = n === "All nodes" ? "all" : n === "FiL nodes + directly connected" ? "connected" : "ours";
+	let t = document.documentElement, n = e.scope ?? wT();
+	t.dataset.filMotion = TT(e.animations) ? "full" : "off", t.dataset.filScope = n === "All nodes" ? "all" : n === "FiL nodes + directly connected" ? "connected" : "ours";
 }
 //#endregion
 //#region src/nodes2/foreignNodeTint.ts
 jc();
-function Qw(e) {
+function DT(e) {
 	return (e?.comfyClass ?? e?.type ?? "").startsWith("FiL");
 }
-function $w(e) {
+function OT(e) {
 	let t = /* @__PURE__ */ new Set(), n = e, r = n?._nodes;
 	if (!r) return t;
 	let i = n.links;
 	if (!i) return t;
 	let a = (e) => i[String(e)];
-	for (let e of r) if (Qw(e)) {
+	for (let e of r) if (DT(e)) {
 		for (let n of e.inputs ?? []) {
 			if (n.link == null) continue;
 			let e = a(n.link)?.origin_id;
@@ -16518,23 +16727,23 @@ function $w(e) {
 	}
 	return t;
 }
-function eT(e) {
-	let t = Yw();
+function kT(e) {
+	let t = wT();
 	if (t === "FiL nodes only") return !1;
 	if (t === "All nodes") return !0;
 	if (t !== "FiL nodes + directly connected") return !1;
 	let n = globalThis.app?.graph;
 	if (!n) return !1;
 	let r = e.id;
-	return r != null && $w(n).has(r);
+	return r != null && OT(n).has(r);
 }
-function tT(e) {
+function AT(e) {
 	let t = e?.prototype;
 	if (!t || t._filForeignTinted) return;
 	t._filForeignTinted = !0;
 	let n = t.onDrawTitleBar;
 	t.onDrawTitleBar = function(...e) {
-		if (eT(this)) {
+		if (kT(this)) {
 			let t = e[0], n = e[1];
 			t && typeof n == "number" && (t.save(), t.fillStyle = vc.accent, t.fillRect(0, -n, 3, n), t.restore());
 		}
@@ -16542,26 +16751,26 @@ function tT(e) {
 	};
 }
 Y(), Al(), Ah();
-var nT = null;
-function rT() {
-	if (nT) return;
+var jT = null;
+function MT() {
+	if (jT) return;
 	let e = document.createElement("div");
-	document.body.appendChild(e), nT = Js(kh).use(Ol()), nT.mount(e);
+	document.body.appendChild(e), jT = Js(kh).use(Ol()), jT.mount(e);
 	let t = globalThis;
 	Promise.resolve().then(() => (Eu(), vu)).then(({ toast: e }) => {
 		t.__filToast = e, console.info("[FiL_Design_ImageMind] toast stack mounted");
 	}).catch((e) => console.warn("[FiL_Design_ImageMind] toast store import failed:", e));
 }
 Jl(), Xl();
-var iT = "FiL_Design_ImageMind.RunFx.Mode", aT = "FiL nodes only", oT = "All nodes", sT = [{
-	id: iT,
+var NT = "FiL_Design_ImageMind.RunFx.Mode", PT = "FiL nodes only", FT = "All nodes", IT = [{
+	id: NT,
 	name: "Highlight the running node",
 	type: "combo",
-	defaultValue: aT,
+	defaultValue: PT,
 	options: [
 		"Off",
-		aT,
-		oT
+		PT,
+		FT
 	],
 	category: [
 		Wl,
@@ -16570,19 +16779,19 @@ var iT = "FiL_Design_ImageMind.RunFx.Mode", aT = "FiL nodes only", oT = "All nod
 	],
 	tooltip: "Pulse a node's header while it is executing, so you can see where the queue is. Choose whether that covers only this pack's nodes or every node in the graph."
 }];
-function cT() {
-	return Yl(iT, aT);
+function LT() {
+	return Yl(NT, PT);
 }
-function lT() {
-	return cT() !== "Off";
+function RT() {
+	return LT() !== "Off";
 }
-function uT() {
-	return cT() === oT;
+function zT() {
+	return LT() === FT;
 }
 //#endregion
 //#region src/composables/useRunButtonFx.ts
 jc();
-var dT = "fil-node-running", fT = "filRunning", pT = 1100, mT = 60, hT = `
+var BT = "fil-node-running", VT = "filRunning", HT = 1100, UT = 60, WT = `
 @keyframes fil-run-pulse {
   0%, 100% {
     box-shadow: 0 0 0 0 transparent, 0 0 0 0 transparent;
@@ -16593,33 +16802,33 @@ var dT = "fil-node-running", fT = "filRunning", pT = 1100, mT = 60, hT = `
     filter: brightness(1.35);
   }
 }
-.${dT} {
-  animation: fil-run-pulse ${pT}ms ease-in-out infinite;
+.${BT} {
+  animation: fil-run-pulse ${HT}ms ease-in-out infinite;
 }
 @media (prefers-reduced-motion: reduce) {
-  .${dT} {
+  .${BT} {
     animation: none;
     box-shadow: 0 0 0 1px rgba(0,0,0,0.85), 0 0 8px 1px var(--fil-accent, #7c3aed);
   }
-}`, gT = /* @__PURE__ */ new Map(), _T = null, vT = null;
-function yT() {
+}`, GT = /* @__PURE__ */ new Map(), KT = null, qT = null;
+function JT() {
 	return typeof window < "u" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
 }
-function bT(e, t) {
+function YT(e, t) {
 	let n = e.graph;
 	if (typeof n?.getNodeById != "function") return null;
 	let r = Number(t);
 	return n.getNodeById(t) ?? (Number.isNaN(r) ? null : n.getNodeById(r));
 }
-function xT(e, t) {
-	let n = bT(e, t);
+function XT(e, t) {
+	let n = YT(e, t);
 	if (n) return {
 		node: n,
 		id: t
 	};
 	let r = String(t), i = r.indexOf(":");
 	if (i > 0) {
-		let t = r.slice(0, i), n = bT(e, t);
+		let t = r.slice(0, i), n = YT(e, t);
 		if (n) return {
 			node: n,
 			id: t
@@ -16630,146 +16839,146 @@ function xT(e, t) {
 		id: t
 	};
 }
-function ST(e) {
+function ZT(e) {
 	return (e?.comfyClass ?? e?.type ?? "").startsWith("FiL");
 }
-function CT(e) {
+function QT(e) {
 	if (typeof document > "u") return null;
 	let t = String(e).replace(/"/g, "\\\""), n = document.querySelector(`[data-node-id="${t}"]`);
 	return n ? n.querySelector(".lg-node-header") ?? n : null;
 }
-function wT(e, t) {
+function $T(e, t) {
 	let n = /^#([0-9a-f]{6})$/i.exec(e);
 	if (!n) return e;
 	let r = parseInt(n[1], 16);
 	return `rgba(${r >> 16 & 255},${r >> 8 & 255},${r & 255},${t.toFixed(3)})`;
 }
-function TT() {
+function eE() {
 	let e = vc.accent;
-	if (yT()) return {
+	if (JT()) return {
 		color: e,
 		lineWidth: 3
 	};
-	let t = Date.now() % pT / pT, n = (1 - Math.cos(t * 2 * Math.PI)) / 2;
+	let t = Date.now() % HT / HT, n = (1 - Math.cos(t * 2 * Math.PI)) / 2;
 	return {
-		color: wT(e, .45 + .55 * n),
+		color: $T(e, .45 + .55 * n),
 		lineWidth: 2 + 2 * n
 	};
 }
-function ET() {
-	vT !== null || yT() || (vT = setInterval(() => {
-		if (gT.size === 0) {
-			DT();
+function tE() {
+	qT !== null || JT() || (qT = setInterval(() => {
+		if (GT.size === 0) {
+			nE();
 			return;
 		}
-		_T?.setDirty?.(!0);
-	}, mT));
+		KT?.setDirty?.(!0);
+	}, UT));
 }
-function DT() {
-	vT !== null && (clearInterval(vT), vT = null);
+function nE() {
+	qT !== null && (clearInterval(qT), qT = null);
 }
-function OT(e, t) {
-	t.el?.classList.remove(dT);
+function rE(e, t) {
+	t.el?.classList.remove(BT);
 	let n = t.styles;
-	n && (delete n[fT], t.hadCoreRunning && (n.running = t.coreRunning)), gT.delete(e);
+	n && (delete n[VT], t.hadCoreRunning && (n.running = t.coreRunning)), GT.delete(e);
 }
-function kT(e, t, n) {
-	let r = CT(n);
-	r?.classList.add(dT);
+function iE(e, t, n) {
+	let r = QT(n);
+	r?.classList.add(BT);
 	let i = t.strokeStyles ?? null, a = {
 		el: r,
 		styles: i,
 		coreRunning: void 0,
 		hadCoreRunning: !1
 	};
-	i && (a.hadCoreRunning = Object.prototype.hasOwnProperty.call(i, "running"), a.coreRunning = i.running, delete i.running, i[fT] = TT), gT.set(t, a), _T = e.canvas ?? _T;
+	i && (a.hadCoreRunning = Object.prototype.hasOwnProperty.call(i, "running"), a.coreRunning = i.running, delete i.running, i[VT] = eE), GT.set(t, a), KT = e.canvas ?? KT;
 }
-function AT() {
-	for (let [e, t] of [...gT]) OT(e, t);
-	DT(), _T?.setDirty?.(!0), _T = null;
+function aE() {
+	for (let [e, t] of [...GT]) rE(e, t);
+	nE(), KT?.setDirty?.(!0), KT = null;
 }
-function jT(e, t) {
-	if (!lT()) {
-		AT();
+function oE(e, t) {
+	if (!RT()) {
+		aE();
 		return;
 	}
 	let n = /* @__PURE__ */ new Map();
 	for (let r of t) {
-		let { node: t, id: i } = xT(e, r);
-		t && (!uT() && !ST(t) || n.has(t) || n.set(t, i));
+		let { node: t, id: i } = XT(e, r);
+		t && (!zT() && !ZT(t) || n.has(t) || n.set(t, i));
 	}
-	for (let [e, t] of [...gT]) n.has(e) || OT(e, t);
-	for (let [t, r] of n) gT.has(t) || kT(e, t, r);
-	gT.size > 0 ? ET() : DT(), (e.canvas ?? _T)?.setDirty?.(!0), gT.size === 0 && (_T = null);
+	for (let [e, t] of [...GT]) n.has(e) || rE(e, t);
+	for (let [t, r] of n) GT.has(t) || iE(e, t, r);
+	GT.size > 0 ? tE() : nE(), (e.canvas ?? KT)?.setDirty?.(!0), GT.size === 0 && (KT = null);
 }
-function MT(e, t) {
-	jT(e, [t]);
+function sE(e, t) {
+	oE(e, [t]);
 }
 //#endregion
 //#region src/nodes2/installers/runButtonFx.ts
-var NT = "fil-run-fx";
-function PT() {
-	if (typeof document > "u" || document.getElementById(NT)) return;
+var cE = "fil-run-fx";
+function lE() {
+	if (typeof document > "u" || document.getElementById(cE)) return;
 	let e = document.createElement("style");
-	e.id = NT, e.textContent = hT, document.head.appendChild(e);
+	e.id = cE, e.textContent = WT, document.head.appendChild(e);
 }
-function FT(e) {
+function uE(e) {
 	let t = e?.nodes;
 	if (!t || typeof t != "object") return null;
 	let n = [];
 	for (let [e, r] of Object.entries(t)) r?.state === "running" && n.push(r.display_node_id ?? r.node_id ?? e);
 	return n;
 }
-function IT(e) {
+function dE(e) {
 	let t = e.api;
 	if (typeof t?.addEventListener != "function") {
 		console.warn("[FiL_Design_ImageMind] run FX: api not available, skipping");
 		return;
 	}
-	PT();
+	lE();
 	let n = !1;
 	t.addEventListener("progress_state", (t) => {
-		let r = FT(t.detail);
-		r && (n = !0, jT(e, r));
+		let r = uE(t.detail);
+		r && (n = !0, oE(e, r));
 	}), t.addEventListener("executing", (t) => {
 		let r = t.detail, i = r && typeof r == "object" ? r.display_node ?? r.node : r;
-		typeof i == "string" || typeof i == "number" ? n || MT(e, i) : AT();
-	}), t.addEventListener("execution_error", AT), t.addEventListener("execution_interrupted", AT), console.info("[FiL_Design_ImageMind] run FX installed (progress_state + executing)");
+		typeof i == "string" || typeof i == "number" ? n || sE(e, i) : aE();
+	}), t.addEventListener("execution_error", aE), t.addEventListener("execution_interrupted", aE), console.info("[FiL_Design_ImageMind] run FX installed (progress_state + executing)");
 }
 Y(), Gv(), _f(), Xd(), Iv(), od();
-var LT = { class: "fil-pm-root" }, RT = ["onClick"], zT = { class: "fil-pm-icon" }, BT = { class: "fil-pm-name" }, VT = {
+var fE = { class: "fil-pm-root" }, pE = ["onClick"], mE = { class: "fil-pm-icon" }, hE = { class: "fil-pm-name" }, gE = {
 	key: 0,
 	class: "fil-pm-disp"
-}, HT = ["title"], UT = { class: "fil-pm-fields" }, WT = {
+}, _E = ["title"], vE = { class: "fil-pm-fields" }, yE = {
 	key: 0,
 	class: "fil-pm-field"
-}, GT = { class: "fil-pm-field-head" }, KT = { class: "fil-pm-field-label" }, qT = ["href"], JT = [
+}, bE = { class: "fil-pm-field-head" }, xE = { class: "fil-pm-field-label" }, SE = ["href"], CE = [
 	"onUpdate:modelValue",
 	"placeholder",
 	"title",
 	"onKeydown"
-], YT = {
+], wE = {
 	key: 1,
 	class: "fil-pm-field"
-}, XT = { class: "fil-pm-field-head" }, ZT = { class: "fil-pm-field-label" }, QT = ["href"], $T = ["onUpdate:modelValue", "onKeydown"], eE = {
+}, TE = { class: "fil-pm-field-head" }, EE = { class: "fil-pm-field-label" }, DE = ["href"], OE = ["onUpdate:modelValue", "onKeydown"], kE = {
 	key: 2,
 	class: "fil-pm-field"
-}, tE = { class: "fil-pm-field-head" }, nE = { class: "fil-pm-field-label" }, rE = ["href"], iE = ["onUpdate:modelValue", "onKeydown"], aE = { class: "fil-pm-actions" }, oE = {
+}, AE = { class: "fil-pm-field-head" }, jE = { class: "fil-pm-field-label" }, ME = ["href"], NE = ["onUpdate:modelValue", "onKeydown"], PE = { class: "fil-pm-actions" }, FE = {
 	key: 0,
 	class: "fil-pm-age"
-}, sE = {
+}, IE = {
 	key: 0,
 	class: "fil-pm-err"
-}, cE = {
+}, LE = {
 	key: 1,
 	class: "fil-pm-err"
-}, lE = {
+}, RE = {
 	key: 2,
 	class: "fil-pm-models"
-}, uE = ["title"], dE = {
+}, zE = ["title"], BE = {
 	key: 3,
 	class: "fil-pm-err fil-pm-global-err"
-}, fE = /*@__PURE__*/ z({
+}, VE = /*@__PURE__*/ z({
 	__name: "ProviderManager",
 	setup(e) {
 		let t = Wv(), { t: n } = td(), r = /* @__PURE__ */ L(Object.fromEntries(Uv.map((e) => [e, {
@@ -16899,23 +17108,23 @@ var LT = { class: "fil-pm-root" }, RT = ["onClick"], zT = { class: "fil-pm-icon"
 			let i = t.accounts[e];
 			return n.key !== "" || n.base_url !== (i?.base_url ?? "") || n.account_id !== (i?.account_id ?? "");
 		};
-		return (e, A) => (V(), H("div", LT, [(V(!0), H(K, null, B(R(Uv), (e) => (V(), H("div", {
+		return (e, A) => (V(), H("div", fE, [(V(!0), H(K, null, B(R(Uv), (e) => (V(), H("div", {
 			key: e,
 			class: s(["fil-pm-card", { "fil-pm-card--collapsed": C(e) }])
 		}, [W("div", {
 			class: s(["fil-pm-header", { "fil-pm-header--clickable": x(e) === "off" }]),
 			onClick: (t) => w(e)
 		}, [
-			W("span", zT, [q(Yd, {
+			W("span", mE, [q(Yd, {
 				name: R(u)[e],
 				size: 20
 			}, null, 8, ["name"])]),
-			W("span", BT, P(R(l)[e]), 1),
-			R(t).displayNames[e] ? (V(), H("span", VT, "(" + P(R(t).displayNames[e]) + ")", 1)) : G("", !0),
+			W("span", hE, P(R(l)[e]), 1),
+			R(t).displayNames[e] ? (V(), H("span", gE, "(" + P(R(t).displayNames[e]) + ")", 1)) : G("", !0),
 			W("span", {
 				class: s(["fil-pm-status", `fil-pm-status--${x(e)}`]),
 				title: S.value[x(e)]
-			}, [A[3] ||= W("span", { class: "fil-pm-dot" }, null, -1), yi(" " + P(S.value[x(e)]), 1)], 10, HT),
+			}, [A[3] ||= W("span", { class: "fil-pm-dot" }, null, -1), yi(" " + P(S.value[x(e)]), 1)], 10, _E),
 			x(e) === "off" ? (V(), H("span", {
 				key: 1,
 				class: s(["fil-pm-chevron", { "fil-pm-chevron--open": c.value[e] }])
@@ -16923,52 +17132,52 @@ var LT = { class: "fil-pm-root" }, RT = ["onClick"], zT = { class: "fil-pm-icon"
 				name: "chevronRight",
 				size: 12
 			})], 2)) : G("", !0)
-		], 10, RT), C(e) ? G("", !0) : (V(), H(K, { key: 0 }, [
-			W("div", UT, [
-				g(e) ? (V(), H("label", WT, [W("span", GT, [W("span", KT, P(R(n)("pm_api_key", "API Key")), 1), R(p)[e] ? (V(), H("a", {
+		], 10, pE), C(e) ? G("", !0) : (V(), H(K, { key: 0 }, [
+			W("div", vE, [
+				g(e) ? (V(), H("label", yE, [W("span", bE, [W("span", xE, P(R(n)("pm_api_key", "API Key")), 1), R(p)[e] ? (V(), H("a", {
 					key: 0,
 					class: "fil-pm-link",
 					href: R(p)[e].url,
 					target: "_blank",
 					rel: "noopener noreferrer",
 					onClick: A[0] ||= Us(() => {}, ["stop"])
-				}, P(R(p)[e].label) + " ↗", 9, qT)) : G("", !0)]), Pn(W("input", {
+				}, P(R(p)[e].label) + " ↗", 9, SE)) : G("", !0)]), Pn(W("input", {
 					"onUpdate:modelValue": (t) => r.value[e].key = t,
 					type: "password",
 					class: s(["fil-pm-input", d(r.value[e].key)]),
 					placeholder: v(e),
 					title: _(e)?.hint,
 					onKeydown: Gs((t) => T(e), ["enter"])
-				}, null, 42, JT), [[zs, r.value[e].key]])])) : G("", !0),
-				h(e) ? (V(), H("label", YT, [W("span", XT, [W("span", ZT, P(R(n)("pm_base_url", "Base URL")), 1), !g(e) && R(p)[e] ? (V(), H("a", {
+				}, null, 42, CE), [[zs, r.value[e].key]])])) : G("", !0),
+				h(e) ? (V(), H("label", wE, [W("span", TE, [W("span", EE, P(R(n)("pm_base_url", "Base URL")), 1), !g(e) && R(p)[e] ? (V(), H("a", {
 					key: 0,
 					class: "fil-pm-link",
 					href: R(p)[e].url,
 					target: "_blank",
 					rel: "noopener noreferrer",
 					onClick: A[1] ||= Us(() => {}, ["stop"])
-				}, P(R(p)[e].label) + " ↗", 9, QT)) : G("", !0)]), Pn(W("input", {
+				}, P(R(p)[e].label) + " ↗", 9, DE)) : G("", !0)]), Pn(W("input", {
 					"onUpdate:modelValue": (t) => r.value[e].base_url = t,
 					type: "text",
 					class: s(["fil-pm-input", d(r.value[e].base_url)]),
 					placeholder: "http://localhost:11434",
 					onKeydown: Gs((t) => T(e), ["enter"])
-				}, null, 42, $T), [[zs, r.value[e].base_url]])])) : G("", !0),
-				f(e) ? (V(), H("label", eE, [W("span", tE, [W("span", nE, P(R(n)("pm_account_id", "Account ID")), 1), R(m)[e] ? (V(), H("a", {
+				}, null, 42, OE), [[zs, r.value[e].base_url]])])) : G("", !0),
+				f(e) ? (V(), H("label", kE, [W("span", AE, [W("span", jE, P(R(n)("pm_account_id", "Account ID")), 1), R(m)[e] ? (V(), H("a", {
 					key: 0,
 					class: "fil-pm-link",
 					href: R(m)[e].url,
 					target: "_blank",
 					rel: "noopener noreferrer",
 					onClick: A[2] ||= Us(() => {}, ["stop"])
-				}, P(R(m)[e].label) + " ↗", 9, rE)) : G("", !0)]), Pn(W("input", {
+				}, P(R(m)[e].label) + " ↗", 9, ME)) : G("", !0)]), Pn(W("input", {
 					"onUpdate:modelValue": (t) => r.value[e].account_id = t,
 					type: "text",
 					class: s(["fil-pm-input", d(r.value[e].account_id)]),
 					onKeydown: Gs((t) => T(e), ["enter"])
-				}, null, 42, iE), [[zs, r.value[e].account_id]])])) : G("", !0)
+				}, null, 42, NE), [[zs, r.value[e].account_id]])])) : G("", !0)
 			]),
-			W("div", aE, [
+			W("div", PE, [
 				q(gf, {
 					variant: "accent",
 					label: k(e) ? R(n)("pm_save", "Save") : R(n)("pm_saved", "Saved"),
@@ -16979,7 +17188,7 @@ var LT = { class: "fil-pm-root" }, RT = ["onClick"], zT = { class: "fil-pm-icon"
 					"disabled",
 					"onClick"
 				]),
-				!k(e) && R(t).cachedAgeLabel(e) ? (V(), H("span", oE, P(R(t).cachedAgeLabel(e)) + " " + P(R(n)("pm_ago", "ago")), 1)) : G("", !0),
+				!k(e) && R(t).cachedAgeLabel(e) ? (V(), H("span", FE, P(R(t).cachedAgeLabel(e)) + " " + P(R(n)("pm_ago", "ago")), 1)) : G("", !0),
 				q(gf, {
 					variant: "danger",
 					label: R(n)("pm_delete", "Delete"),
@@ -17017,30 +17226,30 @@ var LT = { class: "fil-pm-root" }, RT = ["onClick"], zT = { class: "fil-pm-icon"
 					"onClick"
 				])
 			]),
-			R(t).modelsByProvider[e]?.error ? (V(), H("div", sE, P(R(t).modelsByProvider[e].error), 1)) : G("", !0),
-			R(t).probeState[e] && R(t).probeState[e].status !== "available" ? (V(), H("div", cE, P(R(t).probeState[e].message), 1)) : G("", !0),
-			R(t).modelsFor(e).length > 0 ? (V(), H("div", lE, [(V(!0), H(K, null, B(R(t).modelsFor(e), (r) => (V(), H("span", {
+			R(t).modelsByProvider[e]?.error ? (V(), H("div", IE, P(R(t).modelsByProvider[e].error), 1)) : G("", !0),
+			R(t).probeState[e] && R(t).probeState[e].status !== "available" ? (V(), H("div", LE, P(R(t).probeState[e].message), 1)) : G("", !0),
+			R(t).modelsFor(e).length > 0 ? (V(), H("div", RE, [(V(!0), H(K, null, B(R(t).modelsFor(e), (r) => (V(), H("span", {
 				class: "fil-pm-model-tag",
 				key: r
 			}, [yi(P(r) + " ", 1), R(t).visionModelsFor(e).includes(r) ? (V(), H("span", {
 				key: 0,
 				class: "fil-pm-vision-badge",
 				title: R(n)("pm_vision_capable", "Vision-capable")
-			}, "👁", 8, uE)) : G("", !0)]))), 128))])) : G("", !0),
-			R(t).lastError ? (V(), H("div", dE, P(R(t).lastError), 1)) : G("", !0)
+			}, "👁", 8, zE)) : G("", !0)]))), 128))])) : G("", !0),
+			R(t).lastError ? (V(), H("div", BE, P(R(t).lastError), 1)) : G("", !0)
 		], 64))], 2))), 128))]));
 	}
 });
 //#endregion
 //#region src/components/settings/ProviderManager.vue
 Z();
-var pE = /*#__PURE__*/ X(fE, [["__scopeId", "data-v-e66ad675"]]);
+var HE = /*#__PURE__*/ X(VE, [["__scopeId", "data-v-e66ad675"]]);
 Y(), Al();
-var mE = null;
-function hE(e) {
-	mE &&= (mE.unmount(), null), mE = Js(pE).use(Ol()), mE.mount(e), console.info("[FiL_Design_ImageMind] provider manager mounted");
+var UE = null;
+function WE(e) {
+	UE &&= (UE.unmount(), null), UE = Js(HE).use(Ol()), UE.mount(e), console.info("[FiL_Design_ImageMind] provider manager mounted");
 }
-function gE(e) {
+function GE(e) {
 	let t = e.extensionManager;
 	if (!t?.registerSidebarTab) {
 		console.warn("[FiL_Design_ImageMind] extensionManager.registerSidebarTab not available — cannot mount provider manager");
@@ -17052,52 +17261,52 @@ function gE(e) {
 		title: "FiL Providers",
 		tooltip: "Configure LLM provider API keys and endpoints",
 		type: "custom",
-		render: (e) => hE(e)
+		render: (e) => WE(e)
 	}), console.info("[FiL_Design_ImageMind] provider manager sidebar tab registered");
 }
 Y(), Al(), Tp();
-var _E = null;
-function vE(e) {
-	if (_E) return;
+var KE = null;
+function qE(e) {
+	if (KE) return;
 	let t = document.createElement("div");
-	t.id = "__fil_help_popup_host", document.body.appendChild(t), _E = Js(wp).use(Ol()), _E.mount(t), console.info("[FiL_Design_ImageMind] help popup mounted");
+	t.id = "__fil_help_popup_host", document.body.appendChild(t), KE = Js(wp).use(Ol()), KE.mount(t), console.info("[FiL_Design_ImageMind] help popup mounted");
 }
 ap(), Eu(), Xl();
-var yE = "FiL_Design_ImageMind.Shortcuts.Enabled", bE = "__cheatsheet__", xE = [{
+var JE = "FiL_Design_ImageMind.Shortcuts.Enabled", YE = "__cheatsheet__", XE = [{
 	id: "FiL_Design_ImageMind.helpCheatsheet",
 	label: "FiL_Design_ImageMind — Keyboard cheatsheet",
 	icon: "?",
-	function: TE
-}], SE = [{
+	function: eD
+}], ZE = [{
 	commandId: "FiL_Design_ImageMind.helpCheatsheet",
 	combo: {
 		key: "?",
 		shift: !0
 	}
 }];
-function CE(e) {
+function QE(e) {
 	if (!e || typeof e != "object") return !1;
 	let t = String(e.tagName || "").toLowerCase();
 	return t === "input" || t === "textarea" || t === "select" || e.isContentEditable === !0;
 }
-function wE() {
-	return Yl(yE, !0);
+function $E() {
+	return Yl(JE, !0);
 }
-function TE() {
-	if (!wE()) return;
+function eD() {
+	if (!$E()) return;
 	let e = ip();
-	e.ensureHelpDefaultsInjected(), e.value_open?.(bE);
+	e.ensureHelpDefaultsInjected(), e.value_open?.(YE);
 }
-function EE(e) {
+function tD(e) {
 	if (e.extensionManager) {
 		console.info("[FiL_Design_ImageMind] shortcuts registered via native commands API");
 		return;
 	}
-	window.addEventListener("keydown", (t) => DE(t, e), !0), console.info("[FiL_Design_ImageMind] shortcuts installed (fallback keydown handler)");
+	window.addEventListener("keydown", (t) => nD(t, e), !0), console.info("[FiL_Design_ImageMind] shortcuts installed (fallback keydown handler)");
 }
-function DE(e, t) {
-	if (!wE()) return;
-	let n = e.target, r = CE(n);
+function nD(e, t) {
+	if (!$E()) return;
+	let n = e.target, r = QE(n);
 	if (e.key === "Escape") {
 		try {
 			ip().value_close?.();
@@ -17107,11 +17316,11 @@ function DE(e, t) {
 	}
 	if (!r) {
 		if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "K" || e.key === "k")) {
-			TE(), e.preventDefault();
+			eD(), e.preventDefault();
 			return;
 		}
 		if (e.key === "?" || e.shiftKey && e.key === "/") {
-			if (e.shiftKey) TE();
+			if (e.shiftKey) eD();
 			else {
 				let e = t.canvas?.selected_nodes ?? {}, n = Object.values(e).filter(Boolean);
 				if (n.length === 1) {
@@ -17125,17 +17334,17 @@ function DE(e, t) {
 }
 //#endregion
 //#region src/nodes2/installers/shortcuts.ts
-function OE(e) {
-	EE(e);
+function rD(e) {
+	tD(e);
 }
 //#endregion
 //#region src/nodes2/installers/wireless.ts
 Z_();
-function kE(e) {
+function iD(e) {
 	q_(e), H_(e);
 }
 Y(), vv();
-function AE() {
+function aD() {
 	let e = null;
 	return {
 		id: "fil-wireless-diagnostics",
@@ -17150,108 +17359,8 @@ function AE() {
 		}
 	};
 }
-//#endregion
-//#region src/styles/comfyPalette.ts
-jc();
-var jE = "fil_", ME = "Comfy.ColorPalette";
-function NE() {
-	return globalThis.app ?? null;
-}
-function PE() {
-	return NE()?.extensionManager?.colorPalette ?? null;
-}
-function FE() {
-	return NE()?.extensionManager?.setting ?? null;
-}
-function IE(e, t) {
-	let n = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(e.trim());
-	if (!n) return e;
-	let [r, i, a] = [
-		1,
-		2,
-		3
-	].map((e) => parseInt(n[e], 16));
-	return `rgba(${r},${i},${a},${t})`;
-}
-function LE(e, t, n = {}) {
-	let r = e.replace(/_/g, " ").replace(/\b\w/g, (e) => e.toUpperCase());
-	return {
-		id: `${jE}${e}`,
-		name: `FiL — ${r}`,
-		colors: {
-			node_slot: { ...n },
-			litegraph_base: {
-				CLEAR_BACKGROUND_COLOR: t.panel,
-				NODE_TITLE_COLOR: t.text,
-				NODE_SELECTED_TITLE_COLOR: t.accent,
-				NODE_TEXT_COLOR: t.text,
-				NODE_DEFAULT_COLOR: t.panel,
-				NODE_DEFAULT_BGCOLOR: t.panelAlt,
-				NODE_DEFAULT_BOXCOLOR: t.muted,
-				NODE_BOX_OUTLINE_COLOR: t.accent,
-				NODE_BYPASS_BGCOLOR: "#FF00FF",
-				NODE_ERROR_COLOUR: t.danger,
-				DEFAULT_SHADOW_COLOR: "rgba(0,0,0,0.25)",
-				WIDGET_BGCOLOR: t.panelAlt,
-				WIDGET_OUTLINE_COLOR: t.muted,
-				WIDGET_TEXT_COLOR: t.text,
-				WIDGET_SECONDARY_TEXT_COLOR: t.muted,
-				LINK_COLOR: t.accent,
-				EVENT_LINK_COLOR: t.ok,
-				CONNECTING_LINK_COLOR: t.ok
-			},
-			comfy_base: {
-				"fg-color": t.text,
-				"bg-color": t.panel,
-				"comfy-menu-bg": t.panelAlt,
-				"comfy-menu-secondary-bg": t.panelAlt,
-				"comfy-input-bg": t.panelAlt,
-				"input-text": t.text,
-				"descrip-text": t.muted,
-				"drag-text": t.muted,
-				"error-text": t.danger,
-				"border-color": IE(t.muted, .35),
-				"tr-even-bg-color": t.panel,
-				"tr-odd-bg-color": t.panelAlt,
-				"content-bg": t.panelAlt,
-				"content-fg": t.text,
-				"content-hover-bg": t.panel,
-				"content-hover-fg": t.accent
-			}
-		}
-	};
-}
-async function RE(e) {
-	let t = PE();
-	if (!t?.addCustomColorPalette) return null;
-	let n = LE(e, vc, t.getActiveColorPalette?.()?.colors?.node_slot ?? {}), r = FE(), i = r?.get?.(ME);
-	return await t.addCustomColorPalette(n), typeof i == "string" && i && i !== n.id && await r?.set?.(ME, i), n;
-}
-function zE() {
-	return typeof document > "u" ? "default" : document.documentElement.dataset.filTheme || "default";
-}
-var BE = [{
-	id: "FiL_Design_ImageMind.exportThemeAsPalette",
-	label: "FiL_Design_ImageMind — Save this theme as a ComfyUI color palette",
-	icon: "🎨",
-	function: async () => {
-		let { toast: e } = await Promise.resolve().then(() => (Eu(), vu)), t = zE();
-		try {
-			let n = await RE(t);
-			if (!n) {
-				e.warning("This ComfyUI has no color-palette API to add to.");
-				return;
-			}
-			e.success(`"${n.name}" added. Apply it in Settings → Appearance → Color Palette.`);
-		} catch (t) {
-			e.error(`Could not add the palette: ${String(t?.message ?? t)}`);
-		}
-	}
-}];
-//#endregion
-//#region src/stores/settings/languageSettings.ts
-Jl();
-var VE = [{
+hT(), Jl();
+var oD = [{
 	id: "FiL_Design_ImageMind.Language",
 	name: "Panel language",
 	type: "combo",
@@ -17265,10 +17374,10 @@ var VE = [{
 	]
 }];
 Zu(), Jl();
-function HE(e) {
+function sD(e) {
 	Yu(`${Gl}/log_level`, { level: String(e) }).catch(() => {});
 }
-var UE = [{
+var cD = [{
 	id: "FiL_Design_ImageMind.Logging.Level",
 	name: "Log level",
 	type: "combo",
@@ -17285,13 +17394,13 @@ var UE = [{
 		"Logging"
 	],
 	tooltip: "Python backend log verbosity for this node pack.",
-	onChange: HE
+	onChange: sD
 }];
-function WE(e) {
-	HE(e("FiL_Design_ImageMind.Logging.Level", "WARNING"));
+function lD(e) {
+	sD(e("FiL_Design_ImageMind.Logging.Level", "WARNING"));
 }
 jc(), Kc(), Jl();
-var GE = {
+var uD = {
 	Default: "default",
 	Cyberpunk: "cyberpunk",
 	"Cyberpunk 2077": "cyberpunk_2077",
@@ -17305,12 +17414,13 @@ var GE = {
 	"Cyber Punch": "cyber_punch",
 	"Cyber Punch HUD": "cyber_punch_hud"
 };
-function KE(e) {
-	rc(GE[String(e)] ?? "default");
-	let t = globalThis.app;
-	t && Wc(t);
+function dD(e) {
+	let t = uD[String(e)] ?? "default";
+	rc(t);
+	let n = globalThis.app;
+	n && Wc(n), CT(t);
 }
-var qE = [{
+var fD = [{
 	id: "FiL_Design_ImageMind.Theme",
 	name: "Theme",
 	type: "combo",
@@ -17335,32 +17445,32 @@ var qE = [{
 		"Theme"
 	],
 	tooltip: "Recolors every FiL_Design_ImageMind node panel. Options: Cyberpunk Neon, official Cyberpunk 2077 High-Voltage Yellow, Vault-Tec CRT Fallout/Pipboy, FiL Green, Web3 Neo Emerald, NFT Vibe, Hollywood Teal, Cyber Punch (glass) and Cyber Punch HUD. Applies instantly, no reload.",
-	onChange: KE
+	onChange: dD
 }];
-function JE() {
+function pD() {
 	nc(ec());
 	let e = globalThis.app;
 	e && Wc(e);
 }
-function YE() {
+function mD() {
 	if (typeof MutationObserver > "u" || typeof document > "u") return;
 	let e = ec();
 	new MutationObserver(() => {
 		let t = ec();
-		t !== e && (e = t, JE());
+		t !== e && (e = t, pD());
 	}).observe(document.documentElement, {
 		attributes: !0,
 		attributeFilter: ["style", "class"]
 	});
 }
-function XE(e) {
+function hD(e) {
 	let t = e("FiL_Design_ImageMind.Theme", "Default");
-	nc(ec()), rc(GE[t] ?? "default"), Zw(), YE();
+	nc(ec()), rc(uD[t] ?? "default"), ET(), mD();
 }
 //#endregion
 //#region src/stores/settings/shortcutsSettings.ts
 Jl();
-var ZE = [{
+var gD = [{
 	id: "FiL_Design_ImageMind.Shortcuts.Enabled",
 	name: "Keyboard shortcuts",
 	type: "boolean",
@@ -17373,20 +17483,20 @@ var ZE = [{
 	]
 }];
 eu(), ku(), P_();
-var QE = [
-	...qw.slice().reverse(),
-	...qE,
-	...ZE,
-	...sT,
+var _D = [
+	...bT.slice().reverse(),
+	...fD,
+	...gD,
+	...IT,
 	...Ou,
 	...$l,
-	...UE,
-	...VE,
+	...cD,
+	...oD,
 	...zv,
 	...N_
 ];
 Z_(), Xl(), Jl(), `${Gl}`;
-function $E(e) {
+function vD(e) {
 	try {
 		let e = globalThis.app?.graph?._nodes ?? [];
 		for (let t of e) {
@@ -17401,23 +17511,23 @@ function $E(e) {
 	}
 	return e;
 }
-function eD(e) {
+function yD(e) {
 	return {
 		name: ql,
-		settings: QE,
-		commands: [...xE, ...BE],
-		keybindings: SE,
-		bottomPanelTabs: [AE()],
+		settings: _D,
+		commands: [...XE, ...mT],
+		keybindings: ZE,
+		bottomPanelTabs: [aD()],
 		async setup() {
 			let t = [
-				() => rT(),
-				() => gE(e),
-				() => IT(e),
-				() => vE(e),
-				() => OE(e),
-				() => kE(e),
-				() => WE((t, n) => Yl(t, n, e)),
-				() => XE((t, n) => Yl(t, n, e))
+				() => MT(),
+				() => GE(e),
+				() => dE(e),
+				() => qE(e),
+				() => rD(e),
+				() => iD(e),
+				() => lD((t, n) => Yl(t, n, e)),
+				() => hD((t, n) => Yl(t, n, e))
 			];
 			for (let e of t) try {
 				e();
@@ -17432,7 +17542,7 @@ function eD(e) {
 			let n = Uw[t.name];
 			if (!n) {
 				try {
-					tT(e);
+					AT(e);
 				} catch (e) {
 					console.warn(`${Kl} failed to tint "${t.name}":`, e);
 				}
@@ -17445,7 +17555,7 @@ function eD(e) {
 			}
 		},
 		async graphToPrompt(e) {
-			return $E(e);
+			return vD(e);
 		},
 		async beforeConfigureGraph() {
 			b_();
@@ -17458,7 +17568,7 @@ function eD(e) {
 //#endregion
 //#region src/api/contractCheck.ts
 Jl();
-async function tD() {
+async function bD() {
 	if (typeof fetch > "u") return;
 	let e;
 	try {
@@ -17477,11 +17587,11 @@ async function tD() {
 	for (let e of n) r.has(e) || console.warn(`${Kl} server expects "${e}" but local JS does not register it`);
 	for (let e of r) n.has(e) || console.warn(`${Kl} JS registers "${e}" but server does not expose a contract`);
 }
-jc(), Al(), $s(), Dl(e), tD().catch((e) => {
+jc(), Al(), $s(), Dl(e), bD().catch((e) => {
 	console.warn("[FiL_Design_ImageMind] contract self-check failed:", e);
 });
-var nD = eD(e);
-e.registerExtension(nD), console.info(`[FiL_Design_ImageMind] extension registered as "${nD.name}"`);
+var xD = yD(e);
+e.registerExtension(xD), console.info(`[FiL_Design_ImageMind] extension registered as "${xD.name}"`);
 //#endregion
 
 //# sourceMappingURL=fil_design_imagemind.js.map

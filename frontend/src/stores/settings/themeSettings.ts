@@ -2,7 +2,7 @@ import type { ComfyExtensionSettings } from "@/types/comfy";
 import { applyFilBaseTheme, applyFilTheme, detectComfyBase, type FilThemeName } from "@/styles/brand";
 import { reapplyThemeToGraph } from "@/nodes2/nodeStyle";
 import { SETTINGS_CATEGORY } from "@/constants/brand";
-import { renderAppearance } from "@/stores/settings/appearanceSettings";
+import { renderAppearance, syncWholeUiPalette } from "@/stores/settings/appearanceSettings";
 
 const THEME_VALUE_TO_NAME: Record<string, FilThemeName> = {
   Default: "default",
@@ -32,6 +32,9 @@ function onThemeChange(newValue: unknown): void {
   applyFilTheme(theme);
   const app = (globalThis as unknown as { app?: unknown }).app;
   if (app) reapplyThemeToGraph(app);
+  // Only does anything while "Theme covers all of ComfyUI" is on, and then it
+  // has to: otherwise the application keeps the colours of the theme just left.
+  syncWholeUiPalette(theme);
 }
 
 export const THEME_SETTINGS: ComfyExtensionSettings[] = [

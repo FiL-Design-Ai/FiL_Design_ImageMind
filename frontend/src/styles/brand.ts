@@ -84,13 +84,29 @@ const FIL_PALETTE_FALLOUT: FilPalette = {
   ok: "#8fbf3f",
 };
 
+/**
+ * Values checked against pip-boy.com, a fan-built Pip-Boy terminal that is
+ * consistent enough to read tokens off (its own `--app-*` set, not the Angular
+ * Material noise around it). `panel` and `text` already matched its `#001100` /
+ * `#00ff00` within a shade and were left alone.
+ *
+ * `muted` is the one real disagreement, and the reference is right: it takes
+ * secondary text *lighter* — a pale mint `#98ffa1` — where this palette took it
+ * darker. On a phosphor screen the dim state loses saturation rather than
+ * brightness, so mint is both truer to the tube and far easier to read; the old
+ * `#00b800` sat right on the AA floor at 4.8:1.
+ *
+ * Its `#006600` accent and `#003300` borders were NOT taken. Both are fills on
+ * that site, but this pack paints 11px labels in `accent`, and #006600 cannot
+ * carry text at that size — see the ratios recorded throughout this file.
+ */
 const FIL_PALETTE_PIPBOY: FilPalette = {
   accent: "#00ff00",
   accentInk: "#001100",
   panel: "#020c02",
   panelAlt: "#061a06",
   text: "#00ff00",
-  muted: "#00b800", // 4.8:1 на фосфорном фоне
+  muted: "#98ffa1", // 16.4:1 on the node surface, 14.8:1 on the panel; #00b800 was 4.8:1 in a segmented trough
   danger: "#ff3333", // 4.8:1 фосфорно-красный
   ok: "#00ff00",
 };
@@ -326,11 +342,11 @@ function paletteCssVars(p: FilPalette): string {
  * Per-theme flourishes.
  *
  * Most are a one-time box-shadow or background-image, which costs nothing after
- * paint. Three are not: Pipboy runs `fil-pipboy-scanlines` and `fil-pipboy-beam`
- * and Neo Emerald runs `fil-emerald-orb-pulse`, all `infinite`, on every visible
- * panel at once — a continuous repaint that scales with how many nodes are on
- * screen. `MOTION_OFF_CSS` below is the off switch, wired to the "Theme
- * animations" setting and to `prefers-reduced-motion`.
+ * paint. Two are not: Pipboy runs `fil-pipboy-flicker` and Neo Emerald runs
+ * `fil-emerald-orb-pulse`, both `infinite`, on every visible panel at once — a
+ * continuous repaint that scales with how many nodes are on screen.
+ * `MOTION_OFF_CSS` below is the off switch, wired to the "Theme animations"
+ * setting and to `prefers-reduced-motion`.
  *
  * The title-bar rules key off `.lg-node-header`, which is what the Vue renderer
  * names it (frontend 1.47.10). They used to say `.comfy-node-header`, a class
@@ -597,50 +613,51 @@ const THEME_EFFECTS: Record<FilThemeName, string> = {
 }
 `,
   pipboy: `
-@keyframes fil-pipboy-scanlines {
-  0% { background-position-y: 0px; }
-  100% { background-position-y: 8px; }
+/* A CRT blips; it does not strobe. 6s of sitting still with one dip near the
+ * end, per pip-boy.com's own \`crt-flicker\`, which replaces a scanline band
+ * that used to travel the full node every 1.2s and a beam that swept it every
+ * 6s. Both were motion the reference never had, on every visible node at once. */
+@keyframes fil-pipboy-flicker {
+  0%, 90%, 100% { opacity: 1; }
+  93% { opacity: 0.72; }
+  96% { opacity: 1; }
 }
-@keyframes fil-pipboy-beam {
-  0% { top: -20%; opacity: 0; }
-  50% { opacity: 0.15; }
-  100% { top: 120%; opacity: 0; }
-}
+/* The tube itself: green in the middle falling to black at the corners, where
+ * this used to be a flat fill. Same idea as the reference's page-wide
+ * \`radial-gradient(#001100, #000000)\`, applied per node because a node IS the
+ * screen here.
+ *
+ * Border and shadow dropped — \`nodeStyle.ts\` now draws ONE frame around the
+ * whole node (title, slots and this card together) in \`onDrawForeground\`.
+ * Leaving this card's own \`--fil-surface-border\`/\`--fil-surface-shadow\` in
+ * play drew a second, smaller box around only the widgets, floating below the
+ * native slot row with nothing marking it — the "узел в узле" shape a user
+ * flagged directly from a screenshot. \`background\`(-color) stays: it is this
+ * card's own \`--fil-surface-bg\`, the base the vignette below paints over. */
 :root[data-fil-theme="pipboy"] .fil-node-shell [class$="-root"] {
-  background-image: linear-gradient(rgba(0, 255, 0, 0.08) 50%, rgba(0, 0, 0, 0.35) 50%);
-  background-size: 100% 4px;
-  animation: fil-pipboy-scanlines 1.2s linear infinite;
+  border: none !important;
+  box-shadow: none !important;
+  background-image: radial-gradient(ellipse at 50% 38%, rgba(0, 255, 0, 0.07) 0%, rgba(0, 0, 0, 0.30) 100%);
   position: relative;
 }
-:root[data-fil-theme="pipboy"] .fil-node-shell [class$="-root"]::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(#00ff00, #00ff00), linear-gradient(#00ff00, #00ff00),
-    linear-gradient(#00ff00, #00ff00), linear-gradient(#00ff00, #00ff00),
-    linear-gradient(#00ff00, #00ff00), linear-gradient(#00ff00, #00ff00),
-    linear-gradient(#00ff00, #00ff00), linear-gradient(#00ff00, #00ff00);
-  background-position:
-    left 3px top 3px, left 3px top 3px,
-    right 3px top 3px, right 3px top 3px,
-    left 3px bottom 3px, left 3px bottom 3px,
-    right 3px bottom 3px, right 3px bottom 3px;
-  background-repeat: no-repeat;
-  background-size: 14px 2px, 2px 14px, 14px 2px, 2px 14px, 14px 2px, 2px 14px, 14px 2px, 2px 14px;
-  pointer-events: none;
-  opacity: 0.85;
-  z-index: 10;
-}
+/* Scanlines, still and quiet: a 1px line every 4px in white rather than a 2px
+ * green/black bar every 4px. \`overlay\` over a near-black panel lightens instead
+ * of laying grime on top, which is what the old 35% black band did.
+ *
+ * 3.5% where the reference uses 2% — deliberate. It rules a whole fixed
+ * viewport; ours has a ~200px node to read across, and at 2% the texture simply
+ * disappeared at that size. */
 :root[data-fil-theme="pipboy"] .fil-node-shell [class$="-root"]::before {
   content: "";
   position: absolute;
-  left: 0;
-  width: 100%;
-  height: 25%;
-  background: linear-gradient(180deg, transparent, rgba(0, 255, 0, 0.15), transparent);
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    rgba(255, 255, 255, 0.035) 0px, rgba(255, 255, 255, 0.035) 1px,
+    transparent 1px, transparent 4px
+  );
+  mix-blend-mode: overlay;
   pointer-events: none;
-  animation: fil-pipboy-beam 6s ease-in-out infinite;
+  animation: fil-pipboy-flicker 6s linear infinite;
   z-index: 9;
 }
 :root[data-fil-theme="pipboy"] .lg-node-header,
@@ -885,10 +902,10 @@ const THEME_EFFECTS: Record<FilThemeName, string> = {
  *
  * `!important` because the animated declarations carry it too.
  *
- * The moving parts are decoration in the literal sense: the scanline sweep, the
- * CRT beam and the emerald orb are all `::before`/`::after` overlays or a
- * background wash. Freezing them costs nothing but the motion — no layout, no
- * colour, no control changes state.
+ * The moving parts are decoration in the literal sense: Pipboy's CRT flicker and
+ * the emerald orb are both `::before`/`::after` overlays. Freezing them costs
+ * nothing but the motion — the scanlines stay ruled across the panel, they just
+ * stop blipping; no layout, no colour, no control changes state.
  */
 const MOTION_OFF_CSS = `
 :root[data-fil-motion="off"] .fil-node-shell [class$="-root"],

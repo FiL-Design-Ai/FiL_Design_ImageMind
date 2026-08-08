@@ -1,5 +1,54 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **🎨 New setting "Theme covers all of ComfyUI" (`FiL_Design_ImageMind.Appearance.WholeUi`).**
+  The scope setting could always widen where *our* painting reaches, but it
+  stops at the node title bar — everything outside our nodes is the host's to
+  colour. This switch takes the other road: it builds a full ComfyUI color
+  palette out of the active theme (`extensionManager.colorPalette`), registers
+  it as `fil_<theme>` and selects it, so menus, sidebars, canvas and every
+  other pack's nodes wear the theme too. Turning it off restores the palette
+  the user was on before; while it is on, switching theme re-exports the
+  palette so the application follows. Nothing is written into the workflow
+  file — a ComfyUI palette lives in the user's own settings, and the generated
+  palette stays in Settings → Appearance → Color Palette, theirs to keep or
+  delete. Degrades to a warning toast on hosts without the palette API. Our
+  nodes carry explicit LiteGraph colours a palette switch does not touch, so a
+  theme change re-asserts them across the open graph. Locked in by the widened
+  `appearanceSettings.test.ts` and `comfyPalette.test.ts`.
+
+### Fixed
+
+- **Pipboy's "узел в узле" — one frame around the whole node instead of three
+  fighting ones.** The theme used to stroke a green rectangle around the TITLE
+  alone (`onDrawTitleBar`), drop corner brackets on the DOM panel's own border,
+  and leave the slot row floating between boundaries that matched neither —
+  the exact box-inside-a-box shape flagged from a live screenshot. The
+  title-only stroke and the card's own border/shadow are gone; `onDrawForeground`
+  now draws a single phosphor frame (rounded rect + all four corner brackets,
+  CRT-bezel trope) around title, slots and body together. The logic is shared
+  with `cyber_punch_hud` through a `FRAME_THEMES` table, since both themes hit
+  the identical bug and `onDrawForeground` is the only hook that runs after the
+  body and badges are painted.
+
+### Changed
+
+- **Pipboy reworked against the pip-boy.com reference.** The tube blips, it
+  does not strobe: a 6-second CRT flicker (one opacity dip near the end)
+  replaces both the travelling scanline band (1.2s loop) and the beam sweep
+  (6s loop) — motion the reference never had, running on every visible node at
+  once. The flat panel fill becomes a radial phosphor vignette (green at the
+  centre falling to black at the corners), and the scanlines stay ruled but
+  quiet — still 1px lines every 4px in `overlay`-blended white instead of
+  moving 2px green/black bars. Muted text moves `#00b800` → `#98ffa1` per the
+  reference, which takes secondary text *lighter* on a phosphor screen; the
+  old value sat right on the AA floor at 4.8:1, the new one reads at 16.4:1 on
+  the node surface. With "Theme animations" off the flicker freezes but the
+  scanlines stay ruled — same colours, no movement.
+
 ## 1.1.2 (2026-08-06)
 
 The video release, with a wireless heart. Optic Scanner became the pack's

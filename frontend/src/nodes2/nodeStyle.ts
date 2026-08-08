@@ -209,19 +209,12 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
       ctx.fillRect(4, -titleHeight, 3, titleHeight);
       ctx.shadowBlur = 0;
     } else if (isPipboy) {
-      // CRT Terminal Phosphor Border & Grid Line
-      ctx.strokeStyle = "#00ff00";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.roundRect(0, -titleHeight, size[0], titleHeight, collapsed ? [radius] : [radius, radius, 0, 0]);
-      ctx.stroke();
-
-      // Top corner bracket accents (PipBoy Terminal UI)
-      ctx.fillStyle = "#00ff00";
-      ctx.fillRect(2, -titleHeight + 2, 8, 2);
-      ctx.fillRect(2, -titleHeight + 2, 2, 8);
-      ctx.fillRect(size[0] - 10, -titleHeight + 2, 8, 2);
-      ctx.fillRect(size[0] - 4, -titleHeight + 2, 2, 8);
+      // Nothing here on purpose — this used to stroke a green rectangle and
+      // drop two corner brackets around the TITLE alone, which is the exact
+      // "box inside a box" `cyber_punch_hud` already documents: a framed strip
+      // sitting above the un-boxed slot row, itself sitting above the DOM
+      // card's own border. One frame around the whole node, in
+      // `onDrawForeground` below, replaces all three.
     } else if (isCyberPunch) {
       // Cyber Punch — glass: ONE continuous surface, title and body alike.
       //
@@ -286,34 +279,43 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
   };
 
   /**
-   * Cyber Punch HUD's frame — the outline and the two corner brackets, drawn
-   * once around the WHOLE node instead of around its title.
+   * The whole-node frame for the two themes whose node body has no DOM card
+   * of its own to carry a border: Cyber Punch HUD and Pipboy. One shared hook
+   * because both hit the identical bug — a frame drawn around the TITLE alone
+   * (in `onDrawTitleBar`) plus corner marks living as CSS on the inner DOM
+   * panel, which boxes a strip, floats the slot row between two boundaries
+   * that don't line up with the node's own, and reads as a box inside a box.
+   * See the Cyber Punch HUD comment this replaced, and — for Pipboy — the user
+   * report that named this exact shape: "выглядит так будто узел в узле", the
+   * inputs and outputs "словно отдельно".
    *
-   * Both used to live in two wrong places at once: the outline was stroked
-   * around the title bar in `onDrawTitleBar`, and the brackets were CSS
-   * background layers on the inner DOM panel. So the outline boxed a strip
-   * and the brackets marked the panel's corners, which sit inset from the
-   * node's own — hence "жёлтые штрихи в случайных местах". Neither could
-   * reach the node's real silhouette from where it was.
-   *
-   * `onDrawForeground` can: it runs after the body and badges are painted
+   * `onDrawForeground` is the only hook that can draw a frame around BOTH
+   * zones at once: it runs after the body and badges are painted
    * (LGraphCanvas `drawNode`), in node-local coordinates, with the title at
-   * negative Y — so one path covers title and body together and nothing
+   * negative Y, so one path covers title, slots and body together and nothing
    * clips it.
    *
    * Guarded twice. Every other theme returns on the first line, since this
    * hook now exists on all 16 node types. And below the host's
-   * level-of-detail threshold it returns too: 14px bracket arms are
+   * level-of-detail threshold it returns too: bracket arms are
    * indistinguishable there, and the DOM panel is hidden anyway
    * (`DomWidgets.vue` honours `hideOnZoom`).
    */
+  const FRAME_THEMES: Partial<Record<string, { stroke: string; radius: number; bracket: string; arm: number; thick: number; corners: "diagonal" | "all" }>> = {
+    cyber_punch_hud: { stroke: "rgba(255, 208, 0, 0.25)", radius: 2, bracket: "#ffd000", arm: 14, thick: 2, corners: "diagonal" },
+    // Opaque, not dimmed like HUD's — this is the one frame Pipboy has left
+    // once the title-only stroke and the DOM card's own border are gone, so it
+    // carries the full phosphor brand rather than a subtle accent.
+    pipboy: { stroke: "#00ff00", radius: 4, bracket: "#00ff00", arm: 8, thick: 2, corners: "all" },
+  };
   const originalForeground = (p as { onDrawForeground?: (...a: unknown[]) => unknown }).onDrawForeground;
   (p as { onDrawForeground?: (...a: unknown[]) => unknown }).onDrawForeground = function (
     this: { size?: [number, number]; flags?: { collapsed?: boolean } },
     ...args: unknown[]
   ) {
     const result = originalForeground?.apply(this, args);
-    if (activeThemeName() !== "cyber_punch_hud") return result;
+    const frame = FRAME_THEMES[activeThemeName()];
+    if (!frame) return result;
     if (this.flags?.collapsed) return result;
 
     const canvas = (globalThis as { app?: { canvas?: { low_quality?: boolean } } }).app?.canvas;
@@ -327,23 +329,30 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
     const titleHeight = (globalThis as { LiteGraph?: { NODE_TITLE_HEIGHT?: number } }).LiteGraph?.NODE_TITLE_HEIGHT ?? 30;
     const top = -titleHeight;
     const bottom = height;
-    const arm = 14;
-    const thick = 2;
+    const { arm, thick } = frame;
 
     ctx.save();
-    ctx.strokeStyle = "rgba(255, 208, 0, 0.25)";
+    ctx.strokeStyle = frame.stroke;
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.roundRect(0.5, top + 0.5, width - 1, height + titleHeight - 1, [2]);
+    ctx.roundRect(0.5, top + 0.5, width - 1, height + titleHeight - 1, [frame.radius]);
     ctx.stroke();
 
-    // Top-left and bottom-right only — the diagonal pair the sandbox
-    // treatment used. Four corners reads as a plain border with lumps.
-    ctx.fillStyle = "#ffd000";
+    ctx.fillStyle = frame.bracket;
+    // Top-left + bottom-right only for the diagonal set — four corners on a
+    // plain outline reads as a border with lumps (Cyber Punch HUD's own call).
+    // Pipboy keeps all four: a CRT bezel's corners are a real trope, and this
+    // is the one place left to carry it now that the title no longer does.
     ctx.fillRect(0, top, arm, thick);
     ctx.fillRect(0, top, thick, arm);
     ctx.fillRect(width - arm, bottom - thick, arm, thick);
     ctx.fillRect(width - thick, bottom - arm, thick, arm);
+    if (frame.corners === "all") {
+      ctx.fillRect(width - arm, top, arm, thick);
+      ctx.fillRect(width - thick, top, thick, arm);
+      ctx.fillRect(0, bottom - thick, arm, thick);
+      ctx.fillRect(0, bottom - arm, thick, arm);
+    }
     ctx.restore();
     return result;
   };

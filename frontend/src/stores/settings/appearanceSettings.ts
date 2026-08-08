@@ -2,15 +2,17 @@
  * How far the theme reaches, and whether it moves.
  *
  * Both settings exist because the themes grew teeth: several now run permanent
- * CSS animations (Pipboy's scanline sweep and beam, Neo Emerald's pulsing orb)
+ * CSS animations (Pipboy's CRT flicker, Neo Emerald's pulsing orb)
  * on every visible panel, and a theme is only worth having if the user can say
  * where it applies and whether it animates.
  */
 import type { ComfyExtensionSettings } from "@/types/comfy";
+import type { FilThemeName } from "@/styles/brand";
 import { SETTINGS_CATEGORY } from "@/constants/brand";
 import { readSetting } from "@/stores/settings/providerSettings";
 
 export const THEME_SCOPE = "FiL_Design_ImageMind.Appearance.Scope";
+export const WHOLE_UI = "FiL_Design_ImageMind.Appearance.WholeUi";
 export const ANIMATIONS = "FiL_Design_ImageMind.Appearance.Animations";
 
 export const SCOPE_OURS = "FiL nodes only";
@@ -40,13 +42,29 @@ export const APPEARANCE_SETTINGS: ComfyExtensionSettings[] = [
     onChange: (value: unknown) => onAppearanceChange({ scope: value as ThemeScope }),
   },
   {
+    id: WHOLE_UI,
+    name: "Theme covers all of ComfyUI",
+    type: "boolean",
+    defaultValue: false,
+    category: [SETTINGS_CATEGORY, "Appearance", "WholeUi"],
+    // The one thing above cannot do, offered as its own switch rather than as a
+    // fourth "applies to" value: this does not widen where *our* painting
+    // reaches, it hands the theme to ComfyUI as one of ITS colour palettes and
+    // selects it. Different mechanism, different blast radius, and — unlike the
+    // scope setting — nothing is written into the user's workflow file, because
+    // a ComfyUI palette lives in their own settings.
+    tooltip:
+      "Repaints the whole application — menus, sidebars, canvas and every other pack's nodes — by building a ComfyUI color palette from this theme and selecting it. Turning it off restores the palette you were on. The generated palette stays in Settings → Appearance → Color Palette, yours to keep or delete.",
+    onChange: (value: unknown) => onWholeUiChange(Boolean(value)),
+  },
+  {
     id: ANIMATIONS,
     name: "Theme animations",
     type: "boolean",
     defaultValue: true,
     category: [SETTINGS_CATEGORY, "Appearance", "Animations"],
     tooltip:
-      "Pipboy's CRT scanline sweep and Neo Emerald's pulsing orb run continuously on every visible panel. Turn this off for a still version of the same theme. Off by default when your system asks for reduced motion.",
+      "Pipboy's CRT flicker and Neo Emerald's pulsing orb run continuously on every visible panel. Turn this off for a still version of the same theme — same colours, same scanlines, no movement. Off by default when your system asks for reduced motion.",
     onChange: (value: unknown) => onAppearanceChange({ animations: value as boolean }),
   },
 ];
@@ -66,6 +84,66 @@ function onAppearanceChange(changed: { scope?: ThemeScope; animations?: boolean 
   if (app) {
     void import("@/nodes2/nodeStyle").then((m) => m.reapplyThemeToGraph(app));
   }
+}
+
+/**
+ * Turning it on repaints ComfyUI; turning it off puts the user's palette back.
+ *
+ * Async work behind a fire-and-forget wrapper because ComfyUI's `onChange` is
+ * synchronous and ignores a returned promise — so the errors have to be caught
+ * here or they become an unhandled rejection in the console of someone who just
+ * clicked a switch.
+ *
+ * Nothing is needed at startup: ComfyUI stores the active palette itself, so a
+ * reload comes back already painted. Re-applying on boot would only be a second
+ * writer for a state the host already keeps.
+ */
+function onWholeUiChange(on: boolean): void {
+  void (async () => {
+    const { applyThemeToWholeUi, restoreUserPalette, currentThemeName } = await import("@/styles/comfyPalette");
+    const { toast } = await import("@/stores/toastStore");
+    try {
+      if (on) {
+        const made = await applyThemeToWholeUi(currentThemeName());
+        if (!made) {
+          toast.warning("This ComfyUI has no color-palette API to apply the theme to.");
+          return;
+        }
+      } else {
+        await restoreUserPalette();
+      }
+    } catch (err) {
+      toast.error(`Could not change the ComfyUI color palette: ${String((err as Error)?.message ?? err)}`);
+      return;
+    }
+    // Our own nodes carry explicit LiteGraph colours, which a palette switch
+    // does not touch; re-asserting them keeps them on the theme rather than on
+    // whatever the new palette left behind.
+    const app = (globalThis as unknown as { app?: unknown }).app;
+    if (app) {
+      const { reapplyThemeToGraph } = await import("@/nodes2/nodeStyle");
+      reapplyThemeToGraph(app);
+    }
+  })();
+}
+
+/**
+ * Called after the theme itself changes: while the option is on, the exported
+ * palette has to follow, or the application keeps the colours of the theme the
+ * user just left.
+ */
+export function syncWholeUiPalette(theme: FilThemeName): void {
+  if (!readSetting<boolean>(WHOLE_UI, false)) return;
+  void (async () => {
+    const { applyThemeToWholeUi } = await import("@/styles/comfyPalette");
+    try {
+      await applyThemeToWholeUi(theme);
+    } catch {
+      /* The theme itself is already applied. A palette that failed to follow is
+       * a degraded look, not a broken one, and does not earn a toast on every
+       * switch through the picker. */
+    }
+  })();
 }
 
 export function themeScope(): ThemeScope {
