@@ -3,7 +3,6 @@ import json
 from datetime import datetime, timezone
 from typing import Any
 
-from comfy.utils import ProgressBar
 from comfy_api.latest import io
 
 from ..common.base import FiLError, VisionNotAvailableError
@@ -42,6 +41,7 @@ from ..common.data import get_effective_response_format
 from ..common.model_prompt_adapters import append_response_format_instruction, post_convert_prompt
 from ..common.models import ModelClient
 from ..common.processing import ImageProcessor, is_valid_model_name, normalize_model_name
+from ..common.progress import FilProgress
 from ..common.provider_resilience import is_timeout_error, sanitize_sensitive_data
 from ..common.provider_runtime import safe_provider_error
 from ..common.style_enforcer import StyleEnforcer
@@ -513,11 +513,13 @@ description=(
             if has_image and len(images_b64) > 1:
                 per_image_results = []
                 total = len(images_b64)
-                # `io.execution` is not part of `comfy_api.latest.io`, and the
-                # `set_progress` that exists is a coroutine nothing here awaits.
-                progress = ProgressBar(total, node_id=unique_id)
+                # The V3 backend (common.progress) sends the frame currently
+                # being analysed to the UI alongside the bar; on hosts old
+                # enough to only have the legacy ProgressBar the preview is
+                # dropped.
+                progress = FilProgress(total, unique_id)
                 for i, b64 in enumerate(images_b64):
-                    progress.update_absolute(i, total)
+                    progress.update(i, preview=image[i])
                     t_image_start = datetime.now(timezone.utc)
                     single_result, single_fb, contract, sent_prompt = cls._run_one_pass(
                         provider=provider, model=model,

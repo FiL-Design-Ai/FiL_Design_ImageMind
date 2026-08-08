@@ -48,6 +48,20 @@
   old value sat right on the AA floor at 4.8:1, the new one reads at 16.4:1 on
   the node surface. With "Theme animations" off the flicker freezes but the
   scanlines stay ruled — same colours, no movement.
+- **Optic Scanner and Dataset Forge now report progress through the V3
+  `ComfyAPISync.Execution.set_progress` API — and show the frame being
+  processed.** Both nodes used `comfy.utils.ProgressBar`, which only carries
+  numbers; the V3 API ships the preview frame alongside the progress event
+  with node metadata, so during a multi-frame analyse run or a dataset
+  captioning batch the UI shows the exact frame the model is looking at right
+  now. The plumbing lives in a new `common/progress.py` (`FilProgress`), which
+  picks its backend once at import: the V3 sync API where it exists, the
+  legacy bar on hosts older than ComfyAPI v0.0.2 — the pack still installs
+  there, so the fallback is a compatibility boundary rather than dead code
+  (previews are simply dropped on those hosts). Locked in by
+  `tests/test_progress.py` (backend selection, call shape, legacy fallback,
+  and the captioning batch wiring that asserts each progress tick carries its
+  own frame).
 
 ## 1.1.2 (2026-08-06)
 

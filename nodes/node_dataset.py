@@ -9,7 +9,6 @@ from typing import Any
 
 import numpy as np
 import torch
-from comfy.utils import ProgressBar
 from comfy_api.latest import io
 
 from ..common.base import FiLError
@@ -20,6 +19,7 @@ from ..common.dataset import bucketing, captioning, writer
 from ..common.io_types import FilDict, FilProviderConfig
 from ..common.localization import t as _t
 from ..common.processing import ImageProcessor, comfy_image_to_pil, is_valid_model_name, normalize_model_name
+from ..common.progress import FilProgress
 from ..common.provider_resilience import sanitize_sensitive_data
 from ..common.provider_runtime import safe_provider_error
 
@@ -216,9 +216,9 @@ class FiLDatasetForge(io.ComfyNode):
                     mode=caption_mode, language=caption_language,
                     max_words=int(caption_max_words), class_token=class_token,
                     dont_caption=dont_caption, extra_instruction=caption_instruction,
-                    # Not kwargs: the executor passes no hidden value as an
-                    # argument, so this read was always None and the per-image
-                    # progress never reached the UI.
+                    # Hidden inputs never arrive as execute() arguments on V3
+                    # nodes — the executor fills `cls.hidden` on the class
+                    # clone it runs, so that is where the node id lives.
                     seed=int(seed), unique_id=cls.hidden.unique_id,
                 )
             except FiLError as exc:
@@ -312,15 +312,14 @@ class FiLDatasetForge(io.ComfyNode):
         raw_max_tokens = config.get("max_tokens")
         max_tokens = None if raw_max_tokens in (0, None) else raw_max_tokens
 
-        # `io.execution` does not exist on `comfy_api.latest.io`, and the
-        # `set_progress` that does exist is a coroutine this synchronous
-        # callback could not await anyway. Both went unnoticed because the
-        # `unique_id` guarding the call was never anything but None.
-        progress = ProgressBar(len(images_b64), node_id=unique_id)
+        # The V3 backend (common.progress) carries the frame the caption LLM
+        # is looking at right now to the UI alongside the bar; on hosts old
+        # enough to only have the legacy ProgressBar the preview is dropped.
+        progress = FilProgress(len(images_b64), unique_id)
 
         def on_progress(index: int, total: int) -> None:
             _raise_if_interrupted()
-            progress.update_absolute(index, total)
+            progress.update(index, preview=images[index])
 
         return captioning.caption_batch(
             _client(), images_b64,
