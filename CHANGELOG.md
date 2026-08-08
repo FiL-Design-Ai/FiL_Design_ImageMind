@@ -87,6 +87,17 @@
   menu id must also be a declared command (the host silently drops ones that
   are not) and every menu-bound command must carry a `menubarLabel` (the
   entry renders blank without one).
+- **Pixaroma's surface tokens remeasured against the sibling pack's real node
+  faces.** The values previously came from its full-screen paint editor — one
+  shade blacker than the nodes themselves, with solid opaque border-greys.
+  Measured against the actual node-face CSS (`.pix-ops-sl`, `.pix-xy-field`,
+  `.pix-xy-input`, `.pix-xy-combo` all share `background:#1d1d1d` with
+  `1px solid rgba(255,255,255,.14)` borders at radius 5px), the glass fields
+  move `#111111` → `#1d1d1d`, every border `#3a3d40` → the translucent
+  `rgba(255,255,255,0.14)`, and the field radius 4px → 5px. The one token the
+  sibling pack cannot supply — `--fil-surface-border`, its nodes carry no card
+  of their own at all — stays invented, but drops the opaque grey for a
+  barely-visible `rgba(255,255,255,0.08)` wash against a dark canvas.
 
 ## 1.1.2 (2026-08-06)
 
