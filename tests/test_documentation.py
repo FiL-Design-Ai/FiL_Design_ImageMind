@@ -9,7 +9,7 @@ import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-WORKFLOWS = sorted((ROOT / "docs" / "workflows").glob("*.json"))
+WORKFLOWS = sorted((ROOT / "example_workflows").glob("*.json"))
 CURRENT_TYPES = {"LoadImage", "FiLProviderLoader", "FiLOpticScanner"}
 REMOVED_TYPES = {
     "CyberDeckProviderLoader", "LLMServerLoaderPro", "OpticScanner",
@@ -189,7 +189,7 @@ def test_workflow_widget_inputs_match_the_current_node_schema(monkeypatch):
             if getattr(i, "default", None) is not None and not getattr(i, "force_input", False)
         ]
 
-    workflows = sorted((Path(__file__).resolve().parents[1] / "docs" / "workflows").glob("*.json"))
+    workflows = sorted((Path(__file__).resolve().parents[1] / "example_workflows").glob("*.json"))
     assert workflows, "no example workflows found"
 
     drifted = {}
@@ -386,7 +386,7 @@ def test_comfyignore_still_ships_what_the_pack_needs_to_run():
         "__init__.py", "server_routes.py", "requirements.txt", "LICENSE",
         "README.md", "CHANGELOG.md", "config.example.yaml",
         "common/models.py", "nodes/node_scanner.py",
-        "data/locales/en.json", "docs/workflows/fil-image-to-prompt.json",
+        "data/locales/en.json", "example_workflows/fil-image-to-prompt.json",
         "frontend/dist/fil_design_imagemind.js",
         "frontend/dist/style-previews/0112215f4991.webp",
     ]

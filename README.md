@@ -173,7 +173,7 @@ is rate-limited, the request is retried down a curated chain of free vision mode
 
 ### Quick start
 
-Two ready workflows ship in [`docs/workflows/`](docs/workflows) — drag the `.json` onto the canvas:
+Two ready workflows ship in [`example_workflows/`](example_workflows) — drag the `.json` onto the canvas, or pick them in Workflows → Browse Templates:
 
 | Workflow | What it does |
 |---|---|
@@ -1068,7 +1068,7 @@ Python самого ComfyUI (`python_embeded`, `venv` или `.venv`), став�
 
 ### Быстрый старт
 
-В [`docs/workflows/`](docs/workflows) лежат два готовых воркфлоу — перетащите `.json` на холст:
+В [`example_workflows/`](example_workflows) лежат два готовых воркфлоу — перетащите `.json` на холст или выберите в Workflows → Browse Templates:
 
 | Воркфлоу | Что делает |
 |---|---|

@@ -6,7 +6,7 @@
  * therefore plays by stricter rules:
  *
  *   1. **Nothing that serialises.** `node.color` and `node.bgcolor` are written
- *      into the saved workflow — open any graph in `docs/workflows/` and our
+ *      into the saved workflow — open any graph in `example_workflows/` and our
  *      nodes carry both in the JSON. Setting them on a foreign node would bake
  *      this pack's colour into the user's file for good: it travels to whoever
  *      they share the workflow with, survives uninstalling this pack, and

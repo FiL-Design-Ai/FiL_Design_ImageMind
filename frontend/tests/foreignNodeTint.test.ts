@@ -5,7 +5,7 @@ import { THEME_SCOPE, SCOPE_OURS, SCOPE_CONNECTED, SCOPE_ALL } from "@/stores/se
 /**
  * Tinting someone else's node is the one thing in this pack that can write into
  * a file the user keeps. `node.color`/`node.bgcolor` are serialised into the
- * workflow — our own nodes carry both in `docs/workflows/*.json` — so a foreign
+ * workflow — our own nodes carry both in `example_workflows/*.json` — so a foreign
  * node painted that way would hand our colour to whoever the workflow is shared
  * with, keep it after this pack is uninstalled, and fight packs that colour
  * their own nodes. These tests hold the line: the title bar is drawn, and

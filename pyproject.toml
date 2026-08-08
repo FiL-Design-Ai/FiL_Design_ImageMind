@@ -47,7 +47,7 @@ FiL_Design_ImageMind = [
   "data/locales/*.json",
   "frontend/dist/*",
   "frontend/dist/style-previews/*",
-  "docs/workflows/*.json",
+  "example_workflows/*.json",
 ]
 
 # ---------------------------------------------------------------------------

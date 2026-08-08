@@ -62,6 +62,18 @@
   `tests/test_progress.py` (backend selection, call shape, legacy fallback,
   and the captioning batch wiring that asserts each progress tick carries its
   own frame).
+- **The two example workflows moved from `docs/workflows/` to
+  `example_workflows/` — and now show up in Workflows → Browse Templates.**
+  ComfyUI scans `custom_nodes/*/example_workflows/*.json` and serves whatever
+  it finds there through `/workflow_templates`, so the graphs the README
+  already shipped as drag-and-drop starters are now also one click away in the
+  host's own template gallery (and visible on the registry page, which reads
+  the same folder). The graphs themselves are unchanged — same two files,
+  re-synced to the current schema at 1.1.2 — only the address moved. The move
+  is followed through everywhere the old path was named: README (EN + RU),
+  `pyproject.toml` package data, the `.comfyignore` shipping note, the two
+  documentation tests that open the graphs, and the frontend comments that
+  point at them.
 
 ## 1.1.2 (2026-08-06)
 

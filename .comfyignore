@@ -76,8 +76,10 @@ frontend/index.html
 frontend/test-playground.html
 frontend/.gitignore
 
-# Documentation and the GitHub Pages site. docs/workflows/*.json stays — those
-# are ready-made graphs users load in ComfyUI.
+# Documentation and the GitHub Pages site. The example workflows live in
+# example_workflows/ at the repo root (not under docs/), so they ship by
+# default and nothing here needs to carve them out — ComfyUI's template
+# gallery and the registry both read them from that folder.
 #
 # This list is by name, not `docs/`, so a new file here ships unless it is added
 # — `docs/add-theme.md` was written and would have gone to the registry. If you
