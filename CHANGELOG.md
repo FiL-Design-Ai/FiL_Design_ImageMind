@@ -33,6 +33,22 @@
   with `cyber_punch_hud` through a `FRAME_THEMES` table, since both themes hit
   the identical bug and `onDrawForeground` is the only hook that runs after the
   body and badges are painted.
+- **NFT Vibe was mixing its two brand hues in the same glow instead of picking
+  one per element.** Flagged from a live screenshot of a real 17-node
+  workflow: the card had a lime border and a violet ambient glow at once, the
+  active-chip highlight blended a lime shadow with a violet one on top of it,
+  and `muted` — the token nearly every widget label reads — was itself violet,
+  so secondary text fought the lime accent across every node on screen. The
+  reference swatch (Blanche White / Banana Yellow / Plum Violet) only ever
+  uses violet as one of three solid blocks, never as running text. Fixed by
+  giving each hue one job: violet is now the card border, the glass/field
+  border and the section-divider fill (`--fil-surface-border`,
+  `--fil-glass-border`, `--fil-input-border` all switched from lime to
+  violet), lime is reserved for the active/focus state alone (chip highlight
+  glow dropped its violet half; the seed-pill hover glow dropped its lime
+  half in favour of violet, matching its own violet fill), and `muted` moved
+  from `#c084fc` to a neutral `#c7c5cc` (11.7:1 on the panel) so body text
+  stops competing with either brand colour.
 
 ### Changed
 

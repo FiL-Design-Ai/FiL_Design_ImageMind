@@ -173,6 +173,15 @@ const FIL_PALETTE_NEO_EMERALD: FilPalette = {
  * "NFT Vibe" — High-contrast NFT & Crypto Studio aesthetic.
  * Banana Yellow (#D0FF00) + Plum Cyber Violet (#8116E0) + Blanche White (#FEFFFC)
  * on ultra-black (#08080a) surface.
+ *
+ * `muted` is neutral, not violet, on purpose. The reference swatch card uses
+ * violet only as one of three SOLID blocks, never as running text — `muted`
+ * feeds nearly every widget label pack-wide (see the token-roles note below),
+ * so a violet `muted` painted violet across every field label in a real
+ * workflow, fighting the lime accent everywhere at once. A neutral near-white
+ * keeps body text out of the two brand hues entirely; violet stays reserved
+ * for the deliberate solid fills in `THEME_EFFECTS.nft_vibe` (section border,
+ * seed pill, card border) the way the reference actually uses it.
  */
 const FIL_PALETTE_NFT_VIBE: FilPalette = {
   accent: "#d0ff00",
@@ -180,7 +189,7 @@ const FIL_PALETTE_NFT_VIBE: FilPalette = {
   panel: "#08080a",
   panelAlt: "#121217",
   text: "#fefffc",
-  muted: "#c084fc",
+  muted: "#c7c5cc", // 11.7:1 on the panel, 10.9:1 on panelAlt — plenty of room to stay neutral
   danger: "#ff3366",
   ok: "#d0ff00",
 };
@@ -788,17 +797,22 @@ const THEME_EFFECTS: Record<FilThemeName, string> = {
 }
 `,
   nft_vibe: `
+/* One hue per glow. The first cut of this theme put a yellow border on the
+ * card and a violet glow around it, then a yellow+violet double glow on every
+ * active chip on top of that — every highlighted element competing with
+ * itself. Below, violet is the card/structural color and lime is reserved for
+ * interactive/active state, never blended in the same shadow list. */
 :root[data-fil-theme="nft_vibe"] .fil-node-shell [class$="-root"] {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.85), 0 0 30px rgba(129, 22, 224, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.18);
-  border: 1px solid rgba(208, 255, 0, 0.35);
+  border: 1px solid rgba(129, 22, 224, 0.35);
   backdrop-filter: blur(16px);
 }
 :root[data-fil-theme="nft_vibe"] .fil-w-section {
-  background: linear-gradient(90deg, rgba(129, 22, 224, 0.22) 0%, rgba(208, 255, 0, 0.04) 100%) !important;
+  background: linear-gradient(90deg, rgba(129, 22, 224, 0.22) 0%, rgba(129, 22, 224, 0.04) 100%) !important;
   border-left: 3px solid #8116e0 !important;
   border-radius: 9999px !important;
   padding-left: 12px !important;
-  color: #c084fc !important;
+  color: #fefffc !important;
   font-weight: 700;
 }
 :root[data-fil-theme="nft_vibe"] .fil-w-section:hover:not(:disabled) {
@@ -811,7 +825,7 @@ const THEME_EFFECTS: Record<FilThemeName, string> = {
 :root[data-fil-theme="nft_vibe"] .fil-w-chip.active {
   background: #d0ff00 !important;
   color: #08080a !important;
-  box-shadow: 0 0 20px rgba(208, 255, 0, 0.6), 0 0 10px rgba(129, 22, 224, 0.4) !important;
+  box-shadow: 0 0 20px rgba(208, 255, 0, 0.6) !important;
   border-color: #d0ff00 !important;
   border-radius: 9999px !important;
   font-weight: 700;
@@ -825,7 +839,7 @@ const THEME_EFFECTS: Record<FilThemeName, string> = {
 }
 :root[data-fil-theme="nft_vibe"] .fil-w-seedrow-pill.is-accent:hover {
   background: #9333ea !important;
-  box-shadow: 0 0 20px rgba(208, 255, 0, 0.5) !important;
+  box-shadow: 0 0 20px rgba(129, 22, 224, 0.55) !important;
 }
 :root[data-fil-theme="nft_vibe"] input:focus,
 :root[data-fil-theme="nft_vibe"] textarea:focus {
@@ -1008,10 +1022,16 @@ const SURFACE_VARS_NEO_EMERALD =
 
 /**
  * NFT Vibe — High-contrast Acid Yellow & Cyber Violet Capsule UI surface tokens.
+ *
+ * Violet carries every STATIC border (surface, glass field, control outline);
+ * lime is reserved for FOCUS/active state only (see the `:focus` rule in
+ * `THEME_EFFECTS.nft_vibe`, which overrides `--fil-input-border` on interact).
+ * `--fil-surface-border` used to be lime too, which put a yellow card edge
+ * around a violet ambient glow — two brand hues arguing on the same outline.
  */
 const SURFACE_VARS_NFT_VIBE =
   "--fil-surface-bg:rgba(8,8,10,0.92);" +
-  "--fil-surface-border:rgba(208,255,0,0.35);" +
+  "--fil-surface-border:rgba(129,22,224,0.35);" +
   "--fil-surface-radius:20px;" +
   "--fil-surface-blur:16px;" +
   "--fil-surface-shadow:0 20px 40px rgba(0,0,0,0.85), 0 0 30px rgba(129,22,224,0.3), inset 0 1px 0 rgba(255,255,255,0.18);" +
@@ -1022,7 +1042,7 @@ const SURFACE_VARS_NFT_VIBE =
   "--fil-pill-bg:rgba(208,255,0,0.08);" +
   "--fil-pill-border:rgba(208,255,0,0.4);" +
   "--fil-border:rgba(129,22,224,0.35);" +
-  "--fil-input-border:rgba(208,255,0,0.5);";
+  "--fil-input-border:rgba(129,22,224,0.4);";
 
 /**
  * Night City Cyberpunk 2077 HUD surface tokens.
