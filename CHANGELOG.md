@@ -4,7 +4,11 @@
 
 ### Added
 
-- **🎨 New setting "Theme covers all of ComfyUI" (`FiL_Design_ImageMind.Appearance.WholeUi`).**
+- **🎨 New setting "Repaint the whole ComfyUI app" (`FiL_Design_ImageMind.Appearance.WholeUi`).**
+  Renamed from its first cut, "Theme covers all of ComfyUI" — sitting right
+  under "Theme applies to", which has its own "All nodes" option, the two read
+  as if this were just a bigger version of that setting. It is not: the scope
+  setting only ever tints title bars.
   The scope setting could always widen where *our* painting reaches, but it
   stops at the node title bar — everything outside our nodes is the host's to
   colour. This switch takes the other road: it builds a full ComfyUI color

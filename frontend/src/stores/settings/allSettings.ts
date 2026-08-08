@@ -35,7 +35,7 @@ import { SHORTCUTS_SETTINGS } from "@/stores/settings/shortcutsSettings";
 import { WIRELESS_SETTINGS } from "@/stores/settings/wirelessSettings";
 
 export const ALL_SETTINGS: ComfyExtensionSettings[] = [
-  // Appearance, to read as: Theme → Theme applies to → Theme covers all of ComfyUI → Theme animations.
+  // Appearance, to read as: Theme → Theme applies to → Repaint the whole ComfyUI app → Theme animations.
   ...APPEARANCE_SETTINGS.slice().reverse(),
   ...THEME_SETTINGS,
 

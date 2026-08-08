@@ -32,7 +32,7 @@ function onThemeChange(newValue: unknown): void {
   applyFilTheme(theme);
   const app = (globalThis as unknown as { app?: unknown }).app;
   if (app) reapplyThemeToGraph(app);
-  // Only does anything while "Theme covers all of ComfyUI" is on, and then it
+  // Only does anything while "Repaint the whole ComfyUI app" is on, and then it
   // has to: otherwise the application keeps the colours of the theme just left.
   syncWholeUiPalette(theme);
 }

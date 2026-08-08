@@ -16633,7 +16633,7 @@ var gT = "FiL_Design_ImageMind.Appearance.Scope", _T = "FiL_Design_ImageMind.App
 	},
 	{
 		id: _T,
-		name: "Theme covers all of ComfyUI",
+		name: "Repaint the whole ComfyUI app",
 		type: "boolean",
 		defaultValue: !1,
 		category: [
@@ -16641,7 +16641,7 @@ var gT = "FiL_Design_ImageMind.Appearance.Scope", _T = "FiL_Design_ImageMind.App
 			"Appearance",
 			"WholeUi"
 		],
-		tooltip: "Repaints the whole application — menus, sidebars, canvas and every other pack's nodes — by building a ComfyUI color palette from this theme and selecting it. Turning it off restores the palette you were on. The generated palette stays in Settings → Appearance → Color Palette, yours to keep or delete.",
+		tooltip: "Different from 'Theme applies to' above: that one only ever tints title bars. This repaints the whole application — menus, sidebars, canvas and every other pack's nodes — by building a ComfyUI color palette from this theme and selecting it. Turning it off restores the palette you were on. The generated palette stays in Settings → Appearance → Color Palette, yours to keep or delete.",
 		onChange: (e) => ST(!!e)
 	},
 	{

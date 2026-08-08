@@ -37,7 +37,7 @@ function withAlphaLike(hex: string): string {
  *    throw and resolves anyway — so a caller that only awaits sees success.
  *
  * The first cut of this fake modelled only the first of those, and the second
- * toggle of "Theme covers all of ComfyUI" pointed the user's palette setting at
+ * toggle of "Repaint the whole ComfyUI app" pointed the user's palette setting at
  * a palette that had never been added. The unit tests were green; a live
  * ComfyUI put the error in the console.
  */

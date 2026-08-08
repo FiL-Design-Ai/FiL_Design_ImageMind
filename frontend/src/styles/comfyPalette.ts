@@ -19,7 +19,7 @@
  *     `removeExportedPalette`.
  *
  * `applyThemeToWholeUi` is the same palette with the switch thrown, and it runs
- * only when the user turns on "Theme covers all of ComfyUI" themselves. Asking
+ * only when the user turns on "Repaint the whole ComfyUI app" themselves. Asking
  * for the whole application to be repainted is a legitimate thing to want; doing
  * it uninvited is what got features removed in 1.1.0. The palette that was
  * active is written down first, so `restoreUserPalette` can put it back.

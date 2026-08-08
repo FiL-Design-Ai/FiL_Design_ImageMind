@@ -43,7 +43,14 @@ export const APPEARANCE_SETTINGS: ComfyExtensionSettings[] = [
   },
   {
     id: WHOLE_UI,
-    name: "Theme covers all of ComfyUI",
+    // Deliberately NOT "Theme covers all of ComfyUI" — the setting right above
+    // this one has an "All nodes" option in its own dropdown, and the two
+    // together read as if this were just a fourth, bigger "applies to" value.
+    // It is not: that setting only ever tints title bars; this one hands the
+    // theme to ComfyUI as an application-wide colour palette (menus, sidebars,
+    // canvas). The name has to say "app", not "all", to not echo the setting
+    // next to it.
+    name: "Repaint the whole ComfyUI app",
     type: "boolean",
     defaultValue: false,
     category: [SETTINGS_CATEGORY, "Appearance", "WholeUi"],
@@ -54,7 +61,7 @@ export const APPEARANCE_SETTINGS: ComfyExtensionSettings[] = [
     // scope setting — nothing is written into the user's workflow file, because
     // a ComfyUI palette lives in their own settings.
     tooltip:
-      "Repaints the whole application — menus, sidebars, canvas and every other pack's nodes — by building a ComfyUI color palette from this theme and selecting it. Turning it off restores the palette you were on. The generated palette stays in Settings → Appearance → Color Palette, yours to keep or delete.",
+      "Different from 'Theme applies to' above: that one only ever tints title bars. This repaints the whole application — menus, sidebars, canvas and every other pack's nodes — by building a ComfyUI color palette from this theme and selecting it. Turning it off restores the palette you were on. The generated palette stays in Settings → Appearance → Color Palette, yours to keep or delete.",
     onChange: (value: unknown) => onWholeUiChange(Boolean(value)),
   },
   {
