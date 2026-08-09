@@ -555,13 +555,16 @@ graph, not muting — and it returns an `ExecutionBlocker` carrying a message th
 **📡 Channel** — `value0`, `value1`, ... (ANY, optional, they grow as you use them), no outputs.
 Plug something in and free inputs of the same type across the graph pick it up, with no wire drawn.
 One node carries one channel per wired input, so a single Channel can broadcast the model, the VAE
-and the CLIP at once. A channel is named after its data type (`MODEL`, `VAE`); to name it yourself,
-rename the slot — there is no name widget, because one widget could not name several inputs. When
+and the CLIP at once. A channel is named after its source slot when that says more than the type —
+a wire from ♻️ Seed becomes `SEED` and pairs with `seed` inputs on its own — otherwise after its
+data type (`MODEL`, `VAE`); to name it yourself, use the pencil on the panel row, and hovering the
+name says which node the data comes from. A CONDITIONING wire is asked once, the moment it lands,
+whether it is positive or negative; the answer is saved in the workflow and never asked twice. When
 two channels could feed the same input, or a node offers two identical inputs a channel could not
-tell apart (a KSampler's `positive`/`negative`, say), nothing auto-wires and the input waits for a
-manual pick — open the gear on the Channel's own panel to choose targets by hand, or check the
-"Wireless" tab in the bottom panel (next to Essential/View Controls) for a graph-wide list of every
-channel and everything currently unresolved. A subgraph is its own scope: a Channel placed inside
+tell apart, nothing auto-wires and the input waits for a manual pick — open the gear on the
+Channel's own panel to choose targets by hand, or check the "Wireless" tab in the bottom panel
+(next to Essential/View Controls) for a graph-wide list of every channel and everything currently
+unresolved. A subgraph is its own scope: a Channel placed inside
 one serves receivers inside that same subgraph only, never the parent workflow or a sibling.
 
 </details>
@@ -1451,13 +1454,15 @@ Python самого ComfyUI (`python_embeded`, `venv` или `.venv`), став�
 **📡 Channel** — `value0`, `value1`, … (ANY, опц., входы отрастают по мере использования), выходов
 нет. Воткните что-нибудь — и свободные входы того же типа по всему графу подхватят это без единого
 провода. Один узел несёт по каналу на каждый занятый вход, так что одна нода может раздавать модель,
-VAE и CLIP разом. Канал называется по типу данных (`MODEL`, `VAE`); чтобы задать имя, переименуйте
-слот — отдельного поля для имени нет, одним полем несколько входов не назовёшь. Если на один вход
-претендуют два канала, или у ноды два одинаковых входа, которые канал не может различить (`positive`
-и `negative` у KSampler, например) — автоматика не подключает ничего, вход ждёт ручного выбора:
-шестерёнка на панели самого Channel открывает список адресатов с галочками, а вкладка «Wireless» в
-нижней панели (рядом с Essential/View Controls) показывает все каналы графа и всё, что осталось
-неразрешённым. Подграф — своя область видимости: Channel внутри подграфа обслуживает только приёмники
+VAE и CLIP разом. Канал называется по слоту источника, если тот говорит больше типа — провод из
+♻️ Seed становится `SEED` и сам спаривается с входами `seed` — иначе по типу данных (`MODEL`,
+`VAE`); своё имя задаётся карандашом в строке панели, а наведение на имя показывает, из какого узла
+пришли данные. CONDITIONING-провод в момент подключения один раз спрашивает, позитив это или
+негатив; ответ сохраняется в воркфлоу и дважды не переспрашивается. Если на один вход претендуют
+два канала, или у ноды два одинаковых входа, которые канал не может различить — автоматика не
+подключает ничего, вход ждёт ручного выбора: шестерёнка на панели самого Channel открывает список
+адресатов с галочками, а вкладка «Wireless» в нижней панели (рядом с Essential/View Controls)
+показывает все каналы графа и всё, что осталось неразрешённым. Подграф — своя область видимости: Channel внутри подграфа обслуживает только приёмники
 внутри него самого, наружу и в соседние подграфы не выходит.
 
 </details>

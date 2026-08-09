@@ -150,7 +150,7 @@ test.describe("wireless channels in a real ComfyUI", () => {
       .toEqual(["1", "1"]);
   });
 
-  test("the question is asked once, the second wire settles by exclusion, and nothing re-asks after a reload", async ({ page }) => {
+  test("every wire is asked once, and nothing re-asks after a reload", async ({ page }) => {
     await page.goto("/");
     await openBlankWorkflow(page);
 
@@ -186,18 +186,20 @@ test.describe("wireless channels in a real ComfyUI", () => {
     await buttons.nth(0).click(); // Positive
     await expect.poll(() => page.locator(".fil-channel-naming-actions").count(), { timeout: 5_000 }).toBe(0);
 
-    // Second wire lands: no question this time. The first answer named one
-    // channel, exclusion settles the other — the only slot left is
-    // `negative`, so there is nothing to ask.
+    // Second wire lands: asked again — the user's word, not exclusion's
+    // deduction, decides positive versus negative (decided 2026-08-10).
     await page.evaluate(({ encNeg, channel }) => {
       const graph = window.app.graph as unknown as { getNodeById(id: number): SceneNode };
       graph.getNodeById(encNeg).connect(0, graph.getNodeById(channel), 1);
     }, ids);
 
+    await expect.poll(() => buttons.count(), { timeout: 15_000 }).toBe(3);
+    await buttons.nth(1).click(); // Negative
+    await expect.poll(() => page.locator(".fil-channel-naming-actions").count(), { timeout: 5_000 }).toBe(0);
+
     await expect
       .poll(() => channelCounts(page), { timeout: 15_000 })
       .toEqual(["1", "1"]);
-    expect(await page.locator(".fil-channel-naming-actions").count()).toBe(0);
     expect(await page.locator(".fil-channel-cluster-row").count()).toBe(0);
 
     // Serialize + reload: the labels travel with the workflow, and the load
@@ -223,15 +225,13 @@ test.describe("wireless channels in a real ComfyUI", () => {
     expect(await page.locator(".fil-channel-cluster-row").count()).toBe(0);
 
     // Only the wired slots matter: the autogrown spare slot keeps its host
-    // default. The first slot keeps the answered name; the second was settled
-    // by exclusion, so it never got a name of its own — just its type, since
-    // with the first channel called `positive` it is the only CONDITIONING.
+    // default. Both wired slots keep their answered names.
     const labels = await page.evaluate(() => {
       const channel = window.app.graph._nodes.find(
         (n) => (n as { comfyClass?: string }).comfyClass === "FiLChannel",
       ) as unknown as SceneNode;
       return (channel.inputs ?? []).filter((input) => input.link != null).map((input) => input.label);
     });
-    expect(labels).toEqual(["positive", "CONDITIONING"]);
+    expect(labels).toEqual(["positive", "negative"]);
   });
 });
