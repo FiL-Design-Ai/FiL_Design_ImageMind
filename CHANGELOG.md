@@ -4,6 +4,14 @@
 
 ### Added
 
+- **📡 Channel rows say where the data comes from.**
+  The transmitter only forwards, and its panel row showed the channel's
+  name, colour and receiver count — knowing which node actually fed it
+  meant tracing the wire across the canvas. Hovering the channel name now
+  shows a tooltip with the source node and the type it carries ("From
+  Checkpoint Loader Simple · type MODEL"), so a row answers what it is and
+  from whom on its own. Locked in by a `channelPanel.test.ts` case.
+
 - **⏏️ Provider Loader can unload the local LLM the moment the prompt is written.**
   New "Unload LLM after prompt" switch on the 🔌 Provider Loader panel, right
   above 🌡️ Temperature, visible only for the providers it applies to —
