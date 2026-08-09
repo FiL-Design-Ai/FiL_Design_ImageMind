@@ -6,6 +6,7 @@
  * on every visible panel, and a theme is only worth having if the user can say
  * where it applies and whether it animates.
  */
+import { getActivePinia } from "pinia";
 import type { ComfyExtensionSettings } from "@/types/comfy";
 import type { FilThemeName } from "@/styles/brand";
 import { SETTINGS_CATEGORY } from "@/constants/brand";
@@ -106,6 +107,12 @@ function onAppearanceChange(changed: { scope?: ThemeScope; animations?: boolean 
  * writer for a state the host already keeps.
  */
 function onWholeUiChange(on: boolean): void {
+  // ComfyUI echoes onChange once per setting while it registers them. The
+  // host already holds whatever palette this would write ("Nothing is needed
+  // at startup" above), and the toast stack does not exist yet — a failure
+  // inside would surface as a page-load crash, not a toast. Real toggles come
+  // from the settings UI, inside a live app with pinia active.
+  if (!getActivePinia()) return;
   void (async () => {
     const { applyThemeToWholeUi, restoreUserPalette, currentThemeName } = await import("@/styles/comfyPalette");
     const { toast } = await import("@/stores/toastStore");

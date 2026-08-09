@@ -40,6 +40,7 @@ interface SlotLike {
 
 interface NodeLike {
   inputs?: SlotLike[];
+  size?: [number, number];
   _widgetSlotsDirty?: boolean;
   graph?: { setDirtyCanvas?: (a: boolean, b: boolean) => void };
 }
@@ -89,7 +90,42 @@ export function exposeWidgetInputSockets(node: unknown, names: string[]): void {
     if (w) w.y = SLOT_PITCH * (firstFreeRow + row);
     row += 1;
   }
+  // Widget-mirror inputs the panel does not turn into sockets still collapse
+  // onto the node's top edge (their widgets never lay out), and the host's
+  // drawSlots() reveals any widget socket the pointer is over — live, hovering
+  // the top input painted ghost dots over it and the title bar. Park the
+  // leftovers below the node's bottom edge instead: the hover hit-test never
+  // lands there by accident, and a wire loaded from an old workflow still
+  // finds its dot. anchorWidgetInputSockets keeps them parked as the node
+  // grows; the height at creation is just the first guess.
+  parkSocketsBelow(node, n, names, [], n.size?.[1] ?? 0);
   requestArrange(n);
+}
+
+/**
+ * Move widget-mirror slots that currently show no dot below the node.
+ *
+ * `managed` names the slots the panel owns; `hidden` the subset of them whose
+ * field is not rendered right now (collapsed section) — both them and the
+ * unmanaged leftovers would otherwise sit hover-revealable at a row inside
+ * the node body.
+ */
+function parkSocketsBelow(node: unknown, n: NodeLike, managed: string[], hidden: string[], nodeHeight: number): boolean {
+  let moved = false;
+  let parked = 0;
+  for (const slot of n.inputs ?? []) {
+    const name = slot.name ?? "";
+    if (!slot.widget || (managed.includes(name) && !hidden.includes(name))) continue;
+    slot.alwaysVisible = false;
+    const w = findFilWidget(node, name);
+    const y = nodeHeight + SLOT_PITCH * (parked + 1);
+    if (w && w.y !== y) {
+      w.y = y;
+      moved = true;
+    }
+    parked += 1;
+  }
+  return moved;
 }
 
 /**
@@ -159,6 +195,7 @@ export function anchorWidgetInputSockets(node: unknown, anchors: WidgetSocketAnc
   if (!view || nodeY == null || nodeHeight == null) return;
 
   let moved = false;
+  const hidden: string[] = [];
   for (const { name, el } of anchors) {
     if (!el) {
       // No element at all means the panel is not rendering that field: a
@@ -172,6 +209,7 @@ export function anchorWidgetInputSockets(node: unknown, anchors: WidgetSocketAnc
       // rect: rects go to zero for a frame during any relayout, and hiding on
       // that would make every dot flicker.
       setAlwaysVisible(node as NodeLike, name, false);
+      hidden.push(name);
       continue;
     }
     setAlwaysVisible(node as NodeLike, name, true);
@@ -187,6 +225,12 @@ export function anchorWidgetInputSockets(node: unknown, anchors: WidgetSocketAnc
       moved = true;
     }
   }
+  // The node grows and shrinks as the panel relayouts, so the park row
+  // assigned at creation can end up inside the body — hover-revealed ghost
+  // dots over the panel, the same wart at a new address. Keep every dot-less
+  // widget socket (unmanaged leftovers plus currently hidden managed ones)
+  // below the current bottom edge.
+  if (parkSocketsBelow(node, node as NodeLike, anchors.map((a) => a.name), hidden, nodeHeight)) moved = true;
   // Also ask for one while a socket still has no hit-test box: LiteGraph resets
   // those to a zero-size rect whenever it rebuilds a node's slots, and a socket
   // without a box cannot be clicked or dropped onto.

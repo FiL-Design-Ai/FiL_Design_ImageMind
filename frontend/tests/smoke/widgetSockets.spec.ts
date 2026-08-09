@@ -237,4 +237,56 @@ test.describe("widget input sockets in a real graph", () => {
       ).toBeLessThanOrEqual(2);
     }
   });
+
+  /**
+   * Widget-mirror inputs the panel does not manage used to stay collapsed at
+   * the node's top edge — their hidden widgets never lay out — and the host's
+   * drawSlots() reveals any widget socket the pointer is over: live, hovering
+   * the top input painted ghost dots over it and the title bar. The park in
+   * widgetInputSockets.ts has to keep every dot-less widget socket below the
+   * node's bottom edge, where the hover hit-test never lands by accident.
+   */
+  test("dot-less widget sockets stay parked below the node", async ({ page }) => {
+    await page.goto("/");
+    await openBlankWorkflow(page);
+
+    const result = await page.evaluate(async () => {
+      const frames = async (count: number) => {
+        for (let i = 0; i < count; i++) await new Promise((r) => requestAnimationFrame(r));
+      };
+
+      interface SlotLike {
+        name?: string;
+        pos?: [number, number];
+        alwaysVisible?: boolean;
+        widget?: unknown;
+      }
+      interface GraphNode {
+        pos: [number, number];
+        size: [number, number];
+        inputs?: SlotLike[];
+        _filVueApps?: Record<string, { host: HTMLElement }>;
+      }
+      const node = window.LiteGraph.createNode("FiLDatasetForge") as GraphNode | null;
+      if (!node) throw new Error("FiLDatasetForge would not instantiate");
+      node.pos = [40, 40];
+      window.app.graph.add(node);
+      // The widget-mirror input entries appear after creation, and the park
+      // is re-applied by the anchor sync on panel mount — nothing to assert
+      // until the panel is up.
+      await frames(90);
+      const host = Object.values(node._filVueApps ?? {})[0]?.host;
+      if (!host) throw new Error("the forge mounted no panel");
+
+      return (node.inputs ?? [])
+        .filter((s) => s.widget && s.alwaysVisible !== true)
+        .map((s) => ({ name: s.name, y: s.pos?.[1] ?? null, height: node.size[1] }));
+    });
+
+    expect(result.length, "the forge should have dot-less widget inputs to park").toBeGreaterThan(0);
+    for (const r of result) {
+      expect(typeof r.y, `${r.name} was never given a slot position`).toBe("number");
+      expect(r.y as number, `${r.name} sits inside the node body, hover-revealable`).toBeGreaterThan(r.height);
+    }
+  });
 });

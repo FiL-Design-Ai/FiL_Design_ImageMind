@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
+import { createPinia, setActivePinia } from "pinia";
 import {
   APPEARANCE_SETTINGS,
   ANIMATIONS,
@@ -126,6 +127,10 @@ describe("the whole-of-ComfyUI switch", () => {
 
   beforeEach(() => {
     localStorage.clear();
+    // A real toggle happens inside a live app, with pinia active; the
+    // pre-pinia registration echo is what the guard in onWholeUiChange skips,
+    // and toastStack.test.ts pins that fallback.
+    setActivePinia(createPinia());
   });
 
   it("hands the application over and takes it back again", async () => {

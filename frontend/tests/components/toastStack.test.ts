@@ -3,7 +3,7 @@ import { nextTick } from "vue";
 import { mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import FilToastStack from "@/components/widgets/FilToastStack.vue";
-import { useToastStore } from "@/stores/toastStore";
+import { toast, useToastStore } from "@/stores/toastStore";
 
 /**
  * The stack is mounted once at extension setup(), while the store is still
@@ -89,5 +89,21 @@ describe("FilToastStack", () => {
     vi.advanceTimersByTime(500);
     await nextTick();
     expect(count(wrapper)).toBe(0);
+  });
+});
+
+describe("toast before pinia is active", () => {
+  // The settings onChange echo at registration fires before any Vue app has
+  // activated pinia; a toast pushed then used to throw `reading '_s'` and
+  // took down the whole page load with it.
+  it("falls back to the console instead of throwing", () => {
+    setActivePinia(undefined);
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      expect(() => toast.error("too early for a toast")).not.toThrow();
+      expect(err).toHaveBeenCalledOnce();
+    } finally {
+      err.mockRestore();
+    }
   });
 });

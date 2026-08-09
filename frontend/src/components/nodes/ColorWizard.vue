@@ -83,6 +83,15 @@ function applyPreset(preset: "warm" | "cool" | "skin" | "contrast") {
     preserveSkin.value = false;
   }
 }
+
+// Section collapse state lives in `state.ui`, same pattern as the other
+// panels: an unbound FilSection flips its ▼ arrow on click and hides nothing.
+function isCollapsed(section: string): boolean {
+  return Boolean((props.state.ui as Record<string, unknown>)[`collapsed_${section}`]);
+}
+function setCollapsed(section: string, collapsed: boolean) {
+  (props.state.ui as Record<string, unknown>)[`collapsed_${section}`] = collapsed;
+}
 </script>
 
 <template>
@@ -111,38 +120,43 @@ function applyPreset(preset: "warm" | "cool" | "skin" | "contrast") {
     </div>
 
     <!-- Algorithm Method -->
-    <FilSection :title="t('cw_section_method', '⚙️ Method')" />
+    <FilSection :title="t('cw_section_method', '⚙️ Method')"
+      :model-value="isCollapsed('method')" @update:model-value="(v: boolean) => setCollapsed('method', v)" />
     <FilComboBox
+      v-if="!isCollapsed('method')"
       v-model="method"
       :options="methodOptions"
       :title="t('tt_cw_method', 'Correction algorithm.')"
     />
 
     <!-- Adjustment Sliders -->
-    <FilSection :title="t('cw_section_adjust', '🎛️ Adjustments')" />
-    <div class="fil-cw-slider-group">
-      <FilSlider :ref="(el: unknown) => setFieldEl('strength', el)"
-        v-model="strength" :min="0" :max="1" :step="0.05" :disabled="isLinked('strength')"
-        :label="t('cw_strength', 'Correction Strength')"
-        :title="linkedTip('strength', t('tt_cw_strength', 'Correction strength (0 = no change).'))" />
-      <FilSlider :ref="(el: unknown) => setFieldEl('temperature', el)"
-        v-model="temperature" :min="-1" :max="1" :step="0.05" :disabled="isLinked('temperature')"
-        :label="t('cw_temperature', 'Temperature (Warm/Cool)')"
-        :title="linkedTip('temperature', t('tt_cw_temperature', 'Colour temperature.'))" />
-      <FilSlider :ref="(el: unknown) => setFieldEl('tint', el)"
-        v-model="tint" :min="-1" :max="1" :step="0.05" :disabled="isLinked('tint')"
-        :label="t('cw_tint', 'Tint (Green/Magenta)')"
-        :title="linkedTip('tint', t('tt_cw_tint', 'Colour tint.'))" />
-    </div>
+    <FilSection :title="t('cw_section_adjust', '🎛️ Adjustments')"
+      :model-value="isCollapsed('adjust')" @update:model-value="(v: boolean) => setCollapsed('adjust', v)" />
+    <template v-if="!isCollapsed('adjust')">
+      <div class="fil-cw-slider-group">
+        <FilSlider :ref="(el: unknown) => setFieldEl('strength', el)"
+          v-model="strength" :min="0" :max="1" :step="0.05" :disabled="isLinked('strength')"
+          :label="t('cw_strength', 'Correction Strength')"
+          :title="linkedTip('strength', t('tt_cw_strength', 'Correction strength (0 = no change).'))" />
+        <FilSlider :ref="(el: unknown) => setFieldEl('temperature', el)"
+          v-model="temperature" :min="-1" :max="1" :step="0.05" :disabled="isLinked('temperature')"
+          :label="t('cw_temperature', 'Temperature (Warm/Cool)')"
+          :title="linkedTip('temperature', t('tt_cw_temperature', 'Colour temperature.'))" />
+        <FilSlider :ref="(el: unknown) => setFieldEl('tint', el)"
+          v-model="tint" :min="-1" :max="1" :step="0.05" :disabled="isLinked('tint')"
+          :label="t('cw_tint', 'Tint (Green/Magenta)')"
+          :title="linkedTip('tint', t('tt_cw_tint', 'Colour tint.'))" />
+      </div>
 
-    <!-- Skin Protection Toggle — shared FilToggle, not a bespoke ON/OFF pill,
-         so it matches the switches in UpscaleTileCalc and HiResFix. -->
-    <FilToggle
-      :model-value="preserveSkin ? 'ON' : 'OFF'"
-      :label="t('cw_preserve_skin', '🛡️ Preserve Skin Tones')"
-      :title="t('tt_cw_preserve_skin', 'Preserve skin tones.')"
-      @update:model-value="(v: 'ON' | 'OFF') => (preserveSkin = v === 'ON')"
-    />
+      <!-- Skin Protection Toggle — shared FilToggle, not a bespoke ON/OFF pill,
+           so it matches the switches in UpscaleTileCalc and HiResFix. -->
+      <FilToggle
+        :model-value="preserveSkin ? 'ON' : 'OFF'"
+        :label="t('cw_preserve_skin', '🛡️ Preserve Skin Tones')"
+        :title="t('tt_cw_preserve_skin', 'Preserve skin tones.')"
+        @update:model-value="(v: 'ON' | 'OFF') => (preserveSkin = v === 'ON')"
+      />
+    </template>
   </div>
 </template>
 

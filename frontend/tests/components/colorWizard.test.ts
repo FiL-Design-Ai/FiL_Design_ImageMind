@@ -107,3 +107,39 @@ describe("ColorWizard panel", () => {
     expect(state.nodeState.preserve_skin).toBe(false);
   });
 });
+
+describe("ColorWizard section collapse", () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+  });
+
+  // Both headers used to be unbound FilSections: the ▼ arrow flipped on click
+  // while every control underneath stayed put. They fold their own controls now.
+  it("folds Method and Adjustments and records it in state.ui", async () => {
+    const state = makeState();
+    const wrapper = mount(ColorWizardVue, { props: { state: state as never } });
+
+    const headers = wrapper.findAll("button.fil-w-section");
+    expect(headers.length).toBe(2);
+    for (const header of headers) {
+      expect(header.attributes("disabled"), `header "${header.text()}" must be clickable`).toBeUndefined();
+    }
+
+    expect(wrapper.find(".fil-combo").exists()).toBe(true);
+    const method = headers.find((h) => h.text().includes("Method"));
+    expect(method).toBeTruthy();
+    await method!.trigger("click");
+    await nextTick();
+    expect(wrapper.find(".fil-combo").exists()).toBe(false);
+    expect(state.ui.collapsed_method).toBe(true);
+
+    expect(wrapper.text()).toContain("Correction Strength");
+    const adjust = wrapper.findAll("button.fil-w-section").find((h) => h.text().includes("Adjustments"));
+    expect(adjust).toBeTruthy();
+    await adjust!.trigger("click");
+    await nextTick();
+    expect(wrapper.text()).not.toContain("Correction Strength");
+    expect(wrapper.text()).not.toContain("Preserve Skin Tones");
+    expect(state.ui.collapsed_adjust).toBe(true);
+  });
+});

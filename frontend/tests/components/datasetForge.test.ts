@@ -181,3 +181,42 @@ describe("DatasetForge socket-linked fields", () => {
     spy.mockRestore();
   });
 });
+
+describe("DatasetForge section collapse", () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+  });
+
+  // The four step sections shipped with `collapsible="false"`: FilSection still
+  // drew the ▼ arrow, so the header looked interactive but the click died in
+  // toggle(). Every header on the panel has to fold its own fields now.
+  it("leaves no section header dead", () => {
+    wrapper = mount(DatasetForgeVue, { props: { state: makeState() as never } });
+    const headers = wrapper.findAll("button.fil-w-section");
+    expect(headers.length).toBe(6);
+    for (const header of headers) {
+      expect(header.attributes("disabled"), `header "${header.text()}" must be clickable`).toBeUndefined();
+    }
+  });
+
+  it("folds the identity and write sections and records it in state.ui", async () => {
+    const state = makeState();
+    wrapper = mount(DatasetForgeVue, { props: { state: state as never } });
+
+    const identity = wrapper.findAll("button.fil-w-section").find((h) => h.text().includes("Who / what is this"));
+    expect(identity).toBeTruthy();
+    expect(wrapper.text()).toContain("Dataset name");
+    await identity!.trigger("click");
+    await nextTick();
+    expect(wrapper.text()).not.toContain("Dataset name");
+    expect(state.ui.collapsed_identity).toBe(true);
+
+    const write = wrapper.findAll("button.fil-w-section").find((h) => h.text().includes("Write to disk"));
+    expect(write).toBeTruthy();
+    expect(wrapper.text()).toContain("Dry run");
+    await write!.trigger("click");
+    await nextTick();
+    expect(wrapper.text()).not.toContain("Dry run");
+    expect(state.ui.collapsed_write).toBe(true);
+  });
+});

@@ -1,4 +1,4 @@
-import { defineStore } from "pinia";
+import { defineStore, getActivePinia } from "pinia";
 import { ref } from "vue";
 
 /**
@@ -113,7 +113,14 @@ function emit(level: ToastLevel, text: string): void {
       console.warn("[FiL_Design_ImageMind toast] extensionManager.toast failed:", err);
     }
   }
-  // Fallback: our own Pinia stack + FilToastStack component.
+  // Fallback: our own Pinia stack + FilToastStack component. Before any Vue
+  // app has activated pinia — the settings onChange echo at registration runs
+  // that early — there is no store to push into; the message goes to the
+  // console instead of crashing the page load.
+  if (!getActivePinia()) {
+    (level === "error" ? console.error : console.warn)(`[FiL_Design_ImageMind] ${text}`);
+    return;
+  }
   useToastStore().push(level, text, {});
 }
 

@@ -46,6 +46,17 @@
 
 ### Fixed
 
+- **Page load crashed with `reading '_s'` when the whole-UI palette setting echoed at registration.**
+  ComfyUI fires each setting's `onChange` once while registering settings,
+  before any Vue app has activated pinia. The "Repaint the whole ComfyUI app"
+  handler ran its palette work on that echo — pointless, the host already
+  holds the palette ("nothing is needed at startup" was the design) — and
+  when the work failed, the catch pushed a toast into a pinia store that did
+  not exist yet, turning a degraded palette into a page-load TypeError. The
+  handler now ignores the pre-pinia echo, and `toastStore`'s console fallback
+  covers any other caller that fires before the store exists; locked in by a
+  `toastStack.test.ts` case that toasts with no active pinia.
+
 - **⚡ KSampler crashed on every `ddim`, `uni_pc` and `uni_pc_bh2` run — three samplers its own menu offers.**
   The node always samples through its own `_sample_core` (the eta widget is
   always present, defaulting to 1.0), and that path built the sampler with the
@@ -62,6 +73,39 @@
   optioned samplers keep the `extra_options` table. Found in a live run
   (comfyui.log, 2026-08-10); locked in by
   `test_sample_unified.py::test_special_samplers_dispatch_like_the_stock_ksampler`.
+
+- **Hovering a node's top input painted ghost sockets over it and the title bar.**
+  ComfyUI gives every native widget a mirror entry in `node.inputs`, and the
+  host's `drawSlots()` reveals any widget socket the pointer is over unless it
+  is `alwaysVisible` or linked. On a FiL node every widget is hidden, so the
+  mirrors the panel does not turn into sockets never received a row and
+  collapsed onto the node's top edge — the same dead pixel as the first real
+  input, which is why hovering that input "doubled" it and sprinkled dots into
+  the title bar on every node. `exposeWidgetInputSockets` now parks every
+  dot-less widget socket (unmanaged mirrors, plus managed ones whose field is
+  currently hidden by a collapsed section) below the node's bottom edge, and
+  `anchorWidgetInputSockets` keeps them parked as the panel grows; a wire
+  loaded from an old workflow still finds its dot, just out of the hover
+  path. Locked in by a smoke case against a real LiteGraph.
+
+- **Dataset Forge: the four main sections looked collapsible but ignored the click.**
+  The "Who / what is this", "File format", "Captions" and "Write to disk"
+  headers rendered with `collapsible="false"` — `FilSection` still draws the
+  ▼ arrow for such a header, so it looked interactive while the click died in
+  `toggle()`; only "Caption tuning" and "Technical details" actually folded.
+  The four sections are now wired to the same `state.ui.collapsed_*` pattern
+  the rest of the panel uses (expanded by default, state survives a reload)
+  and really hide their fields when folded, nested "Caption tuning" included.
+  The same dead-arrow wart was previously fixed in Upscale Tile Calc; locked
+  in by the section-collapse cases in `datasetForge.test.ts`.
+
+- **Color Wizard: the "Method" and "Adjustments" headers flipped their arrow but folded nothing.**
+  Both rendered as a bare `<FilSection />` with no `model-value` binding, so
+  the component toggled its own internal state while the panel never hid a
+  control — the ▼/▶ arrow lied on every click. They are wired to the same
+  `state.ui.collapsed_*` pattern as every other panel now and really hide the
+  method dropdown, the three sliders and the skin toggle when folded; covered
+  by a collapse case in `colorWizard.test.ts`.
 
 - **LM Studio could never generate: every chat request went to a path its server does not serve.**
   The Provider Loader's model list builds its URL from the provider

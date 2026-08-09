@@ -149,62 +149,74 @@ function setCollapsed(section: string, collapsed: boolean) {
 
 <template>
   <div class="fil-ds-root">
-    <FilSection :title="t('dsp_section_identity', '1️⃣ Who / what is this')" :collapsible="false" />
-    <FilTextInput :ref="(el: unknown) => setFieldEl('dataset_name', el)" :disabled="isLinked('dataset_name')" v-model="datasetName" :label="t('dsp_label_dataset_name', '🏷️ Dataset name')"
-      :title="linkedTip('dataset_name', t('ds_name', ''))" placeholder="my_lora" />
-    <FilTextInput :ref="(el: unknown) => setFieldEl('trigger_word', el)" :disabled="isLinked('trigger_word')" v-model="triggerWord" :label="t('dsp_label_trigger', '🔑 Trigger word')"
-      :title="linkedTip('trigger_word', t('ds_trigger', ''))" placeholder="ohwx" />
-    <FilTextInput :ref="(el: unknown) => setFieldEl('class_token', el)" :disabled="isLinked('class_token')" v-model="classToken" :label="t('dsp_label_class', '🧍 Class')"
-      :title="linkedTip('class_token', t('ds_class', ''))" placeholder="woman" />
-    <FilInfo :text="`${t('dsp_preview_folder', '📁 Will create:')} ${folderPreview}`" />
-
-    <FilSection :title="t('dsp_section_format', '2️⃣ File format')" :collapsible="false" />
-    <FilComboBox v-model="baseResolution" :options="RESOLUTION_OPTIONS" :label="t('dsp_label_resolution', '📐 Resolution')"
-      :title="t('ds_resolution', '')" />
-    <FilSegmented v-model="layout" :options="['kohya', 'flat']"
-      :option-labels="{ kohya: t('dsp_opt_layout_kohya', '🗂️ kohya'), flat: t('dsp_opt_layout_flat', '📄 Flat') }"
-      :label="t('dsp_label_layout', '📦 Layout')" :title="t('ds_layout', '')" />
-    <FilNumberInput :ref="(el: unknown) => setFieldEl('repeats', el)" :disabled="isLinked('repeats')" v-model="repeats" :min="1" :max="1000" :step="1" :label="t('dsp_label_repeats', '🔁 Repeats')" :title="linkedTip('repeats', t('ds_repeats', ''))" />
-    <FilSegmented v-model="cropMode" :options="['center', 'entropy']"
-      :option-labels="{ center: t('dsp_opt_crop_center', '🎯 Center'), entropy: t('dsp_opt_crop_entropy', '🔬 Detail') }"
-      :label="t('dsp_label_crop', '✂️ Crop')" :title="t('ds_crop_mode', '')" />
-
-    <FilSection :title="t('dsp_section_captions', '3️⃣ Captions')" :collapsible="false" />
-    <FilSegmented v-model="captionMode" :options="['natural', 'tags', 'hybrid', 'none']"
-      :option-labels="{
-        natural: t('dsp_opt_mode_natural', '📝 Text'), tags: t('dsp_opt_mode_tags', '🏷️ Tags'),
-        hybrid: t('dsp_opt_mode_hybrid', '🔀 Hybrid'), none: t('dsp_opt_mode_none', '🚫 No LLM'),
-      }"
-      :label="t('dsp_label_caption_mode', '✍️ Mode')" :title="t('ds_caption_mode', '')" />
-    <FilInfo v-if="needsLlm && !configConnected" :text="t('dsp_hint_no_config', '⚠️ Connect 🔌 Provider Loader to caption — or fill in captions below')" err />
-    <template v-if="captionMode !== 'none'">
-      <FilSegmented v-model="captionLanguage" :options="['en', 'ru']"
-        :option-labels="{ en: t('dsp_opt_lang_en', '🇬🇧 EN'), ru: t('dsp_opt_lang_ru', '🇷🇺 RU') }"
-        :label="t('dsp_label_caption_lang', '🌐 Language')" :title="t('ds_caption_lang', '')" />
-      <FilNumberInput v-model="captionMaxWords" :min="4" :max="400" :step="5"
-        :label="t('dsp_label_caption_words', '📏 Max words')" :title="t('ds_caption_words', '')" />
+    <FilSection :title="t('dsp_section_identity', '1️⃣ Who / what is this')"
+      :model-value="isCollapsed('identity')" @update:model-value="(v: boolean) => setCollapsed('identity', v)" />
+    <template v-if="!isCollapsed('identity')">
+      <FilTextInput :ref="(el: unknown) => setFieldEl('dataset_name', el)" :disabled="isLinked('dataset_name')" v-model="datasetName" :label="t('dsp_label_dataset_name', '🏷️ Dataset name')"
+        :title="linkedTip('dataset_name', t('ds_name', ''))" placeholder="my_lora" />
+      <FilTextInput :ref="(el: unknown) => setFieldEl('trigger_word', el)" :disabled="isLinked('trigger_word')" v-model="triggerWord" :label="t('dsp_label_trigger', '🔑 Trigger word')"
+        :title="linkedTip('trigger_word', t('ds_trigger', ''))" placeholder="ohwx" />
+      <FilTextInput :ref="(el: unknown) => setFieldEl('class_token', el)" :disabled="isLinked('class_token')" v-model="classToken" :label="t('dsp_label_class', '🧍 Class')"
+        :title="linkedTip('class_token', t('ds_class', ''))" placeholder="woman" />
+      <FilInfo :text="`${t('dsp_preview_folder', '📁 Will create:')} ${folderPreview}`" />
     </template>
-    <FilTextArea :ref="(el: unknown) => setFieldEl('captions', el)" :disabled="isLinked('captions')" v-model="manualCaptions" :title="linkedTip('captions', t('ds_captions', ''))"
-      :label="t('dsp_label_manual_captions', '📋 Manual captions (optional)')"
-      :placeholder="t('dsp_ph_manual_captions', 'One per image, separated by a line with ---. Skips the LLM when filled.')" />
-    <template v-if="captionMode !== 'none'">
-      <FilSection :title="t('dsp_section_caption_tuning', '🎛️ Caption tuning')"
-        :model-value="isCollapsed('caption_tuning')" @update:model-value="(v: boolean) => setCollapsed('caption_tuning', v)" />
-      <template v-if="!isCollapsed('caption_tuning')">
-        <FilTextArea :ref="(el: unknown) => setFieldEl('dont_caption', el)" :disabled="isLinked('dont_caption')" v-model="dontCaption" :title="linkedTip('dont_caption', t('ds_dont_caption', ''))"
-          :label="t('dsp_label_dont_caption', '🚫 Never mention')"
-          :placeholder="t('dsp_ph_dont_caption', 'her face, red hair — belongs to the trigger word')" />
-        <FilTextArea :ref="(el: unknown) => setFieldEl('caption_instruction', el)" :disabled="isLinked('caption_instruction')" v-model="captionInstruction" :title="linkedTip('caption_instruction', t('ds_caption_instruction', ''))"
-          :label="t('dsp_label_caption_instruction', '💬 Extra instruction')" />
+
+    <FilSection :title="t('dsp_section_format', '2️⃣ File format')"
+      :model-value="isCollapsed('format')" @update:model-value="(v: boolean) => setCollapsed('format', v)" />
+    <template v-if="!isCollapsed('format')">
+      <FilComboBox v-model="baseResolution" :options="RESOLUTION_OPTIONS" :label="t('dsp_label_resolution', '📐 Resolution')"
+        :title="t('ds_resolution', '')" />
+      <FilSegmented v-model="layout" :options="['kohya', 'flat']"
+        :option-labels="{ kohya: t('dsp_opt_layout_kohya', '🗂️ kohya'), flat: t('dsp_opt_layout_flat', '📄 Flat') }"
+        :label="t('dsp_label_layout', '📦 Layout')" :title="t('ds_layout', '')" />
+      <FilNumberInput :ref="(el: unknown) => setFieldEl('repeats', el)" :disabled="isLinked('repeats')" v-model="repeats" :min="1" :max="1000" :step="1" :label="t('dsp_label_repeats', '🔁 Repeats')" :title="linkedTip('repeats', t('ds_repeats', ''))" />
+      <FilSegmented v-model="cropMode" :options="['center', 'entropy']"
+        :option-labels="{ center: t('dsp_opt_crop_center', '🎯 Center'), entropy: t('dsp_opt_crop_entropy', '🔬 Detail') }"
+        :label="t('dsp_label_crop', '✂️ Crop')" :title="t('ds_crop_mode', '')" />
+    </template>
+
+    <FilSection :title="t('dsp_section_captions', '3️⃣ Captions')"
+      :model-value="isCollapsed('captions')" @update:model-value="(v: boolean) => setCollapsed('captions', v)" />
+    <template v-if="!isCollapsed('captions')">
+      <FilSegmented v-model="captionMode" :options="['natural', 'tags', 'hybrid', 'none']"
+        :option-labels="{
+          natural: t('dsp_opt_mode_natural', '📝 Text'), tags: t('dsp_opt_mode_tags', '🏷️ Tags'),
+          hybrid: t('dsp_opt_mode_hybrid', '🔀 Hybrid'), none: t('dsp_opt_mode_none', '🚫 No LLM'),
+        }"
+        :label="t('dsp_label_caption_mode', '✍️ Mode')" :title="t('ds_caption_mode', '')" />
+      <FilInfo v-if="needsLlm && !configConnected" :text="t('dsp_hint_no_config', '⚠️ Connect 🔌 Provider Loader to caption — or fill in captions below')" err />
+      <template v-if="captionMode !== 'none'">
+        <FilSegmented v-model="captionLanguage" :options="['en', 'ru']"
+          :option-labels="{ en: t('dsp_opt_lang_en', '🇬🇧 EN'), ru: t('dsp_opt_lang_ru', '🇷🇺 RU') }"
+          :label="t('dsp_label_caption_lang', '🌐 Language')" :title="t('ds_caption_lang', '')" />
+        <FilNumberInput v-model="captionMaxWords" :min="4" :max="400" :step="5"
+          :label="t('dsp_label_caption_words', '📏 Max words')" :title="t('ds_caption_words', '')" />
+      </template>
+      <FilTextArea :ref="(el: unknown) => setFieldEl('captions', el)" :disabled="isLinked('captions')" v-model="manualCaptions" :title="linkedTip('captions', t('ds_captions', ''))"
+        :label="t('dsp_label_manual_captions', '📋 Manual captions (optional)')"
+        :placeholder="t('dsp_ph_manual_captions', 'One per image, separated by a line with ---. Skips the LLM when filled.')" />
+      <template v-if="captionMode !== 'none'">
+        <FilSection :title="t('dsp_section_caption_tuning', '🎛️ Caption tuning')"
+          :model-value="isCollapsed('caption_tuning')" @update:model-value="(v: boolean) => setCollapsed('caption_tuning', v)" />
+        <template v-if="!isCollapsed('caption_tuning')">
+          <FilTextArea :ref="(el: unknown) => setFieldEl('dont_caption', el)" :disabled="isLinked('dont_caption')" v-model="dontCaption" :title="linkedTip('dont_caption', t('ds_dont_caption', ''))"
+            :label="t('dsp_label_dont_caption', '🚫 Never mention')"
+            :placeholder="t('dsp_ph_dont_caption', 'her face, red hair — belongs to the trigger word')" />
+          <FilTextArea :ref="(el: unknown) => setFieldEl('caption_instruction', el)" :disabled="isLinked('caption_instruction')" v-model="captionInstruction" :title="linkedTip('caption_instruction', t('ds_caption_instruction', ''))"
+            :label="t('dsp_label_caption_instruction', '💬 Extra instruction')" />
+        </template>
       </template>
     </template>
 
-    <FilSection :title="t('dsp_section_write', '4️⃣ Write to disk')" :collapsible="false" />
-    <FilToggle :model-value="dryRun" :label="t('dsp_label_dry_run', '🧪 Dry run (plan only)')"
-      :title="t('ds_dry_run', '')" @update:model-value="(v) => (dryRun = v)" />
-    <FilSegmented v-model="writeMode" :options="['append', 'overwrite']"
-      :option-labels="{ append: t('dsp_opt_write_append', '➕ Append'), overwrite: t('dsp_opt_write_overwrite', '♻️ Overwrite') }"
-      :label="t('dsp_label_write_mode', '💾 Mode')" :title="t('ds_write_mode', '')" />
+    <FilSection :title="t('dsp_section_write', '4️⃣ Write to disk')"
+      :model-value="isCollapsed('write')" @update:model-value="(v: boolean) => setCollapsed('write', v)" />
+    <template v-if="!isCollapsed('write')">
+      <FilToggle :model-value="dryRun" :label="t('dsp_label_dry_run', '🧪 Dry run (plan only)')"
+        :title="t('ds_dry_run', '')" @update:model-value="(v) => (dryRun = v)" />
+      <FilSegmented v-model="writeMode" :options="['append', 'overwrite']"
+        :option-labels="{ append: t('dsp_opt_write_append', '➕ Append'), overwrite: t('dsp_opt_write_overwrite', '♻️ Overwrite') }"
+        :label="t('dsp_label_write_mode', '💾 Mode')" :title="t('ds_write_mode', '')" />
+    </template>
 
     <FilSection :title="t('dsp_section_advanced', '⚙️ Technical details')"
       :model-value="isCollapsed('advanced')" @update:model-value="(v: boolean) => setCollapsed('advanced', v)" />
