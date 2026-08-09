@@ -71,6 +71,7 @@ import {
   isAutoLabel,
   isBlocked,
   livePlan,
+  nodeTitleById,
   setChannelTarget,
   setUserSlotName,
   subscribedChannel,
@@ -223,6 +224,19 @@ const channels = computed<WirelessChannel[]>(() => {
 
 function receivers(channelName: string): number {
   return (plan.value?.resolution.links ?? []).filter((l) => l.channelName === channelName).length;
+}
+
+/**
+ * Where the channel's data actually comes from — the transmitter only
+ * forwards. The canvas wire shows it while it is on screen; this answers for
+ * a panel row that does not: hover the name, see the source node and the
+ * type it carries.
+ */
+function channelTooltip(channel: WirelessChannel): string {
+  const graph = hostNode()?.graph;
+  if (!graph) return channel.name;
+  const from = nodeTitleById(graph, channel.origin_id);
+  return `${t("channel_origin_from", "From")} ${from} · ${t("channel_origin_type", "type")} ${channel.type}`;
 }
 
 function redraw(): void {
@@ -642,7 +656,7 @@ const clusterOkLabel = computed(() => t("channel_cluster_connect", "Connect"));
         @keyup.escape="cancelRename"
         @blur="commitRename"
       />
-      <span v-else class="fil-channel-name" :title="channel.name">{{ channel.name }}</span>
+      <span v-else class="fil-channel-name" :title="channelTooltip(channel)">{{ channel.name }}</span>
       <span class="fil-channel-count">{{ receivers(channel.name) }}</span>
       <button
         v-if="renamingSlot !== channel.slotIndex"

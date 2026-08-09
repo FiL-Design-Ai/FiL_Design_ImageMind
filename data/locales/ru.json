@@ -32,6 +32,8 @@
   "tt_channel_value": "Всё, что нужно раздать по графу: модель, VAE, изображение, латент, текст, число…",
   "channel_panel_empty": "Подключите что-нибудь — каждый занятый вход становится отдельным каналом.",
   "channel_panel_gear": "Выбрать, куда идёт этот канал",
+  "channel_origin_from": "Из",
+  "channel_origin_type": "тип",
   "channel_targets_title": "Канал идёт в",
   "channel_targets_none": "В графе нет свободных входов этого типа.",
   "channel_target_other": "занят каналом",

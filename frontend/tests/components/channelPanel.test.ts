@@ -105,6 +105,18 @@ describe("ChannelPanel.vue", () => {
     expect(wrapper.find(".fil-channel-count").text()).toBe("1");
   });
 
+  it("says where a channel comes from — hover the name, see the source node and the type", async () => {
+    // The transmitter only forwards; the panel row must still say what it is
+    // carrying and from whom, without making the user trace the canvas wire.
+    const { ch } = scene();
+    const wrapper = await panelFor(ch);
+
+    const title = wrapper.find(".fil-channel-name").attributes("title");
+    expect(title).toContain("CheckpointLoaderSimple"); // the origin node
+    expect(title).toContain("MODEL"); // the type it carries
+    expect(title).toMatch(/^From /); // the fallback wording, no locale loaded
+  });
+
   it("gives a wired socket the real type instead of the flat wildcard colour", async () => {
     const { ch } = scene();
     // `transmitter()` pre-sets the slot's declared type for convenience — the
