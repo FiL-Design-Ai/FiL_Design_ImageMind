@@ -4,6 +4,26 @@
 
 ### Added
 
+- **⏏️ Provider Loader can unload the local LLM the moment the prompt is written.**
+  New "Unload LLM after prompt" switch on the 🔌 Provider Loader panel, right
+  above 🌡️ Temperature, visible only for the providers it applies to —
+  Ollama and LM Studio, the two that hold a model in the user's own memory.
+  With it on, every node that spends the model (Optic Scanner, Image
+  Decomposer, Style Mixer's fusion and per-image passes, Cinema Rig's LLM
+  Polish, Dataset Forge captioning) tells the local server to drop the model
+  once its last generation has answered, so a 7GB prompt model is not sitting
+  in VRAM while the image generation that follows tries to fit in the same
+  card. Each server speaks its own dialect: Ollama takes its documented
+  `keep_alive: 0` request, LM Studio takes the `POST /api/v1/models/unload`
+  of its REST API. Cloud providers are ignored, and a failed unload only
+  warns — the prompt is already written by the time the cleanup runs, and a
+  courtesy to the next stage must not poison it. Off by default: a workflow
+  saved before the switch existed behaves exactly as before. Live-verified
+  against a running LM Studio on 2026-08-09 — the instance list reads empty
+  after the unload call, and the model is back in memory answering the next
+  request; locked in by `test_unload_llm.py` and the helper cases in
+  `test_provider_runtime.py`.
+
 - **🎨 New setting "Repaint the whole ComfyUI app" (`FiL_Design_ImageMind.Appearance.WholeUi`).**
   Renamed from its first cut, "Theme covers all of ComfyUI" — sitting right
   under "Theme applies to", which has its own "All nodes" option, the two read
@@ -25,6 +45,68 @@
   `appearanceSettings.test.ts` and `comfyPalette.test.ts`.
 
 ### Fixed
+
+- **⚡ KSampler crashed on every `ddim`, `uni_pc` and `uni_pc_bh2` run — three samplers its own menu offers.**
+  The node always samples through its own `_sample_core` (the eta widget is
+  always present, defaulting to 1.0), and that path built the sampler with the
+  raw `comfy.samplers.ksampler()` lookup into `comfy.k_diffusion.sampling`.
+  That table has no entries for these three — the stock KSampler dispatches
+  them through `comfy.samplers.sampler_object()` instead, which maps `ddim`
+  to euler-with-random-inpaint and `uni_pc`/`uni_pc_bh2` to `comfy.uni_pc` —
+  so every queue with one of them selected died with
+  `AttributeError: module 'comfy.k_diffusion.sampling' has no attribute
+  'sample_ddim'` before the first step ran. The HighRes-fix resample shared
+  the same path and the same crash. Dispatch now goes through the stock
+  `sampler_object()` whenever no extra options apply, which is exactly the
+  branch the three names can reach (none of them reads eta or BONGMATH);
+  optioned samplers keep the `extra_options` table. Found in a live run
+  (comfyui.log, 2026-08-10); locked in by
+  `test_sample_unified.py::test_special_samplers_dispatch_like_the_stock_ksampler`.
+
+- **LM Studio could never generate: every chat request went to a path its server does not serve.**
+  The Provider Loader's model list builds its URL from the provider
+  definition (`base_url` + `models_endpoint`), which is why LM Studio's
+  dropdown always filled; but `OpenAIStrategy.get_chat_url` ignored the
+  definition's `chat_endpoint` and hardcoded a bare `/chat/completions` onto
+  the base URL. Every cloud provider carries `/v1` inside its base URL, so
+  the shortcut worked there — LM Studio's base URL is the server root, and
+  its chat path is `/v1/chat/completions`. The wrong path gets a 404, which
+  the error mapper then reported as "provider offline". The strategy now
+  reads `chat_endpoint` from the provider definition (falling back to the
+  old shape), which leaves every cloud provider's URL byte-identical and
+  makes LM Studio's first-ever local generation work. Found while verifying
+  LM Studio end to end through `/provider_probe` on 2026-08-09; locked in by
+  `test_models.py`, including a `ModelClient.generate` run asserted against
+  the URL it posts to.
+
+- **LM Studio and Ollama offered embedding, whisper and TTS models as chat models.**
+  Local servers list everything they can serve and publish no capability
+  metadata, so the dropdown filter — which already rejected OpenAI's
+  `text-embedding-3-large` and Groq's whisper — had nothing to say about
+  them: a live LM Studio listing put `text-embedding-nomic-embed-text-v1.5`
+  in the Provider Loader dropdown next to the one model that could actually
+  answer. `NON_CHAT_MARKERS` now carries entries for both local providers
+  (`embed`, `whisper`, `tts`); covered by the parametrized cases in
+  `test_model_capabilities.py`.
+
+- **Nodes 2.0: title text, the "Show advanced inputs" bar and widget-less nodes wore the stock light chrome.**
+  The Vue renderer reads `node.color` — which the pack pins to `#ffffff` for
+  the canvas title text — as a *light surface*: it derived the header's text
+  colour for a white bar (dark-on-dark under our themed one) and handed the
+  footer button its background outright, a stark white strip under every
+  panel. `styles/vueNodeSkin.ts` now forces the title to the same crisp white
+  the canvas uses and repaints the footer bar with the node's own title-bar
+  fill, rounded to the theme's radius. And `FiLTileAssembly`, which has no
+  widgets and therefore never mounted a panel, never carried the
+  `.fil-node-shell` marker the skin keys off — it now mounts a one-line
+  description panel, which is both the marker and the only UI the node had no
+  home for; the smoke suite's panel list grew accordingly. On the canvas
+  renderer the title had vanished outright: current LiteGraph treats
+  `onDrawTitleText` as a full replacement for its default title paint, and
+  the hook only set a fill style — it now draws the title itself, mirroring
+  the host's font, truncation and pinned-suffix behaviour. Tile Assembly's
+  200px height floor, set back when the node had no panel, shrank to match
+  its new content.
 
 - **Panels dropped their frame rate while the graph was dragged or zoomed.**
   Every FiL node body carries `backdrop-filter: blur(...)` — 10–16px depending

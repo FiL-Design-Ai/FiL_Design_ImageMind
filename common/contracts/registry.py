@@ -178,6 +178,7 @@ _PROVIDER = NodeContract(
             _bool("refresh_models", default=False, label="Refresh models", section="actions"),
         ],
         optional=[
+            _bool("unload_llm", default=False, label="Unload LLM after prompt"),
             _slider("temperature", default=0.7, minv=0.0, maxv=2.0, step=0.05, label="Temperature"),
             _int("max_tokens", default=0, minv=0, maxv=65536, step=1, label="Max tokens"),
             _int("rate_limit_ms", default=100, minv=0, maxv=5000, step=10, label="Rate limit (ms)"),
@@ -444,7 +445,7 @@ _TILE_ASSEMBLY = NodeContract(
     title="🧩 Tile Assembly",
     category=f"{CATEGORY_ROOT}/Image",
     description="Recombines processed tiles back into one image, feathered across the real overlap zones.",
-    min_size=(270, 200),
+    min_size=(270, 120),
     family="image",
     inputs=NodeInputs(required=[]),
     outputs=[NodeOutput(name="image", type="IMAGE")],

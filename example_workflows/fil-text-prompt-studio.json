@@ -16,6 +16,7 @@
         {"name": "provider", "type": "COMBO", "widget": {"name": "provider"}, "link": null},
         {"name": "model", "type": "COMBO", "widget": {"name": "model"}, "link": null},
         {"name": "refresh_models", "type": "BOOLEAN", "widget": {"name": "refresh_models"}, "link": null},
+        {"name": "unload_llm", "type": "BOOLEAN", "widget": {"name": "unload_llm"}, "link": null},
         {"name": "temperature", "type": "FLOAT", "widget": {"name": "temperature"}, "link": null},
         {"name": "max_tokens", "type": "INT", "widget": {"name": "max_tokens"}, "link": null},
         {"name": "rate_limit_ms", "type": "INT", "widget": {"name": "rate_limit_ms"}, "link": null},
@@ -30,6 +31,7 @@
         "ollama",
         "",
         false,
+        false,
         0.7,
         0,
         100,
@@ -42,12 +44,14 @@
             "max_tokens": 0,
             "rate_limit_ms": 100,
             "max_image_side": 1024,
-            "refresh_models": false
+            "refresh_models": false,
+            "unload_llm": false
           },
           "initialValues": {
             "provider": "ollama",
             "model": "",
             "refresh_models": false,
+            "unload_llm": false,
             "temperature": 0.7,
             "max_tokens": 0,
             "rate_limit_ms": 100,

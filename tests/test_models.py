@@ -312,3 +312,63 @@ def test_rate_limiter_reserves_slots_so_concurrent_waiters_line_up(monkeypatch):
     limiter.wait_if_needed(100, "p")  # lines up one interval behind
     limiter.wait_if_needed(100, "p")  # lines up two intervals behind
     assert waits == [0.1, 0.2]
+
+
+# ---------------------------------------------------------------------------
+# The chat URL follows the provider definition's `chat_endpoint` shape —
+# LM Studio's server root serves `/v1/chat/completions`, not
+# `/chat/completions`. The hardcoded suffix sent LM Studio a path it answers
+# 404 to, so every local generation failed while the model list (which does
+# assemble its URL from `models_endpoint`) loaded fine.
+# ---------------------------------------------------------------------------
+
+
+def test_openai_chat_url_keeps_v1_in_the_base_url():
+    strategy = _strategy(OpenAIStrategy)
+    url = strategy.get_chat_url(
+        {"provider": "openai", "url": "https://api.openai.com/v1", "chat_endpoint": "/chat/completions"}
+    )
+    assert url == "https://api.openai.com/v1/chat/completions"
+
+
+def test_lmstudio_chat_url_takes_v1_from_the_chat_endpoint():
+    strategy = _strategy(OpenAIStrategy)
+    url = strategy.get_chat_url(
+        {"provider": "lmstudio", "url": "http://127.0.0.1:1234", "chat_endpoint": "/v1/chat/completions"}
+    )
+    assert url == "http://127.0.0.1:1234/v1/chat/completions"
+
+
+def test_chat_url_defaults_to_the_openai_shape_without_an_endpoint():
+    strategy = _strategy(OpenAIStrategy)
+    url = strategy.get_chat_url({"provider": "openrouter", "url": "https://openrouter.ai/api/v1"})
+    assert url == "https://openrouter.ai/api/v1/chat/completions"
+
+
+def test_lmstudio_generate_posts_to_the_v1_chat_endpoint(monkeypatch):
+    from FiL_Design_ImageMind.common import models as models_module
+
+    client = ModelClient()
+    seen = {}
+
+    class Response:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return {"choices": [{"finish_reason": "stop", "message": {"content": "OK"}}]}
+
+    def fake_post(url, **kwargs):
+        seen["url"] = url
+        return Response()
+
+    monkeypatch.setattr(client.http_client, "post", fake_post)
+    monkeypatch.setattr(client.rate_limiter, "wait_if_needed", lambda *a, **k: None)
+    # Hermetic: the real resolver reads data/auth.json and config.yaml, which
+    # differ between a developer machine and a clean CI checkout.
+    monkeypatch.setattr(models_module, "get_provider_base_url", lambda provider: "http://127.0.0.1:1234")
+
+    answer = client.generate(provider="lmstudio", model="gemma-4-e4b", system_prompt="s", user_prompt="u")
+
+    assert answer == "OK"
+    assert seen["url"] == "http://127.0.0.1:1234/v1/chat/completions"

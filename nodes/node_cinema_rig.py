@@ -30,7 +30,7 @@ from ..common.cinema_rig import (
 from ..common.io_types import FilProviderConfig
 from ..common.models import ModelClient
 from ..common.processing import is_valid_model_name, normalize_model_name
-from ..common.provider_runtime import safe_provider_error
+from ..common.provider_runtime import safe_provider_error, unload_local_model
 
 logger = logging.getLogger(f"{BRAND}.CinemaRig")
 _model_client = ModelClient()
@@ -153,9 +153,10 @@ class FiLCinemaRig(io.ComfyNode):
         if not config_is_dict or not is_valid_model_name(model):
             logger.warning("[CinemaRig] LLM Polish requested without a valid provider config — using the deterministic rig")
             return ""
+        provider = str(config.get("provider"))
         try:
-            return _model_client.generate(
-                provider=str(config.get("provider")),
+            polished = _model_client.generate(
+                provider=provider,
                 model=model,
                 system_prompt=_POLISH_SYSTEM_PROMPT,
                 user_prompt=rigged_prompt,
@@ -165,6 +166,11 @@ class FiLCinemaRig(io.ComfyNode):
         except Exception as exc:
             logger.error("[CinemaRig] LLM Polish failed (%s) — using the deterministic rig", safe_provider_error(exc))
             return ""
+        # Provider Loader's unload switch: the polish is this node's only LLM
+        # call, so a local model may leave memory as soon as it has answered.
+        if bool(config.get("unload_llm", False)):
+            unload_local_model(provider, model)
+        return polished
 
     @classmethod
     def execute(

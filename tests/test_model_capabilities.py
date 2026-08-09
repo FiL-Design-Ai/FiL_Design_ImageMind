@@ -120,6 +120,14 @@ def test_a_declaration_outranks_the_openai_table():
         ("openrouter", "openai/gpt-audio"),
         ("openrouter", "openai/gpt-audio-mini"),
         ("openrouter", "openai/gpt-oss-safeguard-20b"),
+        # Local servers publish no capability metadata, so the embedding
+        # model LM Studio listed next to its one chat model (live, 2026-08-09)
+        # is a name-filter job, same as Ollama's embedding/whisper/TTS lines.
+        ("lmstudio", "text-embedding-nomic-embed-text-v1.5"),
+        ("ollama", "nomic-embed-text:latest"),
+        ("ollama", "mxbai-embed-large"),
+        ("ollama", "whisper-large-v3-turbo"),
+        ("ollama", "parler-tts"),
     ],
 )
 def test_non_chat_models_are_rejected(provider, model):
@@ -136,6 +144,8 @@ def test_non_chat_models_are_rejected(provider, model):
         ("groq", "qwen/qwen3.6-27b"),
         ("openrouter", "anthropic/claude-sonnet-5"),
         ("cloudflare", "@cf/meta/llama-4-scout-17b-16e-instruct"),
+        ("lmstudio", "google/gemma-4-e4b"),
+        ("ollama", "qwen3-vl:8b"),
     ],
 )
 def test_chat_models_survive(provider, model):

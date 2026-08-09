@@ -208,6 +208,19 @@ function badgeRules(): string {
 }
 
 /**
+ * The "Show advanced inputs" bar. The host hands its button an inline
+ * `backgroundColor` derived from `node.color` — white, the same pinning that
+ * made the title dark-on-dark — so under a dark node it sat there as a stock
+ * light strip. The canvas has no footer; the title-bar fill is the nearest
+ * truth, so the bar reads as the node's own surface continued downward.
+ * Text follows the panels' secondary colour rather than the host's slot
+ * text, which is picked for the host's surface, not ours.
+ */
+function footerRules(skin: Skin): string {
+  return `${NODE} [data-testid="advanced-inputs-button"]{background-color:${skin.fill} !important;color:var(--fil-muted) !important;border-bottom-left-radius:${skin.radius}px !important;border-bottom-right-radius:${skin.radius}px !important;}`;
+}
+
+/**
  * A widget row on one of our nodes that is not the panel — i.e. a field kept
  * visible purely so its input keeps a connection dot. See
  * `nodes2/widgetInputSockets.ts::keepVueSocketRow` for why one exists at all.
@@ -248,8 +261,18 @@ ${SOCKET_ROW} > :nth-child(2) > :nth-child(2){display:none !important;}
 ${SOCKET_ROW} > :nth-child(2) > :only-child > :nth-child(2){display:none !important;}
 ${SOCKET_ROW} > :nth-child(2) label{position:static !important;padding:0 0 0 2px;line-height:16px;}`;
 
+/**
+ * The title text. The canvas pins it to crisp white (`nodeStyle.ts`'s
+ * `onDrawTitleText`), but the Vue renderer picks the header's text colour to
+ * sit on `node.color` — which this pack pins to white for the canvas side —
+ * so under our dark bar the stock title rendered dark-on-dark. `!important`
+ * beats both the var and any inline colour the host computes.
+ */
+const TITLE = `${HEADER}{color:#ffffff !important;}`;
+
 /** Shared skeleton every theme needs before its own values land on top. */
 const BASE = `${HEADER}{position:relative;}
+${TITLE}
 ${SOCKET_ROW_CSS}`;
 
 /** The Vue-renderer chrome for one theme, ready for a `<style>` tag. */
@@ -259,6 +282,7 @@ export function vueNodeSkinCss(theme: FilThemeName): string {
     BASE,
     `${BOX}{background-color:${skin.fill} !important;border-radius:${skin.radius}px;}`,
     `${HEADER}{border-top-left-radius:${skin.radius}px;border-top-right-radius:${skin.radius}px;}`,
+    footerRules(skin),
     stripeRules(skin),
     skin.frame ? frameRules(skin.frame, skin.radius) : "",
     skin.badge ? badgeRules() : "",

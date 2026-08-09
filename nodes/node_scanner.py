@@ -43,7 +43,7 @@ from ..common.models import ModelClient
 from ..common.processing import ImageProcessor, is_valid_model_name, normalize_model_name
 from ..common.progress import FilProgress
 from ..common.provider_resilience import is_timeout_error, sanitize_sensitive_data
-from ..common.provider_runtime import safe_provider_error
+from ..common.provider_runtime import safe_provider_error, unload_local_model
 from ..common.style_enforcer import StyleEnforcer
 
 _processor = ImageProcessor()
@@ -585,6 +585,13 @@ description=(
             error_meta = {"status": "error", "message": message, "error_code": "UNKNOWN_ERROR",
                           "provider": provider, "model": model}
             return io.NodeOutput(f"Ошибка: {message}", json.dumps(error_meta, ensure_ascii=False), error_meta)
+
+        # The Provider Loader's unload switch: every generation path above has
+        # answered, so the local model's job is done — drop it before the
+        # image generation downstream claims the VRAM. Cloud providers and
+        # failures inside the helper sort themselves out in there.
+        if bool(config.get("unload_llm", False)):
+            unload_local_model(provider, model)
 
         if model_needs_prompt_post_conversion(model_type, response_format):
             result, convert_meta = post_convert_prompt(

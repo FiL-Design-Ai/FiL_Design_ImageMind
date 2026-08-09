@@ -129,17 +129,56 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
     return result;
   };
 
+  // The host's `drawTitleText` *replaces* the default title paint when this
+  // hook exists (frontend 1.48.x: `if (this.onDrawTitleText) { …; return }`),
+  // so the hook must draw the title itself — an earlier cut only set the
+  // fill style and left the drawing to the host, which silently deleted the
+  // title from every FiL node on the canvas renderer. The body below mirrors
+  // the host's default path (font, truncation, pinned suffix, selected
+  // colour) with the pack's crisp white instead of the drop-shadowed default.
   p.onDrawTitleText = function (
-    this: unknown,
+    this: {
+      getTitle?: () => string | null;
+      type?: string;
+      pinned?: boolean;
+      collapsed?: boolean;
+      title_buttons?: Array<{ visible?: boolean; getWidth: (c: CanvasRenderingContext2D) => number }>;
+    },
     ctx: CanvasRenderingContext2D,
-    _title: string,
+    titleHeight: number,
+    size: [number, number],
     _scale: number,
+    titleFontStyle: string,
+    selected: boolean,
   ) {
+    if ((globalThis as { app?: { canvas?: { low_quality?: boolean } } }).app?.canvas?.low_quality) return;
+    const liteGraph = (globalThis as { LiteGraph?: Record<string, unknown> }).LiteGraph;
+    ctx.font = titleFontStyle;
+    const raw = String(this.getTitle?.() ?? `❌ ${this.type}`) + (this.pinned ? "📌" : "");
+    if (!raw) return;
     ctx.shadowColor = "transparent";
     ctx.shadowBlur = 0;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = selected
+      ? ((liteGraph?.NODE_SELECTED_TITLE_COLOR as string | undefined) ?? ACTIVE_PALETTE.accent)
+      : "#ffffff";
+    let avail = size[0] - titleHeight * 2;
+    if (this.title_buttons?.length) {
+      let buttonsWidth = 0;
+      for (const button of this.title_buttons) if (button.visible) buttonsWidth += button.getWidth(ctx) + 2;
+      if (buttonsWidth > 0) avail -= buttonsWidth - 20;
+    }
+    let text = raw;
+    if (this.collapsed) {
+      text = raw.substr(0, 20);
+    } else if (avail > 0 && ctx.measureText(raw).width > avail) {
+      while (text.length > 1 && ctx.measureText(`${text}…`).width > avail) text = text.slice(0, -1);
+      text += "…";
+    }
+    const textY = (liteGraph?.NODE_TITLE_TEXT_Y as number | undefined) ?? 20;
+    ctx.textAlign = "left";
+    ctx.fillText(text, titleHeight, textY - titleHeight);
   };
 
   // Dark title bar with a left accent stripe instead of a solid accent fill.

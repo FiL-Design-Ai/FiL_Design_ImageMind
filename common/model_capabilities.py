@@ -119,6 +119,13 @@ NON_CHAT_MARKERS: Dict[str, tuple[str, ...]] = {
     # `llama-guard`/`safeguard`/`whisper`/`tts-` for the vision-fallback
     # candidate chain, and the same models are not chat models here either.
     "openrouter": tuple(OPENROUTER_EXCLUDED_MODEL_PATTERNS) + ("content-safety", "gpt-audio"),
+    # Local servers list every model they can serve. Found live on
+    # 2026-08-09: LM Studio offered `text-embedding-nomic-embed-text-v1.5`
+    # in the Provider Loader dropdown next to the one chat model; Ollama
+    # catalogues carry the same embedding families plus whisper and TTS.
+    # None of them publish capability metadata, so names are all there is.
+    "ollama": ("embed", "whisper", "tts"),
+    "lmstudio": ("embed", "whisper", "tts"),
 }
 
 

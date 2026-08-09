@@ -28,8 +28,7 @@ const EXPECTED_NODE_COUNT = 17;
  * Spelled out rather than counted, because a node whose panel silently stops
  * mounting would otherwise just drop out of the sample and take its own
  * assertion with it. Update this deliberately when a node gains or loses a
- * panel; only FiLTileAssembly is left out, and only because it has no widgets
- * for a panel to hold.
+ * panel.
  */
 const NODES_WITH_PANELS = [
   "FiLChannel",
@@ -46,6 +45,7 @@ const NODES_WITH_PANELS = [
   "FiLSeed",
   "FiLSignalSwitch",
   "FiLStyleMixer",
+  "FiLTileAssembly",
   "FiLUpscaleSimple",
   "FiLUpscaleTileCalc",
 ];

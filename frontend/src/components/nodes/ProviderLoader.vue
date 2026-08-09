@@ -7,10 +7,10 @@
  * Uses ProviderModelPicker modal for easy provider & model browsing.
  */
 import { computed, onMounted, ref, watch } from "vue";
-import { FilSlider, FilInfo, FilIcon } from "@/components/widgets";
+import { FilSlider, FilInfo, FilIcon, FilToggle } from "@/components/widgets";
 import ProviderModelPicker from "@/components/nodes/ProviderModelPicker.vue";
 import { useProviderStore } from "@/stores/providerStore";
-import { PROVIDER_LABEL, PROVIDER_ICON } from "@/composables/providerMeta";
+import { PROVIDER_LABEL, PROVIDER_ICON, LOCAL_PROVIDERS } from "@/composables/providerMeta";
 import { toast } from "@/stores/toastStore";
 import { useI18n } from "@/composables/useI18n";
 import type { FilNodeState } from "@/nodes2/filState";
@@ -46,6 +46,15 @@ const maxTokens = computed(() => Number(field("max_tokens", 0).get()));
 const rateLimit = computed(() => Number(field("rate_limit_ms", 100).get()));
 const maxImageSide = computed(() => Number(field("max_image_side", 1024).get()));
 const state = props.state;
+
+// The unload switch only means something to the local servers — they are the
+// providers that hold a model in the user's own memory — so the row hides
+// itself for every cloud provider instead of sitting there inert.
+const isLocalProvider = computed(() => LOCAL_PROVIDERS.has(provider.value));
+const unloadLlm = computed<"ON" | "OFF">({
+  get: () => (field("unload_llm", false).get() ? "ON" : "OFF"),
+  set: (v: "ON" | "OFF") => field("unload_llm", false).set(v === "ON"),
+});
 
 const loading = computed(() => store.isLoading(provider.value));
 const probe = computed(() => store.probeState[provider.value]);
@@ -128,6 +137,9 @@ onMounted(async () => {
     <FilInfo v-else-if="probe && probe.status && probe.status !== 'available'" :err="true" :text="probe.message || probe.status" />
     <FilInfo v-else-if="ageLabel" :text="`${t('prov_models_updated', 'Models updated')}: ${ageLabel}`" />
 
+    <FilToggle v-if="isLocalProvider" :model-value="unloadLlm" :label="t('lbl_unload_llm', '⏏️ Unload LLM after prompt')"
+      :title="t('tt_unload_llm', 'Local servers only (Ollama, LM Studio): unload the model from memory right after the prompt is generated, freeing VRAM for the image generation.')"
+      @update:model-value="(v: 'ON' | 'OFF') => (unloadLlm = v)" />
     <FilSlider :model-value="temperature" :min="0" :max="2" :step="0.05" :label="t('lbl_temperature', '🌡️ Temperature')"
       :title="t('tt_temperature', 'Sampling temperature — higher is more creative, lower is more deterministic.')"
       @update:model-value="(v: number) => (state.nodeState.temperature = v)" />

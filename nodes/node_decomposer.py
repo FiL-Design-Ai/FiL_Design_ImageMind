@@ -19,7 +19,7 @@ from ..common.data import LANGUAGES
 from ..common.io_types import FilProviderConfig
 from ..common.models import ModelClient
 from ..common.processing import ImageProcessor, is_valid_model_name, normalize_model_name
-from ..common.provider_runtime import safe_provider_error
+from ..common.provider_runtime import safe_provider_error, unload_local_model
 
 logger = logging.getLogger(f"{BRAND}.Decomposer")
 
@@ -201,6 +201,12 @@ class FiLImageDecomposer(io.ComfyNode):
         except Exception as exc:
             err = safe_provider_error(exc)
             return io.NodeOutput(f"⚠️ Ошибка генерации ({provider}/{model}): {err}", "", "", "", "")
+
+        # Provider Loader's unload switch — the generation above is the only
+        # LLM call this node makes, so the local model can leave memory
+        # before the image generation stage starts.
+        if bool(config.get("unload_llm", False)):
+            unload_local_model(provider, model)
 
         parsed = _parse_decomposition_json(result_raw)
         if parsed:

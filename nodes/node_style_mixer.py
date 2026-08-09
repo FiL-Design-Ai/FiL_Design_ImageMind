@@ -15,7 +15,7 @@ from ..common.data import get_all_style_keys, get_style_prompt
 from ..common.io_types import FilProviderConfig
 from ..common.models import ModelClient
 from ..common.processing import ImageProcessor, is_valid_model_name, normalize_model_name
-from ..common.provider_runtime import safe_provider_error
+from ..common.provider_runtime import safe_provider_error, unload_local_model
 
 logger = logging.getLogger(f"{BRAND}.StyleMixer")
 _processor = ImageProcessor()
@@ -375,6 +375,12 @@ class FiLStyleMixer(io.ComfyNode):
                 # No config wired at all — deterministic placeholders, no LLM.
                 for idx, _img, w, focus, _b64 in active_images:
                     image_style_parts.append(f"(image {idx} visual style [{focus}]:{w:.2f})")
+
+        # Provider Loader's unload switch: both the Smart Fusion call and the
+        # per-image passes are behind `can_analyze`, so once this block is
+        # through the local model has nothing left to answer for.
+        if active_images and can_analyze and bool(config.get("unload_llm", False)):
+            unload_local_model(provider, model)
 
         # Assemble final output
         if smart_fusion_prompt:

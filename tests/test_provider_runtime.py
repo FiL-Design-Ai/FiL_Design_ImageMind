@@ -652,3 +652,89 @@ def test_a_complete_answer_is_still_returned_untouched():
         "candidates": [{"finishReason": "STOP", "content": {"parts": [{"text": "a red circle"}]}}]
     }
     assert GoogleStrategy(http_client=None, rate_limiter=None).parse_response(google_ok) == "a red circle"
+
+
+# ---------------------------------------------------------------------------
+# unload_local_model — the Provider Loader's "unload LLM after prompt" switch
+# lands here. Each local server speaks its own dialect of "forget the model".
+# ---------------------------------------------------------------------------
+
+
+class _RecordingResponse:
+    def raise_for_status(self):
+        return None
+
+
+class _RecordingUnloadClient:
+    """Collects every POST; installed over provider_runtime.HTTPClient."""
+
+    posts: list = []
+
+    def __init__(self, **kwargs):
+        pass
+
+    def post(self, url, **kwargs):
+        _RecordingUnloadClient.posts.append((url, kwargs.get("json")))
+        return _RecordingResponse()
+
+
+def test_unload_posts_keep_alive_zero_to_ollama(monkeypatch):
+    from FiL_Design_ImageMind.common import provider_runtime
+
+    _RecordingUnloadClient.posts = []
+    monkeypatch.setattr(provider_runtime, "HTTPClient", _RecordingUnloadClient)
+    monkeypatch.setattr(provider_runtime, "get_provider_base_url", lambda provider: "http://127.0.0.1:11434")
+
+    provider_runtime.unload_local_model("ollama", "qwen3-vl:8b")
+
+    assert _RecordingUnloadClient.posts == [
+        ("http://127.0.0.1:11434/api/generate", {"model": "qwen3-vl:8b", "keep_alive": 0})
+    ]
+
+
+def test_unload_posts_the_instance_id_to_lmstudio(monkeypatch):
+    from FiL_Design_ImageMind.common import provider_runtime
+
+    _RecordingUnloadClient.posts = []
+    monkeypatch.setattr(provider_runtime, "HTTPClient", _RecordingUnloadClient)
+    monkeypatch.setattr(provider_runtime, "get_provider_base_url", lambda provider: "http://127.0.0.1:1234")
+
+    provider_runtime.unload_local_model("lmstudio", "google/gemma-4-e4b")
+
+    assert _RecordingUnloadClient.posts == [
+        ("http://127.0.0.1:1234/api/v1/models/unload", {"instance_id": "google/gemma-4-e4b"})
+    ]
+
+
+def test_unload_ignores_cloud_providers_and_empty_models(monkeypatch):
+    from FiL_Design_ImageMind.common import provider_runtime
+
+    _RecordingUnloadClient.posts = []
+    monkeypatch.setattr(provider_runtime, "HTTPClient", _RecordingUnloadClient)
+    monkeypatch.setattr(provider_runtime, "get_provider_base_url", lambda provider: "https://api.example.test/v1")
+
+    provider_runtime.unload_local_model("openai", "gpt-4o")
+    provider_runtime.unload_local_model("ollama", "")
+
+    assert _RecordingUnloadClient.posts == []
+
+
+def test_unload_failure_is_logged_not_raised(monkeypatch, caplog):
+    """The prompt is already written when this runs — a dead server must not
+    poison it. Verified against the live probe on 2026-08-09."""
+    from FiL_Design_ImageMind.common import provider_runtime
+
+    class FailingClient:
+        def __init__(self, **kwargs):
+            pass
+
+        def post(self, *args, **kwargs):
+            raise requests.ConnectionError("server gone")
+
+    monkeypatch.setattr(provider_runtime, "HTTPClient", FailingClient)
+    monkeypatch.setattr(provider_runtime, "get_provider_base_url", lambda provider: "http://127.0.0.1:1234")
+
+    with caplog.at_level("WARNING", logger=provider_runtime.logger.name):
+        provider_runtime.unload_local_model("lmstudio", "google/gemma-4-e4b")
+
+    assert any("unload" in record.message.lower() for record in caplog.records)

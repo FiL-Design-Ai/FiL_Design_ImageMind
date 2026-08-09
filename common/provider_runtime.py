@@ -331,3 +331,36 @@ def probe_provider(provider: str, model: str = "") -> Dict[str, Any]:
             "message": message,
             "latency_ms": round((time.perf_counter() - started) * 1000),
         }
+
+
+def unload_local_model(provider: str, model: str) -> None:
+    """Tell a local server to drop the model from memory.
+
+    Called by the LLM nodes after their last generation when the Provider
+    Loader's unload switch is on, so a 7GB prompt model does not sit in VRAM
+    through the image generation that follows. Cloud providers have nothing
+    local to drop and are ignored, same as any cleanup failure: the prompt is
+    already written by the time this runs, and unloading is a courtesy to the
+    next stage, not part of the answer.
+    """
+    provider_key = str(provider or "").strip().lower()
+    model_name = normalize_model_name(model)
+    if provider_key not in LOCAL_PROVIDERS or not model_name:
+        return
+    base_url = get_provider_base_url(provider_key)
+    if not base_url:
+        return
+    root = base_url.rstrip("/")
+    try:
+        client = HTTPClient(max_retries=0, default_timeout=15)
+        if provider_key == "ollama":
+            # Ollama's documented unload: a request carrying nothing but
+            # `keep_alive: 0` drops the model the moment it returns.
+            response = client.post(f"{root}/api/generate", json={"model": model_name, "keep_alive": 0}, quiet=True)
+        else:
+            # LM Studio's REST API names the loaded copy, not the model:
+            # for a single-instance load the instance id is the model key.
+            response = client.post(f"{root}/api/v1/models/unload", json={"instance_id": model_name}, quiet=True)
+        response.raise_for_status()
+    except Exception as exc:
+        logger.warning("Unloading '%s' from %s failed: %s", model_name, provider_key, exc)

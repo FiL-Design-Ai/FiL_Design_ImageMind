@@ -29,6 +29,8 @@ class FiLProviderLoader(io.ComfyNode):
                                tooltip=t("tt_model", "Choose which model to use. If the list is empty, refresh it or check the provider account.")),
                 io.Boolean.Input("refresh_models", default=False, label_on="Refresh", label_off="Cached",
                                  tooltip=t("tt_refresh", "Reload the model list. Use after adding a new model or API key.")),
+                io.Boolean.Input("unload_llm", default=False, label_on="Unload", label_off="Keep",
+                                 tooltip=t("tt_unload_llm", "Local servers only (Ollama, LM Studio): unload the model from memory right after the prompt is generated, freeing VRAM for the image generation.")),
                 io.Float.Input("temperature", default=0.7, min=0.0, max=2.0, step=0.05, display_mode=io.NumberDisplay.slider, advanced=True,
                                tooltip=t("tt_temperature", "Sampling temperature — higher is more creative, lower is more deterministic.")),
                 io.Int.Input("max_tokens", default=0, min=0, max=65536, step=1, advanced=True,
@@ -61,6 +63,7 @@ class FiLProviderLoader(io.ComfyNode):
 
     @classmethod
     def execute(cls, provider: str, model: str = "", refresh_models: bool = False,
+                unload_llm: bool = False,
                 temperature: float = 0.7, max_tokens: int = 0, rate_limit_ms: int = 100,
                 max_image_side: int = 1024) -> io.NodeOutput:
         p_key = get_provider_key(provider)
@@ -88,6 +91,7 @@ class FiLProviderLoader(io.ComfyNode):
             "max_tokens": max_tokens,
             "rate_limit_ms": rate_limit_ms,
             "max_image_side": max_image_side,
+            "unload_llm": bool(unload_llm),
         }
 
         return io.NodeOutput(config, model_name)

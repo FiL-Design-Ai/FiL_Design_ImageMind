@@ -5,17 +5,25 @@ from FiL_Design_ImageMind.nodes import node_provider
 
 def test_execute_packs_all_widget_values_into_config():
     result = node_provider.FiLProviderLoader.execute(
-        provider="ollama", model="llama3", temperature=0.3,
+        provider="ollama", model="llama3", unload_llm=True, temperature=0.3,
         max_tokens=256, rate_limit_ms=50, max_image_side=768,
     )
     config, model_name = result[0], result[1]
     assert model_name == "llama3"
     assert config["provider"] == "ollama"
     assert config["model"] == "llama3"
+    assert config["unload_llm"] is True
     assert config["temperature"] == 0.3
     assert config["max_tokens"] == 256
     assert config["rate_limit_ms"] == 50
     assert config["max_image_side"] == 768
+
+
+def test_unload_llm_defaults_to_off():
+    # Behaviour change by opt-in: a workflow saved before the switch existed
+    # must keep its model loaded exactly as it did before.
+    config, _ = node_provider.FiLProviderLoader.execute(provider="ollama", model="llama3")
+    assert config["unload_llm"] is False
 
 
 def test_refresh_models_forces_a_real_cache_invalidation(monkeypatch):

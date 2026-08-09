@@ -21,7 +21,7 @@ from ..common.localization import t as _t
 from ..common.processing import ImageProcessor, comfy_image_to_pil, is_valid_model_name, normalize_model_name
 from ..common.progress import FilProgress
 from ..common.provider_resilience import sanitize_sensitive_data
-from ..common.provider_runtime import safe_provider_error
+from ..common.provider_runtime import safe_provider_error, unload_local_model
 
 _processor = ImageProcessor()
 _model_client = None
@@ -321,10 +321,12 @@ class FiLDatasetForge(io.ComfyNode):
             _raise_if_interrupted()
             progress.update(index, preview=images[index])
 
-        return captioning.caption_batch(
+        provider = config.get("provider", "ollama")
+        model = normalize_model_name(config.get("model", ""))
+        captions = captioning.caption_batch(
             _client(), images_b64,
-            provider=config.get("provider", "ollama"),
-            model=normalize_model_name(config.get("model", "")),
+            provider=provider,
+            model=model,
             on_progress=on_progress,
             mode=mode, language=language, max_words=max_words,
             class_token=class_token, dont_caption=dont_caption,
@@ -333,6 +335,11 @@ class FiLDatasetForge(io.ComfyNode):
             seed=seed, max_tokens=max_tokens,
             rate_limit_ms=config.get("rate_limit_ms", 100),
         )
+        # Provider Loader's unload switch: the batch above is every LLM call
+        # captioning makes, so a local model may leave memory once it ends.
+        if bool(config.get("unload_llm", False)):
+            unload_local_model(provider, model)
+        return captions
 
     @classmethod
     def _build_report(cls, manifest: dict, records: list[dict], *, dry_run: bool,

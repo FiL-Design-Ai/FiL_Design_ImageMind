@@ -39,6 +39,12 @@ export const PROVIDER_ACCOUNT_LINK: Record<string, { url: string; label: string 
  * has a custom URL saved, so an existing proxy setup stays editable. */
 export const PROVIDER_EDITS_BASE_URL = new Set(["ollama", "lmstudio"]);
 
+/** Local inference servers — the only providers that hold models in the
+ * user's own memory, so the only ones the Provider Loader's "unload LLM
+ * after prompt" switch applies to. Mirrors the backend's `LOCAL_PROVIDERS`
+ * (common/config.py). */
+export const LOCAL_PROVIDERS = new Set(["ollama", "lmstudio"]);
+
 export const PROVIDER_ICON: Record<string, IconName> = {
   ollama: "provider-ollama",
   lmstudio: "provider-lmstudio",

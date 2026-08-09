@@ -236,6 +236,25 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     ],
     "optional": [
       {
+        "name": "unload_llm",
+        "kind": "boolean",
+        "label": "Unload LLM after prompt",
+        "default": false,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
         "name": "temperature",
         "kind": "slider",
         "label": "Temperature",
@@ -1819,7 +1838,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   ],
   "min_size": [
     270,
-    200
+    120
   ],
   "family": "image"
 },

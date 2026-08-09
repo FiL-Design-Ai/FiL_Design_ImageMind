@@ -165,9 +165,15 @@ class OpenAIStrategy(ModelStrategy):
                 "cloudflare": "",
             }
             base_url = fallbacks.get(provider, "https://api.openrouter.ai/api/v1")
-        if provider == "cloudflare" and base_url:
-            return base_url.rstrip("/") + "/chat/completions"
-        return base_url.rstrip("/") + "/chat/completions"
+        # The cloud providers carry `/v1` in the base URL and take a bare
+        # `/chat/completions`; LM Studio's server root does not — its chat
+        # path is `/v1/chat/completions`, and it answers the unsuffixed one
+        # with a 404. The provider definition already says which shape
+        # applies (`chat_endpoint`); the hardcoded suffix ignored it.
+        endpoint = str(config.get("chat_endpoint") or "").strip() or "/chat/completions"
+        if not endpoint.startswith("/"):
+            endpoint = f"/{endpoint}"
+        return base_url.rstrip("/") + endpoint
 
     def get_headers(self, config):
         provider = config.get("provider", "openrouter")
