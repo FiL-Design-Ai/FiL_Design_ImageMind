@@ -289,6 +289,12 @@ def _patch_sample_core_comfy(monkeypatch, captured):
 
     monkeypatch.setattr("comfy.samplers.KSampler", _FakeKSampler)
     monkeypatch.setattr("comfy.samplers.ksampler", _fake_ksampler)
+    # The option-less branch dispatches through the stock sampler_object; keep
+    # the observation point the same by routing it into the same fake.
+    monkeypatch.setattr(
+        "comfy.samplers.sampler_object",
+        lambda name: _fake_ksampler(name, extra_options={}, inpaint_options={}),
+    )
     monkeypatch.setattr("comfy.samplers.sample", lambda *a, **kw: torch.zeros(1, 4, 8, 8))
     monkeypatch.setattr("latent_preview.prepare_callback", lambda model, steps: None)
     monkeypatch.setattr("comfy.model_management.intermediate_device", lambda: torch.device("cpu"))
@@ -366,6 +372,29 @@ def test_sample_core_casts_result_like_stock_common_ksampler(monkeypatch):
     )
     assert result["samples"].device.type == "cpu"
     assert result["samples"].dtype is torch.float32
+
+
+# --- stock dispatch for non-k_diffusion sampler names -------------------------
+
+def test_special_samplers_dispatch_like_the_stock_ksampler():
+    """ddim / uni_pc / uni_pc_bh2 sit in KSampler.SAMPLERS, but the raw
+    ksampler() table raises AttributeError for them — the stock node routes
+    them through sampler_object() instead. FiLKSampler always samples through
+    _sample_core (eta defaults to 1.0), so the raw lookup crashed every ddim
+    run live (comfyui.log, 2026-08-10). Regression for that dispatch."""
+    import pytest
+
+    import comfy.samplers
+
+    # The trap the old code fell into: the raw table has no entry for them.
+    for name in ("ddim", "uni_pc", "uni_pc_bh2"):
+        with pytest.raises(AttributeError):
+            comfy.samplers.ksampler(name)
+        # The fix dispatches the way the stock KSampler does.
+        assert sampling._build_sampler_instance(name, {}) is not None
+
+    # Optioned names keep going through the extra_options table.
+    assert sampling._build_sampler_instance("euler_ancestral", {"eta": 0.5}) is not None
 
 
 # --- eta introspection fallback for custom samplers ---------------------------

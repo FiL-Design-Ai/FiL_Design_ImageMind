@@ -202,6 +202,24 @@ def sampler_option_support() -> dict[str, list[str]]:
     }
 
 
+def _build_sampler_instance(sampler_name: str, extra_opts: dict[str, Any]):
+    """Dispatch a sampler name the way the stock KSampler does.
+
+    ``comfy.samplers.ksampler()`` is a raw lookup into
+    ``comfy.k_diffusion.sampling`` and raises AttributeError for the
+    non-k_diffusion names the stock node accepts — ``sampler_object()`` maps
+    ``ddim`` to euler-with-random-inpaint and ``uni_pc``/``uni_pc_bh2`` to
+    ``comfy.uni_pc``. eta/BONGMATH never apply to those names
+    (``_sampler_accepts_eta``/``_sampler_accepts_bongmath`` fail their lookup
+    and answer False), so only the option-less branch can see them.
+    """
+    import comfy.samplers
+
+    if extra_opts:
+        return comfy.samplers.ksampler(sampler_name, extra_options=extra_opts, inpaint_options={})
+    return comfy.samplers.sampler_object(sampler_name)
+
+
 def _sample_core(
     model, *, seed, steps, cfg, sampler_name, scheduler, positive, negative,
     latent, denoise, noise_control: dict[str, Any] | None = None,
@@ -251,7 +269,7 @@ def _sample_core(
         extra_opts["eta"] = eta
     if bongmath is not None and _sampler_accepts_bongmath(sampler_name):
         extra_opts["BONGMATH"] = bongmath
-    sampler_instance = comfy.samplers.ksampler(sampler_name, extra_options=extra_opts, inpaint_options={})
+    sampler_instance = _build_sampler_instance(sampler_name, extra_opts)
 
     callback = latent_preview.prepare_callback(model, steps)
     samples = comfy.samplers.sample(
