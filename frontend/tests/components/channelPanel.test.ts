@@ -117,6 +117,23 @@ describe("ChannelPanel.vue", () => {
     expect(title).toMatch(/^From /); // the fallback wording, no locale loaded
   });
 
+  it("wears the host's own type colour, the same one the socket is painted with", async () => {
+    // The dashed link and the row's dot must land on sockets of the same
+    // colour — the palette is read off LiteGraph's registry, not invented.
+    const host = globalThis as { LiteGraph?: unknown };
+    host.LiteGraph = { link_type_colors: { MODEL: "#b39ddb" } };
+    try {
+      const { ch } = scene();
+      const wrapper = await panelFor(ch);
+
+      const style = wrapper.find(".fil-channel-dot").attributes("style") ?? "";
+      // DOM engines serialise colours either verbatim or as rgb() — both say the same thing.
+      expect(style).toMatch(/#b39ddb|rgb\(179,\s*157,\s*219\)/i);
+    } finally {
+      delete host.LiteGraph;
+    }
+  });
+
   it("gives a wired socket the real type instead of the flat wildcard colour", async () => {
     const { ch } = scene();
     // `transmitter()` pre-sets the slot's declared type for convenience — the

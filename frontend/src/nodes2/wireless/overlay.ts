@@ -27,7 +27,7 @@ import {
   wirelessLabelsShown,
   wirelessLinkMode,
 } from "@/stores/settings/wirelessSettings";
-import { channelColor, channelColorSoft } from "./channelColor";
+import { channelColor, channelColorFor, soften } from "./channelColor";
 import { livePlan } from "./livePlan";
 import type { LinkToCreate, NodeId, WirelessChannel, WirelessGraph } from "./types";
 
@@ -94,7 +94,7 @@ function drawLabel(ctx: CanvasRenderingContext2D, at: Point, text: string, color
   const x = at[0] + 8;
   const y = at[1] - 6;
 
-  ctx.fillStyle = channelColorSoft(text, 0.9);
+  ctx.fillStyle = soften(color, 0.9);
   ctx.beginPath();
   ctx.roundRect(x, y, width + 10, 13, 3);
   ctx.fill();
@@ -152,12 +152,11 @@ function drawPlan(ctx: CanvasRenderingContext2D, canvas: LiteCanvas): void {
   const filterBySelection = mode === LINKS_SELECTED;
   const scale = canvas.ds?.scale ?? 1;
   const showLabels = scale >= LABEL_MIN_SCALE && wirelessLabelsShown();
-  const channelNodeByName = new Map(
-    (plan.channels as WirelessChannel[]).map((c) => [c.name, c.nodeId]),
-  );
+  const channelsByName = new Map((plan.channels as WirelessChannel[]).map((c) => [c.name, c]));
 
   for (const link of plan.resolution.links as LinkToCreate[]) {
-    if (filterBySelection && !linkTouchesSelection(graph, link, channelNodeByName.get(link.channelName))) {
+    const channel = channelsByName.get(link.channelName);
+    if (filterBySelection && !linkTouchesSelection(graph, link, channel?.nodeId)) {
       continue;
     }
     const origin = graph.getNodeById?.(link.origin_id);
@@ -166,7 +165,9 @@ function drawPlan(ctx: CanvasRenderingContext2D, canvas: LiteCanvas): void {
     const to = inputPos(target, link.target_slot);
     if (!from || !to) continue;
 
-    const color = channelColor(link.channelName);
+    // The socket it lands in wears the host's type colour; the dashed link
+    // wears it too, instead of a hue nothing else on the canvas uses.
+    const color = channel ? channelColorFor(channel) : channelColor(link.channelName);
     drawLink(ctx, from, to, color);
     if (showLabels) drawLabel(ctx, to, link.channelName, color);
   }

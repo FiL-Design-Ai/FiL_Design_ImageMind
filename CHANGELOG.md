@@ -54,6 +54,19 @@
 
 ### Fixed
 
+- **📡 Wireless links wore colours no socket on the canvas uses.**
+  The dashed channel line, the panel's dot and the diagnostics dot all
+  took their colour from a hash of the channel name, while inputs and
+  outputs are painted from the host's own type palette — so a link
+  feeding a MODEL input landed in a hue that matched nothing next to it.
+  They now read `LiteGraph.link_type_colors`, the same registry real
+  wires are drawn from, so a wireless link arrives in the socket's own
+  colour; the name-hash colour remains only as the fallback for types
+  the host paints with nothing of their own. The cost, paid knowingly:
+  two channels of one type now share a colour — the label beside the
+  input still says which is which. Locked in by `channelColor.test.ts`
+  and a `channelPanel.test.ts` case.
+
 - **Page load crashed with `reading '_s'` when the whole-UI palette setting echoed at registration.**
   ComfyUI fires each setting's `onChange` once while registering settings,
   before any Vue app has activated pinia. The "Repaint the whole ComfyUI app"

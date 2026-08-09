@@ -32,7 +32,7 @@ import { computed, onMounted, onUnmounted, shallowRef } from "vue";
 import { useI18n } from "@/composables/useI18n";
 import FilIcon from "@/components/widgets/FilIcon.vue";
 import {
-  channelColor,
+  channelColorFor,
   liveTreePlan,
   wirelessDiagnosticsTree,
   type DiagnosticRow,
@@ -209,7 +209,7 @@ const noProblems = computed(() => t("wireless_diag_no_problems", "Nothing to rep
           @click="focusNode(entry.channel.nodeId, entry.graph)"
           @keydown.enter="focusNode(entry.channel.nodeId, entry.graph)"
         >
-          <span class="fil-wireless-diag-dot" :style="{ background: channelColor(entry.channel.name) }" />
+          <span class="fil-wireless-diag-dot" :style="{ background: channelColorFor(entry.channel) }" />
           <span class="fil-wireless-diag-name">{{ entry.channel.name }}</span>
           <span class="fil-wireless-diag-type">{{ entry.channel.type }}</span>
           <span class="fil-wireless-diag-count">{{ receivers(entry) }}</span>

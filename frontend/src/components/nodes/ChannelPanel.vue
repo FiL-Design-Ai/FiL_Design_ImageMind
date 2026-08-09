@@ -64,8 +64,7 @@ import {
   applySlotColors,
   applySlotNames,
   assignCluster,
-  channelColor,
-  channelColorSoft,
+  channelColorFor,
   channelTargets,
   invalidateWirelessPlan,
   isAutoLabel,
@@ -74,6 +73,7 @@ import {
   nodeTitleById,
   setChannelTarget,
   setUserSlotName,
+  soften,
   subscribedChannel,
   takeOverWiredInput,
   undoTakeOver,
@@ -644,9 +644,9 @@ const clusterOkLabel = computed(() => t("channel_cluster_connect", "Connect"));
       v-for="channel in channels"
       :key="`${channel.slotIndex}:${channel.name}`"
       class="fil-channel-row"
-      :style="{ borderColor: channelColorSoft(channel.name, 0.55) }"
+      :style="{ borderColor: soften(channelColorFor(channel), 0.55) }"
     >
-      <span class="fil-channel-dot" :style="{ background: channelColor(channel.name) }" />
+      <span class="fil-channel-dot" :style="{ background: channelColorFor(channel) }" />
       <input
         v-if="renamingSlot === channel.slotIndex"
         v-model="renameDraft"
@@ -727,10 +727,10 @@ const clusterOkLabel = computed(() => t("channel_cluster_connect", "Connect"));
               :class="{ 'is-chosen': clusterOptionState(row, channel) === 'chosen' }"
               :disabled="clusterOptionState(row, channel) !== 'free' && clusterOptionState(row, channel) !== 'chosen'"
               :title="clusterOptionReason(row, channel)"
-              :style="{ borderColor: clusterOptionState(row, channel) === 'chosen' ? channelColor(channel.name) : undefined }"
+              :style="{ borderColor: clusterOptionState(row, channel) === 'chosen' ? channelColorFor(channel) : undefined }"
               @click="chooseClusterChannel(row, channel.name)"
             >
-              <span class="fil-channel-dot" :style="{ background: channelColor(channel.name) }" />
+              <span class="fil-channel-dot" :style="{ background: channelColorFor(channel) }" />
               <span class="fil-channel-chip-name">{{ channel.name }}</span>
             </button>
           </div>

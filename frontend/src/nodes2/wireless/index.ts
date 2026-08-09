@@ -73,7 +73,7 @@ export {
   type WirelessTreePlan,
   type WirelessTreePlanEntry,
 } from "./plan";
-export { channelColor, channelColorSoft } from "./channelColor";
+export { channelColor, channelColorFor, channelColorSoft, soften, typeColor } from "./channelColor";
 export { beginGraphConfigure, endGraphConfigure, graphBeingConfigured } from "./graphLoadGuard";
 export { invalidateWirelessPlan, livePlan, liveTreePlan } from "./livePlan";
 export { installWirelessOverlay } from "./overlay";
