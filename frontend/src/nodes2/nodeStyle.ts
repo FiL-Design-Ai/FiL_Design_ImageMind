@@ -157,6 +157,14 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
     // is routine — and under the old check that silently dropped its theme into
     // the plain `else` branch with nothing to show for it.
     const theme = activeThemeName();
+    // Dragging/zooming sets this so LiteGraph itself can skip expensive
+    // per-frame detail; `shadowBlur` below is exactly that kind of cost, and
+    // unlike the frame drawn in `onDrawForeground`, it was never gated on it —
+    // so every FiL node's title glow repainted at full cost on each of those
+    // frames, canvas-wide.
+    const lowQuality = Boolean(
+      (globalThis as { app?: { canvas?: { low_quality?: boolean } } }).app?.canvas?.low_quality,
+    );
     const isCyberpunk = theme === "cyberpunk";
     const isCyberpunk2077 = theme === "cyberpunk_2077";
     const isPipboy = theme === "pipboy";
@@ -175,36 +183,36 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
     if (isCyberpunk) {
       // Vivid Pink + Cyan Dual Neon
       ctx.shadowColor = "rgba(255, 0, 128, 0.8)";
-      ctx.shadowBlur = 10;
+      ctx.shadowBlur = lowQuality ? 0 : 10;
       ctx.fillStyle = "#ff0080";
       ctx.fillRect(0, -titleHeight, 4, titleHeight);
 
       ctx.shadowColor = "rgba(0, 255, 255, 0.8)";
-      ctx.shadowBlur = 10;
+      ctx.shadowBlur = lowQuality ? 0 : 10;
       ctx.fillStyle = "#00ffff";
       ctx.fillRect(4, -titleHeight, 3, titleHeight);
       ctx.shadowBlur = 0;
     } else if (isCyberpunk2077) {
       // Official Cyberpunk 2077 High-Voltage Yellow + Night City Cyan
       ctx.shadowColor = "rgba(252, 238, 10, 0.9)";
-      ctx.shadowBlur = 12;
+      ctx.shadowBlur = lowQuality ? 0 : 12;
       ctx.fillStyle = "#fcee0a";
       ctx.fillRect(0, -titleHeight, 5, titleHeight);
 
       ctx.shadowColor = "rgba(0, 240, 255, 0.8)";
-      ctx.shadowBlur = 10;
+      ctx.shadowBlur = lowQuality ? 0 : 10;
       ctx.fillStyle = "#00f0ff";
       ctx.fillRect(5, -titleHeight, 3, titleHeight);
       ctx.shadowBlur = 0;
     } else if (isHollywoodTeal) {
       // Hollywood Blockbuster Dual Neon: Electric Teal + Amber Fire
       ctx.shadowColor = "rgba(0, 210, 190, 0.8)";
-      ctx.shadowBlur = 10;
+      ctx.shadowBlur = lowQuality ? 0 : 10;
       ctx.fillStyle = "#00d2be";
       ctx.fillRect(0, -titleHeight, 4, titleHeight);
 
       ctx.shadowColor = "rgba(249, 115, 22, 0.8)";
-      ctx.shadowBlur = 10;
+      ctx.shadowBlur = lowQuality ? 0 : 10;
       ctx.fillStyle = "#f97316";
       ctx.fillRect(4, -titleHeight, 3, titleHeight);
       ctx.shadowBlur = 0;
@@ -262,7 +270,7 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
     } else if (isNeoEmerald || isNftVibe) {
       // Sleek Neon Glow Accent Stripe
       ctx.shadowColor = isNftVibe ? "rgba(208, 255, 0, 0.7)" : "rgba(0, 255, 136, 0.6)";
-      ctx.shadowBlur = 10;
+      ctx.shadowBlur = lowQuality ? 0 : 10;
       const stripeWidth = 5;
       ctx.fillStyle = fgcolor || (isNftVibe ? "#d0ff00" : "#00ff88");
       ctx.beginPath();

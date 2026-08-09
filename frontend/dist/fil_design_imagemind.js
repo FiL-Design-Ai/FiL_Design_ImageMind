@@ -3729,50 +3729,50 @@ function Uc(e, t = {}) {
 	}, n.onDrawTitleText = function(e, t, n) {
 		e.shadowColor = "transparent", e.shadowBlur = 0, e.shadowOffsetX = 0, e.shadowOffsetY = 0, e.fillStyle = "#ffffff";
 	}, n.onDrawTitleBar = function(e, t, n, r, i) {
-		let a = Xs(), o = a === "cyberpunk", s = a === "cyberpunk_2077", c = a === "pipboy", l = a === "neo_emerald", u = a === "nft_vibe", d = a === "hollywood_teal", f = a === "cyber_punch", p = a === "cyber_punch_hud", m = o || s || p ? 2 : c ? 4 : d ? 12 : l || u ? 16 : f ? 14 : globalThis.LiteGraph?.ROUND_RADIUS ?? 8, h = !!this.collapsed;
-		if (e.fillStyle = vc.panel, e.beginPath(), e.roundRect(0, -t, n[0], t, h ? [m] : [
-			m,
-			m,
+		let a = Xs(), o = !!globalThis.app?.canvas?.low_quality, s = a === "cyberpunk", c = a === "cyberpunk_2077", l = a === "pipboy", u = a === "neo_emerald", d = a === "nft_vibe", f = a === "hollywood_teal", p = a === "cyber_punch", m = a === "cyber_punch_hud", h = s || c || m ? 2 : l ? 4 : f ? 12 : u || d ? 16 : p ? 14 : globalThis.LiteGraph?.ROUND_RADIUS ?? 8, g = !!this.collapsed;
+		if (e.fillStyle = vc.panel, e.beginPath(), e.roundRect(0, -t, n[0], t, g ? [h] : [
+			h,
+			h,
 			0,
 			0
-		]), e.fill(), o) e.shadowColor = "rgba(255, 0, 128, 0.8)", e.shadowBlur = 10, e.fillStyle = "#ff0080", e.fillRect(0, -t, 4, t), e.shadowColor = "rgba(0, 255, 255, 0.8)", e.shadowBlur = 10, e.fillStyle = "#00ffff", e.fillRect(4, -t, 3, t), e.shadowBlur = 0;
-		else if (s) e.shadowColor = "rgba(252, 238, 10, 0.9)", e.shadowBlur = 12, e.fillStyle = "#fcee0a", e.fillRect(0, -t, 5, t), e.shadowColor = "rgba(0, 240, 255, 0.8)", e.shadowBlur = 10, e.fillStyle = "#00f0ff", e.fillRect(5, -t, 3, t), e.shadowBlur = 0;
-		else if (d) e.shadowColor = "rgba(0, 210, 190, 0.8)", e.shadowBlur = 10, e.fillStyle = "#00d2be", e.fillRect(0, -t, 4, t), e.shadowColor = "rgba(249, 115, 22, 0.8)", e.shadowBlur = 10, e.fillStyle = "#f97316", e.fillRect(4, -t, 3, t), e.shadowBlur = 0;
-		else if (!c) if (f) {
-			e.fillStyle = vc.panelAlt, e.beginPath(), e.roundRect(0, -t, n[0], t, h ? [m] : [
-				m,
-				m,
+		]), e.fill(), s) e.shadowColor = "rgba(255, 0, 128, 0.8)", e.shadowBlur = o ? 0 : 10, e.fillStyle = "#ff0080", e.fillRect(0, -t, 4, t), e.shadowColor = "rgba(0, 255, 255, 0.8)", e.shadowBlur = o ? 0 : 10, e.fillStyle = "#00ffff", e.fillRect(4, -t, 3, t), e.shadowBlur = 0;
+		else if (c) e.shadowColor = "rgba(252, 238, 10, 0.9)", e.shadowBlur = o ? 0 : 12, e.fillStyle = "#fcee0a", e.fillRect(0, -t, 5, t), e.shadowColor = "rgba(0, 240, 255, 0.8)", e.shadowBlur = o ? 0 : 10, e.fillStyle = "#00f0ff", e.fillRect(5, -t, 3, t), e.shadowBlur = 0;
+		else if (f) e.shadowColor = "rgba(0, 210, 190, 0.8)", e.shadowBlur = o ? 0 : 10, e.fillStyle = "#00d2be", e.fillRect(0, -t, 4, t), e.shadowColor = "rgba(249, 115, 22, 0.8)", e.shadowBlur = o ? 0 : 10, e.fillStyle = "#f97316", e.fillRect(4, -t, 3, t), e.shadowBlur = 0;
+		else if (!l) if (p) {
+			e.fillStyle = vc.panelAlt, e.beginPath(), e.roundRect(0, -t, n[0], t, g ? [h] : [
+				h,
+				h,
 				0,
 				0
 			]), e.fill();
 			let r = Vc(this);
 			r && Hc(e, r, t, n[0]);
-		} else if (p) {
-			e.fillStyle = vc.panelAlt, e.beginPath(), e.roundRect(0, -t, n[0], t, h ? [m] : [
-				m,
-				m,
+		} else if (m) {
+			e.fillStyle = vc.panelAlt, e.beginPath(), e.roundRect(0, -t, n[0], t, g ? [h] : [
+				h,
+				h,
 				0,
 				0
 			]), e.fill();
 			let r = Vc(this);
 			r && Hc(e, r, t, n[0]);
-		} else l || u ? (e.shadowColor = u ? "rgba(208, 255, 0, 0.7)" : "rgba(0, 255, 136, 0.6)", e.shadowBlur = 10, e.fillStyle = i || (u ? "#d0ff00" : "#00ff88"), e.beginPath(), e.roundRect(0, -t, 5, t, h ? [
-			m,
+		} else u || d ? (e.shadowColor = d ? "rgba(208, 255, 0, 0.7)" : "rgba(0, 255, 136, 0.6)", e.shadowBlur = o ? 0 : 10, e.fillStyle = i || (d ? "#d0ff00" : "#00ff88"), e.beginPath(), e.roundRect(0, -t, 5, t, g ? [
+			h,
 			0,
 			0,
-			m
+			h
 		] : [
-			m,
+			h,
 			0,
 			0,
 			0
-		]), e.fill(), e.shadowBlur = 0) : (e.fillStyle = i || vc.accent, e.beginPath(), e.roundRect(0, -t, 3, t, h ? [
-			m,
+		]), e.fill(), e.shadowBlur = 0) : (e.fillStyle = i || vc.accent, e.beginPath(), e.roundRect(0, -t, 3, t, g ? [
+			h,
 			0,
 			0,
-			m
+			h
 		] : [
-			m,
+			h,
 			0,
 			0,
 			0
