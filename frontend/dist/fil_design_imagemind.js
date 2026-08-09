@@ -3596,9 +3596,10 @@ var ec, tc, nc, rc, ic, ac, oc, sc = n((() => {
 	}, ac = `${ec} .lg-node-widget:not(:has(.fil-vue-host))`, oc = `${nc}{position:relative;}
 ${`${ac}{align-items:center;}
 ${ac} > :first-child{opacity:1 !important;transition:none !important;}
-${ac} > :nth-child(2){height:16px;min-height:0;background:none !important;box-shadow:none !important;}
-${ac} > :nth-child(2) > *:not(label){display:none !important;}
-${ac} > :nth-child(2) > label{position:static !important;padding:0 0 0 2px;line-height:16px;}`}`;
+${ac} > :nth-child(2){min-height:0 !important;background:none !important;box-shadow:none !important;}
+${ac} > :nth-child(2) > :nth-child(2){display:none !important;}
+${ac} > :nth-child(2) > :only-child > :nth-child(2){display:none !important;}
+${ac} > :nth-child(2) label{position:static !important;padding:0 0 0 2px;line-height:16px;}`}`;
 }));
 //#endregion
 //#region src/styles/brand.ts

@@ -217,11 +217,22 @@ const SOCKET_ROW = `${NODE} .lg-node-widget:not(:has(.fil-vue-host))`;
 /**
  * Turn such a row into a bare labelled socket.
  *
- * The row the host draws is dot + label + the field's own control, and the
+ * The row the host draws is dot + name + the field's own control, and the
  * control is a second copy of something the panel already shows — a textarea
- * over the panel's own prompt box. Everything but the label goes, leaving the
- * shape ComfyUI's "convert widget to input" always had: a dot with the field's
- * name beside it.
+ * sitting over the panel's own prompt box. The control goes, the name stays,
+ * leaving the shape ComfyUI's "convert widget to input" always had: a dot with
+ * the field's name beside it.
+ *
+ * Which element *is* the control depends on the widget, and the first cut of
+ * this ("keep the `<label>`, drop everything else") blanked the name on 28 of
+ * the pack's 37 socket rows — every numeric and combo field, i.e. all of
+ * ⚡ KSampler and 🔍 Upscaler. Live on 1.48.7 the rows come in exactly three
+ * shapes, and both selectors below are needed to cover them:
+ *   - `LABEL | TEXTAREA` — text fields, 9 rows.
+ *   - `DIV | DIV(DIV)` — name, then a control wrapper, 24 rows.
+ *   - `DIV(DIV + DIV)` — one wrapper holding name and control, 4 rows.
+ * The name is always first and the control always second, one level or two
+ * down, which is what these two rules say and nothing more.
  *
  * The dot is normally revealed on hover (`opacity-0 group-hover:opacity-100`).
  * These rows are nothing *but* a socket, so it stays up — and `transition:none`
@@ -232,9 +243,10 @@ const SOCKET_ROW = `${NODE} .lg-node-widget:not(:has(.fil-vue-host))`;
  */
 const SOCKET_ROW_CSS = `${SOCKET_ROW}{align-items:center;}
 ${SOCKET_ROW} > :first-child{opacity:1 !important;transition:none !important;}
-${SOCKET_ROW} > :nth-child(2){height:16px;min-height:0;background:none !important;box-shadow:none !important;}
-${SOCKET_ROW} > :nth-child(2) > *:not(label){display:none !important;}
-${SOCKET_ROW} > :nth-child(2) > label{position:static !important;padding:0 0 0 2px;line-height:16px;}`;
+${SOCKET_ROW} > :nth-child(2){min-height:0 !important;background:none !important;box-shadow:none !important;}
+${SOCKET_ROW} > :nth-child(2) > :nth-child(2){display:none !important;}
+${SOCKET_ROW} > :nth-child(2) > :only-child > :nth-child(2){display:none !important;}
+${SOCKET_ROW} > :nth-child(2) label{position:static !important;padding:0 0 0 2px;line-height:16px;}`;
 
 /** Shared skeleton every theme needs before its own values land on top. */
 const BASE = `${HEADER}{position:relative;}
