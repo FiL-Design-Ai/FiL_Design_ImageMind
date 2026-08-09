@@ -207,8 +207,38 @@ function badgeRules(): string {
   return `${NODE} [data-fil-badge]::before{content:attr(data-fil-badge);position:absolute;top:5px;right:10px;height:18px;padding:0 8px;display:flex;align-items:center;border-radius:9px;font:700 10px/1 ui-monospace,monospace;letter-spacing:0.04em;text-transform:uppercase;color:#ffd000;background:rgba(255,208,0,0.12);border:1px solid rgba(255,208,0,0.45);pointer-events:none;z-index:3;}`;
 }
 
+/**
+ * A widget row on one of our nodes that is not the panel — i.e. a field kept
+ * visible purely so its input keeps a connection dot. See
+ * `nodes2/widgetInputSockets.ts::keepVueSocketRow` for why one exists at all.
+ */
+const SOCKET_ROW = `${NODE} .lg-node-widget:not(:has(.fil-vue-host))`;
+
+/**
+ * Turn such a row into a bare labelled socket.
+ *
+ * The row the host draws is dot + label + the field's own control, and the
+ * control is a second copy of something the panel already shows — a textarea
+ * over the panel's own prompt box. Everything but the label goes, leaving the
+ * shape ComfyUI's "convert widget to input" always had: a dot with the field's
+ * name beside it.
+ *
+ * The dot is normally revealed on hover (`opacity-0 group-hover:opacity-100`).
+ * These rows are nothing *but* a socket, so it stays up — and `transition:none`
+ * is load-bearing, not tidying: the class comes with `transition-opacity`, and a
+ * running transition outranks even an `!important` author rule, so without it
+ * the dot sits at zero however the opacity is written (verified live — an inline
+ * `opacity: 1 !important` still computed to 0).
+ */
+const SOCKET_ROW_CSS = `${SOCKET_ROW}{align-items:center;}
+${SOCKET_ROW} > :first-child{opacity:1 !important;transition:none !important;}
+${SOCKET_ROW} > :nth-child(2){height:16px;min-height:0;background:none !important;box-shadow:none !important;}
+${SOCKET_ROW} > :nth-child(2) > *:not(label){display:none !important;}
+${SOCKET_ROW} > :nth-child(2) > label{position:static !important;padding:0 0 0 2px;line-height:16px;}`;
+
 /** Shared skeleton every theme needs before its own values land on top. */
-const BASE = `${HEADER}{position:relative;}`;
+const BASE = `${HEADER}{position:relative;}
+${SOCKET_ROW_CSS}`;
 
 /** The Vue-renderer chrome for one theme, ready for a `<style>` tag. */
 export function vueNodeSkinCss(theme: FilThemeName): string {

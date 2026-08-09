@@ -61,6 +61,19 @@
   Locked in by `vueNodes.test.ts` against a fake host that reimplements the two
   visibility rules, so "renders under Nodes 2.0" is now a thing the suite can
   actually fail on.
+- **Under the Vue renderer, no wire could reach a field inside a panel.** A
+  widget-backed input gets exactly one connection dot there and it lives inside
+  that widget's own row, which is drawn only for visible widgets — and a FiL
+  node hides every field its panel replaces. Dropping the wire on the node body
+  does not help either: that path resolves an input by type and then wants a
+  registered slot layout, which a row that was never drawn does not have. So
+  the prompt of 🕵️ Optic Scanner, and every other field with a socket, was
+  simply unreachable. The rows for those fields now stay, stripped in CSS to a
+  labelled dot — the shape ComfyUI's own "convert widget to input" always had —
+  while the field's control stays where it belongs, in the panel. Which fields
+  get one is not a new decision: it is the same `*_SOCKET_INPUTS` list each node
+  already declares for the canvas renderer. Verified live by dragging a STRING
+  output into 🕵️ Optic Scanner's `prompt`.
 - **Themes looked like stock ComfyUI under the Vue renderer.** A node's title
   bar, its frame and the inline badge pill are painted with a brush on the
   LiteGraph canvas — which does not exist under Nodes 2.0, where a node is a DOM

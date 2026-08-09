@@ -5,7 +5,7 @@
 export interface ComfyLikeWidget {
   name?: string;
   value?: unknown;
-  options?: { values?: unknown[]; hidden?: boolean };
+  options?: { values?: unknown[]; hidden?: boolean; advanced?: boolean; hideInPanel?: boolean };
   hidden?: boolean;
   /**
    * Row offset inside the node body, in node-local pixels. LiteGraph's layout

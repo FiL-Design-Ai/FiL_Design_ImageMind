@@ -89,7 +89,7 @@ describe("hiding a native widget", () => {
 });
 
 describe("a real node registration", () => {
-  it("leaves no native widget rows above 🎬 Cinema Rig's panel", async () => {
+  it("leaves 🎬 Cinema Rig with nothing above its panel but the one socket row", async () => {
     vi.doMock("@/nodes2/domWidgetHost", () => ({
       addFilDomWidget: () => ({ name: "fil_cinema_rig_view", value: {} }),
       unmountAllFilWidgets: () => {},
@@ -115,6 +115,40 @@ describe("a real node registration", () => {
 
     (nodeType.prototype.onNodeCreated as (this: unknown) => unknown).call(node);
 
-    expect(vueRenderedWidgets(node)).toEqual([]);
+    // `scene_prompt` is the node's declared socket input (CINEMA_RIG_SOCKET_INPUTS).
+    // Its row is what carries the only connection dot a widget-backed input gets
+    // under the Vue renderer, so it survives on purpose — stripped to a labelled
+    // socket in CSS. Every other field belongs to the panel alone.
+    expect(vueRenderedWidgets(node)).toEqual(["scene_prompt"]);
+    // Still hidden for the canvas renderer, where the panel's own dots do this job.
+    expect(node.widgets.find((w) => w.name === "scene_prompt")?.hidden).toBe(true);
+  });
+
+  it("keeps a socket field out of the properties panel and past the advanced-widgets gate", async () => {
+    vi.doMock("@/nodes2/domWidgetHost", () => ({
+      addFilDomWidget: () => ({ name: "fil_scanner_view", value: {} }),
+      unmountAllFilWidgets: () => {},
+    }));
+    const { scannerNode } = await import("@/nodes2/nodes/scanner");
+
+    const node = createNode({
+      comfyClass: "FiLOpticScanner",
+      // ComfyUI marks these two `advanced` from the node schema, which is why
+      // 🕵️ Optic Scanner shipped a socket for `prompt` and none for its two
+      // siblings until the flag was cleared alongside `hidden`.
+      widgets: [
+        { name: "prompt", value: "", type: "customtext" },
+        { name: "negative_prompt", value: "", type: "customtext", options: { advanced: true } },
+        { name: "custom_style", value: "", type: "customtext", options: { advanced: true } },
+        { name: "agent", value: "None", type: "combo" },
+      ],
+    });
+    const nodeType = { prototype: {} } as { prototype: Record<string, unknown> };
+    scannerNode.register(nodeType as never, { name: "FiLOpticScanner" } as never);
+
+    (nodeType.prototype.onNodeCreated as (this: unknown) => unknown).call(node);
+
+    expect(vueRenderedWidgets(node)).toEqual(["prompt", "negative_prompt", "custom_style"]);
+    expect(node.widgets.every((w) => w.name === "agent" || w.options?.hideInPanel)).toBe(true);
   });
 });

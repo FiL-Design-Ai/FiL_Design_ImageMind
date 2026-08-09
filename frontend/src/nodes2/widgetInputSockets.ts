@@ -58,9 +58,14 @@ export interface WidgetSocketAnchor {
  * Called once per node creation/configure. The rows are a fallback for the
  * frames before the panel has measured itself — `anchorWidgetInputSockets`
  * moves each dot next to its actual field as soon as it is laid out.
+ *
+ * Under the Vue renderer none of that arithmetic applies — a node is DOM, not
+ * pixels — but the same list decides the same thing, so `keepVueSocketRow`
+ * below is driven from here rather than from a second list somewhere else.
  */
 export function exposeWidgetInputSockets(node: unknown, names: string[]): void {
   const n = node as NodeLike;
+  for (const name of names) keepVueSocketRow(node, name);
   // Start the stack below the node's real inputs. It used to start at row 1,
   // which put every fallback dot *inside* the real input column: on 🔍 Upscaler
   // Simple the three fallback rows landed on `upscale_model`, on `latent`, and
@@ -85,6 +90,51 @@ export function exposeWidgetInputSockets(node: unknown, names: string[]): void {
     row += 1;
   }
   requestArrange(n);
+}
+
+/**
+ * Keep one field's row alive for ComfyUI's Vue renderer, so its input can still
+ * be wired up.
+ *
+ * Under Nodes 2.0 a widget-backed input has exactly one connection dot and it
+ * lives inside that widget's own row (`vueNodes/components/NodeWidgets.vue`,
+ * rendered under `v-if="widget.visible"`). Slots the node draws separately come
+ * from `nonWidgetedInputs`, which skips anything carrying a `widget`
+ * back-reference, and the linked-widget dots beside them are only rendered for
+ * the collapsed node. So a field the panel replaces — hidden from the renderer
+ * like every other one — has no dot anywhere and no wire can ever reach it:
+ * verified on comfyui_frontend_package 1.48.7 by dragging a STRING output onto
+ * 🎬 Cinema Rig's body, which resolves through `findInputByType` but then wants
+ * a registered slot layout and finds none.
+ *
+ * The fix is to let the host keep drawing the row and take the field's own
+ * control back out of it in CSS (`styles/vueNodeSkin.ts`), leaving a labelled
+ * socket — the shape ComfyUI's own "convert widget to input" used to have. That
+ * is why this clears `options.hidden` while leaving `widget.hidden` set: the
+ * canvas renderer must go on hiding the field, because there the panel's own
+ * dots (the rows above) are what the user connects to.
+ *
+ * `hideInPanel` keeps the re-exposed field out of the right-side properties
+ * panel, where it would otherwise show up as a second copy of a control the
+ * panel already owns.
+ *
+ * `advanced` goes for a related reason. ComfyUI sets it from the node schema
+ * and the Vue renderer hides such a widget behind the "Always show advanced
+ * widgets" setting — which on 🕵️ Optic Scanner left `negative_prompt` and
+ * `custom_style` with no socket while `prompt` had one, an arbitrary split from
+ * the user's side. The flag is about whether a *control* clutters the node; the
+ * control is exactly what the CSS takes away here, and the panel shows the
+ * field itself either way. The canvas renderer exposes all three sockets
+ * unconditionally, so clearing it is also what keeps the two renderers saying
+ * the same thing.
+ */
+function keepVueSocketRow(node: unknown, name: string): void {
+  const w = findFilWidget(node, name);
+  if (!w) return;
+  if (!w.options) w.options = {};
+  w.options.hidden = false;
+  w.options.advanced = false;
+  w.options.hideInPanel = true;
 }
 
 /** Inputs LiteGraph lays out itself — every slot that is not a widget mirror. */
