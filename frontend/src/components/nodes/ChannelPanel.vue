@@ -35,11 +35,9 @@
  * workflow — reopen the file, or restart ComfyUI and open it, and the slot is
  * already named, so the question is asked once per wire, never once per
  * session. Naming the channel is also what lets rule 8 settle the cluster,
- * which is why this question runs ahead of the ambiguity ones — and why the
- * second of the canonical pair never asks at all: once the first answer
- * names one channel, exclusion (rule 8's leftover deduction) settles the
- * other wire's place, and a question whose answer is already implied is not
- * a question.
+ * which is why this question runs ahead of the ambiguity ones. Every unnamed
+ * CONDITIONING wire is asked — the user's word, not exclusion's deduction,
+ * decides positive versus negative.
  *
  * `channel.ts` cannot call straight into this component for it: it is an async
  * component, so a wire drawn the instant the node exists can fire
@@ -549,12 +547,12 @@ function drainPendingNamingChecks(): void {
   // follows closing it drains this one. Consuming now would swallow the ask.
   if (namingOpen.value || clusterOpen.value || modalOpen.value) return;
 
-  // One question at a time, and none at all when a name would change nothing:
-  // slots are consumed one by one, whatever stays unasked goes back on the
-  // queue for the refresh after this question is answered. That is also how
-  // the leftover deduction keeps the second pos/neg wire click-free: the
-  // answer to the first names it, exclusion settles the cluster, and the
-  // second slot's check below simply finds nothing left to ask about.
+  // One question at a time: slots are consumed one by one, whatever stays
+  // unasked goes back on the queue for the refresh after this question is
+  // answered. Every unnamed CONDITIONING wire earns its ask — only the user
+  // knows whether what they plugged is positive or negative; silent exclusion
+  // ("the second wire must be the other one") was decided against the user's
+  // word and is gone.
   const remaining: number[] = [];
   for (let i = 0; i < pending.length; i++) {
     const slotIndex = pending[i];
@@ -569,17 +567,6 @@ function drainPendingNamingChecks(): void {
     if (!slot) continue;
     if (!isAutoLabel(node, slot)) continue; // already named — the once-only promise
     if (!isTypeOnlyChannelName(channel)) continue; // the origin already says what it is
-
-    // Skip only a wire whose name would change nothing *and* is already put to
-    // use: nothing stuck on it (no ambiguity mentions it) and it feeds at
-    // least one input (a resolution link). That is the second pos/neg wire —
-    // the first answer and exclusion already settled where it goes. An unused
-    // channel still earns the question: with no receiver in the graph yet,
-    // the name is exactly what a sampler added later will resolve by.
-    const ambiguous = plan.value?.resolution.ambiguous ?? [];
-    const isStuck = ambiguous.some((a) => a.candidates.includes(channel.name));
-    const isFeeding = (plan.value?.resolution.links ?? []).some((l) => l.channelName === channel.name);
-    if (!isStuck && isFeeding) continue;
 
     namingSlotIndex.value = slotIndex;
     namingSuggested.value = namingAnswerHint();

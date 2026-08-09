@@ -142,16 +142,28 @@ describe("collectChannels", () => {
     expect(collectChannels(graph)[0]?.name).toBe("My cond");
   });
 
-  it("a label the host echoed from the origin slot's own name is not a rename", () => {
-    // The host fills an untouched slot's label with its own name; that echo is
-    // a default, not a choice — the channel must fall back to its type.
+  it("borrows the origin slot's own name when it says more than the type", () => {
+    // The host echoes an untouched slot's name into its label — an echo, not
+    // a rename, so nothing the user typed is overridden by it. But the slot's
+    // own name is worth borrowing when it says more than the bare type: a
+    // FiLSeed output calls itself SEED, and a channel forwarding it may as
+    // well — the name then pairs with `seed` inputs by rule 8, no rename.
     const src = createNode({ id: 1, comfyClass: "SomethingElse", outputs: [slot("OUT", "CONDITIONING")] });
     src.outputs[0].label = "OUT";
     const ch = channel(2, ["CONDITIONING"]);
     const graph = createGraph([src, ch]);
     wire(src, ch);
 
-    expect(collectChannels(graph)[0]?.name).toBe("CONDITIONING");
+    expect(collectChannels(graph)[0]?.name).toBe("OUT");
+  });
+
+  it("a seed wire names the channel SEED, ready to pair with seed inputs", () => {
+    const src = createNode({ id: 1, comfyClass: "FiLSeed", outputs: [slot("SEED", "INT")] });
+    const ch = channel(2, ["INT"]);
+    const graph = createGraph([src, ch]);
+    wire(src, ch);
+
+    expect(collectChannels(graph)[0]?.name).toBe("SEED");
   });
 
   it("ignores inputs that are not value sockets", () => {

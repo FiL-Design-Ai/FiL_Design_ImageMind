@@ -52,6 +52,24 @@
   theme change re-asserts them across the open graph. Locked in by the widened
   `appearanceSettings.test.ts` and `comfyPalette.test.ts`.
 
+### Changed
+
+- **📡 A channel now says what it carries by borrowing its source's own name.**
+  Dragging a wire from ♻️ Seed named the channel `INT` — true and useless.
+  The slot the wire comes from already calls itself SEED, so the channel
+  takes that name whenever the origin slot's name says more than the bare
+  type (a slot named after its type changes nothing). The borrowed name is
+  what lets rule 8 pair the channel with `seed` inputs on its own, no
+  rename needed; a rename typed on the channel still wins, as before.
+
+- **📡 Every CONDITIONING wire is asked "positive or negative?" — the deduction that answered for the user is gone.**
+  Exclusion ("the first wire took positive, so this one must be negative")
+  was right often enough to be trusted and wrong rarely enough to hurt —
+  and a wrong silent name is worse than one more question. The user plugs
+  the wire and only the user knows; now every unnamed CONDITIONING wire is
+  asked once, and the answer still serialises with the workflow, so it is
+  never asked twice for the same wire.
+
 ### Fixed
 
 - **📡 Wireless links wore colours no socket on the canvas uses.**

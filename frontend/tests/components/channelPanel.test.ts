@@ -669,7 +669,7 @@ describe("ChannelPanel.vue", () => {
       expect(wrapper.text()).toContain("negative");
     });
 
-    it("the second wire asks nothing — the first answer and exclusion settle it", async () => {
+    it("the second wire is asked too — the user's word, not exclusion's guess", async () => {
       const srcA = loader(1, "CONDITIONING", "CLIPTextEncode");
       const srcB = loader(3, "CONDITIONING", "CLIPTextEncode");
       const ch = transmitter(2, ["CONDITIONING", "CONDITIONING"]);
@@ -691,20 +691,22 @@ describe("ChannelPanel.vue", () => {
       await nextTick();
       expect(ch.inputs[0].label).toBe("positive");
 
-      // Second wire lands: no question — the named channel took `positive`,
-      // and exclusion puts the unnamed one on `negative`, the only slot left.
+      // Second wire lands: asked again. Exclusion could have deduced
+      // "negative", but the one who plugs the wire knows, and was decided to
+      // be asked (2026-08-10) — a deduced name is a guess wearing a uniform.
       srcB.connect!(0, ch, 1);
       flagNaming(ch, 1);
       state.ui.refresh?.();
       await nextTick();
 
-      expect(modal().querySelector(".fil-channel-naming-actions")).toBeNull();
+      expect(modal().querySelector(".fil-modal-title")?.textContent).toContain("Positive or negative?");
+      answerButtons()[1].click(); // Negative
+      await nextTick();
+
+      expect(ch.inputs[1].label).toBe("negative");
       expect(modal().querySelector(".fil-channel-cluster-row")).toBeNull();
-      // Both channels feed one input each — the second stayed pack-named,
-      // because nothing needed its own word. No numbering either: with the
-      // first channel called `positive`, it is the only `CONDITIONING` around.
+      // Both channels feed one input each, named by the user's own hand.
       expect(wrapper.findAll(".fil-channel-count").map((n) => n.text())).toEqual(["1", "1"]);
-      expect(ch.inputs[1].label).toBe("CONDITIONING");
     });
 
     it("two wires queued before the first drain are asked one after the other", async () => {

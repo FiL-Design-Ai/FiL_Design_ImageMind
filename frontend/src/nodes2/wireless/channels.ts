@@ -61,9 +61,14 @@ function slotName(node: WirelessNode, slot: WirelessSlot): string | undefined {
  */
 function originName(origin: ResolvedOrigin): string | undefined {
   const label = origin.label;
-  if (!label) return undefined;
-  if (origin.slotName && label === origin.slotName) return undefined;
-  return label;
+  if (label && !(origin.slotName && label === origin.slotName)) return label;
+  // The slot's own name, when it says more than the bare type: a FiLSeed's
+  // output calls itself SEED, and a channel forwarding it may as well — the
+  // name then pairs with `seed` inputs by rule 8 without a rename. A slot
+  // named after its type (MODEL, CONDITIONING) adds nothing and stays typed.
+  const slotName = origin.slotName?.trim();
+  if (slotName && slotName.toUpperCase() !== origin.type.toUpperCase()) return slotName;
+  return undefined;
 }
 
 export function collectChannels(graph: WirelessGraph): WirelessChannel[] {
