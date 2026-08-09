@@ -1653,6 +1653,137 @@ describe("planWirelessTree / applyWirelessTree", () => {
   });
 });
 
+/**
+ * INT values across nodes — the width/height case.
+ *
+ * Broadcasting is type-agnostic by design, but every rule above was pinned
+ * with MODEL/CONDITIONING, and the small value types bring the two shapes a
+ * user actually meets: one node carrying *two* inputs of the same type
+ * (Empty Latent Image's `width` and `height`), and inputs that started life
+ * as widgets. Both deserve their own pinning.
+ */
+describe("INT values — width/height across nodes", () => {
+  /** Empty-Latent-Image-shaped receiver: two free INT inputs, one node. */
+  function latentReceiver(id: number, subs?: Record<string, string>): FakeNode {
+    return createNode({
+      id,
+      comfyClass: "EmptyLatentImage",
+      inputs: [slot("width", "INT"), slot("height", "INT")],
+      properties: subs ? { fil_wireless: { subs } } : {},
+    });
+  }
+
+  it("rule 7: a lone INT channel to width and height asks instead of wiring both", () => {
+    // Same value on both is exactly what the user may want here (a square),
+    // but the engine cannot know that — same-type siblings are a question,
+    // not a guess, whatever the type.
+    const src = source(1, "INT");
+    const ch = channel(2, ["INT"]);
+    const latent = latentReceiver(3);
+    const graph = createGraph([src, ch, latent]);
+    wire(src, ch);
+
+    const { resolution } = planWireless(graph);
+    expect(resolution.links).toEqual([]);
+    expect(resolution.ambiguous.map((a) => a.input).sort()).toEqual(["height", "width"]);
+    expect(resolution.unusedChannels).toEqual(["INT"]);
+  });
+
+  it("rule 2: explicit ticks wire both siblings from the same INT channel", () => {
+    const src = source(1, "INT");
+    const ch = channel(2, ["INT"]);
+    const latent = latentReceiver(3, { width: "INT", height: "INT" });
+    const graph = createGraph([src, ch, latent]);
+    wire(src, ch);
+
+    const { resolution } = planWireless(graph);
+    expect(resolution.ambiguous).toEqual([]);
+    expect(resolution.links).toMatchObject([
+      { channelName: "INT", origin_id: 1, target_id: 3, target_slot: 0 },
+      { channelName: "INT", origin_id: 1, target_id: 3, target_slot: 1 },
+    ]);
+  });
+
+  it("rule 8: channels named width and height pair with the matching inputs", () => {
+    const widthSrc = source(1, "INT");
+    const heightSrc = source(2, "INT");
+    const ch = channel(3, ["INT", "INT"], ["width", "height"]);
+    const latent = latentReceiver(4);
+    const graph = createGraph([widthSrc, heightSrc, ch, latent]);
+    widthSrc.connect!(0, ch, 0);
+    heightSrc.connect!(0, ch, 1);
+
+    const { resolution } = planWireless(graph);
+    expect(resolution.ambiguous).toEqual([]);
+    expect(resolution.links).toMatchObject([
+      { channelName: "width", origin_id: 1, target_id: 4, target_slot: 0 },
+      { channelName: "height", origin_id: 2, target_id: 4, target_slot: 1 },
+    ]);
+  });
+
+  it("rule 3: two unnamed INT channels stay ambiguous like any other type", () => {
+    const a = source(1, "INT");
+    const b = source(2, "INT");
+    const first = channel(3, ["INT"]);
+    const second = channel(5, ["INT"]);
+    const latent = latentReceiver(4);
+    const graph = createGraph([a, b, first, second, latent]);
+    wire(a, first);
+    wire(b, second);
+
+    const { resolution } = planWireless(graph);
+    expect(resolution.links).toEqual([]);
+    expect(resolution.ambiguous.map((x) => x.input).sort()).toEqual(["height", "width"]);
+    expect(resolution.unusedChannels.sort()).toEqual(["INT", "INT 2"]);
+  });
+
+  it("a widget converted to input is just an input — the receipt changes nothing", () => {
+    // Core turns "Convert widget to Input" into a regular entry in
+    // node.inputs that carries a `widget` receipt ({name}) alongside
+    // name/type/link. Nothing in the engine may read that receipt —
+    // width/height reach Empty Latent Image only as converted widgets.
+    const widthSrc = source(1, "INT");
+    const heightSrc = source(2, "INT");
+    const ch = channel(3, ["INT", "INT"], ["width", "height"]);
+    const latent = latentReceiver(4);
+    latent.inputs.forEach((input) => {
+      (input as { widget?: { name: string } }).widget = { name: input.name };
+    });
+    const graph = createGraph([widthSrc, heightSrc, ch, latent]);
+    widthSrc.connect!(0, ch, 0);
+    heightSrc.connect!(0, ch, 1);
+
+    const { resolution } = planWireless(graph);
+    expect(resolution.links).toMatchObject([
+      { channelName: "width", target_slot: 0 },
+      { channelName: "height", target_slot: 1 },
+    ]);
+  });
+
+  it("applyWirelessLinks wires the INT pair into the graph for real, and restores", () => {
+    const widthSrc = source(1, "INT");
+    const heightSrc = source(2, "INT");
+    const ch = channel(3, ["INT", "INT"], ["width", "height"]);
+    const latent = latentReceiver(4);
+    const graph = createGraph([widthSrc, heightSrc, ch, latent]);
+    widthSrc.connect!(0, ch, 0);
+    heightSrc.connect!(0, ch, 1);
+
+    const before = JSON.stringify({ links: graph.links, nodes: graph._nodes.map((n) => ({ i: n.inputs, o: n.outputs })) });
+
+    const { resolution } = planWireless(graph);
+    const applied = applyWirelessLinks(graph, resolution.links);
+
+    expect(applied.created).toBe(2);
+    expect(graph.links[latent.inputs[0].link as number]).toMatchObject({ origin_id: 1, target_id: 4, target_slot: 0 });
+    expect(graph.links[latent.inputs[1].link as number]).toMatchObject({ origin_id: 2, target_id: 4, target_slot: 1 });
+
+    applied.restore();
+    const after = JSON.stringify({ links: graph.links, nodes: graph._nodes.map((n) => ({ i: n.inputs, o: n.outputs })) });
+    expect(after).toBe(before);
+  });
+});
+
 describe("wirelessDiagnosticsTree", () => {
   it("tags every row with the graph it came from, root and subgraphs alike", () => {
     const rootKs = receiver(3, [["clip", "CLIP"]], { clip: "Missing" });
