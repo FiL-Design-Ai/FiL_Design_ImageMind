@@ -708,15 +708,16 @@ contract at all — it's for a specific instruction the preset library doesn't h
 - **tags** — flat comma-separated tags ordered by visual weight, no prose (`"cyberpunk street, neon
   signs, wet asphalt, holographic advertisement, rain, purple and blue lighting"`).
 - **json** — structured output; only meaningfully different for Ideogram 4, which has its own JSON
-  prompt schema (see
-  [`docs/MODEL_PROMPTING_GUIDE.md#7-ideogram-4---plain-text-optimization`](docs/MODEL_PROMPTING_GUIDE.md#7-ideogram-4---plain-text-optimization)).
+  prompt schema (see the [Ideogram 4 profile](docs/prompting.md#ideogram-4)).
 
 #### Model profiles
 
 `model_type` rewrites phrasing style and length ceiling for the target generator — Z-Image Turbo,
 FLUX, SDXL, QWEN, Krea 2, Ideogram 4 — it never touches which facts the agent pulled out. Rules
-live in `common/model_prompt_adapters.py`; the reasoning and per-model "Official guidance" sources
-are in [`docs/MODEL_PROMPTING_GUIDE.md`](docs/MODEL_PROMPTING_GUIDE.md).
+live in `common/model_prompt_adapters.py` and are documented in
+[`docs/prompting.md`](docs/prompting.md) ("Model Type Adaptation"); the historical vendor research
+those rules grew out of is archived in
+[`docs/MODEL_PROMPTING_GUIDE.md`](docs/MODEL_PROMPTING_GUIDE.md).
 
 **Video** is the odd one out on purpose: it targets a whole class instead of one product —
 MiniMax H2/H3, Wan 2.x, HunyuanVideo, LTX Video, Kling and other DiT video models all read the
@@ -1606,14 +1607,14 @@ USB-C слева, крышка закрыта». Прогоните *то же �
 - **tags** — плоский список тегов через запятую по визуальному весу, без прозы (`"cyberpunk
   street, neon signs, wet asphalt, holographic advertisement, rain, purple and blue lighting"`).
 - **json** — структурированный вывод; предметно отличается только для Ideogram 4, у которой своя
-  JSON-схема промпта (см.
-  [`docs/MODEL_PROMPTING_GUIDE.md#7-ideogram-4---plain-text-optimization`](docs/MODEL_PROMPTING_GUIDE.md#7-ideogram-4---plain-text-optimization)).
+  JSON-схема промпта (см. [профиль Ideogram 4](docs/prompting.md#ideogram-4)).
 
 #### Профили моделей
 
 `model_type` переписывает фразировку и потолок длины под целевой генератор — Z-Image Turbo, FLUX,
 SDXL, QWEN, Krea 2, Ideogram 4 — и никогда не трогает сами факты, которые вытянул агент. Правила —
-в `common/model_prompt_adapters.py`, обоснование и источники по каждой модели — в
+в `common/model_prompt_adapters.py` и в [`docs/prompting.md`](docs/prompting.md) («Model Type
+Adaptation»); исторический архив исследований вендоров, из которого эти правила выросли, — в
 [`docs/MODEL_PROMPTING_GUIDE.md`](docs/MODEL_PROMPTING_GUIDE.md).
 
 **Video** сознательно стоит особняком: он нацелен не на один продукт, а на целый класс — MiniMax

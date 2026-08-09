@@ -1,6 +1,6 @@
-# Model Prompting Guide - Complete Reference
+# Model Prompting Guide — Historical Vendor Research Archive
 
-> **Historical snapshot — last updated 2026-07-08.** This is a research/reference document, not the runtime contract. The canonical, code-synced source of truth is [prompting.md](prompting.md); the implementation lives in `common/model_prompt_adapters.py`. Re-verified against fresh official sources on 2026-07-10 — each model section below includes an "Official guidance" subsection with the vendor-sourced correction and its citation.
+> **📦 Archive — historical snapshot, last updated 2026-07-08.** This is a research/reference document, not the runtime contract. The canonical, code-synced source of truth is [prompting.md](prompting.md); the implementation lives in `common/model_prompt_adapters.py`. Kept for the per-model "Official guidance" subsections below — the vendor-sourced corrections and their citations that the live rules grew out of. Re-verified against fresh official sources on 2026-07-10.
 
 This guide covers prompting recommendations for each of the 7 supported image generation models in Optic Scanner.
 
