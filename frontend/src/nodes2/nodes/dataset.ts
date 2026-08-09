@@ -3,7 +3,7 @@ import type { ComfyNodeData } from "@/types/comfy";
 import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
-import { createSyncedNodeState, findFilWidget, sanitizeWidgetValue } from "@/nodes2/util";
+import { type ComfyLikeWidget, createSyncedNodeState, findFilWidget, hideWidget, sanitizeWidgetValue } from "@/nodes2/util";
 import { exposeWidgetInputSockets, installWidgetSocketSync } from "@/nodes2/widgetInputSockets";
 import { applyFxComposables } from "@/nodes2/applyFxComposables";
 
@@ -34,9 +34,9 @@ const NUMBER_DEFAULTS: Record<string, number> = {
 const BOOLEAN_DEFAULTS: Record<string, boolean> = { dry_run: false };
 
 function hideNativeWidgets(node: { widgets?: unknown[] }): void {
-  for (const w of ((node.widgets || []) as { name?: string; hidden?: boolean }[])) {
+  for (const w of ((node.widgets || []) as ComfyLikeWidget[])) {
     if (w.name === VIEW_WIDGET) continue;
-    w.hidden = true;
+    hideWidget(w);
   }
 }
 

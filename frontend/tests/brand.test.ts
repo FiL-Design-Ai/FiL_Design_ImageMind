@@ -54,3 +54,31 @@ describe("the Pixaroma skin", () => {
     expect(document.getElementById("fil-theme-vars")?.textContent).toBe("");
   });
 });
+
+/**
+ * The rule that drops the panels' backdrop blur mid-drag. Both halves pinned
+ * here are load-bearing and neither is visible from reading the rule alone:
+ * the glass themes declare `backdrop-filter` a second time in their own
+ * effects block — several with `!important` — so this has to out-specify them
+ * AND be emitted after them.
+ */
+describe("the mid-drag blur switch", () => {
+  it("out-specifies a theme's own backdrop-filter and is emitted last", () => {
+    injectFilBrandVars();
+    applyFilTheme("nft_vibe");
+
+    const perf = document.getElementById("fil-perf");
+    expect(perf?.textContent).toContain("backdrop-filter:none !important");
+    // Doubled attribute: a single one ties with `[data-fil-theme="…"]`.
+    expect(perf?.textContent).toContain(
+      ':root[data-fil-canvas-moving][data-fil-canvas-moving] .fil-node-shell [class$="-root"]',
+    );
+
+    // The theme this is overriding really does set the property it claims to.
+    const effects = document.getElementById("fil-theme-effects");
+    expect(effects?.textContent).toContain("backdrop-filter: blur(16px)");
+
+    const tags = [...document.head.querySelectorAll("style[id^='fil-']")].map((el) => el.id);
+    expect(tags.indexOf("fil-perf")).toBeGreaterThan(tags.indexOf("fil-theme-effects"));
+  });
+});

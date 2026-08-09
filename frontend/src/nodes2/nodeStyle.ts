@@ -38,7 +38,7 @@ const DEFAULT_FAMILY = "fil";
  * the pill below can use the text a node already declares without waiting on
  * that fix.
  */
-function firstDeclaredBadge(node: unknown): { text: string; color?: string; text_color?: string } | undefined {
+export function firstDeclaredBadge(node: unknown): { text: string; color?: string; text_color?: string } | undefined {
   const proto = Object.getPrototypeOf(node) as { badges?: Array<{ text: string; color?: string; text_color?: string }> } | null;
   return proto?.badges?.[0];
 }
@@ -143,13 +143,20 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
   };
 
   // Dark title bar with a left accent stripe instead of a solid accent fill.
+  //
+  // The host's 5th argument, `fgcolor`, is deliberately ignored. It is
+  // `node.renderingColor` — i.e. `node.color`, which this file pins to `#ffffff`
+  // a few lines up for a reason that has nothing to do with the stripe. The
+  // branches below used to read `fgcolor || <theme colour>`, so the `||` never
+  // fell through and every single-stripe theme drew a WHITE bar where its accent
+  // was meant to be. Naming the colour outright is also what lets
+  // `styles/vueNodeSkin.ts` reproduce the same bar in CSS: there is no `fgcolor`
+  // to consult on that side.
   p.onDrawTitleBar = function (
     this: { collapsed?: boolean },
     ctx: CanvasRenderingContext2D,
     titleHeight: number,
     size: [number, number],
-    _scale: number,
-    fgcolor: string,
   ) {
     // By name, never by accent value. Comparing `ACTIVE_PALETTE.accent` to a hex
     // literal ties the whole treatment below to a colour that is expected to
@@ -157,11 +164,21 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
     // is routine — and under the old check that silently dropped its theme into
     // the plain `else` branch with nothing to show for it.
     const theme = activeThemeName();
-    // Dragging/zooming sets this so LiteGraph itself can skip expensive
-    // per-frame detail; `shadowBlur` below is exactly that kind of cost, and
-    // unlike the frame drawn in `onDrawForeground`, it was never gated on it —
-    // so every FiL node's title glow repainted at full cost on each of those
-    // frames, canvas-wide.
+    // The host's level-of-detail flag: true once the zoom drops below the point
+    // where text would be unreadable (`LGraphCanvas._isLowQuality`, recomputed
+    // in `ds.onChanged`) — a zoom threshold, NOT a "canvas is moving" flag.
+    //
+    // Worth gating on all the same, and core sets the precedent by gating its
+    // own node shadows the same way (`render_shadows && !low_quality`,
+    // LGraphCanvas `drawNode`). Nothing here was gated on anything: the host
+    // calls `onDrawTitleBar` unconditionally from `drawTitleBarBackground`
+    // (LGraphNode) — no low-quality check on that path, unlike the title text
+    // beside it — so the `shadowBlur` fills below repainted at full cost, per
+    // FiL node, on every frame, at the zoom levels where the glow they buy is
+    // too small to see.
+    //
+    // Note this does NOT cover the ordinary case of panning at working zoom,
+    // where the glow still costs what it costs on every frame.
     const lowQuality = Boolean(
       (globalThis as { app?: { canvas?: { low_quality?: boolean } } }).app?.canvas?.low_quality,
     );
@@ -272,14 +289,14 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
       ctx.shadowColor = isNftVibe ? "rgba(208, 255, 0, 0.7)" : "rgba(0, 255, 136, 0.6)";
       ctx.shadowBlur = lowQuality ? 0 : 10;
       const stripeWidth = 5;
-      ctx.fillStyle = fgcolor || (isNftVibe ? "#d0ff00" : "#00ff88");
+      ctx.fillStyle = isNftVibe ? "#d0ff00" : "#00ff88";
       ctx.beginPath();
       ctx.roundRect(0, -titleHeight, stripeWidth, titleHeight, collapsed ? [radius, 0, 0, radius] : [radius, 0, 0, 0]);
       ctx.fill();
       ctx.shadowBlur = 0;
     } else {
       const stripeWidth = 3;
-      ctx.fillStyle = fgcolor || ACTIVE_PALETTE.accent;
+      ctx.fillStyle = ACTIVE_PALETTE.accent;
       ctx.beginPath();
       ctx.roundRect(0, -titleHeight, stripeWidth, titleHeight, collapsed ? [radius, 0, 0, radius] : [radius, 0, 0, 0]);
       ctx.fill();

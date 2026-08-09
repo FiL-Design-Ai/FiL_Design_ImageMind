@@ -8,9 +8,14 @@
 /** Sentinel attribute to spot double-mounts. */
 export const FIL_MOUNTED_FLAG = "__filVueMounted";
 
-export function createHostElement(): HTMLElement {
+export function createHostElement(badge?: string): HTMLElement {
   const host = document.createElement("div");
   host.className = "fil-vue-host";
+  // Read by `styles/vueNodeSkin.ts` to rebuild, in CSS, the pill the canvas
+  // renderer draws inline in the title row (`nodeStyle.ts::drawInlineBadge`).
+  // It rides on our own element because the Vue-rendered title bar belongs to
+  // the host and this pack does not write into other people's DOM.
+  if (badge) host.dataset.filBadge = badge;
   // Fill whatever width ComfyUI's own DOM-widget wrapper gives us, so the
   // panel grows/shrinks when the user resizes the node box. A fixed pixel
   // width here previously left dead space when a node was widened.

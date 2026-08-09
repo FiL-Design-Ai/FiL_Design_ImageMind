@@ -33,6 +33,66 @@ export function slot(name: string, type = "IMAGE", link: number | null = null): 
   return { name, type, link };
 }
 
+/**
+ * A native widget as both renderers see it.
+ *
+ * The two visibility fields are NOT interchangeable, which is the whole reason
+ * this shape is spelled out. The canvas renderer lays a node out through
+ * `getLayoutWidgets()`, which skips a widget whose own `hidden` is set. The Vue
+ * renderer never looks at that property: `extractWidgetDisplayOptions`
+ * (`composables/graph/useGraphNodeManager.ts`, frontend 1.48.7) copies
+ * `canvasOnly / advanced / hidden / read_only` off `options` into the node
+ * snapshot and `isWidgetVisible`
+ * (`renderer/extensions/vueNodes/composables/useProcessedWidgets.ts`) decides
+ * from that copy alone. Modelling only `hidden` is how a whole renderer's worth
+ * of duplicated widget rows stayed invisible to a green test suite.
+ *
+ * See `vueRenderedWidgets()` below for the Vue side of the same contract.
+ */
+export interface FakeNativeWidget {
+  name: string;
+  value?: unknown;
+  type?: string;
+  /** LiteGraph's own flag. Canvas renderer only. */
+  hidden?: boolean;
+  /** What the Vue renderer reads — `hidden`, `canvasOnly`, `hideInPanel`, … */
+  options?: Record<string, unknown>;
+  /** Present on DOM widgets; `isDOMWidget()` keys off it. */
+  element?: HTMLElement;
+}
+
+/**
+ * The widgets ComfyUI's Vue renderer would actually put on the node body.
+ *
+ * Mirrors two host functions, both verified against comfyui_frontend_package
+ * 1.48.7:
+ *   - `shouldRenderAsVue(widget)` — `!options.canvasOnly && !!type`
+ *     (`vueNodes/widgets/registry/widgetRegistry.ts`). `canvasOnly` is core's
+ *     "the widget will not be rendered by the Vue renderer" flag, not a hint.
+ *   - `isWidgetVisible(options, showAdvanced)` — `!options.hidden &&
+ *     (!options.advanced || showAdvanced)`
+ *     (`vueNodes/composables/useProcessedWidgets.ts`).
+ *
+ * Deliberately independent of `widget.hidden`: reproducing the host's blind
+ * spot is the point. A test that wants "what the user sees under Nodes 2.0"
+ * asks this; a test about the canvas renderer reads `hidden` directly.
+ */
+export function vueRenderedWidgets(
+  node: { widgets?: FakeNativeWidget[] },
+  { showAdvanced = false }: { showAdvanced?: boolean } = {},
+): string[] {
+  return (node.widgets ?? [])
+    .filter((w) => {
+      const o = w.options ?? {};
+      if (o.canvasOnly) return false;
+      if (!w.type) return false;
+      if (o.hidden) return false;
+      if (o.advanced && !showAdvanced) return false;
+      return true;
+    })
+    .map((w) => w.name);
+}
+
 export interface FakeNode {
   id: string | number;
   comfyClass: string;
@@ -40,7 +100,7 @@ export interface FakeNode {
   title?: string;
   inputs: FakeSlot[];
   outputs: FakeSlot[];
-  widgets: Array<{ name: string; value: unknown }>;
+  widgets: FakeNativeWidget[];
   widgets_values: unknown[];
   properties: Record<string, unknown>;
   /** Mute (2) and bypass (4) live here, not in `flags` — see `3c8c888`. */
@@ -106,7 +166,7 @@ export interface FakeNodeSpec {
   title?: string;
   inputs?: FakeSlot[];
   outputs?: FakeSlot[];
-  widgets?: Array<{ name: string; value: unknown }>;
+  widgets?: FakeNativeWidget[];
   properties?: Record<string, unknown>;
   mode?: number;
 }
@@ -389,6 +449,13 @@ export interface FakeApp {
      * until something claims it.
      */
     onDrawBackground: ((ctx: unknown, area?: unknown) => void) | null;
+    /**
+     * The `<canvas>` LiteGraph was constructed with (`LGraphCanvas.canvas`).
+     * It is a real element in the document because the pack listens on it —
+     * scoped there rather than on `window`, so pointer/wheel handling stays out
+     * of every other extension's way.
+     */
+    canvas: HTMLCanvasElement;
   };
   graph: {
     _nodes: FakeNode[];
@@ -456,6 +523,13 @@ export interface FakeAppOptions {
  * records those so a test can assert on them instead of silently taking a
  * fallback, which is exactly how the connection-toast setting stayed unreachable.
  */
+/** In the document, not detached: a listener on an orphan element never sees a dispatched event. */
+function makeCanvasEl(): HTMLCanvasElement {
+  const el = document.createElement("canvas");
+  document.body.appendChild(el);
+  return el;
+}
+
 export function createApp(options: FakeAppOptions = {}): FakeApp {
   const listeners = new Map<string, Array<(event: Event) => void>>();
   const registered = new Map<string, unknown>();
@@ -483,6 +557,7 @@ export function createApp(options: FakeAppOptions = {}): FakeApp {
       graph: options.graph,
       ds: { scale: 1 },
       onDrawBackground: null,
+      canvas: makeCanvasEl(),
     },
 
     graph: {
@@ -586,6 +661,10 @@ export function createApp(options: FakeAppOptions = {}): FakeApp {
 
 export interface FakeWidget {
   name: string;
+  type?: string;
+  element?: HTMLElement;
+  /** Seeded from the `addDOMWidget` call; the pack writes its own flags here. */
+  options?: Record<string, unknown>;
   computeSize?: () => [number, number];
   height?: number;
 }
@@ -666,9 +745,14 @@ export function createWidgetNode(spec: FakeWidgetNodeSpec = {}): FakeWidgetNode 
       if (serialized.size) node.size = [...serialized.size] as [number, number];
       (node.onConfigure as ((info: unknown) => void) | undefined)?.call(node, serialized);
     },
-    addDOMWidget(name, _type, _element, options) {
+    addDOMWidget(name, type, element, options) {
       node.widgetOptions = options;
-      widget = { name };
+      // Seeded the way `DOMWidgetImpl` is built in `scripts/domWidget.ts`:
+      // `options: { hideOnZoom: true, ...options }`, with the element kept on
+      // the widget. Callers that go on to write extra flags onto
+      // `widget.options` (the pack sets `hideInPanel`) need a real object here,
+      // and `vueRenderedWidgets()` needs the `type` to see the widget at all.
+      widget = { name, type, element, options: { ...options } };
       if (spec.readonlyWidgetHeight) {
         Object.defineProperty(widget, "height", { get: () => 0, configurable: true });
       }

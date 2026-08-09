@@ -3,7 +3,7 @@ import type { ComfyNodeData } from "@/types/comfy";
 import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
-import { createSyncedNodeState, findFilWidget, sanitizeWidgetValue } from "@/nodes2/util";
+import { type ComfyLikeWidget, createSyncedNodeState, findFilWidget, hideWidget, sanitizeWidgetValue } from "@/nodes2/util";
 import { exposeWidgetInputSockets, installWidgetSocketSync } from "@/nodes2/widgetInputSockets";
 import { applyFxComposables } from "@/nodes2/applyFxComposables";
 import { FIL_STATE_KEY, installFilStatePersistence, restoreFilState } from "@/nodes2/statePersistence";
@@ -34,9 +34,9 @@ const VIEW_WIDGET = "fil_scanner_view";
  * was whatever the file happened to have saved (verified live on 1.47.10).
  */
 function hideNativeWidgets(node: { widgets?: unknown[] }): void {
-  for (const w of ((node.widgets || []) as { name?: string; hidden?: boolean }[])) {
+  for (const w of ((node.widgets || []) as ComfyLikeWidget[])) {
     if (w.name === VIEW_WIDGET) continue;
-    w.hidden = true;
+    hideWidget(w);
   }
 }
 
@@ -91,7 +91,7 @@ export const scannerNode: NodeModule = {
         const value = sanitizeWidgetValue(w, isNum ? "number" : "string", fallback);
         initialValues[name] = value;
         initialNodeState[name] = value;
-        (w as { hidden?: boolean }).hidden = true;
+        hideWidget(w);
       }
       initialNodeState.seed_mode = "random";
 
@@ -138,7 +138,7 @@ export const scannerNode: NodeModule = {
         const isNum = name === "seed" || name === "video_duration";
         const fallback = isNum ? (name === "video_duration" ? 0 : -1) : "";
         state.nodeState[name] = sanitizeWidgetValue(w, isNum ? "number" : "string", fallback, hasFilState);
-        (w as { hidden?: boolean }).hidden = true;
+        hideWidget(w);
       }
       // The widget values read above are the fallback for workflows saved
       // before `fil_state` existed. When the key is there it wins: the

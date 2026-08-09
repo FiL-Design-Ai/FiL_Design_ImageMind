@@ -26,6 +26,58 @@
 
 ### Fixed
 
+- **Panels dropped their frame rate while the graph was dragged or zoomed.**
+  Every FiL node body carries `backdrop-filter: blur(...)` — 10–16px depending
+  on theme — and that is the one effect whose cost is paid again on every
+  frame: the browser re-samples and re-blurs whatever sits behind the panel,
+  and both the panel and the canvas behind it move continuously during a drag.
+  The cost scales with how many panels are on screen, which is why the stutter
+  came and went. The blur is now dropped while the canvas is actually moving
+  and restored 200ms after it settles, so a drag made of separate flicks does
+  not flash the glass on and off. At rest nothing changes. Deliberately not a
+  host patch: passive listeners on the canvas element itself, no `window`
+  listener (ours on `wheel` once silenced the scroll wheel for every other
+  pack) and no wrapped core method. Covered by `canvasMotion.test.ts`, driven
+  through the fake host's real canvas element rather than by calling the
+  handlers directly.
+- **ComfyUI's Nodes 2.0 renderer (`Comfy.VueNodes.Enabled`) — the pack claimed
+  support it did not have.** With the setting on, verified live against
+  comfyui_frontend_package 1.48.7, not one FiL panel appeared: the user got the
+  raw list of native widgets instead of the node's UI. Two wrong guesses about
+  the host, one each:
+  - The panel carried `canvasOnly: true`, set to keep it out of the right-side
+    properties panel. Core documents that flag as "the widget will not be
+    rendered by the Vue renderer" (`litegraph/src/types/widgets.ts`) and
+    `shouldRenderAsVue` drops such a widget before anything else looks at it.
+    The panel now uses `hideInPanel`, the narrow flag for exactly this case —
+    out of the side panel, still drawn on the node body.
+  - The native widgets a panel replaces were hidden with `widget.hidden`, which
+    only the canvas renderer reads. The Vue renderer decides from
+    `widget.options.hidden` alone (`isWidgetVisible`, and see
+    `extractWidgetDisplayOptions` for the fields it copies), so every hidden
+    field came back as a live row above the panel — 🎬 Cinema Rig at nine
+    duplicated rows and twice the height. All 16 node modules now hide through
+    one `hideWidget`/`hideNativeWidget` helper that writes both.
+  Locked in by `vueNodes.test.ts` against a fake host that reimplements the two
+  visibility rules, so "renders under Nodes 2.0" is now a thing the suite can
+  actually fail on.
+- **Themes looked like stock ComfyUI under the Vue renderer.** A node's title
+  bar, its frame and the inline badge pill are painted with a brush on the
+  LiteGraph canvas — which does not exist under Nodes 2.0, where a node is a DOM
+  element. `styles/vueNodeSkin.ts` is the same chrome as CSS, values copied from
+  the canvas code: per-theme stripe, glow and corner radius, the Pipboy and
+  Cyber Punch HUD whole-node frames with their corner brackets, and the pill.
+  Nothing detects the renderer: every rule hangs off `.lg-node`, a class that
+  only the Vue renderer emits, scoped by `:has(.fil-node-shell)` to nodes
+  carrying one of our panels — so foreign nodes stay untouched and no marker is
+  written into anyone else's DOM. Also fixes the header band rendering stark
+  white there, which is what the Vue renderer makes of the `node.color` the pack
+  pins for a canvas-side reason.
+- **The left accent stripe on a node title was white, in every theme that has
+  one.** `onDrawTitleBar` read `fgcolor || <theme colour>`, and `fgcolor` is
+  `node.renderingColor` — i.e. `node.color`, which this pack pins to `#ffffff`
+  — so the fallback never ran and the accent never showed. Both renderers now
+  name the theme colour outright.
 - **Pipboy's "узел в узле" — one frame around the whole node instead of three
   fighting ones.** The theme used to stroke a green rectangle around the TITLE
   alone (`onDrawTitleBar`), drop corner brackets on the DOM panel's own border,

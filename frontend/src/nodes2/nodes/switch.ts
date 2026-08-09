@@ -3,7 +3,7 @@ import type { ComfyNodeData } from "@/types/comfy";
 import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
-import { createSyncedNodeState, findFilWidget, sanitizeWidgetValue } from "@/nodes2/util";
+import { createSyncedNodeState, findFilWidget, hideWidget, sanitizeWidgetValue } from "@/nodes2/util";
 import { applyFxComposables } from "@/nodes2/applyFxComposables";
 
 const SwitchVue = defineAsyncComponent(() => import("@/components/nodes/Switch.vue"));
@@ -98,7 +98,7 @@ export const switchNode: NodeModule = {
 
       const enableWidget = findFilWidget(node, "enable");
       const initialEnable = sanitizeWidgetValue(enableWidget, "boolean", true);
-      if (enableWidget) (enableWidget as { hidden?: boolean }).hidden = true;
+      hideWidget(enableWidget);
 
       const state = {
         // Synced, like every other node module — see the note in seed.ts. This

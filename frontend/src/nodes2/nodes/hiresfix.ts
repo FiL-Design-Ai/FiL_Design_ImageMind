@@ -3,7 +3,7 @@ import type { ComfyNodeData } from "@/types/comfy";
 import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
-import { createSyncedNodeState, findFilWidget, sanitizeWidgetValue } from "@/nodes2/util";
+import { createSyncedNodeState, findFilWidget, hideNativeWidget, sanitizeWidgetValue } from "@/nodes2/util";
 import { exposeWidgetInputSockets, installWidgetSocketSync } from "@/nodes2/widgetInputSockets";
 import { applyFxComposables } from "@/nodes2/applyFxComposables";
 
@@ -80,8 +80,7 @@ export const hiresfixNode: NodeModule = {
       const initial: Record<string, unknown> = {};
       syncAll(node, initial);
       for (const name of HIDE) {
-        const w = findFilWidget(node, name);
-        if (w) (w as { hidden?: boolean }).hidden = true;
+        hideNativeWidget(node, name);
       }
       // ComfyUI auto-adds a control_after_generate combo for the "seed"
       // widget. The panel owns seed UX (same as FiLSeed/FiLOpticScanner):
@@ -90,11 +89,8 @@ export const hiresfixNode: NodeModule = {
       // in same-seed/own+fixed, "randomize" in own+random — so core itself
       // varies the hidden seed each queue (the mechanism that actually fires
       // on queue in this frontend version).
-      const controlWidget = findFilWidget(node, "control_after_generate");
-      if (controlWidget) {
-        controlWidget.hidden = true;
-        controlWidget.value = "fixed";
-      }
+      const controlWidget = hideNativeWidget(node, "control_after_generate");
+      if (controlWidget) controlWidget.value = "fixed";
       // `seed_mode` is panel-only state (no native widget behind it — the
       // Proxy mirror finds nothing to sync, which is fine); persists via
       // the DOM widget's getValue/setValue like scanner's.

@@ -3,7 +3,7 @@ import type { ComfyNodeData } from "@/types/comfy";
 import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
-import { createSyncedNodeState, findFilWidget, sanitizeWidgetValue } from "@/nodes2/util";
+import { createSyncedNodeState, findFilWidget, hideNativeWidget, hideWidget, sanitizeWidgetValue } from "@/nodes2/util";
 import { applyFxComposables } from "@/nodes2/applyFxComposables";
 
 const SeedVue = defineAsyncComponent(() => import("@/components/nodes/Seed.vue"));
@@ -43,11 +43,10 @@ export const seedNode: NodeModule = {
 
       const seedWidget = findFilWidget(node, "seed");
       const initialSeed = sanitizeWidgetValue(seedWidget, "number", 0);
-      if (seedWidget) (seedWidget as { hidden?: boolean }).hidden = true;
+      hideWidget(seedWidget);
       // ComfyUI auto-adds a control_after_generate combo for any widget
       // literally named "seed" — hide it too, the Vue view owns seed UX.
-      const controlWidget = findFilWidget(node, "control_after_generate");
-      if (controlWidget) (controlWidget as { hidden?: boolean }).hidden = true;
+      hideNativeWidget(node, "control_after_generate");
 
       const state = {
         // Synced, like every other node module. This one and switch.ts were the

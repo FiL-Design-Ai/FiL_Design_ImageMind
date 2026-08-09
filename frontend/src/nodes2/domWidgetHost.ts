@@ -28,6 +28,7 @@ import { createApp, reactive, type Component, type App as VueApp } from "vue";
 import { useActivePinia } from "@/stores";
 import FilNodeShell from "@/components/widgets/FilNodeShell.vue";
 import { createHostElement } from "@/nodes2/host/hostElement";
+import { firstDeclaredBadge } from "@/nodes2/nodeStyle";
 import { attachWheelForwarding } from "@/nodes2/host/wheelForwarding";
 import { applyWidgetValue } from "@/nodes2/host/stateBridge";
 import { createHeightModel } from "@/nodes2/host/heightModel";
@@ -101,7 +102,7 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
     return null;
   }
 
-  const host = createHostElement();
+  const host = createHostElement(firstDeclaredBadge(n)?.text);
   attachWheelForwarding(host);
 
   // The reactive `state` is the single source of truth for getValue/setValue.
@@ -123,9 +124,21 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
   // falls back to WidgetLegacy.vue, which draws the widget into a blank
   // <canvas> sized to whatever `getHeight()` reports — stretching the panel
   // to our real content height (500-1000+px) with nothing visible in it.
-  // `canvasOnly` is the flag the panel's own widget filter
-  // (rightSidePanel/shared.ts) checks to skip a widget entirely; it doesn't
-  // touch canvas rendering. Verified against comfyui_frontend_package 1.47.10.
+  // `hideInPanel` is the flag that panel's own widget filter
+  // (rightSidePanel/shared.ts) checks to skip a widget entirely.
+  //
+  // It used to say `canvasOnly`, which the same filter also honours — and that
+  // silently cost the pack the whole Nodes 2.0 mode. `canvasOnly` means what
+  // core's own comment says it means (`lib/litegraph/src/types/widgets.ts`):
+  // "the widget will not be rendered by the Vue renderer". `shouldRenderAsVue`
+  // drops such a widget before `useProcessedWidgets` ever reaches it, so with
+  // `Comfy.VueNodes.Enabled` on, every FiL panel was simply absent from its
+  // node and the user was left staring at the raw widget list. `hideInPanel`
+  // is the narrow flag core documents for exactly our case: out of the side
+  // panel, still rendered on the node body. Verified live against
+  // comfyui_frontend_package 1.48.7 — panels mount inside the Vue node through
+  // `vueNodes/widgets/components/WidgetDOM.vue`, which moves `element` into the
+  // node's own DOM.
   //
   // `serialize: false` keeps the panel state out of the queued prompt:
   // graphToPrompt (utils/executionUtil.ts) puts EVERY widget into the node's
@@ -138,7 +151,7 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
   // `widget.serialize` + getValue/setValue (per the same core comment), which
   // stay untouched, so panels still save/load as before.
   const wOpts = widget as { options?: Record<string, unknown> };
-  wOpts.options = { ...wOpts.options, canvasOnly: true, serialize: false };
+  wOpts.options = { ...wOpts.options, hideInPanel: true, serialize: false };
 
   heights.attachWidget(widget);
 

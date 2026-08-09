@@ -21,6 +21,7 @@ import { installProviderManager } from "@/nodes2/installers/providerManager";
 import { installHelpToolbar } from "@/nodes2/installers/helpToolbar";
 import { installShortcuts } from "@/nodes2/installers/shortcuts";
 import { installWireless } from "@/nodes2/installers/wireless";
+import { installCanvasMotion } from "@/nodes2/installers/canvasMotion";
 import { wirelessBottomPanelTab } from "@/nodes2/installers/wirelessPanel";
 import { beginGraphConfigure, endGraphConfigure } from "@/nodes2/wireless";
 import { filCommands, filKeybindings } from "@/composables/useShortcuts";
@@ -135,6 +136,9 @@ export function createFilExtension(app: ComfyApp): ComfyExtension {
         // Wraps app.graphToPrompt — the pack's only patch of a host method, and
         // the reason is written out in nodes2/wireless/promptBridge.ts.
         () => installWireless(app),
+        // Passive listeners on the canvas element only — see the module for why
+        // the panels' backdrop blur is worth dropping mid-drag.
+        () => installCanvasMotion(app as { canvas?: { canvas?: HTMLCanvasElement } }),
         () => applyStartupLogLevel((id, fallback) => readSetting(id, fallback, app)),
         () => applyStartupTheme((id, fallback) => readSetting(id, fallback, app)),
       ];

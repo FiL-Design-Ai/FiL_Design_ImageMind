@@ -3,7 +3,7 @@ import type { ComfyNodeData } from "@/types/comfy";
 import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
-import { createSyncedNodeState, findFilWidget, sanitizeWidgetValue } from "@/nodes2/util";
+import { createSyncedNodeState, findFilWidget, hideWidget, sanitizeWidgetValue } from "@/nodes2/util";
 import { exposeWidgetInputSockets, installWidgetSocketSync } from "@/nodes2/widgetInputSockets";
 import { applyFxComposables } from "@/nodes2/applyFxComposables";
 
@@ -61,7 +61,7 @@ export const colorWizardNode: NodeModule = {
         const val = sanitizeWidgetValue(w, expectedType, fallback);
         initialValues[name] = val;
         initialNodeState[name] = val;
-        (w as { hidden?: boolean }).hidden = true;
+        hideWidget(w);
       }
 
       const rawState = {

@@ -3,7 +3,7 @@ import type { ComfyNodeData } from "@/types/comfy";
 import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
-import { createSyncedNodeState, findFilWidget, sanitizeWidgetValue } from "@/nodes2/util";
+import { createSyncedNodeState, findFilWidget, hideNativeWidget, sanitizeWidgetValue } from "@/nodes2/util";
 import { applyFxComposables } from "@/nodes2/applyFxComposables";
 import { defaultProviderId } from "@/stores/settings/mindSettings";
 
@@ -74,8 +74,7 @@ export const providerNode: NodeModule = {
       // `seed`/`control_after_generate` are gone from the node schema; keeping
       // them here only re-created dead state on every node.
       for (const name of ["provider", "model", "refresh_models", "temperature", "max_tokens", "rate_limit_ms", "max_image_side"]) {
-        const w = findFilWidget(node, name);
-        if (w) (w as { hidden?: boolean }).hidden = true;
+        hideNativeWidget(node, name);
       }
 
       const state = {

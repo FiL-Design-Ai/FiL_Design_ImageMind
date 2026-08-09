@@ -5,7 +5,7 @@
 export interface ComfyLikeWidget {
   name?: string;
   value?: unknown;
-  options?: { values?: unknown[] };
+  options?: { values?: unknown[]; hidden?: boolean };
   hidden?: boolean;
   /**
    * Row offset inside the node body, in node-local pixels. LiteGraph's layout
@@ -25,6 +25,50 @@ export function findFilWidget(node: unknown, name: string): ComfyLikeWidget | un
   const n = node as { widgets?: ComfyLikeWidget[] };
   if (!n.widgets) return undefined;
   return n.widgets.find((w) => w.name === name);
+}
+
+/**
+ * Take a native widget out of the node body, in BOTH of ComfyUI's renderers.
+ *
+ * Every FiL node hides the widgets its Vue panel replaces. The two renderers
+ * read that intent from two different places, and writing only one of them is
+ * how the pack shipped a broken Nodes 2.0 mode:
+ *
+ *  - The canvas renderer reads `widget.hidden` — LiteGraph's own flag, checked
+ *    by `getLayoutWidgets()` when it lays the node body out.
+ *  - The Vue renderer reads `widget.options.hidden` and nothing else.
+ *    `extractWidgetDisplayOptions` (`composables/graph/useGraphNodeManager.ts`)
+ *    copies exactly `canvasOnly / advanced / hidden / read_only` off `options`
+ *    into the node snapshot, and `isWidgetVisible`
+ *    (`vueNodes/composables/useProcessedWidgets.ts`) decides from that copy.
+ *    Note it falls back to the widget property for `advanced`
+ *    (`widget.options?.advanced ?? widget.advanced`) but NOT for `hidden`, so
+ *    `widget.hidden` alone is invisible to it. Verified on
+ *    comfyui_frontend_package 1.48.7: a freshly placed 🎬 Cinema Rig showed all
+ *    nine "hidden" widgets as live rows above its panel.
+ *
+ * Timing matters: that snapshot is built once, when the node is added to the
+ * graph, and `useGraphNodeManager` publishes no event for a widget whose
+ * options changed later. Call this while the node is being created — which is
+ * where every caller already does — not in response to a later user action.
+ *
+ * Returns the widget it was handed, so a caller can keep working with it
+ * (setting a value, pinning a control combo), or `undefined` for a missing one.
+ */
+export function hideWidget(w: ComfyLikeWidget | undefined): ComfyLikeWidget | undefined {
+  if (!w) return undefined;
+  w.hidden = true;
+  // Mutated in place, never replaced: LiteGraph hands the SAME `options` object
+  // to the combo machinery (`options.values` is read back by reference), and a
+  // fresh object here would quietly detach a widget from its own value list.
+  if (!w.options) w.options = {};
+  w.options.hidden = true;
+  return w;
+}
+
+/** `hideWidget` by name — the shape almost every node registration wants. */
+export function hideNativeWidget(node: unknown, name: string): ComfyLikeWidget | undefined {
+  return hideWidget(findFilWidget(node, name));
 }
 
 /**

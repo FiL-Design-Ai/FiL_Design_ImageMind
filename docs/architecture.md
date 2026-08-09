@@ -50,6 +50,12 @@ Optional engines (`common/style_engine/`) may be skipped at import time if the r
 
 - **Vue 3 + TS + Vite + Pinia**. Vue and Pinia externalised — consume `window.Vue` / `window.Pinia` globals from ComfyUI Nodes 2.0.
 - **Widget API**: `node.addDOMWidget(name, "custom", el, {hideOnZoom, getValue, setValue, getHeight, onDraw})`. Each node component receives a single `state: FilNodeState` prop for reactive binding.
+- **Both renderers**. ComfyUI draws a node either on the LiteGraph canvas (default) or as DOM under `Comfy.VueNodes.Enabled` (Nodes 2.0). The two read different fields for the same intent, and every one of these was paid for with a broken release:
+  - *Hiding a native widget* — canvas reads `widget.hidden`, Vue reads `widget.options.hidden` only. Always go through `nodes2/util.ts::hideWidget` / `hideNativeWidget`, which write both. The Vue snapshot is taken once when the node joins the graph (`useGraphNodeManager.ts` publishes no widget-change event), so hide at creation time.
+  - *Keeping the panel out of the properties sidebar* — `hideInPanel`, never `canvasOnly`. The latter means "not rendered by the Vue renderer at all".
+  - *Theme chrome* — the canvas painting lives in `nodes2/nodeStyle.ts`, its CSS twin in `styles/vueNodeSkin.ts`. Change one, change the other. The CSS side needs no renderer detection: it hangs off `.lg-node`, which exists only under Vue rendering, narrowed by `:has(.fil-node-shell)` to our own nodes.
+  - *`node.color` / `node.bgcolor`* — the Vue renderer treats them as node surfaces, the canvas one does not. `color` is pinned to `#ffffff` for a canvas reason and would otherwise paint the header white.
+  - *Widget input sockets* — under Vue rendering the connection dot lives in the widget's own row and is drawn only for visible widgets, so a hidden widget's input cannot be reached; `nodes2/widgetInputSockets.ts` solves this for the canvas only. Known gap.
 - **Design system**: CSS variables on `:root` (`--fil-accent`, `--fil-panel`, `--fil-text`, `--fil-radius`, …), injected at app boot. Scoped styles per component — no global leakage.
 - **Icon system**: `src/composables/icons.ts` exports `ICONS` map (Lucide-style inline SVGs) and `icon(name)` helper. `<FilIcon>` renders via `v-html`.
 - **Modal**: `<FilModal>` (Teleport + focus trap + Esc) — used by the provider manager. The help popup and the colour picker that also used it were removed after 1.0.0.

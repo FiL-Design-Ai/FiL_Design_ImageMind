@@ -3,7 +3,7 @@ import type { ComfyNodeData } from "@/types/comfy";
 import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
-import { createSyncedNodeState, findFilWidget, sanitizeWidgetValue } from "@/nodes2/util";
+import { createSyncedNodeState, findFilWidget, hideWidget, sanitizeWidgetValue } from "@/nodes2/util";
 import { exposeWidgetInputSockets, installWidgetSocketSync } from "@/nodes2/widgetInputSockets";
 import { applyFxComposables } from "@/nodes2/applyFxComposables";
 
@@ -65,7 +65,7 @@ export const upscaleSimpleNode: NodeModule = {
         const value = sanitizeWidgetValue(w, "number", numericDefaults[name]);
         initialNodeState[name] = value;
         initialValues[name] = value;
-        (w as { hidden?: boolean }).hidden = true;
+        hideWidget(w);
       }
       for (const name of Object.keys(boolDefaults)) {
         const w = findFilWidget(node, name);
@@ -73,7 +73,7 @@ export const upscaleSimpleNode: NodeModule = {
         const value = sanitizeWidgetValue(w, "boolean", boolDefaults[name]);
         initialNodeState[name] = value;
         initialValues[name] = value;
-        (w as { hidden?: boolean }).hidden = true;
+        hideWidget(w);
       }
       for (const name of Object.keys(comboDefaults)) {
         const w = findFilWidget(node, name);
@@ -81,7 +81,7 @@ export const upscaleSimpleNode: NodeModule = {
         const value = sanitizeWidgetValue(w, "string", comboDefaults[name]);
         initialNodeState[name] = value;
         initialValues[name] = value;
-        (w as { hidden?: boolean }).hidden = true;
+        hideWidget(w);
       }
       const state = { nodeState: createSyncedNodeState(node, initialNodeState), initialValues, ui: {} };
       node._filUpscaleState = state;

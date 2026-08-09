@@ -3,6 +3,7 @@
  * Mirrors the legacy web/core/ui.js FIL_PALETTE so existing CSS variables
  * (`--fil-accent`, `--fil-panel`, ...) keep the same meaning.
  */
+import { vueNodeSkinCss } from "@/styles/vueNodeSkin";
 /**
  * `accentInk` is the text color painted ON the accent (active segment, primary
  * button, active pill). It is deliberately dark in every theme: white on these
@@ -297,6 +298,7 @@ export const ACTIVE_PALETTE: FilPalette = { ...FIL_PALETTE };
 let themeBaseEl: HTMLStyleElement | null = null;
 let themeVarsEl: HTMLStyleElement | null = null;
 let themeEffectsEl: HTMLStyleElement | null = null;
+let vueSkinEl: HTMLStyleElement | null = null;
 
 /**
  * The two axes that decide the palette, kept apart:
@@ -1269,6 +1271,35 @@ export function injectFilBrandVars(): void {
   themeEffectsEl = document.createElement("style");
   themeEffectsEl.id = "fil-theme-effects";
   document.head.appendChild(themeEffectsEl);
+
+  // The same title bar and frame the canvas paints, for the renderer that has
+  // no canvas — see `styles/vueNodeSkin.ts`. Its own tag so the rules can be
+  // read (and re-rendered on a theme switch) without threading through the
+  // effects string above.
+  vueSkinEl = document.createElement("style");
+  vueSkinEl.id = "fil-vue-node-skin";
+  document.head.appendChild(vueSkinEl);
+
+  // Last tag on purpose, and the attribute is doubled on purpose.
+  //
+  // The blur this overrides is declared in two places: the shared surface rule
+  // above (via `--fil-surface-blur`) and, for the glass themes, a second
+  // `backdrop-filter` of their own in THEME_EFFECTS — several of those carry
+  // `!important` already. A single `[data-fil-canvas-moving]` would tie with a
+  // theme's `[data-fil-theme="…"]` on specificity and be decided by document
+  // order, which is exactly the kind of thing that silently stops working when
+  // a tag moves. Repeating the attribute selector wins outright instead.
+  //
+  // Set and cleared by `nodes2/installers/canvasMotion.ts`, which is also where
+  // the reasoning for dropping the blur at all is written down.
+  //
+  // Not to be confused with `data-fil-motion` (MOTION_OFF_CSS above), despite
+  // the names: that one is a user setting that freezes decorative animation for
+  // good, this one is transient state lasting as long as a drag.
+  const perfEl = document.createElement("style");
+  perfEl.id = "fil-perf";
+  perfEl.textContent = `:root[data-fil-canvas-moving][data-fil-canvas-moving] .fil-node-shell [class$="-root"]{backdrop-filter:none !important;}`;
+  document.head.appendChild(perfEl);
 }
 
 /**
@@ -1369,4 +1400,5 @@ function renderTheme(): void {
         : `:root{${paletteCssVars(THEMES[currentTheme] ?? FIL_PALETTE)}${THEME_SURFACES[currentTheme] ?? ""}}`;
   }
   if (themeEffectsEl) themeEffectsEl.textContent = (THEME_EFFECTS[currentTheme] ?? "") + MOTION_OFF_CSS;
+  if (vueSkinEl) vueSkinEl.textContent = vueNodeSkinCss(currentTheme);
 }
