@@ -20,9 +20,10 @@
 
 import type { ComfyApp } from "@/types/comfy";
 import { LOG_TAG } from "@/constants/brand";
-import { wirelessEnabled } from "@/stores/settings/wirelessSettings";
+import { wirelessEnabled, wirelessWidgetFeedsEnabled } from "@/stores/settings/wirelessSettings";
 import { applyWirelessTree, type WirelessPlan, type WirelessTreePlan } from "./plan";
 import type { WirelessGraph } from "./types";
+import { widgetFeeds } from "./widgetFeeds";
 
 /** The most recent resolution across the whole workflow, for the panel to read. */
 let lastTreePlan: WirelessTreePlan | null = null;
@@ -65,6 +66,26 @@ function targetGraph(args: unknown[], app: ComfyApp): WirelessGraph | null {
   return fallback && Array.isArray(fallback._nodes) ? fallback : null;
 }
 
+/**
+ * Replace same-named widget values with the channel's link, in the prompt
+ * only — the graph is never touched (`widgetFeeds.ts` carries the rules).
+ * The real host's prompt is `{output: {nodeId: {inputs: {...}}}}`; anything
+ * else — a host whose serializer records links only — is left alone.
+ */
+function injectWidgetFeeds(prompt: unknown, treePlan: WirelessTreePlan): void {
+  const output = (prompt as { output?: unknown } | null)?.output;
+  if (!output || typeof output !== "object" || Array.isArray(output)) return;
+  const byNode = output as Record<string, { inputs?: Record<string, unknown> } | undefined>;
+  for (const entry of treePlan.entries) {
+    for (const feed of widgetFeeds(entry.graph, entry.plan)) {
+      const nodeEntry = byNode[String(feed.nodeId)];
+      if (!nodeEntry || typeof nodeEntry !== "object") continue;
+      const inputs = nodeEntry.inputs ?? (nodeEntry.inputs = {});
+      inputs[feed.inputName] = [feed.origin_id, feed.origin_slot];
+    }
+  }
+}
+
 export function installWirelessPromptBridge(app: ComfyApp): void {
   if (state.installed) return;
   const originalGraphToPrompt = app.graphToPrompt;
@@ -92,9 +113,11 @@ export function installWirelessPromptBridge(app: ComfyApp): void {
     if (!graph) return await originalGraphToPrompt.apply(this, args);
 
     let applied: { restore: () => void } | null = null;
+    let treePlan: WirelessTreePlan | null = null;
     try {
       const result = applyWirelessTree(graph);
       applied = result;
+      treePlan = result.plan;
       lastTreePlan = result.plan;
     } catch (error) {
       // A failure to resolve must not stop the user from running their graph.
@@ -104,7 +127,9 @@ export function installWirelessPromptBridge(app: ComfyApp): void {
     }
 
     try {
-      return await originalGraphToPrompt.apply(this, args);
+      const prompt = await originalGraphToPrompt.apply(this, args);
+      if (treePlan && wirelessWidgetFeedsEnabled()) injectWidgetFeeds(prompt, treePlan);
+      return prompt;
     } finally {
       // Not conditional on success: a serializer that throws must still leave
       // the graph as the user drew it.

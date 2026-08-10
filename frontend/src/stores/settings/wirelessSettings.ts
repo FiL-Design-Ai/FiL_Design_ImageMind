@@ -5,6 +5,7 @@ import { readSetting } from "@/stores/settings/providerSettings";
 export const WIRELESS_ENABLED = "FiL_Design_ImageMind.Wireless.Enabled";
 export const WIRELESS_LINKS = "FiL_Design_ImageMind.Wireless.Links";
 export const WIRELESS_LABELS = "FiL_Design_ImageMind.Wireless.Labels";
+export const WIRELESS_WIDGETS = "FiL_Design_ImageMind.Wireless.WidgetFeeds";
 
 export const LINKS_ALWAYS = "Always";
 export const LINKS_SELECTED = "Only for the selected Nodes";
@@ -39,6 +40,15 @@ export const WIRELESS_SETTINGS: ComfyExtensionSettings[] = [
     category: [SETTINGS_CATEGORY, "Wireless", "WirelessLinks"],
   },
   {
+    id: WIRELESS_WIDGETS,
+    name: "Channels feed same-named widgets",
+    type: "boolean",
+    defaultValue: false,
+    tooltip:
+      "A KSampler's seed is a widget, not an input, so no wire reaches it until it is converted. With this on, a channel whose name matches a widget exactly (SEED → seed) replaces the widget's value with the channel's link at queue time — in the prompt only, the graph stays as drawn. Off by default: a widget reads as a constant, and feeding it from somewhere else is a surprise worth opting into.",
+    category: [SETTINGS_CATEGORY, "Wireless", "WirelessWidgetFeeds"],
+  },
+  {
     id: WIRELESS_ENABLED,
     name: "Wireless channels",
     type: "boolean",
@@ -71,4 +81,9 @@ export function wirelessLinkMode(): WirelessLinkMode {
 /** Whether the channel's name is tagged onto each input it feeds. */
 export function wirelessLabelsShown(): boolean {
   return readSetting<boolean>(WIRELESS_LABELS, true) !== false;
+}
+
+/** Whether channels may replace same-named widget values with their link, per queue. */
+export function wirelessWidgetFeedsEnabled(): boolean {
+  return readSetting<boolean>(WIRELESS_WIDGETS, false) === true;
 }

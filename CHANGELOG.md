@@ -4,6 +4,19 @@
 
 ### Added
 
+- **📡 Channels can feed same-named widgets — the quiet road for `seed` (opt-in).**
+  A KSampler's seed is a widget, not an input: a constant with no socket, so
+  no wire — wireless or not — could reach it until converted. The new
+  "Channels feed same-named widgets" setting (off by default) adds the quiet
+  road: at queue time, a channel whose name matches a widget exactly
+  (SEED → `seed`, case-insensitive, types agreeing) replaces the widget's
+  literal value with the channel's link — in the prompt only, the graph
+  stays exactly as drawn, and the backend sees the same shape a converted
+  widget serialises to. Converted widgets stay owned by the link machinery,
+  and the node feeding a channel never receives from it. Locked in by the
+  `widgetFeeds` cases and a prompt-bridge test asserting the constant stays
+  a constant while the setting is off.
+
 - **📡 Channel rows say where the data comes from.**
   The transmitter only forwards, and its panel row showed the channel's
   name, colour and receiver count — knowing which node actually fed it

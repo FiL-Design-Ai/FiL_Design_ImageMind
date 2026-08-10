@@ -77,6 +77,8 @@ export interface WirelessNode {
   properties?: Record<string, unknown>;
   inputs?: WirelessSlot[];
   outputs?: WirelessSlot[];
+  /** Native widgets — the constants a user sets. Read only by widget feeds. */
+  widgets?: Array<{ name?: string; type?: string }>;
   /**
    * Declared in method syntax on purpose. A host's own `connect()` is typed
    * against its own node class, which under `strictFunctionTypes` no property

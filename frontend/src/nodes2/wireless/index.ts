@@ -61,6 +61,7 @@ export {
   type TakeOverUndo,
 } from "./targets";
 export { applyWirelessLinks, type AppliedWireless } from "./applyLinks";
+export { widgetFeeds, type WidgetFeed } from "./widgetFeeds";
 export { isChannelNode, nodeTitleById } from "./graphAccess";
 export { graphsInTree } from "./graphTree";
 export {

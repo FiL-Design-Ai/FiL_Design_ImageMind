@@ -40,6 +40,7 @@ import {
   applyWirelessTree,
   planWirelessTree,
   graphsInTree,
+  widgetFeeds,
 } from "@/nodes2/wireless";
 import {
   LINKS_ALWAYS,
@@ -48,6 +49,7 @@ import {
   WIRELESS_ENABLED,
   WIRELESS_LABELS,
   WIRELESS_LINKS,
+  WIRELESS_WIDGETS,
 } from "@/stores/settings/wirelessSettings";
 import type { ComfyApp } from "@/types/comfy";
 
@@ -1243,6 +1245,41 @@ describe("promptBridge", () => {
     expect((await app.queuePrompt()).output).toHaveLength(2);
   });
 
+  it("feeds a same-named widget from the channel — opt-in only, prompt-side only", async () => {
+    const src = createNode({ id: 1, comfyClass: "FiLSeed", outputs: [slot("SEED", "INT")] });
+    const ch = channel(2, ["INT"]);
+    const ks = createNode({
+      id: 3,
+      comfyClass: "KSampler",
+      inputs: [],
+      widgets: [{ name: "seed", type: "INT", value: 7 }],
+    });
+    const graph = createGraph([src, ch, ks]);
+    src.connect!(0, ch, 0);
+
+    const app = createApp({ graph });
+    app.registerSetting(WIRELESS_ENABLED, true);
+    app.registerSetting(WIRELESS_WIDGETS, false);
+    (globalThis as unknown as { app: unknown }).app = app;
+    // A real-shape serializer: widget values ride inside the node's inputs.
+    app.graphToPrompt = (async () => ({
+      output: { "3": { class_type: "KSampler", inputs: { seed: 7 } } },
+    })) as unknown as typeof app.graphToPrompt;
+    installWirelessPromptBridge(app as unknown as ComfyApp);
+
+    type PromptOut = Record<string, { inputs: Record<string, unknown> }>;
+
+    // Off by default: the constant stays a constant.
+    const off = (await app.queuePrompt()).output as unknown as PromptOut;
+    expect(off["3"].inputs.seed).toBe(7);
+
+    app.setSetting(WIRELESS_WIDGETS, true);
+    const on = (await app.queuePrompt()).output as unknown as PromptOut;
+    expect(on["3"].inputs.seed).toEqual([1, 0]);
+    // And the graph itself never gained so much as a widget: prompt-side only.
+    expect(ks.widgets[0].value).toBe(7);
+  });
+
   it("restores the graph even when serializing throws", async () => {
     const { app, graph, ks } = scene();
     const linksBefore = Object.keys(graph.links).length;
@@ -1255,6 +1292,61 @@ describe("promptBridge", () => {
     await expect(app.queuePrompt()).rejects.toThrow("serializer exploded");
     expect(ks.inputs[0].link).toBeNull();
     expect(Object.keys(graph.links)).toHaveLength(linksBefore);
+  });
+});
+
+describe("widgetFeeds", () => {
+  /** FiLSeed → channel (named SEED by the borrowed origin slot) → a KSampler
+   * whose `seed` is still a widget, the way core ships it. */
+  function seedScene(): { graph: FakeGraph; src: FakeNode; ks: FakeNode } {
+    const src = createNode({ id: 1, comfyClass: "FiLSeed", outputs: [slot("SEED", "INT")] });
+    const ch = channel(2, ["INT"]);
+    const ks = createNode({
+      id: 3,
+      comfyClass: "KSampler",
+      inputs: [],
+      widgets: [{ name: "seed", type: "INT", value: 7 }],
+    });
+    const graph = createGraph([src, ch, ks]);
+    src.connect!(0, ch, 0);
+    return { graph, src, ks };
+  }
+
+  it("replaces a same-named widget's value with the channel's link", () => {
+    const { graph } = seedScene();
+    expect(widgetFeeds(graph, planWireless(graph))).toEqual([
+      { nodeId: 3, inputName: "seed", channelName: "SEED", origin_id: 1, origin_slot: 0 },
+    ]);
+  });
+
+  it("a host spelling the widget 'number' still matches INT, by name", () => {
+    const { graph, ks } = seedScene();
+    ks.widgets[0].type = "number";
+    expect(widgetFeeds(graph, planWireless(graph))).toHaveLength(1);
+  });
+
+  it("a differently named or differently typed widget stays a constant", () => {
+    const { graph, ks } = seedScene();
+    ks.widgets[0].name = "other_seed";
+    expect(widgetFeeds(graph, planWireless(graph))).toEqual([]);
+    ks.widgets[0].name = "seed";
+    ks.widgets[0].type = "STRING";
+    expect(widgetFeeds(graph, planWireless(graph))).toEqual([]);
+  });
+
+  it("a converted widget is owned by the link machinery, not fed twice", () => {
+    const { graph, ks } = seedScene();
+    ks.inputs.push(slot("seed", "INT")); // the user converted it
+    expect(widgetFeeds(graph, planWireless(graph))).toEqual([]);
+  });
+
+  it("rule 6: the node feeding the channel never receives from it", () => {
+    const { graph, src, ks } = seedScene();
+    ks.widgets = []; // take the innocent receiver out of the picture
+    (src as { widgets?: Array<{ name: string; type: string }> }).widgets = [
+      { name: "seed", type: "INT" },
+    ];
+    expect(widgetFeeds(graph, planWireless(graph))).toEqual([]);
   });
 });
 
