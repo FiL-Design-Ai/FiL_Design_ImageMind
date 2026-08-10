@@ -145,16 +145,19 @@ describe("ChannelPanel.vue", () => {
     expect(targets[1].textContent).toContain("height");
   });
 
-  it("the cluster modal shows every free input of the type, converted or not", async () => {
+  it("the cluster modal shows every free socket of the type", async () => {
     const src = loader(1, "INT");
     const ch = transmitter(2, ["INT"]);
+    // Sockets, not widgets. A widget-backed input can never reach this modal
+    // any more, and not by omission: rule 9 lets a channel land on one only
+    // by exact name, and two inputs on one node cannot share a name — so a
+    // widget is never one of two rivals the user has to choose between. The
+    // gear's own target list still offers them (the case above), because
+    // ticking one there is the user saying so, which rule 2 always allows.
     const ks = createNode({
       id: 3,
-      comfyClass: "SomeNode",
+      comfyClass: "FiLOpticScanner",
       inputs: [slot("seed", "INT"), slot("width", "INT"), slot("height", "INT")],
-    });
-    (ks.inputs as Array<{ name: string; widget?: { name: string } }>).forEach((i) => {
-      i.widget = { name: i.name }; // all three converted from widgets
     });
     createGraph([src, ch, ks]);
     src.connect!(0, ch, 0);

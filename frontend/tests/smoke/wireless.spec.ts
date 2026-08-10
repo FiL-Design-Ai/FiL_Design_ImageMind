@@ -104,7 +104,7 @@ test.describe("wireless channels in a real ComfyUI", () => {
     // suite stayed green through a colour feature that never worked once —
     // so the delivery half gets its own case, on the canonical graph, read
     // off the request the browser was about to make.
-    const prompt = await page.evaluate(async () => {
+    const ids = await page.evaluate(async () => {
       const lg = window.LiteGraph;
       const make = (type: string, pos: [number, number]): SceneNode => {
         const node = lg.createNode(type) as SceneNode;
@@ -142,8 +142,24 @@ test.describe("wireless channels in a real ComfyUI", () => {
       latent.connect(0, sampler, 3);
       sampler.connect(0, decode, 0);
       decode.connect(0, save, 0);
-      await frames(120);
+      await frames(60);
 
+      return {
+        loader: String(loader.id),
+        sampler: String(sampler.id),
+        encPos: String(encPos.id),
+        encNeg: String(encNeg.id),
+        decode: String(decode.id),
+      };
+    });
+
+    // Wait on the plan rather than on a frame count: the panel reporting one
+    // MODEL receiver, two CLIP and one VAE is the resolver saying it is ready.
+    // A fixed wait was enough in isolation and not on a cold first load, which
+    // is exactly the flake a smoke suite must not have.
+    await expect.poll(() => channelCounts(page), { timeout: 20_000 }).toEqual(["1", "2", "1"]);
+
+    const prompt = await page.evaluate(async (nodeIds: Record<string, string>) => {
       // Capture what would have gone to the server and refuse to send it:
       // the point is the prompt's shape, not a render.
       const app = window.app as unknown as {
@@ -167,25 +183,27 @@ test.describe("wireless channels in a real ComfyUI", () => {
       }
 
       const output = (captured as { output?: Record<string, { inputs?: Record<string, unknown> }> } | null)?.output;
-      const inputs = (node: SceneNode, key: string) => output?.[String(node.id)]?.inputs?.[key] ?? null;
+      const inputs = (nodeId: string, key: string) => output?.[nodeId]?.inputs?.[key] ?? null;
+      const sampler = window.app.graph._nodes.find(
+        (n) => String((n as { id?: unknown }).id) === nodeIds.sampler,
+      ) as SceneNode | undefined;
       return {
-        loaderId: String(loader.id),
-        model: inputs(sampler, "model"),
-        clipPos: inputs(encPos, "clip"),
-        clipNeg: inputs(encNeg, "clip"),
-        vae: inputs(decode, "vae"),
+        model: inputs(nodeIds.sampler, "model"),
+        clipPos: inputs(nodeIds.encPos, "clip"),
+        clipNeg: inputs(nodeIds.encNeg, "clip"),
+        vae: inputs(nodeIds.decode, "vae"),
         // Proof the graph went back to how it was drawn: nothing on the canvas
         // may be left wired to the sampler's model input after the queue.
-        modelLinkLeftBehind: (sampler.inputs ?? []).find((i) => i.name === "model")?.link ?? null,
+        modelLinkLeftBehind: (sampler?.inputs ?? []).find((i) => i.name === "model")?.link ?? null,
       };
-    });
+    }, ids);
 
     // Every free input of a broadcast type reads from the loader itself —
     // never from the Channel node, which has no outputs to read from.
-    expect(prompt.model).toEqual([prompt.loaderId, 0]);
-    expect(prompt.clipPos).toEqual([prompt.loaderId, 1]);
-    expect(prompt.clipNeg).toEqual([prompt.loaderId, 1]);
-    expect(prompt.vae).toEqual([prompt.loaderId, 2]);
+    expect(prompt.model).toEqual([ids.loader, 0]);
+    expect(prompt.clipPos).toEqual([ids.loader, 1]);
+    expect(prompt.clipNeg).toEqual([ids.loader, 1]);
+    expect(prompt.vae).toEqual([ids.loader, 2]);
     expect(prompt.modelLinkLeftBehind).toBeNull();
   });
 

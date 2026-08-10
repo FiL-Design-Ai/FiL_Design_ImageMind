@@ -43,6 +43,19 @@ export function nameTokens(name: string): string[] {
     .map((word) => TOKEN_ALIASES[word] ?? word);
 }
 
+/**
+ * The same name, ignoring case and surrounding space — nothing looser.
+ *
+ * Rule 9's bar, and deliberately stricter than `namesMatch` below: a shared
+ * token is enough to pair `positive` with a channel called `positive prompt`,
+ * but it would also put a `seed` channel into a `seed_offset` widget, which
+ * silently changes a number the user typed. The same bar the widget-feeds
+ * setting already set for itself (`widgetFeeds.ts`).
+ */
+export function namesEqual(a: string, b: string): boolean {
+  return a.trim().toLowerCase() === b.trim().toLowerCase();
+}
+
 /** Do two names share at least one meaningful token. Empty-token names match nothing. */
 export function namesMatch(a: string, b: string): boolean {
   const tokensA = nameTokens(a);

@@ -554,6 +554,9 @@ graph, not muting — and it returns an `ExecutionBlocker` carrying a message th
 
 **📡 Channel** — `value0`, `value1`, ... (ANY, optional, they grow as you use them), no outputs.
 Plug something in and free inputs of the same type across the graph pick it up, with no wire drawn.
+Sockets, that is: a number or a text field the node shows as a widget is a value you typed, and a
+channel only lands on one of those when the two share a name — a `seed` channel feeds every `seed`,
+and never a `steps` next to it.
 One node carries one channel per wired input, so a single Channel can broadcast the model, the VAE
 and the CLIP at once. A channel is named after its source slot when that says more than the type —
 a wire from ♻️ Seed becomes `SEED` and pairs with `seed` inputs on its own — otherwise after its

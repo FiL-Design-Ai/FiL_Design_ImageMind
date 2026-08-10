@@ -24,6 +24,7 @@ import {
   unsubscribeInput,
 } from "./subscriptions";
 import { invalidateWirelessPlan } from "./livePlan";
+import { reachable } from "./resolve";
 
 /**
  * Why a row looks the way it does. Only `on` and `off` are the user's to
@@ -159,8 +160,17 @@ export function setChannelTarget(
 ): void {
   if (on) {
     unblockInput(node, inputName, channel.name);
+    // Rule 9 belongs in this list for the same reason rules 3 and 7 do: it is
+    // another case where auto-distribution has stood down, so clearing the
+    // block alone would leave the tick doing nothing at all. A widget-backed
+    // input the channel does not name — a `seed` channel ticked onto `steps`
+    // — is only ever reached by the user saying so, which is exactly what
+    // ticking it is.
+    const input = (node.inputs ?? []).find((slot) => slot?.name === inputName);
     const needsExplicitChoice =
-      channelsOfType(plan, channel.type) > 1 || hasFreeSiblingOfType(node, channel.type, inputName);
+      channelsOfType(plan, channel.type) > 1 ||
+      hasFreeSiblingOfType(node, channel.type, inputName) ||
+      (!!input && !reachable(input, channel));
     if (needsExplicitChoice) subscribeInput(node, inputName, channel.name);
   } else if (subscribedChannel(node, inputName) === channel.name) {
     unsubscribeInput(node, inputName);

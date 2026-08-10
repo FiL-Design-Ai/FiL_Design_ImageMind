@@ -51,6 +51,15 @@ export interface WirelessSlot {
   type: string;
   /** What the user renamed this slot to, via core's own "Rename Slot". */
   label?: string;
+  /**
+   * Set when this input is the socket side of a widget — a constant the user
+   * typed, which this frontend gives a socket to whether or not anyone
+   * converted it (`ensureWidgetForInput`, and every `widget: { name }` in a
+   * saved workflow). Rule 9 turns on this field: `steps`, `tile_size` and
+   * `seed` are all INT and mean nothing like each other, so a channel may
+   * only land on one of them by name.
+   */
+  widget?: { name?: string } | null;
   /** Input slots: the single link feeding them, or null/undefined when free. */
   link?: number | null;
   /** Output slots: every link id fanning out of them. */

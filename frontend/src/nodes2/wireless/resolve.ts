@@ -45,6 +45,13 @@
  *      leftover) leave the cluster ambiguous as before. This is what makes
  *      the second of the canonical pos/neg wires connect without a question.
  *
+ *   9. A widget-backed input is never taken by type alone — only by a channel
+ *      of the same *name*. Type equality means something for the types the
+ *      graph is built from and nothing for the primitives behind widgets, and
+ *      this frontend gives every widget a socket, so `steps`, `tile_size` and
+ *      `seed` all read as ordinary free INT inputs. See `reachable` below for
+ *      the real workflow this was found on.
+ *
  * No priorities, regexes, group/colour scoping, or per-type special cases —
  * deliberately absent, see `wireless.md` §2. Rule 8's name pairing is the
  * single exception, and only because its uniqueness requirement makes it a
@@ -62,10 +69,11 @@ import type {
   WirelessChannel,
   WirelessGraph,
   WirelessResolution,
+  WirelessSlot,
 } from "./types";
 import { allNodes, isChannelNode } from "./graphAccess";
 import { isBlocked, subscriptionsOf } from "./subscriptions";
-import { forcedLeftoverMatch, namesMatch, uniqueFullMatch } from "./nameMatch";
+import { forcedLeftoverMatch, namesEqual, namesMatch, uniqueFullMatch } from "./nameMatch";
 
 function claimKey(nodeId: unknown, inputName: string): string {
   return `${String(nodeId)}:${inputName}`;
@@ -80,6 +88,32 @@ function claimKey(nodeId: unknown, inputName: string): string {
  */
 function feedsChannel(nodeId: NodeId, channel: WirelessChannel): boolean {
   return String(channel.origin_id) === String(nodeId);
+}
+
+/**
+ * Rule 9: may this channel land on this input at all, before anyone asks
+ * whether it is the only one that could?
+ *
+ * Type equality carries meaning for the types the graph was designed around —
+ * a MODEL input wants a model, and there is only one kind of model. It
+ * carries none for the primitives behind widgets: `steps`, `tile_size`,
+ * `overlap`, `max_tokens` and `seed` are all INT and have nothing to do with
+ * each other. This frontend gives *every* widget a socket, so those are
+ * ordinary free typed inputs as far as rules 3 and 7 can see — and a single
+ * INT channel called `seed` was quietly landing in `steps` on one node,
+ * `tile_size` on the next and `alpha` on a third, wherever a node happened to
+ * offer exactly one free INT. Found by running this resolver over a real
+ * 42-node workflow (2026-08-10): 23 links, and most of them were wrong.
+ *
+ * So a widget-backed input takes a channel only when the two carry the same
+ * name — the contract widget feeds already published (`SEED` feeds `seed`,
+ * nothing else). Real sockets are untouched, and an explicit subscription
+ * (rule 2) still overrides this the way it overrides everything: the user
+ * naming a target is not a guess.
+ */
+export function reachable(input: WirelessSlot, channel: WirelessChannel): boolean {
+  if (!input.widget) return true;
+  return namesEqual(input.name, channel.name);
 }
 
 export function resolveWireless(graph: WirelessGraph, channels: WirelessChannel[]): WirelessResolution {
@@ -162,10 +196,18 @@ export function resolveWireless(graph: WirelessGraph, channels: WirelessChannel[
   // rule exists to stop, one tick after the user thought they had stopped it.
   // Only a real wire (rule 1) has actually settled what a slot means; a
   // subscription has only settled it for the one input it names.
+  //
+  // Rule 9 shrinks this count too, and has to: a widget-backed input no
+  // channel of the type may name is not competing for anything, so counting
+  // it would make its siblings ambiguous over a rivalry that does not exist.
+  // A sampler's `seed` and `steps` are both free INTs; only `seed` can take
+  // the `seed` channel, so `seed` is not ambiguous — it is the only answer.
   const freeSlotsOfType = new Map<string, number>();
   for (const node of receivers) {
     (node.inputs ?? []).forEach((input) => {
       if (input.link != null) return;
+      const ofType = channelsByType.get(input.type);
+      if (!ofType?.some((channel) => reachable(input, channel))) return;
       const key = claimKey(node.id, input.type);
       freeSlotsOfType.set(key, (freeSlotsOfType.get(key) ?? 0) + 1);
     });
@@ -189,13 +231,17 @@ export function resolveWireless(graph: WirelessGraph, channels: WirelessChannel[
   // it does not excuse them (the rule 7 comment above says why).
   const pairedChannel = new Map<string, WirelessChannel>();
   for (const node of receivers) {
-    const freeByType = new Map<string, Array<{ name: string }>>();
+    const freeByType = new Map<string, WirelessSlot[]>();
     (node.inputs ?? []).forEach((input) => {
       if (input.link != null) return;
       if (claimed.has(claimKey(node.id, input.name))) return;
+      // Rule 9, same reason as the count above: an input nothing of this type
+      // may name is not part of the cluster the pairing has to cover.
+      const ofType = channelsByType.get(input.type);
+      if (!ofType?.some((channel) => reachable(input, channel))) return;
       const group = freeByType.get(input.type);
-      if (group) group.push({ name: input.name });
-      else freeByType.set(input.type, [{ name: input.name }]);
+      if (group) group.push(input);
+      else freeByType.set(input.type, [input]);
     });
 
     for (const [type, inputs] of freeByType) {
@@ -205,9 +251,11 @@ export function resolveWireless(graph: WirelessGraph, channels: WirelessChannel[
       // pairing there would add nothing but a second path to the same answer.
       if (inputs.length < 2 && ofType.length < 2) continue;
 
-      const allowed = (input: { name: string }, channel: WirelessChannel) =>
-        !feedsChannel(node.id, channel) && !isBlocked(node, input.name, channel.name);
-      const matchesByName = (input: { name: string }, channel: WirelessChannel) =>
+      const allowed = (input: WirelessSlot, channel: WirelessChannel) =>
+        reachable(input, channel) &&
+        !feedsChannel(node.id, channel) &&
+        !isBlocked(node, input.name, channel.name);
+      const matchesByName = (input: WirelessSlot, channel: WirelessChannel) =>
         namesMatch(input.name, channel.name);
 
       // Strict pairing first; the leftover deduction only where names alone
@@ -235,7 +283,7 @@ export function resolveWireless(graph: WirelessGraph, channels: WirelessChannel[
       // (rule 4). Counting first would offer a choice the user does not have,
       // or keep an input "ambiguous" after they already answered.
       const candidates = ofType.filter(
-        (c) => !feedsChannel(node.id, c) && !isBlocked(node, input.name, c.name),
+        (c) => reachable(input, c) && !feedsChannel(node.id, c) && !isBlocked(node, input.name, c.name),
       );
       if (candidates.length === 0) return;
 

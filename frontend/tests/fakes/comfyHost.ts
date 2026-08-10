@@ -27,10 +27,25 @@ export interface FakeSlot {
   target_slot?: number;
   /** Output slots fan out — LiteGraph tracks every link id leaving them here. */
   links?: number[] | null;
+  /**
+   * Present when this input is a widget's socket. Since inline widget inputs,
+   * the host gives *every* widget one — a saved workflow's `steps`, `cfg` and
+   * `seed` all arrive as free typed inputs carrying `widget: { name }`. The
+   * pack's rules read this to tell a real socket from a number the user typed
+   * (`resolve.ts` rule 9); a fake without it made `seed`, `steps` and
+   * `tile_size` indistinguishable, which is how a lone INT channel came to be
+   * broadcast into all three.
+   */
+  widget?: { name: string } | null;
 }
 
 export function slot(name: string, type = "IMAGE", link: number | null = null): FakeSlot {
   return { name, type, link };
+}
+
+/** An input that is a widget's socket — a constant the user typed, not a wire's destination. */
+export function widgetSlot(name: string, type = "INT", link: number | null = null): FakeSlot {
+  return { name, type, link, widget: { name } };
 }
 
 /**

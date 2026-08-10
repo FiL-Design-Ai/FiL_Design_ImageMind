@@ -16,6 +16,7 @@ import {
   createNode,
   createSubgraphTree,
   slot,
+  widgetSlot,
   type FakeGraph,
   type FakeNode,
 } from "./fakes/comfyHost";
@@ -1767,20 +1768,134 @@ describe("planWirelessTree / applyWirelessTree", () => {
  * as widgets. Both deserve their own pinning.
  */
 describe("INT values — width/height across nodes", () => {
-  /** Empty-Latent-Image-shaped receiver: two free INT inputs, one node. */
+  /**
+   * Empty-Latent-Image-shaped receiver: `width` and `height`, both widget
+   * sockets — which is what they really are. The host gives every widget an
+   * input, so this node's two INTs are free typed sockets that nonetheless
+   * hold numbers the user typed, and rule 9 governs them.
+   */
   function latentReceiver(id: number, subs?: Record<string, string>): FakeNode {
     return createNode({
       id,
       comfyClass: "EmptyLatentImage",
-      inputs: [slot("width", "INT"), slot("height", "INT")],
+      inputs: [widgetSlot("width"), widgetSlot("height")],
       properties: subs ? { fil_wireless: { subs } } : {},
     });
   }
 
-  it("rule 7: a lone INT channel to width and height asks instead of wiring both", () => {
+  /**
+   * The other shape, and a real one: two same-type inputs that are *not*
+   * widgets. `FiLOpticScanner` declares `width` and `height` as plain INT
+   * sockets, so rule 7 still has work to do on a modern graph — 7 of the 137
+   * primitive inputs in the workflow this block was rechecked against are
+   * socket-only like this.
+   */
+  function socketPairReceiver(id: number): FakeNode {
+    return createNode({
+      id,
+      comfyClass: "FiLOpticScanner",
+      inputs: [slot("width", "INT"), slot("height", "INT")],
+    });
+  }
+
+  it("rule 9: a lone INT channel never lands on a widget it does not name", () => {
+    // The bug this rule exists for, reduced. Found by running the resolver
+    // over a real 42-node workflow: one INT channel called `seed` had wired
+    // itself into `BetaSamplingScheduler.steps` and `ImageResize+.multiple_of`
+    // — every node offering exactly one free INT got the seed number. Since
+    // inline widget inputs, `steps`, `tile_size` and `seed` are all ordinary
+    // free INT sockets, and type equality says nothing about what they mean.
+    const src = source(1, "INT");
+    const ch = channel(2, ["INT"], ["seed"]);
+    const scheduler = createNode({
+      id: 3,
+      comfyClass: "BetaSamplingScheduler",
+      inputs: [widgetSlot("steps"), widgetSlot("alpha", "FLOAT")],
+    });
+    const graph = createGraph([src, ch, scheduler]);
+    wire(src, ch);
+
+    const { resolution } = planWireless(graph);
+    expect(resolution.links).toEqual([]);
+    // And silently: a widget of a merely-matching primitive type is not a
+    // question the user should be asked, or the panel would list every INT
+    // widget in the graph (30 of them, on the workflow this came from).
+    expect(resolution.ambiguous).toEqual([]);
+  });
+
+  it("rule 9: the same channel does land on the widget that shares its name", () => {
+    const src = source(1, "INT");
+    const ch = channel(2, ["INT"], ["seed"]);
+    // A real sampler: `seed` and `steps` are both free INT widgets, so rule 7
+    // used to veto the pair. Only `seed` is reachable, so there is no rivalry
+    // to be ambiguous about — and the seed arrives without a click.
+    const sampler = createNode({
+      id: 3,
+      comfyClass: "KSampler",
+      inputs: [widgetSlot("seed"), widgetSlot("steps")],
+    });
+    const graph = createGraph([src, ch, sampler]);
+    wire(src, ch);
+
+    const { resolution } = planWireless(graph);
+    expect(resolution.ambiguous).toEqual([]);
+    expect(resolution.links).toMatchObject([
+      { channelName: "seed", origin_id: 1, target_id: 3, target_slot: 0 },
+    ]);
+  });
+
+  it("rule 9 spares real sockets — a MODEL input is still taken by type alone", () => {
+    const src = source(1, "MODEL");
+    const ch = channel(2, ["MODEL"]);
+    // Named nothing like the input, and it must still arrive: a MODEL socket
+    // wants a model, and there is only one kind of model.
+    const sampler = createNode({ id: 3, comfyClass: "KSampler", inputs: [slot("model", "MODEL")] });
+    const graph = createGraph([src, ch, sampler]);
+    wire(src, ch);
+
+    expect(planWireless(graph).resolution.links).toMatchObject([{ target_id: 3, target_slot: 0 }]);
+  });
+
+  it("rule 2 still beats rule 9: a subscription puts a channel on any widget", () => {
+    const src = source(1, "INT");
+    const ch = channel(2, ["INT"], ["seed"]);
+    const scheduler = createNode({
+      id: 3,
+      comfyClass: "BetaSamplingScheduler",
+      inputs: [widgetSlot("steps")],
+      properties: { fil_wireless: { subs: { steps: "seed" } } },
+    });
+    const graph = createGraph([src, ch, scheduler]);
+    wire(src, ch);
+
+    // The user naming a target is not a guess, so nothing here second-guesses it.
+    expect(planWireless(graph).resolution.links).toMatchObject([
+      { channelName: "seed", target_id: 3, target_slot: 0 },
+    ]);
+  });
+
+  it("rule 7: a lone INT channel to two width/height *sockets* asks instead of wiring both", () => {
     // Same value on both is exactly what the user may want here (a square),
     // but the engine cannot know that — same-type siblings are a question,
-    // not a guess, whatever the type.
+    // not a guess, whatever the type. Socket-only inputs, so rule 9 stands
+    // aside and rule 7 is the one answering.
+    const src = source(1, "INT");
+    const ch = channel(2, ["INT"]);
+    const scanner = socketPairReceiver(3);
+    const graph = createGraph([src, ch, scanner]);
+    wire(src, ch);
+
+    const { resolution } = planWireless(graph);
+    expect(resolution.links).toEqual([]);
+    expect(resolution.ambiguous.map((a) => a.input).sort()).toEqual(["height", "width"]);
+    expect(resolution.unusedChannels).toEqual(["INT"]);
+  });
+
+  it("the same lone INT channel passes a widget width/height by in silence", () => {
+    // The widget-backed version of the case above. Rule 9 answers first and
+    // answers differently: an unnamed INT channel has no business in a number
+    // the user typed, and saying so as an "ambiguity" would fill the panel
+    // with every INT widget on the canvas.
     const src = source(1, "INT");
     const ch = channel(2, ["INT"]);
     const latent = latentReceiver(3);
@@ -1789,7 +1904,7 @@ describe("INT values — width/height across nodes", () => {
 
     const { resolution } = planWireless(graph);
     expect(resolution.links).toEqual([]);
-    expect(resolution.ambiguous.map((a) => a.input).sort()).toEqual(["height", "width"]);
+    expect(resolution.ambiguous).toEqual([]);
     expect(resolution.unusedChannels).toEqual(["INT"]);
   });
 
@@ -1830,8 +1945,8 @@ describe("INT values — width/height across nodes", () => {
     const b = source(2, "INT");
     const first = channel(3, ["INT"]);
     const second = channel(5, ["INT"]);
-    const latent = latentReceiver(4);
-    const graph = createGraph([a, b, first, second, latent]);
+    const scanner = socketPairReceiver(4);
+    const graph = createGraph([a, b, first, second, scanner]);
     wire(a, first);
     wire(b, second);
 
@@ -1841,18 +1956,19 @@ describe("INT values — width/height across nodes", () => {
     expect(resolution.unusedChannels.sort()).toEqual(["INT", "INT 2"]);
   });
 
-  it("a widget converted to input is just an input — the receipt changes nothing", () => {
-    // Core turns "Convert widget to Input" into a regular entry in
-    // node.inputs that carries a `widget` receipt ({name}) alongside
-    // name/type/link. Nothing in the engine may read that receipt —
-    // width/height reach Empty Latent Image only as converted widgets.
+  it("the widget receipt is load-bearing now — it is what tells a number from a socket", () => {
+    // This case used to assert the opposite: that nothing in the engine may
+    // read `input.widget`. That held while widgets became inputs only when a
+    // user converted one. The host now gives every widget a socket, so the
+    // receipt is the only thing separating "a wire belongs here" from "a
+    // number the user typed" — reading it is rule 9, and not reading it is
+    // how a `seed` channel ended up in `steps`. Names still get through,
+    // which is what keeps this exact pairing working.
     const widthSrc = source(1, "INT");
     const heightSrc = source(2, "INT");
     const ch = channel(3, ["INT", "INT"], ["width", "height"]);
     const latent = latentReceiver(4);
-    latent.inputs.forEach((input) => {
-      (input as { widget?: { name: string } }).widget = { name: input.name };
-    });
+    expect(latent.inputs.every((input) => input.widget)).toBe(true);
     const graph = createGraph([widthSrc, heightSrc, ch, latent]);
     widthSrc.connect!(0, ch, 0);
     heightSrc.connect!(0, ch, 1);

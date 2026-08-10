@@ -4,6 +4,23 @@
 
 ### Fixed
 
+- **📡 A number channel no longer lands in every number it can reach.**
+  A single INT channel called `seed` was wiring itself into
+  `BetaSamplingScheduler.steps`, `ImageResize+.multiple_of` and any other
+  node that happened to offer exactly one free INT — a seed value where a
+  step count belongs, which is a graph that cannot run. ComfyUI now gives
+  every widget its own socket, so `steps`, `tile_size`, `overlap` and `seed`
+  all look like ordinary free INT inputs to a rule that distributes by type,
+  and type says nothing about what a number means. New rule: a widget-backed
+  input takes a channel only when the two carry the same name (`seed` feeds
+  `seed`, and nothing else) — the contract widget feeds already published.
+  Real sockets are untouched, and ticking a target by hand still overrides
+  it, because that is the user saying so rather than the pack guessing.
+  Found by running the resolver over a real 42-node workflow: 23 links, most
+  of them wrong, and 30 inputs listed as unresolved for a conflict that never
+  existed. The same workflow now resolves 25 links, every one of them into an
+  input that asked for it, and nothing unresolved.
+
 - **📡 A channel is finally the colour of the socket it lands in.**
   Dashed channel links, the coloured dot on each Channel panel row and the
   dots in the Wireless tab were all painted with a hue derived from the
