@@ -117,6 +117,62 @@ describe("ChannelPanel.vue", () => {
     expect(title).toMatch(/^From /); // the fallback wording, no locale loaded
   });
 
+  it("lists widget-converted inputs among the targets, the same as born-inputs", async () => {
+    // width/height/seed reach most nodes as widgets; "Convert Widget to
+    // Input" turns them into inputs carrying a `widget` receipt. The target
+    // list must show them exactly like any other input — a receiver that
+    // hid them would recreate the "the channel does not see my seed" bug.
+    const src = loader(1, "INT");
+    const ch = transmitter(2, ["INT"]);
+    const ks = createNode({
+      id: 3,
+      comfyClass: "EmptyLatentImage",
+      inputs: [slot("width", "INT"), slot("height", "INT")],
+    });
+    (ks.inputs as Array<{ name: string; widget?: { name: string } }>).forEach((i) => {
+      i.widget = { name: i.name };
+    });
+    createGraph([src, ch, ks]);
+    src.connect!(0, ch, 0);
+
+    const wrapper = await panelFor(ch);
+    await wrapper.find(".fil-channel-gear").trigger("click");
+    await nextTick();
+
+    const targets = modal().querySelectorAll(".fil-channel-target");
+    expect(targets).toHaveLength(2);
+    expect(targets[0].textContent).toContain("width");
+    expect(targets[1].textContent).toContain("height");
+  });
+
+  it("the cluster modal shows every free input of the type, converted or not", async () => {
+    const src = loader(1, "INT");
+    const ch = transmitter(2, ["INT"]);
+    const ks = createNode({
+      id: 3,
+      comfyClass: "SomeNode",
+      inputs: [slot("seed", "INT"), slot("width", "INT"), slot("height", "INT")],
+    });
+    (ks.inputs as Array<{ name: string; widget?: { name: string } }>).forEach((i) => {
+      i.widget = { name: i.name }; // all three converted from widgets
+    });
+    createGraph([src, ch, ks]);
+    src.connect!(0, ch, 0);
+
+    const { state } = await panelWithState(ch);
+    (ch as unknown as { _filPendingAmbiguityChecks?: number[] })._filPendingAmbiguityChecks = [0];
+    state.ui.refresh?.();
+    await nextTick();
+
+    const rows = modal().querySelectorAll(".fil-channel-cluster-row");
+    expect(rows).toHaveLength(3);
+    expect(Array.from(rows).map((r) => r.textContent)).toEqual([
+      expect.stringContaining("seed"),
+      expect.stringContaining("width"),
+      expect.stringContaining("height"),
+    ]);
+  });
+
   it("wears the host's own type colour, the same one the socket is painted with", async () => {
     // The dashed link and the row's dot must land on sockets of the same
     // colour — the palette is read off LiteGraph's registry, not invented.
