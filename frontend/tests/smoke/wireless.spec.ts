@@ -95,6 +95,100 @@ test.describe("wireless channels in a real ComfyUI", () => {
     await closeScratchWorkflow(page).catch(() => {});
   });
 
+  test("the prompt a queue would send carries the channel's links", async ({ page }) => {
+    await page.goto("/");
+    await openBlankWorkflow(page);
+
+    // The one thing no other test covered: that the data actually *arrives*.
+    // Everything else here drives the panel and the questions, and the whole
+    // suite stayed green through a colour feature that never worked once —
+    // so the delivery half gets its own case, on the canonical graph, read
+    // off the request the browser was about to make.
+    const prompt = await page.evaluate(async () => {
+      const lg = window.LiteGraph;
+      const make = (type: string, pos: [number, number]): SceneNode => {
+        const node = lg.createNode(type) as SceneNode;
+        if (!node) throw new Error(`${type} did not instantiate`);
+        node.pos = pos;
+        window.app.graph.add(node);
+        return node;
+      };
+      const frames = async (count: number) => {
+        for (let i = 0; i < count; i++) await new Promise((r) => requestAnimationFrame(r));
+      };
+
+      const loader = make("CheckpointLoaderSimple", [40, 40]);
+      const channel = make("FiLChannel", [420, 40]);
+      const encPos = make("CLIPTextEncode", [420, 320]);
+      const encNeg = make("CLIPTextEncode", [420, 560]);
+      const latent = make("EmptyLatentImage", [420, 800]);
+      const sampler = make("KSampler", [900, 320]);
+      const decode = make("VAEDecode", [1340, 320]);
+      const save = make("SaveImage", [1600, 320]);
+      await frames(60);
+
+      // Checkpoint outputs are MODEL, CLIP, VAE — all three into one Channel,
+      // one slot each, which is the node's whole reason for autogrowing.
+      loader.connect(0, channel, 0);
+      await frames(30);
+      loader.connect(1, channel, 1);
+      await frames(30);
+      loader.connect(2, channel, 2);
+      await frames(60);
+
+      // The wires a user still draws by hand.
+      encPos.connect(0, sampler, 1);
+      encNeg.connect(0, sampler, 2);
+      latent.connect(0, sampler, 3);
+      sampler.connect(0, decode, 0);
+      decode.connect(0, save, 0);
+      await frames(120);
+
+      // Capture what would have gone to the server and refuse to send it:
+      // the point is the prompt's shape, not a render.
+      const app = window.app as unknown as {
+        api?: { queuePrompt?: (...args: unknown[]) => unknown };
+        queuePrompt?: (...args: unknown[]) => Promise<unknown>;
+      };
+      let captured: unknown = null;
+      const api = app.api;
+      const realQueue = api?.queuePrompt;
+      if (!api || !realQueue) throw new Error("no api.queuePrompt to intercept");
+      api.queuePrompt = (...args: unknown[]) => {
+        captured = args[1];
+        throw new Error("smoke: not sending");
+      };
+      try {
+        await app.queuePrompt?.(0, 1);
+      } catch {
+        /* the interception above throws by design */
+      } finally {
+        api.queuePrompt = realQueue;
+      }
+
+      const output = (captured as { output?: Record<string, { inputs?: Record<string, unknown> }> } | null)?.output;
+      const inputs = (node: SceneNode, key: string) => output?.[String(node.id)]?.inputs?.[key] ?? null;
+      return {
+        loaderId: String(loader.id),
+        model: inputs(sampler, "model"),
+        clipPos: inputs(encPos, "clip"),
+        clipNeg: inputs(encNeg, "clip"),
+        vae: inputs(decode, "vae"),
+        // Proof the graph went back to how it was drawn: nothing on the canvas
+        // may be left wired to the sampler's model input after the queue.
+        modelLinkLeftBehind: (sampler.inputs ?? []).find((i) => i.name === "model")?.link ?? null,
+      };
+    });
+
+    // Every free input of a broadcast type reads from the loader itself —
+    // never from the Channel node, which has no outputs to read from.
+    expect(prompt.model).toEqual([prompt.loaderId, 0]);
+    expect(prompt.clipPos).toEqual([prompt.loaderId, 1]);
+    expect(prompt.clipNeg).toEqual([prompt.loaderId, 1]);
+    expect(prompt.vae).toEqual([prompt.loaderId, 2]);
+    expect(prompt.modelLinkLeftBehind).toBeNull();
+  });
+
   test("channels named after the sampler's inputs pair with them, nothing asked", async ({ page }) => {
     await page.goto("/");
     await openBlankWorkflow(page);

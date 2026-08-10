@@ -2,6 +2,39 @@
 
 ## Unreleased
 
+### Fixed
+
+- **📡 A channel is finally the colour of the socket it lands in.**
+  Dashed channel links, the coloured dot on each Channel panel row and the
+  dots in the Wireless tab were all painted with a hue derived from the
+  channel's name, never matching the MODEL or VAE socket they arrive at. The
+  lookup asked `LiteGraph.link_type_colors` — a registry ComfyUI does not
+  have; the colours live on `LGraphCanvas.link_type_colors`, in the canvas's
+  `default_connection_color_byType`, and (for Nodes 2.0) in a
+  `--color-datatype-<TYPE>` CSS variable. All three are read now, in that
+  order, and a type the host paints with nothing still gets the stable
+  name-hash colour as before. A second layer of the same bug went with it: the
+  host pre-fills every known type with an empty string before overlaying the
+  palette, and an empty string was being accepted as a colour — which paints
+  nothing at all. `soften()` also handles `rgb()`/`rgba()` now, so a custom
+  colour palette no longer produces an opaque label backing.
+  The tests were green throughout because they invented the registry they
+  read; the palette now lives in `tests/fakes/comfyHost.ts` in the host's real
+  shape, blank entries and CSS variables included.
+
+- **📡 "Draw wireless links" behaves like the setting panel says.**
+  With the setting never touched, the code fell back to `Always` while the
+  panel showed `Only for the selected Nodes` — so a fresh install drew every
+  channel link at once, the exact clutter the selected-nodes mode exists to
+  prevent. Both now say the same thing.
+
+- **📡 The smoke suite checks the data actually arrives.**
+  Every existing end-to-end case drove the panel and its questions; none
+  looked at the prompt. A new one builds the canonical txt2img graph with one
+  Channel carrying MODEL, CLIP and VAE, intercepts the queue request and
+  asserts each free input reads from the checkpoint loader — and that the
+  graph is back as drawn once the queue is done.
+
 ### Added
 
 - **📡 Channels can feed same-named widgets — the quiet road for `seed` (opt-in).**

@@ -35,17 +35,74 @@ export function channelColorSoft(name: string, alpha = 0.22): string {
 }
 
 /**
- * The host's own colour for this connection type — what the input and output
- * sockets are painted. `LiteGraph.link_type_colors` is the registry the
- * canvas draws real wires from, so reading it is what makes a wireless link
- * land on a socket of the same colour instead of a hue nobody else uses.
- * Loose read on purpose: the wireless core never imports LiteGraph, and a
- * host without the registry simply gets `null`.
+ * A palette entry only counts when it actually names a colour.
+ *
+ * The host pre-fills its type→colour maps with an empty string for every data
+ * type it knows about, then overlays the palette on top (`loadLinkColorPalette`
+ * — `Object.assign(byType, blanks, palette)`). So a missing colour arrives as
+ * `""`, not as `undefined`, and `??` would happily hand it on as a valid
+ * `strokeStyle` — which paints nothing at all.
+ */
+function firstColour(...candidates: Array<string | null | undefined>): string | null {
+  for (const candidate of candidates) {
+    const trimmed = candidate?.trim();
+    if (trimmed) return trimmed;
+  }
+  return null;
+}
+
+/**
+ * The host's own colour for this connection type — the paint its sockets and
+ * real wires wear, so a dashed channel link lands on a socket of its own
+ * colour instead of a hue nothing else on the canvas uses.
+ *
+ * Read from the three places the host actually keeps it. An earlier version
+ * asked `LiteGraph.link_type_colors`, which does not exist — the registry is a
+ * static on `LGraphCanvas`, not on `LiteGraph` — so this returned `null` every
+ * single time and every channel silently wore its name-hash fallback. Checked
+ * against the frontend's own sources (1.48.7), where the three are:
+ *
+ *  - `canvas.default_connection_color_byType[type]` — what the classic
+ *    renderer paints a *connected* socket with
+ *    (`colorContext.getConnectedColor`, `SlotBase.ts:46`);
+ *  - `LGraphCanvas.link_type_colors[type]` — what a real wire is drawn with
+ *    (`getLinkTypeColor`), kept in step with the first by the same loader;
+ *  - `--color-datatype-${type}` — the CSS variable the Nodes 2.0 socket dot
+ *    resolves (`SlotConnectionDot.vue`), set by the Vue half of that loader.
+ *
+ * Loose reads on purpose: this module never imports LiteGraph, and a host
+ * missing all three simply gets `null`. There is deliberately no fall-through
+ * to the host's own "no colour for this type" grey (`output_on`): a type the
+ * host paints with nothing is exactly where the name-hash colour earns its
+ * keep, and one shared grey for every such channel would tell the user less.
  */
 export function typeColor(type: string): string | null {
-  const palette = (globalThis as { LiteGraph?: { link_type_colors?: Record<string, string> } })
-    .LiteGraph?.link_type_colors;
-  return palette?.[type] ?? null;
+  const host = globalThis as {
+    app?: { canvas?: { default_connection_color_byType?: Record<string, string> } };
+    LGraphCanvas?: { link_type_colors?: Record<string, string> };
+  };
+  return firstColour(
+    host.app?.canvas?.default_connection_color_byType?.[type],
+    host.LGraphCanvas?.link_type_colors?.[type],
+    cssTypeColor(type),
+  );
+}
+
+/**
+ * The Nodes 2.0 socket colour, which lives as a CSS variable on the document
+ * root rather than in a JS map. Only reached when neither map had the type —
+ * both are filled from the same palette as this variable, so in practice this
+ * is the belt to their braces, and `getComputedStyle` stays off the per-frame
+ * path the overlay walks.
+ */
+function cssTypeColor(type: string): string | null {
+  const root = globalThis.document?.documentElement;
+  if (!root) return null;
+  try {
+    return getComputedStyle(root).getPropertyValue(`--color-datatype-${type}`) || null;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -59,8 +116,14 @@ export function channelColorFor(channel: { name: string; type: string }): string
 }
 
 /**
- * A colour made faint, for borders and label fills. Handles the two shapes
- * this module produces: the host's `#rrggbb` hex and its own `hsl(h s% l%)`.
+ * A colour made faint, for borders and label fills.
+ *
+ * Handles every shape that can reach it: the host's `#rrggbb` (and `#rgb`)
+ * hex, an `rgb()`/`rgba()` a custom colour palette may carry, and this
+ * module's own `hsl(h s% l%)`. Anything unrecognised is handed back at full
+ * strength rather than mangled — a solid label reads worse than a translucent
+ * one, but an invalid `fillStyle` reads as the previous colour, which is a
+ * bug that looks like a different bug.
  */
 export function soften(color: string, alpha: number): string {
   if (color.startsWith("#") && (color.length === 7 || color.length === 4)) {
@@ -70,6 +133,15 @@ export function soften(color: string, alpha: number): string {
     const n = Number.parseInt(hex, 16);
     if (!Number.isNaN(n)) {
       return `rgb(${(n >> 16) & 255} ${(n >> 8) & 255} ${n & 255} / ${alpha})`;
+    }
+  }
+  // Rebuilt rather than appended to: `rgb(1, 2, 3)` is the legacy comma form,
+  // and comma-separated channels with a slash-separated alpha is not valid CSS.
+  const rgb = /^rgba?\(([^)]*)\)$/.exec(color);
+  if (rgb) {
+    const parts = rgb[1].split(/[\s,/]+/).filter(Boolean).map(Number);
+    if (parts.length >= 3 && parts.slice(0, 3).every((n) => Number.isFinite(n))) {
+      return `rgb(${parts[0]} ${parts[1]} ${parts[2]} / ${alpha})`;
     }
   }
   if (color.startsWith("hsl(") && color.endsWith(")")) {

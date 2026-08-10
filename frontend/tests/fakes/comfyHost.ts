@@ -821,6 +821,74 @@ export function stubElementHeights(heights: { client: number; scroll: number }):
 }
 
 /**
+ * The slot/link colour palette, in the three places ComfyUI keeps it.
+ *
+ * Spelled out here rather than invented per test, because inventing it is how
+ * the pack shipped a colour feature that never worked: the tests defined
+ * `globalThis.LiteGraph.link_type_colors`, an object the host does not have,
+ * and agreed with themselves for months while every channel on a real canvas
+ * wore its fallback hue. What the host really does, on load of a palette
+ * (`loadLinkColorPalette` / `loadLinkColorPaletteForVueNodes`):
+ *
+ *  - blanks every known data type to `""`, then overlays the palette, into
+ *    **both** `canvas.default_connection_color_byType` (classic sockets) and
+ *    `LGraphCanvas.link_type_colors` (real wires);
+ *  - writes `--color-datatype-<TYPE>` onto the document root for the Nodes 2.0
+ *    socket dot.
+ *
+ * `blank` is the load-bearing part: a type with no colour arrives as an empty
+ * string, never as a missing key, so anything reaching for it with `??` gets
+ * `""` and paints nothing.
+ */
+export interface HostPaletteSpec {
+  /** Types the palette actually paints, and with what. */
+  colors?: Record<string, string>;
+  /** Types the host knows but paints with nothing — present as `""`, as on a real load. */
+  blank?: string[];
+  /** Types exposed only as Nodes 2.0 CSS variables, with no map entry at all. */
+  cssOnly?: Record<string, string>;
+}
+
+/** Install the palette on the globals the pack reads. Returns the undo. */
+export function installHostPalette(spec: HostPaletteSpec): () => void {
+  const host = globalThis as {
+    app?: { canvas?: Record<string, unknown> };
+    LGraphCanvas?: { link_type_colors?: Record<string, string> };
+  };
+  const hadApp = "app" in host;
+  const hadCanvas = !!host.app?.canvas;
+  const previousApp = host.app;
+  const previousByType = host.app?.canvas?.default_connection_color_byType;
+  const previousLGraphCanvas = host.LGraphCanvas;
+
+  const byType: Record<string, string> = {};
+  for (const type of spec.blank ?? []) byType[type] = "";
+  Object.assign(byType, spec.colors ?? {});
+
+  host.app ??= {};
+  host.app.canvas ??= {};
+  host.app.canvas.default_connection_color_byType = byType;
+  // The same map, as the host's own loader leaves it — the two never disagree.
+  host.LGraphCanvas = { ...host.LGraphCanvas, link_type_colors: { ...byType } };
+
+  const root = document.documentElement;
+  const cssKeys = Object.keys(spec.cssOnly ?? {});
+  for (const [type, value] of Object.entries(spec.cssOnly ?? {})) {
+    root.style.setProperty(`--color-datatype-${type}`, value);
+  }
+
+  return () => {
+    for (const type of cssKeys) root.style.removeProperty(`--color-datatype-${type}`);
+    if (previousLGraphCanvas) host.LGraphCanvas = previousLGraphCanvas;
+    else delete host.LGraphCanvas;
+    if (!hadApp) delete host.app;
+    else if (!hadCanvas) host.app = previousApp;
+    else if (previousByType) host.app!.canvas!.default_connection_color_byType = previousByType;
+    else delete host.app!.canvas!.default_connection_color_byType;
+  };
+}
+
+/**
  * Patch a prototype method the way other node packs do.
  *
  * Read the current handler, keep it, reassign. Harmless on its own — it is

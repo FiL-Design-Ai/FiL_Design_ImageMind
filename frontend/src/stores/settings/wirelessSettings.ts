@@ -73,9 +73,15 @@ export function wirelessEnabled(): boolean {
 /**
  * When the dashed links are drawn. Purely visual — the resolution behind them
  * runs either way, so nothing here can change what the server receives.
+ *
+ * The fallback has to be the same `LINKS_SELECTED` the setting is registered
+ * with above. It used to be `LINKS_ALWAYS`, which meant a user who had never
+ * opened the settings panel got every channel drawn at once while the panel
+ * told them "Only for the selected Nodes" — the mode that exists precisely
+ * because `Always` is unusable on a real graph.
  */
 export function wirelessLinkMode(): WirelessLinkMode {
-  return readSetting<WirelessLinkMode>(WIRELESS_LINKS, LINKS_ALWAYS) ?? LINKS_ALWAYS;
+  return readSetting<WirelessLinkMode>(WIRELESS_LINKS, LINKS_SELECTED) ?? LINKS_SELECTED;
 }
 
 /** Whether the channel's name is tagged onto each input it feeds. */
