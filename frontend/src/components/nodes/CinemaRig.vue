@@ -80,36 +80,36 @@ const linkedTip = (name: string, own: string) =>
 <template>
   <div class="fil-cnr-root">
     <FilSegmented v-model="mode" :options="modeOptions" :option-labels="MODE_LABELS"
-      icon="film" :label="t('crp_mode', 'Mode')"
+      :label="t('crp_mode', '🎬 Mode')"
       :title="t('cr_mode_tt', 'Original Shot builds a new frame around the scene. Reshoot locks a reference image and only changes the camera treatment.')" />
 
     <FilTextArea :ref="(el: unknown) => setFieldEl('scene_prompt', el)"
       v-model="scenePrompt" :rows="3" :linked="isLinked('scene_prompt')"
       :disabled="isReshoot"
-      icon="pencil" :label="t('crp_scene', 'Scene')"
+      :label="t('crp_scene', '📝 Scene')"
       :placeholder="t('crp_scene_placeholder', 'What is happening in the frame…')"
       :title="isReshoot
         ? t('cr_scene_reshoot_tt', 'Reshoot reads the scene from the reference image — this text is ignored.')
         : linkedTip('scene_prompt', t('cr_scene_tt', 'What the rig wraps. The camera treatment never touches it.'))" />
 
     <FilSelect v-model="camera" :options="cameraOptions" inline-label hint-from-parens
-      icon="camera" :label="t('crp_camera', 'Camera')"
+      :label="t('crp_camera', '📷 Camera')"
       :title="t('cr_camera_tt', 'Camera body. Film bodies wrap the shot in analog stock language, digital in sensor language.')" />
 
     <FilSelect v-model="lens" :options="lensOptions" inline-label hint-from-parens
-      icon="lens" :label="t('crp_lens', 'Lens')"
+      :label="t('crp_lens', '🔭 Lens')"
       :title="t('cr_lens_tt', 'Lens glass — spherical or anamorphic optical character.')" />
 
     <FilSelect v-model="focalLength" :options="focalOptions" inline-label hint-from-parens
-      icon="ruler" :label="t('crp_focal', 'Focal length')"
+      :label="t('crp_focal', '📏 Focal length')"
       :title="t('cr_focal_tt', 'Focal length, from ultra-wide environmental pressure to telephoto compression.')" />
 
     <FilSelect v-model="aperture" :options="apertureOptions" inline-label hint-from-parens
-      icon="aperture" :label="t('crp_aperture', 'Aperture')"
+      :label="t('crp_aperture', '⭕ Aperture')"
       :title="t('cr_aperture_tt', 'Aperture stop — how much of the frame holds focus.')" />
 
     <FilToggle v-model="enableGrading"
-      icon="palette" :label="t('crp_grade_on', 'Color grade')"
+      :label="t('crp_grade_on', '🎨 Color grade')"
       :title="t('cr_grade_on_tt', 'Apply a finish over the frame. Off keeps the rig to hardware and medium only.')" />
 
     <FilSelect v-if="enableGrading === 'ON'" v-model="colorGrading" :options="gradingOptions" inline-label hint-from-parens
@@ -117,7 +117,7 @@ const linkedTip = (name: string, own: string) =>
       :title="t('cr_grade_tt', 'The color grade / finish applied over the frame.')" />
 
     <FilSegmented v-model="polishMode" :options="polishOptions" :option-labels="POLISH_LABELS"
-      icon="sparkle" :label="t('crp_polish', 'Polish')"
+      :label="t('crp_polish', '✨ Polish')"
       :title="t('cr_polish_tt', 'Deterministic is pure string assembly. LLM Polish rewrites the rig into fluent prose through the provider model.')" />
   </div>
 </template>

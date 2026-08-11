@@ -68,7 +68,7 @@ describe("CinemaRig.vue", () => {
   it("reveals the grade picker when grading is switched on", async () => {
     const state = makeState({ nodeState: { enable_grading: false } });
     const wrapper = mount(CinemaRig, { props: { state: state as never } });
-    await toggleByLabel(wrapper, "Color grade").trigger("click");
+    await toggleByLabel(wrapper, "🎨 Color grade").trigger("click");
     await nextTick();
     expect(state.nodeState.enable_grading).toBe(true);
     expect(wrapper.text()).toContain("Grade");
