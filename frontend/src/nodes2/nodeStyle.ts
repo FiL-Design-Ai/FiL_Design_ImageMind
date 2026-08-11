@@ -6,6 +6,8 @@
  */
 import { ACTIVE_PALETTE, activeThemeName } from "@/styles/brand";
 import { patchRecreateMenuItem } from "@/nodes2/recreateNode";
+import { applyFilSlotColors } from "@/nodes2/slotTypeColors";
+import { isNodeRunning, isNodeFailed } from "@/composables/useRunButtonFx";
 
 export interface StyledNodeOptions {
   minSize?: [number, number];
@@ -90,10 +92,12 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
       size?: [number, number];
       onMenu?: unknown;
       onNodeCreated?: (...a: unknown[]) => unknown;
+      onConfigure?: (...a: unknown[]) => unknown;
       getExtraMenuOptions?: (...a: unknown[]) => unknown;
       __filOriginalGetWidgets?: unknown;
       color?: string;
       bgcolor?: string;
+      boxcolor?: string;
       onDrawTitleBar?: unknown;
       onDrawTitleText?: unknown;
     };
@@ -118,24 +122,43 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
   // rendering a duplicate colored drop-shadow offset underneath!
   p.color = "#ffffff";
   p.bgcolor = ACTIVE_PALETTE.panelAlt;
+  p.boxcolor = ACTIVE_PALETTE.accent;
   const originalCreated = p.onNodeCreated;
-  p.onNodeCreated = function (this: { color?: string; bgcolor?: string; size?: [number, number] }, ...args: unknown[]) {
+  p.onNodeCreated = function (this: { color?: string; bgcolor?: string; boxcolor?: string; size?: [number, number] }, ...args: unknown[]) {
     const result = originalCreated?.apply(this, args);
     this.color = "#ffffff";
     this.bgcolor = ACTIVE_PALETTE.panelAlt;
+    this.boxcolor = ACTIVE_PALETTE.accent;
     if (opts.initialWidth != null && this.size && this.size[0] > opts.initialWidth) {
       this.size[0] = opts.initialWidth;
     }
+    applyFilSlotColors(this);
     return result;
   };
 
-  // The host's `drawTitleText` *replaces* the default title paint when this
-  // hook exists (frontend 1.48.x: `if (this.onDrawTitleText) { …; return }`),
-  // so the hook must draw the title itself — an earlier cut only set the
-  // fill style and left the drawing to the host, which silently deleted the
-  // title from every FiL node on the canvas renderer. The body below mirrors
-  // the host's default path (font, truncation, pinned suffix, selected
-  // colour) with the pack's crisp white instead of the drop-shadowed default.
+  // Slots are rebuilt from the saved workflow on load, past whatever
+  // `onNodeCreated` painted — a loaded graph otherwise shows the dejected
+  // grey-green default on FIL_HIRES_SCRIPT/FIL_TILE_LAYOUT/FIL_PROVIDER_CONFIG
+  // until something else forces a repaint.
+  const originalConfigure = p.onConfigure;
+  p.onConfigure = function (this: unknown, ...args: unknown[]) {
+    const result = originalConfigure?.apply(this, args);
+    applyFilSlotColors(this);
+    return result;
+  };
+
+  /**
+   * The title-box dot — also the node's collapse button.
+   */
+  Object.defineProperty(p, "renderingBoxColor", {
+    configurable: true,
+    get(this: { boxcolor?: string }) {
+      if (isNodeFailed(this)) return ACTIVE_PALETTE.danger;
+      if (isNodeRunning(this)) return ACTIVE_PALETTE.accent;
+      return this.boxcolor ?? ACTIVE_PALETTE.accent;
+    },
+  });
+
   p.onDrawTitleText = function (
     this: {
       getTitle?: () => string | null;
@@ -177,8 +200,9 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
       text += "…";
     }
     const textY = (liteGraph?.NODE_TITLE_TEXT_Y as number | undefined) ?? 20;
+    const textX = Math.round(titleHeight * 0.95);
     ctx.textAlign = "left";
-    ctx.fillText(text, titleHeight, textY - titleHeight);
+    ctx.fillText(text, textX, textY - titleHeight);
   };
 
   // Dark title bar with a left accent stripe instead of a solid accent fill.
@@ -496,6 +520,12 @@ export function reapplyThemeToGraph(app: unknown): void {
     if (node.properties?.fil_custom_color) continue;
     node.color = "#ffffff";
     node.bgcolor = ACTIVE_PALETTE.panelAlt;
+    // Belt-and-braces alongside `registerFilTypeColors()` (called by the
+    // theme-switch path in `filExtension.ts`): that call fixes the host's
+    // shared type→colour maps, this one fixes any already-placed node whose
+    // own slots got their `color_on`/`color_off` cleared by something else
+    // touching the graph in between.
+    applyFilSlotColors(node);
   }
   const canvas = (app as { canvas?: { setDirty?: (a: boolean, b: boolean) => void } }).canvas;
   canvas?.setDirty?.(true, true);

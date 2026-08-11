@@ -61,13 +61,15 @@ const polishOptions = computed(() => comboOptions("polish_mode", ["Deterministic
 
 // Backend values stay verbatim; only the shown text is translated. Computed so
 // the async dictionary swap still re-renders (see StyleMixer for the reason).
+// No emoji in these: the row already carries an icon, and at node width the
+// extra glyph pushed "Original Shot" and "Deterministic" into an ellipsis.
 const MODE_LABELS = computed<Record<string, string>>(() => ({
-  "Original Shot": t("cr_mode_original", "🎬 Original Shot"),
-  "Reshoot": t("cr_mode_reshoot", "🔁 Reshoot"),
+  "Original Shot": t("cr_mode_original", "Original Shot"),
+  "Reshoot": t("cr_mode_reshoot", "Reshoot"),
 }));
 const POLISH_LABELS = computed<Record<string, string>>(() => ({
-  "Deterministic (Fast)": t("cr_polish_fast", "⚡ Deterministic"),
-  "LLM Polish (Gen-Rig)": t("cr_polish_llm", "🧠 LLM Polish"),
+  "Deterministic (Fast)": t("cr_polish_fast", "Deterministic"),
+  "LLM Polish (Gen-Rig)": t("cr_polish_llm", "LLM Polish"),
 }));
 
 const isReshoot = computed(() => mode.value === "Reshoot");
@@ -78,44 +80,44 @@ const linkedTip = (name: string, own: string) =>
 <template>
   <div class="fil-cnr-root">
     <FilSegmented v-model="mode" :options="modeOptions" :option-labels="MODE_LABELS"
-      :label="t('crp_mode', '🎬 Mode')"
+      icon="film" :label="t('crp_mode', 'Mode')"
       :title="t('cr_mode_tt', 'Original Shot builds a new frame around the scene. Reshoot locks a reference image and only changes the camera treatment.')" />
 
     <FilTextArea :ref="(el: unknown) => setFieldEl('scene_prompt', el)"
       v-model="scenePrompt" :rows="3" :linked="isLinked('scene_prompt')"
       :disabled="isReshoot"
-      :label="t('crp_scene', '📝 Scene')"
+      icon="pencil" :label="t('crp_scene', 'Scene')"
       :placeholder="t('crp_scene_placeholder', 'What is happening in the frame…')"
       :title="isReshoot
         ? t('cr_scene_reshoot_tt', 'Reshoot reads the scene from the reference image — this text is ignored.')
         : linkedTip('scene_prompt', t('cr_scene_tt', 'What the rig wraps. The camera treatment never touches it.'))" />
 
-    <FilSelect v-model="camera" :options="cameraOptions"
-      :label="t('crp_camera', '📷 Camera')"
+    <FilSelect v-model="camera" :options="cameraOptions" inline-label hint-from-parens
+      icon="camera" :label="t('crp_camera', 'Camera')"
       :title="t('cr_camera_tt', 'Camera body. Film bodies wrap the shot in analog stock language, digital in sensor language.')" />
 
-    <FilSelect v-model="lens" :options="lensOptions"
-      :label="t('crp_lens', '🔭 Lens')"
+    <FilSelect v-model="lens" :options="lensOptions" inline-label hint-from-parens
+      icon="lens" :label="t('crp_lens', 'Lens')"
       :title="t('cr_lens_tt', 'Lens glass — spherical or anamorphic optical character.')" />
 
-    <FilSelect v-model="focalLength" :options="focalOptions"
-      :label="t('crp_focal', '📏 Focal length')"
+    <FilSelect v-model="focalLength" :options="focalOptions" inline-label hint-from-parens
+      icon="ruler" :label="t('crp_focal', 'Focal length')"
       :title="t('cr_focal_tt', 'Focal length, from ultra-wide environmental pressure to telephoto compression.')" />
 
-    <FilSelect v-model="aperture" :options="apertureOptions"
-      :label="t('crp_aperture', '⭕ Aperture')"
+    <FilSelect v-model="aperture" :options="apertureOptions" inline-label hint-from-parens
+      icon="aperture" :label="t('crp_aperture', 'Aperture')"
       :title="t('cr_aperture_tt', 'Aperture stop — how much of the frame holds focus.')" />
 
     <FilToggle v-model="enableGrading"
-      :label="t('crp_grade_on', '🎨 Color grade')"
+      icon="palette" :label="t('crp_grade_on', 'Color grade')"
       :title="t('cr_grade_on_tt', 'Apply a finish over the frame. Off keeps the rig to hardware and medium only.')" />
 
-    <FilSelect v-if="enableGrading === 'ON'" v-model="colorGrading" :options="gradingOptions"
+    <FilSelect v-if="enableGrading === 'ON'" v-model="colorGrading" :options="gradingOptions" inline-label hint-from-parens
       :label="t('crp_grade', 'Grade')"
       :title="t('cr_grade_tt', 'The color grade / finish applied over the frame.')" />
 
     <FilSegmented v-model="polishMode" :options="polishOptions" :option-labels="POLISH_LABELS"
-      :label="t('crp_polish', '✨ Polish')"
+      icon="sparkle" :label="t('crp_polish', 'Polish')"
       :title="t('cr_polish_tt', 'Deterministic is pure string assembly. LLM Polish rewrites the rig into fluent prose through the provider model.')" />
   </div>
 </template>

@@ -69,7 +69,7 @@ watch(() => props.state.nodeState, () => {}, { deep: true });
 <template>
   <div class="fil-up-root">
     <FilSlider :ref="(el: unknown) => setFieldEl('upscale_factor', el)"
-      :model-value="upscaleFactor" :min="0.1" :max="8" :step="0.25" :label="t('lbl_upscale_factor', '🔍 Upscale factor')"
+      :model-value="upscaleFactor" :min="0.1" :max="8" :step="0.25" :label="t('lbl_upscale_factor', '🔍 Upscale factor')" inline-label
       :disabled="isLinked('upscale_factor')"
       :title="linkedTip('upscale_factor', t('utc_factor', 'Upscale multiplier.'))"
       @update:model-value="(v: number) => (upscaleFactor = v)" />

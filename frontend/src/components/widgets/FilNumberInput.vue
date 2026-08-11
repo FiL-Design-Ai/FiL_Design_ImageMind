@@ -26,6 +26,11 @@ const props = withDefaults(
      * paired rows) simply omit it and get the bare `<input>` as before. */
     label?: string;
     title?: string;
+    /** Opt-in trial layout: the label moves *inside* the field's border,
+     * pinned left with the value right-aligned beside it (what stock ComfyUI
+     * widgets look like). Frees the 32% label column for the control itself.
+     * Off by default so every existing call site keeps its label|control row. */
+    inlineLabel?: boolean;
   }>(),
   { step: 1 },
 );
@@ -183,8 +188,12 @@ function onScrubPointerDown(e: PointerEvent) {
 </script>
 
 <template>
-  <div class="fil-w-numfield" :class="{ 'no-label': !label }" :title="title">
-    <label v-if="label" class="fil-w-numfield-label">{{ label }}</label>
+  <div
+    class="fil-w-numfield"
+    :class="{ 'no-label': !label, 'inline-label': !!label && inlineLabel }"
+    :title="title"
+  >
+    <label v-if="label && !inlineLabel" class="fil-w-numfield-label">{{ label }}</label>
     <div class="fil-w-num-wrap">
       <button
         type="button"
@@ -196,6 +205,9 @@ function onScrubPointerDown(e: PointerEvent) {
         @click="bump($event.shiftKey ? -10 : -1)"
       >◀</button>
       <div class="fil-w-num-center">
+        <!-- Inside the scrub overlay's area on purpose: dragging across the
+             label scrubs the value, same as dragging the number itself. -->
+        <span v-if="label && inlineLabel" class="fil-w-num-inline-label">{{ label }}</span>
         <input
           ref="inputEl"
           v-model="text"
@@ -264,6 +276,38 @@ function onScrubPointerDown(e: PointerEvent) {
 .fil-w-numfield:not(.no-label) .fil-w-num-wrap {
   grid-column: 2;
 }
+/* Inline-label variant: no label column left to reserve, so the field owns
+ * the whole row. Same specificity as the rule above — must stay after it. */
+.fil-w-numfield.inline-label {
+  grid-template-columns: minmax(0, 1fr);
+}
+.fil-w-numfield.inline-label .fil-w-num-wrap {
+  grid-column: 1;
+}
+.fil-w-num-inline-label {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  padding-left: 6px;
+  font-size: 11px;
+  color: var(--fil-muted);
+  font-family: inherit;
+  /* The scrub overlay sits above this anyway; keeping the label inert also
+   * stops a click on it from stealing focus away from the input. */
+  pointer-events: none;
+}
+/* The number keeps a 40px floor so a long label ellipsizes instead of
+ * squeezing the value out of the field. */
+.fil-w-numfield.inline-label .fil-w-num {
+  flex: 1 1 40px;
+  width: auto;
+  text-align: right;
+  padding-right: 6px;
+}
 .fil-w-num-wrap {
   position: relative;
   width: 100%;
@@ -323,7 +367,7 @@ function onScrubPointerDown(e: PointerEvent) {
   display: none;
 }
 .fil-w-num-arrow {
-  flex: 0 0 18px;
+  flex: 0 0 14px;
   display: flex;
   align-items: center;
   justify-content: center;

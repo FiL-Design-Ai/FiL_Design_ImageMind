@@ -91,7 +91,7 @@ const display = computed({
 </script>
 
 <template>
-  <div class="fil-seed-root">
+  <div class="fil-seed-root fil-flat">
     <input
       v-model="display"
       type="text"
@@ -111,17 +111,19 @@ const display = computed({
 <style scoped>
 /* Seed is a single compact row (field + 3 icon buttons), each already
  * bordered on its own — the shared "glass card" surface from
- * `.fil-node-shell [class$="-root"]` (styles/brand.ts) stacks a 3rd/4th
- * nested border+shadow on top and reads as visual clutter at this size.
- * Override it to flat/transparent here only; every other node keeps the
- * shared shell untouched.
- * The `div` type selector (not just `.fil-seed-root`) is required: Vue's
- * scoped `[data-v-hash]` attribute gives this rule the same specificity
- * (0,2,0) as the global shell rule, and the global style tag is injected
- * into <head> AFTER the bundled component CSS, so on equal specificity it
- * would otherwise win by source order. `div.fil-seed-root[data-v-hash]`
- * is (0,2,1), which always wins deterministically. */
-div.fil-seed-root { width: 100%; box-sizing: border-box; min-width: 0;
+ * `.fil-node-shell [class$="-root"]` (styles/brand.ts) stacks another
+ * border+shadow around them and reads as a box drawn around a box.
+ *
+ * The opt-out is the `fil-flat` class on the root element, not a property
+ * override here: this used to cancel the card with `background: transparent;
+ * border: none; box-shadow: none` on a specificity-inflated
+ * `div.fil-seed-root[data-v-hash]` selector (0,2,1), which beat the shared
+ * rule (0,2,0) but lost to every themed copy of it
+ * (`:root[data-fil-theme=…] .fil-node-shell [class$="-root"]`, 0,3,0) — so
+ * the frame reappeared as soon as a theme was on, measured live under
+ * `nft_vibe` as a violet glow plus a 16px backdrop blur. `fil-flat` is
+ * excluded in the selectors themselves, so no theme can out-specify it. */
+.fil-seed-root { width: 100%; box-sizing: border-box; min-width: 0;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -129,11 +131,6 @@ div.fil-seed-root { width: 100%; box-sizing: border-box; min-width: 0;
   padding: var(--fil-node-pad);
   color: var(--fil-text);
   font-family: ui-sans-serif, system-ui, sans-serif;
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
-  backdrop-filter: none;
 }
 .fil-seed-display {
   flex: 1; min-width: 0; box-sizing: border-box; height: var(--fil-control-h);

@@ -138,6 +138,12 @@ function onWholeUiChange(on: boolean): void {
       const { reapplyThemeToGraph } = await import("@/nodes2/nodeStyle");
       reapplyThemeToGraph(app);
     }
+    // `applyThemeToWholeUi`/`restoreUserPalette` route through the host's own
+    // `loadLinkColorPalette`, which rebuilds its type→colour maps from scratch
+    // on every switch — wiping the three FiL-only types back to the blank
+    // string they start with (see `slotTypeColors.ts`'s file comment).
+    const { registerFilTypeColors } = await import("@/nodes2/slotTypeColors");
+    registerFilTypeColors();
   })();
 }
 
@@ -152,6 +158,8 @@ export function syncWholeUiPalette(theme: FilThemeName): void {
     const { applyThemeToWholeUi } = await import("@/styles/comfyPalette");
     try {
       await applyThemeToWholeUi(theme);
+      const { registerFilTypeColors } = await import("@/nodes2/slotTypeColors");
+      registerFilTypeColors();
     } catch {
       /* The theme itself is already applied. A palette that failed to follow is
        * a degraded look, not a broken one, and does not earn a toast on every

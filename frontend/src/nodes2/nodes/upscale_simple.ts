@@ -27,8 +27,8 @@ export const upscaleSimpleNode: NodeModule = {
       // needs to cover the very first paint; computeSize() (~470px for this
       // panel) always wins via Math.max in domWidgetHost.ts, so a buffer
       // here would just be permanent dead space at the bottom of the node.
-      minSize: [300, 300],
-      initialWidth: 300,
+      minSize: [320, 300],
+      initialWidth: 320,
       family: "image",
       description: "Upscale + tile an image through a required model — same tiling controls as Advanced.",
       badges: [{ text: "upscale", color: "#62c987", text_color: "#1a1a1a" }],

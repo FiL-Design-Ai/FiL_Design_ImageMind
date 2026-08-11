@@ -59,6 +59,39 @@ describe("FilSelect", () => {
     });
     expect(wrapper.emitted("update:modelValue")).toBeUndefined();
   });
+
+  it("shows the full option text by default, with no title", () => {
+    const wrapper = mount(FilSelect, {
+      props: { options: ["Helios 44-2 (Vintage)"], modelValue: "Helios 44-2 (Vintage)" },
+    });
+    const option = wrapper.find("option");
+    expect(option.text()).toBe("Helios 44-2 (Vintage)");
+    expect(option.attributes("title")).toBeUndefined();
+    expect(wrapper.find("select").attributes("title")).toBeUndefined();
+  });
+
+  it("with hintFromParens on, moves a trailing (Note) out of the text and into a title", () => {
+    const wrapper = mount(FilSelect, {
+      props: {
+        options: ["Helios 44-2 (Vintage)", "Sony Venice 2"],
+        modelValue: "Helios 44-2 (Vintage)",
+        hintFromParens: true,
+      },
+    });
+    const options = wrapper.findAll("option");
+    // Value sent to the backend is untouched — only the displayed text changes.
+    expect(options.map((o) => o.attributes("value"))).toEqual([
+      "Helios 44-2 (Vintage)",
+      "Sony Venice 2",
+    ]);
+    expect(options[0].text()).toBe("Helios 44-2");
+    expect(options[0].attributes("title")).toBe("Vintage");
+    // No trailing "(...)" — left as-is, with no title to add.
+    expect(options[1].text()).toBe("Sony Venice 2");
+    expect(options[1].attributes("title")).toBeUndefined();
+    // The closed box carries the current value's hint too, one hover away.
+    expect(wrapper.find("select").attributes("title")).toBe("Vintage");
+  });
 });
 
 describe("FilTextArea", () => {

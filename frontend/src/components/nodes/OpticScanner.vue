@@ -403,10 +403,10 @@ function newFixedSeed() {
               :min="w.name === 'video_duration' ? videoDurationBounds().min : (w.min ?? 0)"
               :max="w.name === 'video_duration' ? videoDurationBounds().max : (w.max ?? 1)"
               :step="w.step ?? 1"
-              :label="formatFieldLabel(w)"
+              :label="formatFieldLabel(w)" inline-label
               @update:model-value="(v: number) => setValue(w.name, v)" />
             <FilSelect v-else-if="w.name === 'video_camera'"
-              :options="w.values || []" :model-value="String(getValue(w.name, 'Auto'))"
+              :options="w.values || []" :model-value="String(getValue(w.name, 'Auto'))" inline-label
               :label="formatFieldLabel(w)" @update:model-value="(v: string) => setValue(w.name, v)" />
             <FilChipGrid v-else-if="w.kind === 'chip_grid'"
               :options="w.values || []" :model-value="String(getValue(w.name, ''))"

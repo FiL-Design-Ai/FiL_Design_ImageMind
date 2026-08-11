@@ -98,7 +98,7 @@ describe("DatasetForge caption mode", () => {
     wrapper = mount(DatasetForgeVue, { props: { state: makeState() as never } });
     expect(wrapper.text()).toContain("Max words");
 
-    await segmentedOption(wrapper, "Mode", "🚫 No LLM").trigger("click");
+    await segmentedOption(wrapper, "Mode", "No LLM").trigger("click");
     await nextTick();
 
     expect(wrapper.text()).not.toContain("Max words");

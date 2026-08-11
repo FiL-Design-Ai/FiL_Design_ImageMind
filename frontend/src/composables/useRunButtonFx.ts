@@ -111,6 +111,55 @@ const marks = new Map<CanvasNode, Mark>();
 let markedCanvas: Canvas | null = null;
 let repaintTimer: ReturnType<typeof setInterval> | null = null;
 
+/**
+ * The set of nodes currently executing, and the set that last errored —
+ * behind `isNodeRunning`/`isNodeFailed` for `nodeStyle.ts`'s title-box dot.
+ *
+ * Deliberately independent of `runFxEnabled()` and the pulsing-ring `marks`
+ * above: a user who turns the ring animation off has not asked for the dot to
+ * stop tracking state too — those are two different opt-ins (see
+ * `stores/settings/runFxSettings.ts`), and the ring's "cover every node"
+ * setting doesn't apply here either, since only FiL nodes carry the
+ * `renderingBoxColor` override that reads these sets in the first place.
+ */
+const runningNodes = new Set<CanvasNode>();
+const failedNodes = new Set<CanvasNode>();
+
+/** Read by `nodeStyle.ts`'s `renderingBoxColor` getter, per node, per frame. */
+export function isNodeRunning(node: unknown): boolean {
+  return runningNodes.has(node as CanvasNode);
+}
+export function isNodeFailed(node: unknown): boolean {
+  return failedNodes.has(node as CanvasNode);
+}
+
+/**
+ * Ask whichever canvas is around to redraw. `markedCanvas` only gets set once
+ * the pulsing ring marks a node (`mark()` below) — a session where the ring FX
+ * setting is off never sets it, and the title-box dot would then update its
+ * colour but never actually repaint. `globalThis.app` is the fallback every
+ * other per-frame read in this file's sibling `nodeStyle.ts` already uses for
+ * the same reason (see its `low_quality` reads).
+ */
+function requestRepaint(app?: CanvasApp): void {
+  (app?.canvas ?? markedCanvas ?? (globalThis as { app?: CanvasApp }).app?.canvas)?.setDirty?.(true);
+}
+
+/** A run failed on this node — keep the dot red until the next run starts. */
+export function markNodeFailed(app: CanvasApp, nodeId: string | number): void {
+  const { node } = resolveNode(app, nodeId);
+  if (!node) return;
+  failedNodes.add(node);
+  requestRepaint(app);
+}
+
+/** A new prompt started — yesterday's failure marks don't belong to it. */
+export function clearFailedNodes(app?: CanvasApp): void {
+  if (failedNodes.size === 0) return;
+  failedNodes.clear();
+  requestRepaint(app);
+}
+
 function prefersReducedMotion(): boolean {
   return typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
 }
@@ -237,11 +286,12 @@ function mark(app: CanvasApp, node: CanvasNode, id: string | number): void {
   markedCanvas = app.canvas ?? markedCanvas;
 }
 
-/** Clear the mark from every node that carries it. */
+/** Clear the mark — and the running-indicator set — from every node. */
 export function stopNodeRun(): void {
   for (const [node, entry] of [...marks]) unmark(node, entry);
+  runningNodes.clear();
   stopRepaints();
-  markedCanvas?.setDirty?.(true);
+  requestRepaint();
   markedCanvas = null;
 }
 
@@ -251,29 +301,41 @@ export function stopNodeRun(): void {
  * rest are cleared.
  */
 export function setRunningNodes(app: CanvasApp, nodeIds: readonly (string | number)[]): void {
-  if (!runFxEnabled()) {
-    stopNodeRun();
-    return;
-  }
-
   const wanted = new Map<CanvasNode, string | number>();
   for (const nodeId of nodeIds) {
     const { node, id } = resolveNode(app, nodeId);
     if (!node) continue;
-    if (!runFxCoversEveryNode() && !isOurNode(node)) continue;
     if (!wanted.has(node)) wanted.set(node, id);
   }
 
-  for (const [node, entry] of [...marks]) {
-    if (!wanted.has(node)) unmark(node, entry);
+  // The title-box indicator tracks every node core reports, independent of
+  // the ring FX toggle below — see the comment on `runningNodes` above.
+  runningNodes.clear();
+  for (const node of wanted.keys()) runningNodes.add(node);
+  requestRepaint(app);
+
+  if (!runFxEnabled()) {
+    for (const [node, entry] of [...marks]) unmark(node, entry);
+    stopRepaints();
+    markedCanvas = null;
+    return;
   }
+
+  const ringWanted = new Map<CanvasNode, string | number>();
   for (const [node, id] of wanted) {
+    if (!runFxCoversEveryNode() && !isOurNode(node)) continue;
+    ringWanted.set(node, id);
+  }
+
+  for (const [node, entry] of [...marks]) {
+    if (!ringWanted.has(node)) unmark(node, entry);
+  }
+  for (const [node, id] of ringWanted) {
     if (!marks.has(node)) mark(app, node, id);
   }
 
   if (marks.size > 0) driveRepaints();
   else stopRepaints();
-  (app.canvas ?? markedCanvas)?.setDirty?.(true);
   if (marks.size === 0) markedCanvas = null;
 }
 

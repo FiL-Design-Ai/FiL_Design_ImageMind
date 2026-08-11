@@ -7,6 +7,8 @@
  * ArrowLeft/ArrowRight move between options; `aria-pressed` reflects state.
  */
 import { ref } from "vue";
+import FilIcon from "./FilIcon.vue";
+import type { IconName } from "@/composables/icons";
 
 const props = defineProps<{
   options: T[];
@@ -18,6 +20,9 @@ const props = defineProps<{
    * call sites can stay visually descriptive without changing the
    * underlying value contract with the backend. */
   optionLabels?: Record<string, string>;
+  /** Optional glyph shown before the row label — omitted by default, so
+   * existing call sites are visually unchanged. */
+  icon?: IconName;
 }>();
 
 const modelValue = defineModel<T>({ required: true });
@@ -50,7 +55,9 @@ function onKeydown(e: KeyboardEvent, index: number) {
 
 <template>
   <div class="fil-w-segmented" :title="title">
-    <label v-if="label" class="fil-w-segmented-label">{{ label }}</label>
+    <label v-if="label" class="fil-w-segmented-label">
+      <FilIcon v-if="icon" :name="icon" :size="12" />{{ label }}
+    </label>
     <div class="fil-w-pill" :class="{ disabled, few: options.length <= 3 }" role="group" :aria-label="label">
       <button
         v-for="(opt, i) in options"
@@ -88,6 +95,9 @@ function onKeydown(e: KeyboardEvent, index: number) {
   font-size: 11px;
   color: var(--fil-muted);
   font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 .fil-w-pill {
   grid-column: 2;

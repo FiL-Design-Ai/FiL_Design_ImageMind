@@ -43,7 +43,7 @@ describe("HiResFix.vue upscale type", () => {
 
   it("switches to the pixel upscaler when upscale type is 'pixel'", async () => {
     const wrapper = mount(HiResFixVue, { props: { state: makeState() as never } });
-    await segmentedOption(wrapper, "Upscale type", "🖼️ pixel").trigger("click");
+    await segmentedOption(wrapper, "Upscale type", "pixel").trigger("click");
     await nextTick();
     expect(wrapper.text()).toContain("Pixel upscaler");
     expect(wrapper.text()).not.toContain("Latent upscaler");
@@ -55,7 +55,7 @@ describe("HiResFix.vue upscale type", () => {
   // keep the latent dropdown hidden here, not an oversight.
   it("shows only the pixel upscaler for 'both' (latent_upscaler is unused on that path)", async () => {
     const wrapper = mount(HiResFixVue, { props: { state: makeState() as never } });
-    await segmentedOption(wrapper, "Upscale type", "🔀 both").trigger("click");
+    await segmentedOption(wrapper, "Upscale type", "both").trigger("click");
     await nextTick();
     expect(wrapper.text()).not.toContain("Latent upscaler");
     expect(wrapper.text()).toContain("Pixel upscaler");

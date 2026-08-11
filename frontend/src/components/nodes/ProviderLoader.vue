@@ -140,16 +140,16 @@ onMounted(async () => {
     <FilToggle v-if="isLocalProvider" :model-value="unloadLlm" :label="t('lbl_unload_llm', '⏏️ Unload LLM after prompt')"
       :title="t('tt_unload_llm', 'Local servers only (Ollama, LM Studio): unload the model from memory right after the prompt is generated, freeing VRAM for the image generation.')"
       @update:model-value="(v: 'ON' | 'OFF') => (unloadLlm = v)" />
-    <FilSlider :model-value="temperature" :min="0" :max="2" :step="0.05" :label="t('lbl_temperature', '🌡️ Temperature')"
+    <FilSlider :model-value="temperature" :min="0" :max="2" :step="0.05" :label="t('lbl_temperature', '🌡️ Temperature')" inline-label
       :title="t('tt_temperature', 'Sampling temperature — higher is more creative, lower is more deterministic.')"
       @update:model-value="(v: number) => (state.nodeState.temperature = v)" />
-    <FilSlider :model-value="maxTokens" :min="0" :max="65536" :step="1" :label="t('lbl_max_tokens', '🔢 Max tokens')"
+    <FilSlider :model-value="maxTokens" :min="0" :max="65536" :step="1" :label="t('lbl_max_tokens', '🔢 Max tokens')" inline-label
       :title="t('tt_provider_max_tokens', 'Maximum tokens in the response. 0 = provider default (no explicit limit).')"
       @update:model-value="(v: number) => (state.nodeState.max_tokens = v)" />
-    <FilSlider :model-value="rateLimit" :min="0" :max="5000" :step="10" :label="t('lbl_rate_limit', '⏱️ Rate limit')"
+    <FilSlider :model-value="rateLimit" :min="0" :max="5000" :step="10" :label="t('lbl_rate_limit', '⏱️ Rate limit')" inline-label
       :title="t('tt_rate_limit', 'Minimum delay between requests to this provider, to avoid rate limiting.')"
       @update:model-value="(v: number) => (state.nodeState.rate_limit_ms = v)" />
-    <FilSlider :model-value="maxImageSide" :min="128" :max="4096" :step="64" :label="t('lbl_max_image_side', '🖼️ Max image side')"
+    <FilSlider :model-value="maxImageSide" :min="128" :max="4096" :step="64" :label="t('lbl_max_image_side', '🖼️ Max image side')" inline-label
       :title="t('tt_max_image_side', 'Images are downscaled so their longest side does not exceed this value.')"
       @update:model-value="(v: number) => (state.nodeState.max_image_side = v)" />
 
@@ -178,7 +178,7 @@ onMounted(async () => {
   box-sizing: border-box;
   padding: 8px 10px;
   background: var(--fil-panel-alt);
-  border: 1px solid var(--fil-pill-border);
+  border: 1px solid var(--fil-border);
   border-radius: var(--fil-field-radius);
   color: var(--fil-text);
   cursor: pointer;

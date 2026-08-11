@@ -11,6 +11,9 @@
  * so a caller can take a ref to the component and reach the real element via
  * `$el` — OpticScanner needs that to anchor its input sockets to the field.
  */
+import FilIcon from "./FilIcon.vue";
+import type { IconName } from "@/composables/icons";
+
 withDefaults(
   defineProps<{
     label?: string;
@@ -21,6 +24,9 @@ withDefaults(
     readonly?: boolean;
     /** Value is driven by a connected input socket — dashed, dimmed, read-only. */
     linked?: boolean;
+    /** Optional glyph shown before the label — omitted by default, so
+     * existing call sites are visually unchanged. */
+    icon?: IconName;
   }>(),
   { rows: 2 },
 );
@@ -30,7 +36,9 @@ const modelValue = defineModel<string>({ required: true });
 
 <template>
   <div v-if="label" class="fil-w-textarea-row" :title="title">
-    <label class="fil-w-textarea-label">{{ label }}</label>
+    <label class="fil-w-textarea-label">
+      <FilIcon v-if="icon" :name="icon" :size="12" />{{ label }}
+    </label>
     <textarea
       v-model="modelValue"
       class="fil-w-textarea"
@@ -65,6 +73,9 @@ const modelValue = defineModel<string>({ required: true });
   font-size: 11px;
   color: var(--fil-muted);
   font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 .fil-w-textarea {
   box-sizing: border-box;

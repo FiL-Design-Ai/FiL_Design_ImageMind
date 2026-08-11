@@ -148,41 +148,42 @@ function newFixedSeed() {
 
 <template>
   <div class="fil-hrf-root">
+    <!-- No option-labels: the emoji they used to carry pushed all three past
+         the pill's share of the row and every one of them ellipsised. -->
     <FilSegmented :options="['latent', 'pixel', 'both']"
-      :option-labels="{ latent: '🌀 latent', pixel: '🖼️ pixel', both: '🔀 both' }"
       :model-value="upscaleType" :label="t('lbl_upscale_type', '⬆️ Upscale type')"
       :title="t('hrf_upscale_type', 'Upscale in latent space, pixel space, or both.')"
       @update:model-value="(v: string) => (upscaleType = v)" />
 
     <template v-if="showLatent">
-      <FilSelect :options="latentMethods" :model-value="latentUpscaler"
+      <FilSelect :options="latentMethods" :model-value="latentUpscaler" inline-label
         :label="t('lbl_latent_up', '🌀 Latent upscaler')" :title="t('hrf_latent_up', 'Latent upscale method.')"
         @update:model-value="(v: string) => (latentUpscaler = v)" />
     </template>
 
     <template v-if="showPixel">
-      <FilSelect :options="pixelOptions" :model-value="pixelUpscaler"
+      <FilSelect :options="pixelOptions" :model-value="pixelUpscaler" inline-label
         :label="t('lbl_pixel_up', '🖼️ Pixel upscaler')" :title="t('hrf_pixel_up', 'Pixel upscale model (from upscale_models).')"
         @update:model-value="(v: string) => (pixelUpscaler = v)" />
     </template>
 
     <FilSlider :ref="(el: unknown) => setFieldEl('upscale_by', el)"
-      :model-value="upscaleBy" :min="0.01" :max="8" :step="0.05" :label="t('lbl_upscale_by', '🔍 Upscale by')"
+      :model-value="upscaleBy" :min="0.01" :max="8" :step="0.05" :label="t('lbl_upscale_by', '🔍 Upscale by')" inline-label
       :disabled="isLinked('upscale_by')"
       :title="isLinked('upscale_by') ? t('fld_linked_tt', 'Driven by the connected input — disconnect it to edit here.') : t('hrf_upscale_by', 'Upscale multiplier.')"
       @update:model-value="(v: number) => (upscaleBy = v)" />
     <FilSlider :ref="(el: unknown) => setFieldEl('denoise', el)"
-      :model-value="denoise" :min="0" :max="1" :step="0.01" :label="t('lbl_hrf_denoise', '💧 Denoise')"
+      :model-value="denoise" :min="0" :max="1" :step="0.01" :label="t('lbl_hrf_denoise', '💧 Denoise')" inline-label
       :disabled="isLinked('denoise')"
       :title="isLinked('denoise') ? t('fld_linked_tt', 'Driven by the connected input — disconnect it to edit here.') : t('hrf_denoise', 'Denoise strength for the hires re-sample.')"
       @update:model-value="(v: number) => (denoise = v)" />
 
     <FilNumberInput :ref="(el: unknown) => setFieldEl('hires_steps', el)"
-      v-model="hiresSteps" :min="1" :max="10000" :step="1" :disabled="isLinked('hires_steps')"
+      v-model="hiresSteps" :min="1" :max="10000" :step="1" :disabled="isLinked('hires_steps')" inline-label
       :label="t('lbl_hires_steps', '🪜 Hires steps')"
       :title="isLinked('hires_steps') ? t('fld_linked_tt', 'Driven by the connected input — disconnect it to edit here.') : t('hrf_steps', 'Steps for the hires re-sample.')" />
 
-    <FilNumberInput v-model="iterations" :min="0" :max="5" :step="1"
+    <FilNumberInput v-model="iterations" :min="0" :max="5" :step="1" inline-label
       :label="t('lbl_iterations', '🔁 Iterations')" :title="t('hrf_iterations', 'How many upscale+resample passes to run.')" />
 
     <FilSegmented :options="['ON', 'OFF']" :option-labels="{ ON: '♻️ same seed', OFF: '🎲 own' }" :model-value="useSameSeed"
@@ -225,7 +226,7 @@ function newFixedSeed() {
       @update:model-value="(v: boolean) => setCollapsed('advanced', v)"
     />
     <template v-if="!isCollapsed('advanced')">
-      <FilSelect :options="ckptOptions" :model-value="hiresCkpt"
+      <FilSelect :options="ckptOptions" :model-value="hiresCkpt" inline-label
         :label="t('lbl_hires_ckpt', '📦 Hires checkpoint')" :title="t('hrf_ckpt', 'Checkpoint for the hires pass. (use same) reuses the base model.')"
         @update:model-value="(v: string) => (hiresCkpt = v)" />
       <FilSegmented :options="['ON', 'OFF']" :option-labels="{ ON: '🕹️ ON', OFF: 'OFF' }" :model-value="useControlnet"
@@ -233,10 +234,10 @@ function newFixedSeed() {
         :title="t('hrf_use_cn', 'Guide the hires pass with a ControlNet. Tile ControlNets work without a preprocessor.')"
         @update:model-value="(v) => (useControlnet = v as 'ON' | 'OFF')" />
       <template v-if="useControlnet === 'ON'">
-        <FilSelect :options="controlNetOptions" :model-value="controlNetName"
+        <FilSelect :options="controlNetOptions" :model-value="controlNetName" inline-label
           :label="t('lbl_cn_name', '🧩 ControlNet model')" :title="t('hrf_cn_name', 'ControlNet model to apply.')"
           @update:model-value="(v: string) => (controlNetName = v)" />
-        <FilSlider :model-value="strength" :min="0" :max="10" :step="0.01" :label="t('lbl_cn_strength', '💪 Strength')"
+        <FilSlider :model-value="strength" :min="0" :max="10" :step="0.01" :label="t('lbl_cn_strength', '💪 Strength')" inline-label
           :title="t('hrf_cn_strength', 'ControlNet strength.')" @update:model-value="(v: number) => (strength = v)" />
         <FilSegmented :options="preprocessorOptions" :option-labels="{ none: '🚫 none', canny: '🪞 canny' }"
           :model-value="preprocessor" :label="t('lbl_cn_preproc', '🧪 Preprocessor')"

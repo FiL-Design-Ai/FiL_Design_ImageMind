@@ -1,5 +1,5 @@
 import type { ComfyApp } from "@/types/comfy";
-import { setRunningNodes, startNodeRun, stopNodeRun, FIL_RUN_FX_CSS } from "@/composables/useRunButtonFx";
+import { setRunningNodes, startNodeRun, stopNodeRun, markNodeFailed, clearFailedNodes, FIL_RUN_FX_CSS } from "@/composables/useRunButtonFx";
 
 const STYLE_ID = "fil-run-fx";
 
@@ -82,6 +82,17 @@ export function installRunButtonFx(app: ComfyApp): void {
   // A run that errors out never sends the closing `executing: null`.
   api.addEventListener("execution_error", stopNodeRun);
   api.addEventListener("execution_interrupted", stopNodeRun);
+
+  // Title-box dot: red for a node that errored, cleared once a new prompt
+  // starts. `msg.data` for `execution_error` carries `node_id` at the top
+  // level (`services/dialogService.ts`'s `ExecutionErrorDialogInput`, the
+  // shape `ExecutionErrorWsMessage` also satisfies — read off the host's own
+  // 1.48.x sources, not guessed).
+  api.addEventListener("execution_error", (event: Event) => {
+    const nodeId = (event as CustomEvent).detail?.node_id;
+    if (typeof nodeId === "string" || typeof nodeId === "number") markNodeFailed(app as never, nodeId);
+  });
+  api.addEventListener("execution_start", () => clearFailedNodes(app as never));
 
   console.info("[FiL_Design_ImageMind] run FX installed (progress_state + executing)");
 }

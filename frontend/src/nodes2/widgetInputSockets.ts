@@ -36,6 +36,7 @@ interface SlotLike {
   widget?: unknown;
   /** `[x, y, width, height]` in graph coordinates — LiteGraph's hit-test box. */
   boundingRect?: ArrayLike<number>;
+  _filLabelledByPanel?: boolean;
 }
 
 interface NodeLike {
@@ -43,6 +44,78 @@ interface NodeLike {
   size?: [number, number];
   _widgetSlotsDirty?: boolean;
   graph?: { setDirtyCanvas?: (a: boolean, b: boolean) => void };
+}
+
+/**
+ * Draw the name beside a re-exposed widget-input dot.
+ *
+ * `NodeSlot.ts`'s own `draw()` never does this: `hideLabel = lowQuality ||
+ * this.isWidgetInputSlot` is unconditional — a widget-mirror slot is normally
+ * drawn right next to the WIDGET, which already shows the name, so the slot's
+ * own label would be a duplicate. That assumption breaks here: the widget it
+ * would sit beside is exactly what `keepVueSocketRow` hides, since the Vue
+ * panel owns that field instead. The result, verified live: an unlabelled
+ * dot floating with nothing next to it — for every field named in
+ * `exposeWidgetInputSockets`, on every node that calls it (12 node modules).
+ * `styles/vueNodeSkin.ts` already fixes the identical gap for the Vue
+ * renderer, in CSS (`SOCKET_ROW_CSS`) — there is no DOM here to style, so the
+ * canvas side has to paint the text itself.
+ *
+ * Composes with whatever a node already hooked there — `nodeStyle.ts`'s own
+ * frame drawing for Cyber Punch HUD / Pipboy runs through the exact same
+ * hook — rather than replacing it outright.
+ *
+ * Patched per INSTANCE, not on the prototype `registerStyledNode` patches.
+ * Tried the prototype first and it silently never fired: verified live that
+ * `node.onDrawForeground` is an *own* property on every FiL node instance
+ * (`Object.prototype.hasOwnProperty` true), not inherited — the host's own
+ * V3 node construction copies it onto each instance, the same shadowing trap
+ * `nodeStyle.ts` already documents for `color`/`bgcolor`. A prototype-level
+ * patch is invisible once that own copy exists; wrapping the instance's
+ * current function (already the frame-theme version, since that prototype
+ * patch runs once at module registration, before any instance exists) is
+ * what LiteGraph actually calls.
+ */
+function installMissingSocketLabels(node: unknown): void {
+  const n = node as { _filSocketLabelsInstalled?: boolean; onDrawForeground?: (...a: unknown[]) => unknown };
+  if (n._filSocketLabelsInstalled) return;
+  n._filSocketLabelsInstalled = true;
+
+  const original = n.onDrawForeground;
+  n.onDrawForeground = function (this: { flags?: { collapsed?: boolean }; inputs?: SlotLike[] }, ...args: unknown[]) {
+    const result = original?.apply(this, args);
+    const ctx = args[0] as CanvasRenderingContext2D | undefined;
+    const lowQuality = Boolean((globalThis as { app?: { canvas?: { low_quality?: boolean } } }).app?.canvas?.low_quality);
+    if (!ctx || lowQuality || this.flags?.collapsed) return result;
+
+    const liteGraph = (globalThis as { LiteGraph?: { NODE_SUBTEXT_SIZE?: number; NODE_TEXT_SIZE?: number; NODE_FONT?: string; NODE_TEXT_COLOR?: string } }).LiteGraph;
+    ctx.save();
+    ctx.font = `${liteGraph?.NODE_SUBTEXT_SIZE ?? 11}px ${liteGraph?.NODE_FONT ?? "Arial"}`;
+    ctx.fillStyle = liteGraph?.NODE_TEXT_COLOR ?? "#AAA";
+    ctx.textAlign = "left";
+    for (const slot of this.inputs ?? []) {
+      if (!slot.widget || !slot.alwaysVisible || !slot.name) continue;
+      // The panel already names this one beside its own field — see the flag's
+      // docstring for what painting it twice looked like.
+      if (slot._filLabelledByPanel) continue;
+      // `widget.y` is the same local-space value `exposeWidgetInputSockets` /
+      // `anchorWidgetInputSockets` write and read back a few lines up —
+      // reusing it here (rather than `slot.boundingRect`, whose coordinate
+      // space this file never establishes) guarantees the text lands in the
+      // same frame the dot itself is positioned in.
+      const w = findFilWidget(this, slot.name) as { y?: number } | null;
+      if (!w || typeof w.y !== "number") continue;
+      const text = (slot as { label?: string; localized_name?: string }).label
+        || (slot as { localized_name?: string }).localized_name
+        || slot.name;
+      // Mirrors NodeSlot.ts's own default label position for
+      // LabelPosition.Right (`pos[0] + 10, pos[1] + 5`), with `pos` per this
+      // module's documented `[10, widget.y + 10]`.
+      ctx.fillText(text, 20, w.y + SLOT_HALF_HEIGHT + 5);
+    }
+    ctx.restore();
+    return result;
+  };
 }
 
 /** A panel element the socket dot should line up with. */
@@ -66,6 +139,7 @@ export interface WidgetSocketAnchor {
  */
 export function exposeWidgetInputSockets(node: unknown, names: string[]): void {
   const n = node as NodeLike;
+  installMissingSocketLabels(node);
   for (const name of names) keepVueSocketRow(node, name);
   // Start the stack below the node's real inputs. It used to start at row 1,
   // which put every fallback dot *inside* the real input column: on 🔍 Upscaler
@@ -209,10 +283,12 @@ export function anchorWidgetInputSockets(node: unknown, anchors: WidgetSocketAnc
       // rect: rects go to zero for a frame during any relayout, and hiding on
       // that would make every dot flicker.
       setAlwaysVisible(node as NodeLike, name, false);
+      setLabelledByPanel(node as NodeLike, name, false);
       hidden.push(name);
       continue;
     }
     setAlwaysVisible(node as NodeLike, name, true);
+    setLabelledByPanel(node as NodeLike, name, true);
     const w = findFilWidget(node, name);
     if (!w) continue;
     const rect = el.getBoundingClientRect();
@@ -291,6 +367,11 @@ export function readLinkedInputs(node: unknown, names: string[]): Record<string,
 function setAlwaysVisible(n: NodeLike, name: string, visible: boolean): void {
   const slot = n.inputs?.find((i) => i.name === name);
   if (slot) slot.alwaysVisible = visible;
+}
+
+function setLabelledByPanel(n: NodeLike, name: string, labelled: boolean): void {
+  const slot = n.inputs?.find((i) => i.name === name);
+  if (slot) slot._filLabelledByPanel = labelled;
 }
 
 function hasUnmeasuredSocket(n: NodeLike, anchors: WidgetSocketAnchor[]): boolean {

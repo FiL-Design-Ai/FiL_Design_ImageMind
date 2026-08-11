@@ -126,35 +126,35 @@ const vaeDecodeOptions = computed(() => comboOptions("vae_decode", ["true", "tru
   <div class="fil-ks-root">
     <FilNumberInput :ref="(el: unknown) => setFieldEl('seed', el)"
       v-model="seed" :min="0" :max="0xFFFFFFFFFFFFFFFF" :step="1" :disabled="isLinked('seed')"
-      :label="t('ksp_seed', '🌱 Seed')"
+      :label="t('ksp_seed', '🌱 Seed')" inline-label
       :title="linkedTip('seed', t('ks_seed', 'Noise seed.'))" />
     <!-- Stock ComfyUI grays the after-generate combo out while seed is linked:
          the seed no longer belongs to the widget, so neither does its cycle
          control. -->
     <FilSelect v-model="controlAfterGenerate" :options="controlOptions" :disabled="isLinked('seed')"
-      :label="t('ksp_after_generate', '🔁 After generate')"
+      :label="t('ksp_after_generate', '🔁 After generate')" inline-label
       :title="linkedTip('seed', t('ksp_after_generate_tt', 'What ComfyUI does to the seed once the prompt has run.'))" />
 
     <FilNumberInput :ref="(el: unknown) => setFieldEl('steps', el)"
       v-model="steps" :min="1" :max="10000" :step="1" :disabled="isLinked('steps')"
-      :label="t('ksp_steps', '🪜 Steps')"
+      :label="t('ksp_steps', '🪜 Steps')" inline-label
       :title="linkedTip('steps', t('ks_steps', 'Number of denoising steps.'))" />
     <FilNumberInput :ref="(el: unknown) => setFieldEl('cfg', el)"
       v-model="cfg" :min="0" :max="100" :step="0.1" :disabled="isLinked('cfg')"
-      :label="t('ksp_cfg', '🎯 CFG')"
+      :label="t('ksp_cfg', '🎯 CFG')" inline-label
       :title="linkedTip('cfg', t('ks_cfg', 'Classifier-free guidance scale.'))" />
 
     <FilSelect :ref="(el: unknown) => setFieldEl('sampler_name', el)"
       v-model="samplerName" :options="samplerOptions" :disabled="isLinked('sampler_name')"
-      :label="t('ksp_sampler', '🎲 Sampler')"
+      :label="t('ksp_sampler', '🎲 Sampler')" inline-label
       :title="linkedTip('sampler_name', t('ks_sampler', 'Sampling algorithm.'))" />
     <FilSelect :ref="(el: unknown) => setFieldEl('scheduler', el)"
       v-model="scheduler" :options="schedulerOptions" :disabled="isLinked('scheduler')"
-      :label="t('ksp_scheduler', '📈 Scheduler')"
+      :label="t('ksp_scheduler', '📈 Scheduler')" inline-label
       :title="linkedTip('scheduler', t('ks_scheduler', 'Noise schedule.'))" />
     <FilSlider :ref="(el: unknown) => setFieldEl('denoise', el)"
       :model-value="denoise" :min="0" :max="1" :step="0.01" :disabled="isLinked('denoise')"
-      :label="t('ksp_denoise', '🌫️ Denoise')"
+      :label="t('ksp_denoise', '🌫️ Denoise')" inline-label
       :title="linkedTip('denoise', t('ks_denoise', 'Denoise strength (1.0 = full).'))"
       @update:model-value="(v: number) => (denoise = v)" />
 
@@ -166,7 +166,7 @@ const vaeDecodeOptions = computed(() => comboOptions("vae_decode", ["true", "tru
     <template v-if="!isCollapsed('advanced')">
       <FilNumberInput :ref="(el: unknown) => setFieldEl('eta', el)"
         v-model="eta" :min="0" :max="100" :step="0.01" :disabled="isLinked('eta') || etaIgnored"
-        :label="t('ksp_eta', '🌀 Eta')"
+        :label="t('ksp_eta', '🌀 Eta')" inline-label
         :title="linkedTip('eta', etaIgnored
           ? t('ksp_eta_ignored_tt', 'This sampler ignores eta — only ancestral/SDE samplers use it.')
           : t('ks_eta', 'Noise multiplier for ancestral/SDE samplers (1.0 = standard, 0.0 = deterministic).'))" />
@@ -176,9 +176,9 @@ const vaeDecodeOptions = computed(() => comboOptions("vae_decode", ["true", "tru
           ? t('ksp_bongmath_ignored_tt', 'This sampler does not read the bongmath toggle.')
           : t('ks_bongmath', 'Enable bongmath implicit correction for RES4LYF samplers (ignored by standard samplers).')"
         @update:model-value="(v) => (bongmath = v)" />
-      <FilSelect v-model="previewMethod" :options="previewOptions"
+      <FilSelect v-model="previewMethod" :options="previewOptions" inline-label
         :label="t('ksp_preview', '👁️ Preview')" :title="t('ks_preview', 'How the live sampling preview is rendered.')" />
-      <FilSelect v-model="vaeDecode" :options="vaeDecodeOptions"
+      <FilSelect v-model="vaeDecode" :options="vaeDecodeOptions" inline-label
         :label="t('ksp_vae_decode', '🖼️ VAE decode')" :title="t('ks_vae_decode', 'Decode the result to an IMAGE preview/output. Needs a VAE.')" />
     </template>
   </div>

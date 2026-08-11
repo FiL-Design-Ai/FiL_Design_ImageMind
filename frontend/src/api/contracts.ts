@@ -1579,7 +1579,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     }
   ],
   "min_size": [
-    300,
+    320,
     300
   ],
   "family": "image"
@@ -1815,7 +1815,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     }
   ],
   "min_size": [
-    300,
+    320,
     300
   ],
   "family": "image"
@@ -4172,7 +4172,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     }
   ],
   "min_size": [
-    250,
+    320,
     320
   ],
   "family": "base"

@@ -25,6 +25,7 @@ export interface ComfyInputSlot {
 }
 
 const hiddenWidgetNames = [
+  "base_prompt",
   "fusion_mode",
   "img_weight_1",
   "img_focus_1",
@@ -118,8 +119,8 @@ export const styleMixerNode: NodeModule = {
   id: "FiLStyleMixer",
   register(nodeType: unknown, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
-      minSize: [250, 320],
-      initialWidth: 250,
+      minSize: [320, 320],
+      initialWidth: 320,
       family: "base",
       description: "Blends visual styles and reference images with weighted influence sliders and optional Vision LLM fusion.",
       badges: [{ text: "styles", color: "#e0af68", text_color: "#0b0e14" }],
@@ -147,7 +148,12 @@ export const styleMixerNode: NodeModule = {
         const w = findFilWidget(node, name);
         if (!w) continue;
         const expectedType = name.includes("weight") ? "number" : "string";
-        const fallback = expectedType === "number" ? 0.5 : "(None)";
+        // "(None)" is the sentinel the *style* pickers use for "nothing
+        // chosen". `base_prompt` is free text the backend concatenates
+        // verbatim (`node_style_mixer.py`: `str(base_prompt or "").strip()`),
+        // so recovering a corrupted value into that word would prompt the
+        // literal string "(None)".
+        const fallback = expectedType === "number" ? 0.5 : name === "base_prompt" ? "" : "(None)";
         const val = sanitizeWidgetValue(w, expectedType, fallback);
         initialValues[name] = val;
         initialNodeState[name] = val;

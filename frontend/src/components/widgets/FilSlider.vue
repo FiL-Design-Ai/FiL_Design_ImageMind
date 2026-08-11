@@ -19,6 +19,8 @@ withDefaults(
     label?: string;
     title?: string;
     disabled?: boolean;
+    /** Pass-through to FilNumberInput — see its prop of the same name. */
+    inlineLabel?: boolean;
   }>(),
   { step: 0.05 },
 );
@@ -35,5 +37,6 @@ const modelValue = defineModel<number>({ required: true });
     :label="label"
     :title="title"
     :disabled="disabled"
+    :inline-label="inlineLabel"
   />
 </template>

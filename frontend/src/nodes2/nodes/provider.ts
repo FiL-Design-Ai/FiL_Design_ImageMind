@@ -73,7 +73,7 @@ export const providerNode: NodeModule = {
 
       // `seed`/`control_after_generate` are gone from the node schema; keeping
       // them here only re-created dead state on every node.
-      for (const name of ["provider", "model", "refresh_models", "temperature", "max_tokens", "rate_limit_ms", "max_image_side"]) {
+      for (const name of ["provider", "model", "refresh_models", "unload_llm", "temperature", "max_tokens", "rate_limit_ms", "max_image_side"]) {
         hideNativeWidget(node, name);
       }
 

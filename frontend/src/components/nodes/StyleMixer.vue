@@ -3,14 +3,23 @@
  * FiLStyleMixer - Cyberpunk HUD panel for mixing 3 style prompts & up to 4 image fusion cards.
  */
 import { computed, ref } from "vue";
-import { FilSection, FilSlider, FilButton, FilModal, FilStylePicker, FilSegmented } from "@/components/widgets";
+import { FilSection, FilSlider, FilButton, FilModal, FilStylePicker, FilSegmented, FilTextArea } from "@/components/widgets";
 import type { FilNodeState } from "@/nodes2/filState";
 import { findFilWidget } from "@/nodes2/util";
 import { NODE_CONTRACTS } from "@/api/contracts";
 import { useI18n } from "@/composables/useI18n";
+import { useWidgetSockets } from "@/composables/useWidgetSockets";
+import { STYLE_MIXER_SOCKET_INPUTS } from "@/nodes2/nodes/style_mixer";
 
 const props = defineProps<{ state: FilNodeState }>();
 const { t } = useI18n();
+
+// `base_prompt`'s native widget is hidden (style_mixer.ts's `hiddenWidgetNames`),
+// which takes its input socket's row with it — `useWidgetSockets` puts the dot
+// back and lines it up with the field below, the same way every other panel in
+// the pack does it. Without a field here the text could only ever arrive
+// through a wire, with nowhere to type it.
+const { setFieldEl, isLinked } = useWidgetSockets(props.state, STYLE_MIXER_SOCKET_INPUTS);
 
 // Fusion modes come from the generated contract, never from a literal here: a
 // hand-typed label ("Vision LLM Blend (Smart)") is not a value FUSION_MODES in
@@ -29,8 +38,8 @@ const fusionModes = computed<string[]>(() =>
 // dictionary asynchronously, so anything calling t() at <script setup> time
 // captures the English fallback and never updates.
 const FUSION_LABELS = computed<Record<string, string>>(() => ({
-  "Weighted Stack (Fast)": t("sm_fusion_fast", "⚡ Fast Stack"),
-  "Smart LLM Fusion (Gen-Mix)": t("sm_fusion_smart", "🧬 Smart LLM Fusion"),
+  "Weighted Stack (Fast)": t("sm_fusion_fast", "Fast"),
+  "Smart LLM Fusion (Gen-Mix)": t("sm_fusion_smart", "Smart Fusion"),
 }));
 
 function createRef<T>(name: string, defaultValue: T) {
@@ -45,6 +54,11 @@ function createRef<T>(name: string, defaultValue: T) {
 }
 
 const fusionMode = createRef<string>("fusion_mode", "Weighted Stack (Fast)");
+
+// Empty string, not "(None)": this is free text the backend concatenates
+// (`node_style_mixer.py` `base_str = str(base_prompt or "").strip()`), so a
+// placeholder word here would be prompted verbatim.
+const basePrompt = createRef<string>("base_prompt", "");
 
 const style1 = createRef<string>("style_1", "(None)");
 const weight1 = createRef<number>("weight_1", 1.0);
@@ -106,6 +120,21 @@ function setCollapsed(section: string, collapsed: boolean) {
 
 <template>
   <div class="fil-style-mixer-root">
+    <!-- The text every style below is mixed onto — first, because it is what
+         the node is applied *to*. Read-only while a wire drives it: anything
+         typed here would be overwritten at queue time. -->
+    <FilTextArea
+      :ref="(el: unknown) => setFieldEl('base_prompt', el)"
+      v-model="basePrompt"
+      :rows="3"
+      :linked="isLinked('base_prompt')"
+      icon="pencil"
+      :label="t('sm_base_prompt', 'Base prompt')"
+      :placeholder="t('sm_base_prompt_ph', 'The prompt the styles are mixed onto…')"
+      :title="isLinked('base_prompt')
+        ? t('fld_linked_tt', 'Driven by the connected input — disconnect it to edit here.')
+        : t('sm_base_prompt_tt', 'Base prompt to apply style mixing onto.')" />
+
     <!-- Fusion Mode -->
     <FilSection :title="t('sm_section_fusion', '🔀 Fusion Mode')"
       :model-value="isCollapsed('fusion')" @update:model-value="(v: boolean) => setCollapsed('fusion', v)" />
@@ -127,7 +156,7 @@ function setCollapsed(section: string, collapsed: boolean) {
         :label="formatStyleLabel(style1, t('sm_style_1', 'Style 1'))"
         @click="picker1Open = true"
       />
-      <FilSlider v-model="weight1" :min="0" :max="1" :step="0.05" :label="t('sm_style_1_weight', 'Style 1 Weight')" />
+      <FilSlider v-model="weight1" :min="0" :max="1" :step="0.05" inline-label :label="t('sm_style_1_weight', 'Style 1 Weight')" />
       <FilModal :open="picker1Open" :title="t('sm_pick_style_1', 'Select Primary Style 1')" width="680px" @update:open="(v) => (picker1Open = v)">
         <FilStylePicker :styles="getStyleOptions('style_1')" :model-value="style1" @select="(v) => { style1 = v; picker1Open = false; }" />
       </FilModal>
@@ -142,7 +171,7 @@ function setCollapsed(section: string, collapsed: boolean) {
         :label="formatStyleLabel(style2, t('sm_style_2', 'Style 2'))"
         @click="picker2Open = true"
       />
-      <FilSlider v-model="weight2" :min="0" :max="1" :step="0.05" :label="t('sm_style_2_weight', 'Style 2 Weight')" />
+      <FilSlider v-model="weight2" :min="0" :max="1" :step="0.05" inline-label :label="t('sm_style_2_weight', 'Style 2 Weight')" />
       <FilModal :open="picker2Open" :title="t('sm_pick_style_2', 'Select Secondary Style 2')" width="680px" @update:open="(v) => (picker2Open = v)">
         <FilStylePicker :styles="getStyleOptions('style_2')" :model-value="style2" @select="(v) => { style2 = v; picker2Open = false; }" />
       </FilModal>
@@ -157,7 +186,7 @@ function setCollapsed(section: string, collapsed: boolean) {
         :label="formatStyleLabel(style3, t('sm_style_3', 'Style 3'))"
         @click="picker3Open = true"
       />
-      <FilSlider v-model="weight3" :min="0" :max="1" :step="0.05" :label="t('sm_style_3_weight', 'Style 3 Weight')" />
+      <FilSlider v-model="weight3" :min="0" :max="1" :step="0.05" inline-label :label="t('sm_style_3_weight', 'Style 3 Weight')" />
       <FilModal :open="picker3Open" :title="t('sm_pick_style_3', 'Select Tertiary Style 3')" width="680px" @update:open="(v) => (picker3Open = v)">
         <FilStylePicker :styles="getStyleOptions('style_3')" :model-value="style3" @select="(v) => { style3 = v; picker3Open = false; }" />
       </FilModal>
@@ -167,20 +196,20 @@ function setCollapsed(section: string, collapsed: boolean) {
     <FilSection :title="t('sm_section_image_1', '🖼️ Image 1 Influence')"
       :model-value="isCollapsed('image1')" @update:model-value="(v: boolean) => setCollapsed('image1', v)" />
     <template v-if="!isCollapsed('image1')">
-      <FilSlider v-model="imgWeight1" :min="0" :max="1" :step="0.05" :label="t('sm_image_1_weight', 'Image 1 Weight')" />
+      <FilSlider v-model="imgWeight1" :min="0" :max="1" :step="0.05" inline-label :label="t('sm_image_1_weight', 'Image 1 Weight')" />
     </template>
 
     <FilSection :title="t('sm_section_image_2', '🖼️ Image 2 Influence')"
       :model-value="isCollapsed('image2')" @update:model-value="(v: boolean) => setCollapsed('image2', v)" />
     <template v-if="!isCollapsed('image2')">
-      <FilSlider v-model="imgWeight2" :min="0" :max="1" :step="0.05" :label="t('sm_image_2_weight', 'Image 2 Weight')" />
+      <FilSlider v-model="imgWeight2" :min="0" :max="1" :step="0.05" inline-label :label="t('sm_image_2_weight', 'Image 2 Weight')" />
     </template>
 
     <template v-if="showImg3">
       <FilSection :title="t('sm_section_image_3', '🖼️ Image 3 Influence')"
         :model-value="isCollapsed('image3')" @update:model-value="(v: boolean) => setCollapsed('image3', v)" />
       <template v-if="!isCollapsed('image3')">
-        <FilSlider v-model="imgWeight3" :min="0" :max="1" :step="0.05" :label="t('sm_image_3_weight', 'Image 3 Weight')" />
+        <FilSlider v-model="imgWeight3" :min="0" :max="1" :step="0.05" inline-label :label="t('sm_image_3_weight', 'Image 3 Weight')" />
       </template>
     </template>
 
@@ -188,7 +217,7 @@ function setCollapsed(section: string, collapsed: boolean) {
       <FilSection :title="t('sm_section_image_4', '🖼️ Image 4 Influence')"
         :model-value="isCollapsed('image4')" @update:model-value="(v: boolean) => setCollapsed('image4', v)" />
       <template v-if="!isCollapsed('image4')">
-        <FilSlider v-model="imgWeight4" :min="0" :max="1" :step="0.05" :label="t('sm_image_4_weight', 'Image 4 Weight')" />
+        <FilSlider v-model="imgWeight4" :min="0" :max="1" :step="0.05" inline-label :label="t('sm_image_4_weight', 'Image 4 Weight')" />
       </template>
     </template>
   </div>

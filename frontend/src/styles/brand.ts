@@ -370,9 +370,9 @@ function paletteCssVars(p: FilPalette): string {
 const THEME_EFFECTS: Record<FilThemeName, string> = {
   default: "",
   cyberpunk: `
-:root[data-fil-theme="cyberpunk"] .fil-node-shell [class$="-root"] {
+:root[data-fil-theme="cyberpunk"] .fil-node-shell [class$="-root"]:not(.fil-flat) {
   box-shadow: 0 0 24px rgba(255, 0, 128, 0.4), inset 0 0 15px rgba(0, 255, 255, 0.25);
-  border: 1px solid #ff0080;
+  border: none;
   clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
 }
 :root[data-fil-theme="cyberpunk"] .fil-w-section {
@@ -419,9 +419,9 @@ const THEME_EFFECTS: Record<FilThemeName, string> = {
 }
 `,
   cyberpunk_2077: `
-:root[data-fil-theme="cyberpunk_2077"] .fil-node-shell [class$="-root"] {
+:root[data-fil-theme="cyberpunk_2077"] .fil-node-shell [class$="-root"]:not(.fil-flat) {
   box-shadow: 0 0 24px rgba(252, 238, 10, 0.35), inset 0 0 15px rgba(0, 240, 255, 0.2);
-  border: 1px solid #fcee0a;
+  border: none;
   clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
 }
 :root[data-fil-theme="cyberpunk_2077"] .fil-w-section {
@@ -491,7 +491,7 @@ const THEME_EFFECTS: Record<FilThemeName, string> = {
  * directly on it, so the inner card is removed here and the node's own
  * surface is the only one. The fields keep their own --fil-glass-* tint,
  * which is what gives the remaining two levels their separation. */
-:root[data-fil-theme="cyber_punch"] .fil-node-shell [class$="-root"] {
+:root[data-fil-theme="cyber_punch"] .fil-node-shell [class$="-root"]:not(.fil-flat) {
   background: none;
   border: none;
   box-shadow: none;
@@ -564,7 +564,7 @@ const THEME_EFFECTS: Record<FilThemeName, string> = {
  * appeared to float mid-node instead of marking the node's own corners. The
  * brackets move to the canvas (nodes2/nodeStyle.ts), where the node's real
  * outline is, and this element goes fully transparent. */
-:root[data-fil-theme="cyber_punch_hud"] .fil-node-shell [class$="-root"] {
+:root[data-fil-theme="cyber_punch_hud"] .fil-node-shell [class$="-root"]:not(.fil-flat) {
   background: none;
   border: none;
   box-shadow: none;
@@ -618,9 +618,9 @@ const THEME_EFFECTS: Record<FilThemeName, string> = {
 }
 `,
   fallout: `
-[data-fil-theme="fallout"] .fil-node-shell [class$="-root"]{
+[data-fil-theme="fallout"] .fil-node-shell [class$="-root"]:not(.fil-flat){
   background-image:repeating-linear-gradient(0deg,rgba(0,0,0,0.12) 0px,rgba(0,0,0,0.12) 1px,transparent 1px,transparent 3px);
-  border:1px solid rgba(212,160,23,0.2);
+  border:none;
 }
 `,
   pipboy: `
@@ -645,7 +645,7 @@ const THEME_EFFECTS: Record<FilThemeName, string> = {
  * native slot row with nothing marking it — the "узел в узле" shape a user
  * flagged directly from a screenshot. \`background\`(-color) stays: it is this
  * card's own \`--fil-surface-bg\`, the base the vignette below paints over. */
-:root[data-fil-theme="pipboy"] .fil-node-shell [class$="-root"] {
+:root[data-fil-theme="pipboy"] .fil-node-shell [class$="-root"]:not(.fil-flat) {
   border: none !important;
   box-shadow: none !important;
   background-image: radial-gradient(ellipse at 50% 38%, rgba(0, 255, 0, 0.07) 0%, rgba(0, 0, 0, 0.30) 100%);
@@ -658,7 +658,7 @@ const THEME_EFFECTS: Record<FilThemeName, string> = {
  * 3.5% where the reference uses 2% — deliberate. It rules a whole fixed
  * viewport; ours has a ~200px node to read across, and at 2% the texture simply
  * disappeared at that size. */
-:root[data-fil-theme="pipboy"] .fil-node-shell [class$="-root"]::before {
+:root[data-fil-theme="pipboy"] .fil-node-shell [class$="-root"]:not(.fil-flat)::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -684,13 +684,13 @@ const THEME_EFFECTS: Record<FilThemeName, string> = {
 }
 `,
   travelmate: `
-[data-fil-theme="travelmate"] .fil-node-shell [class$="-root"]{border:none;box-shadow:none;}
+[data-fil-theme="travelmate"] .fil-node-shell [class$="-root"]:not(.fil-flat){border:none;box-shadow:none;}
 [data-fil-theme="travelmate"] .fil-w-seg.active,
 [data-fil-theme="travelmate"] .fil-combo-trigger.open,
 [data-fil-theme="travelmate"] .fil-combo-trigger:focus-visible{box-shadow:0 0 6px var(--fil-accent),0 0 14px var(--fil-accent);}
 `,
   pixaroma: `
-:root[data-fil-theme="pixaroma"] .fil-node-shell [class$="-root"]{backdrop-filter:none;}
+:root[data-fil-theme="pixaroma"] .fil-node-shell [class$="-root"]:not(.fil-flat){backdrop-filter:none;}
 :root[data-fil-theme="pixaroma"] .fil-w-chip.active,
 :root[data-fil-theme="pixaroma"] .fil-style-tab-btn.active,
 :root[data-fil-theme="pixaroma"] .fil-style-picker-btn.has-styles{
@@ -718,7 +718,7 @@ const THEME_EFFECTS: Record<FilThemeName, string> = {
   0%, 100% { opacity: 0.25; transform: scale(1); }
   50% { opacity: 0.45; transform: scale(1.15); }
 }
-:root[data-fil-theme="neo_emerald"] .fil-node-shell [class$="-root"] {
+:root[data-fil-theme="neo_emerald"] .fil-node-shell [class$="-root"]:not(.fil-flat) {
   background-image:
     radial-gradient(circle at 90% 10%, rgba(0, 255, 136, 0.22) 0%, transparent 40%),
     radial-gradient(circle at 10% 90%, rgba(0, 229, 255, 0.15) 0%, transparent 40%),
@@ -728,11 +728,11 @@ const THEME_EFFECTS: Record<FilThemeName, string> = {
     0 20px 40px rgba(0, 0, 0, 0.75),
     0 0 30px rgba(0, 255, 136, 0.18),
     inset 0 1px 1px rgba(255, 255, 255, 0.25) !important;
-  border: 1px solid rgba(0, 255, 136, 0.35) !important;
+  border: none !important;
   backdrop-filter: blur(16px) !important;
   position: relative !important;
 }
-:root[data-fil-theme="neo_emerald"] .fil-node-shell [class$="-root"]::before {
+:root[data-fil-theme="neo_emerald"] .fil-node-shell [class$="-root"]:not(.fil-flat)::before {
   content: "";
   position: absolute;
   top: -30px;
@@ -804,9 +804,9 @@ const THEME_EFFECTS: Record<FilThemeName, string> = {
  * active chip on top of that — every highlighted element competing with
  * itself. Below, violet is the card/structural color and lime is reserved for
  * interactive/active state, never blended in the same shadow list. */
-:root[data-fil-theme="nft_vibe"] .fil-node-shell [class$="-root"] {
+:root[data-fil-theme="nft_vibe"] .fil-node-shell [class$="-root"]:not(.fil-flat) {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.85), 0 0 30px rgba(129, 22, 224, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.18);
-  border: 1px solid rgba(129, 22, 224, 0.35);
+  border: none;
   backdrop-filter: blur(16px);
 }
 :root[data-fil-theme="nft_vibe"] .fil-w-section {
@@ -856,9 +856,9 @@ const THEME_EFFECTS: Record<FilThemeName, string> = {
 }
 `,
   hollywood_teal: `
-:root[data-fil-theme="hollywood_teal"] .fil-node-shell [class$="-root"] {
+:root[data-fil-theme="hollywood_teal"] .fil-node-shell [class$="-root"]:not(.fil-flat) {
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.75), 0 0 24px rgba(249, 115, 22, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(13, 148, 136, 0.4);
+  border: none;
   backdrop-filter: blur(14px);
 }
 :root[data-fil-theme="hollywood_teal"] .fil-w-section {
@@ -924,9 +924,9 @@ const THEME_EFFECTS: Record<FilThemeName, string> = {
  * stop blipping; no layout, no colour, no control changes state.
  */
 const MOTION_OFF_CSS = `
-:root[data-fil-motion="off"] .fil-node-shell [class$="-root"],
-:root[data-fil-motion="off"] .fil-node-shell [class$="-root"]::before,
-:root[data-fil-motion="off"] .fil-node-shell [class$="-root"]::after {
+:root[data-fil-motion="off"] .fil-node-shell [class$="-root"]:not(.fil-flat),
+:root[data-fil-motion="off"] .fil-node-shell [class$="-root"]:not(.fil-flat)::before,
+:root[data-fil-motion="off"] .fil-node-shell [class$="-root"]:not(.fil-flat)::after {
   animation: none !important;
 }
 `;
@@ -1249,10 +1249,25 @@ export function injectFilBrandVars(): void {
 .comfy-multiline-input{border-color:var(--fil-input-border) !important;}
 /* Shared "Neo-Tactile" glass surface for every node body (scoped to the Vue
  * shell so it only hits node roots). Values live in the fil-surface and
- * fil-glass tokens above, so a future style just reassigns the tokens. */
-.fil-node-shell [class$="-root"]{
+ * fil-glass tokens above, so a future style just reassigns the tokens.
+ *
+ * :not(.fil-flat) is the opt-out, and every theme override of this rule
+ * carries it too. A panel that is one compact row of already-bordered
+ * controls (Seed) gets a card drawn around a card; it used to cancel that
+ * locally in its own scoped CSS, which worked against THIS rule (0,2,0) and
+ * silently lost to every themed copy of it (:root[data-fil-theme=...]
+ * .fil-node-shell [class$="-root"], 0,3,0) - so the frame came back as soon
+ * as a theme was on, measured live under nft_vibe. Opting out in the
+ * selector itself cannot lose a specificity race, and it takes the themes'
+ * ::before frames (pipboy, neo_emerald) with it, which a property-level
+ * override never could.
+ *
+ * NOTE for future edits: this whole block is a JS template literal, so a
+ * backtick or a dollar-brace interpolation opener inside these comments
+ * ends (or breaks) the string. Keep them out. */
+.fil-node-shell [class$="-root"]:not(.fil-flat){
   background:var(--fil-surface-bg);
-  border:1px solid var(--fil-surface-border);
+  border:none;
   border-radius:var(--fil-surface-radius);
   backdrop-filter:blur(var(--fil-surface-blur));
   box-shadow:var(--fil-surface-shadow);
@@ -1298,7 +1313,7 @@ export function injectFilBrandVars(): void {
   // good, this one is transient state lasting as long as a drag.
   const perfEl = document.createElement("style");
   perfEl.id = "fil-perf";
-  perfEl.textContent = `:root[data-fil-canvas-moving][data-fil-canvas-moving] .fil-node-shell [class$="-root"]{backdrop-filter:none !important;}`;
+  perfEl.textContent = `:root[data-fil-canvas-moving][data-fil-canvas-moving] .fil-node-shell [class$="-root"]:not(.fil-flat){backdrop-filter:none !important;}`;
   document.head.appendChild(perfEl);
 }
 

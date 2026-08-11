@@ -29,6 +29,7 @@ import { paletteCommands } from "@/styles/comfyPalette";
 import { ALL_SETTINGS } from "@/stores/settings/allSettings";
 import { applyStartupLogLevel } from "@/stores/settings/loggingSettings";
 import { applyStartupTheme } from "@/stores/settings/themeSettings";
+import { registerFilTypeColors } from "@/nodes2/slotTypeColors";
 import { readSetting } from "@/stores/settings/providerSettings";
 import { EXTENSION_NAME, LOG_TAG, ROUTE_PREFIX } from "@/constants/brand";
 
@@ -141,6 +142,11 @@ export function createFilExtension(app: ComfyApp): ComfyExtension {
         () => installCanvasMotion(app as { canvas?: { canvas?: HTMLCanvasElement } }),
         () => applyStartupLogLevel((id, fallback) => readSetting(id, fallback, app)),
         () => applyStartupTheme((id, fallback) => readSetting(id, fallback, app)),
+        // After the host's own boot-time palette load, so the three FiL-only
+        // types (blank in every ComfyUI colour palette — see slotTypeColors.ts)
+        // get a colour instead of staying blank until the user touches a
+        // theme setting.
+        () => registerFilTypeColors(),
       ];
       for (const install of installers) {
         try {

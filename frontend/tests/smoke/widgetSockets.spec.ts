@@ -188,9 +188,13 @@ test.describe("widget input sockets in a real graph", () => {
       const host = Object.values(node._filVueApps ?? {})[0]?.host;
       if (!host) throw new Error("the sampler mounted no panel");
 
+      // Either spelling of a FilSelect's label: the default row uses a
+      // <label>, the inline-label variant a <span> inside the field box.
+      // Matching only the former silently found no row at all once the
+      // sampler and scheduler moved to inline labels.
       const rowOf = (label: string) =>
         Array.from(host.querySelectorAll<HTMLElement>(".fil-w-select")).find((el) =>
-          (el.querySelector("label")?.textContent ?? "").includes(label),
+          (el.querySelector("label, .fil-w-select-inline-label")?.textContent ?? "").includes(label),
         );
       const dotY = (name: string) => (node.widgets ?? []).find((w) => w.name === name)?.y ?? null;
 

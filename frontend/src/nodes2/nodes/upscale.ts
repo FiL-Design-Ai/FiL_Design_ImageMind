@@ -27,8 +27,8 @@ export const upscaleNode: NodeModule = {
       // above-content buffer here would just show up as permanent dead
       // space at the bottom of the node — width is the actual reason this
       // floor exists (computeSize()'s own width guess ignores it entirely).
-      minSize: [300, 300],
-      initialWidth: 300,
+      minSize: [320, 300],
+      initialWidth: 320,
       family: "image",
       description: "Tile dimensions, grid preview, denoise, latent-size calculation.",
       badges: [{ text: "upscale", color: "#62c987", text_color: "#1a1a1a" }],

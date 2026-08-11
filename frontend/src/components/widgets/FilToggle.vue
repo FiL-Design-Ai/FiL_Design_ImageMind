@@ -6,6 +6,9 @@
  *
  * a11y: native <button role="switch">, Enter/Space toggle via click.
  */
+import FilIcon from "./FilIcon.vue";
+import type { IconName } from "@/composables/icons";
+
 const props = defineProps<{
   label?: string;
   title?: string;
@@ -14,6 +17,9 @@ const props = defineProps<{
    * content so it can sit next to another field in the same row (e.g. an
    * "Auto" toggle glued onto a number input). */
   bare?: boolean;
+  /** Optional glyph shown before the label — omitted by default, so
+   * existing call sites are visually unchanged. */
+  icon?: IconName;
 }>();
 
 const modelValue = defineModel<"ON" | "OFF">({ required: true });
@@ -26,7 +32,9 @@ function toggle() {
 
 <template>
   <div class="fil-w-toggle" :class="{ bare }" :title="title">
-    <label v-if="label" class="fil-w-toggle-label">{{ label }}</label>
+    <label v-if="label" class="fil-w-toggle-label">
+      <FilIcon v-if="icon" :name="icon" :size="12" />{{ label }}
+    </label>
     <button
       type="button"
       class="fil-w-switch"
@@ -76,6 +84,9 @@ function toggle() {
   font-size: 11px;
   color: var(--fil-muted);
   font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 .fil-w-toggle.bare {
   display: flex;

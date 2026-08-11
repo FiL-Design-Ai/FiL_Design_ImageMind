@@ -76,16 +76,16 @@ const RNG_LABELS: Record<string, string> = { cpu: "🖥️ CPU", gpu: "🎮 GPU"
 
     <template v-if="addSeedNoise === 'ON'">
       <FilNumberInput :ref="(el: unknown) => setFieldEl('seed', el)"
-        v-model="seed" :min="0" :max="0xFFFFFFFFFFFFFFFF" :step="1" :disabled="isLinked('seed')"
+        v-model="seed" :min="0" :max="0xFFFFFFFFFFFFFFFF" :step="1" :disabled="isLinked('seed')" inline-label
         :label="t('nscp_seed', '🌱 Variation seed')"
         :title="linkedTip('seed', t('nsc_seed', 'Variation seed (used when Variation is ON).'))" />
       <!-- Stock ComfyUI grays the after-generate combo out while the seed it
            cycles is linked — same rule as FiLKSampler's panel. -->
-      <FilSelect v-model="controlAfterGenerate" :options="controlOptions" :disabled="isLinked('seed')"
+      <FilSelect v-model="controlAfterGenerate" :options="controlOptions" :disabled="isLinked('seed')" inline-label
         :label="t('nscp_after_generate', '🔁 After generate')"
         :title="linkedTip('seed', t('nscp_after_generate_tt', 'What ComfyUI does to the variation seed once the prompt has run.'))" />
       <FilSlider :ref="(el: unknown) => setFieldEl('weight', el)"
-        :model-value="weight" :min="0" :max="1" :step="0.01" :disabled="isLinked('weight')"
+        :model-value="weight" :min="0" :max="1" :step="0.01" :disabled="isLinked('weight')" inline-label
         :label="t('nscp_weight', '⚖️ Variation weight')"
         :title="linkedTip('weight', t('nsc_weight', 'Variation strength: 0 = base seed only, 1 = variation seed only.'))"
         @update:model-value="(v: number) => (weight = v)" />

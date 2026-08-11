@@ -135,15 +135,15 @@ function setCollapsed(section: string, collapsed: boolean) {
     <template v-if="!isCollapsed('adjust')">
       <div class="fil-cw-slider-group">
         <FilSlider :ref="(el: unknown) => setFieldEl('strength', el)"
-          v-model="strength" :min="0" :max="1" :step="0.05" :disabled="isLinked('strength')"
+          v-model="strength" :min="0" :max="1" :step="0.05" :disabled="isLinked('strength')" inline-label
           :label="t('cw_strength', 'Correction Strength')"
           :title="linkedTip('strength', t('tt_cw_strength', 'Correction strength (0 = no change).'))" />
         <FilSlider :ref="(el: unknown) => setFieldEl('temperature', el)"
-          v-model="temperature" :min="-1" :max="1" :step="0.05" :disabled="isLinked('temperature')"
+          v-model="temperature" :min="-1" :max="1" :step="0.05" :disabled="isLinked('temperature')" inline-label
           :label="t('cw_temperature', 'Temperature (Warm/Cool)')"
           :title="linkedTip('temperature', t('tt_cw_temperature', 'Colour temperature.'))" />
         <FilSlider :ref="(el: unknown) => setFieldEl('tint', el)"
-          v-model="tint" :min="-1" :max="1" :step="0.05" :disabled="isLinked('tint')"
+          v-model="tint" :min="-1" :max="1" :step="0.05" :disabled="isLinked('tint')" inline-label
           :label="t('cw_tint', 'Tint (Green/Magenta)')"
           :title="linkedTip('tint', t('tt_cw_tint', 'Colour tint.'))" />
       </div>

@@ -169,7 +169,7 @@ function setCollapsed(section: string, collapsed: boolean) {
       <FilSegmented v-model="layout" :options="['kohya', 'flat']"
         :option-labels="{ kohya: t('dsp_opt_layout_kohya', '🗂️ kohya'), flat: t('dsp_opt_layout_flat', '📄 Flat') }"
         :label="t('dsp_label_layout', '📦 Layout')" :title="t('ds_layout', '')" />
-      <FilNumberInput :ref="(el: unknown) => setFieldEl('repeats', el)" :disabled="isLinked('repeats')" v-model="repeats" :min="1" :max="1000" :step="1" :label="t('dsp_label_repeats', '🔁 Repeats')" :title="linkedTip('repeats', t('ds_repeats', ''))" />
+      <FilNumberInput :ref="(el: unknown) => setFieldEl('repeats', el)" :disabled="isLinked('repeats')" v-model="repeats" :min="1" :max="1000" :step="1" inline-label :label="t('dsp_label_repeats', '🔁 Repeats')" :title="linkedTip('repeats', t('ds_repeats', ''))" />
       <FilSegmented v-model="cropMode" :options="['center', 'entropy']"
         :option-labels="{ center: t('dsp_opt_crop_center', '🎯 Center'), entropy: t('dsp_opt_crop_entropy', '🔬 Detail') }"
         :label="t('dsp_label_crop', '✂️ Crop')" :title="t('ds_crop_mode', '')" />
@@ -180,8 +180,8 @@ function setCollapsed(section: string, collapsed: boolean) {
     <template v-if="!isCollapsed('captions')">
       <FilSegmented v-model="captionMode" :options="['natural', 'tags', 'hybrid', 'none']"
         :option-labels="{
-          natural: t('dsp_opt_mode_natural', '📝 Text'), tags: t('dsp_opt_mode_tags', '🏷️ Tags'),
-          hybrid: t('dsp_opt_mode_hybrid', '🔀 Hybrid'), none: t('dsp_opt_mode_none', '🚫 No LLM'),
+          natural: t('dsp_opt_mode_natural', 'Text'), tags: t('dsp_opt_mode_tags', 'Tags'),
+          hybrid: t('dsp_opt_mode_hybrid', 'Hybrid'), none: t('dsp_opt_mode_none', 'No LLM'),
         }"
         :label="t('dsp_label_caption_mode', '✍️ Mode')" :title="t('ds_caption_mode', '')" />
       <FilInfo v-if="needsLlm && !configConnected" :text="t('dsp_hint_no_config', '⚠️ Connect 🔌 Provider Loader to caption — or fill in captions below')" err />
@@ -189,7 +189,7 @@ function setCollapsed(section: string, collapsed: boolean) {
         <FilSegmented v-model="captionLanguage" :options="['en', 'ru']"
           :option-labels="{ en: t('dsp_opt_lang_en', '🇬🇧 EN'), ru: t('dsp_opt_lang_ru', '🇷🇺 RU') }"
           :label="t('dsp_label_caption_lang', '🌐 Language')" :title="t('ds_caption_lang', '')" />
-        <FilNumberInput v-model="captionMaxWords" :min="4" :max="400" :step="5"
+        <FilNumberInput v-model="captionMaxWords" :min="4" :max="400" :step="5" inline-label
           :label="t('dsp_label_caption_words', '📏 Max words')" :title="t('ds_caption_words', '')" />
       </template>
       <FilTextArea :ref="(el: unknown) => setFieldEl('captions', el)" :disabled="isLinked('captions')" v-model="manualCaptions" :title="linkedTip('captions', t('ds_captions', ''))"
@@ -221,13 +221,13 @@ function setCollapsed(section: string, collapsed: boolean) {
     <FilSection :title="t('dsp_section_advanced', '⚙️ Technical details')"
       :model-value="isCollapsed('advanced')" @update:model-value="(v: boolean) => setCollapsed('advanced', v)" />
     <template v-if="!isCollapsed('advanced')">
-      <FilNumberInput v-model="bucketStep" :min="8" :max="256" :step="8" :label="t('dsp_label_bucket_step', '📏 Bucket step')" :title="t('ds_bucket_step', '')" />
-      <FilSelect v-model="captionExtension" :options="['.txt', '.caption']" :label="t('dsp_label_caption_ext', '📄 Caption ext.')" :title="t('ds_caption_ext', '')" />
+      <FilNumberInput v-model="bucketStep" :min="8" :max="256" :step="8" inline-label :label="t('dsp_label_bucket_step', '📏 Bucket step')" :title="t('ds_bucket_step', '')" />
+      <FilSelect v-model="captionExtension" :options="['.txt', '.caption']" inline-label :label="t('dsp_label_caption_ext', '📄 Caption ext.')" :title="t('ds_caption_ext', '')" />
       <FilSegmented v-model="imageFormat" :options="['png', 'jpg']"
         :option-labels="{ png: 'PNG', jpg: 'JPG' }" :label="t('dsp_label_image_format', '🖼️ File format')" :title="t('ds_image_format', '')" />
-      <FilNumberInput v-if="imageFormat === 'jpg'" v-model="jpgQuality" :min="50" :max="100" :step="1"
+      <FilNumberInput v-if="imageFormat === 'jpg'" v-model="jpgQuality" :min="50" :max="100" :step="1" inline-label
         :label="t('dsp_label_jpg_quality', '🎚️ JPG quality')" :title="t('ds_jpg_quality', '')" />
-      <FilNumberInput :ref="(el: unknown) => setFieldEl('seed', el)" :disabled="isLinked('seed')" v-model="seed" :min="-1" :max="999999999999" :step="1" :label="t('dsp_label_seed', '🌱 Caption seed')" :title="linkedTip('seed', t('ds_seed', ''))" />
+      <FilNumberInput :ref="(el: unknown) => setFieldEl('seed', el)" :disabled="isLinked('seed')" v-model="seed" :min="-1" :max="999999999999" :step="1" inline-label :label="t('dsp_label_seed', '🌱 Caption seed')" :title="linkedTip('seed', t('ds_seed', ''))" />
     </template>
   </div>
 </template>
