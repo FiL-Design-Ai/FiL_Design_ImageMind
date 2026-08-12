@@ -19357,73 +19357,51 @@ var eA = [
 	...Uk,
 	...gb,
 	...oy
-], tA = "maskeditor_is_opended", nA = /* @__PURE__ */ new Set(), rA = !1, iA = null, aA = null, oA = null;
+], tA = "maskeditor_is_opended", nA = ".fil-modal-backdrop, .fil-combo-panel", rA = ".fil-vue-host, .fil-modal-backdrop, .fil-combo-panel", iA = /* @__PURE__ */ new Set(), aA = null, oA = null;
 function sA() {
-	for (let e of nA) try {
+	for (let e of iA) try {
 		if (e.isAlive()) return !0;
 	} catch {}
 	return !1;
 }
 function cA() {
 	let e = globalThis.app?.constructor;
-	e && aA && e[tA] === aA && (e[tA] = iA), aA = null, iA = null;
-	try {
-		oA?.();
-	} catch {}
-	oA = null, rA = !1, nA.clear();
+	e && oA && e[tA] === oA && (e[tA] = aA), oA = null, aA = null;
 }
-function lA() {
-	let e = globalThis.app?.extensionManager?.workflow?.activeWorkflow?.changeTracker, t = e && Object.getPrototypeOf(e);
-	if (!t || typeof t.undoRedo != "function") return null;
-	let n = t.undoRedo, r = function(...e) {
-		return sA() ? !0 : (t.undoRedo === r && (t.undoRedo = n), n.apply(this, e));
-	};
-	return t.undoRedo = r, () => {
-		t.undoRedo === r && (t.undoRedo = n);
-	};
-}
-function uA(e) {
-	let t = globalThis.app;
-	if (!t || !t.constructor) return () => {};
+function lA(e) {
+	let t = globalThis.app?.constructor;
+	if (!t || !(tA in t)) return () => {};
 	let n = { isAlive: e };
-	if (nA.add(n), !rA) {
-		rA = !0;
-		let e = t.constructor;
-		tA in e ? (iA = e[tA] ?? null, aA = function() {
+	if (iA.add(n), !oA) {
+		let e = t[tA];
+		aA = typeof e == "function" ? e : null, oA = function() {
 			if (sA()) return !0;
-			let e = iA;
-			cA();
 			try {
-				return e ? !!e() : !1;
+				return aA ? !!aA() : !1;
 			} catch {
 				return !1;
 			}
-		}, e[tA] = aA) : oA = lA();
+		}, t[tA] = oA;
 	}
 	return function() {
-		nA.delete(n), !sA() && cA();
+		iA.delete(n) && iA.size === 0 && cA();
 	};
 }
-var dA = !1;
-function fA() {
-	if (typeof window > "u") return;
-	function e() {
+var uA = null;
+function dA() {
+	if (typeof document > "u") return () => {};
+	if (uA) return uA;
+	let e = lA(() => {
+		if (document.querySelector(nA)) return !0;
 		let e = document.activeElement;
-		if (!e) {
-			dA = !1;
-			return;
-		}
-		let t = e.tagName === "INPUT" || e.tagName === "TEXTAREA" || e.isContentEditable, n = !!e.closest(".fil-vue-host, .fil-modal, .fil-combo-dropdown");
-		dA = t && n;
-	}
-	window.addEventListener("focusin", e, !0), window.addEventListener("focusout", e, !0), window.addEventListener("input", e, !0), uA(() => {
-		e();
-		let t = !!document.querySelector(".fil-modal-overlay, .fil-combo-dropdown");
-		return dA || t;
+		return e ? (e.tagName === "INPUT" || e.tagName === "TEXTAREA" || e.isContentEditable) && !!e.closest(rA) : !1;
 	});
+	return uA = () => {
+		uA = null, e();
+	}, uA;
 }
 Ty(), al(), pl(), dl(), `${cl}`;
-function pA(e) {
+function fA(e) {
 	try {
 		let e = globalThis.app?.graph?._nodes ?? [];
 		for (let t of e) {
@@ -19438,7 +19416,7 @@ function pA(e) {
 	}
 	return e;
 }
-function mA(e) {
+function pA(e) {
 	return {
 		name: ul,
 		settings: eA,
@@ -19460,7 +19438,7 @@ function mA(e) {
 				() => Vk(e),
 				() => Kk((t, n) => fl(t, n, e)),
 				() => Qk((t, n) => fl(t, n, e)),
-				() => fA(),
+				() => dA(),
 				() => rl()
 			];
 			for (let e of t) try {
@@ -19489,7 +19467,7 @@ function mA(e) {
 			}
 		},
 		async graphToPrompt(e) {
-			return pA(e);
+			return fA(e);
 		},
 		async beforeConfigureGraph() {
 			Gv();
@@ -19502,7 +19480,7 @@ function mA(e) {
 //#endregion
 //#region src/api/contractCheck.ts
 dl();
-async function hA() {
+async function mA() {
 	if (typeof fetch > "u") return;
 	let e;
 	try {
@@ -19521,11 +19499,11 @@ async function hA() {
 	for (let e of n) r.has(e) || console.warn(`${ll} server expects "${e}" but local JS does not register it`);
 	for (let e of r) n.has(e) || console.warn(`${ll} JS registers "${e}" but server does not expose a contract`);
 }
-Kc(), Uu(), pc(), Bu(e), hA().catch((e) => {
+Kc(), Uu(), pc(), Bu(e), mA().catch((e) => {
 	console.warn("[FiL_Design_ImageMind] contract self-check failed:", e);
 });
-var gA = mA(e);
-e.registerExtension(gA), console.info(`[FiL_Design_ImageMind] extension registered as "${gA.name}"`);
+var hA = pA(e);
+e.registerExtension(hA), console.info(`[FiL_Design_ImageMind] extension registered as "${hA.name}"`);
 //#endregion
 
 //# sourceMappingURL=fil_design_imagemind.js.map
