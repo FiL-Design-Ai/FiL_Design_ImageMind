@@ -170,6 +170,49 @@ def build_model_type_guidance(model_type: str) -> str:
     return MODEL_TYPE_GUIDANCE.get(model_type, "")
 
 
+# Every profile above is a writing template with slots — camera, lens, lighting,
+# style, mood — and a template asks to be filled. With `Auto/None` the model is
+# only asked to describe what it sees, so it stays on the frame; the moment a
+# target generator is picked, slots the image cannot answer ("shot on a 85mm at
+# f/1.4", "golden hour") get plausible values invented for them, and the word
+# caps then push out the details that were actually observed. This block is what
+# says the frame outranks the template. It is added only when an image is wired:
+# without one there is nothing to be faithful to, and text-only runs are meant
+# to invent the whole scene.
+OBSERVED_ONLY_CLAUSE = (
+    "GROUNDING: the source in front of you — the attached image, or the description "
+    "you were handed to rewrite — is the only source of facts, and it outranks the "
+    "template above. Fill a slot of that template only when the source actually "
+    "answers it: name the camera, lens, lighting setup, materials, time of day, "
+    "location or mood only where they can be read from the source, and skip the slot "
+    "rather than invent a plausible value for it. Add no object, person, action or "
+    "on-image text that is not there, and do not upgrade what is there into "
+    "something more photogenic."
+)
+
+# Video profiles ask for the seconds around the frame on purpose — a shot, not a
+# still — so a blanket "describe only what is in the frame" would contradict
+# their own contract. Here the rule binds WHAT is in the shot; motion, camera and
+# sound stay extendable, but along visible evidence rather than free invention.
+OBSERVED_ONLY_CLAUSE_VIDEO = (
+    "GROUNDING: the source in front of you — the attached image, or the description "
+    "you were handed to rewrite — is the only source of facts about WHAT is in the "
+    "shot: subject, wardrobe, objects, materials, setting and on-screen text all come "
+    "from it, and nothing may be added to them. Motion, camera and sound are the one "
+    "extension allowed, and only along physical evidence actually visible in the "
+    "source (a mid-step pose, fabric or hair in the air, blur, spray, drifting smoke, "
+    "the direction of the light). Do not invent a location, a character, a prop or a "
+    "story beat the source does not show."
+)
+
+
+def build_observed_only_clause(model_type: str, has_image: bool = True) -> str:
+    """The "frame beats template" rule, or "" when it does not apply."""
+    if not has_image or not build_model_type_guidance(model_type):
+        return ""
+    return OBSERVED_ONLY_CLAUSE_VIDEO if is_video_model_type(model_type) else OBSERVED_ONLY_CLAUSE
+
+
 def build_shot_parameters_block(
     model_type: str,
     video_duration: Any = 0,
@@ -462,6 +505,11 @@ class PromptGenerator:
         system_parts.append(detail_hint)
         if model_guidance:
             system_parts.append(model_guidance)
+            # Right after the template it constrains, and before the user-fixed
+            # shot facts below — those are the user's own call and still win.
+            observed_only = build_observed_only_clause(model_type, has_image)
+            if observed_only:
+                system_parts.append(observed_only)
         # After the guidance on purpose: user-fixed shot facts override the
         # guidance's defaults, so they must read later than them.
         if shot_parameters:
@@ -539,6 +587,7 @@ class PromptGenerator:
             agent_key, detail_level, language, model_type
         )
         style_block = self.style_manager.build_style_block(**style_kwargs)
+        observed_only = build_observed_only_clause(model_type, has_image)
         shot_parameters = build_shot_parameters_block(
             model_type, video_duration, video_aspect, video_sound, video_camera
         )
@@ -559,6 +608,11 @@ class PromptGenerator:
             parts.append(detail_hint)
             if model_guidance:
                 parts.append(model_guidance)
+                # Both stages carry it: stage 2 never sees the image, but it
+                # rewrites stage 1's text under the same template and could
+                # invent the camera/lighting slots there just as easily.
+                if observed_only:
+                    parts.append(observed_only)
             # Same override order as the single-stage builder: user-fixed shot
             # facts read after the guidance defaults in both stages.
             if shot_parameters:

@@ -4,6 +4,7 @@ from FiL_Design_ImageMind.common.data import get_visible_style_keys
 from FiL_Design_ImageMind.common.logic import (
     PromptGenerator,
     build_model_type_guidance,
+    build_observed_only_clause,
     negative_to_positive_clause,
 )
 from FiL_Design_ImageMind.nodes.node_scanner import FiLOpticScanner
@@ -60,6 +61,70 @@ def test_system_prompt_bundle_auto_has_no_model_guidance():
     )
     # No model-type guidance section for Auto
     assert "Target generator:" not in system_prompt
+
+
+# ---------------------------------------------------------------------------
+# the frame outranks the template
+# ---------------------------------------------------------------------------
+
+
+def test_observed_only_clause_only_with_a_profile_and_an_image():
+    # Auto/None asks for nothing but a description, so it needs no rule; and
+    # without an image there is nothing to stay faithful to — text-only runs
+    # invent the scene on purpose.
+    assert build_observed_only_clause("Auto/None", True) == ""
+    assert build_observed_only_clause("FLUX", False) == ""
+    assert build_observed_only_clause("FLUX", True).startswith("GROUNDING:")
+
+
+def test_observed_only_clause_present_for_every_image_profile():
+    for model_type in ("Z-Image Turbo", "FLUX", "QWEN", "SDXL", "Krea 2", "Ideogram 4"):
+        clause = build_observed_only_clause(model_type, True)
+        assert "skip the slot" in clause, f"{model_type} lost the skip-the-slot rule"
+        assert "invent a plausible value" in clause
+
+
+def test_observed_only_clause_for_video_keeps_motion_extendable():
+    # A video profile is asked for the seconds around the frame — the rule must
+    # bind WHAT is in the shot without forbidding the motion it exists for.
+    for model_type in ("Video", "MiniMax H3"):
+        clause = build_observed_only_clause(model_type, True)
+        assert "Motion, camera and sound are the one extension allowed" in clause
+        assert "skip the slot" not in clause
+
+
+def test_system_prompt_bundle_grounds_a_profile_on_the_image():
+    system_prompt, _agent, _style, _lang = pg.build_system_prompt_bundle(
+        agent_key="Universal", detail_level="normal", language="en",
+        model_type="FLUX", has_image=True,
+    )
+    assert "GROUNDING:" in system_prompt
+    # It has to read after the template it constrains, or the template wins.
+    assert system_prompt.index("Target generator:") < system_prompt.index("GROUNDING:")
+
+    text_only, _agent, _style, _lang = pg.build_system_prompt_bundle(
+        agent_key="Universal", detail_level="normal", language="en",
+        model_type="FLUX", has_image=False,
+    )
+    assert "GROUNDING:" not in text_only
+
+
+def test_two_stage_bundle_grounds_both_stages():
+    # Stage 2 never sees the image, but it rewrites stage 1 under the same
+    # template and can invent the same camera/lighting slots.
+    bundle = pg.build_system_prompt_two_stage_bundle(
+        agent_key="Universal", detail_level="normal", language="en",
+        model_type="FLUX", has_image=True, photo_style=_PHOTO_STYLE_KEY,
+    )
+    assert "GROUNDING:" in bundle["stage1"]["prompt"]
+    assert "GROUNDING:" in bundle["stage2"]["prompt"]
+
+    auto = pg.build_system_prompt_two_stage_bundle(
+        agent_key="Universal", detail_level="normal", language="en",
+        model_type="Auto/None", has_image=True, photo_style=_PHOTO_STYLE_KEY,
+    )
+    assert "GROUNDING:" not in auto["stage1"]["prompt"]
+    assert "GROUNDING:" not in auto["stage2"]["prompt"]
 
 
 def test_system_prompt_bundle_includes_video_guidance():
