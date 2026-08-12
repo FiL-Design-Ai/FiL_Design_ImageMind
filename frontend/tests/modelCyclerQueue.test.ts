@@ -25,7 +25,10 @@ vi.mock("@/nodes2/domWidgetHost", () => ({
 }));
 
 interface Registrable {
-  prototype: { onNodeCreated?: (...a: unknown[]) => unknown };
+  prototype: {
+    onNodeCreated?: (...a: unknown[]) => unknown;
+    onExecuted?: (output: Record<string, unknown>, ...a: unknown[]) => unknown;
+  };
 }
 
 /**
@@ -34,12 +37,13 @@ interface Registrable {
  * actually ran: without it a broken registration would leave every
  * `queuePrompt` check passing for the wrong reason.
  */
-function registerAndCreate(): void {
+function registerAndCreate(): { nodeType: Registrable; node: ReturnType<typeof createNode> } {
   const nodeType = { prototype: {} } as Registrable;
   modelCyclerNode.register(nodeType, { name: "FiLModelCycler" } as never);
   const node = createNode({ comfyClass: "FiLModelCycler", id: 1 });
   nodeType.prototype.onNodeCreated?.call(node);
   expect((node as unknown as { _filCyclerState?: unknown })._filCyclerState).toBeTruthy();
+  return { nodeType, node };
 }
 
 describe("FiLModelCycler and the host queue", () => {
@@ -67,5 +71,44 @@ describe("FiLModelCycler and the host queue", () => {
     expect(foreign).not.toHaveBeenCalled();
 
     delete (globalThis as { app?: unknown }).app;
+  });
+});
+
+/**
+ * The panel's only source for which model a run actually used. The `index`
+ * widget cannot answer it — the position lives on the server between prompts —
+ * so the backend reports it under `ui.fil_cycler` and this is the hand-off.
+ */
+describe("FiLModelCycler run feedback", () => {
+  const run = { position: 2, total: 5, model_name: "sub/flux1-dev.safetensors", clean_name: "flux1-dev" };
+
+  it("hands a finished run to a mounted panel and parks it on the node", () => {
+    const { nodeType, node } = registerAndCreate();
+    const seen: unknown[] = [];
+    const state = (node as unknown as { _filCyclerState: { ui: Record<string, unknown> } })._filCyclerState;
+    state.ui.onCycleRun = (r: unknown) => seen.push(r);
+
+    nodeType.prototype.onExecuted?.call(node, { fil_cycler: [run] });
+
+    expect(seen).toEqual([run]);
+    // Parked as well as announced: a panel mounting later reads it from here.
+    expect((node as unknown as { _filCyclerLastRun?: unknown })._filCyclerLastRun).toEqual(run);
+  });
+
+  it("parks the run even with no panel listening", () => {
+    const { nodeType, node } = registerAndCreate();
+
+    nodeType.prototype.onExecuted?.call(node, { fil_cycler: [run] });
+
+    expect((node as unknown as { _filCyclerLastRun?: unknown })._filCyclerLastRun).toEqual(run);
+  });
+
+  it("ignores an executed message that carries no cycler payload", () => {
+    const { nodeType, node } = registerAndCreate();
+
+    nodeType.prototype.onExecuted?.call(node, { images: [{ filename: "x.png" }] });
+    nodeType.prototype.onExecuted?.call(node, { fil_cycler: [] });
+
+    expect((node as unknown as { _filCyclerLastRun?: unknown })._filCyclerLastRun).toBeUndefined();
   });
 });

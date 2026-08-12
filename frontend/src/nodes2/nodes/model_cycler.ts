@@ -8,6 +8,14 @@ import { applyFxComposables } from "@/nodes2/applyFxComposables";
 
 const ModelCyclerVue = defineAsyncComponent(() => import("@/components/nodes/ModelCyclerPanel.vue"));
 
+/** One finished run, as `node_model_cycler.py` reports it under `ui.fil_cycler`. */
+export interface CyclerRun {
+  position: number;
+  total: number;
+  model_name: string;
+  clean_name: string;
+}
+
 const nativeWidgetNames = [
   "source_mode",
   "model_list",
@@ -86,9 +94,27 @@ export const modelCyclerNode: NodeModule = {
       return result;
     };
 
+    // Where the cycle actually stands, straight from the run that just
+    // finished. The `index` widget cannot show it — that is the starting point
+    // the user typed, while the position moves on the server between prompts.
     const originalExecuted = p.onExecuted;
     p.onExecuted = function (this: unknown, output: Record<string, unknown>, ...args: unknown[]) {
-      return originalExecuted?.apply(this, [output, ...args]);
+      const result = originalExecuted?.apply(this, [output, ...args]);
+      const entry = Array.isArray(output?.fil_cycler) ? output.fil_cycler[0] : null;
+      if (entry && typeof entry === "object") {
+        const node = this as {
+          _filCyclerLastRun?: CyclerRun;
+          _filCyclerState?: { ui: Record<string, unknown> };
+        };
+        const run = entry as CyclerRun;
+        // Parked on the node as well as announced: a panel that is not mounted
+        // yet (collapsed node, async chunk still loading) reads it on mount
+        // instead of showing nothing until the next run.
+        node._filCyclerLastRun = run;
+        const announce = node._filCyclerState?.ui?.onCycleRun;
+        if (typeof announce === "function") (announce as (r: CyclerRun) => void)(run);
+      }
+      return result;
     };
 
     const originalRemoved = p.onRemoved;

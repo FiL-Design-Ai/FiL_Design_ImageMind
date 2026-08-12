@@ -10,6 +10,7 @@ import fnmatch
 import gc
 import logging
 import time
+from dataclasses import dataclass
 from typing import Any
 
 from comfy_api.latest import io
@@ -113,10 +114,39 @@ def _load_unet(unet_name: str, weight_dtype: str = "default") -> Any:
     return res[0]
 
 
+@dataclass
+class _CycleState:
+    """Where one cycler node stands, between prompts."""
+
+    position: int
+    """Index the next run starts from."""
+
+    direction: int
+    """Ping-Pong's travel: 1 forwards, -1 back."""
+
+    signature: tuple[str, ...]
+    """The list being walked. A different list is a different cycle."""
+
+    start_index: int
+    """The `index` widget as it read when the cycle began — changing it restarts."""
+
+
+_CYCLE_STATE: dict[str, _CycleState] = {}
+"""Cycle position per node, keyed by the node's own id.
+
+Nothing in a prompt carries the position, so it lives in the process between
+runs. It was keyed by `f"{source_mode}_{len(candidates)}"` before, which is not
+an identity: two cyclers over checkpoint lists of the same length — the ordinary
+shape of an A/B comparison — advanced one shared counter and each saw every
+other model. The id comes from `cls.hidden.unique_id`, so a second cycler, a
+second workflow tab and a copy-pasted node all count separately.
+"""
+
+_UNKEYED = "-"
+"""Stands in when no node id is available (a direct call, no executor)."""
+
+
 class FiLModelCycler(io.ComfyNode):
-    # Track node execution indices across prompt queues
-    _last_index_map: dict[str, int] = {}
-    _ping_pong_direction: dict[str, int] = {}
 
     @classmethod
     def define_schema(cls) -> io.Schema:
@@ -265,6 +295,10 @@ class FiLModelCycler(io.ComfyNode):
                     tooltip="Model name without directory or extension (e.g. flux1-dev).",
                 ),
             ],
+            # The cycle position is kept per node, and this is the only thing
+            # that says which node is asking. A hidden value reaches a V3 node
+            # through `cls.hidden` alone — as a parameter it would stay None.
+            hidden=[io.Hidden.unique_id],
             search_aliases=[
                 "model cycler",
                 "checkpoint cycler",
@@ -288,6 +322,65 @@ class FiLModelCycler(io.ComfyNode):
             # Force ComfyUI re-evaluation on every prompt queue submission
             return f"{source_mode}_{index}_{time.time()}"
         return f"{source_mode}_{index}"
+
+    @classmethod
+    def _state_key(cls) -> str:
+        """This node's id, as the executor handed it over.
+
+        `cls.hidden` exists only on the clone the executor prepares; a test or
+        a caller that reaches for `execute` directly has no such attribute, and
+        every one of them shares `_UNKEYED`.
+        """
+        try:
+            node_id = cls.hidden.unique_id
+        except AttributeError:
+            return _UNKEYED
+        return str(node_id) if node_id is not None else _UNKEYED
+
+    @classmethod
+    def _cycle_state(
+        cls, node_key: str, signature: tuple[str, ...], index: int
+    ) -> _CycleState:
+        """This node's place in the cycle, restarted when the cycle changed.
+
+        Editing the list or typing a new starting `index` means the user is
+        asking for a different walk; carrying the old position into it lands on
+        an unrelated model and looks like the node ignoring the change.
+        """
+        state = _CYCLE_STATE.get(node_key)
+        if (
+            state is None
+            or state.signature != signature
+            or state.start_index != index
+        ):
+            state = _CycleState(
+                position=index,
+                direction=1,
+                signature=signature,
+                start_index=index,
+            )
+            _CYCLE_STATE[node_key] = state
+        return state
+
+    @staticmethod
+    def _advance(
+        state: _CycleState, cycle_mode: str, current_idx: int, total_models: int
+    ) -> None:
+        """Move the node on to where the next run starts."""
+        if cycle_mode == "Ping-Pong":
+            next_idx = current_idx + state.direction
+            if next_idx >= total_models:
+                next_idx = total_models - 2 if total_models > 1 else 0
+                state.direction = -1
+            elif next_idx < 0:
+                next_idx = 1 if total_models > 1 else 0
+                state.direction = 1
+            state.position = max(0, next_idx)
+        elif cycle_mode == "Sequential (Stop)":
+            # Past the end on purpose — that is what stops the next run.
+            state.position = current_idx + 1
+        elif cycle_mode in ("Sequential (Loop)", "Random"):
+            state.position = (current_idx + 1) % total_models
 
     @classmethod
     def execute(
@@ -341,13 +434,9 @@ class FiLModelCycler(io.ComfyNode):
                 "",
             )
 
-        # Resolve model index based on cycle_mode and state
-        node_key = f"{source_mode}_{total_models}"
-        stored_idx = cls._last_index_map.get(node_key, index)
-        if cycle_mode == "Sequential (Stop)":
-            current_idx = stored_idx
-        else:
-            current_idx = stored_idx % total_models
+        # Resolve model index from this node's own place in the cycle
+        node_key = cls._state_key()
+        state = cls._cycle_state(node_key, tuple(candidates), index)
 
         if cycle_mode == "Fixed Index":
             current_idx = index % total_models
@@ -356,7 +445,7 @@ class FiLModelCycler(io.ComfyNode):
 
             current_idx = random.randint(0, total_models - 1)
         elif cycle_mode == "Sequential (Stop)":
-            if current_idx >= total_models:
+            if state.position >= total_models:
                 return io.NodeOutput(
                     ExecutionBlocker(
                         t(
@@ -369,23 +458,13 @@ class FiLModelCycler(io.ComfyNode):
                     "",
                     "",
                 )
+            current_idx = state.position
+        else:
+            current_idx = state.position % total_models
 
         # Advance state for next execution run if auto_advance is True
         if auto_advance:
-            if cycle_mode == "Ping-Pong":
-                direction = cls._ping_pong_direction.get(node_key, 1)
-                next_idx = current_idx + direction
-                if next_idx >= total_models:
-                    next_idx = total_models - 2 if total_models > 1 else 0
-                    cls._ping_pong_direction[node_key] = -1
-                elif next_idx < 0:
-                    next_idx = 1 if total_models > 1 else 0
-                    cls._ping_pong_direction[node_key] = 1
-                cls._last_index_map[node_key] = max(0, next_idx)
-            elif cycle_mode == "Sequential (Stop)":
-                cls._last_index_map[node_key] = current_idx + 1
-            elif cycle_mode in ("Sequential (Loop)", "Random"):
-                cls._last_index_map[node_key] = (current_idx + 1) % total_models
+            cls._advance(state, cycle_mode, current_idx, total_models)
 
         # Free VRAM / Unload previous models if requested
         if unload_previous:
@@ -424,9 +503,7 @@ class FiLModelCycler(io.ComfyNode):
                 attempts += 1
                 current_idx = (current_idx + 1) % total_models
                 if auto_advance:
-                    cls._last_index_map[node_key] = (
-                        current_idx + 1
-                    ) % total_models
+                    state.position = (current_idx + 1) % total_models
 
         if selected_model is None:
             return io.NodeOutput(
@@ -450,4 +527,20 @@ class FiLModelCycler(io.ComfyNode):
             selected_vae,
             selected_name,
             clean_name,
+            # Where the cycle actually stands, for the panel to show. The
+            # `index` widget cannot say it: it is the starting point the user
+            # typed, and the position moves on the server between runs.
+            # `execution.py` sends an `executed` message for any node that
+            # returns a `ui` payload — being an output node is not required.
+            ui={
+                "text": [f"{current_idx + 1}/{total_models}"],
+                "fil_cycler": [
+                    {
+                        "position": current_idx + 1,
+                        "total": total_models,
+                        "model_name": selected_name,
+                        "clean_name": clean_name,
+                    }
+                ],
+            },
         )

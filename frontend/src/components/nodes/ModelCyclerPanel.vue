@@ -3,7 +3,7 @@
  * FiLModelCycler — Cyberpunk HUD panel for cycling diffusion models & checkpoints.
  * Inspired by Power Lora Loader (rgthree) & Pixaroma, tailored for model testing.
  */
-import { computed, ref, watch, onMounted } from "vue";
+import { computed, ref, watch, onMounted, onUnmounted } from "vue";
 import {
   FilButton,
   FilComboBox,
@@ -16,6 +16,7 @@ import {
 } from "@/components/widgets";
 import { useI18n } from "@/composables/useI18n";
 import type { FilNodeState } from "@/nodes2/filState";
+import type { CyclerRun } from "@/nodes2/nodes/model_cycler";
 import { findFilWidget } from "@/nodes2/util";
 import { getJson } from "@/api/client";
 import { ROUTE_PREFIX } from "@/constants/brand";
@@ -134,12 +135,34 @@ async function loadInstalledModels() {
   }
 }
 
+/**
+ * The model the last finished run actually used.
+ *
+ * It comes from the backend (`ui.fil_cycler`) rather than from any widget: the
+ * cycle position lives on the server between prompts, and `index` is only where
+ * the user asked it to start.
+ */
+const lastRun = ref<CyclerRun | null>(null);
+
+function onCycleRun(run: CyclerRun) {
+  lastRun.value = run;
+}
+
 onMounted(() => {
   const rawList = String(props.state.nodeState["model_list"] ?? "");
   if (rawList) {
     modelItems.value = parseModelList(rawList);
   }
+  // A run may have finished before this panel mounted — the node module parks
+  // the last one there for exactly that case.
+  const node = props.state.node as { _filCyclerLastRun?: CyclerRun } | undefined;
+  if (node?._filCyclerLastRun) lastRun.value = node._filCyclerLastRun;
+  props.state.ui.onCycleRun = onCycleRun;
   loadInstalledModels();
+});
+
+onUnmounted(() => {
+  if (props.state.ui.onCycleRun === onCycleRun) delete props.state.ui.onCycleRun;
 });
 
 watch(sourceMode, () => {
@@ -433,6 +456,12 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
         :title="`Queue ${plannedRuns} runs in ComfyUI to test all active models in order.`"
         @click="queueAllModelsRun"
       />
+    </div>
+
+    <!-- Where the cycle stands after the last run, straight from the backend. -->
+    <div v-if="lastRun" class="fil-cycler-now" :title="lastRun.model_name">
+      <span class="fil-cycler-now-pos">{{ lastRun.position }}/{{ lastRun.total }}</span>
+      <span class="fil-cycler-now-name">{{ lastRun.clean_name }}</span>
     </div>
 
     <!-- What the plain Queue button does, said out loud: one model per run. -->
@@ -789,6 +818,33 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
   flex: 1;
   justify-content: center;
   font-weight: 600;
+}
+
+.fil-cycler-now {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 3px 8px;
+  border: 1px solid var(--fil-border);
+  border-radius: 6px;
+  background: var(--fil-inset);
+  font-size: 11px;
+  min-width: 0;
+}
+
+.fil-cycler-now-pos {
+  color: var(--fil-accent);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  flex: none;
+}
+
+.fil-cycler-now-name {
+  color: var(--fil-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .fil-cycler-runs-hint {

@@ -90,6 +90,45 @@ describe("ModelCyclerPanel.vue", () => {
     expect(wrapper.find(".fil-cycler-queue-btn").text()).toContain("(1)");
   });
 
+  it("shows which model the last run used, once the node reports it", async () => {
+    const list = "modelA.safetensors\nmodelB.safetensors";
+    const node = makeNode(list);
+    const state = makeState(node, list);
+    const wrapper = mount(ModelCyclerPanel, { props: { state: state as never } });
+    await nextTick();
+
+    // Nothing to show before a run — no stale position invented from `index`.
+    expect(wrapper.find(".fil-cycler-now").exists()).toBe(false);
+
+    // The hand-off the node module makes from the backend's `ui.fil_cycler`.
+    (state.ui.onCycleRun as (r: unknown) => void)({
+      position: 2,
+      total: 2,
+      model_name: "modelB.safetensors",
+      clean_name: "modelB",
+    });
+    await nextTick();
+
+    const now = wrapper.find(".fil-cycler-now");
+    expect(now.text()).toContain("2/2");
+    expect(now.text()).toContain("modelB");
+  });
+
+  it("picks up a run that finished before it was mounted", async () => {
+    const list = "modelA.safetensors\nmodelB.safetensors";
+    const node = makeNode(list) as ReturnType<typeof makeNode> & { _filCyclerLastRun?: unknown };
+    node._filCyclerLastRun = {
+      position: 1,
+      total: 2,
+      model_name: "modelA.safetensors",
+      clean_name: "modelA",
+    };
+    const wrapper = mount(ModelCyclerPanel, { props: { state: makeState(node, list) as never } });
+    await nextTick();
+
+    expect(wrapper.find(".fil-cycler-now").text()).toContain("1/2");
+  });
+
   it("reads a row back as off when the workflow is reloaded", async () => {
     const list = "modelA.safetensors\n# modelB.safetensors";
     const node = makeNode(list);
