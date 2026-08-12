@@ -10,7 +10,7 @@ zones (see `tile_calc.assemble_tiles`) and pastes.
 from comfy_api.latest import io
 
 from ..common import tile_calc
-from ..common.brand import CATEGORY_ROOT
+from ..common.brand import CATEGORY_IMAGE
 from ..common.io_types import FilTileLayout
 from ..common.localization import t as _t
 
@@ -28,7 +28,7 @@ class FiLTileAssembly(io.ComfyNode):
         return io.Schema(
             node_id="FiLTileAssembly",
             display_name="🧩 Tile Assembly",
-            category=f"{CATEGORY_ROOT}/Image",
+            category=CATEGORY_IMAGE,
             description="🧩 FiL Tile Assembly — recombines processed tiles (from FiL Upscaler Advanced/Simple) back into one image, feathered across the real overlap zones.",
             inputs=[
                 io.Image.Input("tiles", tooltip=_t("tla_tiles", "Batch of processed tile images — same order/count as the `tiles` output that produced `layout`.")),

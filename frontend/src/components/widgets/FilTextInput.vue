@@ -15,7 +15,7 @@ const modelValue = defineModel<string>({ required: true });
 </script>
 
 <template>
-  <div class="fil-w-text" :title="title">
+  <div class="fil-w-text" :class="{ 'is-disabled': disabled }" :title="title">
     <label v-if="label" class="fil-w-text-label">{{ label }}</label>
     <input
       v-model="modelValue"
@@ -35,6 +35,10 @@ const modelValue = defineModel<string>({ required: true });
   align-items: center;
   gap: var(--fil-node-gap);
   width: 100%;
+}
+.fil-w-text.is-disabled {
+  opacity: 0.5;
+  pointer-events: none;
 }
 .fil-w-text-label {
   grid-column: 1;

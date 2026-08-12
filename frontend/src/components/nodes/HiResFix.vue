@@ -6,7 +6,7 @@ import { computed, watch } from "vue";
 import { FilSlider, FilNumberInput, FilSelect, FilSegmented, FilSeedRow, FilSection } from "@/components/widgets";
 import { useI18n } from "@/composables/useI18n";
 import { toast } from "@/stores/toastStore";
-import { findFilWidget } from "@/nodes2/util";
+import { findFilWidget, randomSeed } from "@/nodes2/util";
 import { useWidgetSockets } from "@/composables/useWidgetSockets";
 import { HIRESFIX_SOCKET_INPUTS } from "@/nodes2/nodes/hiresfix";
 import type { FilNodeState } from "@/nodes2/filState";
@@ -85,6 +85,24 @@ const preprocessorOptions = computed(() => comboOptions("preprocessor", ["none",
 const showLatent = computed(() => upscaleType.value === "latent");
 const showPixel = computed(() => upscaleType.value === "pixel" || upscaleType.value === "both");
 
+const effectiveScale = computed(() => {
+  const scale = Math.pow(upscaleBy.value, Math.max(1, iterations.value));
+  return scale.toFixed(2);
+});
+
+// Auto-adjust default denoise ONLY when the user explicitly switches between modes,
+// so manual tweaks during latent/pixel editing are never overwritten.
+watch(upscaleType, (newType, oldType) => {
+  if (!oldType || isLinked("denoise")) return;
+  if (newType === "pixel") {
+    denoise.value = 0.35;
+  } else if (newType === "latent") {
+    denoise.value = 0.56;
+  } else if (newType === "both") {
+    denoise.value = 0.45;
+  }
+});
+
 // Own-seed block — mirrors FiLOpticScanner's bottom seed row (random/fixed
 // mode + readout + Use last/New fixed pills). Randomization is driven by
 // ComfyUI core's native `control_after_generate` on the hidden seed widget
@@ -140,8 +158,7 @@ function useLastSeed() {
   seedMode.value = "fixed";
 }
 function newFixedSeed() {
-  const n = Math.floor(Math.random() * 1_000_000_000) & 0x7fffffff;
-  seedValue.value = n;
+  seedValue.value = randomSeed();
   seedMode.value = "fixed";
 }
 </script>
@@ -183,8 +200,13 @@ function newFixedSeed() {
       :label="t('lbl_hires_steps', '🪜 Hires steps')"
       :title="isLinked('hires_steps') ? t('fld_linked_tt', 'Driven by the connected input — disconnect it to edit here.') : t('hrf_steps', 'Steps for the hires re-sample.')" />
 
-    <FilNumberInput v-model="iterations" :min="0" :max="5" :step="1" inline-label
-      :label="t('lbl_iterations', '🔁 Iterations')" :title="t('hrf_iterations', 'How many upscale+resample passes to run.')" />
+    <div class="fil-iterations-row">
+      <FilNumberInput v-model="iterations" :min="0" :max="5" :step="1" inline-label
+        :label="t('lbl_iterations', '🔁 Iterations')" :title="t('hrf_iterations', 'How many upscale+resample passes to run.')" />
+      <span v-if="iterations > 1" class="fil-effective-scale-badge" :title="t('hrf_total_scale_tt', 'Total cumulative upscale ratio across passes')">
+        ⚡ {{ effectiveScale }}x {{ t('hrf_total_scale', 'Total') }}
+      </span>
+    </div>
 
     <FilSegmented :options="['ON', 'OFF']" :option-labels="{ ON: '♻️ same seed', OFF: '🎲 own' }" :model-value="useSameSeed"
       :label="t('lbl_use_same_seed', '🌱 Seed source')" :disabled="seedLinked"
@@ -253,6 +275,28 @@ function newFixedSeed() {
  * rule in styles/brand.ts — keep only layout here. */
 .fil-hrf-root { width: 100%; box-sizing: border-box; min-width: 0; display: flex; flex-direction: column; gap: var(--fil-node-gap); padding: var(--fil-node-pad);
   color: var(--fil-text); font-family: ui-sans-serif, system-ui, sans-serif; }
+
+.fil-iterations-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+.fil-iterations-row :deep(.fil-w-num-input) {
+  flex: 1;
+}
+
+.fil-effective-scale-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 7px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--fil-accent) 20%, transparent);
+  color: var(--fil-accent-text);
+  border: 1px solid color-mix(in srgb, var(--fil-accent) 40%, transparent);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
 
 /* The own-seed row is FilSeedRow now — the same widget OpticScanner renders. */
 </style>

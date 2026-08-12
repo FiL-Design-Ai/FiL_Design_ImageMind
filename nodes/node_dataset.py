@@ -12,7 +12,7 @@ import torch
 from comfy_api.latest import io
 
 from ..common.base import FiLError
-from ..common.brand import CATEGORY_ROOT
+from ..common.brand import CATEGORY_DATASET
 from ..common.config import is_model_vision_capable
 from ..common.data import LANGUAGES
 from ..common.dataset import bucketing, captioning, writer
@@ -88,7 +88,7 @@ class FiLDatasetForge(io.ComfyNode):
         return io.Schema(
             node_id="FiLDatasetForge",
             display_name="📚 LoRA Dataset Forge",
-            category=f"{CATEGORY_ROOT}/Dataset",
+            category=CATEGORY_DATASET,
             description=(
                 "📚 FiL LoRA Dataset Forge — turns an image batch into a training-ready dataset: "
                 "aspect-ratio buckets at the chosen resolution, one LLM caption per image, and a "

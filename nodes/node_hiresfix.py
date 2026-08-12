@@ -12,7 +12,7 @@ import logging
 
 from comfy_api.latest import io
 
-from ..common.brand import BRAND, CATEGORY_ROOT
+from ..common.brand import BRAND, CATEGORY_SAMPLING
 from ..common.io_types import FilHiresScript
 from ..common.localization import t
 
@@ -56,7 +56,7 @@ class FiLHighResFix(io.ComfyNode):
         return io.Schema(
             node_id="FiLHighResFix",
             display_name="🔬 HighRes Fix",
-            category=f"{CATEGORY_ROOT}/Sampling",
+            category=CATEGORY_SAMPLING,
             description="🔬 FiL HighRes Fix — packs latent/pixel upscale + re-sample settings into a script for FiLKSampler.",
             inputs=[
                 io.Combo.Input("upscale_type", options=["latent", "pixel", "both"], default="latent",

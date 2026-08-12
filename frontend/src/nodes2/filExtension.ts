@@ -30,6 +30,7 @@ import { ALL_SETTINGS } from "@/stores/settings/allSettings";
 import { applyStartupLogLevel } from "@/stores/settings/loggingSettings";
 import { applyStartupTheme } from "@/stores/settings/themeSettings";
 import { registerFilTypeColors } from "@/nodes2/slotTypeColors";
+import { installGlobalUndoGuardListener } from "@/nodes2/graphUndoGuard";
 import { readSetting } from "@/stores/settings/providerSettings";
 import { EXTENSION_NAME, LOG_TAG, ROUTE_PREFIX } from "@/constants/brand";
 
@@ -146,6 +147,9 @@ export function createFilExtension(app: ComfyApp): ComfyExtension {
         // types (blank in every ComfyUI colour palette — see slotTypeColors.ts)
         // get a colour instead of staying blank until the user touches a
         // theme setting.
+        // Prevent global graph Ctrl+Z from accidentally reverting nodes on canvas
+        // while typing inside any FiL panel input or interacting with a modal.
+        () => installGlobalUndoGuardListener(),
         () => registerFilTypeColors(),
       ];
       for (const install of installers) {

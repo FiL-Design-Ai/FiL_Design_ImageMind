@@ -85,17 +85,30 @@ export function observeContent(
   // passes across the next several frames catches the settled size independent
   // of exactly when the async chunk + first layout finish.
   let settleFrames = 20;
+  let settleTimer: number | null = null;
   (function settle() {
     onChange();
-    if (settleFrames-- > 0) requestAnimationFrame(settle);
+    if (settleFrames-- > 0) {
+      settleTimer = requestAnimationFrame(settle);
+    } else {
+      settleTimer = null;
+    }
   })();
 
   return {
     disconnect() {
+      settleFrames = 0;
+      if (settleTimer) {
+        cancelAnimationFrame(settleTimer);
+        settleTimer = null;
+      }
       resizeObserver.disconnect();
       arrivalObserver?.disconnect();
       growObserver?.disconnect();
-      if (frame) cancelAnimationFrame(frame);
+      if (frame) {
+        cancelAnimationFrame(frame);
+        frame = 0;
+      }
     },
   };
 }

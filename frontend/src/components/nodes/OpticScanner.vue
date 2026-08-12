@@ -10,7 +10,7 @@ import { toast } from "@/stores/toastStore";
 import { NODE_CONTRACTS, type WidgetSpec } from "@/api/contracts";
 import type { FilNodeState } from "@/nodes2/filState";
 import { useI18n } from "@/composables/useI18n";
-import { findFilWidget } from "@/nodes2/util";
+import { findFilWidget, randomSeed } from "@/nodes2/util";
 import { useWidgetSockets } from "@/composables/useWidgetSockets";
 
 const props = defineProps<{ state: FilNodeState }>();
@@ -342,8 +342,7 @@ function useLastSeed() {
   seedMode.value = "fixed";
 }
 function newFixedSeed() {
-  const n = Math.floor(Math.random() * 1_000_000_000) & 0x7fffffff;
-  seedValue.value = n;
+  seedValue.value = randomSeed();
   seedMode.value = "fixed";
 }
 

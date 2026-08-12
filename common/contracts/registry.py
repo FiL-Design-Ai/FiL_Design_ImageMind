@@ -16,19 +16,39 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..brand import CATEGORY_ROOT, SETTINGS_PREFIX
+from ..brand import (
+    CATEGORY_ANALYSIS,
+    CATEGORY_DATASET,
+    CATEGORY_IMAGE,
+    CATEGORY_LLM,
+    CATEGORY_ROOT,
+    CATEGORY_SAMPLING,
+    CATEGORY_STYLING,
+    CATEGORY_TOOLS,
+    CATEGORY_VALUES,
+    SETTINGS_PREFIX,
+)
 from ..cinema_rig import (
     MODE_ORIGINAL,
     POLISH_DETERMINISTIC,
     POLISH_MODES,
     RIG_DEFAULTS,
     RIG_MODES,
+    SETUP_MODES,
+    SETUP_PRESET,
     aperture_options,
+    camera_angle_options,
+    camera_movement_options,
     camera_options,
+    director_preset_options,
     focal_length_options,
     grading_options,
     lens_options,
+    lighting_setup_options,
+    optics_filter_options,
+    shot_framing_options,
 )
+
 from ..color_correction import METHOD_KEYS as COLOR_METHOD_KEYS
 from ..config import PROVIDERS
 from ..dataset.bucketing import BASE_RESOLUTIONS as DATASET_BASE_RESOLUTIONS
@@ -133,9 +153,9 @@ def _string(name: str, default: str = "", **kw: Any) -> WidgetSpec:
 _SEED = NodeContract(
     id="FiLSeed",
     title="♻️ Seed",
-    category=f"{CATEGORY_ROOT}/Values",
+    category=CATEGORY_VALUES,
     description="Fixed or randomized seed with reuse buttons.",
-    min_size=(250, 90),
+    min_size=(300, 90),
     family="value",
     inputs=NodeInputs(
         required=[
@@ -162,7 +182,7 @@ _SEED = NodeContract(
 _PROVIDER = NodeContract(
     id="FiLProviderLoader",
     title="🔌 Provider Loader",
-    category=f"{CATEGORY_ROOT}/LLM",
+    category=CATEGORY_LLM,
     description="Provider and model runtime configuration.",
     min_size=(300, 250),
     family="llm",
@@ -194,7 +214,7 @@ _PROVIDER = NodeContract(
 _SCANNER = NodeContract(
     id="FiLOpticScanner",
     title="🕵️ Optic Scanner",
-    category=f"{CATEGORY_ROOT}/LLM",
+    category=CATEGORY_LLM,
     description="Image analysis or text-idea expansion into a generation prompt.",
     min_size=(380, 300),
     family="llm",
@@ -337,7 +357,7 @@ _SCANNER = NodeContract(
 _CLEANER = NodeContract(
     id="FiLNeuroCleaner",
     title="🧹 Cleaner",
-    category=f"{CATEGORY_ROOT}/Tools",
+    category=CATEGORY_TOOLS,
     description="GPU VRAM and loaded model memory cleanup.",
     min_size=(250, 110),
     family="tool",
@@ -353,7 +373,7 @@ _CLEANER = NodeContract(
 _UPSCALE = NodeContract(
     id="FiLUpscaleTileCalc",
     title="🔍 Upscaler Advanced",
-    category=f"{CATEGORY_ROOT}/Image",
+    category=CATEGORY_IMAGE,
     description="Computes optimal tile grid layout for upscaling.",
     min_size=(320, 300),
     family="image",
@@ -406,7 +426,7 @@ _UPSCALE = NodeContract(
 _UPSCALE_SIMPLE = NodeContract(
     id="FiLUpscaleSimple",
     title="🔍 Upscaler Simple",
-    category=f"{CATEGORY_ROOT}/Image",
+    category=CATEGORY_IMAGE,
     description="Upscale + tile an image through a required model — same tiling controls as Advanced.",
     min_size=(320, 300),
     family="image",
@@ -443,7 +463,7 @@ _UPSCALE_SIMPLE = NodeContract(
 _TILE_ASSEMBLY = NodeContract(
     id="FiLTileAssembly",
     title="🧩 Tile Assembly",
-    category=f"{CATEGORY_ROOT}/Image",
+    category=CATEGORY_IMAGE,
     description="Recombines processed tiles back into one image, feathered across the real overlap zones.",
     min_size=(270, 120),
     family="image",
@@ -454,7 +474,7 @@ _TILE_ASSEMBLY = NodeContract(
 _KSAMPLER = NodeContract(
     id="FiLKSampler",
     title="⚡ KSampler",
-    category=f"{CATEGORY_ROOT}/Sampling",
+    category=CATEGORY_SAMPLING,
     description="Full-featured sampler with every sampler and scheduler.",
     min_size=(300, 240),
     family="sampling",
@@ -490,7 +510,7 @@ _KSAMPLER = NodeContract(
 _HIRESFIX = NodeContract(
     id="FiLHighResFix",
     title="🔬 HighRes Fix",
-    category=f"{CATEGORY_ROOT}/Sampling",
+    category=CATEGORY_SAMPLING,
     description="Packs latent/pixel upscale + re-sample settings into a script.",
     # Keep in step with nodes2/nodes/hiresfix.ts — test_ui_presentation guards it.
     min_size=(300, 230),
@@ -532,9 +552,9 @@ _HIRESFIX = NodeContract(
 _NOISE_CONTROL = NodeContract(
     id="FiLNoiseControl",
     title="🎛️ Noise Control",
-    category=f"{CATEGORY_ROOT}/Sampling",
+    category=CATEGORY_SAMPLING,
     description="RNG source + seed-variation script for FiLKSampler.",
-    min_size=(250, 120),
+    min_size=(250, 160),
     family="sampling",
     inputs=NodeInputs(
         required=[
@@ -550,7 +570,7 @@ _NOISE_CONTROL = NodeContract(
 _DECOMPOSER = NodeContract(
     id="FiLImageDecomposer",
     title="👁️‍🗨️ Image Decomposer",
-    category=f"{CATEGORY_ROOT}/Analysis",
+    category=CATEGORY_ANALYSIS,
     description="Decomposes image or prompt into Subject, Lighting, Composition, Style, and Full Prompt outputs.",
     family="llm",
     min_size=(300, 180),
@@ -574,7 +594,7 @@ _DECOMPOSER = NodeContract(
 _STYLE_MIXER = NodeContract(
     id="FiLStyleMixer",
     title="🎛️ Style Mixer",
-    category=f"{CATEGORY_ROOT}/Styling",
+    category=CATEGORY_STYLING,
     description="Blends visual styles and reference images with weighted influence sliders and optional Vision LLM fusion.",
     family="base",
     min_size=(320, 320),
@@ -609,10 +629,10 @@ _STYLE_MIXER = NodeContract(
 _CINEMA_RIG = NodeContract(
     id="FiLCinemaRig",
     title="🎬 Cinema Rig",
-    category=f"{CATEGORY_ROOT}/Styling",
+    category=CATEGORY_STYLING,
     description=(
-        "Assembles a cinematic shot prompt from camera-rig axes: body, lens, focal length, aperture "
-        "and color grade, wrapped in film or digital medium language, with an optional LLM polish."
+        "Assembles a cinematic shot prompt from 11 camera-rig axes: body, lens, focal length, aperture, "
+        "angle, framing, movement, lighting, optics filter, director style and color grade, wrapped in film or digital medium language, with an optional LLM polish."
     ),
     family="base",
     min_size=(300, 380),
@@ -620,12 +640,19 @@ _CINEMA_RIG = NodeContract(
         required=[
             _string("scene_prompt", default="", multiline=True, label="Scene"),
             _segmented("mode", options=RIG_MODES, default=MODE_ORIGINAL, label="Mode"),
+            _segmented("setup_mode", options=SETUP_MODES, default=SETUP_PRESET, label="Setup mode"),
         ],
         optional=[
             _chip_list("camera", values=camera_options(), default=RIG_DEFAULTS["camera"], label="Camera"),
             _chip_list("lens", values=lens_options(), default=RIG_DEFAULTS["lens"], label="Lens"),
             _chip_list("focal_length", values=focal_length_options(), default=RIG_DEFAULTS["focal_length"], label="Focal length"),
             _chip_list("aperture", values=aperture_options(), default=RIG_DEFAULTS["aperture"], label="Aperture"),
+            _chip_list("camera_angle", values=camera_angle_options(), default=RIG_DEFAULTS["camera_angle"], label="Camera angle"),
+            _chip_list("shot_framing", values=shot_framing_options(), default=RIG_DEFAULTS["shot_framing"], label="Shot framing"),
+            _chip_list("camera_movement", values=camera_movement_options(), default=RIG_DEFAULTS["camera_movement"], label="Camera movement"),
+            _chip_list("lighting_setup", values=lighting_setup_options(), default=RIG_DEFAULTS["lighting_setup"], label="Lighting setup"),
+            _chip_list("optics_filter", values=optics_filter_options(), default=RIG_DEFAULTS["optics_filter"], label="Optics filter"),
+            _chip_list("director_preset", values=director_preset_options(), default=RIG_DEFAULTS["director_preset"], label="Director preset"),
             _bool("enable_grading", default=True, label="Color grade on"),
             _chip_list("color_grading", values=grading_options(), default=RIG_DEFAULTS["color_grading"], label="Color grade"),
             _segmented("polish_mode", options=POLISH_MODES, default=POLISH_DETERMINISTIC, label="Polish"),
@@ -637,10 +664,11 @@ _CINEMA_RIG = NodeContract(
     ],
 )
 
+
 _COLOR_WIZARD = NodeContract(
     id="FiLColorWizard",
     title="🎨 Color Wizard",
-    category=f"{CATEGORY_ROOT}/Image",
+    category=CATEGORY_IMAGE,
     description="Automatically corrects image colours using white balance, LAB contrast enhancement, channel stretching, reference colour matching, and WB picker.",
     family="image",
     min_size=(300, 310),
@@ -664,7 +692,7 @@ _COLOR_WIZARD = NodeContract(
 _SWITCH = NodeContract(
     id="FiLSignalSwitch",
     title="🔀 Cyber Switch",
-    category=f"{CATEGORY_ROOT}/Tools",
+    category=CATEGORY_TOOLS,
     description="Universal signal pass-through toggle.",
     inputs=NodeInputs(
         required=[
@@ -679,7 +707,7 @@ _SWITCH = NodeContract(
 _CHANNEL = NodeContract(
     id="FiLChannel",
     title="📡 Channel",
-    category=f"{CATEGORY_ROOT}/Tools",
+    category=CATEGORY_TOOLS,
     description="Send data across the graph without wires.",
     min_size=(250, 80),
     family="tool",
@@ -693,7 +721,7 @@ _CHANNEL = NodeContract(
 _DATASET_FORGE = NodeContract(
     id="FiLDatasetForge",
     title="📚 LoRA Dataset Forge",
-    category=f"{CATEGORY_ROOT}/Dataset",
+    category=CATEGORY_DATASET,
     description="Batch → aspect-bucketed images + LLM captions written as a kohya/flat LoRA dataset.",
     min_size=(350, 460),
     family="llm",
@@ -731,6 +759,38 @@ _DATASET_FORGE = NodeContract(
     ],
 )
 
+_MODEL_CYCLER = NodeContract(
+    id="FiLModelCycler",
+    title="🔄 Model Cycler",
+    category=CATEGORY_TOOLS,
+    description="Automatically cycles through diffusion models or checkpoints on each generation.",
+    min_size=(380, 220),
+    family="tool",
+    inputs=NodeInputs(
+        required=[
+            _combo("source_mode", values=["Checkpoints", "Diffusion Models"], default="Checkpoints", label="Source mode"),
+            _string("model_list", default="", multiline=True, label="Model list"),
+            _string("filter_pattern", default="", label="Filter pattern"),
+            _combo("cycle_mode", values=["Sequential (Loop)", "Sequential (Stop)", "Ping-Pong", "Random", "Fixed Index"], default="Sequential (Loop)", label="Cycle mode"),
+            _int("index", default=0, minv=0, maxv=99999, step=1, label="Index"),
+            _bool("auto_advance", default=True, label="Auto advance"),
+            _bool("unload_previous", default=True, label="Unload previous"),
+            _bool("free_vram", default=True, label="Free VRAM"),
+            _bool("skip_on_error", default=True, label="Skip on error"),
+        ],
+        optional=[
+            _combo("weight_dtype", values=["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"], default="default", label="Weight dtype"),
+        ],
+    ),
+    outputs=[
+        NodeOutput(name="MODEL", type="MODEL"),
+        NodeOutput(name="CLIP", type="CLIP"),
+        NodeOutput(name="VAE", type="VAE"),
+        NodeOutput(name="MODEL_NAME", type="STRING"),
+        NodeOutput(name="CLEAN_NAME", type="STRING"),
+    ],
+)
+
 NODE_SCHEMAS: dict[str, NodeContract] = {
     contract.id: contract
     for contract in (
@@ -751,6 +811,7 @@ NODE_SCHEMAS: dict[str, NodeContract] = {
         _SWITCH,
         _DATASET_FORGE,
         _CHANNEL,
+        _MODEL_CYCLER,
     )
 }
 

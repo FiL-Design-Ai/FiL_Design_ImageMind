@@ -2,7 +2,7 @@ from comfy_api.latest import io
 
 from .node_upscale import FiLUpscaleTileCalc
 from ..common import tile_calc
-from ..common.brand import CATEGORY_ROOT
+from ..common.brand import CATEGORY_IMAGE
 from ..common.io_types import FilTileLayout
 from ..common.localization import t as _t
 
@@ -18,7 +18,7 @@ class FiLUpscaleSimple(io.ComfyNode):
         return io.Schema(
             node_id="FiLUpscaleSimple",
             display_name="🔍 Upscaler Simple",
-            category=f"{CATEGORY_ROOT}/Image",
+            category=CATEGORY_IMAGE,
             description="📐 FiL Upscale Simple — upscale + tile an image (or latent) through a model.",
             inputs=[
                 io.Image.Input("image", optional=True,

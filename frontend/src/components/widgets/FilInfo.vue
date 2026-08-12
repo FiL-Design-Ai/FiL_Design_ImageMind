@@ -25,9 +25,16 @@ withDefaults(
    * "connect a provider" warning, so it has to survive every palette. */
   color: var(--fil-muted);
   text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* Wraps instead of ellipsising. Every caller here is a whole sentence, not
+   * a value: Dataset Forge's "connect a Provider Loader to caption — or fill
+   * in captions below" lost the half that says what to do instead, and
+   * Provider Loader passes the provider's own error text through
+   * (`probe.message`), which is exactly the string a user must be able to
+   * read. Measured live at the 350px node minimum: the warning was cut at
+   * "⚠️ Connect 🔌 Provider". `nowrap` bought one-line tidiness at the cost
+   * of the message. `overflow-wrap` covers a single unbroken token (a long
+   * path in the folder preview) so it breaks rather than widening the node. */
+  overflow-wrap: anywhere;
 }
 .fil-w-info[data-ok] {
   color: var(--fil-ok);

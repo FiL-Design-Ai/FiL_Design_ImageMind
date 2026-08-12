@@ -190,7 +190,7 @@ function onScrubPointerDown(e: PointerEvent) {
 <template>
   <div
     class="fil-w-numfield"
-    :class="{ 'no-label': !label, 'inline-label': !!label && inlineLabel }"
+    :class="{ 'no-label': !label, 'inline-label': !!label && inlineLabel, 'is-disabled': disabled }"
     :title="title"
   >
     <label v-if="label && !inlineLabel" class="fil-w-numfield-label">{{ label }}</label>
@@ -249,6 +249,10 @@ function onScrubPointerDown(e: PointerEvent) {
   align-items: center;
   gap: var(--fil-node-gap);
   width: 100%;
+}
+.fil-w-numfield.is-disabled {
+  opacity: 0.5;
+  pointer-events: none;
 }
 /* No label passed (paired-row / FilSlider readout usage): collapse to a
  * transparent wrapper so the bare `<input>` behaves exactly as before —

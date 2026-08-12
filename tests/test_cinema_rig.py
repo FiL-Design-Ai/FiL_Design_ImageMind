@@ -24,11 +24,17 @@ import pytest
 from FiL_Design_ImageMind.common.cinema_rig import (
     CAMERA_TYPE_DIGITAL,
     CAMERA_TYPE_FILM,
+    CINEMA_ANGLES,
     CINEMA_APERTURES,
     CINEMA_CAMERAS,
+    CINEMA_DIRECTOR_PRESETS,
     CINEMA_FOCAL_LENGTHS,
+    CINEMA_FRAMINGS,
     CINEMA_GRADINGS,
     CINEMA_LENSES,
+    CINEMA_LIGHTING,
+    CINEMA_MOVEMENTS,
+    CINEMA_OPTICS,
     DIGITAL_PREFIX,
     DIGITAL_SUFFIX,
     FILM_PREFIX,
@@ -39,7 +45,20 @@ from FiL_Design_ImageMind.common.cinema_rig import (
     POLISH_LLM,
     RESHOOT_LOCK,
     RIG_DEFAULTS,
+    SETUP_CUSTOM,
+    SETUP_PRESET,
+    aperture_options,
     assemble_rig,
+    camera_angle_options,
+    camera_movement_options,
+    camera_options,
+    director_preset_options,
+    focal_length_options,
+    grading_options,
+    lens_options,
+    lighting_setup_options,
+    optics_filter_options,
+    shot_framing_options,
     wrapper_for_camera,
 )
 
@@ -70,15 +89,29 @@ ERASES_THE_SUBJECT = re.compile(
 
 
 def _hardware_entries() -> list[tuple[str, str]]:
-    """name -> prompt for the four hardware axes (camera bodies included)."""
-    entries = [(name, info["prompt"]) for name, info in CINEMA_CAMERAS.items()]
-    for source in (CINEMA_LENSES, CINEMA_FOCAL_LENGTHS, CINEMA_APERTURES):
-        entries.extend(source.items())
+    """name -> prompt for the hardware, optics, angle, framing, movement, lighting axes."""
+    entries: list[tuple[str, str]] = []
+    for source in (
+        CINEMA_CAMERAS,
+        CINEMA_LENSES,
+        CINEMA_FOCAL_LENGTHS,
+        CINEMA_APERTURES,
+        CINEMA_ANGLES,
+        CINEMA_FRAMINGS,
+        CINEMA_MOVEMENTS,
+        CINEMA_LIGHTING,
+        CINEMA_OPTICS,
+    ):
+        for name, info in source.items():
+            prompt = str(info.get("prompt", "")) if isinstance(info, dict) else str(info)
+            if prompt:
+                entries.append((name, prompt))
     return entries
 
 
 def _all_entries() -> list[tuple[str, str]]:
-    return _hardware_entries() + list(CINEMA_GRADINGS.items())
+    directors = [(name, info["prompt"]) for name, info in CINEMA_DIRECTOR_PRESETS.items() if info["prompt"]]
+    return _hardware_entries() + [(k, v) for k, v in CINEMA_GRADINGS.items() if v] + directors
 
 
 # ── Preset quality ─────────────────────────────────────────────────────────
@@ -139,6 +172,8 @@ def test_the_default_rig_names_the_medium_once_and_carry_every_axis() -> None:
     assert DIGITAL_PREFIX.strip().rstrip(".") in prompt
     assert DIGITAL_SUFFIX.strip().rstrip(".") in prompt
     for axis_default in RIG_DEFAULTS.values():
+        if not axis_default or axis_default.startswith("Auto") or axis_default.startswith("None") or axis_default in ("Custom Rig", SETUP_PRESET, SETUP_CUSTOM):
+            continue
         # each selected preset's opening phrase reaches the output
         assert axis_default.split(" (")[0].lower() in prompt.lower() or _first_phrase(axis_default) in prompt
     assert "a ferry leaving the harbor at dawn" in prompt
@@ -147,14 +182,20 @@ def test_the_default_rig_names_the_medium_once_and_carry_every_axis() -> None:
 def _first_phrase(name: str) -> str:
     """First words of a preset's prompt, for presence checks by axis name."""
     from FiL_Design_ImageMind.common.cinema_rig import (
+        CINEMA_ANGLES as Ang,
         CINEMA_APERTURES as A,
         CINEMA_CAMERAS as C,
+        CINEMA_DIRECTOR_PRESETS as D,
         CINEMA_FOCAL_LENGTHS as F,
+        CINEMA_FRAMINGS as Fr,
         CINEMA_GRADINGS as G,
         CINEMA_LENSES as L,
+        CINEMA_LIGHTING as Li,
+        CINEMA_MOVEMENTS as M,
+        CINEMA_OPTICS as O,
     )
 
-    for source in (C, L, F, A, G):
+    for source in (C, L, F, A, Ang, Fr, M, Li, O, G, D):
         entry = source.get(name)
         if isinstance(entry, dict):
             return str(entry.get("prompt", "")).split(",")[0]
@@ -226,7 +267,12 @@ def test_reshoot_locks_the_reference_and_drops_the_scene() -> None:
 
 
 def test_a_scene_alone_passes_through_untouched() -> None:
-    prompt, overlay = assemble_rig(scene_prompt="just a scene", camera="", lens="", focal_length="", aperture="", color_grading="")
+    prompt, overlay = assemble_rig(
+        scene_prompt="just a scene",
+        camera="", lens="", focal_length="", aperture="",
+        camera_angle="", shot_framing="", camera_movement="",
+        lighting_setup="", optics_filter="", director_preset="", color_grading=""
+    )
     assert prompt == "just a scene"
     assert overlay == ""
 
@@ -247,16 +293,28 @@ def test_unknown_axis_names_fall_through_as_literal_wording() -> None:
 def test_every_default_selection_is_a_real_option() -> None:
     from FiL_Design_ImageMind.common.cinema_rig import (
         aperture_options,
+        camera_angle_options,
+        camera_movement_options,
         camera_options,
+        director_preset_options,
         focal_length_options,
         grading_options,
         lens_options,
+        lighting_setup_options,
+        optics_filter_options,
+        shot_framing_options,
     )
 
     assert RIG_DEFAULTS["camera"] in camera_options()
     assert RIG_DEFAULTS["lens"] in lens_options()
     assert RIG_DEFAULTS["focal_length"] in focal_length_options()
     assert RIG_DEFAULTS["aperture"] in aperture_options()
+    assert RIG_DEFAULTS["camera_angle"] in camera_angle_options()
+    assert RIG_DEFAULTS["shot_framing"] in shot_framing_options()
+    assert RIG_DEFAULTS["camera_movement"] in camera_movement_options()
+    assert RIG_DEFAULTS["lighting_setup"] in lighting_setup_options()
+    assert RIG_DEFAULTS["optics_filter"] in optics_filter_options()
+    assert RIG_DEFAULTS["director_preset"] in director_preset_options()
     assert RIG_DEFAULTS["color_grading"] in grading_options()
 
 
@@ -273,11 +331,16 @@ def test_schema_declares_the_five_axes_with_the_pack_defaults() -> None:
     schema = FiLCinemaRig.define_schema()
     assert schema.node_id == "FiLCinemaRig"
     inputs = {i.id: i for i in schema.inputs}
-    for axis in ("camera", "lens", "focal_length", "aperture", "color_grading"):
+    for axis in (
+        "camera", "lens", "focal_length", "aperture",
+        "camera_angle", "shot_framing", "camera_movement",
+        "lighting_setup", "optics_filter", "director_preset", "color_grading"
+    ):
         assert axis in inputs, f"missing rig axis {axis}"
         assert inputs[axis].default == RIG_DEFAULTS[axis]
     assert inputs["mode"].default == MODE_ORIGINAL
     assert inputs["polish_mode"].default == POLISH_DETERMINISTIC
+
 
 
 def test_execute_is_deterministic_and_matches_assemble() -> None:

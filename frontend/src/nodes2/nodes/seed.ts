@@ -20,8 +20,14 @@ export const seedNode: NodeModule = {
   id: "FiLSeed",
   register(nodeType: unknown, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
-      minSize: [250, 90],
-      initialWidth: 250,
+      // 300, not 250: the readout has to hold a full-range seed. The widget's
+      // max is 0xFFFFFFFFFFFFFFFF, and ComfyUI's own `randomize` draws across
+      // that range — so "Use last" routinely lands a 19-20 digit number, not
+      // an exotic one. At 250px the field got ~92px, which is 20 digits only
+      // at ~7px type; 300px gives ~142px, where Seed.vue's 11px floor fits
+      // them and stays readable. Measured live, not estimated.
+      minSize: [300, 90],
+      initialWidth: 300,
       family: "value",
       description: "Fixed or randomized seed with copy and reuse buttons.",
       badges: [{ text: "seed" }],

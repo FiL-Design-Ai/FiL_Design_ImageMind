@@ -9,7 +9,7 @@ import { FilButton } from "@/components/widgets";
 import { toast } from "@/stores/toastStore";
 import { useI18n } from "@/composables/useI18n";
 import type { FilNodeState } from "@/nodes2/filState";
-import { findFilWidget } from "@/nodes2/util";
+import { findFilWidget, randomSeed } from "@/nodes2/util";
 
 const props = defineProps<{ state: FilNodeState }>();
 const { t } = useI18n();
@@ -70,8 +70,7 @@ function useLast() {
 }
 
 function newFixed() {
-  const n = Math.floor(Math.random() * 1_000_000_000) & 0x7fffffff;
-  seed.value = n;
+  seed.value = randomSeed();
   mode.value = "fixed";
 }
 
@@ -88,6 +87,29 @@ const display = computed({
     }
   },
 });
+
+/**
+ * The readout shrinks to fit instead of clipping.
+ *
+ * 19px is deliberately large — the seed is the one number on this node — but
+ * the field only gets ~92px at the 250px node minimum, which is 8 monospace
+ * characters. Measured live: a 9-digit seed (756978276) needed 100px and lost
+ * its last digit, and `useLast()` copies whatever ComfyUI drew, which for a
+ * 0..2^64 widget is far longer than that. A silently truncated seed is the
+ * worst kind of wrong here — it still looks like a valid number.
+ *
+ * Monospace advance is ~0.6em, so `19 * 8 / len` is the size at which `len`
+ * characters still fit the same box. Floored at 11px: below that the digits
+ * stop being readable at working zoom, and the `title` below carries the full
+ * value for the rare seed that long.
+ */
+const BASE_FONT_PX = 19;
+const FITS_AT_BASE = 8;
+const displayFontPx = computed(() => {
+  const len = display.value.length;
+  if (len <= FITS_AT_BASE) return BASE_FONT_PX;
+  return Math.max(11, Math.floor((BASE_FONT_PX * FITS_AT_BASE) / len));
+});
 </script>
 
 <template>
@@ -96,8 +118,9 @@ const display = computed({
       v-model="display"
       type="text"
       class="fil-seed-display"
+      :style="{ fontSize: displayFontPx + 'px' }"
       :readonly="mode === 'random'"
-      :title="mode === 'fixed' ? t('sd_locked', 'Locked seed') : t('sd_auto_random', 'Auto-random')"
+      :title="mode === 'fixed' ? `${t('sd_locked', 'Locked seed')}: ${display}` : t('sd_auto_random', 'Auto-random')"
       :aria-label="t('sd_aria_seed_value', 'Seed value')"
     />
     <div class="fil-seed-actions">
@@ -137,6 +160,8 @@ const display = computed({
   background: var(--fil-glass-bg); border: 1px solid var(--fil-glass-border); border-radius: var(--fil-field-radius);
   padding: 6px 8px; color: var(--fil-text);
   font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  /* Size comes from `displayFontPx` inline — see its docstring. This stays as
+   * the value a browser with the script disabled would land on. */
   font-size: 19px; text-align: center; outline: none; transition: border-color .08s;
 }
 .fil-seed-display:focus { border-color: var(--fil-accent); }

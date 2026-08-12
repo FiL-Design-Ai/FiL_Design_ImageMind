@@ -59,7 +59,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "FiLSeed": {
   "id": "FiLSeed",
   "title": "♻️ Seed",
-  "category": "🎨 FiL Design/Values",
+  "category": "🎨 FiL Design/🔢 Values",
   "description": "Fixed or randomized seed with reuse buttons.",
   "inputs": {
     "required": [
@@ -154,7 +154,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     }
   ],
   "min_size": [
-    250,
+    300,
     90
   ],
   "family": "value"
@@ -162,7 +162,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "FiLProviderLoader": {
   "id": "FiLProviderLoader",
   "title": "🔌 Provider Loader",
-  "category": "🎨 FiL Design/LLM",
+  "category": "🎨 FiL Design/🧠 LLM",
   "description": "Provider and model runtime configuration.",
   "inputs": {
     "required": [
@@ -352,7 +352,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "FiLOpticScanner": {
   "id": "FiLOpticScanner",
   "title": "🕵️ Optic Scanner",
-  "category": "🎨 FiL Design/LLM",
+  "category": "🎨 FiL Design/🧠 LLM",
   "description": "Image analysis or text-idea expansion into a generation prompt.",
   "inputs": {
     "required": [
@@ -1226,7 +1226,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "FiLNeuroCleaner": {
   "id": "FiLNeuroCleaner",
   "title": "🧹 Cleaner",
-  "category": "🎨 FiL Design/Tools",
+  "category": "🎨 FiL Design/🧰 Tools",
   "description": "GPU VRAM and loaded model memory cleanup.",
   "inputs": {
     "required": [
@@ -1287,7 +1287,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "FiLUpscaleTileCalc": {
   "id": "FiLUpscaleTileCalc",
   "title": "🔍 Upscaler Advanced",
-  "category": "🎨 FiL Design/Image",
+  "category": "🎨 FiL Design/🖼️ Image",
   "description": "Computes optimal tile grid layout for upscaling.",
   "inputs": {
     "required": [
@@ -1587,7 +1587,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "FiLUpscaleSimple": {
   "id": "FiLUpscaleSimple",
   "title": "🔍 Upscaler Simple",
-  "category": "🎨 FiL Design/Image",
+  "category": "🎨 FiL Design/🖼️ Image",
   "description": "Upscale + tile an image through a required model — same tiling controls as Advanced.",
   "inputs": {
     "required": [
@@ -1823,7 +1823,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "FiLTileAssembly": {
   "id": "FiLTileAssembly",
   "title": "🧩 Tile Assembly",
-  "category": "🎨 FiL Design/Image",
+  "category": "🎨 FiL Design/🖼️ Image",
   "description": "Recombines processed tiles back into one image, feathered across the real overlap zones.",
   "inputs": {
     "required": [],
@@ -1845,7 +1845,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "FiLKSampler": {
   "id": "FiLKSampler",
   "title": "⚡ KSampler",
-  "category": "🎨 FiL Design/Sampling",
+  "category": "🎨 FiL Design/⚡ Sampling",
   "description": "Full-featured sampler with every sampler and scheduler.",
   "inputs": {
     "required": [
@@ -2093,7 +2093,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "FiLHighResFix": {
   "id": "FiLHighResFix",
   "title": "🔬 HighRes Fix",
-  "category": "🎨 FiL Design/Sampling",
+  "category": "🎨 FiL Design/⚡ Sampling",
   "description": "Packs latent/pixel upscale + re-sample settings into a script.",
   "inputs": {
     "required": [
@@ -2405,7 +2405,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "FiLNoiseControl": {
   "id": "FiLNoiseControl",
   "title": "🎛️ Noise Control",
-  "category": "🎨 FiL Design/Sampling",
+  "category": "🎨 FiL Design/⚡ Sampling",
   "description": "RNG source + seed-variation script for FiLKSampler.",
   "inputs": {
     "required": [
@@ -2500,14 +2500,14 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   ],
   "min_size": [
     250,
-    120
+    160
   ],
   "family": "sampling"
 },
   "FiLImageDecomposer": {
   "id": "FiLImageDecomposer",
   "title": "👁️‍🗨️ Image Decomposer",
-  "category": "🎨 FiL Design/Analysis",
+  "category": "🎨 FiL Design/🔍 Analysis",
   "description": "Decomposes image or prompt into Subject, Lighting, Composition, Style, and Full Prompt outputs.",
   "inputs": {
     "required": [
@@ -2588,7 +2588,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "FiLStyleMixer": {
   "id": "FiLStyleMixer",
   "title": "🎛️ Style Mixer",
-  "category": "🎨 FiL Design/Styling",
+  "category": "🎨 FiL Design/🎨 Styling",
   "description": "Blends visual styles and reference images with weighted influence sliders and optional Vision LLM fusion.",
   "inputs": {
     "required": [
@@ -4180,8 +4180,8 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "FiLCinemaRig": {
   "id": "FiLCinemaRig",
   "title": "🎬 Cinema Rig",
-  "category": "🎨 FiL Design/Styling",
-  "description": "Assembles a cinematic shot prompt from camera-rig axes: body, lens, focal length, aperture and color grade, wrapped in film or digital medium language, with an optional LLM polish.",
+  "category": "🎨 FiL Design/🎨 Styling",
+  "description": "Assembles a cinematic shot prompt from 11 camera-rig axes: body, lens, focal length, aperture, angle, framing, movement, lighting, optics filter, director style and color grade, wrapped in film or digital medium language, with an optional LLM polish.",
   "inputs": {
     "required": [
       {
@@ -4224,6 +4224,28 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
         "section": null,
         "visible_when": null,
         "visible_when_value": null
+      },
+      {
+        "name": "setup_mode",
+        "kind": "segmented",
+        "label": "Setup mode",
+        "default": "Director Preset",
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": [
+          "Director Preset",
+          "Custom Hardware"
+        ],
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
       }
     ],
     "optional": [
@@ -4234,6 +4256,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
         "default": "RED V-RAPTOR XL",
         "tooltip": null,
         "values": [
+          "Auto / Neutral",
           "ARRI Alexa 65 (Large Format)",
           "RED V-RAPTOR XL",
           "IMAX MSM 9802 70mm",
@@ -4260,6 +4283,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
         "default": "Helios 44-2 (Vintage)",
         "tooltip": null,
         "values": [
+          "Auto / Neutral",
           "Panavision C-Series Anamorphic",
           "Cooke S4/i Primes",
           "ARRI Signature Primes",
@@ -4286,6 +4310,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
         "default": "50mm (Human Eye)",
         "tooltip": null,
         "values": [
+          "Auto / Neutral",
           "14mm (Ultra Wide)",
           "24mm (Wide)",
           "35mm (Classic)",
@@ -4312,11 +4337,175 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
         "default": "f/11 (Deep Focus)",
         "tooltip": null,
         "values": [
+          "Auto / Neutral",
           "f/0.95 (Dreamlike)",
           "f/1.4 (Cinematic Shallow)",
           "f/2.8 (Standard)",
           "f/5.6 (Contextual)",
           "f/11 (Deep Focus)"
+        ],
+        "columns": null,
+        "searchable": true,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "camera_angle",
+        "kind": "chip_list",
+        "label": "Camera angle",
+        "default": "Auto / Neutral",
+        "tooltip": null,
+        "values": [
+          "Auto / Neutral",
+          "Eye Level (Neutral)",
+          "Low Angle (Heroic)",
+          "High Angle (Vulnerable)",
+          "Dutch Angle (Dynamic Tilt)",
+          "Bird's Eye View (Top-Down)",
+          "Worm's Eye View (Ground Up)",
+          "Over-The-Shoulder (OTS)"
+        ],
+        "columns": null,
+        "searchable": true,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "shot_framing",
+        "kind": "chip_list",
+        "label": "Shot framing",
+        "default": "Auto / Neutral",
+        "tooltip": null,
+        "values": [
+          "Auto / Neutral",
+          "Extreme Close-up (ECU)",
+          "Close-up (CU)",
+          "Medium Close-up (MCU)",
+          "Medium Shot (MS)",
+          "Cowboy Shot (American)",
+          "Wide Shot (WS)",
+          "Extreme Wide Shot (EWS)"
+        ],
+        "columns": null,
+        "searchable": true,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "camera_movement",
+        "kind": "chip_list",
+        "label": "Camera movement",
+        "default": "Static (Tripod Locked)",
+        "tooltip": null,
+        "values": [
+          "Auto / Neutral",
+          "Static (Tripod Locked)",
+          "Handheld (Raw & Shaky)",
+          "Steadicam (Smooth Tracking)",
+          "Dolly Zoom (Vertigo Effect)",
+          "Crane / Drone Shot (Flyby)",
+          "Orbit / Arc Shot (Circle)"
+        ],
+        "columns": null,
+        "searchable": true,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "lighting_setup",
+        "kind": "chip_list",
+        "label": "Lighting setup",
+        "default": "Auto / Natural",
+        "tooltip": null,
+        "values": [
+          "Auto / Natural",
+          "Volumetric Haze (Rays)",
+          "Chiaroscuro (Hard Contrast)",
+          "Rembrandt (Soft Portrait)",
+          "Rim / Backlight (Halo)",
+          "Practical Neon (Motivated)",
+          "Golden Hour (Warm Glow)",
+          "Day for Night (Cool Blue)"
+        ],
+        "columns": null,
+        "searchable": true,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "optics_filter",
+        "kind": "chip_list",
+        "label": "Optics filter",
+        "default": "None / Pure Optic",
+        "tooltip": null,
+        "values": [
+          "None / Pure Optic",
+          "Black Pro-Mist (Soft Bloom)",
+          "Anamorphic Blue Flares",
+          "Anamorphic Gold Flares",
+          "Heavy Film Grain (ISO 800)",
+          "Subtle Film Grain (ISO 200)"
+        ],
+        "columns": null,
+        "searchable": true,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "director_preset",
+        "kind": "chip_list",
+        "label": "Director preset",
+        "default": "Custom Rig",
+        "tooltip": null,
+        "values": [
+          "Custom Rig",
+          "Roger Deakins (Volumetric ARRI)",
+          "Christopher Nolan (IMAX 70mm)",
+          "Wong Kar-wai (Neon & Motion)",
+          "Denis Villeneuve (Monolithic Sci-Fi)",
+          "Quentin Tarantino (Punchy 35mm)"
         ],
         "columns": null,
         "searchable": true,
@@ -4356,6 +4545,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
         "default": "Teal & Orange (Blockbuster)",
         "tooltip": null,
         "values": [
+          "Auto / Neutral",
           "Teal & Orange (Blockbuster)",
           "Bleach Bypass (Gritty)",
           "Fincher Green (Thriller)",
@@ -4427,7 +4617,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "FiLColorWizard": {
   "id": "FiLColorWizard",
   "title": "🎨 Color Wizard",
-  "category": "🎨 FiL Design/Image",
+  "category": "🎨 FiL Design/🖼️ Image",
   "description": "Automatically corrects image colours using white balance, LAB contrast enhancement, channel stretching, reference colour matching, and WB picker.",
   "inputs": {
     "required": [
@@ -4571,7 +4761,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "FiLSignalSwitch": {
   "id": "FiLSignalSwitch",
   "title": "🔀 Cyber Switch",
-  "category": "🎨 FiL Design/Tools",
+  "category": "🎨 FiL Design/🧰 Tools",
   "description": "Universal signal pass-through toggle.",
   "inputs": {
     "required": [
@@ -4610,7 +4800,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "FiLDatasetForge": {
   "id": "FiLDatasetForge",
   "title": "📚 LoRA Dataset Forge",
-  "category": "🎨 FiL Design/Dataset",
+  "category": "🎨 FiL Design/📁 Dataset",
   "description": "Batch → aspect-bucketed images + LLM captions written as a kohya/flat LoRA dataset.",
   "inputs": {
     "required": [
@@ -5058,7 +5248,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "FiLChannel": {
   "id": "FiLChannel",
   "title": "📡 Channel",
-  "category": "🎨 FiL Design/Tools",
+  "category": "🎨 FiL Design/🧰 Tools",
   "description": "Send data across the graph without wires.",
   "inputs": {
     "required": [],
@@ -5069,6 +5259,263 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "min_size": [
     250,
     80
+  ],
+  "family": "tool"
+},
+  "FiLModelCycler": {
+  "id": "FiLModelCycler",
+  "title": "🔄 Model Cycler",
+  "category": "🎨 FiL Design/🧰 Tools",
+  "description": "Automatically cycles through diffusion models or checkpoints on each generation.",
+  "inputs": {
+    "required": [
+      {
+        "name": "source_mode",
+        "kind": "combo",
+        "label": "Source mode",
+        "default": "Checkpoints",
+        "tooltip": null,
+        "values": [
+          "Checkpoints",
+          "Diffusion Models"
+        ],
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "model_list",
+        "kind": "string",
+        "label": "Model list",
+        "default": "",
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": true,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "filter_pattern",
+        "kind": "string",
+        "label": "Filter pattern",
+        "default": "",
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "cycle_mode",
+        "kind": "combo",
+        "label": "Cycle mode",
+        "default": "Sequential (Loop)",
+        "tooltip": null,
+        "values": [
+          "Sequential (Loop)",
+          "Sequential (Stop)",
+          "Ping-Pong",
+          "Random",
+          "Fixed Index"
+        ],
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "index",
+        "kind": "number",
+        "label": "Index",
+        "default": 0,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": 0,
+        "max": 99999,
+        "step": 1,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "auto_advance",
+        "kind": "boolean",
+        "label": "Auto advance",
+        "default": true,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "unload_previous",
+        "kind": "boolean",
+        "label": "Unload previous",
+        "default": true,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "free_vram",
+        "kind": "boolean",
+        "label": "Free VRAM",
+        "default": true,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "skip_on_error",
+        "kind": "boolean",
+        "label": "Skip on error",
+        "default": true,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      }
+    ],
+    "optional": [
+      {
+        "name": "weight_dtype",
+        "kind": "combo",
+        "label": "Weight dtype",
+        "default": "default",
+        "tooltip": null,
+        "values": [
+          "default",
+          "fp16",
+          "bf16",
+          "fp8_e4m3fn",
+          "fp8_e5m2"
+        ],
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      }
+    ],
+    "hidden": []
+  },
+  "outputs": [
+    {
+      "name": "MODEL",
+      "type": "MODEL"
+    },
+    {
+      "name": "CLIP",
+      "type": "CLIP"
+    },
+    {
+      "name": "VAE",
+      "type": "VAE"
+    },
+    {
+      "name": "MODEL_NAME",
+      "type": "STRING"
+    },
+    {
+      "name": "CLEAN_NAME",
+      "type": "STRING"
+    },
+    {
+      "name": "FORMATTED_LABEL",
+      "type": "STRING"
+    },
+    {
+      "name": "INDEX",
+      "type": "INT"
+    },
+    {
+      "name": "TOTAL_MODELS",
+      "type": "INT"
+    }
+  ],
+  "min_size": [
+    380,
+    220
   ],
   "family": "tool"
 },

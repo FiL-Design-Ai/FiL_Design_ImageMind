@@ -4,7 +4,7 @@ from typing import Any
 
 from comfy_api.latest import io as _io
 
-from ..common.brand import CATEGORY_ROOT
+from ..common.brand import CATEGORY_TOOLS
 from ..common.localization import t as _t
 
 
@@ -16,7 +16,7 @@ class FiLNeuroCleaner(_io.ComfyNode):
         return _io.Schema(
             node_id="FiLNeuroCleaner",
             display_name="🧹 Cleaner",
-            category=f"{CATEGORY_ROOT}/Tools",
+            category=CATEGORY_TOOLS,
             description="🧹 FiL Neuro Cleaner — flushes GPU VRAM and offloads loaded models to prevent Out-Of-Memory errors.",
             inputs=[
                 # The switch labels go through _t() unlike everywhere else in the

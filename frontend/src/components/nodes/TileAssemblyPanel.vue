@@ -8,13 +8,15 @@
  * Without a shell the node wore ComfyUI's stock light surfaces.
  */
 import FilInfo from "@/components/widgets/FilInfo.vue";
+import { useI18n } from "@/composables/useI18n";
 
 defineProps<{ state: Record<string, unknown> }>();
+const { t } = useI18n();
 </script>
 
 <template>
   <div class="fil-tile-assembly-panel">
-    <FilInfo text="Feathers processed tiles back into one image." />
+    <FilInfo :text="t('tla_info', 'Feathers processed tiles back into one image.')" />
   </div>
 </template>
 

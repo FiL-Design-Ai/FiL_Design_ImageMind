@@ -92,3 +92,22 @@ export function restoreFilState(state: PersistedPanelState, info: unknown): bool
   }
   return true;
 }
+
+/**
+ * Deletes keys from `node.properties` that equal their default values.
+ * Pixaroma pattern: keeps workflow JSON lean and prevents newly opened graphs
+ * from falsely marking as 'modified' on startup.
+ */
+export function cleanNodePropertyDefaults(
+  node: unknown,
+  defaults: Record<string, unknown>,
+): void {
+  const n = node as { properties?: Record<string, unknown> };
+  if (!n?.properties) return;
+  for (const [key, defVal] of Object.entries(defaults)) {
+    if (n.properties[key] === defVal) {
+      delete n.properties[key];
+    }
+  }
+}
+

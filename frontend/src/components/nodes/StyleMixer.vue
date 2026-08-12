@@ -3,7 +3,7 @@
  * FiLStyleMixer - Cyberpunk HUD panel for mixing 3 style prompts & up to 4 image fusion cards.
  */
 import { computed, ref } from "vue";
-import { FilSection, FilSlider, FilButton, FilModal, FilStylePicker, FilSegmented, FilTextArea } from "@/components/widgets";
+import { FilSection, FilSlider, FilButton, FilModal, FilStylePicker, FilSegmented, FilTextArea, FilSelect } from "@/components/widgets";
 import type { FilNodeState } from "@/nodes2/filState";
 import { findFilWidget } from "@/nodes2/util";
 import { NODE_CONTRACTS } from "@/api/contracts";
@@ -74,6 +74,28 @@ const imgWeight2 = createRef<number>("img_weight_2", 0.6);
 const imgWeight3 = createRef<number>("img_weight_3", 0.4);
 const imgWeight4 = createRef<number>("img_weight_4", 0.2);
 
+const imgFocus1 = createRef<string>("img_focus_1", "Auto / General");
+const imgFocus2 = createRef<string>("img_focus_2", "Auto / General");
+const imgFocus3 = createRef<string>("img_focus_3", "Auto / General");
+const imgFocus4 = createRef<string>("img_focus_4", "Auto / General");
+
+const defaultFocusOptions = [
+  "Auto / General",
+  "Style & Texture",
+  "Color & Lighting",
+  "Subject & Composition",
+  "Mood & Atmosphere",
+];
+
+function getFocusOptions(name: string): string[] {
+  if (!props.state.node) return defaultFocusOptions;
+  const w = findFilWidget(props.state.node, name);
+  const vals = (w as { options?: { values?: unknown } } | null)?.options?.values;
+  return Array.isArray(vals) && vals.length ? (vals as string[]) : defaultFocusOptions;
+}
+
+const focusOptions = computed(() => getFocusOptions("img_focus_1"));
+
 const picker1Open = ref(false);
 const picker2Open = ref(false);
 const picker3Open = ref(false);
@@ -106,10 +128,15 @@ function formatStyleLabel(val: string, label: string): string {
   return `${label}: ${display}`;
 }
 
-// FilSection's arrow toggles a local, unbound ref when no v-model is passed —
-// clicking flipped the arrow with nothing underneath actually collapsing,
-// which read as broken next to every other panel (UpscaleTileCalc, ColorWizard,
-// HiResFix) where the same header really hides its section.
+function isImageConnected(slotIndex: number): boolean {
+  return isSlotConnected(`image_${slotIndex}`);
+}
+
+function imageSectionTitle(slotIndex: number, titleKey: string, defaultTitle: string): string {
+  const base = t(titleKey, defaultTitle);
+  return isImageConnected(slotIndex) ? `${base} 🟢 ${t('sm_connected', 'Connected')}` : base;
+}
+
 function isCollapsed(section: string): boolean {
   return Boolean((props.state.ui as Record<string, unknown>)[`collapsed_${section}`]);
 }
@@ -151,11 +178,22 @@ function setCollapsed(section: string, collapsed: boolean) {
     <FilSection :title="t('sm_section_style_1', '🎨 Primary Style (Style 1)')"
       :model-value="isCollapsed('style1')" @update:model-value="(v: boolean) => setCollapsed('style1', v)" />
     <template v-if="!isCollapsed('style1')">
-      <FilButton
-        variant="full"
-        :label="formatStyleLabel(style1, t('sm_style_1', 'Style 1'))"
-        @click="picker1Open = true"
-      />
+      <div class="fil-sm-style-row">
+        <FilButton
+          variant="full"
+          :label="formatStyleLabel(style1, t('sm_style_1', 'Style 1'))"
+          @click="picker1Open = true"
+        />
+        <button
+          v-if="style1 && style1 !== '(None)' && style1 !== 'None'"
+          type="button"
+          class="fil-sm-clear-btn"
+          :title="t('sm_clear_style', 'Clear style')"
+          @click.stop="style1 = '(None)'"
+        >
+          ✕
+        </button>
+      </div>
       <FilSlider v-model="weight1" :min="0" :max="1" :step="0.05" inline-label :label="t('sm_style_1_weight', 'Style 1 Weight')" />
       <FilModal :open="picker1Open" :title="t('sm_pick_style_1', 'Select Primary Style 1')" width="680px" @update:open="(v) => (picker1Open = v)">
         <FilStylePicker :styles="getStyleOptions('style_1')" :model-value="style1" @select="(v) => { style1 = v; picker1Open = false; }" />
@@ -166,11 +204,22 @@ function setCollapsed(section: string, collapsed: boolean) {
     <FilSection :title="t('sm_section_style_2', '🧪 Secondary Style (Style 2)')"
       :model-value="isCollapsed('style2')" @update:model-value="(v: boolean) => setCollapsed('style2', v)" />
     <template v-if="!isCollapsed('style2')">
-      <FilButton
-        variant="full"
-        :label="formatStyleLabel(style2, t('sm_style_2', 'Style 2'))"
-        @click="picker2Open = true"
-      />
+      <div class="fil-sm-style-row">
+        <FilButton
+          variant="full"
+          :label="formatStyleLabel(style2, t('sm_style_2', 'Style 2'))"
+          @click="picker2Open = true"
+        />
+        <button
+          v-if="style2 && style2 !== '(None)' && style2 !== 'None'"
+          type="button"
+          class="fil-sm-clear-btn"
+          :title="t('sm_clear_style', 'Clear style')"
+          @click.stop="style2 = '(None)'"
+        >
+          ✕
+        </button>
+      </div>
       <FilSlider v-model="weight2" :min="0" :max="1" :step="0.05" inline-label :label="t('sm_style_2_weight', 'Style 2 Weight')" />
       <FilModal :open="picker2Open" :title="t('sm_pick_style_2', 'Select Secondary Style 2')" width="680px" @update:open="(v) => (picker2Open = v)">
         <FilStylePicker :styles="getStyleOptions('style_2')" :model-value="style2" @select="(v) => { style2 = v; picker2Open = false; }" />
@@ -181,11 +230,22 @@ function setCollapsed(section: string, collapsed: boolean) {
     <FilSection :title="t('sm_section_style_3', '✨ Tertiary Style (Style 3)')"
       :model-value="isCollapsed('style3')" @update:model-value="(v: boolean) => setCollapsed('style3', v)" />
     <template v-if="!isCollapsed('style3')">
-      <FilButton
-        variant="full"
-        :label="formatStyleLabel(style3, t('sm_style_3', 'Style 3'))"
-        @click="picker3Open = true"
-      />
+      <div class="fil-sm-style-row">
+        <FilButton
+          variant="full"
+          :label="formatStyleLabel(style3, t('sm_style_3', 'Style 3'))"
+          @click="picker3Open = true"
+        />
+        <button
+          v-if="style3 && style3 !== '(None)' && style3 !== 'None'"
+          type="button"
+          class="fil-sm-clear-btn"
+          :title="t('sm_clear_style', 'Clear style')"
+          @click.stop="style3 = '(None)'"
+        >
+          ✕
+        </button>
+      </div>
       <FilSlider v-model="weight3" :min="0" :max="1" :step="0.05" inline-label :label="t('sm_style_3_weight', 'Style 3 Weight')" />
       <FilModal :open="picker3Open" :title="t('sm_pick_style_3', 'Select Tertiary Style 3')" width="680px" @update:open="(v) => (picker3Open = v)">
         <FilStylePicker :styles="getStyleOptions('style_3')" :model-value="style3" @select="(v) => { style3 = v; picker3Open = false; }" />
@@ -193,31 +253,39 @@ function setCollapsed(section: string, collapsed: boolean) {
     </template>
 
     <!-- Image Cards -->
-    <FilSection :title="t('sm_section_image_1', '🖼️ Image 1 Influence')"
+    <FilSection :title="imageSectionTitle(1, 'sm_section_image_1', '🖼️ Image 1 Influence')"
       :model-value="isCollapsed('image1')" @update:model-value="(v: boolean) => setCollapsed('image1', v)" />
     <template v-if="!isCollapsed('image1')">
       <FilSlider v-model="imgWeight1" :min="0" :max="1" :step="0.05" inline-label :label="t('sm_image_1_weight', 'Image 1 Weight')" />
+      <FilSelect v-if="fusionMode === 'Smart LLM Fusion (Gen-Mix)'" v-model="imgFocus1" :options="focusOptions" inline-label
+        :label="t('sm_focus_label', 'Focus Aspect')" />
     </template>
 
-    <FilSection :title="t('sm_section_image_2', '🖼️ Image 2 Influence')"
+    <FilSection :title="imageSectionTitle(2, 'sm_section_image_2', '🖼️ Image 2 Influence')"
       :model-value="isCollapsed('image2')" @update:model-value="(v: boolean) => setCollapsed('image2', v)" />
     <template v-if="!isCollapsed('image2')">
       <FilSlider v-model="imgWeight2" :min="0" :max="1" :step="0.05" inline-label :label="t('sm_image_2_weight', 'Image 2 Weight')" />
+      <FilSelect v-if="fusionMode === 'Smart LLM Fusion (Gen-Mix)'" v-model="imgFocus2" :options="focusOptions" inline-label
+        :label="t('sm_focus_label', 'Focus Aspect')" />
     </template>
 
     <template v-if="showImg3">
-      <FilSection :title="t('sm_section_image_3', '🖼️ Image 3 Influence')"
+      <FilSection :title="imageSectionTitle(3, 'sm_section_image_3', '🖼️ Image 3 Influence')"
         :model-value="isCollapsed('image3')" @update:model-value="(v: boolean) => setCollapsed('image3', v)" />
       <template v-if="!isCollapsed('image3')">
         <FilSlider v-model="imgWeight3" :min="0" :max="1" :step="0.05" inline-label :label="t('sm_image_3_weight', 'Image 3 Weight')" />
+        <FilSelect v-if="fusionMode === 'Smart LLM Fusion (Gen-Mix)'" v-model="imgFocus3" :options="focusOptions" inline-label
+          :label="t('sm_focus_label', 'Focus Aspect')" />
       </template>
     </template>
 
     <template v-if="showImg4">
-      <FilSection :title="t('sm_section_image_4', '🖼️ Image 4 Influence')"
+      <FilSection :title="imageSectionTitle(4, 'sm_section_image_4', '🖼️ Image 4 Influence')"
         :model-value="isCollapsed('image4')" @update:model-value="(v: boolean) => setCollapsed('image4', v)" />
       <template v-if="!isCollapsed('image4')">
         <FilSlider v-model="imgWeight4" :min="0" :max="1" :step="0.05" inline-label :label="t('sm_image_4_weight', 'Image 4 Weight')" />
+        <FilSelect v-if="fusionMode === 'Smart LLM Fusion (Gen-Mix)'" v-model="imgFocus4" :options="focusOptions" inline-label
+          :label="t('sm_focus_label', 'Focus Aspect')" />
       </template>
     </template>
   </div>
@@ -232,5 +300,35 @@ function setCollapsed(section: string, collapsed: boolean) {
   padding: var(--fil-node-pad);
   color: var(--fil-text);
   font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+.fil-sm-style-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+.fil-sm-style-row :deep(.fil-w-btn) {
+  flex: 1;
+}
+.fil-sm-clear-btn {
+  height: var(--fil-control-h);
+  padding: 0 10px;
+  border-radius: var(--fil-field-radius);
+  border: 1px solid var(--fil-border);
+  background: var(--fil-surface-2);
+  color: var(--fil-danger);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.12s ease;
+  flex-shrink: 0;
+}
+.fil-sm-clear-btn:hover {
+  background: color-mix(in srgb, var(--fil-danger) 20%, transparent);
+  border-color: var(--fil-danger);
 }
 </style>

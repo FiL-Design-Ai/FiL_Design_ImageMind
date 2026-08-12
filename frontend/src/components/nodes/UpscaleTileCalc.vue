@@ -130,10 +130,19 @@ watch(() => props.state.nodeState, () => {}, { deep: true });
 /* Value columns capped, not 1fr: these fields only ever hold small integers
  * (0-2048), so letting them greedily fill available width just starved the
  * label columns and forced "Manual rows" onto its own line. */
-.fil-up-row { display: grid; grid-template-columns: minmax(auto, max-content) 64px minmax(auto, max-content) 64px; align-items: center; gap: var(--fil-node-gap); }
+/* 72px, not 64: a FilNumberInput spends ~38px of its width on the two step
+ * arrows plus padding and borders, so 64 left 26px for the digits — two short
+ * of the 28px "1024" needs, and `tile_size` goes to 2048. Measured live: the
+ * last digit was clipped on every node that mounts this panel. */
+.fil-up-row { display: grid; grid-template-columns: minmax(auto, max-content) 72px minmax(auto, max-content) 72px; align-items: center; gap: var(--fil-node-gap); }
 /* Overlap row gets a 5th column for the inline "Auto" toggle glued onto the
- * Overlap field — auto-sized (~fits switch+short label), doesn't steal
- * space from the two fixed 64px value columns. */
-.fil-up-row-overlap { grid-template-columns: minmax(auto, max-content) 64px minmax(auto, max-content) 64px auto; }
+ * Overlap field — auto-sized (~fits switch+short label).
+ *
+ * Its value columns are 68px, not the 72px above: this row carries that extra
+ * column, and at the 320px node minimum 72px pushed the toggle 2px past the
+ * panel's right edge, where the panel's own `overflow: hidden` clipped it
+ * (measured live). 68px still leaves 30px for the digits — `tile_size` tops
+ * out at 2048, which needs 28. */
+.fil-up-row-overlap { grid-template-columns: minmax(auto, max-content) 68px minmax(auto, max-content) 68px auto; }
 .fil-w-label { font-size: 11px; color: var(--fil-muted); }
 </style>

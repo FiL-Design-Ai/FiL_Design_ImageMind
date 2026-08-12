@@ -54,7 +54,7 @@ function onKeydown(e: KeyboardEvent, index: number) {
 </script>
 
 <template>
-  <div class="fil-w-segmented" :title="title">
+  <div class="fil-w-segmented" :class="{ 'is-disabled': disabled }" :title="title">
     <label v-if="label" class="fil-w-segmented-label">
       <FilIcon v-if="icon" :name="icon" :size="12" />{{ label }}
     </label>
@@ -85,6 +85,10 @@ function onKeydown(e: KeyboardEvent, index: number) {
   align-items: center;
   gap: var(--fil-node-gap);
   width: 100%;
+}
+.fil-w-segmented.is-disabled {
+  opacity: 0.5;
+  pointer-events: none;
 }
 .fil-w-segmented-label {
   grid-column: 1;

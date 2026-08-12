@@ -15,7 +15,7 @@ def test_channel_schema_identity():
     schema = FiLChannel.GET_SCHEMA()
     assert schema.node_id == "FiLChannel"
     assert schema.display_name == "📡 Channel"
-    assert schema.category.endswith("/Tools")
+    assert "Tools" in schema.category
 
 
 def test_channel_declares_no_outputs():

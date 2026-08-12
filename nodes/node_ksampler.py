@@ -9,7 +9,7 @@ import logging
 
 from comfy_api.latest import io
 
-from ..common.brand import BRAND, CATEGORY_ROOT
+from ..common.brand import BRAND, CATEGORY_SAMPLING
 from ..common.io_types import FilHiresScript
 from ..common.localization import t
 
@@ -44,7 +44,7 @@ class FiLKSampler(io.ComfyNode):
         return io.Schema(
             node_id="FiLKSampler",
             display_name="⚡ KSampler",
-            category=f"{CATEGORY_ROOT}/Sampling",
+            category=CATEGORY_SAMPLING,
             description="⚡ FiL KSampler — full-featured sampler with every ComfyUI sampler and scheduler, passthrough outputs, built-in preview, and optional HighRes-fix script.",
             inputs=[
                 io.Model.Input("model", tooltip=t("ks_model", "Diffusion model to sample with.")),

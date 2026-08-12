@@ -9,7 +9,7 @@ import logging
 from typing import Any, Optional
 
 from comfy_api.latest import io
-from ..common.brand import BRAND, CATEGORY_ROOT
+from ..common.brand import BRAND, CATEGORY_STYLING
 from ..common.config import is_model_vision_capable
 from ..common.data import get_all_style_keys, get_style_prompt
 from ..common.io_types import FilProviderConfig
@@ -44,7 +44,7 @@ class FiLStyleMixer(io.ComfyNode):
         return io.Schema(
             node_id="FiLStyleMixer",
             display_name="🎛️ Style Mixer",
-            category=f"{CATEGORY_ROOT}/Styling",
+            category=CATEGORY_STYLING,
             description="Blends visual styles and reference images with weighted influence sliders and optional Vision LLM fusion.",
             inputs=[
                 FilProviderConfig.Input(

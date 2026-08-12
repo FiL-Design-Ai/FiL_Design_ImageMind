@@ -22,6 +22,7 @@ EXPECTED = {
     "FiLSignalSwitch",
     "FiLDatasetForge",
     "FiLChannel",
+    "FiLModelCycler",
 }
 NODE_FILES = (
     "node_seed.py",
@@ -40,6 +41,7 @@ NODE_FILES = (
     "node_switch.py",
     "node_dataset.py",
     "node_channel.py",
+    "node_model_cycler.py",
 )
 
 

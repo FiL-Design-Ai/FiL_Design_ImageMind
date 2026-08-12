@@ -61,6 +61,9 @@ describe("DatasetForge folder preview", () => {
 
   it("drops the img/repeats/concept segment for a flat layout", async () => {
     wrapper = mount(DatasetForgeVue, { props: { state: makeState() as never } });
+    const formatHeader = wrapper.findAll(".fil-w-section").find((h) => h.text().includes("File format"));
+    await formatHeader!.trigger("click");
+    await nextTick();
     await segmentedOption(wrapper, "Layout", "📄 Flat").trigger("click");
     await nextTick();
     expect(wrapper.text()).toContain("Will create: my_lora/");
@@ -115,6 +118,9 @@ describe("DatasetForge write-to-disk / technical details", () => {
   it("toggles dry run", async () => {
     const state = makeState();
     wrapper = mount(DatasetForgeVue, { props: { state: state as never } });
+    const writeHeader = wrapper.findAll(".fil-w-section").find((h) => h.text().includes("Write to disk"));
+    await writeHeader!.trigger("click");
+    await nextTick();
     const dryRunSwitch = wrapper.findAll("button.fil-w-switch").find((b) => b.attributes("aria-label")?.includes("Dry run"));
     expect(dryRunSwitch).toBeTruthy();
     await dryRunSwitch!.trigger("click");
@@ -129,13 +135,17 @@ describe("DatasetForge write-to-disk / technical details", () => {
 
   it("only shows JPG quality once format is jpg, after expanding Technical details", async () => {
     wrapper = mount(DatasetForgeVue, { props: { state: makeState() as never } });
-    const header = wrapper.findAll(".fil-w-section").find((h) => h.text().includes("Technical details"));
-    expect(header).toBeTruthy();
-    await header!.trigger("click");
+    const techHeader = wrapper.findAll(".fil-w-section").find((h) => h.text().includes("Technical details"));
+    expect(techHeader).toBeTruthy();
+    await techHeader!.trigger("click");
     await nextTick();
 
     expect(wrapper.text()).toContain("Bucket step");
     expect(wrapper.text()).not.toContain("JPG quality");
+
+    const formatHeader = wrapper.findAll(".fil-w-section").find((h) => h.text().includes("File format"));
+    await formatHeader!.trigger("click");
+    await nextTick();
 
     await segmentedOption(wrapper, "File format", "JPG").trigger("click");
     await nextTick();
@@ -213,8 +223,10 @@ describe("DatasetForge section collapse", () => {
 
     const write = wrapper.findAll("button.fil-w-section").find((h) => h.text().includes("Write to disk"));
     expect(write).toBeTruthy();
+    await write!.trigger("click"); // expand write section
+    await nextTick();
     expect(wrapper.text()).toContain("Dry run");
-    await write!.trigger("click");
+    await write!.trigger("click"); // collapse write section
     await nextTick();
     expect(wrapper.text()).not.toContain("Dry run");
     expect(state.ui.collapsed_write).toBe(true);

@@ -2,71 +2,75 @@
   "node_ids": {
     "FiLSeed": {
       "title": "♻️ Seed",
-      "category": "🎨 FiL Design/Values"
+      "category": "🎨 FiL Design/🔢 Values"
     },
     "FiLProviderLoader": {
       "title": "🔌 Provider Loader",
-      "category": "🎨 FiL Design/LLM"
+      "category": "🎨 FiL Design/🧠 LLM"
     },
     "FiLOpticScanner": {
       "title": "🕵️ Optic Scanner",
-      "category": "🎨 FiL Design/LLM"
+      "category": "🎨 FiL Design/🧠 LLM"
     },
     "FiLNeuroCleaner": {
       "title": "🧹 Cleaner",
-      "category": "🎨 FiL Design/Tools"
+      "category": "🎨 FiL Design/🧰 Tools"
     },
     "FiLUpscaleTileCalc": {
       "title": "🔍 Upscaler Advanced",
-      "category": "🎨 FiL Design/Image"
+      "category": "🎨 FiL Design/🖼️ Image"
     },
     "FiLUpscaleSimple": {
       "title": "🔍 Upscaler Simple",
-      "category": "🎨 FiL Design/Image"
+      "category": "🎨 FiL Design/🖼️ Image"
     },
     "FiLTileAssembly": {
       "title": "🧩 Tile Assembly",
-      "category": "🎨 FiL Design/Image"
+      "category": "🎨 FiL Design/🖼️ Image"
     },
     "FiLKSampler": {
       "title": "⚡ KSampler",
-      "category": "🎨 FiL Design/Sampling"
+      "category": "🎨 FiL Design/⚡ Sampling"
     },
     "FiLHighResFix": {
       "title": "🔬 HighRes Fix",
-      "category": "🎨 FiL Design/Sampling"
+      "category": "🎨 FiL Design/⚡ Sampling"
     },
     "FiLNoiseControl": {
       "title": "🎛️ Noise Control",
-      "category": "🎨 FiL Design/Sampling"
+      "category": "🎨 FiL Design/⚡ Sampling"
     },
     "FiLImageDecomposer": {
       "title": "👁️‍🗨️ Image Decomposer",
-      "category": "🎨 FiL Design/Analysis"
+      "category": "🎨 FiL Design/🔍 Analysis"
     },
     "FiLStyleMixer": {
       "title": "🎛️ Style Mixer",
-      "category": "🎨 FiL Design/Styling"
+      "category": "🎨 FiL Design/🎨 Styling"
     },
     "FiLCinemaRig": {
       "title": "🎬 Cinema Rig",
-      "category": "🎨 FiL Design/Styling"
+      "category": "🎨 FiL Design/🎨 Styling"
     },
     "FiLColorWizard": {
       "title": "🎨 Color Wizard",
-      "category": "🎨 FiL Design/Image"
+      "category": "🎨 FiL Design/🖼️ Image"
     },
     "FiLSignalSwitch": {
       "title": "🔀 Cyber Switch",
-      "category": "🎨 FiL Design/Tools"
+      "category": "🎨 FiL Design/🧰 Tools"
     },
     "FiLDatasetForge": {
       "title": "📚 LoRA Dataset Forge",
-      "category": "🎨 FiL Design/Dataset"
+      "category": "🎨 FiL Design/📁 Dataset"
     },
     "FiLChannel": {
       "title": "📡 Channel",
-      "category": "🎨 FiL Design/Tools"
+      "category": "🎨 FiL Design/🧰 Tools"
+    },
+    "FiLModelCycler": {
+      "title": "🔄 Model Cycler",
+      "category": "🎨 FiL Design/🧰 Tools"
     }
   },
   "schemas": {
@@ -117,6 +121,9 @@
                 "IMAGE",
                 "MASK",
                 "LATENT",
+                "MODEL",
+                "CLIP",
+                "VAE",
                 "ANY"
               ],
               "title": "Type",
@@ -476,6 +483,9 @@
                 "IMAGE",
                 "MASK",
                 "LATENT",
+                "MODEL",
+                "CLIP",
+                "VAE",
                 "ANY"
               ],
               "title": "Type",
@@ -835,6 +845,9 @@
                 "IMAGE",
                 "MASK",
                 "LATENT",
+                "MODEL",
+                "CLIP",
+                "VAE",
                 "ANY"
               ],
               "title": "Type",
@@ -1194,6 +1207,9 @@
                 "IMAGE",
                 "MASK",
                 "LATENT",
+                "MODEL",
+                "CLIP",
+                "VAE",
                 "ANY"
               ],
               "title": "Type",
@@ -1553,6 +1569,9 @@
                 "IMAGE",
                 "MASK",
                 "LATENT",
+                "MODEL",
+                "CLIP",
+                "VAE",
                 "ANY"
               ],
               "title": "Type",
@@ -1912,6 +1931,9 @@
                 "IMAGE",
                 "MASK",
                 "LATENT",
+                "MODEL",
+                "CLIP",
+                "VAE",
                 "ANY"
               ],
               "title": "Type",
@@ -2271,6 +2293,9 @@
                 "IMAGE",
                 "MASK",
                 "LATENT",
+                "MODEL",
+                "CLIP",
+                "VAE",
                 "ANY"
               ],
               "title": "Type",
@@ -2630,6 +2655,9 @@
                 "IMAGE",
                 "MASK",
                 "LATENT",
+                "MODEL",
+                "CLIP",
+                "VAE",
                 "ANY"
               ],
               "title": "Type",
@@ -2989,6 +3017,9 @@
                 "IMAGE",
                 "MASK",
                 "LATENT",
+                "MODEL",
+                "CLIP",
+                "VAE",
                 "ANY"
               ],
               "title": "Type",
@@ -3348,6 +3379,9 @@
                 "IMAGE",
                 "MASK",
                 "LATENT",
+                "MODEL",
+                "CLIP",
+                "VAE",
                 "ANY"
               ],
               "title": "Type",
@@ -3707,6 +3741,9 @@
                 "IMAGE",
                 "MASK",
                 "LATENT",
+                "MODEL",
+                "CLIP",
+                "VAE",
                 "ANY"
               ],
               "title": "Type",
@@ -4066,6 +4103,9 @@
                 "IMAGE",
                 "MASK",
                 "LATENT",
+                "MODEL",
+                "CLIP",
+                "VAE",
                 "ANY"
               ],
               "title": "Type",
@@ -4425,6 +4465,9 @@
                 "IMAGE",
                 "MASK",
                 "LATENT",
+                "MODEL",
+                "CLIP",
+                "VAE",
                 "ANY"
               ],
               "title": "Type",
@@ -4784,6 +4827,9 @@
                 "IMAGE",
                 "MASK",
                 "LATENT",
+                "MODEL",
+                "CLIP",
+                "VAE",
                 "ANY"
               ],
               "title": "Type",
@@ -5143,6 +5189,9 @@
                 "IMAGE",
                 "MASK",
                 "LATENT",
+                "MODEL",
+                "CLIP",
+                "VAE",
                 "ANY"
               ],
               "title": "Type",
@@ -5502,6 +5551,9 @@
                 "IMAGE",
                 "MASK",
                 "LATENT",
+                "MODEL",
+                "CLIP",
+                "VAE",
                 "ANY"
               ],
               "title": "Type",
@@ -5861,6 +5913,371 @@
                 "IMAGE",
                 "MASK",
                 "LATENT",
+                "MODEL",
+                "CLIP",
+                "VAE",
+                "ANY"
+              ],
+              "title": "Type",
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "type"
+          ],
+          "title": "NodeOutput",
+          "type": "object"
+        },
+        "WidgetKind": {
+          "description": "Frontend rendering hint for a single widget.",
+          "enum": [
+            "combo",
+            "segmented",
+            "chip_grid",
+            "chip_list",
+            "number",
+            "slider",
+            "boolean",
+            "string",
+            "color",
+            "dict",
+            "custom"
+          ],
+          "title": "WidgetKind",
+          "type": "string"
+        },
+        "WidgetSpec": {
+          "additionalProperties": false,
+          "description": "A single widget on a node body.",
+          "properties": {
+            "name": {
+              "description": "Widget name; matches the ComfyUI INPUT_TYPES key.",
+              "title": "Name",
+              "type": "string"
+            },
+            "kind": {
+              "$ref": "#/$defs/WidgetKind"
+            },
+            "label": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional display label (defaults to the widget name).",
+              "title": "Label"
+            },
+            "default": {
+              "default": null,
+              "title": "Default"
+            },
+            "tooltip": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Tooltip"
+            },
+            "values": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Values"
+            },
+            "columns": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Layout hint for chip grids.",
+              "title": "Columns"
+            },
+            "searchable": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Whether a chip list shows a search box.",
+              "title": "Searchable"
+            },
+            "multiline": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Whether string widget uses multiline textarea.",
+              "title": "Multiline"
+            },
+            "min": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Min"
+            },
+            "max": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Max"
+            },
+            "step": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Step"
+            },
+            "units": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Units"
+            },
+            "options": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Options"
+            },
+            "section": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Section"
+            },
+            "visible_when": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Visible When"
+            },
+            "visible_when_value": {
+              "anyOf": [
+                {},
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Visible When Value"
+            }
+          },
+          "required": [
+            "name",
+            "kind"
+          ],
+          "title": "WidgetSpec",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Full frontend contract for a single FiL Design ImageMind node.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "category": {
+          "title": "Category",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "inputs": {
+          "$ref": "#/$defs/NodeInputs"
+        },
+        "outputs": {
+          "items": {
+            "$ref": "#/$defs/NodeOutput"
+          },
+          "title": "Outputs",
+          "type": "array"
+        },
+        "min_size": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min Size"
+        },
+        "family": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Family"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "category"
+      ],
+      "title": "NodeContract",
+      "type": "object"
+    },
+    "FiLModelCycler": {
+      "$defs": {
+        "NodeInputs": {
+          "additionalProperties": false,
+          "properties": {
+            "required": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Required",
+              "type": "array"
+            },
+            "optional": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Optional",
+              "type": "array"
+            },
+            "hidden": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Hidden",
+              "type": "array"
+            }
+          },
+          "title": "NodeInputs",
+          "type": "object"
+        },
+        "NodeOutput": {
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "title": "Name",
+              "type": "string"
+            },
+            "type": {
+              "enum": [
+                "INT",
+                "FLOAT",
+                "STRING",
+                "BOOLEAN",
+                "DICT",
+                "IMAGE",
+                "MASK",
+                "LATENT",
+                "MODEL",
+                "CLIP",
+                "VAE",
                 "ANY"
               ],
               "title": "Type",
@@ -6178,7 +6595,7 @@
     "FiLSeed": {
       "id": "FiLSeed",
       "title": "♻️ Seed",
-      "category": "🎨 FiL Design/Values",
+      "category": "🎨 FiL Design/🔢 Values",
       "description": "Fixed or randomized seed with reuse buttons.",
       "inputs": {
         "required": [
@@ -6273,7 +6690,7 @@
         }
       ],
       "min_size": [
-        250,
+        300,
         90
       ],
       "family": "value"
@@ -6281,7 +6698,7 @@
     "FiLProviderLoader": {
       "id": "FiLProviderLoader",
       "title": "🔌 Provider Loader",
-      "category": "🎨 FiL Design/LLM",
+      "category": "🎨 FiL Design/🧠 LLM",
       "description": "Provider and model runtime configuration.",
       "inputs": {
         "required": [
@@ -6471,7 +6888,7 @@
     "FiLOpticScanner": {
       "id": "FiLOpticScanner",
       "title": "🕵️ Optic Scanner",
-      "category": "🎨 FiL Design/LLM",
+      "category": "🎨 FiL Design/🧠 LLM",
       "description": "Image analysis or text-idea expansion into a generation prompt.",
       "inputs": {
         "required": [
@@ -7345,7 +7762,7 @@
     "FiLNeuroCleaner": {
       "id": "FiLNeuroCleaner",
       "title": "🧹 Cleaner",
-      "category": "🎨 FiL Design/Tools",
+      "category": "🎨 FiL Design/🧰 Tools",
       "description": "GPU VRAM and loaded model memory cleanup.",
       "inputs": {
         "required": [
@@ -7406,7 +7823,7 @@
     "FiLUpscaleTileCalc": {
       "id": "FiLUpscaleTileCalc",
       "title": "🔍 Upscaler Advanced",
-      "category": "🎨 FiL Design/Image",
+      "category": "🎨 FiL Design/🖼️ Image",
       "description": "Computes optimal tile grid layout for upscaling.",
       "inputs": {
         "required": [
@@ -7706,7 +8123,7 @@
     "FiLUpscaleSimple": {
       "id": "FiLUpscaleSimple",
       "title": "🔍 Upscaler Simple",
-      "category": "🎨 FiL Design/Image",
+      "category": "🎨 FiL Design/🖼️ Image",
       "description": "Upscale + tile an image through a required model — same tiling controls as Advanced.",
       "inputs": {
         "required": [
@@ -7942,7 +8359,7 @@
     "FiLTileAssembly": {
       "id": "FiLTileAssembly",
       "title": "🧩 Tile Assembly",
-      "category": "🎨 FiL Design/Image",
+      "category": "🎨 FiL Design/🖼️ Image",
       "description": "Recombines processed tiles back into one image, feathered across the real overlap zones.",
       "inputs": {
         "required": [],
@@ -7964,7 +8381,7 @@
     "FiLKSampler": {
       "id": "FiLKSampler",
       "title": "⚡ KSampler",
-      "category": "🎨 FiL Design/Sampling",
+      "category": "🎨 FiL Design/⚡ Sampling",
       "description": "Full-featured sampler with every sampler and scheduler.",
       "inputs": {
         "required": [
@@ -8212,7 +8629,7 @@
     "FiLHighResFix": {
       "id": "FiLHighResFix",
       "title": "🔬 HighRes Fix",
-      "category": "🎨 FiL Design/Sampling",
+      "category": "🎨 FiL Design/⚡ Sampling",
       "description": "Packs latent/pixel upscale + re-sample settings into a script.",
       "inputs": {
         "required": [
@@ -8524,7 +8941,7 @@
     "FiLNoiseControl": {
       "id": "FiLNoiseControl",
       "title": "🎛️ Noise Control",
-      "category": "🎨 FiL Design/Sampling",
+      "category": "🎨 FiL Design/⚡ Sampling",
       "description": "RNG source + seed-variation script for FiLKSampler.",
       "inputs": {
         "required": [
@@ -8619,14 +9036,14 @@
       ],
       "min_size": [
         250,
-        120
+        160
       ],
       "family": "sampling"
     },
     "FiLImageDecomposer": {
       "id": "FiLImageDecomposer",
       "title": "👁️‍🗨️ Image Decomposer",
-      "category": "🎨 FiL Design/Analysis",
+      "category": "🎨 FiL Design/🔍 Analysis",
       "description": "Decomposes image or prompt into Subject, Lighting, Composition, Style, and Full Prompt outputs.",
       "inputs": {
         "required": [
@@ -8707,7 +9124,7 @@
     "FiLStyleMixer": {
       "id": "FiLStyleMixer",
       "title": "🎛️ Style Mixer",
-      "category": "🎨 FiL Design/Styling",
+      "category": "🎨 FiL Design/🎨 Styling",
       "description": "Blends visual styles and reference images with weighted influence sliders and optional Vision LLM fusion.",
       "inputs": {
         "required": [
@@ -10299,8 +10716,8 @@
     "FiLCinemaRig": {
       "id": "FiLCinemaRig",
       "title": "🎬 Cinema Rig",
-      "category": "🎨 FiL Design/Styling",
-      "description": "Assembles a cinematic shot prompt from camera-rig axes: body, lens, focal length, aperture and color grade, wrapped in film or digital medium language, with an optional LLM polish.",
+      "category": "🎨 FiL Design/🎨 Styling",
+      "description": "Assembles a cinematic shot prompt from 11 camera-rig axes: body, lens, focal length, aperture, angle, framing, movement, lighting, optics filter, director style and color grade, wrapped in film or digital medium language, with an optional LLM polish.",
       "inputs": {
         "required": [
           {
@@ -10343,6 +10760,28 @@
             "section": null,
             "visible_when": null,
             "visible_when_value": null
+          },
+          {
+            "name": "setup_mode",
+            "kind": "segmented",
+            "label": "Setup mode",
+            "default": "Director Preset",
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": [
+              "Director Preset",
+              "Custom Hardware"
+            ],
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
           }
         ],
         "optional": [
@@ -10353,6 +10792,7 @@
             "default": "RED V-RAPTOR XL",
             "tooltip": null,
             "values": [
+              "Auto / Neutral",
               "ARRI Alexa 65 (Large Format)",
               "RED V-RAPTOR XL",
               "IMAX MSM 9802 70mm",
@@ -10379,6 +10819,7 @@
             "default": "Helios 44-2 (Vintage)",
             "tooltip": null,
             "values": [
+              "Auto / Neutral",
               "Panavision C-Series Anamorphic",
               "Cooke S4/i Primes",
               "ARRI Signature Primes",
@@ -10405,6 +10846,7 @@
             "default": "50mm (Human Eye)",
             "tooltip": null,
             "values": [
+              "Auto / Neutral",
               "14mm (Ultra Wide)",
               "24mm (Wide)",
               "35mm (Classic)",
@@ -10431,11 +10873,175 @@
             "default": "f/11 (Deep Focus)",
             "tooltip": null,
             "values": [
+              "Auto / Neutral",
               "f/0.95 (Dreamlike)",
               "f/1.4 (Cinematic Shallow)",
               "f/2.8 (Standard)",
               "f/5.6 (Contextual)",
               "f/11 (Deep Focus)"
+            ],
+            "columns": null,
+            "searchable": true,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "camera_angle",
+            "kind": "chip_list",
+            "label": "Camera angle",
+            "default": "Auto / Neutral",
+            "tooltip": null,
+            "values": [
+              "Auto / Neutral",
+              "Eye Level (Neutral)",
+              "Low Angle (Heroic)",
+              "High Angle (Vulnerable)",
+              "Dutch Angle (Dynamic Tilt)",
+              "Bird's Eye View (Top-Down)",
+              "Worm's Eye View (Ground Up)",
+              "Over-The-Shoulder (OTS)"
+            ],
+            "columns": null,
+            "searchable": true,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "shot_framing",
+            "kind": "chip_list",
+            "label": "Shot framing",
+            "default": "Auto / Neutral",
+            "tooltip": null,
+            "values": [
+              "Auto / Neutral",
+              "Extreme Close-up (ECU)",
+              "Close-up (CU)",
+              "Medium Close-up (MCU)",
+              "Medium Shot (MS)",
+              "Cowboy Shot (American)",
+              "Wide Shot (WS)",
+              "Extreme Wide Shot (EWS)"
+            ],
+            "columns": null,
+            "searchable": true,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "camera_movement",
+            "kind": "chip_list",
+            "label": "Camera movement",
+            "default": "Static (Tripod Locked)",
+            "tooltip": null,
+            "values": [
+              "Auto / Neutral",
+              "Static (Tripod Locked)",
+              "Handheld (Raw & Shaky)",
+              "Steadicam (Smooth Tracking)",
+              "Dolly Zoom (Vertigo Effect)",
+              "Crane / Drone Shot (Flyby)",
+              "Orbit / Arc Shot (Circle)"
+            ],
+            "columns": null,
+            "searchable": true,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "lighting_setup",
+            "kind": "chip_list",
+            "label": "Lighting setup",
+            "default": "Auto / Natural",
+            "tooltip": null,
+            "values": [
+              "Auto / Natural",
+              "Volumetric Haze (Rays)",
+              "Chiaroscuro (Hard Contrast)",
+              "Rembrandt (Soft Portrait)",
+              "Rim / Backlight (Halo)",
+              "Practical Neon (Motivated)",
+              "Golden Hour (Warm Glow)",
+              "Day for Night (Cool Blue)"
+            ],
+            "columns": null,
+            "searchable": true,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "optics_filter",
+            "kind": "chip_list",
+            "label": "Optics filter",
+            "default": "None / Pure Optic",
+            "tooltip": null,
+            "values": [
+              "None / Pure Optic",
+              "Black Pro-Mist (Soft Bloom)",
+              "Anamorphic Blue Flares",
+              "Anamorphic Gold Flares",
+              "Heavy Film Grain (ISO 800)",
+              "Subtle Film Grain (ISO 200)"
+            ],
+            "columns": null,
+            "searchable": true,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "director_preset",
+            "kind": "chip_list",
+            "label": "Director preset",
+            "default": "Custom Rig",
+            "tooltip": null,
+            "values": [
+              "Custom Rig",
+              "Roger Deakins (Volumetric ARRI)",
+              "Christopher Nolan (IMAX 70mm)",
+              "Wong Kar-wai (Neon & Motion)",
+              "Denis Villeneuve (Monolithic Sci-Fi)",
+              "Quentin Tarantino (Punchy 35mm)"
             ],
             "columns": null,
             "searchable": true,
@@ -10475,6 +11081,7 @@
             "default": "Teal & Orange (Blockbuster)",
             "tooltip": null,
             "values": [
+              "Auto / Neutral",
               "Teal & Orange (Blockbuster)",
               "Bleach Bypass (Gritty)",
               "Fincher Green (Thriller)",
@@ -10546,7 +11153,7 @@
     "FiLColorWizard": {
       "id": "FiLColorWizard",
       "title": "🎨 Color Wizard",
-      "category": "🎨 FiL Design/Image",
+      "category": "🎨 FiL Design/🖼️ Image",
       "description": "Automatically corrects image colours using white balance, LAB contrast enhancement, channel stretching, reference colour matching, and WB picker.",
       "inputs": {
         "required": [
@@ -10690,7 +11297,7 @@
     "FiLSignalSwitch": {
       "id": "FiLSignalSwitch",
       "title": "🔀 Cyber Switch",
-      "category": "🎨 FiL Design/Tools",
+      "category": "🎨 FiL Design/🧰 Tools",
       "description": "Universal signal pass-through toggle.",
       "inputs": {
         "required": [
@@ -10729,7 +11336,7 @@
     "FiLDatasetForge": {
       "id": "FiLDatasetForge",
       "title": "📚 LoRA Dataset Forge",
-      "category": "🎨 FiL Design/Dataset",
+      "category": "🎨 FiL Design/📁 Dataset",
       "description": "Batch → aspect-bucketed images + LLM captions written as a kohya/flat LoRA dataset.",
       "inputs": {
         "required": [
@@ -11177,7 +11784,7 @@
     "FiLChannel": {
       "id": "FiLChannel",
       "title": "📡 Channel",
-      "category": "🎨 FiL Design/Tools",
+      "category": "🎨 FiL Design/🧰 Tools",
       "description": "Send data across the graph without wires.",
       "inputs": {
         "required": [],
@@ -11188,6 +11795,263 @@
       "min_size": [
         250,
         80
+      ],
+      "family": "tool"
+    },
+    "FiLModelCycler": {
+      "id": "FiLModelCycler",
+      "title": "🔄 Model Cycler",
+      "category": "🎨 FiL Design/🧰 Tools",
+      "description": "Automatically cycles through diffusion models or checkpoints on each generation.",
+      "inputs": {
+        "required": [
+          {
+            "name": "source_mode",
+            "kind": "combo",
+            "label": "Source mode",
+            "default": "Checkpoints",
+            "tooltip": null,
+            "values": [
+              "Checkpoints",
+              "Diffusion Models"
+            ],
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "model_list",
+            "kind": "string",
+            "label": "Model list",
+            "default": "",
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "multiline": true,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "filter_pattern",
+            "kind": "string",
+            "label": "Filter pattern",
+            "default": "",
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "cycle_mode",
+            "kind": "combo",
+            "label": "Cycle mode",
+            "default": "Sequential (Loop)",
+            "tooltip": null,
+            "values": [
+              "Sequential (Loop)",
+              "Sequential (Stop)",
+              "Ping-Pong",
+              "Random",
+              "Fixed Index"
+            ],
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "index",
+            "kind": "number",
+            "label": "Index",
+            "default": 0,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": 0,
+            "max": 99999,
+            "step": 1,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "auto_advance",
+            "kind": "boolean",
+            "label": "Auto advance",
+            "default": true,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "unload_previous",
+            "kind": "boolean",
+            "label": "Unload previous",
+            "default": true,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "free_vram",
+            "kind": "boolean",
+            "label": "Free VRAM",
+            "default": true,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "skip_on_error",
+            "kind": "boolean",
+            "label": "Skip on error",
+            "default": true,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          }
+        ],
+        "optional": [
+          {
+            "name": "weight_dtype",
+            "kind": "combo",
+            "label": "Weight dtype",
+            "default": "default",
+            "tooltip": null,
+            "values": [
+              "default",
+              "fp16",
+              "bf16",
+              "fp8_e4m3fn",
+              "fp8_e5m2"
+            ],
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          }
+        ],
+        "hidden": []
+      },
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL"
+        },
+        {
+          "name": "CLIP",
+          "type": "CLIP"
+        },
+        {
+          "name": "VAE",
+          "type": "VAE"
+        },
+        {
+          "name": "MODEL_NAME",
+          "type": "STRING"
+        },
+        {
+          "name": "CLEAN_NAME",
+          "type": "STRING"
+        },
+        {
+          "name": "FORMATTED_LABEL",
+          "type": "STRING"
+        },
+        {
+          "name": "INDEX",
+          "type": "INT"
+        },
+        {
+          "name": "TOTAL_MODELS",
+          "type": "INT"
+        }
+      ],
+      "min_size": [
+        380,
+        220
       ],
       "family": "tool"
     }

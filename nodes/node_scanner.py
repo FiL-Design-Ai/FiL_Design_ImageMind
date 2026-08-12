@@ -6,7 +6,7 @@ from typing import Any
 from comfy_api.latest import io
 
 from ..common.base import FiLError, VisionNotAvailableError
-from ..common.brand import CATEGORY_ROOT
+from ..common.brand import CATEGORY_LLM
 from ..common.clean_output import clean_output
 from ..common.config import get_config, is_model_vision_capable
 from ..common.data import (
@@ -76,7 +76,7 @@ class FiLOpticScanner(io.ComfyNode):
         return io.Schema(
             node_id="FiLOpticScanner",
             display_name="🕵️ Optic Scanner",
-            category=f"{CATEGORY_ROOT}/LLM",
+            category=CATEGORY_LLM,
 description=(
             "👁️ Optic Scanner — analyzes images with LLM vision models and generates "
             "optimized prompts for Z-Image, FLUX, SDXL, QWEN, Krea 2, and Ideogram 4."

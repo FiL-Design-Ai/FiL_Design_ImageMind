@@ -154,7 +154,15 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
     configurable: true,
     get(this: { boxcolor?: string }) {
       if (isNodeFailed(this)) return ACTIVE_PALETTE.danger;
-      if (isNodeRunning(this)) return ACTIVE_PALETTE.accent;
+      // White, not the accent: at rest the dot is ALREADY the accent (the
+      // brand mark set just above), so painting the running state the same
+      // colour made the indicator invisible — verified live by dispatching
+      // the host's own `executing` event and reading the getter back:
+      // idle and running both returned #d0ff00 under nft_vibe. White is what
+      // LiteGraph itself uses for a triggered node (`renderingBoxColor`:
+      // `action_triggered` -> '#FFF'), and no theme accent in this pack is
+      // white, so the two states stay distinct on every one of them.
+      if (isNodeRunning(this)) return "#ffffff";
       return this.boxcolor ?? ACTIVE_PALETTE.accent;
     },
   });

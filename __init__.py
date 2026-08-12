@@ -34,6 +34,7 @@ class FiLExtension(ComfyExtension):
         from .nodes.node_switch import FiLSignalSwitch
         from .nodes.node_dataset import FiLDatasetForge
         from .nodes.node_channel import FiLChannel
+        from .nodes.node_model_cycler import FiLModelCycler
         return filter_release_nodes([
             FiLSeed,
             FiLProviderLoader,
@@ -52,6 +53,7 @@ class FiLExtension(ComfyExtension):
             FiLSignalSwitch,
             FiLDatasetForge,
             FiLChannel,
+            FiLModelCycler,
         ])
 
 

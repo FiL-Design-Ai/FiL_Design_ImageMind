@@ -23,6 +23,7 @@ import { colorWizardNode } from "@/nodes2/nodes/color_wizard";
 import { switchNode } from "@/nodes2/nodes/switch";
 import { datasetForgeNode } from "@/nodes2/nodes/dataset";
 import { channelNode } from "@/nodes2/nodes/channel";
+import { modelCyclerNode } from "@/nodes2/nodes/model_cycler";
 
 export interface NodeModule {
   id: string;
@@ -47,6 +48,7 @@ const modules: NodeModule[] = [
   switchNode,
   datasetForgeNode,
   channelNode,
+  modelCyclerNode,
 ];
 
 export const NODE_MODULES: Record<string, NodeModule> = Object.fromEntries(

@@ -139,7 +139,7 @@ const seed = numField("seed", -1);
 
 function isCollapsed(section: string): boolean {
   const stored = (props.state.ui as Record<string, unknown>)[`collapsed_${section}`];
-  if (stored === undefined) return section === "advanced" || section === "caption_tuning";
+  if (stored === undefined) return section === "advanced" || section === "caption_tuning" || section === "format" || section === "write";
   return Boolean(stored);
 }
 function setCollapsed(section: string, collapsed: boolean) {
@@ -158,7 +158,9 @@ function setCollapsed(section: string, collapsed: boolean) {
         :title="linkedTip('trigger_word', t('ds_trigger', ''))" placeholder="ohwx" />
       <FilTextInput :ref="(el: unknown) => setFieldEl('class_token', el)" :disabled="isLinked('class_token')" v-model="classToken" :label="t('dsp_label_class', '🧍 Class')"
         :title="linkedTip('class_token', t('ds_class', ''))" placeholder="woman" />
-      <FilInfo :text="`${t('dsp_preview_folder', '📁 Will create:')} ${folderPreview}`" />
+      <div class="fil-ds-folder-badge">
+        <span class="fil-ds-folder-label">📁 {{ t('dsp_preview_folder', 'Will create:') }} <code class="fil-ds-folder-path">{{ folderPreview }}</code></span>
+      </div>
     </template>
 
     <FilSection :title="t('dsp_section_format', '2️⃣ File format')"
@@ -239,6 +241,28 @@ function setCollapsed(section: string, collapsed: boolean) {
   display: flex; flex-direction: column; gap: var(--fil-node-gap); padding: var(--fil-node-pad);
   color: var(--fil-text); font-family: ui-sans-serif, system-ui, sans-serif;
   width: 100%; box-sizing: border-box; min-width: 0;
+}
+
+.fil-ds-folder-badge {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--fil-accent) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--fil-accent) 25%, transparent);
+}
+.fil-ds-folder-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--fil-accent-text);
+}
+.fil-ds-folder-path {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--fil-text);
+  word-break: break-all;
 }
 /* The three caption textareas are FilTextArea now — no local field CSS left. */
 </style>

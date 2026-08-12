@@ -1,7 +1,7 @@
 from comfy_api.latest import io
 from comfy_execution.graph_utils import ExecutionBlocker
 
-from ..common.brand import CATEGORY_ROOT
+from ..common.brand import CATEGORY_TOOLS
 from ..common.localization import t
 
 
@@ -11,7 +11,7 @@ class FiLSignalSwitch(io.ComfyNode):
         return io.Schema(
             node_id="FiLSignalSwitch",
             display_name="🔀 Cyber Switch",
-            category=f"{CATEGORY_ROOT}/Tools",
+            category=CATEGORY_TOOLS,
             description=(
                 "🔀 Cyber Switch — universal signal pass-through toggle. Accepts any data type "
                 "(Image, Latent, Model, Clip, String, Int, Float, etc.) and passes it through "

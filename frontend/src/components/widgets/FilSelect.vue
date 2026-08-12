@@ -103,7 +103,7 @@ const selectedHint = computed(
 </script>
 
 <template>
-  <div class="fil-w-select" :class="{ 'inline-label': !!label && inlineLabel }" :title="title">
+  <div class="fil-w-select" :class="{ 'inline-label': !!label && inlineLabel, 'is-disabled': disabled }" :title="title">
     <label v-if="label && !inlineLabel" class="fil-w-select-label">
       <FilIcon v-if="icon" :name="icon" :size="12" />{{ label }}
     </label>
@@ -135,6 +135,10 @@ const selectedHint = computed(
   gap: var(--fil-node-gap);
   width: 100%;
 }
+.fil-w-select.is-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
 .fil-w-select-label {
   grid-column: 1;
   min-width: 0;
@@ -143,7 +147,7 @@ const selectedHint = computed(
   white-space: nowrap;
   font-size: 11px;
   color: var(--fil-muted);
-  font-family: inherit;
+  font-family: var(--fil-font-sans, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
   display: flex;
   align-items: center;
   gap: 4px;
@@ -158,10 +162,23 @@ const selectedHint = computed(
   border-radius: var(--fil-field-radius);
   padding: 5px 8px;
   color: var(--fil-text);
-  font-family: inherit;
+  font-family: var(--fil-font-sans, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
   font-size: 12px;
   outline: none;
   cursor: pointer;
+  text-align: right;
+  text-align-last: right;
+  direction: ltr;
+}
+.fil-w-select-input option {
+  background: var(--fil-panel-alt);
+  color: var(--fil-text);
+  font-family: var(--fil-font-sans, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+  font-size: 12px;
+  text-align: left;
+  text-align-last: left;
+  direction: ltr;
+  padding: 6px 8px;
 }
 .fil-w-select-input:focus {
   border-color: var(--fil-accent);
@@ -208,7 +225,7 @@ const selectedHint = computed(
   padding-left: 8px;
   font-size: 11px;
   color: var(--fil-muted);
-  font-family: inherit;
+  font-family: var(--fil-font-sans, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
   pointer-events: none;
   display: flex;
   align-items: center;
@@ -221,18 +238,13 @@ const selectedHint = computed(
   width: auto;
   min-width: 0;
   height: 100%;
-  /* NOT transparent: a native <select> popup takes its background from the
-   * <select> element's own computed background, not its parent's — with
-   * `transparent` here Chrome painted the dropdown list on the page's white
-   * default while `color` stayed `--fil-text` (near-white), so every option
-   * rendered as invisible light-on-white text. Matching the wrapper's own
-   * fill keeps the seamless look (identical colour, no visible seam) while
-   * giving the popup a real colour to render option text against. */
   background: var(--fil-panel-alt);
   border: none;
   border-radius: 0;
   padding: 0 4px 0 6px;
   text-align: right;
+  text-align-last: right;
+  direction: ltr;
 }
 .fil-w-select.inline-label .fil-w-select-input:focus-visible {
   outline: 2px solid var(--fil-accent);

@@ -140,3 +140,30 @@ export function sanitizeWidgetValue<T>(
   );
   return fallback;
 }
+
+/**
+ * Validate that a COMBO/enum widget's value belongs to the allowed backend contract options.
+ * Pixaroma pattern: prevents invalid or deprecated string options from reaching execute().
+ */
+export function validateWidgetComboValue<T extends string>(
+  w: ComfyLikeWidget | undefined,
+  validOptions: readonly T[],
+  fallback: T,
+): T {
+  if (!w) return fallback;
+  const val = String(w.value);
+  if (validOptions.includes(val as T)) return val as T;
+  w.value = fallback;
+  console.warn(
+    `[FiL_Design_ImageMind] widget "${w.name}" had an invalid combo option "${val}" — resetting to default "${fallback}".`,
+  );
+  return fallback;
+}
+
+/**
+ * Generate a random safe integer seed suitable for ComfyUI nodes (up to MAX_SAFE_INTEGER).
+ */
+export function randomSeed(): number {
+  return Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
+}
+

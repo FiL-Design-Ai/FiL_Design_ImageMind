@@ -53,9 +53,13 @@ const needsInput = computed(() => !hasImage.value && !prompt.value.trim() && !is
 
 <template>
   <div class="fil-idc-root">
+    <!-- No label: the placeholder already says what the box is for, and a
+         one-word caption over a 4-row textarea only costs a row. Same shape
+         Optic Scanner's prompt fields have. Dropping it also puts FilTextArea
+         on its documented single-root path, where the component's `$el` IS
+         the textarea — which is what `setFieldEl` anchors the socket dot to. -->
     <FilTextArea :ref="(el: unknown) => setFieldEl('prompt', el)"
       v-model="prompt" :rows="4" :linked="isLinked('prompt')"
-      :label="t('idcp_prompt', '📝 Prompt')"
       :placeholder="t('idcp_prompt_placeholder', 'Describe the scene, or wire an image instead…')"
       :title="isLinked('prompt')
         ? t('fld_linked_tt', 'Driven by the connected input — disconnect it to edit here.')
@@ -66,7 +70,7 @@ const needsInput = computed(() => !hasImage.value && !prompt.value.trim() && !is
     </p>
 
     <FilSegmented v-model="language" :options="languageOptions" :option-labels="LANGUAGE_LABELS"
-      :label="t('idcp_language', '🌐 Output language')"
+      :label="t('idcp_language', '🌐 Language')"
       :title="t('idcp_language_tt', 'Language of the decomposed Subject / Lighting / Composition / Style outputs.')" />
   </div>
 </template>

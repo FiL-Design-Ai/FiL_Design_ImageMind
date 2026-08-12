@@ -36,6 +36,7 @@ RELEASE_NODES: set[str] = {
     "FiLSignalSwitch",
     "FiLDatasetForge",
     "FiLChannel",
+    "FiLModelCycler",
 }
 
 _TRUTHY = {"1", "true", "yes", "on"}

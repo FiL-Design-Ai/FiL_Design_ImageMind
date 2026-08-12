@@ -1,6 +1,6 @@
 from comfy_api.latest import io
 
-from ..common.brand import CATEGORY_ROOT
+from ..common.brand import CATEGORY_TOOLS
 from ..common.localization import t
 
 # Sanity limit, not a design one: core caps a template at 100 names, and every
@@ -38,7 +38,7 @@ class FiLChannel(io.ComfyNode):
         return io.Schema(
             node_id="FiLChannel",
             display_name="📡 Channel",
-            category=f"{CATEGORY_ROOT}/Tools",
+            category=CATEGORY_TOOLS,
             description=(
                 "📡 FiL Channel — send data across the graph without wires. Plug anything in, and "
                 "free inputs of the same type pick it up. Inputs grow as you use them, so one node "

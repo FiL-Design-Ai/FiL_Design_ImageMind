@@ -13,7 +13,7 @@ import re
 from typing import Any, Dict
 
 from comfy_api.latest import io
-from ..common.brand import BRAND, CATEGORY_ROOT
+from ..common.brand import BRAND, CATEGORY_ANALYSIS
 from ..common.config import is_model_vision_capable
 from ..common.data import LANGUAGES
 from ..common.io_types import FilProviderConfig
@@ -80,7 +80,7 @@ class FiLImageDecomposer(io.ComfyNode):
         return io.Schema(
             node_id="FiLImageDecomposer",
             display_name="👁️‍🗨️ Image Decomposer",
-            category=f"{CATEGORY_ROOT}/Analysis",
+            category=CATEGORY_ANALYSIS,
             description="Decomposes image or prompt into Subject, Lighting, Composition, Style, and Full Prompt outputs.",
             inputs=[
                 FilProviderConfig.Input("config", tooltip="Provider Loader config connection."),

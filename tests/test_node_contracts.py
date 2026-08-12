@@ -33,6 +33,7 @@ EXPECTED_IDS = {
     "FiLSignalSwitch",
     "FiLDatasetForge",
     "FiLChannel",
+    "FiLModelCycler",
 }
 
 

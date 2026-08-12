@@ -35,6 +35,7 @@ const NODE_ID_BY_FILE: Record<string, string> = {
   "ImageDecomposerPanel.vue": "FiLImageDecomposer",
   "ChannelPanel.vue": "FiLChannel",
   "TileAssemblyPanel.vue": "FiLTileAssembly",
+  "ModelCyclerPanel.vue": "FiLModelCycler",
 };
 
 /**

@@ -50,9 +50,28 @@ function createRef<T>(name: string, defaultValue: T) {
 
 const method = createRef<string>("method", "Full Auto");
 const strength = createRef<number>("strength", 0.8);
+const saturate = createRef<number>("saturate", 0.5);
 const temperature = createRef<number>("temperature", 0.0);
 const tint = createRef<number>("tint", 0.0);
 const preserveSkin = createRef<boolean>("preserve_skin", false);
+
+function isSlotConnected(slotName: string): boolean {
+  const node = props.state.node as { inputs?: Array<{ name: string; link: number | null }> } | undefined;
+  if (!node?.inputs) return false;
+  const slot = node.inputs.find((s) => s.name === slotName);
+  return Boolean(slot && slot.link != null);
+}
+
+const hasReference = computed(() => isSlotConnected("reference"));
+const hasWBMask = computed(() => isSlotConnected("wb_mask"));
+
+function resetAdjustments() {
+  strength.value = 0.8;
+  saturate.value = 0.5;
+  temperature.value = 0.0;
+  tint.value = 0.0;
+  preserveSkin.value = false;
+}
 
 function applyPreset(preset: "warm" | "cool" | "skin" | "contrast") {
   if (preset === "warm") {
@@ -96,6 +115,16 @@ function setCollapsed(section: string, collapsed: boolean) {
 
 <template>
   <div class="fil-color-wizard-root">
+    <!-- Active Inputs Badges -->
+    <div v-if="hasReference || hasWBMask" class="fil-cw-status-bar">
+      <span v-if="hasReference" class="fil-cw-status-badge" :title="t('tt_cw_reference', 'Reference image connected')">
+        🟢 {{ t('cw_connected_ref', 'Ref Image') }}
+      </span>
+      <span v-if="hasWBMask" class="fil-cw-status-badge" :title="t('tt_cw_wb_mask', 'WB mask connected')">
+        🟢 {{ t('cw_connected_wb', 'WB Mask') }}
+      </span>
+    </div>
+
     <!-- Quick Presets -->
     <div class="fil-cw-presets-block">
       <div class="fil-cw-presets-title">{{ t('cw_presets', '⚡ Quick Presets') }}</div>
@@ -130,14 +159,24 @@ function setCollapsed(section: string, collapsed: boolean) {
     />
 
     <!-- Adjustment Sliders -->
-    <FilSection :title="t('cw_section_adjust', '🎛️ Adjustments')"
-      :model-value="isCollapsed('adjust')" @update:model-value="(v: boolean) => setCollapsed('adjust', v)" />
+    <div class="fil-cw-adjust-header">
+      <FilSection :title="t('cw_section_adjust', '🎛️ Adjustments')"
+        :model-value="isCollapsed('adjust')" @update:model-value="(v: boolean) => setCollapsed('adjust', v)" />
+      <button v-if="!isCollapsed('adjust')" type="button" class="fil-cw-reset-btn" :title="t('cw_reset_tt', 'Reset sliders to default values')" @click="resetAdjustments">
+        {{ t('cw_reset', '↺ Reset') }}
+      </button>
+    </div>
+
     <template v-if="!isCollapsed('adjust')">
       <div class="fil-cw-slider-group">
         <FilSlider :ref="(el: unknown) => setFieldEl('strength', el)"
           v-model="strength" :min="0" :max="1" :step="0.05" :disabled="isLinked('strength')" inline-label
           :label="t('cw_strength', 'Correction Strength')"
           :title="linkedTip('strength', t('tt_cw_strength', 'Correction strength (0 = no change).'))" />
+        <FilSlider v-if="method === 'Channel Stretch'" :ref="(el: unknown) => setFieldEl('saturate', el)"
+          v-model="saturate" :min="0" :max="5" :step="0.1" :disabled="isLinked('saturate')" inline-label
+          :label="t('cw_saturate', 'Saturate Percentile')"
+          :title="linkedTip('saturate', t('tt_cw_saturate', 'Percentile saturation for Channel Stretch.'))" />
         <FilSlider :ref="(el: unknown) => setFieldEl('temperature', el)"
           v-model="temperature" :min="-1" :max="1" :step="0.05" :disabled="isLinked('temperature')" inline-label
           :label="t('cw_temperature', 'Temperature (Warm/Cool)')"
@@ -231,6 +270,51 @@ function setCollapsed(section: string, collapsed: boolean) {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+.fil-cw-status-bar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.fil-cw-status-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--fil-ok) 18%, transparent);
+  color: var(--fil-ok);
+  border: 1px solid color-mix(in srgb, var(--fil-ok) 35%, transparent);
+}
+
+.fil-cw-adjust-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
+}
+.fil-cw-adjust-header :deep(.fil-w-section) {
+  flex: 1;
+}
+.fil-cw-reset-btn {
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 4px;
+  border: 1px solid var(--fil-border);
+  background: var(--fil-surface-2);
+  color: var(--fil-muted);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.12s ease;
+  flex-shrink: 0;
+}
+.fil-cw-reset-btn:hover {
+  background: var(--fil-surface-3);
+  color: var(--fil-text);
+  border-color: var(--fil-accent);
 }
 
 </style>

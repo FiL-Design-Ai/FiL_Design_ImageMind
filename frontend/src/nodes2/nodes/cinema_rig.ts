@@ -19,14 +19,20 @@ const CinemaRigVue = defineAsyncComponent(() => import("@/components/nodes/Cinem
  */
 export const CINEMA_RIG_SOCKET_INPUTS = ["scene_prompt"];
 
-/** Mirrors `RIG_DEFAULTS` + schema defaults in nodes/node_cinema_rig.py. */
 const stringDefaults: Record<string, string> = {
   scene_prompt: "",
   mode: "Original Shot",
+  setup_mode: "Director Preset",
   camera: "RED V-RAPTOR XL",
   lens: "Helios 44-2 (Vintage)",
   focal_length: "50mm (Human Eye)",
   aperture: "f/11 (Deep Focus)",
+  camera_angle: "Auto / Neutral",
+  shot_framing: "Auto / Neutral",
+  camera_movement: "Static (Tripod Locked)",
+  lighting_setup: "Auto / Natural",
+  optics_filter: "None / Pure Optic",
+  director_preset: "Custom Rig",
   color_grading: "Teal & Orange (Blockbuster)",
   polish_mode: "Deterministic (Fast)",
 };

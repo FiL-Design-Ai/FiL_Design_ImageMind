@@ -26,7 +26,7 @@ function close() {
   emit("close");
 }
 
-function onBackdropClick(e: MouseEvent) {
+function onBackdropClick(e: MouseEvent | PointerEvent) {
   if (!props.closeOnBackdrop) return;
   if (e.target === e.currentTarget) close();
 }
@@ -103,9 +103,10 @@ onBeforeUnmount(() => {
         role="dialog"
         aria-modal="true"
         :aria-label="title || 'Dialog'"
+        @pointerdown="onBackdropClick"
         @click="onBackdropClick"
       >
-        <div class="fil-modal-panel" :style="{ maxWidth: width }">
+        <div class="fil-modal-panel" :style="{ maxWidth: width }" @pointerdown.stop @click.stop>
           <div class="fil-modal-header">
             <span class="fil-modal-title">{{ title }}</span>
             <button class="fil-modal-close" title="Close" @click="close">

@@ -34,6 +34,7 @@ import { applyWidgetValue } from "@/nodes2/host/stateBridge";
 import { createHeightModel } from "@/nodes2/host/heightModel";
 import { createNodeSizeSync, type SizableNode } from "@/nodes2/host/nodeSizeSync";
 import { observeContent } from "@/nodes2/host/observers";
+import { applyAdaptiveCanvasOnly } from "@/nodes2/nodes2Adapters";
 
 export interface FilWidgetOptions<S extends object = Record<string, unknown>> {
   /** Reactive state object passed to the Vue component as `state` prop. */
@@ -152,6 +153,7 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
   // stay untouched, so panels still save/load as before.
   const wOpts = widget as { options?: Record<string, unknown> };
   wOpts.options = { ...wOpts.options, hideInPanel: true, serialize: false };
+  applyAdaptiveCanvasOnly(wOpts);
 
   heights.attachWidget(widget);
 

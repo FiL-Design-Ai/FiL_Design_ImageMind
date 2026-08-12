@@ -6,7 +6,7 @@ import numpy as np
 import torch
 
 from comfy_api.latest import io
-from ..common.brand import CATEGORY_ROOT
+from ..common.brand import CATEGORY_IMAGE
 from ..common.color_correction import (
     METHODS,
     METHOD_KEYS,
@@ -33,7 +33,7 @@ class FiLColorWizard(io.ComfyNode):
         return io.Schema(
             node_id="FiLColorWizard",
             display_name="🎨 Color Wizard",
-            category=f"{CATEGORY_ROOT}/Image",
+            category=CATEGORY_IMAGE,
             description="Automatically corrects image colours using white balance, LAB contrast enhancement, channel stretching, reference colour matching, and WB picker.",
             inputs=[
                 io.Image.Input("image", tooltip=_t("tt_image", "Input image to colour-correct.")),

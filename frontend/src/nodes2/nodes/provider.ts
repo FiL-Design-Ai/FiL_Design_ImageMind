@@ -38,6 +38,12 @@ export const providerNode: NodeModule = {
     const widgetSpecs = [
       { name: "provider", kind: "string" as const, fallback: "ollama" },
       { name: "model", kind: "string" as const, fallback: "(loading...)" },
+      // Hidden like the rest, so the panel's own switch is the only way to
+      // see or set it — which means it has to be restored from the saved
+      // widget here. Left out of this list, a workflow saved with the switch
+      // ON came back showing OFF (the panel read `undefined` and fell to its
+      // own default) while the widget still queued the saved `true`.
+      { name: "unload_llm", kind: "boolean" as const, fallback: false },
       { name: "temperature", kind: "number" as const, fallback: 0.7 },
       { name: "max_tokens", kind: "number" as const, fallback: 0 },
       { name: "rate_limit_ms", kind: "number" as const, fallback: 100 },
@@ -66,6 +72,7 @@ export const providerNode: NodeModule = {
       const providerWidget = findFilWidget(node, "provider");
       if (providerWidget) (providerWidget as { value?: unknown }).value = initialProvider;
       const initialModel = sanitizeWidgetValue(findFilWidget(node, "model"), "string", "(loading...)");
+      const initialUnloadLlm = sanitizeWidgetValue(findFilWidget(node, "unload_llm"), "boolean", false);
       const initialTemperature = sanitizeWidgetValue(findFilWidget(node, "temperature"), "number", 0.7);
       const initialMaxTokens = sanitizeWidgetValue(findFilWidget(node, "max_tokens"), "number", 0);
       const initialRateLimit = sanitizeWidgetValue(findFilWidget(node, "rate_limit_ms"), "number", 100);
@@ -81,6 +88,7 @@ export const providerNode: NodeModule = {
         nodeState: createSyncedNodeState(node, {
           provider: initialProvider,
           model: initialModel,
+          unload_llm: initialUnloadLlm,
           temperature: initialTemperature,
           max_tokens: initialMaxTokens,
           rate_limit_ms: initialRateLimit,
@@ -89,6 +97,7 @@ export const providerNode: NodeModule = {
         initialValues: {
           provider: initialProvider,
           model: initialModel,
+          unload_llm: initialUnloadLlm,
           temperature: initialTemperature,
           max_tokens: initialMaxTokens,
           rate_limit_ms: initialRateLimit,

@@ -13,7 +13,7 @@ here instead goes through the public ``comfy.sample`` API (see
 
 from comfy_api.latest import io
 
-from ..common.brand import CATEGORY_ROOT
+from ..common.brand import CATEGORY_SAMPLING
 from ..common.io_types import FilHiresScript
 from ..common.localization import t
 
@@ -26,12 +26,12 @@ class FiLNoiseControl(io.ComfyNode):
         return io.Schema(
             node_id="FiLNoiseControl",
             display_name="🎛️ Noise Control",
-            category=f"{CATEGORY_ROOT}/Sampling",
+            category=CATEGORY_SAMPLING,
             description="🎛️ FiL Noise Control — RNG source + seed-variation script for FiLKSampler.",
             inputs=[
                 io.Combo.Input("rng_source", options=_RNG_SOURCES, default="cpu",
                                tooltip=t("nsc_rng_source", "Device the initial noise is drawn on. 'gpu' can better match Automatic1111-style noise for the same seed.")),
-                io.Boolean.Input("add_seed_noise", default=False, label_on="Variation ON", label_off="Variation OFF",
+                io.Boolean.Input("add_seed_noise", default=True, label_on="Variation ON", label_off="Variation OFF",
                                  tooltip=t("nsc_add_seed_noise", "Blend in noise from a second seed for a controlled variation.")),
                 io.Int.Input("seed", default=0, min=0, max=0xFFFFFFFFFFFFFFFF, control_after_generate=True,
                              tooltip=t("nsc_seed", "Variation seed (used when Variation is ON).")),

@@ -1,6 +1,6 @@
 from comfy_api.latest import io
 
-from ..common.brand import CATEGORY_ROOT
+from ..common.brand import CATEGORY_VALUES
 
 SEED_MAX = 0xFFFFFFFFFFFFFFFF
 
@@ -11,7 +11,7 @@ class FiLSeed(io.ComfyNode):
         return io.Schema(
             node_id="FiLSeed",
             display_name="♻️ Seed",
-            category=f"{CATEGORY_ROOT}/Values",
+            category=CATEGORY_VALUES,
             description="🔢 FiL Seed — deterministic or random seed generator. Returns an integer for use as a random seed elsewhere in the graph.",
             inputs=[
                 io.Int.Input("seed", default=0, min=0, max=SEED_MAX,

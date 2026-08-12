@@ -12,7 +12,7 @@ from typing import Any, Optional
 
 from comfy_api.latest import io
 
-from ..common.brand import BRAND, CATEGORY_ROOT
+from ..common.brand import BRAND, CATEGORY_STYLING
 from ..common.cinema_rig import (
     MODE_ORIGINAL,
     POLISH_DETERMINISTIC,
@@ -22,10 +22,17 @@ from ..common.cinema_rig import (
     RIG_MODES,
     aperture_options,
     assemble_rig,
+    camera_angle_options,
+    camera_movement_options,
     camera_options,
+    director_preset_options,
     focal_length_options,
     grading_options,
     lens_options,
+    lighting_setup_options,
+    optics_filter_options,
+    setup_mode_options,
+    shot_framing_options,
 )
 from ..common.io_types import FilProviderConfig
 from ..common.models import ModelClient
@@ -36,28 +43,33 @@ logger = logging.getLogger(f"{BRAND}.CinemaRig")
 _model_client = ModelClient()
 
 _POLISH_SYSTEM_PROMPT = (
-    "You are an expert cinematographer and prompt engineer for modern diffusion models "
-    "(FLUX, Z-Image, Qwen, SDXL).\n"
-    "Rewrite the camera-rig shot breakdown you are given into one fluent, vivid shot description.\n"
-    "Rules:\n"
-    "- Preserve every rig fact: camera body, lens, focal length, aperture, color grade, and the film or digital medium.\n"
-    "- Preserve every scene detail; do not invent new subjects, actions, props or locations.\n"
-    "- Output ONLY the final raw prompt text. Zero conversational introduction or meta commentary."
+    "You are an elite cinematographer and prompt engineer specializing in modern generative models "
+    "(Krea 2, FLUX.1, Z-Image, Qwen-Image, SDXL).\n"
+    "Your task is to rewrite the given camera-rig breakdown and scene description into one dense, cohesive, "
+    "highly vivid motion-picture shot prompt.\n\n"
+    "Optimization Rules for Krea 2 & Modern DiT Architecture:\n"
+    "1. PRESERVE ALL RIG FACTS: Keep camera body, lens model, focal length, aperture, camera angle, shot framing, "
+    "camera movement, lighting setup, optics filter, director style, color grade, and medium texture.\n"
+    "2. TACTILE PHYSICAL TRUTH: Focus on material weight, surface reflections, optical falloff, and Z-index spatial depth.\n"
+    "3. ZERO META-NOISE: Never use buzzwords like 'highly detailed', 'appears to be', '4K', 'masterpiece', or meta-descriptions.\n"
+    "4. SPATIAL STACKING: Describe foreground, midground subject, and background depth cleanly.\n"
+    "5. Output ONLY the final raw prompt text. Zero conversational filler or intro."
 )
 
 
+
 class FiLCinemaRig(io.ComfyNode):
-    """Assembles a cinematic shot prompt from camera, lens, focal length, aperture and color grade axes."""
+    """Assembles a cinematic shot prompt from camera, lens, focal length, aperture, angle, framing, movement, lighting, filter, director style and color grade axes."""
 
     @classmethod
     def define_schema(cls):
         return io.Schema(
             node_id="FiLCinemaRig",
             display_name="🎬 Cinema Rig",
-            category=f"{CATEGORY_ROOT}/Styling",
+            category=CATEGORY_STYLING,
             description=(
-                "Assembles a cinematic shot prompt from camera-rig axes: body, lens, focal length, aperture "
-                "and color grade, wrapped in film or digital medium language, with an optional LLM polish."
+                "Assembles a cinematic shot prompt from 11 camera-rig axes: body, lens, focal length, aperture, "
+                "angle, framing, movement, lighting, optics filter, director style and color grade, wrapped in film or digital medium language, with an optional LLM polish."
             ),
             inputs=[
                 FilProviderConfig.Input(
@@ -84,6 +96,15 @@ class FiLCinemaRig(io.ComfyNode):
                     ),
                 ),
                 io.Combo.Input(
+                    "setup_mode",
+                    options=setup_mode_options(),
+                    default=RIG_DEFAULTS["setup_mode"],
+                    tooltip=(
+                        "Director Preset mode uses signature director visual styles and neutralizes manual hardware controls. "
+                        "Custom Hardware mode enables full manual control of all camera, lens, focal, aperture, and optics controls."
+                    ),
+                ),
+                io.Combo.Input(
                     "camera",
                     options=camera_options(),
                     default=RIG_DEFAULTS["camera"],
@@ -106,6 +127,42 @@ class FiLCinemaRig(io.ComfyNode):
                     options=aperture_options(),
                     default=RIG_DEFAULTS["aperture"],
                     tooltip="Aperture stop: how much of the frame holds focus.",
+                ),
+                io.Combo.Input(
+                    "camera_angle",
+                    options=camera_angle_options(),
+                    default=RIG_DEFAULTS["camera_angle"],
+                    tooltip="Camera angle and elevation relative to the subject.",
+                ),
+                io.Combo.Input(
+                    "shot_framing",
+                    options=shot_framing_options(),
+                    default=RIG_DEFAULTS["shot_framing"],
+                    tooltip="Shot distance and framing scale.",
+                ),
+                io.Combo.Input(
+                    "camera_movement",
+                    options=camera_movement_options(),
+                    default=RIG_DEFAULTS["camera_movement"],
+                    tooltip="Camera movement and rig dynamics.",
+                ),
+                io.Combo.Input(
+                    "lighting_setup",
+                    options=lighting_setup_options(),
+                    default=RIG_DEFAULTS["lighting_setup"],
+                    tooltip="Lighting architecture and atmospheric condition.",
+                ),
+                io.Combo.Input(
+                    "optics_filter",
+                    options=optics_filter_options(),
+                    default=RIG_DEFAULTS["optics_filter"],
+                    tooltip="Lens filter, flares, or film grain texture.",
+                ),
+                io.Combo.Input(
+                    "director_preset",
+                    options=director_preset_options(),
+                    default=RIG_DEFAULTS["director_preset"],
+                    tooltip="Signature director / cinematographer visual style.",
                 ),
                 io.Combo.Input(
                     "color_grading",
@@ -135,6 +192,7 @@ class FiLCinemaRig(io.ComfyNode):
             search_aliases=[
                 "cinema", "cinematic", "film", "camera rig", "director", "shot builder",
                 "lens", "aperture", "focal length", "color grading", "hollywood", "anamorphic",
+                "angle", "framing", "movement", "lighting", "filter", "krea", "krea 2",
             ],
         )
 
@@ -177,10 +235,17 @@ class FiLCinemaRig(io.ComfyNode):
         cls,
         scene_prompt: str = "",
         mode: str = MODE_ORIGINAL,
+        setup_mode: str = RIG_DEFAULTS["setup_mode"],
         camera: str = RIG_DEFAULTS["camera"],
         lens: str = RIG_DEFAULTS["lens"],
         focal_length: str = RIG_DEFAULTS["focal_length"],
         aperture: str = RIG_DEFAULTS["aperture"],
+        camera_angle: str = RIG_DEFAULTS["camera_angle"],
+        shot_framing: str = RIG_DEFAULTS["shot_framing"],
+        camera_movement: str = RIG_DEFAULTS["camera_movement"],
+        lighting_setup: str = RIG_DEFAULTS["lighting_setup"],
+        optics_filter: str = RIG_DEFAULTS["optics_filter"],
+        director_preset: str = RIG_DEFAULTS["director_preset"],
         color_grading: str = RIG_DEFAULTS["color_grading"],
         enable_grading: bool = True,
         polish_mode: str = POLISH_DETERMINISTIC,
@@ -193,9 +258,16 @@ class FiLCinemaRig(io.ComfyNode):
             lens=lens,
             focal_length=focal_length,
             aperture=aperture,
+            camera_angle=camera_angle,
+            shot_framing=shot_framing,
+            camera_movement=camera_movement,
+            lighting_setup=lighting_setup,
+            optics_filter=optics_filter,
+            director_preset=director_preset,
             color_grading=color_grading,
             enable_grading=bool(enable_grading),
             mode=mode,
+            setup_mode=setup_mode,
         )
 
         if polish_mode == POLISH_LLM:
@@ -204,3 +276,4 @@ class FiLCinemaRig(io.ComfyNode):
                 rigged_prompt = polished
 
         return io.NodeOutput(rigged_prompt, rig_overlay)
+

@@ -3,7 +3,7 @@ import logging
 
 from comfy_api.latest import io
 
-from ..common.brand import BRAND, CATEGORY_ROOT
+from ..common.brand import BRAND, CATEGORY_LLM
 from ..common.config import PROVIDERS, get_provider_key
 from ..common.io_types import FilProviderConfig
 from ..common.localization import t
@@ -20,7 +20,7 @@ class FiLProviderLoader(io.ComfyNode):
         return io.Schema(
             node_id="FiLProviderLoader",
             display_name="🔌 Provider Loader",
-            category=f"{CATEGORY_ROOT}/LLM",
+            category=CATEGORY_LLM,
             description="🔌 FiL Provider Loader — selects an LLM provider, model, and generation parameters. Outputs a `config` dict for downstream FiL nodes.",
             inputs=[
                 io.Combo.Input("provider", options=provider_options, default="ollama",

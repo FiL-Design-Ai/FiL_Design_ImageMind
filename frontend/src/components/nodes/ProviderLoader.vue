@@ -7,7 +7,7 @@
  * Uses ProviderModelPicker modal for easy provider & model browsing.
  */
 import { computed, onMounted, ref, watch } from "vue";
-import { FilSlider, FilInfo, FilIcon, FilToggle } from "@/components/widgets";
+import { FilSlider, FilInfo, FilIcon, FilToggle, FilSection } from "@/components/widgets";
 import ProviderModelPicker from "@/components/nodes/ProviderModelPicker.vue";
 import { useProviderStore } from "@/stores/providerStore";
 import { PROVIDER_LABEL, PROVIDER_ICON, LOCAL_PROVIDERS } from "@/composables/providerMeta";
@@ -62,6 +62,14 @@ const ageLabel = computed(() => store.cachedAgeLabel(provider.value, t));
 
 // Restore from a loaded workflow (setValue replaces nodeState).
 watch(() => props.state.nodeState, () => {}, { deep: true });
+
+function isCollapsed(section: string): boolean {
+  const stored = (props.state.ui as Record<string, unknown>)[`collapsed_${section}`];
+  return stored === undefined ? true : Boolean(stored);
+}
+function setCollapsed(section: string, collapsed: boolean) {
+  (props.state.ui as Record<string, unknown>)[`collapsed_${section}`] = collapsed;
+}
 
 function updateWidgetOptions() {
   const node = props.state.node;
@@ -140,18 +148,22 @@ onMounted(async () => {
     <FilToggle v-if="isLocalProvider" :model-value="unloadLlm" :label="t('lbl_unload_llm', '⏏️ Unload LLM after prompt')"
       :title="t('tt_unload_llm', 'Local servers only (Ollama, LM Studio): unload the model from memory right after the prompt is generated, freeing VRAM for the image generation.')"
       @update:model-value="(v: 'ON' | 'OFF') => (unloadLlm = v)" />
-    <FilSlider :model-value="temperature" :min="0" :max="2" :step="0.05" :label="t('lbl_temperature', '🌡️ Temperature')" inline-label
-      :title="t('tt_temperature', 'Sampling temperature — higher is more creative, lower is more deterministic.')"
-      @update:model-value="(v: number) => (state.nodeState.temperature = v)" />
-    <FilSlider :model-value="maxTokens" :min="0" :max="65536" :step="1" :label="t('lbl_max_tokens', '🔢 Max tokens')" inline-label
-      :title="t('tt_provider_max_tokens', 'Maximum tokens in the response. 0 = provider default (no explicit limit).')"
-      @update:model-value="(v: number) => (state.nodeState.max_tokens = v)" />
-    <FilSlider :model-value="rateLimit" :min="0" :max="5000" :step="10" :label="t('lbl_rate_limit', '⏱️ Rate limit')" inline-label
-      :title="t('tt_rate_limit', 'Minimum delay between requests to this provider, to avoid rate limiting.')"
-      @update:model-value="(v: number) => (state.nodeState.rate_limit_ms = v)" />
-    <FilSlider :model-value="maxImageSide" :min="128" :max="4096" :step="64" :label="t('lbl_max_image_side', '🖼️ Max image side')" inline-label
-      :title="t('tt_max_image_side', 'Images are downscaled so their longest side does not exceed this value.')"
-      @update:model-value="(v: number) => (state.nodeState.max_image_side = v)" />
+    <FilSection :title="t('lbl_advanced_settings', '⚙️ Advanced Parameters')"
+      :model-value="isCollapsed('advanced')" @update:model-value="(v: boolean) => setCollapsed('advanced', v)" />
+    <template v-if="!isCollapsed('advanced')">
+      <FilSlider :model-value="temperature" :min="0" :max="2" :step="0.05" :label="t('lbl_temperature', '🌡️ Temperature')" inline-label
+        :title="t('tt_temperature', 'Sampling temperature — higher is more creative, lower is more deterministic.')"
+        @update:model-value="(v: number) => (state.nodeState.temperature = v)" />
+      <FilSlider :model-value="maxTokens" :min="0" :max="65536" :step="1" :label="t('lbl_max_tokens', '🔢 Max tokens')" inline-label
+        :title="t('tt_provider_max_tokens', 'Maximum tokens in the response. 0 = provider default (no explicit limit).')"
+        @update:model-value="(v: number) => (state.nodeState.max_tokens = v)" />
+      <FilSlider :model-value="rateLimit" :min="0" :max="5000" :step="10" :label="t('lbl_rate_limit', '⏱️ Rate limit')" inline-label
+        :title="t('tt_rate_limit', 'Minimum delay between requests to this provider, to avoid rate limiting.')"
+        @update:model-value="(v: number) => (state.nodeState.rate_limit_ms = v)" />
+      <FilSlider :model-value="maxImageSide" :min="128" :max="4096" :step="64" :label="t('lbl_max_image_side', '🖼️ Max image side')" inline-label
+        :title="t('tt_max_image_side', 'Images are downscaled so their longest side does not exceed this value.')"
+        @update:model-value="(v: number) => (state.nodeState.max_image_side = v)" />
+    </template>
 
     <!-- Fullscreen Provider & Model Modal Picker -->
     <ProviderModelPicker

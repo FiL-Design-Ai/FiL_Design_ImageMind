@@ -206,7 +206,7 @@ Four less obvious things the pack does in one pass, each a short node chain:
 
 All 17 nodes, grouped by category. Ranges below are the real schema limits.
 
-#### 🎨 FiL Design/LLM
+#### 🎨 FiL Design/🧠 LLM
 
 <details>
 <summary><b>🔌 Provider Loader</b> — <code>FiLProviderLoader</code> — selects provider, model and generation parameters</summary>
@@ -264,7 +264,7 @@ the result, which is what you want when debugging a bad generation.
 
 </details>
 
-#### 🎨 FiL Design/Analysis
+#### 🎨 FiL Design/🔍 Analysis
 
 <details>
 <summary><b>👁️‍🗨️ Image Decomposer</b> — <code>FiLImageDecomposer</code> — splits an image or prompt into layers</summary>
@@ -283,7 +283,7 @@ Wire the individual layers into separate conditioning branches when you want to 
 
 </details>
 
-#### 🎨 FiL Design/Styling
+#### 🎨 FiL Design/🎨 Styling
 
 <details>
 <summary><b>🎛️ Style Mixer</b> — <code>FiLStyleMixer</code> — weighted blend of styles and reference images</summary>
@@ -331,7 +331,7 @@ through the provider model and needs `config`; on any failure it falls back to t
 
 </details>
 
-#### 🎨 FiL Design/Sampling
+#### 🎨 FiL Design/⚡ Sampling
 
 <details>
 <summary><b>⚡ KSampler</b> — <code>FiLKSampler</code> — full sampler with passthrough and scripts</summary>
@@ -406,7 +406,7 @@ deliberately **not** ported.
 
 </details>
 
-#### 🎨 FiL Design/Image
+#### 🎨 FiL Design/🖼️ Image
 
 <details>
 <summary><b>🔍 Upscaler Advanced</b> — <code>FiLUpscaleTileCalc</code> — tile-grid planner + model upscaler</summary>
@@ -482,7 +482,7 @@ trimmed to the outputs most graphs actually use.
 
 </details>
 
-#### 🎨 FiL Design/Dataset
+#### 🎨 FiL Design/📁 Dataset
 
 <details>
 <summary><b>📚 LoRA Dataset Forge</b> — <code>FiLDatasetForge</code> — batch → training-ready LoRA dataset on disk</summary>
@@ -521,10 +521,12 @@ The node never upscales. Sources smaller than their bucket are still written, co
 
 </details>
 
-#### 🎨 FiL Design/Values · Tools
+#### 🎨 FiL Design/🔢 Values · 🧰 Tools
 
 <details>
-<summary><b>♻️ Seed</b> — <code>FiLSeed</code> · <b>🧹 Cleaner</b> — <code>FiLNeuroCleaner</code> · <b>🔀 Cyber Switch</b> — <code>FiLSignalSwitch</code> · <b>📡 Channel</b> — <code>FiLChannel</code></summary>
+<summary><b>♻️ Seed</b> — <code>FiLSeed</code> · <b>🧹 Cleaner</b> — <code>FiLNeuroCleaner</code> · <b>🔀 Cyber Switch</b> — <code>FiLSignalSwitch</code> · <b>📡 Channel</b> — <code>FiLChannel</code> · <b>🔄 Model Cycler</b> — <code>FiLModelCycler</code></summary>
+
+**🔄 Model Cycler** — `FiLModelCycler`. Automatically cycles through checkpoints, UNet/diffusion models, or connected MODEL signals on each generation run with automatic VRAM cleanup, error skipping, and image watermark label text output (`MODEL_NAME`, `CLEAN_NAME`, `FORMATTED_LABEL`).
 
 **♻️ Seed** — `seed` INT (0 – 2⁶⁴-1) → `SEED` INT. Panel is one row: the value plus 🔀 randomize,
 ♻️ reuse last, 🎲 new fixed random. Typing digits switches it to fixed and applies the value.
@@ -1421,10 +1423,12 @@ Python самого ComfyUI (`python_embeded`, `venv` или `.venv`), став�
 
 </details>
 
-#### 🎨 FiL Design/Values · Tools
+#### 🎨 FiL Design/🔢 Values · 🧰 Tools
 
 <details>
-<summary><b>♻️ Seed</b> — <code>FiLSeed</code> · <b>🧹 Cleaner</b> — <code>FiLNeuroCleaner</code> · <b>🔀 Cyber Switch</b> — <code>FiLSignalSwitch</code> · <b>📡 Channel</b> — <code>FiLChannel</code></summary>
+<summary><b>♻️ Seed</b> — <code>FiLSeed</code> · <b>🧹 Cleaner</b> — <code>FiLNeuroCleaner</code> · <b>🔀 Cyber Switch</b> — <code>FiLSignalSwitch</code> · <b>📡 Channel</b> — <code>FiLChannel</code> · <b>🔄 Model Cycler</b> — <code>FiLModelCycler</code></summary>
+
+**🔄 Model Cycler** — `FiLModelCycler`. Автоматически переключает чекпоинты, UNet/диффузионные модели или подключенные MODEL-сигналы при каждом шаге генерации с авто-выгрузкой VRAM, пропуском битых файлов и выдачей текстов для водяных знаков (`MODEL_NAME`, `CLEAN_NAME`, `FORMATTED_LABEL`).
 
 **♻️ Seed** — `seed` INT (0 – 2⁶⁴-1) → `SEED` INT. Панель в одну строку: значение и три кнопки —
 🔀 рандом, ♻️ повторить прошлый, 🎲 новый фиксированный. Ввод цифр переключает в режим fixed и

@@ -625,7 +625,10 @@ const clusterOkLabel = computed(() => t("channel_cluster_connect", "Connect"));
 
 <template>
   <div class="fil-channel-panel">
-    <p v-if="channels.length === 0" class="fil-channel-empty">{{ emptyHint }}</p>
+    <div v-if="channels.length === 0" class="fil-channel-empty-box">
+      <span class="fil-channel-empty-icon">📡</span>
+      <span class="fil-channel-empty-text">{{ emptyHint }}</span>
+    </div>
 
     <div
       v-for="channel in channels"
@@ -762,6 +765,27 @@ const clusterOkLabel = computed(() => t("channel_cluster_connect", "Connect"));
   padding: 6px 10px;
   width: 100%;
   box-sizing: border-box;
+}
+
+.fil-channel-empty-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  box-sizing: border-box;
+  border-radius: var(--fil-field-radius);
+  border: 1px dashed color-mix(in srgb, var(--fil-accent) 35%, transparent);
+  background: color-mix(in srgb, var(--fil-accent) 6%, transparent);
+  color: var(--fil-muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.fil-channel-empty-icon {
+  font-size: 14px;
+}
+.fil-channel-empty-text {
+  flex: 1;
 }
 
 .fil-channel-empty {

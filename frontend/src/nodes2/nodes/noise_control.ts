@@ -23,7 +23,7 @@ const stringDefaults: Record<string, string> = {
   // core defines it rather than replaced with a private seed UX.
   control_after_generate: "randomize",
 };
-const boolDefaults: Record<string, boolean> = { add_seed_noise: false };
+const boolDefaults: Record<string, boolean> = { add_seed_noise: true };
 const HIDE = [
   ...Object.keys(numericDefaults), ...Object.keys(stringDefaults), ...Object.keys(boolDefaults),
 ];
@@ -32,10 +32,7 @@ export const noiseControlNode: NodeModule = {
   id: "FiLNoiseControl",
   register(nodeType: unknown, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
-      // Low on purpose — computeSize() wins via Math.max in domWidgetHost.ts.
-      // With Variation off the panel is two rows, so a tall floor here would be
-      // permanent empty space under them.
-      minSize: [250, 120],
+      minSize: [250, 160],
       initialWidth: 250,
       family: "sampling",
       description: "RNG source + seed-variation script for FiLKSampler.",

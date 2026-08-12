@@ -3,7 +3,7 @@ import math
 from comfy_api.latest import io
 
 from ..common import tile_calc
-from ..common.brand import CATEGORY_ROOT
+from ..common.brand import CATEGORY_IMAGE
 from ..common.io_types import FilTileLayout
 from ..common.localization import t as _t
 
@@ -14,7 +14,7 @@ class FiLUpscaleTileCalc(io.ComfyNode):
         return io.Schema(
             node_id="FiLUpscaleTileCalc",
             display_name="🔍 Upscaler Advanced",
-            category=f"{CATEGORY_ROOT}/Image",
+            category=CATEGORY_IMAGE,
             description="📐 FiL Upscale Tile Calc — computes optimal tile grid layout for upscaling. Supports auto-profile and manual grid.",
             inputs=[
                 io.Image.Input("image", optional=True,

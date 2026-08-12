@@ -59,18 +59,28 @@ describe("CinemaRig.vue", () => {
   });
 
   it("hides the grade picker while grading is off", async () => {
-    const state = makeState({ nodeState: { enable_grading: false } });
+    const state = makeState({ nodeState: { setup_mode: "Custom Hardware", enable_grading: false } });
     const wrapper = mount(CinemaRig, { props: { state: state as never } });
     await nextTick();
     expect(wrapper.text()).not.toContain("Grade");
   });
 
   it("reveals the grade picker when grading is switched on", async () => {
-    const state = makeState({ nodeState: { enable_grading: false } });
+    const state = makeState({ nodeState: { setup_mode: "Custom Hardware", enable_grading: false } });
     const wrapper = mount(CinemaRig, { props: { state: state as never } });
     await toggleByLabel(wrapper, "🎨 Color grade").trigger("click");
     await nextTick();
     expect(state.nodeState.enable_grading).toBe(true);
     expect(wrapper.text()).toContain("Grade");
+  });
+
+  it("toggles setup_mode between Director Preset and Custom Hardware", async () => {
+    const state = makeState();
+    const wrapper = mount(CinemaRig, { props: { state: state as never } });
+    expect(wrapper.text()).not.toContain("📷 Camera");
+    await segByLabel(wrapper, "Manual").trigger("click");
+    await nextTick();
+    expect(state.nodeState.setup_mode).toBe("Custom Hardware");
+    expect(wrapper.text()).toContain("📷 Camera");
   });
 });

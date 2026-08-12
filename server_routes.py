@@ -26,6 +26,150 @@ logger = logging.getLogger(f"{BRAND}.API")
 _ROUTES_REGISTERED = False
 
 
+def _inspect_model_file(mode: str, rel_path: str) -> dict:
+    import datetime
+    import json
+    import os
+    import struct
+    try:
+        import folder_paths
+
+        folder_type = "diffusion_models" if mode == "diffusion_models" else "checkpoints"
+        full_path = folder_paths.get_full_path(folder_type, rel_path)
+        if not full_path or not os.path.isfile(full_path):
+            if folder_type == "diffusion_models":
+                full_path = folder_paths.get_full_path("unet", rel_path)
+    except (ImportError, AttributeError, KeyError):
+        full_path = None
+
+    if not full_path or not os.path.isfile(full_path):
+        return {"error": "file_not_found", "path": rel_path}
+
+    size_bytes = os.path.getsize(full_path)
+    mtime = os.path.getmtime(full_path)
+
+    if size_bytes >= 1024**3:
+        size_str = f"{size_bytes / (1024**3):.2f} GB"
+    else:
+        size_str = f"{size_bytes / (1024**2):.1f} MB"
+
+    mtime_str = datetime.datetime.fromtimestamp(mtime).strftime("%Y-%m-%d %H:%M")
+
+    base_no_ext, _ = os.path.splitext(full_path)
+    preview_path = None
+    for ext in [".png", ".preview.png", ".jpg", ".jpeg", ".webp"]:
+        candidate = base_no_ext + ext
+        if os.path.isfile(candidate):
+            preview_path = candidate
+            break
+
+    meta_json_data: dict = {}
+    meta_json_path = None
+    for cand in [base_no_ext + ".metadata.json", base_no_ext + ".json", full_path + ".json"]:
+        if os.path.isfile(cand):
+            try:
+                with open(cand, "r", encoding="utf-8", errors="ignore") as jf:
+                    parsed = json.load(jf)
+                    if isinstance(parsed, dict):
+                        meta_json_data = parsed
+                        meta_json_path = cand
+                        break
+            except Exception as err:
+                logger.debug("Failed to parse metadata json %s: %s", cand, err)
+
+    model_title = meta_json_data.get("model_name") or meta_json_data.get("civitai", {}).get("model", {}).get("name") or ""
+    base_model = meta_json_data.get("base_model") or meta_json_data.get("civitai", {}).get("baseModel") or ""
+    creator = meta_json_data.get("civitai", {}).get("creator", {}).get("username") or ""
+    download_count = meta_json_data.get("civitai", {}).get("stats", {}).get("downloadCount") or 0
+    thumbs_up = meta_json_data.get("civitai", {}).get("stats", {}).get("thumbsUpCount") or 0
+    trained_words = meta_json_data.get("trainedWords") or meta_json_data.get("civitai", {}).get("trainedWords") or []
+
+    sample_prompts: list[str] = []
+    civitai_imgs = meta_json_data.get("civitai", {}).get("images", [])
+    if isinstance(civitai_imgs, list):
+        for img in civitai_imgs:
+            if isinstance(img, dict):
+                pmt = img.get("meta", {}).get("prompt")
+                if pmt and isinstance(pmt, str) and pmt.strip() and pmt.strip() not in sample_prompts:
+                    sample_prompts.append(pmt.strip())
+                if len(sample_prompts) >= 3:
+                    break
+
+    if not preview_path and meta_json_data.get("preview_url"):
+        purl = str(meta_json_data.get("preview_url"))
+        if os.path.isfile(purl):
+            preview_path = purl
+
+    arch = base_model or "Unknown"
+    precision = "Unknown"
+    metadata_tags: dict[str, str] = {}
+
+    if full_path.lower().endswith(".safetensors"):
+        try:
+            with open(full_path, "rb") as f:
+                header_len_bytes = f.read(8)
+                if len(header_len_bytes) == 8:
+                    header_len = struct.unpack("<Q", header_len_bytes)[0]
+                    if 0 < header_len < 100 * 1024 * 1024:
+                        header_json_bytes = f.read(header_len)
+                        header = json.loads(header_json_bytes.decode("utf-8", errors="ignore"))
+
+                        meta = header.get("__metadata__", {})
+                        if isinstance(meta, dict):
+                            metadata_tags = {
+                                str(k): str(v)
+                                for k, v in meta.items()
+                                if isinstance(v, (str, int, float, bool)) and len(str(v)) < 300
+                            }
+                            if "modelspec.architecture" in meta:
+                                arch = meta["modelspec.architecture"]
+                            elif "ss_sd_model_name" in meta and not base_model:
+                                arch = meta["ss_sd_model_name"]
+
+                        for k, v in header.items():
+                            if k == "__metadata__":
+                                continue
+                            if isinstance(v, dict):
+                                dtype = v.get("dtype", "")
+                                if dtype:
+                                    precision = str(dtype).upper()
+                                if arch == "Unknown":
+                                    if "double_blocks" in k or "single_blocks" in k:
+                                        arch = "FLUX.1"
+                                    elif "model.diffusion_model.input_blocks" in k:
+                                        if "label_emb" in k or "emb_layers" in k:
+                                            arch = "SDXL"
+                                        else:
+                                            arch = "SD 1.5 / 2.1"
+                                    elif "joint_blocks" in k:
+                                        arch = "SD3 / MMDiT"
+                                    elif "transformer_blocks" in k:
+                                        arch = "DiT / Z-Image"
+        except Exception as err:
+            logger.debug("Could not parse safetensors header for %s: %s", rel_path, err)
+
+    return {
+        "path": rel_path,
+        "full_path": full_path,
+        "size_bytes": size_bytes,
+        "size_str": size_str,
+        "mtime_str": mtime_str,
+        "arch": arch,
+        "precision": precision,
+        "has_preview": preview_path is not None,
+        "preview_path": preview_path,
+        "model_title": model_title,
+        "base_model": base_model,
+        "creator": creator,
+        "download_count": download_count,
+        "thumbs_up": thumbs_up,
+        "trained_words": trained_words,
+        "sample_prompts": sample_prompts,
+        "has_meta_json": meta_json_path is not None,
+        "metadata": metadata_tags,
+    }
+
+
 
 
 def is_cross_site_request(origin: str, host: str) -> bool:
@@ -190,6 +334,38 @@ def register_routes():
         lang = request.match_info.get("lang", "en")
         translations = get_localization_manager().get_all(lang)
         return web.json_response(translations)
+
+    @server.routes.get(f"/{ROUTE_SLUG}/models_list/{{mode}}")
+    async def models_list(request):
+        mode = request.match_info.get("mode", "checkpoints")
+        from .nodes.node_model_cycler import _get_checkpoint_names, _get_diffusion_model_names
+        if mode == "diffusion_models":
+            names = await asyncio.to_thread(_get_diffusion_model_names)
+        else:
+            names = await asyncio.to_thread(_get_checkpoint_names)
+        return web.json_response({"models": names})
+
+    @server.routes.get(f"/{ROUTE_SLUG}/model_info/{{mode}}")
+    async def model_info(request):
+        mode = request.match_info.get("mode", "checkpoints")
+        rel_path = request.query.get("path", "")
+        if not rel_path:
+            return web.json_response({"error": "missing path parameter"}, status=400)
+        info = await asyncio.to_thread(_inspect_model_file, mode, rel_path)
+        return web.json_response(info)
+
+    @server.routes.get(f"/{ROUTE_SLUG}/model_preview/{{mode}}")
+    async def model_preview(request):
+        import os
+        mode = request.match_info.get("mode", "checkpoints")
+        rel_path = request.query.get("path", "")
+        if not rel_path:
+            return web.Response(status=404)
+        info = await asyncio.to_thread(_inspect_model_file, mode, rel_path)
+        preview_file = info.get("preview_path")
+        if not preview_file or not os.path.isfile(preview_file):
+            return web.Response(status=404)
+        return web.FileResponse(preview_file)
 
     @server.routes.get(f"/{ROUTE_SLUG}/node_contracts")
     async def node_contracts(request):

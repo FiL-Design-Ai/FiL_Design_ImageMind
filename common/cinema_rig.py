@@ -23,6 +23,10 @@ MODE_ORIGINAL = "Original Shot"
 MODE_RESHOOT = "Reshoot"
 RIG_MODES: List[str] = [MODE_ORIGINAL, MODE_RESHOOT]
 
+SETUP_PRESET = "Director Preset"
+SETUP_CUSTOM = "Custom Hardware"
+SETUP_MODES: List[str] = [SETUP_PRESET, SETUP_CUSTOM]
+
 POLISH_DETERMINISTIC = "Deterministic (Fast)"
 POLISH_LLM = "LLM Polish (Gen-Rig)"
 POLISH_MODES: List[str] = [POLISH_DETERMINISTIC, POLISH_LLM]
@@ -31,6 +35,10 @@ POLISH_MODES: List[str] = [POLISH_DETERMINISTIC, POLISH_LLM]
 # `type` picks the medium wrapper pair in `wrapper_for_camera`.
 
 CINEMA_CAMERAS: Dict[str, Dict[str, str]] = {
+    "Auto / Neutral": {
+        "type": CAMERA_TYPE_DIGITAL,
+        "prompt": "",
+    },
     "ARRI Alexa 65 (Large Format)": {
         "type": CAMERA_TYPE_DIGITAL,
         "prompt": (
@@ -84,6 +92,7 @@ CINEMA_CAMERAS: Dict[str, Dict[str, str]] = {
 # ── Lenses ─────────────────────────────────────────────────────────────────
 
 CINEMA_LENSES: Dict[str, str] = {
+    "Auto / Neutral": "",
     "Panavision C-Series Anamorphic": (
         "Panavision C-Series anamorphic lens, horizontal blue flares streaking through highlights, oval bokeh, "
         "barrel stretch softening the frame corners, widescreen squeeze character, "
@@ -119,6 +128,7 @@ CINEMA_LENSES: Dict[str, str] = {
 # ── Focal lengths ──────────────────────────────────────────────────────────
 
 CINEMA_FOCAL_LENGTHS: Dict[str, str] = {
+    "Auto / Neutral": "",
     "14mm (Ultra Wide)": (
         "14mm ultra-wide rectilinear perspective, environment pressing into the frame, exaggerated depth between near and far, "
         "architecture standing at monumental scale, the establishing language location scouts frame with."
@@ -148,6 +158,7 @@ CINEMA_FOCAL_LENGTHS: Dict[str, str] = {
 # ── Apertures ──────────────────────────────────────────────────────────────
 
 CINEMA_APERTURES: Dict[str, str] = {
+    "Auto / Neutral": "",
     "f/0.95 (Dreamlike)": (
         "aperture wide open at f/0.95, razor-thin focus plane, eyelashes sharp against a frame melting into abstract color washes, "
         "dream-logic separation, the opening sleep and memory scenes are shot at."
@@ -173,6 +184,7 @@ CINEMA_APERTURES: Dict[str, str] = {
 # ── Color grades ───────────────────────────────────────────────────────────
 
 CINEMA_GRADINGS: Dict[str, str] = {
+    "Auto / Neutral": "",
     "Teal & Orange (Blockbuster)": (
         "teal and orange blockbuster grade, cyan pushed into the shadows, warm skin carried in the highlights, "
         "punchy complementary separation, saturated contrast, the finish summer event pictures are delivered in."
@@ -258,13 +270,185 @@ RESHOOT_LOCK = (
     "only the camera treatment changes. For aspect ratio changes, outpaint the edges to fit. "
 )
 
+# ── Camera angles ──────────────────────────────────────────────────────────
+
+# ── Camera angles ──────────────────────────────────────────────────────────
+
+CINEMA_ANGLES: Dict[str, str] = {
+    "Auto / Neutral": "",
+    "Eye Level (Neutral)": (
+        "eye-level camera angle, neutral human horizon, direct eye-to-eye engagement with the subject"
+    ),
+    "Low Angle (Heroic)": (
+        "low camera angle looking upward, imposing subject presence, heroic dominant perspective, grounded camera height"
+    ),
+    "High Angle (Vulnerable)": (
+        "high camera angle looking downward, subject framed smaller against the ground, vulnerable observational perspective"
+    ),
+    "Dutch Angle (Dynamic Tilt)": (
+        "dutch angle tilted horizon, uneasy diagonal composition, psychological tension, camera roll tilt"
+    ),
+    "Bird's Eye View (Top-Down)": (
+        "bird's eye view overhead camera angle, strict top-down vertical perspective, aerial spatial layout"
+    ),
+    "Worm's Eye View (Ground Up)": (
+        "worm's eye view extreme low camera angle from ground level, dramatic vertical convergence, monumental presence"
+    ),
+    "Over-The-Shoulder (OTS)": (
+        "over-the-shoulder camera shot framing, foreground shoulder framing the subject, conversational depth layer"
+    ),
+}
+
+# ── Shot framings ──────────────────────────────────────────────────────────
+
+CINEMA_FRAMINGS: Dict[str, str] = {
+    "Auto / Neutral": "",
+    "Extreme Close-up (ECU)": (
+        "extreme close-up macro camera shot framing, tight focus on singular facial feature detail, micro optical contrast"
+    ),
+    "Close-up (CU)": (
+        "close-up camera shot tight on face and shoulders, expressive emotional focus, background soft blur"
+    ),
+    "Medium Close-up (MCU)": (
+        "medium close-up camera shot framing chest to head, natural interview distance, balanced subject isolation"
+    ),
+    "Medium Shot (MS)": (
+        "medium camera shot waist-up framing, subject interaction and waist-level action carried with immediate setting"
+    ),
+    "Cowboy Shot (American)": (
+        "cowboy camera shot framed from mid-thigh up, heroic posture, action-ready stance carrying hip details"
+    ),
+    "Wide Shot (WS)": (
+        "wide camera shot full-body framing, subject placed fully within environment, clear spatial context"
+    ),
+    "Extreme Wide Shot (EWS)": (
+        "extreme wide master camera shot, subject small within vast landscape architecture, epic environmental scale"
+    ),
+}
+
+# ── Camera movements ───────────────────────────────────────────────────────
+
+CINEMA_MOVEMENTS: Dict[str, str] = {
+    "Auto / Neutral": "",
+    "Static (Tripod Locked)": (
+        "static locked tripod camera framing, pristine compositional stillness, zero camera shake"
+    ),
+    "Handheld (Raw & Shaky)": (
+        "handheld camera movement, subtle organic operator shake, immediate documentary realism, urgent tactile energy"
+    ),
+    "Steadicam (Smooth Tracking)": (
+        "steadicam fluid tracking camera shot, weightless floating camera motion, seamless subject movement following"
+    ),
+    "Dolly Zoom (Vertigo Effect)": (
+        "dolly zoom vertigo camera effect, background warping while subject size remains fixed, disorienting spatial compression"
+    ),
+    "Crane / Drone Shot (Flyby)": (
+        "crane jib camera movement, sweeping aerial elevation, high-angle cinematic flyby shot"
+    ),
+    "Orbit / Arc Shot (Circle)": (
+        "360 degree arc camera orbit, fluid circular movement around subject, dynamic parallax backdrop sweep"
+    ),
+}
+
+# ── Lighting setups ────────────────────────────────────────────────────────
+
+CINEMA_LIGHTING: Dict[str, str] = {
+    "Auto / Natural": "",
+    "Volumetric Haze (Rays)": (
+        "volumetric haze atmosphere, visible light rays piercing through atmospheric mist, cinematic god rays camera lighting"
+    ),
+    "Chiaroscuro (Hard Contrast)": (
+        "chiaroscuro high-contrast camera lighting, harsh deep shadows, single key light source, dramatic chiaroscuro light"
+    ),
+    "Rembrandt (Soft Portrait)": (
+        "Rembrandt camera lighting setup, soft triangular highlight on cheek, flattering gentle shadows, warm directional key light"
+    ),
+    "Rim / Backlight (Halo)": (
+        "strong rim backlight camera lighting, brilliant silhouette halo around subject edges, high subject separation off dark backdrop"
+    ),
+    "Practical Neon (Motivated)": (
+        "practical neon light sources, vibrant motivated colored light spill, glowing practical camera light in frame"
+    ),
+    "Golden Hour (Warm Glow)": (
+        "golden hour camera sunlight, low sun angle, warm honeyed light, soft backlight halation, gentle long shadows"
+    ),
+    "Day for Night (Cool Blue)": (
+        "day for night camera lighting, deep cool blue ambient cast, clipped moonlight highlights, underexposed midtones"
+    ),
+}
+
+# ── Optics & filters ───────────────────────────────────────────────────────
+
+CINEMA_OPTICS: Dict[str, str] = {
+    "None / Pure Optic": "",
+    "Black Pro-Mist (Soft Bloom)": (
+        "black pro-mist lens filter, soft halo blooming around practical lights, gentle skin texture softening, filmic contrast reduction"
+    ),
+    "Anamorphic Blue Flares": (
+        "horizontal streak blue anamorphic lens flares, optical light streaks across highlights, classic sci-fi glass artifact"
+    ),
+    "Anamorphic Gold Flares": (
+        "warm gold horizontal lens flares, golden optical streak flares across specular highlights"
+    ),
+    "Heavy Film Grain (ISO 800)": (
+        "heavy ISO 800 organic film grain, pronounced analog texture across shadows and midtones"
+    ),
+    "Subtle Film Grain (ISO 200)": (
+        "fine subtle ISO 200 film grain, clean organic texture finish"
+    ),
+}
+
+# ── Director presets ───────────────────────────────────────────────────────
+
+CINEMA_DIRECTOR_PRESETS: Dict[str, Dict[str, str]] = {
+    "Custom Rig": {
+        "prompt": "",
+    },
+    "Roger Deakins (Volumetric ARRI)": {
+        "prompt": (
+            "cinematography styled after Roger Deakins, masterfully controlled single-source volumetric light, pristine camera composition, naturalistic color"
+        ),
+    },
+    "Christopher Nolan (IMAX 70mm)": {
+        "prompt": (
+            "cinematography styled after Christopher Nolan, epic practical IMAX camera scale, tactile analog depth, intense dramatic realism"
+        ),
+    },
+    "Wong Kar-wai (Neon & Motion)": {
+        "prompt": (
+            "cinematography styled after Wong Kar-wai, step-printed motion blur, drenched neon camera shot, intimate nostalgic atmosphere"
+        ),
+    },
+    "Denis Villeneuve (Monolithic Sci-Fi)": {
+        "prompt": (
+            "cinematography styled after Denis Villeneuve, brutalist monolithic architecture, fog haze atmosphere, camera framed in austere color palette"
+        ),
+    },
+    "Quentin Tarantino (Punchy 35mm)": {
+        "prompt": (
+            "cinematography styled after Quentin Tarantino, low-angle trunk camera shot framing, vibrant 35mm Technicolor saturation, sharp practical details"
+        ),
+    },
+}
+
 RIG_DEFAULTS: Dict[str, str] = {
+    "setup_mode": SETUP_PRESET,
     "camera": "RED V-RAPTOR XL",
     "lens": "Helios 44-2 (Vintage)",
     "focal_length": "50mm (Human Eye)",
     "aperture": "f/11 (Deep Focus)",
+    "camera_angle": "Auto / Neutral",
+    "shot_framing": "Auto / Neutral",
+    "camera_movement": "Static (Tripod Locked)",
+    "lighting_setup": "Auto / Natural",
+    "optics_filter": "None / Pure Optic",
+    "director_preset": "Custom Rig",
     "color_grading": "Teal & Orange (Blockbuster)",
 }
+
+
+def setup_mode_options() -> List[str]:
+    return list(SETUP_MODES)
 
 
 def camera_options() -> List[str]:
@@ -281,6 +465,30 @@ def focal_length_options() -> List[str]:
 
 def aperture_options() -> List[str]:
     return list(CINEMA_APERTURES)
+
+
+def camera_angle_options() -> List[str]:
+    return list(CINEMA_ANGLES)
+
+
+def shot_framing_options() -> List[str]:
+    return list(CINEMA_FRAMINGS)
+
+
+def camera_movement_options() -> List[str]:
+    return list(CINEMA_MOVEMENTS)
+
+
+def lighting_setup_options() -> List[str]:
+    return list(CINEMA_LIGHTING)
+
+
+def optics_filter_options() -> List[str]:
+    return list(CINEMA_OPTICS)
+
+
+def director_preset_options() -> List[str]:
+    return list(CINEMA_DIRECTOR_PRESETS)
 
 
 def grading_options() -> List[str]:
@@ -325,29 +533,54 @@ def assemble_rig(
     lens: str = "",
     focal_length: str = "",
     aperture: str = "",
+    camera_angle: str = "",
+    shot_framing: str = "",
+    camera_movement: str = "",
+    lighting_setup: str = "",
+    optics_filter: str = "",
+    director_preset: str = "",
     color_grading: str = "",
     enable_grading: bool = True,
     mode: str = MODE_ORIGINAL,
+    setup_mode: str = SETUP_PRESET,
 ) -> Tuple[str, str]:
     """Assemble the rig. Returns ``(rigged_prompt, rig_overlay)``.
 
-    * ``rig_overlay`` is the camera department alone — wrapper, four hardware
-      axes, grade and finish — ready to stack under any prompt elsewhere.
+    * ``rig_overlay`` is the camera department alone — wrapper, hardware, optics,
+      movement, lighting, director style and color grade finish — ready to stack.
     * ``rigged_prompt`` is the full shot. In Original Shot the medium anchor
       leads, the scene follows inside the CLIP-visible window, and the
-      hardware plus finish close — a hardware-first sandwich buried the
-      subject past CLIP-L's ~77-token truncation and a live SDXL render came
-      back an empty street. In Reshoot the scene is replaced by the
+      hardware plus finish close. In Reshoot the scene is replaced by the
       identity-lock sentence, because the reference image carries it.
     """
+    if setup_mode == SETUP_PRESET and director_preset and director_preset != "Custom Rig":
+        if camera == RIG_DEFAULTS.get("camera"):
+            camera = "Auto / Neutral"
+        if lens == RIG_DEFAULTS.get("lens"):
+            lens = "Auto / Neutral"
+        if focal_length == RIG_DEFAULTS.get("focal_length"):
+            focal_length = "Auto / Neutral"
+        if aperture == RIG_DEFAULTS.get("aperture"):
+            aperture = "Auto / Neutral"
+        if camera_movement == RIG_DEFAULTS.get("camera_movement"):
+            camera_movement = "Auto / Neutral"
+        if color_grading == RIG_DEFAULTS.get("color_grading"):
+            color_grading = "Auto / Neutral"
+
     prefix, suffix = wrapper_for_camera(camera)
     head = [
         part
         for part in (
+            _axis_prompt(CINEMA_FRAMINGS, shot_framing),
+            _axis_prompt(CINEMA_ANGLES, camera_angle),
+            _axis_prompt(CINEMA_FOCAL_LENGTHS, focal_length),
+            _axis_prompt(CINEMA_DIRECTOR_PRESETS, director_preset),
             _axis_prompt(CINEMA_CAMERAS, camera),
             _axis_prompt(CINEMA_LENSES, lens),
-            _axis_prompt(CINEMA_FOCAL_LENGTHS, focal_length),
             _axis_prompt(CINEMA_APERTURES, aperture),
+            _axis_prompt(CINEMA_MOVEMENTS, camera_movement),
+            _axis_prompt(CINEMA_LIGHTING, lighting_setup),
+            _axis_prompt(CINEMA_OPTICS, optics_filter),
         )
         if part
     ]
@@ -370,3 +603,4 @@ def assemble_rig(
     else:
         rigged_prompt = rig_overlay
     return rigged_prompt.strip(), rig_overlay
+

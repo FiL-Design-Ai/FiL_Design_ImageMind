@@ -58,6 +58,7 @@ function onClick(e: MouseEvent) {
     <span v-if="loading" class="fil-w-btn-spinner" />
     <span v-if="icon && !loading" class="fil-w-btn-glyph" v-html="iconSvg" />
     <span v-if="label">{{ loading ? "" : label }}</span>
+    <slot v-if="!label" />
   </button>
 </template>
 

@@ -31,7 +31,7 @@ function toggle() {
 </script>
 
 <template>
-  <div class="fil-w-toggle" :class="{ bare }" :title="title">
+  <div class="fil-w-toggle" :class="{ bare, 'is-disabled': disabled }" :title="title">
     <label v-if="label" class="fil-w-toggle-label">
       <FilIcon v-if="icon" :name="icon" :size="12" />{{ label }}
     </label>
@@ -69,6 +69,10 @@ function toggle() {
    * wrong scaled up. The ROW still occupies a full control height so the
    * vertical rhythm of a settings stack does not stutter around it. */
   min-height: var(--fil-control-h);
+}
+.fil-w-toggle.is-disabled {
+  opacity: 0.5;
+  pointer-events: none;
 }
 /* …except in `bare` mode, which is an inline chip inside someone else's row
  * (see the flex override below) and must not pad that row out. */
