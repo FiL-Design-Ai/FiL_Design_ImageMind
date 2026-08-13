@@ -759,12 +759,13 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
           {{ copySuccessMsg }}
         </div>
 
-        <!-- Preview Thumbnail if available -->
-        <div v-if="activeInfoDetail.has_preview" class="fil-info-preview-box">
+        <!-- Thumbnail Cover Preview -->
+        <div class="fil-info-preview-wrap">
           <img
-            :src="`${ROUTE_PREFIX}/model_preview/${activeInfoDetail.mode === 'Diffusion Models' ? 'diffusion_models' : 'checkpoints'}?path=${encodeURIComponent(activeInfoDetail.fullName)}`"
+            :src="`${ROUTE_PREFIX}/model_preview?mode=${sourceMode === 'Diffusion Models' ? 'diffusion_models' : 'checkpoints'}&path=${encodeURIComponent(activeInfoDetail.fullName)}`"
             class="fil-info-preview-img"
-            alt="Model Preview"
+            alt="Model Preview Thumbnail"
+            @error="(e) => ((e.target as HTMLElement).style.display = 'none')"
           />
         </div>
 
@@ -1457,6 +1458,22 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
   padding: 2px 6px;
   font-size: 10px;
   font-weight: 600;
+}
+
+.fil-info-preview-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.fil-info-preview-img {
+  max-width: 100%;
+  max-height: 220px;
+  object-fit: contain;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--fil-accent) 40%, transparent);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--fil-accent) 30%, transparent);
 }
 
 .fil-info-prompts-list {

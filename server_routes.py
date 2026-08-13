@@ -633,6 +633,18 @@ def register_routes():
             json.dump({"presets": presets}, f, ensure_ascii=False, indent=2)
         return web.json_response({"status": "success", "presets": presets})
 
+    @server.routes.get(f"/{ROUTE_SLUG}/model_preview")
+    async def get_model_preview(request):
+        mode = request.query.get("mode", "checkpoints")
+        path = request.query.get("path", "")
+        if not path:
+            return web.Response(status=400, text="missing path")
+        info = await asyncio.to_thread(_inspect_model_file, mode, path)
+        preview_path = info.get("preview_url")
+        if preview_path and os.path.isfile(preview_path):
+            return web.FileResponse(preview_path)
+        return web.Response(status=404, text="preview not found")
+
     @server.routes.get(f"/{ROUTE_SLUG}/node_contracts")
     async def node_contracts(request):
         # `node_ids` and `settings_prefix` are preserved for the legacy

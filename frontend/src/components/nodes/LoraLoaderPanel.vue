@@ -384,6 +384,14 @@ function toggleItemEnabled(index: number, enabled: boolean) {
   }
 }
 
+function setLoraWeights(index: number, sm: number, sc: number) {
+  if (loraItems.value[index]) {
+    loraItems.value[index].sm = sm;
+    loraItems.value[index].sc = sc;
+    syncToNodeState();
+  }
+}
+
 function onComboClose(index: number) {
   const item = loraItems.value[index];
   if (item && !item.name.trim()) {
@@ -568,6 +576,13 @@ function onComboClose(index: number) {
               @input="(e) => updateItemSc(originalIndex, parseFloat((e.target as HTMLInputElement).value))"
             />
           </div>
+
+          <!-- Quick Preset Weight Buttons -->
+          <div class="fil-lora-quick-presets">
+            <button class="fil-quick-w-btn" title="Set weights to 0.0" @click.stop="setLoraWeights(originalIndex, 0.0, 0.0)">0.0</button>
+            <button class="fil-quick-w-btn" title="Set weights to 0.5" @click.stop="setLoraWeights(originalIndex, 0.5, 0.5)">0.5</button>
+            <button class="fil-quick-w-btn" title="Set weights to 1.0" @click.stop="setLoraWeights(originalIndex, 1.0, 1.0)">1.0</button>
+          </div>
         </div>
       </div>
     </TransitionGroup>
@@ -591,6 +606,16 @@ function onComboClose(index: number) {
       <div v-if="activeInfoDetail" class="fil-info-modal-content">
         <div v-if="copySuccessMsg" class="fil-copy-toast">
           {{ copySuccessMsg }}
+        </div>
+
+        <!-- Thumbnail Cover Preview -->
+        <div class="fil-info-preview-wrap">
+          <img
+            :src="`${ROUTE_PREFIX}/model_preview?mode=loras&path=${encodeURIComponent(activeInfoDetail.fullName)}`"
+            class="fil-info-preview-img"
+            alt="LoRA Preview Thumbnail"
+            @error="(e) => ((e.target as HTMLElement).style.display = 'none')"
+          />
         </div>
 
         <div class="fil-info-grid">
@@ -987,6 +1012,35 @@ function onComboClose(index: number) {
   box-sizing: border-box;
 }
 
+.fil-lora-quick-presets {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  margin-left: 2px;
+  flex-shrink: 0;
+}
+
+.fil-quick-w-btn {
+  background: var(--fil-surface-2, #27272a);
+  border: 1px solid color-mix(in srgb, var(--fil-accent) 30%, transparent);
+  color: var(--fil-accent-text, #c084fc);
+  border-radius: 3px;
+  font-size: 8px;
+  font-weight: 700;
+  padding: 1px 4px;
+  cursor: pointer;
+  line-height: 10px;
+  transition: all 0.15s ease-in-out;
+}
+
+.fil-quick-w-btn:hover {
+  background: color-mix(in srgb, var(--fil-accent) 30%, transparent);
+  border-color: var(--fil-accent, #a855f7);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--fil-accent) 50%, transparent);
+  transform: scale(1.05);
+}
+
 .fil-lora-slider-col {
   display: flex;
   flex-direction: column;
@@ -1117,6 +1171,22 @@ function onComboClose(index: number) {
 .fil-copy-mini-btn:hover {
   background: color-mix(in srgb, var(--fil-accent) 20%, transparent);
   border-color: var(--fil-accent, #a855f7);
+}
+
+.fil-info-preview-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.fil-info-preview-img {
+  max-width: 100%;
+  max-height: 220px;
+  object-fit: contain;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--fil-accent) 40%, transparent);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--fil-accent) 30%, transparent);
 }
 
 .fil-info-grid {
