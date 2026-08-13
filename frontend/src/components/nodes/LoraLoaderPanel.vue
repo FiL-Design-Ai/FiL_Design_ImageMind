@@ -383,6 +383,21 @@ function toggleItemEnabled(index: number, enabled: boolean) {
     syncToNodeState();
   }
 }
+
+function onSliderPointerDown(e: PointerEvent) {
+  e.stopPropagation();
+  if (typeof e.stopImmediatePropagation === "function") {
+    e.stopImmediatePropagation();
+  }
+  const target = e.currentTarget as HTMLElement | null;
+  if (target && typeof target.setPointerCapture === "function") {
+    try {
+      target.setPointerCapture(e.pointerId);
+    } catch {
+      // ignore
+    }
+  }
+}
 </script>
 
 <template>
@@ -530,6 +545,7 @@ function toggleItemEnabled(index: number, enabled: boolean) {
               step="0.05"
               :value="item.sm"
               class="fil-lora-range"
+              @pointerdown="onSliderPointerDown"
               @mousedown.stop
               @mousemove.stop
               @pointerdown.stop
@@ -550,6 +566,7 @@ function toggleItemEnabled(index: number, enabled: boolean) {
               step="0.05"
               :value="item.sc"
               class="fil-lora-range"
+              @pointerdown="onSliderPointerDown"
               @mousedown.stop
               @mousemove.stop
               @pointerdown.stop
