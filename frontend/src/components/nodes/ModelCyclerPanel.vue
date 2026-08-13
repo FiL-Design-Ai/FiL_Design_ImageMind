@@ -116,6 +116,40 @@ const activeModelCount = computed(
   () => modelItems.value.filter((i) => i.enabled && i.name.trim()).length
 );
 
+watch(sourceMode, (newMode) => {
+  const node = props.state.node as {
+    inputs?: Array<{ name?: string; label?: string }>;
+    outputs?: Array<{ name?: string; label?: string }>;
+    setDirtyCanvas?: (a: boolean, b: boolean) => void;
+  };
+  if (!node) return;
+  const isDiff = newMode === "Diffusion Models";
+
+  if (Array.isArray(node.inputs)) {
+    for (const slot of node.inputs) {
+      if (slot.name === "clip_in") {
+        slot.label = isDiff ? "clip_in (optional)" : "clip_in";
+      } else if (slot.name === "vae_in") {
+        slot.label = isDiff ? "vae_in (optional)" : "vae_in";
+      }
+    }
+  }
+
+  if (Array.isArray(node.outputs)) {
+    for (const slot of node.outputs) {
+      if (slot.name === "CLIP") {
+        slot.label = isDiff ? "CLIP (passthrough)" : "CLIP";
+      } else if (slot.name === "VAE") {
+        slot.label = isDiff ? "VAE (passthrough)" : "VAE";
+      }
+    }
+  }
+
+  if (typeof node.setDirtyCanvas === "function") {
+    node.setDirtyCanvas(true, true);
+  }
+});
+
 function isModelMissing(name: string): boolean {
   if (!name || !name.trim() || installedModels.value.length === 0) return false;
   return !installedModels.value.includes(name.trim());

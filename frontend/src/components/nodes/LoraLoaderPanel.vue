@@ -194,6 +194,41 @@ onMounted(() => {
   loadInstalledLoras();
 });
 
+function resetSingleWeights(index: number) {
+  if (loraItems.value[index]) {
+    loraItems.value[index].sm = 1.0;
+    loraItems.value[index].sc = 1.0;
+    syncToNodeState();
+  }
+}
+
+function resetAllWeights() {
+  for (const item of loraItems.value) {
+    item.sm = 1.0;
+    item.sc = 1.0;
+  }
+  syncToNodeState();
+}
+
+function copyAllActiveTriggers() {
+  const activeTriggers: string[] = [];
+  for (const item of loraItems.value) {
+    if (item.enabled && item.name.trim()) {
+      const meta = loraMetaMap.value[item.name.trim()];
+      if (meta?.trigger_words && meta.trigger_words.trim()) {
+        activeTriggers.push(meta.trigger_words.trim());
+      }
+    }
+  }
+  if (activeTriggers.length > 0) {
+    const combined = activeTriggers.join(", ");
+    copyToClipboard(combined, `${activeTriggers.length} Active Triggers`);
+  } else {
+    copySuccessMsg.value = "No active trigger words found";
+    setTimeout(() => (copySuccessMsg.value = ""), 2500);
+  }
+}
+
 function addLoraItem() {
   loraItems.value.push({
     id: `item_${Date.now()}_${Math.random()}`,
@@ -443,6 +478,8 @@ function onComboClose(index: number) {
         />
       </div>
       <div class="fil-actions-right-group">
+        <button class="fil-action-link highlight" title="Copy all trigger words of active LoRAs to clipboard" @click="copyAllActiveTriggers">⚡ Copy Triggers</button>
+        <button class="fil-action-link highlight" title="Reset all LoRA weights to 1.00" @click="resetAllWeights">🔄 1.00 All</button>
         <button class="fil-action-link" @click="toggleAll(true)">All ON</button>
         <button class="fil-action-link" @click="toggleAll(false)">All OFF</button>
         <button class="fil-action-link danger" @click="clearAllItems">Clear</button>
@@ -602,6 +639,18 @@ function onComboClose(index: number) {
               @pointermove.stop
               @input="(e) => updateItemSc(originalIndex, parseFloat((e.target as HTMLInputElement).value))"
             />
+          </div>
+
+          <!-- Divider & Quick Reset Button (1.00) between CLIP Strength and Model Strength -->
+          <div class="fil-slider-center-divider">
+            <button
+              class="fil-reset-weight-btn"
+              title="Reset CLIP & Model strength to 1.00 for this LoRA"
+              @mousedown.stop
+              @click.stop="resetSingleWeights(originalIndex)"
+            >
+              🔄 1.0
+            </button>
           </div>
 
           <div class="fil-lora-slider-col">
@@ -1102,12 +1151,44 @@ function onComboClose(index: number) {
 
 .fil-lora-sliders-wrap {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: flex-start;
+  gap: 6px;
   padding-top: 4px;
   border-top: 1px solid color-mix(in srgb, var(--fil-border) 60%, transparent);
   width: 100%;
   box-sizing: border-box;
+}
+
+.fil-slider-center-divider {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding-top: 1px;
+}
+
+.fil-reset-weight-btn {
+  background: var(--fil-surface-2, #18181b);
+  border: 1px solid color-mix(in srgb, var(--fil-accent, #a855f7) 40%, transparent);
+  color: var(--fil-accent-text, #c084fc);
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.fil-reset-weight-btn:hover {
+  background: color-mix(in srgb, var(--fil-accent, #a855f7) 25%, transparent);
+  border-color: var(--fil-accent, #a855f7);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--fil-accent, #a855f7) 40%, transparent);
+  transform: scale(1.05);
 }
 
 .fil-lora-slider-col {
