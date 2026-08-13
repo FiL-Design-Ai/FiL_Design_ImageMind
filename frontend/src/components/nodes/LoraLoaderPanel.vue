@@ -3,7 +3,7 @@
  * FiLLoraLoader — Cyberpunk HUD panel for dynamic LoRA stack management with sliders.
  * Cleaned up: removed presets and advanced settings per user request.
  */
-import { computed, ref, onMounted } from "vue";
+import { computed, ref, onMounted, watch } from "vue";
 import {
   FilButton,
   FilComboBox,
@@ -134,6 +134,40 @@ function syncToNodeState() {
   const w = props.state.node ? findFilWidget(props.state.node, "lora_list") : null;
   if (w) w.value = serialized;
 }
+
+const loraMetaMap = ref<Record<string, { trigger_words?: string }>>({});
+
+function isLoraMissing(name: string): boolean {
+  if (!name || !name.trim() || installedLoras.value.length === 0) return false;
+  return !installedLoras.value.includes(name.trim());
+}
+
+async function fetchLoraMetaIfNeeded(name: string) {
+  const clean = name.trim();
+  if (!clean || loraMetaMap.value[clean]) return;
+  try {
+    const meta = await getJson<{ trigger_words?: string }>(
+      `${ROUTE_PREFIX}/model_info/loras?path=${encodeURIComponent(clean)}`
+    );
+    if (meta) {
+      loraMetaMap.value[clean] = { trigger_words: meta.trigger_words || "" };
+    }
+  } catch {
+    // Ignore error
+  }
+}
+
+watch(
+  loraItems,
+  (items: LoraItem[]) => {
+    for (const item of items) {
+      if (item.name && !loraMetaMap.value[item.name]) {
+        fetchLoraMetaIfNeeded(item.name);
+      }
+    }
+  },
+  { immediate: true, deep: true }
+);
 
 async function loadInstalledLoras() {
   try {
@@ -387,11 +421,12 @@ function toggleItemEnabled(index: number, enabled: boolean) {
         class="fil-stack-search-input"
         placeholder="🔍 Filter LoRA list..."
         spellcheck="false"
+        @keydown.stop
       />
     </div>
 
     <!-- Dynamic LoRAs Stack List -->
-    <TransitionGroup name="fil-stack-list" tag="div" class="fil-cycler-stack">
+    <TransitionGroup name="fil-stack-list" tag="div" class="fil-cycler-stack" @wheel.stop>
       <div v-if="loraItems.length === 0" key="empty" class="fil-cycler-empty">
         <span>No LoRAs in stack — click <b>+ Add LoRA</b> to build your stack.</span>
       </div>
@@ -414,7 +449,7 @@ function toggleItemEnabled(index: number, enabled: boolean) {
         @drop="onDrop(originalIndex, $event)"
         @dragend="onDragEnd"
       >
-        <!-- Top Row: Grip, Info, Combo, Toggle, Remove -->
+        <!-- Top Row: Grip, Info, Copy Triggers, Missing Badge, Combo, Toggle, Remove -->
         <div class="fil-lora-top-row">
           <div class="fil-drag-handle" title="Drag to reorder" @mousedown.stop>
             ⋮⋮
@@ -428,6 +463,26 @@ function toggleItemEnabled(index: number, enabled: boolean) {
           >
             ⓘ
           </button>
+
+          <!-- Quick Copy Trigger Words Button -->
+          <button
+            v-if="loraMetaMap[item.name]?.trigger_words"
+            class="fil-row-info-btn fil-row-copy-trigger"
+            :title="`📋 Copy Trigger Words: ${loraMetaMap[item.name].trigger_words}`"
+            @mousedown.stop
+            @click.stop="copyToClipboard(loraMetaMap[item.name].trigger_words || '', 'Trigger Words')"
+          >
+            📋
+          </button>
+
+          <!-- Missing file warning badge -->
+          <span
+            v-if="isLoraMissing(item.name)"
+            class="fil-missing-badge"
+            title="⚠️ Warning: LoRA file is missing from disk!"
+          >
+            ⚠️
+          </span>
 
           <div class="fil-cycler-select-wrap">
             <FilComboBox
@@ -841,6 +896,21 @@ function toggleItemEnabled(index: number, enabled: boolean) {
 .fil-row-info-btn:hover {
   color: var(--fil-accent, #a855f7);
   background: var(--fil-surface-2);
+}
+
+.fil-row-copy-trigger {
+  font-size: 11px;
+}
+
+.fil-missing-badge {
+  font-size: 11px;
+  cursor: help;
+  user-select: none;
+  animation: fil-pulse-warning 1.5s infinite alternate;
+}
+@keyframes fil-pulse-warning {
+  from { opacity: 0.6; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1.15); }
 }
 
 .fil-cycler-select-wrap {

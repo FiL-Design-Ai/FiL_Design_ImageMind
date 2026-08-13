@@ -240,7 +240,7 @@ defineExpose({
     </button>
 
     <Teleport to="body">
-      <div v-if="open" ref="panelRef" class="fil-combo-panel" :style="panelStyle" role="listbox" @keydown="onPanelKeydown">
+      <div v-if="open" ref="panelRef" class="fil-combo-panel" :style="panelStyle" role="listbox" @keydown="onPanelKeydown" @wheel.stop>
         <input
           v-if="searchable"
           ref="searchRef"
@@ -249,8 +249,9 @@ defineExpose({
           class="fil-combo-search"
           :placeholder="placeholder"
           spellcheck="false"
+          @keydown.stop
         />
-        <div class="fil-combo-list">
+        <div class="fil-combo-list" @wheel.stop>
           <button
             v-for="(o, i) in filtered"
             :key="o.value"

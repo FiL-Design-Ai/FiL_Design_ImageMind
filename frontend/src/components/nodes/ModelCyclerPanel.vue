@@ -115,6 +115,11 @@ const activeModelCount = computed(
   () => modelItems.value.filter((i) => i.enabled && i.name.trim()).length
 );
 
+function isModelMissing(name: string): boolean {
+  if (!name || !name.trim() || installedModels.value.length === 0) return false;
+  return !installedModels.value.includes(name.trim());
+}
+
 function parseModelList(raw: string): ModelItem[] {
   const lines = raw
     .split("\n")
@@ -564,11 +569,12 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
         class="fil-stack-search-input"
         placeholder="🔍 Filter model list..."
         spellcheck="false"
+        @keydown.stop
       />
     </div>
 
     <!-- Models Stack List -->
-    <TransitionGroup name="fil-stack-list" tag="div" class="fil-cycler-stack">
+    <TransitionGroup name="fil-stack-list" tag="div" class="fil-cycler-stack" @wheel.stop>
       <div v-if="modelItems.length === 0" key="empty" class="fil-cycler-empty">
         <span>No models in cycle — click <b>+ Add Model</b> or <b>Populate Folder</b> to build your queue.</span>
       </div>
@@ -605,6 +611,15 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
         >
           ⓘ
         </button>
+
+        <!-- Missing file warning badge -->
+        <span
+          v-if="isModelMissing(item.name)"
+          class="fil-missing-badge"
+          title="⚠️ Warning: Model file is missing from disk or unmounted!"
+        >
+          ⚠️
+        </span>
 
         <div class="fil-cycler-select-wrap">
           <FilComboBox
@@ -1144,6 +1159,17 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
 .fil-row-info-btn:hover {
   color: var(--fil-accent, #a855f7);
   background: var(--fil-surface-2);
+}
+
+.fil-missing-badge {
+  font-size: 11px;
+  cursor: help;
+  user-select: none;
+  animation: fil-pulse-warning 1.5s infinite alternate;
+}
+@keyframes fil-pulse-warning {
+  from { opacity: 0.6; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1.15); }
 }
 
 .fil-cycler-select-wrap {
