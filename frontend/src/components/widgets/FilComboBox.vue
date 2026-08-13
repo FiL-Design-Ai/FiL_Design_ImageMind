@@ -143,9 +143,14 @@ function openPanel() {
   });
 }
 
+const emit = defineEmits<{
+  (e: "close"): void;
+}>();
+
 function close() {
   if (!open.value) return;
   open.value = false;
+  emit("close");
   window.removeEventListener("resize", onWindowChange);
   window.removeEventListener("scroll", onWindowChange, true);
   document.removeEventListener("mousedown", onDocMouseDown, true);

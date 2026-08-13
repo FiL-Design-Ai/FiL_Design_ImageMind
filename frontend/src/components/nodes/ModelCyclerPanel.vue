@@ -219,6 +219,13 @@ function removeModelItem(index: number) {
   syncToNodeState();
 }
 
+function onComboClose(index: number) {
+  const item = modelItems.value[index];
+  if (item && !item.name.trim()) {
+    removeModelItem(index);
+  }
+}
+
 async function openInfoModal(item: ModelItem, index: number) {
   const name = item.name.trim();
   const normalized = name.replace(/\\/g, "/");
@@ -647,6 +654,7 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
             :auto-open="item.autoOpen"
             :preview-mode="sourceMode === 'Diffusion Models' ? 'diffusion_models' : 'checkpoints'"
             :placeholder="t('cycler_select_model', 'Select model...')"
+            @close="onComboClose(originalIndex)"
             @update:model-value="(val) => updateItemName(originalIndex, val)"
           />
         </div>

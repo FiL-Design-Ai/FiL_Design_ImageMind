@@ -384,18 +384,10 @@ function toggleItemEnabled(index: number, enabled: boolean) {
   }
 }
 
-function onSliderPointerDown(e: PointerEvent) {
-  e.stopPropagation();
-  if (typeof e.stopImmediatePropagation === "function") {
-    e.stopImmediatePropagation();
-  }
-  const target = e.currentTarget as HTMLElement | null;
-  if (target && typeof target.setPointerCapture === "function") {
-    try {
-      target.setPointerCapture(e.pointerId);
-    } catch {
-      // ignore
-    }
+function onComboClose(index: number) {
+  const item = loraItems.value[index];
+  if (item && !item.name.trim()) {
+    removeLoraItem(index);
   }
 }
 </script>
@@ -507,6 +499,7 @@ function onSliderPointerDown(e: PointerEvent) {
               :auto-open="item.autoOpen"
               preview-mode="loras"
               placeholder="Select LoRA..."
+              @close="onComboClose(originalIndex)"
               @update:model-value="(val) => updateItemName(originalIndex, val)"
             />
           </div>
@@ -545,7 +538,6 @@ function onSliderPointerDown(e: PointerEvent) {
               step="0.05"
               :value="item.sm"
               class="fil-lora-range"
-              @pointerdown="onSliderPointerDown"
               @mousedown.stop
               @mousemove.stop
               @pointerdown.stop
@@ -566,7 +558,6 @@ function onSliderPointerDown(e: PointerEvent) {
               step="0.05"
               :value="item.sc"
               class="fil-lora-range"
-              @pointerdown="onSliderPointerDown"
               @mousedown.stop
               @mousemove.stop
               @pointerdown.stop
