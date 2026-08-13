@@ -34,7 +34,15 @@ interface LoraInfoDetail {
   extension: string;
   size_str?: string;
   mtime_str?: string;
+  arch?: string;
+  precision?: string;
+  model_title?: string;
+  base_model?: string;
+  creator?: string;
+  download_count?: number;
+  thumbs_up?: number;
   trigger_words?: string;
+  sample_prompts?: string[];
   isLoading?: boolean;
 }
 
@@ -234,11 +242,23 @@ async function openInfoModal(item: LoraItem, index: number) {
       `${ROUTE_PREFIX}/model_info?mode=loras&path=${encodeURIComponent(name)}`
     );
     if (res && !res.error && activeInfoDetail.value && activeInfoDetail.value.fullName === name) {
+      const tw = (res as Record<string, unknown>).trained_words;
+      const twStr = Array.isArray(tw) && tw.length > 0
+        ? (tw as string[]).join(", ")
+        : (res.trigger_words || "");
       activeInfoDetail.value = {
         ...activeInfoDetail.value,
         size_str: res.size_str || "N/A",
         mtime_str: res.mtime_str || "N/A",
-        trigger_words: res.trigger_words || "",
+        arch: res.arch || "LoRA Adapter",
+        precision: res.precision || "FP16",
+        model_title: res.model_title || "",
+        base_model: res.base_model || "",
+        creator: res.creator || "",
+        download_count: res.download_count || 0,
+        thumbs_up: res.thumbs_up || 0,
+        trigger_words: twStr,
+        sample_prompts: res.sample_prompts || [],
         isLoading: false,
       };
     } else if (activeInfoDetail.value) {
@@ -670,8 +690,27 @@ function onComboClose(index: number) {
             <span class="fil-info-card-val">#{{ activeInfoDetail.index }} of {{ loraItems.length }}</span>
           </div>
           <div class="fil-info-card">
+            <span class="fil-info-card-label">Architecture / Base</span>
+            <span class="fil-info-card-val highlight">{{ activeInfoDetail.base_model || activeInfoDetail.arch || 'LoRA Adapter' }}</span>
+          </div>
+          <div class="fil-info-card">
             <span class="fil-info-card-label">File Size</span>
             <span class="fil-info-card-val">{{ activeInfoDetail.size_str || 'Reading...' }}</span>
+          </div>
+          <div class="fil-info-card">
+            <span class="fil-info-card-label">Precision</span>
+            <span class="fil-info-card-val">{{ activeInfoDetail.precision || 'FP16' }}</span>
+          </div>
+          <div class="fil-info-card">
+            <span class="fil-info-card-label">Modified Date</span>
+            <span class="fil-info-card-val">{{ activeInfoDetail.mtime_str || 'N/A' }}</span>
+          </div>
+          <div class="fil-info-card">
+            <span class="fil-info-card-label">Author & Stats</span>
+            <span class="fil-info-card-val">
+              {{ activeInfoDetail.creator || 'Civitai Community' }}
+              <template v-if="activeInfoDetail.download_count"> (📥 {{ activeInfoDetail.download_count }})</template>
+            </span>
           </div>
         </div>
 
@@ -682,10 +721,23 @@ function onComboClose(index: number) {
               class="fil-copy-mini-btn"
               @click="copyToClipboard(activeInfoDetail.trigger_words || '', 'Trigger Words')"
             >
+              📋 Copy All
+            </button>
+          </div>
+          <code class="fil-info-code highlight-code">{{ activeInfoDetail.trigger_words }}</code>
+        </div>
+
+        <div v-if="activeInfoDetail.sample_prompts && activeInfoDetail.sample_prompts.length > 0" class="fil-info-field full">
+          <span class="fil-info-label">Sample Prompts (Civitai):</span>
+          <div v-for="(pmt, idx) in activeInfoDetail.sample_prompts" :key="idx" class="fil-sample-prompt-item">
+            <code class="fil-info-code flex-code">{{ pmt }}</code>
+            <button
+              class="fil-copy-mini-btn"
+              @click="copyToClipboard(pmt, `Sample Prompt #${idx + 1}`)"
+            >
               📋 Copy
             </button>
           </div>
-          <code class="fil-info-code">{{ activeInfoDetail.trigger_words }}</code>
         </div>
 
         <div class="fil-info-field full">
