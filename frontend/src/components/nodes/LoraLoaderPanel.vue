@@ -542,7 +542,7 @@ function onComboClose(index: number) {
           </button>
         </div>
 
-        <!-- Sliders Row (Model Weight / CLIP Weight) -->
+        <!-- Sliders Row (CLIP Strength / Model Strength) -->
         <div
           v-if="item.enabled && item.name.trim()"
           class="fil-lora-sliders-wrap"
@@ -551,57 +551,11 @@ function onComboClose(index: number) {
         >
           <div class="fil-lora-slider-col">
             <div class="fil-slider-header">
-              <span class="fil-slider-label">Model Weight</span>
+              <span class="fil-slider-label">CLIP Strength</span>
               <div class="fil-slider-stepper">
                 <button
                   class="fil-stepper-btn"
-                  title="Decrease weight (-0.05)"
-                  @mousedown.stop
-                  @click.stop="updateItemSm(originalIndex, stepWeight(item.sm, -0.05))"
-                >
-                  ◀
-                </button>
-                <input
-                  type="text"
-                  inputmode="decimal"
-                  :value="formatWeight(item.sm)"
-                  class="fil-stepper-input"
-                  @mousedown.stop
-                  @keydown.stop
-                  @change="(e) => updateItemSm(originalIndex, parseWeightInput((e.target as HTMLInputElement).value))"
-                />
-                <button
-                  class="fil-stepper-btn"
-                  title="Increase weight (+0.05)"
-                  @mousedown.stop
-                  @click.stop="updateItemSm(originalIndex, stepWeight(item.sm, 0.05))"
-                >
-                  ▶
-                </button>
-              </div>
-            </div>
-            <input
-              type="range"
-              min="-3.0"
-              max="3.0"
-              step="0.05"
-              :value="item.sm"
-              class="fil-lora-range"
-              @mousedown.stop
-              @mousemove.stop
-              @pointerdown.stop
-              @pointermove.stop
-              @input="(e) => updateItemSm(originalIndex, parseFloat((e.target as HTMLInputElement).value))"
-            />
-          </div>
-
-          <div class="fil-lora-slider-col">
-            <div class="fil-slider-header">
-              <span class="fil-slider-label">CLIP Weight</span>
-              <div class="fil-slider-stepper">
-                <button
-                  class="fil-stepper-btn"
-                  title="Decrease weight (-0.05)"
+                  title="Decrease strength (-0.05)"
                   @mousedown.stop
                   @click.stop="updateItemSc(originalIndex, stepWeight(item.sc, -0.05))"
                 >
@@ -618,7 +572,7 @@ function onComboClose(index: number) {
                 />
                 <button
                   class="fil-stepper-btn"
-                  title="Increase weight (+0.05)"
+                  title="Increase strength (+0.05)"
                   @mousedown.stop
                   @click.stop="updateItemSc(originalIndex, stepWeight(item.sc, 0.05))"
                 >
@@ -638,6 +592,52 @@ function onComboClose(index: number) {
               @pointerdown.stop
               @pointermove.stop
               @input="(e) => updateItemSc(originalIndex, parseFloat((e.target as HTMLInputElement).value))"
+            />
+          </div>
+
+          <div class="fil-lora-slider-col">
+            <div class="fil-slider-header">
+              <span class="fil-slider-label">Model Strength</span>
+              <div class="fil-slider-stepper">
+                <button
+                  class="fil-stepper-btn"
+                  title="Decrease strength (-0.05)"
+                  @mousedown.stop
+                  @click.stop="updateItemSm(originalIndex, stepWeight(item.sm, -0.05))"
+                >
+                  ◀
+                </button>
+                <input
+                  type="text"
+                  inputmode="decimal"
+                  :value="formatWeight(item.sm)"
+                  class="fil-stepper-input"
+                  @mousedown.stop
+                  @keydown.stop
+                  @change="(e) => updateItemSm(originalIndex, parseWeightInput((e.target as HTMLInputElement).value))"
+                />
+                <button
+                  class="fil-stepper-btn"
+                  title="Increase strength (+0.05)"
+                  @mousedown.stop
+                  @click.stop="updateItemSm(originalIndex, stepWeight(item.sm, 0.05))"
+                >
+                  ▶
+                </button>
+              </div>
+            </div>
+            <input
+              type="range"
+              min="-3.0"
+              max="3.0"
+              step="0.05"
+              :value="item.sm"
+              class="fil-lora-range"
+              @mousedown.stop
+              @mousemove.stop
+              @pointerdown.stop
+              @pointermove.stop
+              @input="(e) => updateItemSm(originalIndex, parseFloat((e.target as HTMLInputElement).value))"
             />
           </div>
         </div>
