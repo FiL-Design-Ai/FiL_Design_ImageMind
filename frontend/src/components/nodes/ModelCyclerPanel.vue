@@ -526,9 +526,14 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
       >
         🔄
       </button>
-      <div v-if="lastRun" class="fil-cycler-now">
-        {{ lastRun.position }}/{{ lastRun.total }}: {{ lastRun.clean_name || lastRun.model_name }}
-      </div>
+    </div>
+
+    <!-- Active Run Status Badge -->
+    <div v-if="lastRun" class="fil-cycler-now">
+      <span class="fil-cycler-now-badge">{{ lastRun.position }}/{{ lastRun.total }}</span>
+      <span class="fil-cycler-now-text" :title="lastRun.model_name">
+        {{ lastRun.clean_name || lastRun.model_name }}
+      </span>
     </div>
 
     <!-- Mode bar -->
@@ -925,6 +930,42 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
 @keyframes fil-spin-anim {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+.fil-cycler-now {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 3px 8px;
+  background: color-mix(in srgb, var(--fil-accent, #a855f7) 14%, var(--fil-surface-2, #18181b));
+  border: 1px solid color-mix(in srgb, var(--fil-accent, #a855f7) 35%, transparent);
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+.fil-cycler-now-badge {
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--fil-accent-text, #c084fc);
+  background: color-mix(in srgb, var(--fil-accent, #a855f7) 25%, transparent);
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--fil-accent, #a855f7) 40%, transparent);
+  flex-shrink: 0;
+}
+
+.fil-cycler-now-text {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--fil-text, #f4f4f5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
 }
 
 .fil-cycler-controls {
