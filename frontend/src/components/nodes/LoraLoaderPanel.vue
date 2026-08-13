@@ -316,17 +316,6 @@ function toggleAll(enable: boolean) {
   syncToNodeState();
 }
 
-function populateAllFolderLoras() {
-  loraItems.value = installedLoras.value.map((m, idx) => ({
-    id: `item_all_${idx}_${Date.now()}`,
-    name: m,
-    enabled: true,
-    sm: globalSm.value,
-    sc: globalSc.value,
-  }));
-  syncToNodeState();
-}
-
 function clearAllItems() {
   loraItems.value = [];
   syncToNodeState();
@@ -385,7 +374,6 @@ function toggleItemEnabled(index: number, enabled: boolean) {
       <div class="fil-actions-right-group">
         <button class="fil-action-link" @click="toggleAll(true)">All ON</button>
         <button class="fil-action-link" @click="toggleAll(false)">All OFF</button>
-        <button class="fil-action-link" @click="populateAllFolderLoras">Populate Folder</button>
         <button class="fil-action-link danger" @click="clearAllItems">Clear</button>
       </div>
     </div>
@@ -404,7 +392,7 @@ function toggleItemEnabled(index: number, enabled: boolean) {
     <!-- Dynamic LoRAs Stack List -->
     <TransitionGroup name="fil-stack-list" tag="div" class="fil-cycler-stack">
       <div v-if="loraItems.length === 0" key="empty" class="fil-cycler-empty">
-        <span>No LoRAs in stack — click <b>+ Add LoRA</b> or <b>Populate Folder</b> to build your stack.</span>
+        <span>No LoRAs in stack — click <b>+ Add LoRA</b> to build your stack.</span>
       </div>
 
       <div
