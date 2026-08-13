@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
- * FiLLoraLoader — Cyberpunk HUD panel for dynamic LoRA stack management with sliders & presets.
- * Redesigned to 100% mirror FiLModelCycler's premium stack architecture and styling.
+ * FiLLoraLoader — Cyberpunk HUD panel for dynamic LoRA stack management with sliders.
+ * Cleaned up: removed presets and advanced settings per user request.
  */
 import { computed, ref, onMounted } from "vue";
 import {
@@ -9,14 +9,12 @@ import {
   FilComboBox,
   type FilComboOption,
   FilModal,
-  FilSection,
   FilSelect,
   FilToggle,
 } from "@/components/widgets";
-import { useI18n } from "@/composables/useI18n";
 import type { FilNodeState } from "@/nodes2/filState";
 import { findFilWidget } from "@/nodes2/util";
-import { getJson, postJson } from "@/api/client";
+import { getJson } from "@/api/client";
 import { ROUTE_PREFIX } from "@/constants/brand";
 
 interface LoraItem {
@@ -25,11 +23,6 @@ interface LoraItem {
   enabled: boolean;
   sm: number;
   sc: number;
-}
-
-interface LoraPreset {
-  name: string;
-  loras: string[];
 }
 
 interface LoraInfoDetail {
@@ -45,7 +38,6 @@ interface LoraInfoDetail {
 }
 
 const props = defineProps<{ state: FilNodeState }>();
-const { t } = useI18n();
 
 function createRef<T>(name: string, defaultValue: T) {
   return computed<T>({
@@ -60,8 +52,6 @@ function createRef<T>(name: string, defaultValue: T) {
 
 const globalSm = createRef<number>("strength_model", 1.0);
 const globalSc = createRef<number>("strength_clip", 1.0);
-const skipOnError = createRef<boolean>("skip_on_error", true);
-const isAdvancedCollapsed = ref(true);
 
 const installedLoras = ref<string[]>([]);
 const loraItems = ref<LoraItem[]>([]);
@@ -73,18 +63,8 @@ const infoModalOpen = ref(false);
 const activeInfoDetail = ref<LoraInfoDetail | null>(null);
 const copySuccessMsg = ref("");
 
-// Presets State
-const presetsList = ref<LoraPreset[]>([]);
-const selectedPresetName = ref("");
-const savePresetModalOpen = ref(false);
-const newPresetName = ref("");
-
 const comboOptions = computed<FilComboOption[]>(() =>
   installedLoras.value.map((m) => ({ value: m, label: m }))
-);
-
-const presetComboOptions = computed<FilComboOption[]>(() =>
-  presetsList.value.map((p) => ({ value: p.name, label: `${p.name} (${p.loras.length})` }))
 );
 
 const filteredLoraItems = computed(() => {
@@ -165,24 +145,12 @@ async function loadInstalledLoras() {
   }
 }
 
-async function fetchPresets() {
-  try {
-    const res = await getJson<{ presets: LoraPreset[] }>(`${ROUTE_PREFIX}/lora_cycler_presets`);
-    if (res?.presets) {
-      presetsList.value = res.presets;
-    }
-  } catch {
-    presetsList.value = [];
-  }
-}
-
 onMounted(() => {
   const rawList = String(props.state.nodeState["lora_list"] ?? "");
   if (rawList) {
     loraItems.value = parseLoraList(rawList);
   }
   loadInstalledLoras();
-  fetchPresets();
 });
 
 function addLoraItem() {
@@ -391,69 +359,6 @@ function toggleItemEnabled(index: number, enabled: boolean) {
     syncToNodeState();
   }
 }
-
-function selectPreset(presetName: string) {
-  selectedPresetName.value = presetName;
-  const target = presetsList.value.find((p) => p.name === presetName);
-  if (target) {
-    loraItems.value = target.loras.map((line, idx) => {
-      const isEnabled = !line.startsWith("#");
-      const clean = line.replace(/^#\s*/, "");
-      const parts = clean.split(":");
-      const name = parts[0];
-      const sm = parts.length >= 2 ? float(parts[1]) : globalSm.value;
-      const sc = parts.length >= 3 ? float(parts[2]) : sm;
-      return {
-        id: `item_p_${idx}_${Date.now()}`,
-        name,
-        enabled: isEnabled,
-        sm,
-        sc,
-      };
-    });
-    syncToNodeState();
-  }
-}
-
-async function submitSavePreset() {
-  const name = newPresetName.value.trim();
-  if (!name) return;
-  const loras = loraItems.value.map((item) => {
-    const entry = `${item.name}:${item.sm.toFixed(2)}:${item.sc.toFixed(2)}`;
-    return item.enabled ? entry : `# ${entry}`;
-  });
-  try {
-    const res = await postJson<{ presets: LoraPreset[] }>(`${ROUTE_PREFIX}/lora_cycler_presets`, {
-      name,
-      loras,
-    });
-    if (res?.presets) {
-      presetsList.value = res.presets;
-      selectedPresetName.value = name;
-    }
-  } catch (err) {
-    console.error("Failed to save preset", err);
-  }
-  savePresetModalOpen.value = false;
-  newPresetName.value = "";
-}
-
-async function deleteSelectedPreset() {
-  const name = selectedPresetName.value;
-  if (!name) return;
-  try {
-    const res = await fetch(`${ROUTE_PREFIX}/lora_cycler_presets/${encodeURIComponent(name)}`, {
-      method: "DELETE",
-    });
-    const json = await res.json();
-    if (json?.presets) {
-      presetsList.value = json.presets;
-      selectedPresetName.value = "";
-    }
-  } catch (err) {
-    console.error("Failed to delete preset", err);
-  }
-}
 </script>
 
 <template>
@@ -466,33 +371,6 @@ async function deleteSelectedPreset() {
       <div class="fil-header-counter">
         Active: {{ activeLoraCount }}/{{ loraItems.length }}
       </div>
-    </div>
-
-    <!-- Presets Toolbar -->
-    <div class="fil-cycler-preset-bar">
-      <div class="fil-preset-combo-wrap">
-        <FilComboBox
-          :model-value="selectedPresetName"
-          :options="presetComboOptions"
-          placeholder="📂 Load Preset..."
-          @update:model-value="selectPreset"
-        />
-      </div>
-      <button
-        class="fil-preset-btn accent"
-        title="Save Current Stack as Preset"
-        @click="savePresetModalOpen = true"
-      >
-        💾 Save Preset
-      </button>
-      <button
-        v-if="selectedPresetName"
-        class="fil-preset-btn danger"
-        title="Delete Selected Preset"
-        @click="deleteSelectedPreset"
-      >
-        🗑️
-      </button>
     </div>
 
     <!-- Action Toolbar (Bulk operations & Sort) -->
@@ -635,41 +513,6 @@ async function deleteSelectedPreset() {
       />
     </div>
 
-    <!-- Advanced Settings Section -->
-    <FilSection
-      v-model="isAdvancedCollapsed"
-      :title="t('cycler_advanced', 'Advanced Settings')"
-    />
-    <div v-if="!isAdvancedCollapsed" class="fil-cycler-adv-body">
-      <FilToggle
-        :model-value="skipOnError ? 'ON' : 'OFF'"
-        :label="t('cycler_skip_error', 'Skip Corrupt Models')"
-        @update:model-value="(v) => (skipOnError = v === 'ON')"
-      />
-    </div>
-
-    <!-- Save Preset Modal -->
-    <FilModal
-      v-model:open="savePresetModalOpen"
-      title="Save LoRA Stack Preset"
-      width="400px"
-    >
-      <div class="fil-preset-modal-content">
-        <label class="fil-info-label">Preset Name:</label>
-        <input
-          v-model="newPresetName"
-          type="text"
-          class="fil-stack-search-input"
-          placeholder="e.g. Cinematic Portrait Stack..."
-          @keydown.enter="submitSavePreset"
-        />
-        <div class="fil-cycler-btn-group" style="margin-top: 8px;">
-          <FilButton variant="accent" label="Save Preset" @click="submitSavePreset" />
-          <FilButton variant="standard" label="Cancel" @click="savePresetModalOpen = false" />
-        </div>
-      </div>
-    </FilModal>
-
     <!-- LoRA Info Modal -->
     <FilModal
       v-model:open="infoModalOpen"
@@ -755,49 +598,6 @@ async function deleteSelectedPreset() {
   padding: 2px 6px;
   border-radius: 4px;
   border: 1px solid color-mix(in srgb, var(--fil-accent) 30%, transparent);
-}
-
-.fil-cycler-preset-bar {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-}
-
-.fil-preset-combo-wrap {
-  flex: 1;
-  min-width: 0;
-}
-
-.fil-preset-btn {
-  background: var(--fil-surface-2, #27272a);
-  border: 1px solid var(--fil-border);
-  color: var(--fil-text);
-  border-radius: 4px;
-  padding: 4px 8px;
-  font-size: 10px;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.15s ease-in-out;
-}
-
-.fil-preset-btn.accent {
-  background: var(--fil-accent, #a855f7);
-  border: 1px solid var(--fil-accent, #a855f7);
-  color: #ffffff;
-  box-shadow: 0 0 8px color-mix(in srgb, var(--fil-accent) 45%, transparent);
-}
-
-.fil-preset-btn.accent:hover {
-  background: color-mix(in srgb, var(--fil-accent) 85%, white);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--fil-accent) 70%, transparent);
-}
-
-.fil-preset-btn.danger:hover {
-  border-color: var(--fil-danger, #ef4444);
-  color: var(--fil-danger, #ef4444);
-  background: color-mix(in srgb, var(--fil-danger) 20%, transparent);
 }
 
 .fil-cycler-actions-bar {
@@ -1152,19 +952,6 @@ async function deleteSelectedPreset() {
   flex: 1;
   justify-content: center;
   font-weight: 600;
-}
-
-.fil-cycler-adv-body {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding-top: 4px;
-}
-
-.fil-preset-modal-content {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
 }
 
 .fil-info-modal-content {
