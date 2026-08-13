@@ -255,7 +255,7 @@ async function openInfoModal(item: ModelItem, index: number) {
 
   const modeKey = sourceMode.value === "Diffusion Models" ? "diffusion_models" : "checkpoints";
   try {
-    const res = await getJson<Partial<ModelInfoDetail> & { error?: string }>(`${ROUTE_PREFIX}/model_info/${modeKey}?path=${encodeURIComponent(name)}`);
+    const res = await getJson<Partial<ModelInfoDetail> & { error?: string }>(`${ROUTE_PREFIX}/model_info?mode=${modeKey}&path=${encodeURIComponent(name)}`);
     if (res && !res.error && activeInfoDetail.value && activeInfoDetail.value.fullName === name) {
       activeInfoDetail.value = {
         ...activeInfoDetail.value,

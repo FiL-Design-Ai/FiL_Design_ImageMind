@@ -72,12 +72,12 @@ def _fetch_civitai_metadata_and_preview(full_path: str) -> bool:
     if preview_exists and meta_exists:
         return True
 
-    # Fast hashing: calculate SHA256 of the file
+    # Fast hashing: calculate SHA256 of the first 64MB of the file
     sha256 = hashlib.sha256()
     try:
         with open(full_path, "rb") as f:
-            while chunk := f.read(4 * 1024 * 1024):
-                sha256.update(chunk)
+            chunk = f.read(64 * 1024 * 1024)
+            sha256.update(chunk)
         file_hash = sha256.hexdigest().upper()
     except Exception:
         return False
@@ -87,7 +87,7 @@ def _fetch_civitai_metadata_and_preview(full_path: str) -> bool:
         req = urllib.request.Request(
             url, headers={"User-Agent": "FiL_Design_ImageMind/1.1", "Accept": "application/json"}
         )
-        with urllib.request.urlopen(req, timeout=8) as resp:
+        with urllib.request.urlopen(req, timeout=4) as resp:
             if resp.status != 200:
                 return False
             data = json.loads(resp.read().decode("utf-8"))
@@ -105,7 +105,7 @@ def _fetch_civitai_metadata_and_preview(full_path: str) -> bool:
                         img_url,
                         headers={"User-Agent": "FiL_Design_ImageMind/1.1"},
                     )
-                    with urllib.request.urlopen(img_req, timeout=10) as img_resp:
+                    with urllib.request.urlopen(img_req, timeout=5) as img_resp:
                         if img_resp.status == 200:
                             save_img_path = base_no_ext + ".png"
                             with open(save_img_path, "wb") as img_f:
@@ -126,13 +126,15 @@ def _inspect_model_file(mode: str, rel_path: str) -> dict:
 
         _ensure_extra_model_paths()
 
-        if mode in ("diffusion_models", "unet"):
+        clean_mode = str(mode or "").strip().lower().replace(" ", "_")
+        if "diffusion" in clean_mode or "unet" in clean_mode:
             folder_type = "diffusion_models"
-        elif mode in ("loras", "lora"):
+        elif "lora" in clean_mode:
             folder_type = "loras"
         else:
             folder_type = "checkpoints"
-        norm_rel = rel_path.replace("\\", "/")
+
+        norm_rel = rel_path.replace("\\", "/").strip()
         full_path = folder_paths.get_full_path(folder_type, norm_rel)
         if not full_path or not os.path.isfile(full_path):
             full_path = folder_paths.get_full_path(folder_type, rel_path)
@@ -148,6 +150,10 @@ def _inspect_model_file(mode: str, rel_path: str) -> dict:
                 cand = os.path.join(d, norm_rel.replace("/", os.sep))
                 if os.path.isfile(cand):
                     full_path = cand
+                    break
+                cand_raw = os.path.join(d, rel_path)
+                if os.path.isfile(cand_raw):
+                    full_path = cand_raw
                     break
     except Exception as err:
         logger.warning("Error resolving model file %s: %s", rel_path, err)

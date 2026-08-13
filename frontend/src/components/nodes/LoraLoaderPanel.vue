@@ -233,7 +233,7 @@ async function openInfoModal(item: LoraItem, index: number) {
 
   try {
     const res = await getJson<Partial<LoraInfoDetail> & { error?: string; trigger_words?: string }>(
-      `${ROUTE_PREFIX}/model_info/loras?path=${encodeURIComponent(name)}`
+      `${ROUTE_PREFIX}/model_info?mode=loras&path=${encodeURIComponent(name)}`
     );
     if (res && !res.error && activeInfoDetail.value && activeInfoDetail.value.fullName === name) {
       activeInfoDetail.value = {
