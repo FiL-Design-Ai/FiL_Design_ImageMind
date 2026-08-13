@@ -76,9 +76,7 @@ const filteredLoraItems = computed(() => {
     .filter(({ item }) => item.name.toLowerCase().includes(q));
 });
 
-const activeLoraCount = computed(
-  () => loraItems.value.filter((i) => i.enabled && i.name.trim()).length
-);
+
 
 function parseLoraList(raw: string): LoraItem[] {
   const lines = raw
@@ -414,15 +412,6 @@ function onComboClose(index: number) {
 
 <template>
   <div class="fil-cycler-root">
-    <!-- Header Banner -->
-    <div class="fil-cycler-header-banner">
-      <div class="fil-header-title">
-        <span>🧬 LoRA Loader</span>
-      </div>
-      <div class="fil-header-counter">
-        Active: {{ activeLoraCount }}/{{ loraItems.length }}
-      </div>
-    </div>
 
     <!-- Action Toolbar (Bulk operations & Sort) -->
     <div class="fil-cycler-actions-bar">
