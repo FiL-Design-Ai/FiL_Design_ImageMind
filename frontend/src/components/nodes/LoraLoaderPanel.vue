@@ -528,7 +528,7 @@ function onSliderPointerDown(e: PointerEvent) {
 
         <!-- Sliders Row (Model Weight / CLIP Weight) -->
         <div
-          v-if="item.enabled"
+          v-if="item.enabled && item.name.trim()"
           class="fil-lora-sliders-wrap"
           @mousedown.stop
           @pointerdown.stop
