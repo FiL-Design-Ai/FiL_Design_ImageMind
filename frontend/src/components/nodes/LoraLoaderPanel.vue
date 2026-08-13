@@ -384,6 +384,11 @@ function toggleItemEnabled(index: number, enabled: boolean) {
   }
 }
 
+function clampWeight(val: number): number {
+  const clamped = Math.max(-3.0, Math.min(3.0, val));
+  return parseFloat(clamped.toFixed(2));
+}
+
 function onComboClose(index: number) {
   const item = loraItems.value[index];
   if (item && !item.name.trim()) {
@@ -532,7 +537,35 @@ function onComboClose(index: number) {
           <div class="fil-lora-slider-col">
             <div class="fil-slider-header">
               <span class="fil-slider-label">Model Weight</span>
-              <span class="fil-slider-val">{{ item.sm.toFixed(2) }}</span>
+              <div class="fil-slider-stepper">
+                <button
+                  class="fil-stepper-btn"
+                  title="Decrease weight (-0.05)"
+                  @mousedown.stop
+                  @click.stop="updateItemSm(originalIndex, clampWeight(item.sm - 0.05))"
+                >
+                  ◀
+                </button>
+                <input
+                  type="number"
+                  step="0.05"
+                  min="-3.0"
+                  max="3.0"
+                  :value="item.sm.toFixed(2)"
+                  class="fil-stepper-input"
+                  @mousedown.stop
+                  @keydown.stop
+                  @change="(e) => updateItemSm(originalIndex, clampWeight(parseFloat((e.target as HTMLInputElement).value) || 0))"
+                />
+                <button
+                  class="fil-stepper-btn"
+                  title="Increase weight (+0.05)"
+                  @mousedown.stop
+                  @click.stop="updateItemSm(originalIndex, clampWeight(item.sm + 0.05))"
+                >
+                  ▶
+                </button>
+              </div>
             </div>
             <input
               type="range"
@@ -552,7 +585,35 @@ function onComboClose(index: number) {
           <div class="fil-lora-slider-col">
             <div class="fil-slider-header">
               <span class="fil-slider-label">CLIP Weight</span>
-              <span class="fil-slider-val">{{ item.sc.toFixed(2) }}</span>
+              <div class="fil-slider-stepper">
+                <button
+                  class="fil-stepper-btn"
+                  title="Decrease weight (-0.05)"
+                  @mousedown.stop
+                  @click.stop="updateItemSc(originalIndex, clampWeight(item.sc - 0.05))"
+                >
+                  ◀
+                </button>
+                <input
+                  type="number"
+                  step="0.05"
+                  min="-3.0"
+                  max="3.0"
+                  :value="item.sc.toFixed(2)"
+                  class="fil-stepper-input"
+                  @mousedown.stop
+                  @keydown.stop
+                  @change="(e) => updateItemSc(originalIndex, clampWeight(parseFloat((e.target as HTMLInputElement).value) || 0))"
+                />
+                <button
+                  class="fil-stepper-btn"
+                  title="Increase weight (+0.05)"
+                  @mousedown.stop
+                  @click.stop="updateItemSc(originalIndex, clampWeight(item.sc + 0.05))"
+                >
+                  ▶
+                </button>
+              </div>
             </div>
             <input
               type="range"
@@ -1008,6 +1069,66 @@ function onComboClose(index: number) {
   justify-content: space-between;
   align-items: center;
   font-size: 10px;
+}
+
+.fil-slider-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  background: var(--fil-surface-2, #18181b);
+  border: 1px solid color-mix(in srgb, var(--fil-accent) 35%, transparent);
+  border-radius: 12px;
+  padding: 0 4px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+  height: 18px;
+  box-sizing: border-box;
+}
+
+.fil-stepper-btn {
+  background: transparent;
+  border: none;
+  color: var(--fil-muted, #94a3b8);
+  font-size: 8px;
+  padding: 0 2px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 14px;
+  line-height: 1;
+  transition: color 0.15s ease, transform 0.15s ease;
+  user-select: none;
+}
+
+.fil-stepper-btn:hover {
+  color: var(--fil-accent, #00f0ff);
+  transform: scale(1.25);
+}
+
+.fil-stepper-btn:active {
+  transform: scale(0.9);
+}
+
+.fil-stepper-input {
+  background: transparent;
+  border: none;
+  color: var(--fil-text, #f8fafc);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  width: 32px;
+  text-align: center;
+  outline: none;
+  padding: 0;
+  margin: 0;
+  line-height: 16px;
+  -moz-appearance: textfield;
+}
+
+.fil-stepper-input::-webkit-outer-spin-button,
+.fil-stepper-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .fil-slider-label {
