@@ -21,7 +21,7 @@ from ..common.localization import t
 
 logger = logging.getLogger(f"{BRAND}.ModelCycler")
 
-_SOURCE_MODES = ["Checkpoints", "Diffusion Models"]
+_SOURCE_MODES = ["Diffusion Models", "Checkpoints"]
 _CYCLE_MODES = [
     "Sequential (Loop)",
     "Sequential (Stop)",
@@ -232,7 +232,7 @@ class FiLModelCycler(io.ComfyNode):
                 io.Combo.Input(
                     "source_mode",
                     options=_SOURCE_MODES,
-                    default="Checkpoints",
+                    default="Diffusion Models",
                     tooltip=t(
                         "tt_cycler_source_mode",
                         "Source of models: Checkpoints or Diffusion Models (UNet).",

@@ -71,7 +71,7 @@ function createRef<T>(name: string, defaultValue: T) {
   });
 }
 
-const sourceMode = createRef<string>("source_mode", "Checkpoints");
+const sourceMode = createRef<string>("source_mode", "Diffusion Models");
 const cycleMode = createRef<string>("cycle_mode", "Sequential (Loop)");
 const unloadPrevious = createRef<boolean>("unload_previous", true);
 const freeVram = createRef<boolean>("free_vram", true);
@@ -82,6 +82,7 @@ const isAdvancedCollapsed = ref(true);
 const installedModels = ref<string[]>([]);
 const modelItems = ref<ModelItem[]>([]);
 const searchFilter = ref("");
+const isRefreshingModels = ref(false);
 const draggedIndex = ref<number | null>(null);
 const dragOverIndex = ref<number | null>(null);
 
@@ -163,6 +164,14 @@ async function fetchPresets() {
   } catch {
     presetsList.value = [];
   }
+}
+
+async function refreshModelsList() {
+  isRefreshingModels.value = true;
+  await loadInstalledModels();
+  setTimeout(() => {
+    isRefreshingModels.value = false;
+  }, 500);
 }
 
 export interface CyclerRun {
@@ -498,9 +507,18 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
     <div class="fil-cycler-header">
       <FilSegmented
         :model-value="sourceMode"
-        :options="['Checkpoints', 'Diffusion Models']"
+        :options="['Diffusion Models', 'Checkpoints']"
         @update:model-value="(v) => (sourceMode = v)"
       />
+      <button
+        class="fil-refresh-models-btn"
+        :class="{ spinning: isRefreshingModels }"
+        title="🔄 Refresh installed models list from disk & extra paths"
+        @mousedown.stop
+        @click.stop="refreshModelsList"
+      >
+        🔄
+      </button>
       <div v-if="lastRun" class="fil-cycler-now">
         {{ lastRun.position }}/{{ lastRun.total }}: {{ lastRun.clean_name || lastRun.model_name }}
       </div>
@@ -840,12 +858,16 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
 }
 
 .fil-cycler-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   width: 100%;
 }
 
 .fil-cycler-header :deep(.fil-w-segmented) {
   display: flex;
-  width: 100%;
+  flex: 1;
+  min-width: 0;
 }
 
 .fil-cycler-header :deep(.fil-w-pill) {
@@ -859,6 +881,38 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
   text-align: center;
   white-space: nowrap;
   font-size: 11px;
+}
+
+.fil-refresh-models-btn {
+  background: var(--fil-surface-2, #27272a);
+  border: 1px solid color-mix(in srgb, var(--fil-accent) 35%, transparent);
+  color: var(--fil-accent-text, #c084fc);
+  cursor: pointer;
+  padding: 0 6px;
+  height: 24px;
+  border-radius: 4px;
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.fil-refresh-models-btn:hover {
+  background: color-mix(in srgb, var(--fil-accent) 25%, transparent);
+  border-color: var(--fil-accent, #a855f7);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--fil-accent) 40%, transparent);
+}
+
+.fil-refresh-models-btn.spinning {
+  animation: fil-spin-anim 0.6s linear infinite;
+}
+
+@keyframes fil-spin-anim {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .fil-cycler-controls {
