@@ -23,6 +23,7 @@ interface LoraItem {
   enabled: boolean;
   sm: number;
   sc: number;
+  autoOpen?: boolean;
 }
 
 interface LoraInfoDetail {
@@ -154,13 +155,13 @@ onMounted(() => {
 });
 
 function addLoraItem() {
-  const fallback = installedLoras.value[0] || "";
   loraItems.value.push({
     id: `item_${Date.now()}_${Math.random()}`,
-    name: fallback,
+    name: "",
     enabled: true,
     sm: globalSm.value,
     sc: globalSc.value,
+    autoOpen: true,
   });
   syncToNodeState();
 }
@@ -433,6 +434,7 @@ function toggleItemEnabled(index: number, enabled: boolean) {
               :model-value="item.name"
               :options="comboOptions"
               :searchable="true"
+              :auto-open="item.autoOpen"
               preview-mode="loras"
               placeholder="Select LoRA..."
               @update:model-value="(val) => updateItemName(originalIndex, val)"

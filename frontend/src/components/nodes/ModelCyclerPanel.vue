@@ -24,6 +24,7 @@ interface ModelItem {
   id: string;
   name: string;
   enabled: boolean;
+  autoOpen?: boolean;
 }
 
 interface ModelPreset {
@@ -190,11 +191,11 @@ watch(sourceMode, () => {
 });
 
 function addModelItem() {
-  const fallback = installedModels.value[0] || "";
   modelItems.value.push({
     id: `item_${Date.now()}_${Math.random()}`,
-    name: fallback,
+    name: "",
     enabled: true,
+    autoOpen: true,
   });
   syncToNodeState();
 }
@@ -610,6 +611,7 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
             :model-value="item.name"
             :options="comboOptions"
             :searchable="true"
+            :auto-open="item.autoOpen"
             :preview-mode="sourceMode === 'Diffusion Models' ? 'diffusion_models' : 'checkpoints'"
             :placeholder="t('cycler_select_model', 'Select model...')"
             @update:model-value="(val) => updateItemName(originalIndex, val)"

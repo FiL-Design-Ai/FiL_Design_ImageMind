@@ -6,7 +6,7 @@
  * floating panel (Teleport'd to `<body>`, positioned from the trigger's
  * `getBoundingClientRect()`) stands in for the browser's own popup.
  */
-import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import FilIcon from "@/components/widgets/FilIcon.vue";
 import type { IconName } from "@/composables/icons";
 import { ROUTE_PREFIX } from "@/constants/brand";
@@ -27,6 +27,7 @@ const props = withDefaults(
     label?: string;
     title?: string;
     previewMode?: string;
+    autoOpen?: boolean;
   }>(),
   { searchable: false, placeholder: "Search…" },
 );
@@ -193,10 +194,23 @@ function onPanelKeydown(e: KeyboardEvent) {
 
 watch(query, () => { activeIndex.value = 0; });
 
+onMounted(() => {
+  if (props.autoOpen) {
+    nextTick(() => {
+      openPanel();
+    });
+  }
+});
+
 onBeforeUnmount(() => {
   window.removeEventListener("resize", onWindowChange);
   window.removeEventListener("scroll", onWindowChange, true);
   document.removeEventListener("mousedown", onDocMouseDown, true);
+});
+
+defineExpose({
+  openPanel,
+  close,
 });
 </script>
 
@@ -215,7 +229,12 @@ onBeforeUnmount(() => {
       @keydown="onTriggerKeydown"
     >
       <FilIcon v-if="selected?.icon" :name="selected.icon" :size="16" />
-      <span class="fil-combo-trigger-label">{{ selected ? optionLabel(selected) : modelValue }}</span>
+      <span
+        class="fil-combo-trigger-label"
+        :class="{ 'is-placeholder': !selected && !modelValue }"
+      >
+        {{ selected ? optionLabel(selected) : (modelValue || placeholder) }}
+      </span>
       <span v-if="selected?.badge" class="fil-combo-badge">{{ selected.badge }}</span>
       <span class="fil-combo-chevron">▾</span>
     </button>
@@ -301,6 +320,7 @@ onBeforeUnmount(() => {
 .fil-combo-trigger.open, .fil-combo-trigger:focus-visible { border-color: var(--fil-accent); outline: 2px solid var(--fil-accent); outline-offset: 1px; }
 .fil-combo-trigger.disabled { opacity: 0.5; cursor: default; }
 .fil-combo-trigger-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
+.fil-combo-trigger-label.is-placeholder { color: var(--fil-muted); opacity: 0.7; font-style: italic; }
 .fil-combo-chevron { font-size: 9px; color: var(--fil-muted); flex-shrink: 0; }
 .fil-combo-badge {
   flex-shrink: 0; font-size: 9px; line-height: 1; padding: 2px 5px; border-radius: 999px;
