@@ -29,6 +29,7 @@ _ROUTES_REGISTERED = False
 def _ensure_extra_model_paths() -> None:
     """Scan and load any extra_model_paths.yaml files into ComfyUI's folder_paths."""
     try:
+        import sys
         import os
         import folder_paths
         import utils.extra_config
@@ -36,10 +37,16 @@ def _ensure_extra_model_paths() -> None:
         base = getattr(folder_paths, "base_path", None) or os.getcwd()
         if os.path.isdir(base):
             for fname in os.listdir(base):
-                if fname.startswith("extra_model_paths") and fname.endswith((".yaml", ".yml")):
+                if (fname.startswith("extra_") or "model_paths" in fname) and fname.endswith((".yaml", ".yml")):
                     full_p = os.path.join(base, fname)
                     if os.path.isfile(full_p):
                         utils.extra_config.load_extra_path_config(full_p)
+
+        for i, arg in enumerate(sys.argv):
+            if arg == "--extra-model-paths-config" and i + 1 < len(sys.argv):
+                cfg_path = sys.argv[i + 1]
+                if os.path.isfile(cfg_path):
+                    utils.extra_config.load_extra_path_config(cfg_path)
     except Exception:
         pass
 
