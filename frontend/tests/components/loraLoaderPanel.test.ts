@@ -62,9 +62,13 @@ describe("LoraLoaderPanel.vue", () => {
     getJson.mockReset();
   });
 
-  it("shows the copy button for a LoRA that has trigger words", async () => {
-    getJson.mockImplementation(backend({ "style_v1.safetensors": "neon glow" }));
-    const list = "style_v1.safetensors:0.80:0.80";
+  it("collects the trigger words of the active rows", async () => {
+    const writeText = vi.fn();
+    vi.stubGlobal("navigator", { clipboard: { writeText } });
+    getJson.mockImplementation(
+      backend({ "style_v1.safetensors": "neon glow", "cyber_v2.safetensors": "wet asphalt" }),
+    );
+    const list = "style_v1.safetensors:0.80:0.80\n# cyber_v2.safetensors:1.00:1.00";
     const node = makeNode(list);
     const wrapper = mount(LoraLoaderPanel, { props: { state: makeState(node, list) as never } });
 
@@ -72,13 +76,83 @@ describe("LoraLoaderPanel.vue", () => {
     await nextTick();
     await nextTick();
 
-    const copy = wrapper.find(".fil-row-copy-trigger");
+    await wrapper.find(".fil-actions-more").trigger("click");
+    const copyAll = wrapper
+      .findAll(".fil-actions-menu button")
+      .find((b) => b.text().includes("Copy Triggers"))!;
+    await copyAll.trigger("click");
+
+    // Only the row that is on, and read under the name the API actually sends.
     expect(
-      copy.exists(),
-      "the backend answered with trigger words and the row shows no copy button — " +
-        "the panel is reading a field name the API does not send",
-    ).toBe(true);
-    expect(copy.attributes("title")).toContain("neon glow");
+      writeText,
+      "nothing reached the clipboard — the panel is reading a field name the API does not send",
+    ).toHaveBeenCalledWith("neon glow");
+    vi.unstubAllGlobals();
+  });
+
+  it("shows one weight, and both only when the saved row has two", async () => {
+    getJson.mockImplementation(backend({}));
+    const same = "style_v1.safetensors:0.80:0.80";
+    const wrapper = mount(LoraLoaderPanel, {
+      props: { state: makeState(makeNode(same), same) as never },
+    });
+    await nextTick();
+    expect(wrapper.findAll(".fil-lora-range")).toHaveLength(1);
+
+    const apart = "style_v1.safetensors:0.80:0.40";
+    const second = mount(LoraLoaderPanel, {
+      props: { state: makeState(makeNode(apart), apart) as never },
+    });
+    await nextTick();
+    expect(
+      second.findAll(".fil-lora-range"),
+      "a row saved with two different weights must open showing both, or the CLIP " +
+        "number is applied while nothing on screen says so",
+    ).toHaveLength(2);
+  });
+
+  it("moves both weights together until they are split", async () => {
+    getJson.mockImplementation(backend({}));
+    const list = "style_v1.safetensors:0.80:0.80";
+    const node = makeNode(list);
+    const wrapper = mount(LoraLoaderPanel, { props: { state: makeState(node, list) as never } });
+    await nextTick();
+
+    const slider = wrapper.find(".fil-lora-range");
+    (slider.element as HTMLInputElement).value = "0.5";
+    await slider.trigger("input");
+
+    expect(node.widgets.find((w) => w.name === "lora_list")!.value).toBe(
+      "style_v1.safetensors:0.50:0.50",
+    );
+
+    await wrapper.find(".fil-split-btn").trigger("click");
+    await nextTick();
+    const sliders = wrapper.findAll(".fil-lora-range");
+    expect(sliders).toHaveLength(2);
+
+    (sliders[1].element as HTMLInputElement).value = "0.2";
+    await sliders[1].trigger("input");
+    expect(node.widgets.find((w) => w.name === "lora_list")!.value).toBe(
+      "style_v1.safetensors:0.50:0.20",
+    );
+  });
+
+  it("keeps the toolbar down to what fits on the node", async () => {
+    getJson.mockImplementation(backend({}));
+    const list = "style_v1.safetensors:0.80:0.80";
+    const wrapper = mount(LoraLoaderPanel, {
+      props: { state: makeState(makeNode(list), list) as never },
+    });
+    await nextTick();
+
+    // Six controls sat here and four fit: "All OFF" was cut in half and
+    // "Clear" was off the edge, unreachable without resizing the node.
+    expect(wrapper.findAll(".fil-cycler-actions-bar button")).toHaveLength(2);
+    expect(wrapper.find(".fil-actions-menu").exists()).toBe(false);
+
+    await wrapper.find(".fil-actions-more").trigger("click");
+    expect(wrapper.findAll(".fil-actions-menu button")).toHaveLength(4);
   });
 
   it("asks about a name once, even when the lookup fails", async () => {

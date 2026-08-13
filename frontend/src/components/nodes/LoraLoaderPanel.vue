@@ -23,6 +23,14 @@ interface LoraItem {
   enabled: boolean;
   sm: number;
   sc: number;
+  /**
+   * Show the two weights apart. Panel state only — the saved line already says
+   * it by carrying two different numbers, so nothing extra is written out.
+   * Model and CLIP strength are equal on almost every LoRA, and showing both
+   * cost each row a second label, slider and stepper for a number the user
+   * never touched.
+   */
+  split?: boolean;
   autoOpen?: boolean;
 }
 
@@ -119,6 +127,9 @@ function parseLoraList(raw: string): LoraItem[] {
       enabled: isEnabled,
       sm,
       sc,
+      // A row saved with two different numbers opens showing both, so the
+      // second one is never hidden behind a control the user has to find.
+      split: sm !== sc,
     };
   });
 }
@@ -195,14 +206,6 @@ onMounted(() => {
   loadInstalledLoras();
 });
 
-function resetSingleWeights(index: number) {
-  if (loraItems.value[index]) {
-    loraItems.value[index].sm = 1.0;
-    loraItems.value[index].sc = 1.0;
-    syncToNodeState();
-  }
-}
-
 function resetAllWeights() {
   for (const item of loraItems.value) {
     item.sm = 1.0;
@@ -237,6 +240,7 @@ function addLoraItem() {
     enabled: true,
     sm: globalSm.value,
     sc: globalSc.value,
+    split: globalSm.value !== globalSc.value,
     autoOpen: true,
   });
   syncToNodeState();
@@ -400,6 +404,20 @@ function onDragEnd() {
   dragOverIndex.value = null;
 }
 
+/**
+ * The rarely-used bulk actions, behind one button.
+ *
+ * Six controls sat in the toolbar and four fit across a node this wide: "All
+ * OFF" was cut in half and "Clear" was off the edge entirely, unreachable
+ * without resizing the node.
+ */
+const menuOpen = ref(false);
+
+function runFromMenu(action: () => void) {
+  action();
+  menuOpen.value = false;
+}
+
 function toggleAll(enable: boolean) {
   loraItems.value.forEach((item) => {
     item.enabled = enable;
@@ -424,6 +442,35 @@ function updateItemSm(index: number, val: number) {
     loraItems.value[index].sm = val;
     syncToNodeState();
   }
+}
+
+/** The single weight: moves both, which is what the two sliders almost always held. */
+function updateItemWeight(index: number, val: number) {
+  const item = loraItems.value[index];
+  if (!item) return;
+  item.sm = val;
+  item.sc = val;
+  syncToNodeState();
+}
+
+function toggleItemSplit(index: number) {
+  const item = loraItems.value[index];
+  if (!item) return;
+  item.split = !item.split;
+  // Coming back to one weight has to leave one number behind, or the row
+  // would keep applying a CLIP strength no longer shown anywhere.
+  if (!item.split) {
+    item.sc = item.sm;
+    syncToNodeState();
+  }
+}
+
+/** The slider a row always shows: one weight, or Model when they are apart. */
+function updateItemPrimary(index: number, val: number) {
+  const item = loraItems.value[index];
+  if (!item) return;
+  if (item.split) updateItemSm(index, val);
+  else updateItemWeight(index, val);
 }
 
 function updateItemSc(index: number, val: number) {
@@ -481,12 +528,27 @@ function onComboClose(index: number) {
         />
       </div>
       <div class="fil-actions-right-group">
-        <button class="fil-action-link highlight" title="Copy all trigger words of active LoRAs to clipboard" @click="copyAllActiveTriggers">⚡ Copy Triggers</button>
-        <button class="fil-action-link highlight" title="Reset all LoRA weights to 1.00" @click="resetAllWeights">🔄 1.00 All</button>
         <button class="fil-action-link" @click="toggleAll(true)">All ON</button>
-        <button class="fil-action-link" @click="toggleAll(false)">All OFF</button>
-        <button class="fil-action-link danger" @click="clearAllItems">Clear</button>
+        <button
+          class="fil-action-link fil-actions-more"
+          :class="{ open: menuOpen }"
+          title="More actions"
+          aria-label="More actions"
+          :aria-expanded="menuOpen"
+          @click="menuOpen = !menuOpen"
+        >
+          •••
+        </button>
       </div>
+    </div>
+
+    <!-- The rest of the bulk actions. Laid out in flow rather than floating:
+         a popover over a node gets clipped by the canvas, and this cannot. -->
+    <div v-if="menuOpen" class="fil-actions-menu">
+      <button class="fil-action-link highlight" title="Copy all trigger words of active LoRAs to clipboard" @click="runFromMenu(copyAllActiveTriggers)">⚡ Copy Triggers</button>
+      <button class="fil-action-link highlight" title="Reset all LoRA weights to 1.00" @click="runFromMenu(resetAllWeights)">🔄 1.00 All</button>
+      <button class="fil-action-link" @click="runFromMenu(() => toggleAll(false))">All OFF</button>
+      <button class="fil-action-link danger" @click="runFromMenu(clearAllItems)">Clear</button>
     </div>
 
     <!-- Search Stack Filter Input -->
@@ -543,16 +605,9 @@ function onComboClose(index: number) {
             ⓘ
           </button>
 
-          <!-- Quick Copy Trigger Words Button -->
-          <button
-            v-if="loraMetaMap[item.name]?.trigger_words"
-            class="fil-row-info-btn fil-row-copy-trigger"
-            :title="`📋 Copy Trigger Words: ${loraMetaMap[item.name].trigger_words}`"
-            @mousedown.stop
-            @click.stop="copyToClipboard(loraMetaMap[item.name].trigger_words || '', 'Trigger Words')"
-          >
-            📋
-          </button>
+          <!-- No per-row copy button. The same words were reachable from three
+               places at once — this one, the ⓘ dialog, and "Copy Triggers" in
+               the toolbar — and this was the one that cost every row a control. -->
 
           <!-- Missing file warning badge -->
           <span
@@ -591,102 +646,15 @@ function onComboClose(index: number) {
           </button>
         </div>
 
-        <!-- Sliders Row (CLIP Strength / Model Strength) -->
+        <!-- Weight. One slider; the CLIP one appears only when asked for. -->
         <div
           v-if="item.enabled && item.name.trim()"
-          class="fil-lora-sliders-wrap"
+          class="fil-lora-weights"
           @mousedown.stop
           @pointerdown.stop
         >
-          <div class="fil-lora-slider-col">
-            <div class="fil-slider-header">
-              <span class="fil-slider-label">CLIP Strength</span>
-              <div class="fil-slider-stepper">
-                <button
-                  class="fil-stepper-btn"
-                  title="Decrease strength (-0.05)"
-                  @mousedown.stop
-                  @click.stop="updateItemSc(originalIndex, stepWeight(item.sc, -0.05))"
-                >
-                  ◀
-                </button>
-                <input
-                  type="text"
-                  inputmode="decimal"
-                  :value="formatWeight(item.sc)"
-                  class="fil-stepper-input"
-                  @mousedown.stop
-                  @keydown.stop
-                  @change="(e) => updateItemSc(originalIndex, parseWeightInput((e.target as HTMLInputElement).value))"
-                />
-                <button
-                  class="fil-stepper-btn"
-                  title="Increase strength (+0.05)"
-                  @mousedown.stop
-                  @click.stop="updateItemSc(originalIndex, stepWeight(item.sc, 0.05))"
-                >
-                  ▶
-                </button>
-              </div>
-            </div>
-            <input
-              type="range"
-              min="-3.0"
-              max="3.0"
-              step="0.05"
-              :value="item.sc"
-              class="fil-lora-range"
-              @mousedown.stop
-              @mousemove.stop
-              @pointerdown.stop
-              @pointermove.stop
-              @input="(e) => updateItemSc(originalIndex, parseFloat((e.target as HTMLInputElement).value))"
-            />
-          </div>
-
-          <!-- Divider & Quick Reset Button (1.00) between CLIP Strength and Model Strength -->
-          <div class="fil-slider-center-divider">
-            <button
-              class="fil-reset-weight-btn"
-              title="Reset CLIP & Model strength to 1.00 for this LoRA"
-              @mousedown.stop
-              @click.stop="resetSingleWeights(originalIndex)"
-            >
-              🔄 1.0
-            </button>
-          </div>
-
-          <div class="fil-lora-slider-col">
-            <div class="fil-slider-header">
-              <span class="fil-slider-label">Model Strength</span>
-              <div class="fil-slider-stepper">
-                <button
-                  class="fil-stepper-btn"
-                  title="Decrease strength (-0.05)"
-                  @mousedown.stop
-                  @click.stop="updateItemSm(originalIndex, stepWeight(item.sm, -0.05))"
-                >
-                  ◀
-                </button>
-                <input
-                  type="text"
-                  inputmode="decimal"
-                  :value="formatWeight(item.sm)"
-                  class="fil-stepper-input"
-                  @mousedown.stop
-                  @keydown.stop
-                  @change="(e) => updateItemSm(originalIndex, parseWeightInput((e.target as HTMLInputElement).value))"
-                />
-                <button
-                  class="fil-stepper-btn"
-                  title="Increase strength (+0.05)"
-                  @mousedown.stop
-                  @click.stop="updateItemSm(originalIndex, stepWeight(item.sm, 0.05))"
-                >
-                  ▶
-                </button>
-              </div>
-            </div>
+          <div class="fil-weight-row">
+            <span v-if="item.split" class="fil-weight-label">Model</span>
             <input
               type="range"
               min="-3.0"
@@ -694,12 +662,96 @@ function onComboClose(index: number) {
               step="0.05"
               :value="item.sm"
               class="fil-lora-range"
+              :aria-label="item.split ? 'Model strength' : 'Strength'"
               @mousedown.stop
               @mousemove.stop
               @pointerdown.stop
               @pointermove.stop
-              @input="(e) => updateItemSm(originalIndex, parseFloat((e.target as HTMLInputElement).value))"
+              @input="(e) => updateItemPrimary(originalIndex, parseFloat((e.target as HTMLInputElement).value))"
             />
+            <div class="fil-slider-stepper">
+              <button
+                class="fil-stepper-btn"
+                title="Decrease strength (-0.05)"
+                @mousedown.stop
+                @click.stop="updateItemPrimary(originalIndex, stepWeight(item.sm, -0.05))"
+              >
+                ◀
+              </button>
+              <input
+                type="text"
+                inputmode="decimal"
+                :value="formatWeight(item.sm)"
+                class="fil-stepper-input"
+                @mousedown.stop
+                @keydown.stop
+                @change="(e) => updateItemPrimary(originalIndex, parseWeightInput((e.target as HTMLInputElement).value))"
+              />
+              <button
+                class="fil-stepper-btn"
+                title="Increase strength (+0.05)"
+                @mousedown.stop
+                @click.stop="updateItemPrimary(originalIndex, stepWeight(item.sm, 0.05))"
+              >
+                ▶
+              </button>
+            </div>
+            <button
+              class="fil-split-btn"
+              :class="{ active: item.split }"
+              :title="item.split ? 'Give CLIP the same strength as Model again' : 'Set CLIP strength separately'"
+              :aria-pressed="Boolean(item.split)"
+              @mousedown.stop
+              @click.stop="toggleItemSplit(originalIndex)"
+            >
+              CLIP
+            </button>
+          </div>
+
+          <div v-if="item.split" class="fil-weight-row">
+            <span class="fil-weight-label">CLIP</span>
+            <input
+              type="range"
+              min="-3.0"
+              max="3.0"
+              step="0.05"
+              :value="item.sc"
+              class="fil-lora-range"
+              aria-label="CLIP strength"
+              @mousedown.stop
+              @mousemove.stop
+              @pointerdown.stop
+              @pointermove.stop
+              @input="(e) => updateItemSc(originalIndex, parseFloat((e.target as HTMLInputElement).value))"
+            />
+            <div class="fil-slider-stepper">
+              <button
+                class="fil-stepper-btn"
+                title="Decrease strength (-0.05)"
+                @mousedown.stop
+                @click.stop="updateItemSc(originalIndex, stepWeight(item.sc, -0.05))"
+              >
+                ◀
+              </button>
+              <input
+                type="text"
+                inputmode="decimal"
+                :value="formatWeight(item.sc)"
+                class="fil-stepper-input"
+                @mousedown.stop
+                @keydown.stop
+                @change="(e) => updateItemSc(originalIndex, parseWeightInput((e.target as HTMLInputElement).value))"
+              />
+              <button
+                class="fil-stepper-btn"
+                title="Increase strength (+0.05)"
+                @mousedown.stop
+                @click.stop="updateItemSc(originalIndex, stepWeight(item.sc, 0.05))"
+              >
+                ▶
+              </button>
+            </div>
+            <span class="fil-split-btn-spacer" aria-hidden="true"></span>
           </div>
         </div>
       </div>
@@ -1107,10 +1159,6 @@ function onComboClose(index: number) {
   background: var(--fil-surface-2);
 }
 
-.fil-row-copy-trigger {
-  font-size: 11px;
-}
-
 .fil-missing-badge {
   font-size: 11px;
   cursor: help;
@@ -1152,59 +1200,62 @@ function onComboClose(index: number) {
   background: color-mix(in srgb, var(--fil-danger) 16%, transparent);
 }
 
-.fil-lora-sliders-wrap {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: flex-start;
-  gap: 6px;
+.fil-lora-weights {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   padding-top: 4px;
   border-top: 1px solid color-mix(in srgb, var(--fil-border) 60%, transparent);
   width: 100%;
   box-sizing: border-box;
 }
 
-.fil-slider-center-divider {
+.fil-weight-row {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  height: 100%;
-  padding-top: 1px;
+  gap: 6px;
+  min-width: 0;
 }
 
-.fil-reset-weight-btn {
-  background: var(--fil-surface-2, #18181b);
-  border: 1px solid color-mix(in srgb, var(--fil-accent, #a855f7) 40%, transparent);
-  color: var(--fil-accent-text, #c084fc);
+.fil-weight-label {
+  font-size: 10px;
+  color: var(--fil-muted, #94a3b8);
+  white-space: nowrap;
+  width: 34px;
+  flex: none;
+}
+
+.fil-split-btn {
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--fil-border) 80%, transparent);
+  color: var(--fil-muted, #94a3b8);
   font-family: ui-monospace, SFMono-Regular, monospace;
   font-size: 9px;
-  font-weight: 700;
+  letter-spacing: 0.3px;
   padding: 1px 4px;
   border-radius: 4px;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.15s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  flex: none;
+  transition: color 0.12s, border-color 0.12s, background 0.12s;
 }
 
-.fil-reset-weight-btn:hover {
-  background: color-mix(in srgb, var(--fil-accent, #a855f7) 25%, transparent);
-  border-color: var(--fil-accent, #a855f7);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--fil-accent, #a855f7) 40%, transparent);
-  transform: scale(1.05);
+.fil-split-btn:hover {
+  color: var(--fil-accent-text, #c084fc);
+  border-color: color-mix(in srgb, var(--fil-accent, #a855f7) 55%, transparent);
 }
 
-.fil-lora-slider-col {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.fil-split-btn.active {
+  color: var(--fil-accent-text, #c084fc);
+  border-color: color-mix(in srgb, var(--fil-accent, #a855f7) 70%, transparent);
+  background: color-mix(in srgb, var(--fil-accent, #a855f7) 18%, transparent);
 }
 
-.fil-slider-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 10px;
+/* Keeps the CLIP slider aligned under the Model one, which the split button
+   would otherwise shift by its own width. */
+.fil-split-btn-spacer {
+  width: 33px;
+  flex: none;
 }
 
 .fil-slider-stepper {
@@ -1267,9 +1318,23 @@ function onComboClose(index: number) {
   margin: 0;
 }
 
-.fil-slider-label {
-  color: var(--fil-muted);
-  font-weight: 500;
+.fil-actions-menu {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 3px;
+  padding: 3px 0 1px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.fil-actions-more {
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  letter-spacing: 1px;
+}
+
+.fil-actions-more.open {
+  color: var(--fil-accent-text, #c084fc);
 }
 
 .fil-slider-val {
