@@ -449,8 +449,6 @@ function onComboClose(index: number) {
           dragOverAbove: dragOverIndex === originalIndex && draggedIndex !== null && originalIndex < draggedIndex,
           dragOverBelow: dragOverIndex === originalIndex && draggedIndex !== null && originalIndex > draggedIndex
         }"
-        :draggable="!searchFilter"
-        @dragstart="onDragStart(originalIndex, $event)"
         @dragover="onDragOver(originalIndex, $event)"
         @dragleave="onDragLeave(originalIndex)"
         @drop="onDrop(originalIndex, $event)"
@@ -458,7 +456,12 @@ function onComboClose(index: number) {
       >
         <!-- Top Row: Grip, Info, Copy Triggers, Missing Badge, Combo, Toggle, Remove -->
         <div class="fil-lora-top-row">
-          <div class="fil-drag-handle" title="Drag to reorder" @mousedown.stop>
+          <div
+            class="fil-drag-handle"
+            title="Drag handle to reorder item"
+            :draggable="!searchFilter"
+            @dragstart="onDragStart(originalIndex, $event)"
+          >
             ⋮⋮
           </div>
 

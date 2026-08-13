@@ -615,15 +615,18 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
           dragOverAbove: dragOverIndex === originalIndex && draggedIndex !== null && originalIndex < draggedIndex,
           dragOverBelow: dragOverIndex === originalIndex && draggedIndex !== null && originalIndex > draggedIndex
         }"
-        :draggable="!searchFilter"
-        @dragstart="onDragStart(originalIndex, $event)"
         @dragover="onDragOver(originalIndex, $event)"
         @dragleave="onDragLeave(originalIndex)"
         @drop="onDrop(originalIndex, $event)"
         @dragend="onDragEnd"
       >
-        <!-- Drag Handle Grip -->
-        <div class="fil-drag-handle" title="Drag to reorder" @mousedown.stop>
+        <!-- Drag Handle Grip: only THIS icon is draggable! -->
+        <div
+          class="fil-drag-handle"
+          title="Drag handle to reorder item"
+          :draggable="!searchFilter"
+          @dragstart="onDragStart(originalIndex, $event)"
+        >
           ⋮⋮
         </div>
 
