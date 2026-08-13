@@ -834,49 +834,49 @@ function onComboClose(index: number) {
 }
 
 .fil-lora-row.isDragging {
-  opacity: 0.35;
-  transform: scale(0.97) rotate(-0.5deg);
-  border-style: dashed;
-  border-color: var(--fil-accent, #a855f7);
-  box-shadow: 0 0 10px rgba(168, 85, 247, 0.2);
+  opacity: 0.45;
+  transform: scale(0.98) translateY(-2px);
+  border: 1.5px dashed var(--fil-accent, #a855f7);
+  background: color-mix(in srgb, var(--fil-accent) 15%, var(--fil-surface-1));
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--fil-accent) 35%, transparent);
 }
 
 .fil-lora-row.isDragOver {
   border-color: var(--fil-accent, #00f0ff);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--fil-accent, #00f0ff) 45%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--fil-accent, #00f0ff) 60%, transparent);
 }
 
 .fil-lora-row.dragOverAbove::before {
   content: "";
   position: absolute;
   top: -4px;
-  left: 0;
-  right: 0;
+  left: 4px;
+  right: 4px;
   height: 3px;
   background: var(--fil-accent, #00f0ff);
-  border-radius: 2px;
-  box-shadow: 0 0 8px var(--fil-accent, #00f0ff);
-  animation: pulseSnapLine 0.8s infinite alternate;
-  z-index: 10;
+  border-radius: 999px;
+  box-shadow: 0 0 10px var(--fil-accent, #00f0ff), 0 0 20px var(--fil-accent, #00f0ff);
+  animation: pulseSnapLine 0.6s infinite alternate;
+  z-index: 20;
 }
 
 .fil-lora-row.dragOverBelow::after {
   content: "";
   position: absolute;
   bottom: -4px;
-  left: 0;
-  right: 0;
+  left: 4px;
+  right: 4px;
   height: 3px;
   background: var(--fil-accent, #00f0ff);
-  border-radius: 2px;
-  box-shadow: 0 0 8px var(--fil-accent, #00f0ff);
-  animation: pulseSnapLine 0.8s infinite alternate;
-  z-index: 10;
+  border-radius: 999px;
+  box-shadow: 0 0 10px var(--fil-accent, #00f0ff), 0 0 20px var(--fil-accent, #00f0ff);
+  animation: pulseSnapLine 0.6s infinite alternate;
+  z-index: 20;
 }
 
 @keyframes pulseSnapLine {
   from { opacity: 0.6; box-shadow: 0 0 4px var(--fil-accent, #00f0ff); }
-  to { opacity: 1; box-shadow: 0 0 10px var(--fil-accent, #00f0ff); }
+  to { opacity: 1; box-shadow: 0 0 12px var(--fil-accent, #00f0ff); }
 }
 
 .fil-lora-top-row {
@@ -889,25 +889,30 @@ function onComboClose(index: number) {
 .fil-drag-handle {
   cursor: grab;
   color: var(--fil-muted);
-  font-weight: bold;
   font-size: 13px;
   letter-spacing: -1px;
   padding: 2px 4px;
+  border-radius: 4px;
   user-select: none;
   display: flex;
   align-items: center;
-  opacity: 0.6;
-  transition: color 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+  justify-content: center;
+  opacity: 0.7;
+  transition: all 0.15s ease-in-out;
 }
 
 .fil-drag-handle:hover {
   opacity: 1;
   color: var(--fil-accent, #00f0ff);
-  transform: scale(1.15);
+  background: color-mix(in srgb, var(--fil-accent) 20%, transparent);
+  transform: scale(1.25);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--fil-accent) 40%, transparent);
 }
 
 .fil-drag-handle:active {
   cursor: grabbing;
+  transform: scale(1.1);
+  color: var(--fil-accent, #a855f7);
 }
 
 .fil-row-info-btn {
