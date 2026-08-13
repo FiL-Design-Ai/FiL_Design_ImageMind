@@ -92,12 +92,22 @@ function computePosition() {
   if (!trigger) return;
   const rect = trigger.getBoundingClientRect();
   const viewportH = window.innerHeight;
+  const viewportW = window.innerWidth;
   const maxPanelHeight = 260;
   const spaceBelow = viewportH - rect.bottom;
   const openUpward = spaceBelow < maxPanelHeight && rect.top > spaceBelow;
+
+  const panelWidth = Math.max(rect.width, 380);
+  let left = rect.left;
+  if (left + panelWidth > viewportW - 12) {
+    left = Math.max(12, viewportW - panelWidth - 12);
+  }
+
   panelStyle.value = {
-    left: `${rect.left}px`,
-    width: `${rect.width}px`,
+    left: `${left}px`,
+    width: `${panelWidth}px`,
+    minWidth: "320px",
+    maxWidth: "calc(100vw - 24px)",
     ...(openUpward
       ? { bottom: `${viewportH - rect.top + 4}px` }
       : { top: `${rect.bottom + 4}px` }),
