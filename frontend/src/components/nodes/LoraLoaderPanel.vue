@@ -679,16 +679,16 @@ function onSliderPointerDown(e: PointerEvent) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 4px;
+  gap: 3px;
   padding: 1px 0;
   width: 100%;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .fil-sort-select-wrap {
-  width: 110px;
-  min-width: 95px;
-  flex: 0 0 110px;
+  width: 96px;
+  min-width: 85px;
+  flex: 0 0 96px;
 }
 
 .fil-sort-select-wrap :deep(.fil-w-select) {
@@ -699,12 +699,12 @@ function onSliderPointerDown(e: PointerEvent) {
 .fil-sort-select-wrap :deep(.fil-w-select-input) {
   flex: 1;
   width: 100%;
-  height: 22px;
-  min-height: 22px;
-  max-height: 22px;
+  height: 20px;
+  min-height: 20px;
+  max-height: 20px;
   box-sizing: border-box;
-  padding: 0 4px;
-  font-size: 10px;
+  padding: 0 3px;
+  font-size: 9px;
   font-weight: 600;
   border-color: color-mix(in srgb, var(--fil-accent) 40%, transparent);
   color: var(--fil-accent-text, #c084fc);
@@ -712,36 +712,36 @@ function onSliderPointerDown(e: PointerEvent) {
   border-radius: 4px;
   text-align: left;
   text-align-last: left;
-  line-height: 20px;
+  line-height: 18px;
 }
 
 .fil-actions-right-group {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
   margin-left: auto;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .fil-action-link {
-  height: 22px;
-  min-height: 22px;
-  max-height: 22px;
+  height: 20px;
+  min-height: 20px;
+  max-height: 20px;
   box-sizing: border-box;
   background: var(--fil-surface-2, #27272a);
   border: 1px solid color-mix(in srgb, var(--fil-accent) 35%, transparent);
   color: var(--fil-accent-text, #c084fc);
   cursor: pointer;
-  padding: 0 5px;
+  padding: 0 4px;
   border-radius: 4px;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
   transition: all 0.15s ease-in-out;
   display: inline-flex;
   align-items: center;
   gap: 2px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  line-height: 20px;
+  line-height: 18px;
   white-space: nowrap;
   flex-shrink: 0;
 }
