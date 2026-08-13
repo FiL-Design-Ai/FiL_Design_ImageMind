@@ -15,7 +15,6 @@ from dataclasses import dataclass
 from typing import Any
 
 from comfy_api.latest import io
-from comfy_execution.graph_utils import ExecutionBlocker
 
 from ..common.brand import BRAND, CATEGORY_TOOLS
 from ..common.localization import t
@@ -149,6 +148,53 @@ def _parse_lora_line(
     )
 
 
+def trigger_words_from_path(full_path: str) -> str:
+    """Read trigger words from the sidecars next to an already resolved file.
+
+    Kept separate from the lookup by name so the API can answer the panel with
+    exactly what a run will apply: the panel used to be told only what the
+    Civitai json held, and a LoRA carrying a plain `.txt` sidecar showed no
+    trigger words at all while the node happily emitted them.
+    """
+    if not full_path or not os.path.isfile(full_path):
+        return ""
+
+    base = os.path.splitext(full_path)[0]
+
+    # 1. Plain text sidecar
+    txt_path = base + ".txt"
+    if os.path.isfile(txt_path):
+        try:
+            with open(txt_path, encoding="utf-8", errors="ignore") as f:
+                content = f.read().strip()
+            if content:
+                return content
+        except OSError:
+            pass
+
+    # 2. Civitai / JSON metadata
+    for info_ext in (".civitai.info", ".json", ".metadata.json"):
+        info_path = base + info_ext
+        if not os.path.isfile(info_path):
+            continue
+        try:
+            with open(info_path, encoding="utf-8", errors="ignore") as f:
+                data = json.load(f)
+            if not isinstance(data, dict):
+                continue
+            civitai = data.get("civitai") if isinstance(data.get("civitai"), dict) else {}
+            trained = data.get("trainedWords") or civitai.get("trainedWords")
+            if isinstance(trained, list) and trained:
+                return ", ".join(str(w) for w in trained if w)
+            tags = data.get("tags")
+            if isinstance(tags, list) and tags:
+                return ", ".join(str(tag) for tag in tags if tag)
+        except (OSError, json.JSONDecodeError):
+            pass
+
+    return ""
+
+
 def _extract_trigger_words(lora_filename: str) -> str:
     """Read trigger words from a sidecar .txt, .civitai.info, or .json file."""
     if not lora_filename:
@@ -158,39 +204,7 @@ def _extract_trigger_words(lora_filename: str) -> str:
         import folder_paths
 
         full_path = folder_paths.get_full_path("loras", lora_filename)
-        if not full_path or not os.path.isfile(full_path):
-            return ""
-
-        base = os.path.splitext(full_path)[0]
-
-        # 1. Plain text sidecar
-        txt_path = base + ".txt"
-        if os.path.isfile(txt_path):
-            try:
-                content = open(txt_path, encoding="utf-8", errors="ignore").read().strip()
-                if content:
-                    return content
-            except OSError:
-                pass
-
-        # 2. Civitai / JSON metadata
-        for info_ext in (".civitai.info", ".json"):
-            info_path = base + info_ext
-            if not os.path.isfile(info_path):
-                continue
-            try:
-                with open(info_path, encoding="utf-8", errors="ignore") as f:
-                    data = json.load(f)
-                if not isinstance(data, dict):
-                    continue
-                trained = data.get("trainedWords")
-                if isinstance(trained, list) and trained:
-                    return ", ".join(str(w) for w in trained if w)
-                tags = data.get("tags")
-                if isinstance(tags, list) and tags:
-                    return ", ".join(str(tag) for tag in tags if tag)
-            except (OSError, json.JSONDecodeError):
-                pass
+        return trigger_words_from_path(full_path or "")
     except Exception as err:
         logger.debug("Trigger-word extraction failed for %s: %s", lora_filename, err)
 
@@ -320,6 +334,25 @@ class FiLLoraLoader(io.ComfyNode):
         skip_on_error: bool = True,
         **_kwargs: Any,
     ) -> io.NodeOutput:
+        # Both sockets are optional so the node can be wired model-only, which
+        # is ordinary for Flux. Neither of them wired is not a use, though: the
+        # node would hand `None` down the MODEL wire and the run died much
+        # later, inside KSampler, with an error that named nothing. Blocking
+        # says which node and why. The positional values have to be there for
+        # `block_execution` to reach the outputs at all — see `_blocked` on the
+        # cycler for what the host does with a result-less NodeOutput.
+        if model is None and clip is None:
+            return io.NodeOutput(
+                None,
+                None,
+                "",
+                "",
+                block_execution=t(
+                    "err_lora_no_input",
+                    "🧬 LoRA Loader: nothing is wired in — connect MODEL (and CLIP if the LoRA touches it).",
+                ),
+            )
+
         raw_lines = [line.strip() for line in (lora_list or "").splitlines() if line.strip()]
 
         specs: list[_LoraItemSpec] = []

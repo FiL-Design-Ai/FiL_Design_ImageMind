@@ -155,11 +155,12 @@ async function fetchLoraMetaIfNeeded(name: string) {
     const meta = await getJson<{ trigger_words?: string }>(
       `${ROUTE_PREFIX}/model_info/loras?path=${encodeURIComponent(clean)}`
     );
-    if (meta) {
-      loraMetaMap.value[clean] = { trigger_words: meta.trigger_words || "" };
-    }
+    loraMetaMap.value[clean] = { trigger_words: meta?.trigger_words || "" };
   } catch {
-    // Ignore error
+    // Remember the miss too. The watcher below re-runs on every slider drag,
+    // and an unrecorded name is asked again each time — one failing lookup
+    // turned into a request per frame.
+    loraMetaMap.value[clean] = { trigger_words: "" };
   }
 }
 
@@ -274,7 +275,9 @@ async function openInfoModal(item: LoraItem, index: number) {
 
   try {
     const res = await getJson<Partial<LoraInfoDetail> & { error?: string; trigger_words?: string }>(
-      `${ROUTE_PREFIX}/model_info?mode=loras&path=${encodeURIComponent(name)}`
+      // `fetch=1` only here: the dialog is the user asking about this one
+      // model, so it may go out to Civitai. The per-row lookup below must not.
+      `${ROUTE_PREFIX}/model_info?mode=loras&fetch=1&path=${encodeURIComponent(name)}`
     );
     if (res && !res.error && activeInfoDetail.value && activeInfoDetail.value.fullName === name) {
       const tw = (res as Record<string, unknown>).trained_words;

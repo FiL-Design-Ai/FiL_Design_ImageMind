@@ -52,6 +52,11 @@
   "channel_ask_positive": "Positive",
   "channel_ask_negative": "Negative",
   "channel_ask_skip": "Leave unnamed",
+  "channel_search_placeholder": "Search nodes or inputs...",
+  "channel_filter_all": "All",
+  "channel_filter_active": "Active",
+  "channel_filter_available": "Available",
+  "channel_search_no_match": "No matching nodes found for this filter.",
   "wireless_diag_channels": "Channels",
   "wireless_diag_problems": "Problems",
   "wireless_diag_no_channels": "No 📡 Channel nodes in this graph yet.",
@@ -592,5 +597,6 @@
   "tt_lora_loader_skip_on_error": "If a LoRA file fails to load, log warning and skip to next LoRA instead of crashing queue.",
   "err_lora_loader_no_loras": "🧬 LoRA Loader: No LoRA files found.",
   "err_lora_loader_finished": "🧬 LoRA Loader: Reached end of LoRA list. Cycle stopped.",
-  "err_lora_loader_all_failed": "🧬 LoRA Loader: Failed to load any LoRA from list."
+  "err_lora_loader_all_failed": "🧬 LoRA Loader: Failed to load any LoRA from list.",
+  "err_lora_no_input": "🧬 LoRA Loader: nothing is wired in — connect MODEL (and CLIP if the LoRA touches it)."
 }

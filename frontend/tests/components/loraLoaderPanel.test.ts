@@ -1,0 +1,136 @@
+/**
+ * The LoRA panel's two links to the outside: the stack it writes into
+ * `lora_list`, and the trigger words it asks the backend for.
+ *
+ * Both were broken and neither showed up as an error. The panel read the
+ * answer's `trigger_words`, which the API sent as `trained_words` — so the 📋
+ * button never appeared and "copy all active triggers" always reported an
+ * empty clipboard, on every LoRA, forever. Nothing covered this file at all,
+ * which is how a plain key mismatch survived a review.
+ */
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { reactive, nextTick } from "vue";
+import { mount } from "@vue/test-utils";
+import { createPinia, setActivePinia } from "pinia";
+import LoraLoaderPanel from "@/components/nodes/LoraLoaderPanel.vue";
+
+const getJson = vi.fn();
+vi.mock("@/api/client", () => ({
+  getJson: (...args: unknown[]) => getJson(...args),
+}));
+
+interface FakeWidget {
+  name: string;
+  value: unknown;
+}
+
+function makeNode(loraList: string): { widgets: FakeWidget[]; inputs: [] } {
+  return {
+    widgets: [
+      { name: "lora_list", value: loraList },
+      { name: "strength_model", value: 1.0 },
+      { name: "strength_clip", value: 1.0 },
+    ],
+    inputs: [],
+  };
+}
+
+function makeState(node: unknown, loraList: string) {
+  const raw = {
+    nodeState: { lora_list: loraList } as Record<string, unknown>,
+    initialValues: {},
+    ui: {} as Record<string, unknown>,
+  };
+  Object.defineProperty(raw, "node", { value: node, enumerable: false, configurable: true });
+  return reactive(raw);
+}
+
+/** Answers whichever endpoint is asked, the way the real backend does. */
+function backend(triggers: Record<string, string>) {
+  return async (url: string) => {
+    if (url.includes("/models_list/")) {
+      return { models: Object.keys(triggers) };
+    }
+    const path = decodeURIComponent(new URL(url, "http://x").searchParams.get("path") ?? "");
+    return { trigger_words: triggers[path] ?? "" };
+  };
+}
+
+describe("LoraLoaderPanel.vue", () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+    getJson.mockReset();
+  });
+
+  it("shows the copy button for a LoRA that has trigger words", async () => {
+    getJson.mockImplementation(backend({ "style_v1.safetensors": "neon glow" }));
+    const list = "style_v1.safetensors:0.80:0.80";
+    const node = makeNode(list);
+    const wrapper = mount(LoraLoaderPanel, { props: { state: makeState(node, list) as never } });
+
+    await nextTick();
+    await nextTick();
+    await nextTick();
+
+    const copy = wrapper.find(".fil-row-copy-trigger");
+    expect(
+      copy.exists(),
+      "the backend answered with trigger words and the row shows no copy button — " +
+        "the panel is reading a field name the API does not send",
+    ).toBe(true);
+    expect(copy.attributes("title")).toContain("neon glow");
+  });
+
+  it("asks about a name once, even when the lookup fails", async () => {
+    getJson.mockImplementation(async (url: string) => {
+      if (String(url).includes("/models_list/")) return { models: [] };
+      throw new Error("backend is down");
+    });
+    const list = "style_v1.safetensors:0.80:0.80";
+    const node = makeNode(list);
+    const wrapper = mount(LoraLoaderPanel, { props: { state: makeState(node, list) as never } });
+
+    await nextTick();
+    await nextTick();
+    await nextTick();
+
+    // The lookup runs from a deep watcher, so an unrecorded name is asked
+    // again on every touch of the list — once per slider frame.
+    (wrapper.vm as unknown as { loraItems: Array<{ sm: number }> }).loraItems[0].sm = 0.5;
+    await nextTick();
+    await nextTick();
+
+    const infoCalls = getJson.mock.calls.filter(([url]) => String(url).includes("model_info"));
+    expect(infoCalls).toHaveLength(1);
+  });
+
+  it("does not send the model list off to Civitai just for opening", async () => {
+    getJson.mockImplementation(backend({ "style_v1.safetensors": "neon glow" }));
+    const list = "style_v1.safetensors:0.80:0.80";
+    const node = makeNode(list);
+    mount(LoraLoaderPanel, { props: { state: makeState(node, list) as never } });
+
+    await nextTick();
+    await nextTick();
+    await nextTick();
+
+    // `fetch=1` is what lets the backend hash the file and call out to
+    // civitai.com, and it belongs to the info dialog alone.
+    for (const [url] of getJson.mock.calls) {
+      expect(String(url)).not.toContain("fetch=1");
+    }
+  });
+
+  it("keeps a row's off state through a reload", async () => {
+    getJson.mockImplementation(backend({}));
+    const list = "style_v1.safetensors:0.80:0.80\n# cyber_v2.safetensors:1.00:1.00";
+    const node = makeNode(list);
+    const wrapper = mount(LoraLoaderPanel, { props: { state: makeState(node, list) as never } });
+    await nextTick();
+
+    const rows = wrapper.findAll(".fil-lora-row");
+    expect(rows).toHaveLength(2);
+    expect(rows[1].classes()).toContain("disabled");
+    expect(rows[1].text()).not.toContain("#");
+  });
+});

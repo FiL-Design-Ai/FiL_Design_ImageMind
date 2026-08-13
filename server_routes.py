@@ -116,7 +116,48 @@ def _fetch_civitai_metadata_and_preview(full_path: str) -> bool:
         return False
 
 
-def _inspect_model_file(mode: str, rel_path: str) -> dict:
+def _model_roots() -> list[str]:
+    """Every directory ComfyUI itself calls a model folder, fully resolved."""
+    import os
+
+    try:
+        import folder_paths
+    except ImportError:
+        return []
+
+    roots: list[str] = []
+    for folder_name in list(folder_paths.folder_names_and_paths):
+        for directory in folder_paths.get_folder_paths(folder_name) or []:
+            if directory:
+                roots.append(os.path.normcase(os.path.realpath(directory)))
+    return roots
+
+
+def _inside_model_roots(path: str) -> bool:
+    """True when *path* really sits inside one of the model folders.
+
+    `folder_paths.get_full_path` normalises `..` away before joining, but the
+    fallbacks below join the caller's string onto a model directory as-is. A
+    `path=../../..` query walked straight out of the models tree and reported
+    the size, date and absolute location of any file on the drive — the
+    endpoint is unauthenticated, so this is the one check that has to hold.
+    """
+    import os
+
+    if not path:
+        return False
+    real = os.path.normcase(os.path.realpath(path))
+    for root in _model_roots():
+        try:
+            if os.path.commonpath([real, root]) == root:
+                return True
+        except ValueError:
+            # Different drives — no common path, so certainly not inside.
+            continue
+    return False
+
+
+def _inspect_model_file(mode: str, rel_path: str, fetch_remote: bool = False) -> dict:
     import datetime
     import json
     import os
@@ -191,6 +232,10 @@ def _inspect_model_file(mode: str, rel_path: str) -> dict:
         logger.warning("Error resolving model file %s: %s", rel_path, err)
         full_path = None
 
+    if full_path and not _inside_model_roots(full_path):
+        logger.warning("refused a path outside the model folders: %r", rel_path)
+        full_path = None
+
     if not full_path or not os.path.isfile(full_path):
         return {"error": "file_not_found", "path": rel_path}
 
@@ -206,11 +251,15 @@ def _inspect_model_file(mode: str, rel_path: str) -> dict:
 
     base_no_ext, _ = os.path.splitext(full_path)
 
-    # Auto-fetch metadata and preview from Civitai API if not available locally
-    try:
-        _fetch_civitai_metadata_and_preview(full_path)
-    except Exception:
-        pass
+    # Civitai is asked only when the caller says so. Every panel used to trigger
+    # this on open, once per listed model: a 64 MB read plus a network call per
+    # item, and two new files written into the user's model folder without them
+    # asking. The info dialog passes `fetch=1`; background lookups do not.
+    if fetch_remote:
+        try:
+            _fetch_civitai_metadata_and_preview(full_path)
+        except Exception:
+            pass
 
     preview_path = None
     for ext in [".png", ".preview.png", ".jpg", ".jpeg", ".webp"]:
@@ -304,6 +353,20 @@ def _inspect_model_file(mode: str, rel_path: str) -> dict:
         except Exception as err:
             logger.debug("Could not parse safetensors header for %s: %s", rel_path, err)
 
+    # The panels show trigger words per item, and the LoRA node reads plain
+    # `.txt` sidecars as well as the Civitai json — so the same reader answers
+    # both, and the panel cannot show one thing while the run applies another.
+    trigger_words = ", ".join(str(w) for w in trained_words if w) if trained_words else ""
+    if folder_type == "loras":
+        try:
+            from .nodes.node_lora_loader import trigger_words_from_path
+
+            sidecar = trigger_words_from_path(full_path)
+            if sidecar:
+                trigger_words = sidecar
+        except Exception as err:
+            logger.debug("Trigger-word lookup failed for %s: %s", rel_path, err)
+
     return {
         "path": rel_path,
         "full_path": full_path,
@@ -320,6 +383,7 @@ def _inspect_model_file(mode: str, rel_path: str) -> dict:
         "download_count": download_count,
         "thumbs_up": thumbs_up,
         "trained_words": trained_words,
+        "trigger_words": trigger_words,
         "sample_prompts": sample_prompts,
         "has_meta_json": meta_json_path is not None,
         "metadata": metadata_tags,
@@ -511,7 +575,8 @@ def register_routes():
         rel_path = request.query.get("path", "")
         if not rel_path:
             return web.json_response({"error": "missing path parameter"}, status=400)
-        info = await asyncio.to_thread(_inspect_model_file, mode, rel_path)
+        fetch_remote = request.query.get("fetch", "0") == "1"
+        info = await asyncio.to_thread(_inspect_model_file, mode, rel_path, fetch_remote)
         return web.json_response(info)
 
     @server.routes.get(f"/{ROUTE_SLUG}/model_preview")
@@ -642,6 +707,9 @@ def register_routes():
             except Exception:
                 pass
 
+            if full_p and not _inside_model_roots(full_p):
+                full_p = None
+
             mtime = 0
             size = 0
             if full_p and os.path.isfile(full_p):
@@ -744,18 +812,6 @@ def register_routes():
         with open(preset_file, "w", encoding="utf-8") as f:
             json.dump({"presets": presets}, f, ensure_ascii=False, indent=2)
         return web.json_response({"status": "success", "presets": presets})
-
-    @server.routes.get(f"/{ROUTE_SLUG}/model_preview")
-    async def get_model_preview(request):
-        mode = request.query.get("mode", "checkpoints")
-        path = request.query.get("path", "")
-        if not path:
-            return web.Response(status=400, text="missing path")
-        info = await asyncio.to_thread(_inspect_model_file, mode, path)
-        preview_path = info.get("preview_url")
-        if preview_path and os.path.isfile(preview_path):
-            return web.FileResponse(preview_path)
-        return web.Response(status=404, text="preview not found")
 
     @server.routes.get(f"/{ROUTE_SLUG}/node_contracts")
     async def node_contracts(request):

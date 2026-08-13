@@ -52,6 +52,11 @@
   "channel_ask_positive": "Позитив",
   "channel_ask_negative": "Негатив",
   "channel_ask_skip": "Оставить без имени",
+  "channel_search_placeholder": "Поиск по нодам и входам...",
+  "channel_filter_all": "Все",
+  "channel_filter_active": "Активные",
+  "channel_filter_available": "Доступные",
+  "channel_search_no_match": "По этому фильтру ничего не найдено.",
   "wireless_diag_channels": "Каналы",
   "wireless_diag_problems": "Проблемы",
   "wireless_diag_no_channels": "В графе пока нет ни одной ноды 📡 Channel.",
@@ -592,5 +597,6 @@
   "tt_lora_loader_skip_on_error": "Пропускать повреждённые файлы LoRA вместо падения очереди.",
   "err_lora_loader_no_loras": "🧬 LoRA Loader: Файлы LoRA не найдены.",
   "err_lora_loader_finished": "🧬 LoRA Loader: Достигнут конец списка LoRA. Цикл остановлен.",
-  "err_lora_loader_all_failed": "🧬 LoRA Loader: Не удалось загрузить ни одну LoRA из списка."
+  "err_lora_loader_all_failed": "🧬 LoRA Loader: Не удалось загрузить ни одну LoRA из списка.",
+  "err_lora_no_input": "🧬 LoRA Loader: ничего не подключено — подайте MODEL (и CLIP, если LoRA его затрагивает)."
 }

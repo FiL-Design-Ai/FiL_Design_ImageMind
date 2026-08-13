@@ -14,7 +14,6 @@ from dataclasses import dataclass
 from typing import Any
 
 from comfy_api.latest import io
-from comfy_execution.graph_utils import ExecutionBlocker
 
 from ..common.brand import BRAND, CATEGORY_TOOLS
 from ..common.localization import t
@@ -407,6 +406,21 @@ class FiLModelCycler(io.ComfyNode):
         return str(node_id) if node_id is not None else _UNKEYED
 
     @classmethod
+    def _blocked(cls, message: str) -> io.NodeOutput:
+        """Stop the run on every output, not just the first.
+
+        Putting an `ExecutionBlocker` into slot 0 by hand blocks whoever is
+        wired to MODEL and nobody else: CLIP, VAE and the two names carried on
+        as `None` and `""`, so a CLIP Text Encode downstream ran on nothing and
+        died with an error naming neither this node nor the reason. The host
+        broadcasts a blocker to all outputs when `block_execution` is set — but
+        only for a `NodeOutput` that also carries positional values, since it
+        skips any output whose `result` is `None` (`execution.py`, the
+        `elif r.result is not None` branch). Hence both, together.
+        """
+        return io.NodeOutput(None, None, None, "", "", block_execution=message)
+
+    @classmethod
     def _cycle_state(
         cls, node_key: str, signature: tuple[str, ...], index: int
     ) -> _CycleState:
@@ -490,17 +504,11 @@ class FiLModelCycler(io.ComfyNode):
 
         total_models = len(candidates)
         if total_models == 0:
-            return io.NodeOutput(
-                ExecutionBlocker(
-                    t(
-                        "err_cycler_no_models",
-                        f"🔄 Model Cycler: No models found for mode '{source_mode}' with filter '{filter_pattern}'.",
-                    )
-                ),
-                None,
-                None,
-                "",
-                "",
+            return cls._blocked(
+                t(
+                    "err_cycler_no_models",
+                    f"🔄 Model Cycler: No models found for mode '{source_mode}' with filter '{filter_pattern}'.",
+                )
             )
 
         # Resolve model index from this node's own place in the cycle
@@ -515,17 +523,11 @@ class FiLModelCycler(io.ComfyNode):
             current_idx = random.randint(0, total_models - 1)
         elif cycle_mode == "Sequential (Stop)":
             if state.position >= total_models:
-                return io.NodeOutput(
-                    ExecutionBlocker(
-                        t(
-                            "err_cycler_finished",
-                            f"🔄 Model Cycler: Reached end of model list ({total_models}/{total_models}). Cycle stopped.",
-                        )
-                    ),
-                    None,
-                    None,
-                    "",
-                    "",
+                return cls._blocked(
+                    t(
+                        "err_cycler_finished",
+                        f"🔄 Model Cycler: Reached end of model list ({total_models}/{total_models}). Cycle stopped.",
+                    )
                 )
             current_idx = state.position
         else:
@@ -575,17 +577,11 @@ class FiLModelCycler(io.ComfyNode):
                     state.position = (current_idx + 1) % total_models
 
         if selected_model is None:
-            return io.NodeOutput(
-                ExecutionBlocker(
-                    t(
-                        "err_cycler_load_failed",
-                        f"🔄 Model Cycler: Failed to load any model from list (attempts: {attempts}).",
-                    )
-                ),
-                None,
-                None,
-                "",
-                "",
+            return cls._blocked(
+                t(
+                    "err_cycler_load_failed",
+                    f"🔄 Model Cycler: Failed to load any model from list (attempts: {attempts}).",
+                )
             )
 
         clean_name = _clean_model_name(selected_name)

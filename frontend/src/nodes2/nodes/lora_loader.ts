@@ -10,24 +10,15 @@ const LoraLoaderVue = defineAsyncComponent(
   () => import("@/components/nodes/LoraLoaderPanel.vue")
 );
 
-export interface CyclerRun {
-  position: number;
-  total: number;
-  lora_name: string;
-  clean_name: string;
-  label?: string;
-  trigger_words?: string;
-}
-
+// Exactly the widgets `FiLLoraLoader` declares — no more. The list arrived
+// copied from the cycler and named four that do not exist on this node
+// (`cycle_mode`, `index`, `include_bypass`, `auto_advance`), which reads as if
+// the node cycles and hides nothing, since there is nothing there to hide.
 const nativeWidgetNames = [
   "lora_list",
   "filter_pattern",
-  "cycle_mode",
-  "index",
   "strength_model",
   "strength_clip",
-  "include_bypass",
-  "auto_advance",
   "skip_on_error",
 ];
 
@@ -38,7 +29,7 @@ export const loraLoaderNode: NodeModule = {
       minSize: [340, 280],
       initialWidth: 340,
       family: "tool",
-      description: "Automatically cycles through LoRA adapters with individual weight sliders and presets.",
+      description: "Stacks LoRA adapters onto MODEL and CLIP, each with its own weights and on/off switch.",
       badges: [{ text: "LORA LOADER", color: "#ec4899", text_color: "#fff" }],
     });
 
@@ -47,7 +38,6 @@ export const loraLoaderNode: NodeModule = {
         onNodeCreated?: (...a: unknown[]) => unknown;
         onConfigure?: (...a: unknown[]) => unknown;
         onRemoved?: (...a: unknown[]) => unknown;
-        onExecuted?: (output: Record<string, unknown>, ...a: unknown[]) => unknown;
       };
     };
     const p = proto.prototype;
@@ -78,6 +68,12 @@ export const loraLoaderNode: NodeModule = {
         enumerable: false,
         configurable: true,
       });
+      // The panel's state has to be reachable from the node, and this is the
+      // only thing that puts it there. Without it `onConfigure` below found
+      // nothing and returned early, so loading a saved workflow left the panel
+      // showing the empty defaults while the widget still held the user's
+      // stack — and the first edit wrote that empty view back over it.
+      node._filCyclerState = state;
       if (Array.isArray((node as { inputs?: Array<{ name?: string }> }).inputs)) {
         (node as { inputs: Array<{ name?: string }> }).inputs = (
           node as { inputs: Array<{ name?: string }> }
@@ -102,29 +98,10 @@ export const loraLoaderNode: NodeModule = {
       return result;
     };
 
-    const originalExecuted = p.onExecuted;
-    p.onExecuted = function (
-      this: unknown,
-      output: Record<string, unknown>,
-      ...args: unknown[]
-    ) {
-      const result = originalExecuted?.apply(this, [output, ...args]);
-      const entry = Array.isArray(output?.fil_cycler)
-        ? output.fil_cycler[0]
-        : null;
-      if (entry && typeof entry === "object") {
-        const node = this as {
-          _filCyclerLastRun?: CyclerRun;
-          _filCyclerState?: { ui: Record<string, unknown> };
-        };
-        const run = entry as CyclerRun;
-        node._filCyclerLastRun = run;
-        const announce = node._filCyclerState?.ui?.onCycleRun;
-        if (typeof announce === "function")
-          (announce as (r: CyclerRun) => void)(run);
-      }
-      return result;
-    };
+    // No `onExecuted` here on purpose. The copied one listened for a
+    // `fil_cycler` payload that `FiLLoraLoader` never sends — it returns no
+    // `ui` at all — and handed it to a panel callback this panel never
+    // defines. Dead on both ends.
 
     const originalRemoved = p.onRemoved;
     p.onRemoved = function (this: unknown, ...args: unknown[]) {

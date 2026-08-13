@@ -69,6 +69,74 @@ def test_invalid_base_url_is_rejected_with_400_and_no_exception_text():
     assert payload == {"error": "invalid base_url"}
 
 
+# ── The model inspector must not leave the model folders ────────────────────
+#
+# `/model_info` and `/model_preview` take a path from the query string, and
+# neither route asks who is calling. `folder_paths.get_full_path` normalises
+# `..` away before it joins, but the fallbacks that were added for subfolders
+# join the caller's string onto a model directory as it stands: a query of
+# `path=../../../ComfyUI/main.py` came back with the absolute location, size
+# and date of that file, and `/model_preview` served any image sitting beside
+# whatever was named. Checked against real model directories rather than a
+# stub, because the guard is a comparison between real resolved paths.
+
+
+def _fake_model_dir(tmp_path, monkeypatch):
+    import folder_paths
+
+    models = tmp_path / "models" / "checkpoints"
+    models.mkdir(parents=True)
+    (models / "inside.safetensors").write_bytes(b"x")
+    (tmp_path / "secret.txt").write_text("not a model", encoding="utf-8")
+
+    monkeypatch.setattr(
+        folder_paths,
+        "folder_names_and_paths",
+        {"checkpoints": ([str(models)], {".safetensors"})},
+    )
+    return models
+
+
+def test_model_info_refuses_a_path_outside_the_model_folders(tmp_path, monkeypatch):
+    from FiL_Design_ImageMind.server_routes import _inspect_model_file
+
+    _fake_model_dir(tmp_path, monkeypatch)
+
+    escaped = _inspect_model_file("checkpoints", "../../secret.txt")
+    assert escaped == {"error": "file_not_found", "path": "../../secret.txt"}
+
+    # And the ordinary case still answers, or the guard would be a rename of
+    # "the feature is off".
+    ok = _inspect_model_file("checkpoints", "inside.safetensors")
+    assert "error" not in ok
+    assert ok["full_path"].endswith("inside.safetensors")
+
+
+def test_civitai_is_only_asked_when_the_caller_asks(tmp_path, monkeypatch):
+    """Opening a panel must not phone out or write into the model folder.
+
+    Every panel used to trigger this per listed model on open: a 64 MB read and
+    a request to civitai.com each, then a `.metadata.json` and a `.png` written
+    next to the user's models without them asking for either.
+    """
+    from FiL_Design_ImageMind import server_routes
+
+    _fake_model_dir(tmp_path, monkeypatch)
+
+    calls: list[str] = []
+    monkeypatch.setattr(
+        server_routes,
+        "_fetch_civitai_metadata_and_preview",
+        lambda path: calls.append(path) or True,
+    )
+
+    server_routes._inspect_model_file("checkpoints", "inside.safetensors")
+    assert calls == []
+
+    server_routes._inspect_model_file("checkpoints", "inside.safetensors", fetch_remote=True)
+    assert len(calls) == 1
+
+
 def test_unknown_provider_and_invalid_auth_payload():
     from FiL_Design_ImageMind.server_routes import apply_auth_payload, build_models_response
 

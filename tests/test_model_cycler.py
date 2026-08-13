@@ -6,7 +6,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from comfy_api.latest import io
-from comfy_execution.graph_utils import ExecutionBlocker
 
 from executor_harness import as_the_executor_calls_it
 
@@ -189,7 +188,8 @@ def test_ping_pong_and_stop_modes(mock_get_ckpts: MagicMock) -> None:
         out_stop = FiLModelCycler.execute(
             source_mode="Checkpoints", cycle_mode="Sequential (Stop)", index=0, auto_advance=True
         )
-        assert isinstance(out_stop.args[0], ExecutionBlocker)
+        assert out_stop.block_execution
+        assert "Cycle stopped" in out_stop.block_execution
 
 
 @patch("FiL_Design_ImageMind.nodes.node_model_cycler._get_checkpoint_names")
@@ -241,8 +241,15 @@ def test_execute_empty_candidates(mock_get_ckpts: MagicMock) -> None:
         filter_pattern="",
     )
 
-    res = out[0]
-    assert isinstance(res, ExecutionBlocker)
+    # Stopping has to reach every output, not just MODEL. An `ExecutionBlocker`
+    # placed in slot 0 by hand left CLIP, VAE and the two names carrying `None`
+    # and `""`, and whatever hung off those ran anyway. `block_execution` is
+    # what makes the host broadcast — and it only does so for a NodeOutput that
+    # also carries positional values, since `execution.py` skips a result of
+    # `None` outright, leaving the node with no outputs at all.
+    assert out.block_execution
+    assert out.result is not None
+    assert len(out.result) == len(FiLModelCycler.GET_SCHEMA().outputs)
 
 
 # ── Where a node stands in its cycle ───────────────────────────────────────

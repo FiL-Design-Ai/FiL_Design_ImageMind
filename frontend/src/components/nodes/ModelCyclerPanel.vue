@@ -257,7 +257,9 @@ async function openInfoModal(item: ModelItem, index: number) {
 
   const modeKey = sourceMode.value === "Diffusion Models" ? "diffusion_models" : "checkpoints";
   try {
-    const res = await getJson<Partial<ModelInfoDetail> & { error?: string }>(`${ROUTE_PREFIX}/model_info?mode=${modeKey}&path=${encodeURIComponent(name)}`);
+    // `fetch=1` — the dialog is an explicit question about one model, so this
+    // is where a Civitai lookup belongs; nothing else in the panel asks for it.
+    const res = await getJson<Partial<ModelInfoDetail> & { error?: string }>(`${ROUTE_PREFIX}/model_info?mode=${modeKey}&fetch=1&path=${encodeURIComponent(name)}`);
     if (res && !res.error && activeInfoDetail.value && activeInfoDetail.value.fullName === name) {
       activeInfoDetail.value = {
         ...activeInfoDetail.value,
