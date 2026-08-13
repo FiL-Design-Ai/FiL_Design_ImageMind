@@ -134,26 +134,37 @@ def _inspect_model_file(mode: str, rel_path: str) -> dict:
         else:
             folder_type = "checkpoints"
 
-        norm_rel = rel_path.replace("\\", "/").strip()
-        full_path = folder_paths.get_full_path(folder_type, norm_rel)
-        if not full_path or not os.path.isfile(full_path):
-            full_path = folder_paths.get_full_path(folder_type, rel_path)
+        rel_clean = rel_path.replace("\\", "/").strip()
+        rel_win = rel_path.replace("/", "\\").strip()
+
+        full_path = (
+            folder_paths.get_full_path(folder_type, rel_clean)
+            or folder_paths.get_full_path(folder_type, rel_win)
+            or folder_paths.get_full_path(folder_type, rel_path)
+        )
         if not full_path or not os.path.isfile(full_path):
             if folder_type == "diffusion_models":
-                full_path = folder_paths.get_full_path("unet", norm_rel) or folder_paths.get_full_path("unet", rel_path)
+                full_path = (
+                    folder_paths.get_full_path("unet", rel_clean)
+                    or folder_paths.get_full_path("unet", rel_win)
+                    or folder_paths.get_full_path("unet", rel_path)
+                )
 
         if not full_path or not os.path.isfile(full_path):
             dirs = folder_paths.get_folder_paths(folder_type) or []
             if folder_type == "diffusion_models":
                 dirs = dirs + (folder_paths.get_folder_paths("unet") or [])
             for d in dirs:
-                cand = os.path.join(d, norm_rel.replace("/", os.sep))
-                if os.path.isfile(cand):
-                    full_path = cand
-                    break
-                cand_raw = os.path.join(d, rel_path)
-                if os.path.isfile(cand_raw):
-                    full_path = cand_raw
+                cands = [
+                    os.path.join(d, rel_clean.replace("/", os.sep)),
+                    os.path.join(d, rel_win.replace("\\", os.sep)),
+                    os.path.join(d, rel_path),
+                ]
+                for cand in cands:
+                    if os.path.isfile(cand):
+                        full_path = cand
+                        break
+                if full_path and os.path.isfile(full_path):
                     break
     except Exception as err:
         logger.warning("Error resolving model file %s: %s", rel_path, err)
