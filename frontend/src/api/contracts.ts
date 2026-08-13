@@ -5499,23 +5499,231 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     {
       "name": "CLEAN_NAME",
       "type": "STRING"
-    },
-    {
-      "name": "FORMATTED_LABEL",
-      "type": "STRING"
-    },
-    {
-      "name": "INDEX",
-      "type": "INT"
-    },
-    {
-      "name": "TOTAL_MODELS",
-      "type": "INT"
     }
   ],
   "min_size": [
-    380,
-    220
+    340,
+    260
+  ],
+  "family": "tool"
+},
+  "FiLLoraLoader": {
+  "id": "FiLLoraLoader",
+  "title": "🧬 LoRA Loader",
+  "category": "🎨 FiL Design/🧰 Tools",
+  "description": "Automatically cycles through LoRA adapters on each generation.",
+  "inputs": {
+    "required": [
+      {
+        "name": "lora_list",
+        "kind": "string",
+        "label": "LoRA list",
+        "default": "",
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": true,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "filter_pattern",
+        "kind": "string",
+        "label": "Filter pattern",
+        "default": "",
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "cycle_mode",
+        "kind": "combo",
+        "label": "Cycle mode",
+        "default": "Sequential (Loop)",
+        "tooltip": null,
+        "values": [
+          "Sequential (Loop)",
+          "Sequential (Stop)",
+          "Ping-Pong",
+          "Random",
+          "Fixed Index"
+        ],
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "index",
+        "kind": "number",
+        "label": "Index",
+        "default": 0,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": 0,
+        "max": 99999,
+        "step": 1,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "strength_model",
+        "kind": "number",
+        "label": "Strength Model",
+        "default": 1,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": -10,
+        "max": 10,
+        "step": 0.05,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "strength_clip",
+        "kind": "number",
+        "label": "Strength CLIP",
+        "default": 1,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": -10,
+        "max": 10,
+        "step": 0.05,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "include_bypass",
+        "kind": "boolean",
+        "label": "Include Bypass",
+        "default": false,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "auto_advance",
+        "kind": "boolean",
+        "label": "Auto Next",
+        "default": true,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "skip_on_error",
+        "kind": "boolean",
+        "label": "Skip Bad",
+        "default": true,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      }
+    ],
+    "optional": [],
+    "hidden": []
+  },
+  "outputs": [
+    {
+      "name": "MODEL",
+      "type": "MODEL"
+    },
+    {
+      "name": "CLIP",
+      "type": "CLIP"
+    },
+    {
+      "name": "LORA_NAME",
+      "type": "STRING"
+    },
+    {
+      "name": "CLEAN_NAME",
+      "type": "STRING"
+    },
+    {
+      "name": "TRIGGER_WORDS",
+      "type": "STRING"
+    },
+    {
+      "name": "LABEL",
+      "type": "STRING"
+    }
+  ],
+  "min_size": [
+    340,
+    280
   ],
   "family": "tool"
 },

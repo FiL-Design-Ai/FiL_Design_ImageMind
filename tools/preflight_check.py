@@ -18,11 +18,13 @@ EXPECTED = {
     "FiLNoiseControl",
     "FiLImageDecomposer",
     "FiLStyleMixer",
+    "FiLCinemaRig",
     "FiLColorWizard",
     "FiLSignalSwitch",
     "FiLDatasetForge",
     "FiLChannel",
     "FiLModelCycler",
+    "FiLLoraLoader",
 }
 NODE_FILES = (
     "node_seed.py",
@@ -37,11 +39,13 @@ NODE_FILES = (
     "node_noise_control.py",
     "node_decomposer.py",
     "node_style_mixer.py",
+    "node_cinema_rig.py",
     "node_color_wizard.py",
     "node_switch.py",
     "node_dataset.py",
     "node_channel.py",
     "node_model_cycler.py",
+    "node_lora_loader.py",
 )
 
 

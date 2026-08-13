@@ -764,7 +764,7 @@ _MODEL_CYCLER = NodeContract(
     title="🔄 Model Cycler",
     category=CATEGORY_TOOLS,
     description="Automatically cycles through diffusion models or checkpoints on each generation.",
-    min_size=(380, 220),
+    min_size=(340, 260),
     family="tool",
     inputs=NodeInputs(
         required=[
@@ -791,6 +791,30 @@ _MODEL_CYCLER = NodeContract(
     ],
 )
 
+_LORA_LOADER = NodeContract(
+    id="FiLLoraLoader",
+    title="🧬 LoRA Loader",
+    category=CATEGORY_TOOLS,
+    description="Dynamic stack loader for combining multiple LoRA adapters with per-item sliders.",
+    min_size=(340, 280),
+    family="tool",
+    inputs=NodeInputs(
+        required=[
+            _string("lora_list", default="", multiline=True, label="LoRA list"),
+            _string("filter_pattern", default="", label="Filter pattern"),
+            _float("strength_model", default=1.0, minv=-10.0, maxv=10.0, step=0.05, label="Strength Model"),
+            _float("strength_clip", default=1.0, minv=-10.0, maxv=10.0, step=0.05, label="Strength CLIP"),
+            _bool("skip_on_error", default=True, label="Skip Bad"),
+        ],
+    ),
+    outputs=[
+        NodeOutput(name="MODEL", type="MODEL"),
+        NodeOutput(name="CLIP", type="CLIP"),
+        NodeOutput(name="TRIGGER_WORDS", type="STRING"),
+        NodeOutput(name="LABEL", type="STRING"),
+    ],
+)
+
 NODE_SCHEMAS: dict[str, NodeContract] = {
     contract.id: contract
     for contract in (
@@ -812,6 +836,7 @@ NODE_SCHEMAS: dict[str, NodeContract] = {
         _DATASET_FORGE,
         _CHANNEL,
         _MODEL_CYCLER,
+        _LORA_LOADER,
     )
 }
 

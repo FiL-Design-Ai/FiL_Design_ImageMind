@@ -68,7 +68,7 @@ def scan() -> dict[str, set[str]]:
     """Map node_id -> set of pack names that register it."""
     owners: dict[str, set[str]] = defaultdict(set)
     for pack in sorted(CUSTOM_NODES_ROOT.iterdir()):
-        if not pack.is_dir() or pack.name.startswith((".", "__")):
+        if not pack.is_dir() or pack.name.startswith((".", "__")) or "worktree" in pack.name.lower():
             continue
         for py in pack.rglob("*.py"):
             if any(part in {"__pycache__", ".git", "node_modules"} for part in py.parts):

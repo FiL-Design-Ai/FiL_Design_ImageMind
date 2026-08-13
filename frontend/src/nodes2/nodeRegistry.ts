@@ -24,6 +24,7 @@ import { switchNode } from "@/nodes2/nodes/switch";
 import { datasetForgeNode } from "@/nodes2/nodes/dataset";
 import { channelNode } from "@/nodes2/nodes/channel";
 import { modelCyclerNode } from "@/nodes2/nodes/model_cycler";
+import { loraLoaderNode } from "@/nodes2/nodes/lora_loader";
 
 export interface NodeModule {
   id: string;
@@ -49,6 +50,7 @@ const modules: NodeModule[] = [
   datasetForgeNode,
   channelNode,
   modelCyclerNode,
+  loraLoaderNode,
 ];
 
 export const NODE_MODULES: Record<string, NodeModule> = Object.fromEntries(

@@ -34,6 +34,7 @@ EXPECTED_IDS = {
     "FiLDatasetForge",
     "FiLChannel",
     "FiLModelCycler",
+    "FiLLoraLoader",
 }
 
 

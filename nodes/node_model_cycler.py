@@ -32,9 +32,25 @@ _CYCLE_MODES = [
 _WEIGHT_DTYPES = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
 
 
+def _ensure_gguf_support() -> None:
+    try:
+        import folder_paths
+
+        for category in ("diffusion_models", "unet"):
+            if category in folder_paths.folder_names_and_paths:
+                exts = folder_paths.folder_names_and_paths[category][1]
+                if isinstance(exts, set):
+                    exts.add(".gguf")
+    except Exception:
+        pass
+
+
 def _get_checkpoint_names() -> list[str]:
     try:
         import folder_paths
+
+        if isinstance(getattr(folder_paths, "filename_list_cache", None), dict):
+            folder_paths.filename_list_cache.pop("checkpoints", None)
 
         names = folder_paths.get_filename_list("checkpoints")
         return list(names) if names else []
@@ -45,6 +61,10 @@ def _get_checkpoint_names() -> list[str]:
 def _get_diffusion_model_names() -> list[str]:
     try:
         import folder_paths
+
+        _ensure_gguf_support()
+        if isinstance(getattr(folder_paths, "filename_list_cache", None), dict):
+            folder_paths.filename_list_cache.pop("diffusion_models", None)
 
         names = folder_paths.get_filename_list("diffusion_models")
         if not names:
@@ -67,7 +87,7 @@ def _clean_model_name(name: str) -> str:
     # Strip path directory prefixes if any
     base = name.replace("\\", "/").split("/")[-1]
     # Strip common model extensions
-    for ext in (".safetensors", ".ckpt", ".bin", ".pt", ".pth", ".onnx"):
+    for ext in (".safetensors", ".ckpt", ".bin", ".pt", ".pth", ".onnx", ".gguf"):
         if base.lower().endswith(ext):
             return base[:-len(ext)]
     return base
@@ -105,8 +125,30 @@ def _load_checkpoint(ckpt_name: str) -> tuple[Any, Any, Any]:
     return res[0], res[1], res[2]
 
 
+def _get_gguf_loader_class() -> type | None:
+    import sys
+
+    for mod_name, mod in sys.modules.items():
+        if "ComfyUI-GGUF" in mod_name and hasattr(mod, "UnetLoaderGGUF"):
+            return getattr(mod, "UnetLoaderGGUF")
+    try:
+        import importlib
+
+        mod = importlib.import_module("custom_nodes.ComfyUI-GGUF.nodes")
+        return getattr(mod, "UnetLoaderGGUF", None)
+    except Exception:
+        return None
+
+
 def _load_unet(unet_name: str, weight_dtype: str = "default") -> Any:
     import nodes
+
+    if unet_name.lower().endswith(".gguf"):
+        gguf_cls = _get_gguf_loader_class()
+        if gguf_cls is not None:
+            loader = gguf_cls()
+            res = loader.load_unet(unet_name)
+            return res[0]
 
     loader = nodes.UNETLoader()
     res = loader.load_unet(unet_name, weight_dtype)

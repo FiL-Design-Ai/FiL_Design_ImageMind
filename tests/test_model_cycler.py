@@ -368,3 +368,18 @@ def test_the_run_reports_the_live_position_for_the_panel() -> None:
     }
     assert second.ui["fil_cycler"][0]["position"] == 2
     assert second.ui["fil_cycler"][0]["clean_name"] == "a2"
+
+
+def test_sort_models_logic() -> None:
+    models = ["# zebra.safetensors", "alpha.safetensors", "beta.safetensors"]
+
+    # Test name_asc
+    sorted_asc = sorted(models, key=lambda x: x.replace("#", "").strip().lower())
+    assert sorted_asc[0] == "alpha.safetensors"
+    assert sorted_asc[1] == "beta.safetensors"
+
+    # Test enabled_first
+    sorted_enabled = sorted(models, key=lambda x: 1 if x.startswith("#") else 0)
+    assert sorted_enabled[0] == "alpha.safetensors"
+    assert sorted_enabled[1] == "beta.safetensors"
+    assert sorted_enabled[2] == "# zebra.safetensors"

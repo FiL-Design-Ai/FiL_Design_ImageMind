@@ -578,5 +578,19 @@
   "cycler_skip_error": "Пропускать битые модели",
   "cycler_run_all": "Прогнать все",
   "cycler_runs_hint": "Обычная очередь берёт по одной модели за прогон — «Прогнать все» ставит сразу весь цикл.",
-  "cycler_runs_hint_empty": "В цикле пока нет моделей — добавьте строки или нажмите «Populate Folder»."
+  "cycler_runs_hint_empty": "В цикле пока нет моделей — добавьте строки или нажмите «Populate Folder».",
+  "tt_lora_loader_model": "Входная модель diffusion для применения активной LoRA.",
+  "tt_lora_loader_clip": "Входной энкодер CLIP для применения активной LoRA.",
+  "tt_lora_loader_lora_list": "Список имён LoRA для циклирования (по одному в строке). Поддерживает веса: 'my_lora.safetensors:0.8:0.5'.",
+  "tt_lora_loader_filter_pattern": "Маска фильтрации (например '*cyberpunk*') для фильтрации файлов LoRA.",
+  "tt_lora_loader_cycle_mode": "Порядок перебора: По кругу (Loop), До конца (Stop), Зигзаг (Ping-Pong), Случайный или Фиксированный.",
+  "tt_lora_loader_index": "Начальный 0-based индекс (автоматически увеличивается при включённом Auto Next).",
+  "tt_lora_loader_strength_model": "Вес применения LoRA к модели (переопределяется если указан инлайн).",
+  "tt_lora_loader_strength_clip": "Вес применения LoRA к CLIP (переопределяется если указан инлайн).",
+  "tt_lora_loader_include_bypass": "Включает позицию '[Bypass / None]' под индексом 0 для A/B сравнения с чистой моделью.",
+  "tt_lora_loader_auto_advance": "Автоматически переключаться на следующую LoRA после каждого прогона.",
+  "tt_lora_loader_skip_on_error": "Пропускать повреждённые файлы LoRA вместо падения очереди.",
+  "err_lora_loader_no_loras": "🧬 LoRA Loader: Файлы LoRA не найдены.",
+  "err_lora_loader_finished": "🧬 LoRA Loader: Достигнут конец списка LoRA. Цикл остановлен.",
+  "err_lora_loader_all_failed": "🧬 LoRA Loader: Не удалось загрузить ни одну LoRA из списка."
 }

@@ -34,12 +34,31 @@ def _inspect_model_file(mode: str, rel_path: str) -> dict:
     try:
         import folder_paths
 
-        folder_type = "diffusion_models" if mode == "diffusion_models" else "checkpoints"
-        full_path = folder_paths.get_full_path(folder_type, rel_path)
+        if mode in ("diffusion_models", "unet"):
+            folder_type = "diffusion_models"
+        elif mode in ("loras", "lora"):
+            folder_type = "loras"
+        else:
+            folder_type = "checkpoints"
+        norm_rel = rel_path.replace("\\", "/")
+        full_path = folder_paths.get_full_path(folder_type, norm_rel)
+        if not full_path or not os.path.isfile(full_path):
+            full_path = folder_paths.get_full_path(folder_type, rel_path)
         if not full_path or not os.path.isfile(full_path):
             if folder_type == "diffusion_models":
-                full_path = folder_paths.get_full_path("unet", rel_path)
-    except (ImportError, AttributeError, KeyError):
+                full_path = folder_paths.get_full_path("unet", norm_rel) or folder_paths.get_full_path("unet", rel_path)
+
+        if not full_path or not os.path.isfile(full_path):
+            dirs = folder_paths.get_folder_paths(folder_type) or []
+            if folder_type == "diffusion_models":
+                dirs = dirs + (folder_paths.get_folder_paths("unet") or [])
+            for d in dirs:
+                cand = os.path.join(d, norm_rel.replace("/", os.sep))
+                if os.path.isfile(cand):
+                    full_path = cand
+                    break
+    except Exception as err:
+        logger.warning("Error resolving model file %s: %s", rel_path, err)
         full_path = None
 
     if not full_path or not os.path.isfile(full_path):
@@ -366,6 +385,223 @@ def register_routes():
         if not preview_file or not os.path.isfile(preview_file):
             return web.Response(status=404)
         return web.FileResponse(preview_file)
+
+    @server.routes.get(f"/{ROUTE_SLUG}/cycler_presets")
+    async def get_cycler_presets(request):
+        import json
+        import os
+        preset_file = os.path.join(os.path.dirname(__file__), "common", "data", "cycler_presets.json")
+        if not os.path.isfile(preset_file):
+            return web.json_response({"presets": []})
+        try:
+            with open(preset_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return web.json_response({"presets": data.get("presets", [])})
+        except Exception:
+            return web.json_response({"presets": []})
+
+    @server.routes.post(f"/{ROUTE_SLUG}/cycler_presets")
+    async def save_cycler_preset(request):
+        if _reject_cross_site(request):
+            return web.json_response({"error": "cross-site request blocked"}, status=403)
+        try:
+            data = await request.json()
+        except Exception:
+            return web.json_response({"error": "invalid JSON"}, status=400)
+
+        name = str(data.get("name", "")).strip()
+        models = data.get("models", [])
+        source_mode = str(data.get("source_mode", "Checkpoints")).strip()
+        if not name or not isinstance(models, list):
+            return web.json_response({"error": "name and models array are required"}, status=400)
+
+        import json
+        import os
+        data_dir = os.path.join(os.path.dirname(__file__), "common", "data")
+        os.makedirs(data_dir, exist_ok=True)
+        preset_file = os.path.join(data_dir, "cycler_presets.json")
+
+        presets = []
+        if os.path.isfile(preset_file):
+            try:
+                with open(preset_file, "r", encoding="utf-8") as f:
+                    presets = json.load(f).get("presets", [])
+            except Exception:
+                presets = []
+
+        presets = [p for p in presets if p.get("name") != name]
+        presets.append({
+            "name": name,
+            "source_mode": source_mode,
+            "models": models,
+        })
+
+        with open(preset_file, "w", encoding="utf-8") as f:
+            json.dump({"presets": presets}, f, ensure_ascii=False, indent=2)
+
+        return web.json_response({"status": "success", "presets": presets})
+
+    @server.routes.delete(f"/{ROUTE_SLUG}/cycler_presets/{{name}}")
+    async def delete_cycler_preset(request):
+        if _reject_cross_site(request):
+            return web.json_response({"error": "cross-site request blocked"}, status=403)
+        name = request.match_info.get("name", "").strip()
+        if not name:
+            return web.json_response({"error": "missing preset name"}, status=400)
+
+        import json
+        import os
+        preset_file = os.path.join(os.path.dirname(__file__), "common", "data", "cycler_presets.json")
+        if not os.path.isfile(preset_file):
+            return web.json_response({"status": "success", "presets": []})
+
+        try:
+            with open(preset_file, "r", encoding="utf-8") as f:
+                presets = json.load(f).get("presets", [])
+        except Exception:
+            presets = []
+
+        presets = [p for p in presets if p.get("name") != name]
+        with open(preset_file, "w", encoding="utf-8") as f:
+            json.dump({"presets": presets}, f, ensure_ascii=False, indent=2)
+
+        return web.json_response({"status": "success", "presets": presets})
+
+    @server.routes.post(f"/{ROUTE_SLUG}/sort_models")
+    async def sort_models(request):
+        if _reject_cross_site(request):
+            return web.json_response({"error": "cross-site request blocked"}, status=403)
+        try:
+            data = await request.json()
+        except Exception:
+            return web.json_response({"error": "invalid JSON"}, status=400)
+
+        mode = str(data.get("mode", "checkpoints")).strip()
+        models = data.get("models", [])
+        sort_by = str(data.get("sort_by", "name_asc")).strip().lower()
+        if not isinstance(models, list):
+            return web.json_response({"error": "models array required"}, status=400)
+
+        def _get_meta(raw_item: str):
+            clean = re.sub(r"^#\s*", "", raw_item).strip()
+            norm_clean = clean.replace("\\", "/")
+            full_p = None
+            try:
+                import folder_paths
+                folder_type = "diffusion_models" if mode == "diffusion_models" else "checkpoints"
+                full_p = folder_paths.get_full_path(folder_type, norm_clean) or folder_paths.get_full_path(folder_type, clean)
+                if not full_p or not os.path.isfile(full_p):
+                    dirs = folder_paths.get_folder_paths(folder_type) or []
+                    for d in dirs:
+                        cand = os.path.join(d, norm_clean.replace("/", os.sep))
+                        if os.path.isfile(cand):
+                            full_p = cand
+                            break
+            except Exception:
+                pass
+
+            mtime = 0
+            size = 0
+            if full_p and os.path.isfile(full_p):
+                try:
+                    stat = os.stat(full_p)
+                    mtime = stat.st_mtime
+                    size = stat.st_size
+                except Exception:
+                    pass
+            return {
+                "raw": raw_item,
+                "clean": clean,
+                "mtime": mtime,
+                "size": size,
+                "enabled": not raw_item.startswith("#"),
+            }
+
+        meta_list = await asyncio.to_thread(lambda: [_get_meta(m) for m in models])
+
+        if sort_by == "name_asc":
+            meta_list.sort(key=lambda x: x["clean"].lower())
+        elif sort_by == "name_desc":
+            meta_list.sort(key=lambda x: x["clean"].lower(), reverse=True)
+        elif sort_by == "date_desc":
+            meta_list.sort(key=lambda x: x["mtime"], reverse=True)
+        elif sort_by == "date_asc":
+            meta_list.sort(key=lambda x: x["mtime"])
+        elif sort_by == "size_desc":
+            meta_list.sort(key=lambda x: x["size"], reverse=True)
+        elif sort_by == "size_asc":
+            meta_list.sort(key=lambda x: x["size"])
+        elif sort_by == "enabled_first":
+            meta_list.sort(key=lambda x: 0 if x["enabled"] else 1)
+
+        sorted_raw = [x["raw"] for x in meta_list]
+        return web.json_response({"sorted_models": sorted_raw})
+
+    @server.routes.get(f"/{ROUTE_SLUG}/lora_cycler_presets")
+    async def get_lora_cycler_presets(request):
+        import json
+        import os
+        preset_file = os.path.join(os.path.dirname(__file__), "common", "data", "lora_cycler_presets.json")
+        if not os.path.isfile(preset_file):
+            return web.json_response({"presets": []})
+        try:
+            with open(preset_file, "r", encoding="utf-8") as f:
+                return web.json_response({"presets": json.load(f).get("presets", [])})
+        except Exception as err:
+            logger.warning("Failed to read lora cycler presets: %s", err)
+            return web.json_response({"presets": []})
+
+    @server.routes.post(f"/{ROUTE_SLUG}/lora_cycler_presets")
+    async def save_lora_cycler_preset(request):
+        if _reject_cross_site(request):
+            return web.json_response({"error": "cross-site request blocked"}, status=403)
+        try:
+            data = await request.json()
+        except Exception:
+            return web.json_response({"error": "invalid JSON"}, status=400)
+        name = str(data.get("name", "")).strip()
+        loras = data.get("loras", [])
+        if not name or not isinstance(loras, list):
+            return web.json_response({"error": "invalid preset"}, status=400)
+        import json
+        import os
+        data_dir = os.path.join(os.path.dirname(__file__), "common", "data")
+        os.makedirs(data_dir, exist_ok=True)
+        preset_file = os.path.join(data_dir, "lora_cycler_presets.json")
+        presets = []
+        if os.path.isfile(preset_file):
+            try:
+                with open(preset_file, "r", encoding="utf-8") as f:
+                    presets = json.load(f).get("presets", [])
+            except Exception:
+                presets = []
+        presets = [p for p in presets if p.get("name") != name]
+        presets.append({"name": name, "loras": loras})
+        with open(preset_file, "w", encoding="utf-8") as f:
+            json.dump({"presets": presets}, f, ensure_ascii=False, indent=2)
+        return web.json_response({"status": "success", "presets": presets})
+
+    @server.routes.delete(f"/{ROUTE_SLUG}/lora_cycler_presets/{{name}}")
+    async def delete_lora_cycler_preset(request):
+        if _reject_cross_site(request):
+            return web.json_response({"error": "cross-site request blocked"}, status=403)
+        name = request.match_info.get("name", "").strip()
+        if not name:
+            return web.json_response({"error": "missing preset name"}, status=400)
+        import json
+        import os
+        preset_file = os.path.join(os.path.dirname(__file__), "common", "data", "lora_cycler_presets.json")
+        if not os.path.isfile(preset_file):
+            return web.json_response({"status": "success", "presets": []})
+        try:
+            with open(preset_file, "r", encoding="utf-8") as f:
+                presets = json.load(f).get("presets", [])
+        except Exception:
+            presets = []
+        presets = [p for p in presets if p.get("name") != name]
+        with open(preset_file, "w", encoding="utf-8") as f:
+            json.dump({"presets": presets}, f, ensure_ascii=False, indent=2)
+        return web.json_response({"status": "success", "presets": presets})
 
     @server.routes.get(f"/{ROUTE_SLUG}/node_contracts")
     async def node_contracts(request):

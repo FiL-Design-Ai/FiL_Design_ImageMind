@@ -578,5 +578,19 @@
   "cycler_skip_error": "Skip Corrupt Models",
   "cycler_run_all": "Run All",
   "cycler_runs_hint": "Queue runs one model per run — press Run All to queue the whole cycle at once.",
-  "cycler_runs_hint_empty": "No models in the cycle yet — add rows, or Populate Folder."
+  "cycler_runs_hint_empty": "No models in the cycle yet — add rows, or Populate Folder.",
+  "tt_lora_loader_model": "Input diffusion MODEL to apply the active LoRA adapter to.",
+  "tt_lora_loader_clip": "Input CLIP encoder to apply the active LoRA adapter to.",
+  "tt_lora_loader_lora_list": "List of LoRA filenames to cycle through (one per line). Supports inline weights: 'my_lora.safetensors:0.8:0.5'.",
+  "tt_lora_loader_filter_pattern": "Wildcard filter pattern (e.g. '*cyberpunk*') to filter LoRA files.",
+  "tt_lora_loader_cycle_mode": "Iteration order: Sequential (Loop), Sequential (Stop), Ping-Pong, Random, or Fixed Index.",
+  "tt_lora_loader_index": "Starting 0-based position (auto-advances per run when Auto Next is ON).",
+  "tt_lora_loader_strength_model": "Default MODEL strength (overridden by inline weight if provided).",
+  "tt_lora_loader_strength_clip": "Default CLIP strength (overridden by inline weight if provided).",
+  "tt_lora_loader_include_bypass": "ON: Inserts a '[Bypass / None]' slot at index 0 so the first generation uses the clean model.",
+  "tt_lora_loader_auto_advance": "ON: Advances to next LoRA adapter after each generation run.",
+  "tt_lora_loader_skip_on_error": "If a LoRA file fails to load, log warning and skip to next LoRA instead of crashing queue.",
+  "err_lora_loader_no_loras": "🧬 LoRA Loader: No LoRA files found.",
+  "err_lora_loader_finished": "🧬 LoRA Loader: Reached end of LoRA list. Cycle stopped.",
+  "err_lora_loader_all_failed": "🧬 LoRA Loader: Failed to load any LoRA from list."
 }

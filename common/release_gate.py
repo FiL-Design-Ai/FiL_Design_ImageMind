@@ -37,6 +37,7 @@ RELEASE_NODES: set[str] = {
     "FiLDatasetForge",
     "FiLChannel",
     "FiLModelCycler",
+    "FiLLoraLoader",
 }
 
 _TRUTHY = {"1", "true", "yes", "on"}

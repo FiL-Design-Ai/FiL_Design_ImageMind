@@ -355,37 +355,16 @@ export function installWidgetSocketSync(prototype: unknown, names: string[], sta
 }
 
 import { subscribedChannel } from "@/nodes2/wireless/subscriptions";
-import { livePlan } from "@/nodes2/wireless/livePlan";
-import type { WirelessNode, WirelessGraph } from "@/nodes2/wireless/types";
+import type { WirelessNode } from "@/nodes2/wireless/types";
 
 export function readLinkedInputs(node: unknown, names: string[]): Record<string, boolean> {
   const n = node as NodeLike & WirelessNode;
   const linked: Record<string, boolean> = {};
-
-  let wirelessLinks: Set<number> | null = null;
-  if (n.id != null && n.graph) {
-    try {
-      const plan = livePlan(n.graph as WirelessGraph);
-      const targetId = String(n.id);
-      wirelessLinks = new Set<number>();
-      for (const link of plan.resolution.links) {
-        if (String(link.target_id) === targetId) {
-          wirelessLinks.add(link.target_slot);
-        }
-      }
-    } catch {
-      wirelessLinks = null;
-    }
-  }
-
   for (const name of names) {
-    const slotIndex = n.inputs?.findIndex((i) => i.name === name) ?? -1;
-    const slot = slotIndex >= 0 ? n.inputs?.[slotIndex] : undefined;
+    const slot = n.inputs?.find((i) => i.name === name);
     const hasPhysicalLink = slot?.link != null;
     const hasExplicitSub = Boolean(subscribedChannel(n, name));
-    const hasWirelessLink = Boolean(slotIndex >= 0 && wirelessLinks?.has(slotIndex));
-
-    linked[name] = hasPhysicalLink || hasExplicitSub || hasWirelessLink;
+    linked[name] = hasPhysicalLink || hasExplicitSub;
   }
   return linked;
 }
