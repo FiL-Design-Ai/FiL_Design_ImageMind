@@ -18910,7 +18910,7 @@ var hO = /* @__PURE__ */ sr(() => Promise.resolve().then(() => (mO(), fO))), gO 
 				value: n,
 				enumerable: !1,
 				configurable: !0
-			}), n._filCyclerState = o, Md(n, "fil_cycler_view", hO, {
+			}), n._filCyclerState = o, Array.isArray(n.inputs) && (n.inputs = n.inputs.filter((e) => !!(e && e.name && e.name.trim()))), Md(n, "fil_cycler_view", hO, {
 				state: o,
 				height: 260
 			}), t;
@@ -19417,7 +19417,7 @@ var pk = /* @__PURE__ */ sr(() => Promise.resolve().then(() => (fk(), uk))), mk 
 				value: n,
 				enumerable: !1,
 				configurable: !0
-			}), n._filCyclerState = o, Md(n, "fil_lora_loader_view", pk, {
+			}), Array.isArray(n.inputs) && (n.inputs = n.inputs.filter((e) => !!(e && e.name && e.name.trim()))), Md(n, "fil_lora_loader_view", pk, {
 				state: o,
 				height: 280
 			}), t;

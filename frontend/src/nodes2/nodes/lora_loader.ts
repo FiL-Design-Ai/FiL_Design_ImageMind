@@ -78,7 +78,11 @@ export const loraLoaderNode: NodeModule = {
         enumerable: false,
         configurable: true,
       });
-      node._filCyclerState = state;
+      if (Array.isArray((node as { inputs?: Array<{ name?: string }> }).inputs)) {
+        (node as { inputs: Array<{ name?: string }> }).inputs = (
+          node as { inputs: Array<{ name?: string }> }
+        ).inputs.filter((slot) => Boolean(slot && slot.name && slot.name.trim()));
+      }
       addFilDomWidget(node, "fil_lora_loader_view", LoraLoaderVue, {
         state,
         height: 280,

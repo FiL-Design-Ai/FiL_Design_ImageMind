@@ -81,6 +81,11 @@ export const modelCyclerNode: NodeModule = {
       };
       Object.defineProperty(state, "node", { value: node, enumerable: false, configurable: true });
       node._filCyclerState = state;
+      if (Array.isArray((node as { inputs?: Array<{ name?: string }> }).inputs)) {
+        (node as { inputs: Array<{ name?: string }> }).inputs = (
+          node as { inputs: Array<{ name?: string }> }
+        ).inputs.filter((slot) => Boolean(slot && slot.name && slot.name.trim()));
+      }
       addFilDomWidget(node, "fil_cycler_view", ModelCyclerVue, { state, height: 260 });
       return result;
     };
