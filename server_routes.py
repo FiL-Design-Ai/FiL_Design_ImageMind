@@ -166,6 +166,27 @@ def _inspect_model_file(mode: str, rel_path: str) -> dict:
                         break
                 if full_path and os.path.isfile(full_path):
                     break
+
+        if not full_path or not os.path.isfile(full_path):
+            # Global fallback: search across ALL model directories registered in folder_paths
+            all_types = ["diffusion_models", "unet", "checkpoints", "loras"]
+            target_base = os.path.basename(rel_clean)
+            for ftype in all_types:
+                for d in (folder_paths.get_folder_paths(ftype) or []):
+                    if not d or not os.path.isdir(d):
+                        continue
+                    cand1 = os.path.join(d, rel_clean.replace("/", os.sep))
+                    if os.path.isfile(cand1):
+                        full_path = cand1
+                        break
+                    for root, _, files in os.walk(d):
+                        if target_base in files:
+                            full_path = os.path.join(root, target_base)
+                            break
+                    if full_path and os.path.isfile(full_path):
+                        break
+                if full_path and os.path.isfile(full_path):
+                    break
     except Exception as err:
         logger.warning("Error resolving model file %s: %s", rel_path, err)
         full_path = None
@@ -483,19 +504,21 @@ def register_routes():
             names = await asyncio.to_thread(_get_checkpoint_names)
         return web.json_response({"models": names})
 
+    @server.routes.get(f"/{ROUTE_SLUG}/model_info")
     @server.routes.get(f"/{ROUTE_SLUG}/model_info/{{mode}}")
     async def model_info(request):
-        mode = request.match_info.get("mode", "checkpoints")
+        mode = request.match_info.get("mode") or request.query.get("mode", "checkpoints")
         rel_path = request.query.get("path", "")
         if not rel_path:
             return web.json_response({"error": "missing path parameter"}, status=400)
         info = await asyncio.to_thread(_inspect_model_file, mode, rel_path)
         return web.json_response(info)
 
+    @server.routes.get(f"/{ROUTE_SLUG}/model_preview")
     @server.routes.get(f"/{ROUTE_SLUG}/model_preview/{{mode}}")
     async def model_preview(request):
         import os
-        mode = request.match_info.get("mode", "checkpoints")
+        mode = request.match_info.get("mode") or request.query.get("mode", "checkpoints")
         rel_path = request.query.get("path", "")
         if not rel_path:
             return web.Response(status=404)
