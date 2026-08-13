@@ -26,6 +26,24 @@ logger = logging.getLogger(f"{BRAND}.API")
 _ROUTES_REGISTERED = False
 
 
+def _ensure_extra_model_paths() -> None:
+    """Scan and load any extra_model_paths.yaml files into ComfyUI's folder_paths."""
+    try:
+        import os
+        import folder_paths
+        import utils.extra_config
+
+        base = getattr(folder_paths, "base_path", None) or os.getcwd()
+        if os.path.isdir(base):
+            for fname in os.listdir(base):
+                if fname.startswith("extra_model_paths") and fname.endswith((".yaml", ".yml")):
+                    full_p = os.path.join(base, fname)
+                    if os.path.isfile(full_p):
+                        utils.extra_config.load_extra_path_config(full_p)
+    except Exception:
+        pass
+
+
 def _inspect_model_file(mode: str, rel_path: str) -> dict:
     import datetime
     import json
@@ -33,6 +51,8 @@ def _inspect_model_file(mode: str, rel_path: str) -> dict:
     import struct
     try:
         import folder_paths
+
+        _ensure_extra_model_paths()
 
         if mode in ("diffusion_models", "unet"):
             folder_type = "diffusion_models"
@@ -358,8 +378,11 @@ def register_routes():
     async def models_list(request):
         mode = request.match_info.get("mode", "checkpoints")
         from .nodes.node_model_cycler import _get_checkpoint_names, _get_diffusion_model_names
+        from .nodes.node_lora_loader import _get_lora_names
         if mode == "diffusion_models":
             names = await asyncio.to_thread(_get_diffusion_model_names)
+        elif mode in ("loras", "lora"):
+            names = await asyncio.to_thread(_get_lora_names)
         else:
             names = await asyncio.to_thread(_get_checkpoint_names)
         return web.json_response({"models": names})

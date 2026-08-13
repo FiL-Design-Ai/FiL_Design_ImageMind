@@ -23,11 +23,30 @@ from ..common.localization import t
 logger = logging.getLogger(f"{BRAND}.LoraLoader")
 
 
+def _ensure_extra_model_paths() -> None:
+    """Scan and load any extra_model_paths.yaml files into ComfyUI's folder_paths."""
+    try:
+        import os
+        import folder_paths
+        import utils.extra_config
+
+        base = getattr(folder_paths, "base_path", None) or os.getcwd()
+        if os.path.isdir(base):
+            for fname in os.listdir(base):
+                if fname.startswith("extra_model_paths") and fname.endswith((".yaml", ".yml")):
+                    full_p = os.path.join(base, fname)
+                    if os.path.isfile(full_p):
+                        utils.extra_config.load_extra_path_config(full_p)
+    except Exception:
+        pass
+
+
 def _get_lora_names() -> list[str]:
     """Return list of installed LoRA filenames."""
     try:
         import folder_paths
 
+        _ensure_extra_model_paths()
         if isinstance(getattr(folder_paths, "filename_list_cache", None), dict):
             folder_paths.filename_list_cache.pop("loras", None)
 

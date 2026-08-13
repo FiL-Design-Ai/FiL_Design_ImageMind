@@ -32,6 +32,24 @@ _CYCLE_MODES = [
 _WEIGHT_DTYPES = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
 
 
+def _ensure_extra_model_paths() -> None:
+    """Scan and load any extra_model_paths.yaml files into ComfyUI's folder_paths."""
+    try:
+        import os
+        import folder_paths
+        import utils.extra_config
+
+        base = getattr(folder_paths, "base_path", None) or os.getcwd()
+        if os.path.isdir(base):
+            for fname in os.listdir(base):
+                if fname.startswith("extra_model_paths") and fname.endswith((".yaml", ".yml")):
+                    full_p = os.path.join(base, fname)
+                    if os.path.isfile(full_p):
+                        utils.extra_config.load_extra_path_config(full_p)
+    except Exception:
+        pass
+
+
 def _ensure_gguf_support() -> None:
     try:
         import folder_paths
@@ -49,19 +67,21 @@ def _get_checkpoint_names() -> list[str]:
     try:
         import folder_paths
 
+        _ensure_extra_model_paths()
         if isinstance(getattr(folder_paths, "filename_list_cache", None), dict):
             folder_paths.filename_list_cache.pop("checkpoints", None)
 
         names = folder_paths.get_filename_list("checkpoints")
         return list(names) if names else []
     except (ImportError, AttributeError, KeyError):
-        return []
+        return []`
 
 
 def _get_diffusion_model_names() -> list[str]:
     try:
         import folder_paths
 
+        _ensure_extra_model_paths()
         _ensure_gguf_support()
         if isinstance(getattr(folder_paths, "filename_list_cache", None), dict):
             folder_paths.filename_list_cache.pop("diffusion_models", None)
