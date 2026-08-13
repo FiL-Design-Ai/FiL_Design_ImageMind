@@ -222,23 +222,35 @@ def _inspect_model_file(mode: str, rel_path: str, fetch_remote: bool = False) ->
             except Exception as err:
                 logger.debug("Failed to parse metadata json %s: %s", cand, err)
 
-    model_title = meta_json_data.get("model_name") or meta_json_data.get("civitai", {}).get("model", {}).get("name") or ""
-    base_model = meta_json_data.get("base_model") or meta_json_data.get("civitai", {}).get("baseModel") or ""
-    creator = meta_json_data.get("civitai", {}).get("creator", {}).get("username") or ""
-    download_count = meta_json_data.get("civitai", {}).get("stats", {}).get("downloadCount") or 0
-    thumbs_up = meta_json_data.get("civitai", {}).get("stats", {}).get("thumbsUpCount") or 0
-    trained_words = meta_json_data.get("trainedWords") or meta_json_data.get("civitai", {}).get("trainedWords") or []
+    # `d.get("k", {})` hands back the stored `None` when the key is present and
+    # null, and the next `.get` on it raises — a 500 for the whole dialog. Real
+    # Civitai records carry `"meta": null` on any image uploaded without
+    # generation data, which is most of them; found on an installed LoRA whose
+    # info dialog answered nothing but "Server got itself in trouble".
+    def sub(source: object, key: str) -> dict:
+        value = source.get(key) if isinstance(source, dict) else None
+        return value if isinstance(value, dict) else {}
+
+    civitai = sub(meta_json_data, "civitai")
+
+    model_title = meta_json_data.get("model_name") or sub(civitai, "model").get("name") or ""
+    base_model = meta_json_data.get("base_model") or civitai.get("baseModel") or ""
+    creator = sub(civitai, "creator").get("username") or ""
+    download_count = sub(civitai, "stats").get("downloadCount") or 0
+    thumbs_up = sub(civitai, "stats").get("thumbsUpCount") or 0
+    trained_words = meta_json_data.get("trainedWords") or civitai.get("trainedWords") or []
+    if not isinstance(trained_words, list):
+        trained_words = []
 
     sample_prompts: list[str] = []
-    civitai_imgs = meta_json_data.get("civitai", {}).get("images", [])
+    civitai_imgs = civitai.get("images", [])
     if isinstance(civitai_imgs, list):
         for img in civitai_imgs:
-            if isinstance(img, dict):
-                pmt = img.get("meta", {}).get("prompt")
-                if pmt and isinstance(pmt, str) and pmt.strip() and pmt.strip() not in sample_prompts:
-                    sample_prompts.append(pmt.strip())
-                if len(sample_prompts) >= 3:
-                    break
+            pmt = sub(img, "meta").get("prompt")
+            if pmt and isinstance(pmt, str) and pmt.strip() and pmt.strip() not in sample_prompts:
+                sample_prompts.append(pmt.strip())
+            if len(sample_prompts) >= 3:
+                break
 
     if not preview_path and meta_json_data.get("preview_url"):
         purl = str(meta_json_data.get("preview_url"))

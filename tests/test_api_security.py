@@ -142,6 +142,55 @@ def test_a_name_in_the_wrong_subfolder_is_not_found_by_basename(tmp_path, monkey
         assert "error" not in found, asked
 
 
+def test_a_null_in_the_metadata_does_not_take_the_dialog_down(tmp_path, monkeypatch):
+    """`"meta": null` is ordinary in a Civitai record, and it returned a 500.
+
+    `d.get("k", {})` hands back the stored `None` when the key is present and
+    null, so the next `.get` raised and the route answered "Server got itself
+    in trouble" — reproduced against an installed LoRA on 2026-08-14, where the
+    info dialog was dead for that model and no test had noticed. Every image
+    uploaded without generation data carries exactly this shape.
+    """
+    import json
+
+    import folder_paths
+
+    from FiL_Design_ImageMind.server_routes import _inspect_model_file
+
+    loras = tmp_path / "loras"
+    loras.mkdir()
+    (loras / "x.safetensors").write_bytes(b"x")
+    (loras / "x.metadata.json").write_text(
+        json.dumps(
+            {
+                "civitai": {
+                    "model": None,
+                    "creator": None,
+                    "stats": None,
+                    "trainedWords": None,
+                    "images": [{"meta": None}, {"meta": {"prompt": "a real one"}}, None],
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        folder_paths, "folder_names_and_paths", {"loras": ([str(loras)], {".safetensors"})}
+    )
+
+    info = _inspect_model_file("loras", "x.safetensors")
+
+    assert "error" not in info
+    assert info["sample_prompts"] == ["a real one"]
+    assert info["trained_words"] == []
+    # The route serialises the answer, so a value that cannot be is also a 500.
+    json.dumps(info)
+
+    # A `civitai` key that is null itself is the same trap one level up.
+    (loras / "x.metadata.json").write_text(json.dumps({"civitai": None}), encoding="utf-8")
+    assert "error" not in _inspect_model_file("loras", "x.safetensors")
+
+
 def test_extra_model_paths_are_read_once(monkeypatch):
     """Loading them per request re-read the yaml on every panel open.
 
