@@ -51,6 +51,71 @@ def _ensure_extra_model_paths() -> None:
         pass
 
 
+def _fetch_civitai_metadata_and_preview(full_path: str) -> bool:
+    """Auto-fetch metadata & thumbnail preview from Civitai API if not present locally."""
+    import hashlib
+    import json
+    import os
+    import urllib.request
+
+    if not full_path or not os.path.isfile(full_path):
+        return False
+
+    base_no_ext, _ = os.path.splitext(full_path)
+    preview_exists = any(
+        os.path.isfile(base_no_ext + ext)
+        for ext in [".png", ".preview.png", ".jpg", ".jpeg", ".webp"]
+    )
+    meta_json_path = base_no_ext + ".metadata.json"
+    meta_exists = os.path.isfile(meta_json_path)
+
+    if preview_exists and meta_exists:
+        return True
+
+    # Fast hashing: calculate SHA256 of the file
+    sha256 = hashlib.sha256()
+    try:
+        with open(full_path, "rb") as f:
+            while chunk := f.read(4 * 1024 * 1024):
+                sha256.update(chunk)
+        file_hash = sha256.hexdigest().upper()
+    except Exception:
+        return False
+
+    url = f"https://civitai.com/api/v1/model-versions/by-hash/{file_hash}"
+    try:
+        req = urllib.request.Request(
+            url, headers={"User-Agent": "FiL_Design_ImageMind/1.1", "Accept": "application/json"}
+        )
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            if resp.status != 200:
+                return False
+            data = json.loads(resp.read().decode("utf-8"))
+
+        if not meta_exists and isinstance(data, dict):
+            with open(meta_json_path, "w", encoding="utf-8") as f:
+                json.dump({"civitai": data}, f, ensure_ascii=False, indent=2)
+
+        if not preview_exists and isinstance(data, dict):
+            images = data.get("images", [])
+            if isinstance(images, list) and len(images) > 0:
+                img_url = images[0].get("url")
+                if img_url:
+                    img_req = urllib.request.Request(
+                        img_url,
+                        headers={"User-Agent": "FiL_Design_ImageMind/1.1"},
+                    )
+                    with urllib.request.urlopen(img_req, timeout=10) as img_resp:
+                        if img_resp.status == 200:
+                            save_img_path = base_no_ext + ".png"
+                            with open(save_img_path, "wb") as img_f:
+                                img_f.write(img_resp.read())
+
+        return True
+    except Exception:
+        return False
+
+
 def _inspect_model_file(mode: str, rel_path: str) -> dict:
     import datetime
     import json
@@ -102,6 +167,13 @@ def _inspect_model_file(mode: str, rel_path: str) -> dict:
     mtime_str = datetime.datetime.fromtimestamp(mtime).strftime("%Y-%m-%d %H:%M")
 
     base_no_ext, _ = os.path.splitext(full_path)
+
+    # Auto-fetch metadata and preview from Civitai API if not available locally
+    try:
+        _fetch_civitai_metadata_and_preview(full_path)
+    except Exception:
+        pass
+
     preview_path = None
     for ext in [".png", ".preview.png", ".jpg", ".jpeg", ".webp"]:
         candidate = base_no_ext + ext
