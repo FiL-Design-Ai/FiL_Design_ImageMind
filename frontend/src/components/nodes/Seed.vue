@@ -166,6 +166,6 @@ const displayFontPx = computed(() => {
 }
 .fil-seed-display:focus { border-color: var(--fil-accent); }
 .fil-seed-display[readonly] { color: var(--fil-muted); font-style: italic; }
-.fil-seed-actions { display: flex; gap: 5px; flex-shrink: 0; }
-.fil-seed-actions :deep(.fil-w-btn) { padding: 0; width: var(--fil-control-h); height: var(--fil-control-h); font-size: 16px; }
+.fil-seed-actions { display: flex; gap: 4px; flex-shrink: 0; }
+.fil-seed-actions :deep(.fil-w-btn) { padding: 0; width: 24px; height: 24px; font-size: 14px; border-radius: 4px; }
 </style>

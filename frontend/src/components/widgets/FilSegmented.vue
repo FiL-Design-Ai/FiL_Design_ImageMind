@@ -114,7 +114,7 @@ function onKeydown(e: KeyboardEvent, index: number) {
   height: var(--fil-control-h);
   box-sizing: border-box;
   background: var(--fil-surface-2);
-  border-radius: 7px;
+  border-radius: 5px;
   padding: 2px;
 }
 .fil-w-pill.disabled {
@@ -139,10 +139,10 @@ function onKeydown(e: KeyboardEvent, index: number) {
    * padding matters here. */
   padding: 0 3px;
   border: none;
-  border-radius: 5px;
+  border-radius: 4px;
   background: transparent;
   font-family: inherit;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--fil-muted);
   cursor: pointer;
   user-select: none;

@@ -7,7 +7,7 @@
 import { computed } from "vue";
 import { icon as resolveIcon, type IconName } from "@/composables/icons";
 
-type Variant = "standard" | "accent" | "danger" | "icon" | "full" | "sm";
+type Variant = "standard" | "accent" | "danger" | "icon" | "full" | "sm" | "lg";
 
 const props = withDefaults(
   defineProps<{
@@ -35,6 +35,7 @@ const classes = computed(() => [
   props.variant === "icon" && "fil-w-btn-icon",
   props.variant === "full" && "fil-w-btn-full",
   props.variant === "sm" && "fil-w-btn-sm",
+  props.variant === "lg" && "fil-w-btn-lg",
   props.flashing && "is-flashing",
   props.loading && "is-loading",
 ]);
@@ -65,13 +66,14 @@ function onClick(e: MouseEvent) {
 <style scoped>
 .fil-w-btn {
   box-sizing: border-box;
-  padding: var(--fil-row-pad);
-  border-radius: 6px;
+  height: var(--fil-control-h);
+  padding: 3px 8px;
+  border-radius: var(--fil-radius, 5px);
   background: var(--fil-surface-1);
   border: 1px solid var(--fil-border);
   color: var(--fil-text);
   font-family: ui-sans-serif, system-ui, sans-serif;
-  font-size: 12px;
+  font-size: 11.5px;
   cursor: pointer;
   user-select: none;
   text-align: center;
@@ -82,7 +84,7 @@ function onClick(e: MouseEvent) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
 }
 .fil-w-btn:hover:not(:disabled) {
   background: var(--fil-accent);
@@ -110,18 +112,31 @@ function onClick(e: MouseEvent) {
   color: #fff;
 }
 .fil-w-btn-sm {
-  padding: 4px 8px;
-  font-size: 11px;
+  height: 22px;
+  padding: 2px 6px;
+  font-size: 10.5px;
+  border-radius: 4px;
+}
+.fil-w-btn-lg {
+  height: 34px;
+  padding: 6px 14px;
+  font-size: 12.5px;
+  border-radius: 5px;
 }
 .fil-w-btn-full {
   width: 100%;
   display: block;
 }
 .fil-w-btn-icon {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  padding: 0;
+  border-radius: 4px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 0;
 }
 .fil-w-btn-glyph :deep(svg) {
   width: 14px;

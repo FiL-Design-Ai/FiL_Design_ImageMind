@@ -113,7 +113,7 @@ function onInput(e: Event) {
   background: var(--fil-pill-bg);
   color: var(--fil-text);
   font-family: inherit;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.08s, border-color 0.08s, color 0.08s;

@@ -37,39 +37,6 @@ const nativeWidgetNames = [
 // (`ModelCyclerPanel.vue` -> `queueAllModelsRun`), which passes the batch
 // count to the host's own `queuePrompt` the way any caller may.
 
-function updateSocketLabels(node: unknown, mode: string) {
-  const n = node as {
-    inputs?: Array<{ name?: string; label?: string }>;
-    outputs?: Array<{ name?: string; label?: string }>;
-    setDirtyCanvas?: (a: boolean, b: boolean) => void;
-  };
-  const isDiff = mode === "Diffusion Models";
-
-  if (Array.isArray(n.inputs)) {
-    for (const slot of n.inputs) {
-      if (slot.name === "clip_in") {
-        slot.label = isDiff ? "clip_in (optional)" : "clip_in";
-      } else if (slot.name === "vae_in") {
-        slot.label = isDiff ? "vae_in (optional)" : "vae_in";
-      }
-    }
-  }
-
-  if (Array.isArray(n.outputs)) {
-    for (const slot of n.outputs) {
-      if (slot.name === "CLIP") {
-        slot.label = isDiff ? "CLIP (passthrough)" : "CLIP";
-      } else if (slot.name === "VAE") {
-        slot.label = isDiff ? "VAE (passthrough)" : "VAE";
-      }
-    }
-  }
-
-  if (typeof n.setDirtyCanvas === "function") {
-    n.setDirtyCanvas(true, true);
-  }
-}
-
 export const modelCyclerNode: NodeModule = {
   id: "FiLModelCycler",
   register(nodeType: unknown, _nodeData: ComfyNodeData): void {
@@ -120,9 +87,6 @@ export const modelCyclerNode: NodeModule = {
           node as { inputs: Array<{ name?: string }> }
         ).inputs.filter((slot) => Boolean(slot && slot.name && slot.name.trim()));
       }
-      
-      const currentMode = String(nodeState["source_mode"] || "Diffusion Models");
-      updateSocketLabels(node, currentMode);
 
       addFilDomWidget(node, "fil_cycler_view", ModelCyclerVue, { state, height: 260 });
       return result;
