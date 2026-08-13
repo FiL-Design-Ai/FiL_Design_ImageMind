@@ -934,7 +934,11 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
 .fil-sort-select-wrap :deep(.fil-w-select-input) {
   flex: 1;
   width: 100%;
-  padding: 3px 6px;
+  height: 22px;
+  min-height: 22px;
+  max-height: 22px;
+  box-sizing: border-box;
+  padding: 0 6px;
   font-size: 10px;
   font-weight: 600;
   border-color: color-mix(in srgb, var(--fil-accent) 40%, transparent);
@@ -943,6 +947,7 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
   border-radius: 4px;
   text-align: left;
   text-align-last: left;
+  line-height: 20px;
 }
 
 .fil-actions-right-group {
@@ -953,11 +958,15 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
 }
 
 .fil-action-link {
+  height: 22px;
+  min-height: 22px;
+  max-height: 22px;
+  box-sizing: border-box;
   background: var(--fil-surface-2, #27272a);
   border: 1px solid color-mix(in srgb, var(--fil-accent) 35%, transparent);
   color: var(--fil-accent-text, #c084fc);
   cursor: pointer;
-  padding: 3px 7px;
+  padding: 0 7px;
   border-radius: 4px;
   font-size: 10px;
   font-weight: 600;
@@ -966,6 +975,7 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
   align-items: center;
   gap: 3px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  line-height: 20px;
 }
 
 .fil-action-link:hover {
