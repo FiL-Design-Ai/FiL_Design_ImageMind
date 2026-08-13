@@ -455,7 +455,12 @@ function toggleItemEnabled(index: number, enabled: boolean) {
         </div>
 
         <!-- Sliders Row (Model Weight / CLIP Weight) -->
-        <div v-if="item.enabled" class="fil-lora-sliders-wrap">
+        <div
+          v-if="item.enabled"
+          class="fil-lora-sliders-wrap"
+          @mousedown.stop
+          @pointerdown.stop
+        >
           <div class="fil-lora-slider-col">
             <div class="fil-slider-header">
               <span class="fil-slider-label">Model Weight</span>
@@ -468,6 +473,10 @@ function toggleItemEnabled(index: number, enabled: boolean) {
               step="0.05"
               :value="item.sm"
               class="fil-lora-range"
+              @mousedown.stop
+              @mousemove.stop
+              @pointerdown.stop
+              @pointermove.stop
               @input="(e) => updateItemSm(originalIndex, parseFloat((e.target as HTMLInputElement).value))"
             />
           </div>
@@ -484,6 +493,10 @@ function toggleItemEnabled(index: number, enabled: boolean) {
               step="0.05"
               :value="item.sc"
               class="fil-lora-range"
+              @mousedown.stop
+              @mousemove.stop
+              @pointerdown.stop
+              @pointermove.stop
               @input="(e) => updateItemSc(originalIndex, parseFloat((e.target as HTMLInputElement).value))"
             />
           </div>
