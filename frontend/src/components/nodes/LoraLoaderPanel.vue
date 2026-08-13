@@ -384,9 +384,24 @@ function toggleItemEnabled(index: number, enabled: boolean) {
   }
 }
 
-function clampWeight(val: number): number {
-  const clamped = Math.max(-3.0, Math.min(3.0, val));
+function stepWeight(current: number, delta: number): number {
+  const nextVal = Math.round((current + delta) * 20) / 20;
+  const clamped = Math.max(-3.0, Math.min(3.0, nextVal));
   return parseFloat(clamped.toFixed(2));
+}
+
+function parseWeightInput(raw: string): number {
+  const normalized = String(raw ?? "").replace(",", ".").trim();
+  let parsed = parseFloat(normalized);
+  if (isNaN(parsed)) parsed = 0;
+  const snapped = Math.round(parsed * 20) / 20;
+  const clamped = Math.max(-3.0, Math.min(3.0, snapped));
+  return parseFloat(clamped.toFixed(2));
+}
+
+function formatWeight(val: number): string {
+  const clamped = Math.max(-3.0, Math.min(3.0, val || 0));
+  return clamped.toFixed(2);
 }
 
 function onComboClose(index: number) {
@@ -542,26 +557,24 @@ function onComboClose(index: number) {
                   class="fil-stepper-btn"
                   title="Decrease weight (-0.05)"
                   @mousedown.stop
-                  @click.stop="updateItemSm(originalIndex, clampWeight(item.sm - 0.05))"
+                  @click.stop="updateItemSm(originalIndex, stepWeight(item.sm, -0.05))"
                 >
                   ◀
                 </button>
                 <input
-                  type="number"
-                  step="0.05"
-                  min="-3.0"
-                  max="3.0"
-                  :value="item.sm.toFixed(2)"
+                  type="text"
+                  inputmode="decimal"
+                  :value="formatWeight(item.sm)"
                   class="fil-stepper-input"
                   @mousedown.stop
                   @keydown.stop
-                  @change="(e) => updateItemSm(originalIndex, clampWeight(parseFloat((e.target as HTMLInputElement).value) || 0))"
+                  @change="(e) => updateItemSm(originalIndex, parseWeightInput((e.target as HTMLInputElement).value))"
                 />
                 <button
                   class="fil-stepper-btn"
                   title="Increase weight (+0.05)"
                   @mousedown.stop
-                  @click.stop="updateItemSm(originalIndex, clampWeight(item.sm + 0.05))"
+                  @click.stop="updateItemSm(originalIndex, stepWeight(item.sm, 0.05))"
                 >
                   ▶
                 </button>
@@ -590,26 +603,24 @@ function onComboClose(index: number) {
                   class="fil-stepper-btn"
                   title="Decrease weight (-0.05)"
                   @mousedown.stop
-                  @click.stop="updateItemSc(originalIndex, clampWeight(item.sc - 0.05))"
+                  @click.stop="updateItemSc(originalIndex, stepWeight(item.sc, -0.05))"
                 >
                   ◀
                 </button>
                 <input
-                  type="number"
-                  step="0.05"
-                  min="-3.0"
-                  max="3.0"
-                  :value="item.sc.toFixed(2)"
+                  type="text"
+                  inputmode="decimal"
+                  :value="formatWeight(item.sc)"
                   class="fil-stepper-input"
                   @mousedown.stop
                   @keydown.stop
-                  @change="(e) => updateItemSc(originalIndex, clampWeight(parseFloat((e.target as HTMLInputElement).value) || 0))"
+                  @change="(e) => updateItemSc(originalIndex, parseWeightInput((e.target as HTMLInputElement).value))"
                 />
                 <button
                   class="fil-stepper-btn"
                   title="Increase weight (+0.05)"
                   @mousedown.stop
-                  @click.stop="updateItemSc(originalIndex, clampWeight(item.sc + 0.05))"
+                  @click.stop="updateItemSc(originalIndex, stepWeight(item.sc, 0.05))"
                 >
                   ▶
                 </button>
