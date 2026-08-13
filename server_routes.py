@@ -18,37 +18,16 @@ from .common.base import set_log_level
 from .common.config import PROVIDERS, get_config
 from .common.contracts import public_node_contracts_v2
 from .common.localization import get_localization_manager
+from .common.model_folders import (
+    ensure_extra_model_paths as _ensure_extra_model_paths,
+    inside_model_roots as _inside_model_roots,
+)
 
 PROVIDER_DISPLAY_NAMES = {k: v.display_name for k, v in PROVIDERS.items()}
 
 logger = logging.getLogger(f"{BRAND}.API")
 
 _ROUTES_REGISTERED = False
-
-
-def _ensure_extra_model_paths() -> None:
-    """Scan and load any extra_model_paths.yaml files into ComfyUI's folder_paths."""
-    try:
-        import sys
-        import os
-        import folder_paths
-        import utils.extra_config
-
-        base = getattr(folder_paths, "base_path", None) or os.getcwd()
-        if os.path.isdir(base):
-            for fname in os.listdir(base):
-                if (fname.startswith("extra_") or "model_paths" in fname) and fname.endswith((".yaml", ".yml")):
-                    full_p = os.path.join(base, fname)
-                    if os.path.isfile(full_p):
-                        utils.extra_config.load_extra_path_config(full_p)
-
-        for i, arg in enumerate(sys.argv):
-            if arg == "--extra-model-paths-config" and i + 1 < len(sys.argv):
-                cfg_path = sys.argv[i + 1]
-                if os.path.isfile(cfg_path):
-                    utils.extra_config.load_extra_path_config(cfg_path)
-    except Exception:
-        pass
 
 
 def _fetch_civitai_metadata_and_preview(full_path: str) -> bool:
@@ -116,47 +95,6 @@ def _fetch_civitai_metadata_and_preview(full_path: str) -> bool:
         return False
 
 
-def _model_roots() -> list[str]:
-    """Every directory ComfyUI itself calls a model folder, fully resolved."""
-    import os
-
-    try:
-        import folder_paths
-    except ImportError:
-        return []
-
-    roots: list[str] = []
-    for folder_name in list(folder_paths.folder_names_and_paths):
-        for directory in folder_paths.get_folder_paths(folder_name) or []:
-            if directory:
-                roots.append(os.path.normcase(os.path.realpath(directory)))
-    return roots
-
-
-def _inside_model_roots(path: str) -> bool:
-    """True when *path* really sits inside one of the model folders.
-
-    `folder_paths.get_full_path` normalises `..` away before joining, but the
-    fallbacks below join the caller's string onto a model directory as-is. A
-    `path=../../..` query walked straight out of the models tree and reported
-    the size, date and absolute location of any file on the drive — the
-    endpoint is unauthenticated, so this is the one check that has to hold.
-    """
-    import os
-
-    if not path:
-        return False
-    real = os.path.normcase(os.path.realpath(path))
-    for root in _model_roots():
-        try:
-            if os.path.commonpath([real, root]) == root:
-                return True
-        except ValueError:
-            # Different drives — no common path, so certainly not inside.
-            continue
-    return False
-
-
 def _inspect_model_file(mode: str, rel_path: str, fetch_remote: bool = False) -> dict:
     import datetime
     import json
@@ -209,25 +147,27 @@ def _inspect_model_file(mode: str, rel_path: str, fetch_remote: bool = False) ->
                     break
 
         if not full_path or not os.path.isfile(full_path):
-            # Global fallback: search across ALL model directories registered in folder_paths
-            all_types = ["diffusion_models", "unet", "checkpoints", "loras"]
-            target_base = os.path.basename(rel_clean)
-            for ftype in all_types:
-                for d in (folder_paths.get_folder_paths(ftype) or []):
-                    if not d or not os.path.isdir(d):
+            # Same relative name, tried against the other kinds of model folder.
+            # A LoRA asked about under `mode=checkpoints` is a routing slip, not
+            # a missing file.
+            for other_type in ("diffusion_models", "unet", "checkpoints", "loras"):
+                if other_type == folder_type:
+                    continue
+                for directory in folder_paths.get_folder_paths(other_type) or []:
+                    if not directory:
                         continue
-                    cand1 = os.path.join(d, rel_clean.replace("/", os.sep))
-                    if os.path.isfile(cand1):
-                        full_path = cand1
-                        break
-                    for root, _, files in os.walk(d):
-                        if target_base in files:
-                            full_path = os.path.join(root, target_base)
-                            break
-                    if full_path and os.path.isfile(full_path):
+                    candidate = os.path.join(directory, rel_clean.replace("/", os.sep))
+                    if os.path.isfile(candidate):
+                        full_path = candidate
                         break
                 if full_path and os.path.isfile(full_path):
                     break
+            # Deliberately no walk over every model directory looking for any
+            # file with the same basename. It answered about whichever copy it
+            # met first — `sdxl/style.safetensors` and `flux/style.safetensors`
+            # are different models — and it re-read the whole models tree on
+            # every miss. What the panels send comes from `get_filename_list`,
+            # so a name the joins above cannot resolve is genuinely not there.
     except Exception as err:
         logger.warning("Error resolving model file %s: %s", rel_path, err)
         full_path = None

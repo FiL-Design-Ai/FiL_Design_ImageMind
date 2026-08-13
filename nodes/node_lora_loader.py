@@ -18,33 +18,9 @@ from comfy_api.latest import io
 
 from ..common.brand import BRAND, CATEGORY_TOOLS
 from ..common.localization import t
+from ..common.model_folders import ensure_extra_model_paths
 
 logger = logging.getLogger(f"{BRAND}.LoraLoader")
-
-
-def _ensure_extra_model_paths() -> None:
-    """Scan and load any extra_model_paths.yaml files into ComfyUI's folder_paths."""
-    try:
-        import sys
-        import os
-        import folder_paths
-        import utils.extra_config
-
-        base = getattr(folder_paths, "base_path", None) or os.getcwd()
-        if os.path.isdir(base):
-            for fname in os.listdir(base):
-                if (fname.startswith("extra_") or "model_paths" in fname) and fname.endswith((".yaml", ".yml")):
-                    full_p = os.path.join(base, fname)
-                    if os.path.isfile(full_p):
-                        utils.extra_config.load_extra_path_config(full_p)
-
-        for i, arg in enumerate(sys.argv):
-            if arg == "--extra-model-paths-config" and i + 1 < len(sys.argv):
-                cfg_path = sys.argv[i + 1]
-                if os.path.isfile(cfg_path):
-                    utils.extra_config.load_extra_path_config(cfg_path)
-    except Exception:
-        pass
 
 
 def _get_lora_names() -> list[str]:
@@ -52,10 +28,10 @@ def _get_lora_names() -> list[str]:
     try:
         import folder_paths
 
-        _ensure_extra_model_paths()
-        if isinstance(getattr(folder_paths, "filename_list_cache", None), dict):
-            folder_paths.filename_list_cache.pop("loras", None)
-
+        ensure_extra_model_paths()
+        # The host's cache is not stale by default: it re-scans a folder whose
+        # mtime moved. Emptying it here forced a full recursive walk of every
+        # LoRA directory each time the panel opened, and bought nothing.
         names = folder_paths.get_filename_list("loras")
         return list(names) if names else []
     except (ImportError, AttributeError, KeyError):
@@ -268,7 +244,8 @@ class FiLLoraLoader(io.ComfyNode):
                     default="",
                     tooltip=t(
                         "tt_lora_loader_filter_pattern",
-                        "Wildcard filter pattern (e.g. '*cyberpunk*') to filter auto-populated list.",
+                        "Wildcard (e.g. '*cyberpunk*'). Left empty the whole stack runs; "
+                        "set, only stack entries matching it are applied.",
                     ),
                 ),
                 io.Float.Input(

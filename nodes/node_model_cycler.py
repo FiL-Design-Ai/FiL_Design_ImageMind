@@ -17,6 +17,7 @@ from comfy_api.latest import io
 
 from ..common.brand import BRAND, CATEGORY_TOOLS
 from ..common.localization import t
+from ..common.model_folders import ensure_extra_model_paths
 
 logger = logging.getLogger(f"{BRAND}.ModelCycler")
 
@@ -29,31 +30,6 @@ _CYCLE_MODES = [
     "Fixed Index",
 ]
 _WEIGHT_DTYPES = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
-
-
-def _ensure_extra_model_paths() -> None:
-    """Scan and load any extra_model_paths.yaml files into ComfyUI's folder_paths."""
-    try:
-        import sys
-        import os
-        import folder_paths
-        import utils.extra_config
-
-        base = getattr(folder_paths, "base_path", None) or os.getcwd()
-        if os.path.isdir(base):
-            for fname in os.listdir(base):
-                if (fname.startswith("extra_") or "model_paths" in fname) and fname.endswith((".yaml", ".yml")):
-                    full_p = os.path.join(base, fname)
-                    if os.path.isfile(full_p):
-                        utils.extra_config.load_extra_path_config(full_p)
-
-        for i, arg in enumerate(sys.argv):
-            if arg == "--extra-model-paths-config" and i + 1 < len(sys.argv):
-                cfg_path = sys.argv[i + 1]
-                if os.path.isfile(cfg_path):
-                    utils.extra_config.load_extra_path_config(cfg_path)
-    except Exception:
-        pass
 
 
 def _ensure_gguf_support() -> None:
@@ -73,10 +49,10 @@ def _get_checkpoint_names() -> list[str]:
     try:
         import folder_paths
 
-        _ensure_extra_model_paths()
-        if isinstance(getattr(folder_paths, "filename_list_cache", None), dict):
-            folder_paths.filename_list_cache.pop("checkpoints", None)
-
+        ensure_extra_model_paths()
+        # No cache eviction here: the host re-scans a folder whose mtime moved,
+        # so emptying it only forced a full recursive walk of every checkpoint
+        # directory per panel open.
         names = folder_paths.get_filename_list("checkpoints")
         return list(names) if names else []
     except (ImportError, AttributeError, KeyError):
@@ -87,11 +63,8 @@ def _get_diffusion_model_names() -> list[str]:
     try:
         import folder_paths
 
-        _ensure_extra_model_paths()
+        ensure_extra_model_paths()
         _ensure_gguf_support()
-        if isinstance(getattr(folder_paths, "filename_list_cache", None), dict):
-            folder_paths.filename_list_cache.pop("diffusion_models", None)
-
         names = folder_paths.get_filename_list("diffusion_models")
         if not names:
             names = folder_paths.get_filename_list("unet")

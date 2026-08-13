@@ -112,6 +112,69 @@ def test_model_info_refuses_a_path_outside_the_model_folders(tmp_path, monkeypat
     assert ok["full_path"].endswith("inside.safetensors")
 
 
+def test_a_name_in_the_wrong_subfolder_is_not_found_by_basename(tmp_path, monkeypatch):
+    """No answering about whichever file happens to share the name.
+
+    The resolver ended with a walk over every model directory matching on the
+    basename alone, so `sdxl/style.safetensors` and `flux/style.safetensors`
+    were interchangeable — the dialog described whichever copy the walk met
+    first, and every miss re-read the whole models tree to do it.
+    """
+    import folder_paths
+
+    from FiL_Design_ImageMind.server_routes import _inspect_model_file
+
+    models = tmp_path / "models" / "checkpoints"
+    (models / "flux").mkdir(parents=True)
+    (models / "flux" / "style.safetensors").write_bytes(b"x")
+
+    monkeypatch.setattr(
+        folder_paths,
+        "folder_names_and_paths",
+        {"checkpoints": ([str(models)], {".safetensors"})},
+    )
+
+    assert _inspect_model_file("checkpoints", "sdxl/style.safetensors")["error"] == "file_not_found"
+
+    # The real subfolder still resolves, in either slash direction.
+    for asked in ("flux/style.safetensors", "flux\\style.safetensors"):
+        found = _inspect_model_file("checkpoints", asked)
+        assert "error" not in found, asked
+
+
+def test_extra_model_paths_are_read_once(monkeypatch):
+    """Loading them per request re-read the yaml on every panel open.
+
+    ComfyUI reads these at startup and never again; a folder that gains files
+    later is picked up by the host's own mtime check, not by re-reading config.
+    """
+    from FiL_Design_ImageMind.common import model_folders
+
+    import os
+
+    # The directory scan is the work being counted: it happens once per real
+    # pass and not at all once the flag is set. Counting the loader calls
+    # instead would pass for the wrong reason on an install that has no
+    # `extra_model_paths.yaml` to load.
+    scans = 0
+    real_listdir = os.listdir
+
+    def counting_listdir(path):
+        nonlocal scans
+        scans += 1
+        return real_listdir(path)
+
+    monkeypatch.setattr(model_folders, "_EXTRA_PATHS_LOADED", False)
+    monkeypatch.setattr(os, "listdir", counting_listdir)
+
+    model_folders.ensure_extra_model_paths()
+    assert scans == 1
+
+    model_folders.ensure_extra_model_paths()
+    model_folders.ensure_extra_model_paths()
+    assert scans == 1
+
+
 def test_civitai_is_only_asked_when_the_caller_asks(tmp_path, monkeypatch):
     """Opening a panel must not phone out or write into the model folder.
 
