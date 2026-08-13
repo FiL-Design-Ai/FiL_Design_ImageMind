@@ -935,12 +935,13 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
   gap: 4px;
   padding: 1px 0;
   width: 100%;
+  flex-wrap: wrap;
 }
 
 .fil-sort-select-wrap {
-  width: 125px;
-  min-width: 125px;
-  flex: 0 0 125px;
+  width: 110px;
+  min-width: 95px;
+  flex: 0 0 110px;
 }
 
 .fil-sort-select-wrap :deep(.fil-w-select) {
@@ -955,7 +956,7 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
   min-height: 22px;
   max-height: 22px;
   box-sizing: border-box;
-  padding: 0 6px;
+  padding: 0 4px;
   font-size: 10px;
   font-weight: 600;
   border-color: color-mix(in srgb, var(--fil-accent) 40%, transparent);
@@ -970,8 +971,9 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
 .fil-actions-right-group {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   margin-left: auto;
+  flex-wrap: wrap;
 }
 
 .fil-action-link {
@@ -983,16 +985,18 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
   border: 1px solid color-mix(in srgb, var(--fil-accent) 35%, transparent);
   color: var(--fil-accent-text, #c084fc);
   cursor: pointer;
-  padding: 0 7px;
+  padding: 0 5px;
   border-radius: 4px;
   font-size: 10px;
   font-weight: 600;
   transition: all 0.15s ease-in-out;
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   line-height: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .fil-action-link:hover {
@@ -1038,6 +1042,7 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
   gap: 6px;
   width: 100%;
   min-height: 48px;
+  position: relative;
 }
 
 .fil-cycler-empty {
@@ -1051,8 +1056,21 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
   background: var(--fil-inset);
 }
 
-.fil-stack-list-move {
-  transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+.fil-stack-list-move,
+.fil-stack-list-enter-active,
+.fil-stack-list-leave-active {
+  transition: all 0.2s ease;
+}
+
+.fil-stack-list-enter-from,
+.fil-stack-list-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+.fil-stack-list-leave-active {
+  position: absolute;
+  width: 100%;
 }
 
 .fil-cycler-row {
