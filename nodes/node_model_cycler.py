@@ -74,7 +74,7 @@ def _get_checkpoint_names() -> list[str]:
         names = folder_paths.get_filename_list("checkpoints")
         return list(names) if names else []
     except (ImportError, AttributeError, KeyError):
-        return []`
+        return []
 
 
 def _get_diffusion_model_names() -> list[str]:
