@@ -54,6 +54,16 @@
 
 ### Added
 
+- **📡 A channel's target list can now be searched and filtered.**
+  A channel with many receivers lists every free input it could land in,
+  and finding one node in that list meant scrolling. The "Channel goes to"
+  dialog now carries a search box — matching the node's title, the input's
+  label or its raw name — with three chips under it: All, Active (ticked or
+  already wired) and Available (enabled and not yet taken). Both reset each
+  time the dialog opens, so a filter one channel left behind never hides the
+  targets of the next, and a search that matches nothing says so instead of
+  leaving an empty list with no reason.
+
 - **📡 Channels can feed same-named widgets — the quiet road for `seed` (opt-in).**
   A KSampler's seed is a widget, not an input: a constant with no socket, so
   no wire — wireless or not — could reach it until converted. The new

@@ -282,6 +282,28 @@ const modalOpen = ref(false);
 const editing = shallowRef<WirelessChannel | null>(null);
 const targets = shallowRef<ChannelTarget[]>([]);
 
+const targetSearchQuery = ref("");
+const targetFilterMode = ref<"all" | "active" | "available">("all");
+
+const filteredTargets = computed(() => {
+  let list = targets.value;
+  const q = targetSearchQuery.value.trim().toLowerCase();
+  if (q) {
+    list = list.filter(
+      (t) =>
+        t.title.toLowerCase().includes(q) ||
+        t.inputLabel.toLowerCase().includes(q) ||
+        t.inputName.toLowerCase().includes(q),
+    );
+  }
+  if (targetFilterMode.value === "active") {
+    list = list.filter((t) => t.checked || t.state === "on");
+  } else if (targetFilterMode.value === "available") {
+    list = list.filter((t) => !t.disabled && !t.checked);
+  }
+  return list;
+});
+
 function syncTargets(): void {
   const graph = hostNode()?.graph;
   if (!graph || !plan.value || !editing.value) {
@@ -293,6 +315,8 @@ function syncTargets(): void {
 
 function openTargets(channel: WirelessChannel): void {
   refresh();
+  targetSearchQuery.value = "";
+  targetFilterMode.value = "all";
   // Re-find by name: `refresh()` may have rebuilt the plan, and the row's
   // channel object would then belong to the previous one.
   editing.value = plan.value?.channels.find((c) => c.name === channel.name) ?? channel;
@@ -674,9 +698,58 @@ const clusterOkLabel = computed(() => t("channel_cluster_connect", "Connect"));
       :title="`${t('channel_targets_title', 'Channel goes to')} — ${editing?.name ?? ''}`"
       width="460px"
     >
+      <div v-if="targets.length > 0" class="fil-channel-filter-bar">
+        <div class="fil-channel-search-box">
+          <FilIcon name="search" :size="13" class="fil-channel-search-icon" />
+          <input
+            v-model="targetSearchQuery"
+            type="text"
+            class="fil-channel-search-input"
+            :placeholder="t('channel_search_placeholder', 'Search nodes or inputs...')"
+          />
+          <button
+            v-if="targetSearchQuery"
+            type="button"
+            class="fil-channel-search-clear"
+            @click="targetSearchQuery = ''"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="fil-channel-filter-chips">
+          <button
+            type="button"
+            class="fil-channel-filter-chip"
+            :class="{ active: targetFilterMode === 'all' }"
+            @click="targetFilterMode = 'all'"
+          >
+            {{ t('channel_filter_all', 'All') }}
+          </button>
+          <button
+            type="button"
+            class="fil-channel-filter-chip"
+            :class="{ active: targetFilterMode === 'active' }"
+            @click="targetFilterMode = 'active'"
+          >
+            {{ t('channel_filter_active', 'Active') }}
+          </button>
+          <button
+            type="button"
+            class="fil-channel-filter-chip"
+            :class="{ active: targetFilterMode === 'available' }"
+            @click="targetFilterMode = 'available'"
+          >
+            {{ t('channel_filter_available', 'Available') }}
+          </button>
+        </div>
+      </div>
+
       <p v-if="targets.length === 0" class="fil-channel-empty">{{ noTargetsHint }}</p>
+      <p v-else-if="filteredTargets.length === 0" class="fil-channel-empty">
+        {{ t('channel_search_no_match', 'No matching nodes found for this filter.') }}
+      </p>
       <ul v-else class="fil-channel-targets">
-        <li v-for="target in targets" :key="`${target.nodeId}:${target.inputName}`" class="fil-channel-target">
+        <li v-for="target in filteredTargets" :key="`${target.nodeId}:${target.inputName}`" class="fil-channel-target">
           <span class="fil-channel-target-text">
             <span class="fil-channel-target-node">{{ target.title }}</span>
             <span class="fil-channel-target-input">{{ target.inputLabel }}</span>
@@ -1015,5 +1088,82 @@ const clusterOkLabel = computed(() => t("channel_cluster_connect", "Connect"));
   color: var(--fil-text);
   font-size: 12px;
   outline: none;
+}
+
+.fil-channel-filter-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.fil-channel-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.fil-channel-search-icon {
+  position: absolute;
+  left: 8px;
+  color: var(--fil-muted);
+  pointer-events: none;
+}
+
+.fil-channel-search-input {
+  width: 100%;
+  height: 26px;
+  padding: 0 24px 0 26px;
+  border-radius: var(--fil-field-radius, 4px);
+  border: 1px solid color-mix(in srgb, var(--fil-muted) 30%, transparent);
+  background: color-mix(in srgb, var(--fil-surface-bg, #1a1a24) 80%, black);
+  color: var(--fil-text, #fff);
+  font-size: 11px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.fil-channel-search-input:focus {
+  border-color: var(--fil-accent, #ff9900);
+}
+
+.fil-channel-search-clear {
+  position: absolute;
+  right: 6px;
+  background: none;
+  border: none;
+  color: var(--fil-muted);
+  font-size: 10px;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.fil-channel-filter-chips {
+  display: flex;
+  gap: 4px;
+}
+
+.fil-channel-filter-chip {
+  padding: 2px 8px;
+  font-size: 10px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--fil-muted) 25%, transparent);
+  background: transparent;
+  color: var(--fil-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.fil-channel-filter-chip:hover {
+  color: var(--fil-text, #fff);
+  border-color: color-mix(in srgb, var(--fil-muted) 50%, transparent);
+}
+
+.fil-channel-filter-chip.active {
+  background: color-mix(in srgb, var(--fil-accent, #ff9900) 18%, transparent);
+  border-color: var(--fil-accent, #ff9900);
+  color: var(--fil-text, #fff);
+  font-weight: bold;
 }
 </style>
