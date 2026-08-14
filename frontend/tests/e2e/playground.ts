@@ -8,6 +8,7 @@ import FilChipList from "@/components/widgets/FilChipList.vue";
 import FilTextInput from "@/components/widgets/FilTextInput.vue";
 import FilToggle from "@/components/widgets/FilToggle.vue";
 import LoraLoaderPanel from "@/components/nodes/LoraLoaderPanel.vue";
+import ModelCyclerPanel from "@/components/nodes/ModelCyclerPanel.vue";
 import { elementWantsWheel, scrollRegionWantsWheel } from "@/composables/scrollGuard";
 
 // Registry of available components for testing
@@ -19,10 +20,11 @@ const components: Record<string, Component> = {
   FilChipList,
   FilTextInput,
   FilToggle,
-  // A whole node panel, not a widget: how tall a row ends up is a question
-  // about real layout — wrapping, the width the stepper claims, whether a
-  // control fits on the node at all — and jsdom answers none of those.
+  // Whole node panels, not widgets: how tall a row ends up is a question about
+  // real layout — wrapping, the width a stepper claims, whether a control fits
+  // on the node at all — and jsdom answers none of those.
   LoraLoaderPanel,
+  ModelCyclerPanel,
 };
 
 // The wheel predicate reads `getComputedStyle().overflowY` and live scroll

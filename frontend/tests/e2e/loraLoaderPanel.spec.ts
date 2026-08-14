@@ -36,7 +36,9 @@ async function mountPanel(page: import("@playwright/test").Page, loraList: strin
       initialValues: {},
       ui: {},
     };
-    Object.defineProperty(state, "node", { value: node, enumerable: false });
+    // `configurable: true` the way `lora_loader.ts` parks it — a
+    // non-configurable property throws when Vue wraps the object in a proxy.
+    Object.defineProperty(state, "node", { value: node, enumerable: false, configurable: true });
     window.mountComponent("LoraLoaderPanel", { state });
   }, loraList);
   await page.waitForSelector(".fil-lora-row");

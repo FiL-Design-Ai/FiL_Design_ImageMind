@@ -116,6 +116,24 @@ const activeModelCount = computed(
   () => modelItems.value.filter((i) => i.enabled && i.name.trim()).length
 );
 
+/** Short lists are read, not searched — the box only earns its row past this. */
+const SEARCH_THRESHOLD = 6;
+const showSearch = computed(() => modelItems.value.length > SEARCH_THRESHOLD);
+
+// A filter left behind by a list that has since shrunk would keep hiding rows
+// with nothing on screen to say why, so it goes when the box does.
+watch(showSearch, (visible) => {
+  if (!visible) searchFilter.value = "";
+});
+
+/** The bulk actions, behind one button — same as the LoRA Loader's. */
+const menuOpen = ref(false);
+
+function runFromMenu(action: () => void) {
+  action();
+  menuOpen.value = false;
+}
+
 
 
 function isModelMissing(name: string): boolean {
@@ -551,34 +569,9 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
       </div>
     </div>
 
-    <!-- Presets Toolbar -->
-    <div class="fil-cycler-preset-bar">
-      <div class="fil-preset-combo-wrap">
-        <FilComboBox
-          :model-value="selectedPresetName"
-          :options="presetComboOptions"
-          placeholder="📂 Load Preset..."
-          @update:model-value="selectPreset"
-        />
-      </div>
-      <button
-        class="fil-preset-btn accent"
-        title="Save Current List as Preset"
-        @click="savePresetModalOpen = true"
-      >
-        💾 Save Preset
-      </button>
-      <button
-        v-if="selectedPresetName"
-        class="fil-preset-btn danger"
-        title="Delete Selected Preset"
-        @click="deleteSelectedPreset"
-      >
-        🗑️
-      </button>
-    </div>
-
-    <!-- Action Toolbar (Bulk operations & Sort) -->
+    <!-- Presets, sorting and the bulk actions, on one line. They were three
+         bars, and five bars stacked above the list left it under half the
+         node: the list started 153px down a 319px panel. -->
     <div class="fil-cycler-actions-bar">
       <div class="fil-sort-select-wrap">
         <FilSelect
@@ -587,16 +580,40 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
           @update:model-value="applyModelSorting"
         />
       </div>
+      <div class="fil-preset-combo-wrap">
+        <FilComboBox
+          :model-value="selectedPresetName"
+          :options="presetComboOptions"
+          placeholder="📂 Preset..."
+          @update:model-value="selectPreset"
+        />
+      </div>
       <div class="fil-actions-right-group">
-        <button class="fil-action-link" @click="toggleAll(true)">All ON</button>
-        <button class="fil-action-link" @click="toggleAll(false)">All OFF</button>
-        <button class="fil-action-link" @click="populateAllFolderModels">Populate Folder</button>
-        <button class="fil-action-link danger" @click="clearAllItems">Clear</button>
+        <button
+          class="fil-action-link fil-actions-more"
+          :class="{ open: menuOpen }"
+          title="More actions"
+          aria-label="More actions"
+          :aria-expanded="menuOpen"
+          @click="menuOpen = !menuOpen"
+        >
+          •••
+        </button>
       </div>
     </div>
 
-    <!-- Search Stack Filter Input -->
-    <div class="fil-cycler-search-bar">
+    <!-- In flow, not floating: a popover over a node gets clipped by the canvas. -->
+    <div v-if="menuOpen" class="fil-actions-menu">
+      <button class="fil-action-link highlight" title="Save Current List as Preset" @click="runFromMenu(() => (savePresetModalOpen = true))">💾 Save Preset</button>
+      <button v-if="selectedPresetName" class="fil-action-link danger" title="Delete Selected Preset" @click="runFromMenu(deleteSelectedPreset)">🗑️ Delete Preset</button>
+      <button class="fil-action-link" @click="runFromMenu(() => toggleAll(true))">All ON</button>
+      <button class="fil-action-link" @click="runFromMenu(() => toggleAll(false))">All OFF</button>
+      <button class="fil-action-link" @click="runFromMenu(populateAllFolderModels)">Populate Folder</button>
+      <button class="fil-action-link danger" @click="runFromMenu(clearAllItems)">Clear</button>
+    </div>
+
+    <!-- A filter box over three rows is a row of chrome buying nothing. -->
+    <div v-if="showSearch" class="fil-cycler-search-bar">
       <input
         v-model="searchFilter"
         type="search"
@@ -996,47 +1013,29 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
   text-align-last: left;
 }
 
-.fil-cycler-preset-bar {
+.fil-actions-menu {
   display: flex;
   align-items: center;
-  gap: 6px;
+  flex-wrap: wrap;
+  gap: 3px;
+  padding: 3px 0 1px;
   width: 100%;
+  box-sizing: border-box;
+}
+
+.fil-actions-more {
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  letter-spacing: 1px;
+}
+
+.fil-actions-more.open,
+.fil-action-link.highlight {
+  color: var(--fil-accent-text, #c084fc);
 }
 
 .fil-preset-combo-wrap {
   flex: 1;
   min-width: 0;
-}
-
-.fil-preset-btn {
-  background: var(--fil-surface-2, #27272a);
-  border: 1px solid var(--fil-border);
-  color: var(--fil-text);
-  border-radius: 4px;
-  padding: 4px 8px;
-  font-size: 10px;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.15s ease-in-out;
-}
-
-.fil-preset-btn.accent {
-  background: var(--fil-accent, #a855f7);
-  border: 1px solid var(--fil-accent, #a855f7);
-  color: #ffffff;
-  box-shadow: 0 0 8px color-mix(in srgb, var(--fil-accent) 45%, transparent);
-}
-
-.fil-preset-btn.accent:hover {
-  background: color-mix(in srgb, var(--fil-accent) 85%, white);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--fil-accent) 70%, transparent);
-}
-
-.fil-preset-btn.danger:hover {
-  border-color: var(--fil-danger, #ef4444);
-  color: var(--fil-danger, #ef4444);
-  background: color-mix(in srgb, var(--fil-danger) 20%, transparent);
 }
 
 .fil-cycler-actions-bar {
