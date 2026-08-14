@@ -88,6 +88,18 @@ test.describe("LoRA Loader panel at the width of its own node", () => {
     await expect(page.locator(".fil-lora-row").nth(1).locator(".fil-w-numfield")).toHaveCount(1);
   });
 
+  test("no filter box until there is something to filter", async ({ page }) => {
+    await mountPanel(page, STACK);
+    await expect(page.locator(".fil-stack-search-input")).toHaveCount(0);
+
+    const long = Array.from(
+      { length: 7 },
+      (_, i) => `lora_${i + 1}.safetensors:1.00:1.00`,
+    ).join("\n");
+    await mountPanel(page, long);
+    await expect(page.locator(".fil-stack-search-input")).toHaveCount(1);
+  });
+
   test("the bulk actions are reachable behind the more button", async ({ page }) => {
     await mountPanel(page, STACK);
 

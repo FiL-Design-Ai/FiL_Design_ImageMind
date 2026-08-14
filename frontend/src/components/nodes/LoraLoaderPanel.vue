@@ -93,6 +93,16 @@ const filteredLoraItems = computed(() => {
     .filter(({ item }) => item.name.toLowerCase().includes(q));
 });
 
+/** Short stacks are read, not searched — same threshold the cycler uses. */
+const SEARCH_THRESHOLD = 6;
+const showSearch = computed(() => loraItems.value.length > SEARCH_THRESHOLD);
+
+// A filter left behind by a stack that has since shrunk would keep hiding rows
+// with nothing on screen to say why, so it goes when the box does.
+watch(showSearch, (visible) => {
+  if (!visible) searchFilter.value = "";
+});
+
 
 
 function parseLoraList(raw: string): LoraItem[] {
@@ -569,7 +579,8 @@ function onComboClose(index: number) {
     </div>
 
     <!-- Search Stack Filter Input -->
-    <div class="fil-cycler-search-bar">
+    <!-- A filter box over three rows is a row of chrome buying nothing. -->
+    <div v-if="showSearch" class="fil-cycler-search-bar">
       <input
         v-model="searchFilter"
         type="search"
