@@ -76,9 +76,8 @@ describe("LoraLoaderPanel.vue", () => {
     await nextTick();
     await nextTick();
 
-    await wrapper.find(".fil-actions-more").trigger("click");
     const copyAll = wrapper
-      .findAll(".fil-actions-menu button")
+      .findAll(".fil-cycler-actions-bar button")
       .find((b) => b.text().includes("Copy Triggers"))!;
     await copyAll.trigger("click");
 
@@ -97,7 +96,7 @@ describe("LoraLoaderPanel.vue", () => {
       props: { state: makeState(makeNode(same), same) as never },
     });
     await nextTick();
-    expect(wrapper.findAll(".fil-lora-range")).toHaveLength(1);
+    expect(wrapper.findAll(".fil-w-numfield")).toHaveLength(1);
 
     const apart = "style_v1.safetensors:0.80:0.40";
     const second = mount(LoraLoaderPanel, {
@@ -105,7 +104,7 @@ describe("LoraLoaderPanel.vue", () => {
     });
     await nextTick();
     expect(
-      second.findAll(".fil-lora-range"),
+      second.findAll(".fil-w-numfield"),
       "a row saved with two different weights must open showing both, or the CLIP " +
         "number is applied while nothing on screen says so",
     ).toHaveLength(2);
@@ -118,23 +117,22 @@ describe("LoraLoaderPanel.vue", () => {
     const wrapper = mount(LoraLoaderPanel, { props: { state: makeState(node, list) as never } });
     await nextTick();
 
-    const slider = wrapper.find(".fil-lora-range");
-    (slider.element as HTMLInputElement).value = "0.5";
-    await slider.trigger("input");
+    // The field is the pack's own FilNumberInput, so its arrows are what a
+    // user reaches for; one step is 0.05.
+    await wrapper.find(".fil-w-num-arrow-right").trigger("click");
 
     expect(node.widgets.find((w) => w.name === "lora_list")!.value).toBe(
-      "style_v1.safetensors:0.50:0.50",
+      "style_v1.safetensors:0.85:0.85",
     );
 
     await wrapper.find(".fil-split-btn").trigger("click");
     await nextTick();
-    const sliders = wrapper.findAll(".fil-lora-range");
-    expect(sliders).toHaveLength(2);
+    const fields = wrapper.findAll(".fil-w-numfield");
+    expect(fields).toHaveLength(2);
 
-    (sliders[1].element as HTMLInputElement).value = "0.2";
-    await sliders[1].trigger("input");
+    await fields[1].find(".fil-w-num-arrow-left").trigger("click");
     expect(node.widgets.find((w) => w.name === "lora_list")!.value).toBe(
-      "style_v1.safetensors:0.50:0.20",
+      "style_v1.safetensors:0.85:0.80",
     );
   });
 
@@ -148,7 +146,7 @@ describe("LoraLoaderPanel.vue", () => {
 
     // Six controls sat here and four fit: "All OFF" was cut in half and
     // "Clear" was off the edge, unreachable without resizing the node.
-    expect(wrapper.findAll(".fil-cycler-actions-bar button")).toHaveLength(2);
+    expect(wrapper.findAll(".fil-cycler-actions-bar button")).toHaveLength(3);
     expect(wrapper.find(".fil-actions-menu").exists()).toBe(false);
 
     await wrapper.find(".fil-actions-more").trigger("click");

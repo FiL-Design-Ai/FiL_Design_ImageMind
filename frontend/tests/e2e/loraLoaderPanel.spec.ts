@@ -61,7 +61,7 @@ test.describe("LoRA Loader panel at the width of its own node", () => {
   test("a row is one line of controls and one weight", async ({ page }) => {
     await mountPanel(page, STACK);
 
-    await expect(page.locator(".fil-lora-range")).toHaveCount(3);
+    await expect(page.locator(".fil-w-numfield")).toHaveCount(3);
 
     const row = (await page.locator(".fil-lora-row").first().boundingBox())!;
     // Two stacked weight blocks with their labels ran past 120px a row; the
@@ -82,10 +82,10 @@ test.describe("LoRA Loader panel at the width of its own node", () => {
 
     await firstRow.locator(".fil-split-btn").click();
 
-    await expect(firstRow.locator(".fil-lora-range")).toHaveCount(2);
+    await expect(firstRow.locator(".fil-w-numfield")).toHaveCount(2);
     expect((await firstRow.boundingBox())!.height).toBeGreaterThan(before);
     // The other rows stay as they were.
-    await expect(page.locator(".fil-lora-row").nth(1).locator(".fil-lora-range")).toHaveCount(1);
+    await expect(page.locator(".fil-lora-row").nth(1).locator(".fil-w-numfield")).toHaveCount(1);
   });
 
   test("the bulk actions are reachable behind the more button", async ({ page }) => {

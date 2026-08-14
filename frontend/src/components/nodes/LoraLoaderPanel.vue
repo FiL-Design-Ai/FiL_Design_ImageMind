@@ -10,6 +10,7 @@ import {
   type FilComboOption,
   FilModal,
   FilSelect,
+  FilSlider,
   FilToggle,
 } from "@/components/widgets";
 import type { FilNodeState } from "@/nodes2/filState";
@@ -186,6 +187,28 @@ watch(
   },
   { immediate: true, deep: true }
 );
+
+const isRefreshingLoras = ref(false);
+
+/**
+ * Re-read the LoRA folder. The list is cached by ComfyUI and by us, which is
+ * what makes opening a panel cheap — but a LoRA downloaded while the tab was
+ * open would otherwise not appear until a reload.
+ */
+async function refreshLoraList() {
+  isRefreshingLoras.value = true;
+  // Both caches, or the trigger words stay at whatever the first lookup said.
+  // Clearing the map alone would not bring them back: the watcher that fetches
+  // them runs on the items, and those have not changed.
+  loraMetaMap.value = {};
+  await loadInstalledLoras();
+  for (const item of loraItems.value) {
+    if (item.name.trim()) fetchLoraMetaIfNeeded(item.name);
+  }
+  setTimeout(() => {
+    isRefreshingLoras.value = false;
+  }, 500);
+}
 
 async function loadInstalledLoras() {
   try {
@@ -487,25 +510,9 @@ function toggleItemEnabled(index: number, enabled: boolean) {
   }
 }
 
-function stepWeight(current: number, delta: number): number {
-  const nextVal = Math.round((current + delta) * 20) / 20;
-  const clamped = Math.max(-3.0, Math.min(3.0, nextVal));
-  return parseFloat(clamped.toFixed(2));
-}
-
-function parseWeightInput(raw: string): number {
-  const normalized = String(raw ?? "").replace(",", ".").trim();
-  let parsed = parseFloat(normalized);
-  if (isNaN(parsed)) parsed = 0;
-  const snapped = Math.round(parsed * 20) / 20;
-  const clamped = Math.max(-3.0, Math.min(3.0, snapped));
-  return parseFloat(clamped.toFixed(2));
-}
-
-function formatWeight(val: number): string {
-  const clamped = Math.max(-3.0, Math.min(3.0, val || 0));
-  return clamped.toFixed(2);
-}
+// Stepping, parsing and formatting the weight are `FilNumberInput`'s job now —
+// it is the same field the rest of the pack uses, down to the drag-to-scrub and
+// the `1+0.05` arithmetic, none of which the hand-rolled stepper had.
 
 function onComboClose(index: number) {
   const item = loraItems.value[index];
@@ -528,7 +535,17 @@ function onComboClose(index: number) {
         />
       </div>
       <div class="fil-actions-right-group">
-        <button class="fil-action-link" @click="toggleAll(true)">All ON</button>
+        <button class="fil-action-link highlight" title="Copy all trigger words of active LoRAs to clipboard" @click="copyAllActiveTriggers">⚡ Copy Triggers</button>
+        <button
+          class="fil-refresh-loras-btn"
+          :class="{ spinning: isRefreshingLoras }"
+          title="🔄 Re-read the LoRA folder from disk"
+          aria-label="Refresh the LoRA list"
+          @mousedown.stop
+          @click.stop="refreshLoraList"
+        >
+          🔄
+        </button>
         <button
           class="fil-action-link fil-actions-more"
           :class="{ open: menuOpen }"
@@ -545,8 +562,8 @@ function onComboClose(index: number) {
     <!-- The rest of the bulk actions. Laid out in flow rather than floating:
          a popover over a node gets clipped by the canvas, and this cannot. -->
     <div v-if="menuOpen" class="fil-actions-menu">
-      <button class="fil-action-link highlight" title="Copy all trigger words of active LoRAs to clipboard" @click="runFromMenu(copyAllActiveTriggers)">⚡ Copy Triggers</button>
       <button class="fil-action-link highlight" title="Reset all LoRA weights to 1.00" @click="runFromMenu(resetAllWeights)">🔄 1.00 All</button>
+      <button class="fil-action-link" @click="runFromMenu(() => toggleAll(true))">All ON</button>
       <button class="fil-action-link" @click="runFromMenu(() => toggleAll(false))">All OFF</button>
       <button class="fil-action-link danger" @click="runFromMenu(clearAllItems)">Clear</button>
     </div>
@@ -654,48 +671,17 @@ function onComboClose(index: number) {
           @pointerdown.stop
         >
           <div class="fil-weight-row">
-            <span v-if="item.split" class="fil-weight-label">Model</span>
-            <input
-              type="range"
-              min="-3.0"
-              max="3.0"
-              step="0.05"
-              :value="item.sm"
-              class="fil-lora-range"
-              :aria-label="item.split ? 'Model strength' : 'Strength'"
-              @mousedown.stop
-              @mousemove.stop
-              @pointerdown.stop
-              @pointermove.stop
-              @input="(e) => updateItemPrimary(originalIndex, parseFloat((e.target as HTMLInputElement).value))"
+            <FilSlider
+              class="fil-weight-field"
+              :model-value="item.sm"
+              :min="-3"
+              :max="3"
+              :step="0.05"
+              :label="item.split ? 'Model' : 'Strength'"
+              inline-label
+              :title="item.split ? 'Model strength' : 'Strength applied to both Model and CLIP'"
+              @update:model-value="(v: number) => updateItemPrimary(originalIndex, v)"
             />
-            <div class="fil-slider-stepper">
-              <button
-                class="fil-stepper-btn"
-                title="Decrease strength (-0.05)"
-                @mousedown.stop
-                @click.stop="updateItemPrimary(originalIndex, stepWeight(item.sm, -0.05))"
-              >
-                ◀
-              </button>
-              <input
-                type="text"
-                inputmode="decimal"
-                :value="formatWeight(item.sm)"
-                class="fil-stepper-input"
-                @mousedown.stop
-                @keydown.stop
-                @change="(e) => updateItemPrimary(originalIndex, parseWeightInput((e.target as HTMLInputElement).value))"
-              />
-              <button
-                class="fil-stepper-btn"
-                title="Increase strength (+0.05)"
-                @mousedown.stop
-                @click.stop="updateItemPrimary(originalIndex, stepWeight(item.sm, 0.05))"
-              >
-                ▶
-              </button>
-            </div>
             <button
               class="fil-split-btn"
               :class="{ active: item.split }"
@@ -709,48 +695,17 @@ function onComboClose(index: number) {
           </div>
 
           <div v-if="item.split" class="fil-weight-row">
-            <span class="fil-weight-label">CLIP</span>
-            <input
-              type="range"
-              min="-3.0"
-              max="3.0"
-              step="0.05"
-              :value="item.sc"
-              class="fil-lora-range"
-              aria-label="CLIP strength"
-              @mousedown.stop
-              @mousemove.stop
-              @pointerdown.stop
-              @pointermove.stop
-              @input="(e) => updateItemSc(originalIndex, parseFloat((e.target as HTMLInputElement).value))"
+            <FilSlider
+              class="fil-weight-field"
+              :model-value="item.sc"
+              :min="-3"
+              :max="3"
+              :step="0.05"
+              label="CLIP"
+              inline-label
+              title="CLIP strength"
+              @update:model-value="(v: number) => updateItemSc(originalIndex, v)"
             />
-            <div class="fil-slider-stepper">
-              <button
-                class="fil-stepper-btn"
-                title="Decrease strength (-0.05)"
-                @mousedown.stop
-                @click.stop="updateItemSc(originalIndex, stepWeight(item.sc, -0.05))"
-              >
-                ◀
-              </button>
-              <input
-                type="text"
-                inputmode="decimal"
-                :value="formatWeight(item.sc)"
-                class="fil-stepper-input"
-                @mousedown.stop
-                @keydown.stop
-                @change="(e) => updateItemSc(originalIndex, parseWeightInput((e.target as HTMLInputElement).value))"
-              />
-              <button
-                class="fil-stepper-btn"
-                title="Increase strength (+0.05)"
-                @mousedown.stop
-                @click.stop="updateItemSc(originalIndex, stepWeight(item.sc, 0.05))"
-              >
-                ▶
-              </button>
-            </div>
             <span class="fil-split-btn-spacer" aria-hidden="true"></span>
           </div>
         </div>
@@ -1217,13 +1172,6 @@ function onComboClose(index: number) {
   min-width: 0;
 }
 
-.fil-weight-label {
-  font-size: 10px;
-  color: var(--fil-muted, #94a3b8);
-  white-space: nowrap;
-  width: 34px;
-  flex: none;
-}
 
 .fil-split-btn {
   background: transparent;
@@ -1258,64 +1206,40 @@ function onComboClose(index: number) {
   flex: none;
 }
 
-.fil-slider-stepper {
-  display: inline-flex;
-  align-items: center;
-  gap: 1px;
-  background: var(--fil-surface-2, #18181b);
-  border: 1px solid color-mix(in srgb, var(--fil-accent) 35%, transparent);
-  border-radius: 12px;
-  padding: 0 4px;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
-  height: 18px;
-  box-sizing: border-box;
-}
 
-.fil-stepper-btn {
-  background: transparent;
-  border: none;
-  color: var(--fil-muted, #94a3b8);
-  font-size: 8px;
-  padding: 0 2px;
+
+
+
+
+
+.fil-refresh-loras-btn {
+  background: var(--fil-surface-2, #27272a);
+  border: 1px solid color-mix(in srgb, var(--fil-accent) 35%, transparent);
+  color: var(--fil-accent-text, #c084fc);
   cursor: pointer;
+  padding: 0 6px;
+  height: 20px;
+  border-radius: 4px;
+  font-size: 10px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 14px;
-  line-height: 1;
-  transition: color 0.15s ease, transform 0.15s ease;
-  user-select: none;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
 }
 
-.fil-stepper-btn:hover {
-  color: var(--fil-accent, #00f0ff);
-  transform: scale(1.25);
+.fil-refresh-loras-btn.spinning {
+  animation: fil-lora-spin 0.6s linear infinite;
 }
 
-.fil-stepper-btn:active {
-  transform: scale(0.9);
+@keyframes fil-lora-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
-.fil-stepper-input {
-  background: transparent;
-  border: none;
-  color: var(--fil-text, #f8fafc);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 10px;
-  font-weight: 700;
-  width: 32px;
-  text-align: center;
-  outline: none;
-  padding: 0;
-  margin: 0;
-  line-height: 16px;
-  -moz-appearance: textfield;
-}
-
-.fil-stepper-input::-webkit-outer-spin-button,
-.fil-stepper-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+.fil-weight-field {
+  flex: 1;
+  min-width: 0;
 }
 
 .fil-actions-menu {
@@ -1348,47 +1272,10 @@ function onComboClose(index: number) {
   border: 1px solid var(--fil-border);
 }
 
-.fil-lora-range {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  height: 4px;
-  border-radius: 2px;
-  background: var(--fil-inset);
-  outline: none;
-  cursor: pointer;
-}
 
-.fil-lora-range::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--fil-accent, #a855f7);
-  box-shadow: 0 0 6px color-mix(in srgb, var(--fil-accent) 60%, transparent);
-  cursor: pointer;
-  transition: transform 0.1s ease;
-}
 
-.fil-lora-range::-webkit-slider-thumb:hover {
-  transform: scale(1.25);
-}
 
-.fil-lora-range::-moz-range-thumb {
-  width: 12px;
-  height: 12px;
-  border: none;
-  border-radius: 50%;
-  background: var(--fil-accent, #a855f7);
-  box-shadow: 0 0 6px color-mix(in srgb, var(--fil-accent) 60%, transparent);
-  cursor: pointer;
-  transition: transform 0.1s ease;
-}
 
-.fil-lora-range::-moz-range-thumb:hover {
-  transform: scale(1.25);
-}
 
 .fil-cycler-btn-group {
   display: flex;
