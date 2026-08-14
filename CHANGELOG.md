@@ -4,6 +4,15 @@
 
 ### Fixed
 
+- **📡 A channel's name tag no longer hides under the node it feeds.**
+  The tag was painted in the canvas background pass, and LiteGraph draws
+  the nodes after that — so wherever a tag and its node overlapped, the
+  node won and the name vanished. Tags now draw in the foreground pass,
+  above the nodes, and a touch bolder for it, while the dashed links stay
+  in the background where they belong. The fake host gained the foreground
+  hook, and the overlay tests render both passes now, asserting each one
+  still chains the handler it replaced.
+
 - **📡 A number channel no longer lands in every number it can reach.**
   A single INT channel called `seed` was wiring itself into
   `BetaSamplingScheduler.steps`, `ImageResize+.multiple_of` and any other

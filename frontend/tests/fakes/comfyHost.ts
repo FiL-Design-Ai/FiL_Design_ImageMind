@@ -464,6 +464,7 @@ export interface FakeApp {
      * until something claims it.
      */
     onDrawBackground: ((ctx: unknown, area?: unknown) => void) | null;
+    onDrawForeground?: ((ctx: unknown, area?: unknown) => void) | null;
     /**
      * The `<canvas>` LiteGraph was constructed with (`LGraphCanvas.canvas`).
      * It is a real element in the document because the pack listens on it —
@@ -572,6 +573,7 @@ export function createApp(options: FakeAppOptions = {}): FakeApp {
       graph: options.graph,
       ds: { scale: 1 },
       onDrawBackground: null,
+      onDrawForeground: null,
       canvas: makeCanvasEl(),
     },
 

@@ -1371,6 +1371,13 @@ describe("overlay", () => {
    * tests are about the baseline draw itself, not the selection filter, which
    * gets its own tests below.
    */
+  function renderCanvas(app: ReturnType<typeof createApp>): ReturnType<typeof createDrawContext>["record"] {
+    const { ctx, record } = createDrawContext();
+    app.canvas.onDrawBackground?.(ctx, null);
+    app.canvas.onDrawForeground?.(ctx, null);
+    return record;
+  }
+
   function drawn(): {
     record: ReturnType<typeof createDrawContext>["record"];
     app: ReturnType<typeof createApp>;
@@ -1391,8 +1398,7 @@ describe("overlay", () => {
     invalidateWirelessPlan();
     installWirelessOverlay(app as unknown as ComfyApp);
 
-    const { ctx, record } = createDrawContext();
-    app.canvas.onDrawBackground?.(ctx, null);
+    const record = renderCanvas(app);
     return { record, app, ch, ks };
   }
 
@@ -1405,8 +1411,7 @@ describe("overlay", () => {
   it("draws nothing when the feature is switched off", () => {
     const { app } = drawn();
     app.setSetting(WIRELESS_ENABLED, false);
-    const { ctx, record } = createDrawContext();
-    app.canvas.onDrawBackground?.(ctx, null);
+    const record = renderCanvas(app);
 
     expect(record.strokes).toBe(0);
     expect(record.texts).toEqual([]);
@@ -1416,20 +1421,23 @@ describe("overlay", () => {
     const app = createApp({ graph: createGraph([]) });
     app.registerSetting(WIRELESS_ENABLED, true);
     (globalThis as unknown as { app: unknown }).app = app;
-    const earlier = vi.fn();
-    app.canvas.onDrawBackground = earlier;
+    const earlierBg = vi.fn();
+    const earlierFg = vi.fn();
+    app.canvas.onDrawBackground = earlierBg;
+    app.canvas.onDrawForeground = earlierFg;
     installWirelessOverlay(app as unknown as ComfyApp);
 
     const { ctx } = createDrawContext();
     app.canvas.onDrawBackground?.(ctx, null);
-    expect(earlier).toHaveBeenCalledTimes(1);
+    app.canvas.onDrawForeground?.(ctx, null);
+    expect(earlierBg).toHaveBeenCalledTimes(1);
+    expect(earlierFg).toHaveBeenCalledTimes(1);
   });
 
   it("draws nothing when links are set to Never", () => {
     const { app } = drawn();
     app.registerSetting(WIRELESS_LINKS, LINKS_NEVER);
-    const { ctx, record } = createDrawContext();
-    app.canvas.onDrawBackground?.(ctx, null);
+    const record = renderCanvas(app);
 
     expect(record.strokes).toBe(0);
     expect(record.texts).toEqual([]);
@@ -1439,8 +1447,7 @@ describe("overlay", () => {
     const { app } = drawn();
     app.registerSetting(WIRELESS_LINKS, LINKS_SELECTED);
 
-    const { ctx, record } = createDrawContext();
-    app.canvas.onDrawBackground?.(ctx, null);
+    const record = renderCanvas(app);
     expect(record.strokes).toBe(0);
   });
 
@@ -1449,8 +1456,7 @@ describe("overlay", () => {
     app.registerSetting(WIRELESS_LINKS, LINKS_SELECTED);
     (ch as unknown as { selected: boolean }).selected = true;
 
-    const { ctx, record } = createDrawContext();
-    app.canvas.onDrawBackground?.(ctx, null);
+    const record = renderCanvas(app);
     expect(record.texts).toContain("MODEL");
   });
 
@@ -1462,8 +1468,7 @@ describe("overlay", () => {
     app.registerSetting(WIRELESS_LINKS, LINKS_SELECTED);
     (ks as unknown as { selected: boolean }).selected = true;
 
-    const { ctx, record } = createDrawContext();
-    app.canvas.onDrawBackground?.(ctx, null);
+    const record = renderCanvas(app);
     expect(record.texts).toContain("MODEL");
   });
 
@@ -1483,16 +1488,14 @@ describe("overlay", () => {
     installWirelessOverlay(app as unknown as ComfyApp);
     (bystander as unknown as { selected: boolean }).selected = true;
 
-    const { ctx, record } = createDrawContext();
-    app.canvas.onDrawBackground?.(ctx, null);
+    const record = renderCanvas(app);
     expect(record.strokes).toBe(0);
   });
 
   it("Wireless.Labels off keeps the link but drops the name tag", () => {
     const { app } = drawn();
     app.registerSetting(WIRELESS_LABELS, false);
-    const { ctx, record } = createDrawContext();
-    app.canvas.onDrawBackground?.(ctx, null);
+    const record = renderCanvas(app);
 
     expect(record.dashes).toContainEqual([6, 5]);
     expect(record.texts).toEqual([]);
@@ -1517,6 +1520,7 @@ describe("overlay", () => {
 
     const { ctx, record } = createDrawContext();
     expect(() => app.canvas.onDrawBackground?.(ctx, null)).not.toThrow();
+    expect(() => app.canvas.onDrawForeground?.(ctx, null)).not.toThrow();
     expect(record.strokes).toBe(0);
   });
 });

@@ -43,6 +43,7 @@ interface CanvasNode {
 interface LiteCanvas {
   graph?: WirelessGraph & { getNodeById?: (id: NodeId) => CanvasNode | null };
   onDrawBackground?: ((ctx: CanvasRenderingContext2D, area: unknown) => void) | null;
+  onDrawForeground?: ((ctx: CanvasRenderingContext2D, area: unknown) => void) | null;
   ds?: { scale?: number };
 }
 
@@ -89,7 +90,7 @@ function drawLink(ctx: CanvasRenderingContext2D, from: Point, to: Point, color: 
 
 /** The channel's name beside the input it feeds, so the node says where its data comes from. */
 function drawLabel(ctx: CanvasRenderingContext2D, at: Point, text: string, color: string): void {
-  ctx.font = "10px sans-serif";
+  ctx.font = "bold 10px sans-serif";
   const width = ctx.measureText(text).width;
   const x = at[0] + 8;
   const y = at[1] - 6;
@@ -139,7 +140,7 @@ function linkTouchesSelection(
   );
 }
 
-function drawPlan(ctx: CanvasRenderingContext2D, canvas: LiteCanvas): void {
+function drawPlanBackground(ctx: CanvasRenderingContext2D, canvas: LiteCanvas): void {
   const graph = canvas.graph;
   if (!graph || !Array.isArray(graph._nodes)) return;
 
@@ -150,8 +151,6 @@ function drawPlan(ctx: CanvasRenderingContext2D, canvas: LiteCanvas): void {
   if (plan.resolution.links.length === 0) return;
 
   const filterBySelection = mode === LINKS_SELECTED;
-  const scale = canvas.ds?.scale ?? 1;
-  const showLabels = scale >= LABEL_MIN_SCALE && wirelessLabelsShown();
   const channelsByName = new Map((plan.channels as WirelessChannel[]).map((c) => [c.name, c]));
 
   for (const link of plan.resolution.links as LinkToCreate[]) {
@@ -169,7 +168,37 @@ function drawPlan(ctx: CanvasRenderingContext2D, canvas: LiteCanvas): void {
     // wears it too, instead of a hue nothing else on the canvas uses.
     const color = channel ? channelColorFor(channel) : channelColor(link.channelName);
     drawLink(ctx, from, to, color);
-    if (showLabels) drawLabel(ctx, to, link.channelName, color);
+  }
+}
+
+function drawPlanForeground(ctx: CanvasRenderingContext2D, canvas: LiteCanvas): void {
+  const graph = canvas.graph;
+  if (!graph || !Array.isArray(graph._nodes)) return;
+
+  const mode = wirelessLinkMode();
+  if (mode === LINKS_NEVER) return;
+  if (!wirelessLabelsShown()) return;
+
+  const plan = livePlan(graph);
+  if (plan.resolution.links.length === 0) return;
+
+  const filterBySelection = mode === LINKS_SELECTED;
+  const scale = canvas.ds?.scale ?? 1;
+  if (scale < LABEL_MIN_SCALE) return;
+
+  const channelsByName = new Map((plan.channels as WirelessChannel[]).map((c) => [c.name, c]));
+
+  for (const link of plan.resolution.links as LinkToCreate[]) {
+    const channel = channelsByName.get(link.channelName);
+    if (filterBySelection && !linkTouchesSelection(graph, link, channel?.nodeId)) {
+      continue;
+    }
+    const target = graph.getNodeById?.(link.target_id);
+    const to = inputPos(target, link.target_slot);
+    if (!to) continue;
+
+    const color = channel ? channelColorFor(channel) : channelColor(link.channelName);
+    drawLabel(ctx, to, link.channelName, color);
   }
 }
 
@@ -181,17 +210,29 @@ export function installWirelessOverlay(app: ComfyApp): void {
   }
   if ((canvas as { __filWirelessOverlay?: boolean }).__filWirelessOverlay) return;
 
-  const previous = canvas.onDrawBackground;
+  const previousBg = canvas.onDrawBackground;
   canvas.onDrawBackground = function (this: unknown, ctx: CanvasRenderingContext2D, area: unknown) {
-    previous?.call(this, ctx, area);
+    previousBg?.call(this, ctx, area);
     if (!wirelessEnabled()) return;
-    // A throw here lands inside LiteGraph's draw loop and aborts the frame —
-    // which renders as the whole canvas going blank, not as a missing overlay.
     try {
       ctx.save();
-      drawPlan(ctx, canvas);
+      drawPlanBackground(ctx, canvas);
     } catch (error) {
-      console.warn(`${LOG_TAG} wireless: overlay failed:`, error);
+      console.warn(`${LOG_TAG} wireless: background overlay failed:`, error);
+    } finally {
+      ctx.restore();
+    }
+  };
+
+  const previousFg = canvas.onDrawForeground;
+  canvas.onDrawForeground = function (this: unknown, ctx: CanvasRenderingContext2D, area: unknown) {
+    previousFg?.call(this, ctx, area);
+    if (!wirelessEnabled()) return;
+    try {
+      ctx.save();
+      drawPlanForeground(ctx, canvas);
+    } catch (error) {
+      console.warn(`${LOG_TAG} wireless: foreground overlay failed:`, error);
     } finally {
       ctx.restore();
     }
@@ -199,3 +240,4 @@ export function installWirelessOverlay(app: ComfyApp): void {
 
   (canvas as { __filWirelessOverlay?: boolean }).__filWirelessOverlay = true;
 }
+
