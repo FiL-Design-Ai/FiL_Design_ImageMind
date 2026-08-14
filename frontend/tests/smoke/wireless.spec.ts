@@ -346,4 +346,118 @@ test.describe("wireless channels in a real ComfyUI", () => {
     });
     expect(labels).toEqual(["positive", "negative"]);
   });
+
+  test("channel name tags draw in the canvas foreground pass, above the nodes", async ({ page }) => {
+    await page.goto("/");
+    await openBlankWorkflow(page);
+
+    // The default link mode draws only around a selection, so the scene is
+    // one MODEL channel with one receiver — the smallest thing selectable.
+    const channelId = await page.evaluate(async () => {
+      const litegraph = window.LiteGraph;
+      const loader = litegraph.createNode("CheckpointLoaderSimple") as SceneNode;
+      const channel = litegraph.createNode("FiLChannel") as SceneNode;
+      const sampler = litegraph.createNode("KSampler") as SceneNode;
+      if (!loader || !channel || !sampler) throw new Error("one of the nodes did not instantiate");
+
+      loader.pos = [40, 40];
+      channel.pos = [460, 40];
+      sampler.pos = [900, 40];
+      for (const node of [loader, channel, sampler]) window.app.graph.add(node);
+
+      const frames = async (count: number) => {
+        for (let i = 0; i < count; i++) await new Promise((r) => requestAnimationFrame(r));
+      };
+      await frames(60);
+      loader.connect(0, channel, 0); // MODEL
+      await frames(90);
+
+      return channel.id as number;
+    });
+
+    await expect.poll(() => channelCounts(page), { timeout: 20_000 }).toEqual(["1"]);
+
+    // Instrument one real frame: whatever each pass puts through fillText and
+    // setLineDash, tagged with the pass it came from. The jsdom suite proved
+    // the split against a fake; this proves it against the host's actual draw
+    // loop — the place where a wrong hook name would simply never be called.
+    // The hooks are patched on the ctx each pass hands in, not on
+    // `canvas.ctx`: the host's back canvas draws with its own context.
+    const capture = await page.evaluate(async (id: number) => {
+      const app = window.app as unknown as {
+        graph: { getNodeById(nodeId: number): { selected?: boolean } | null };
+        canvas: {
+          ctx: CanvasRenderingContext2D;
+          ds: { scale: number };
+          setDirty?(foreground: boolean, background: boolean): void;
+          selectNode?(node: unknown): void;
+          onDrawBackground?: (ctx: CanvasRenderingContext2D, area?: unknown) => void;
+          onDrawForeground?: (ctx: CanvasRenderingContext2D, area?: unknown) => void;
+        };
+      };
+      const canvas = app.canvas;
+      if (typeof canvas.onDrawBackground !== "function") throw new Error("background hook not installed");
+      if (typeof canvas.onDrawForeground !== "function") throw new Error("foreground hook not installed");
+
+      const node = app.graph.getNodeById(id);
+      if (!node) throw new Error("the channel node vanished");
+      if (canvas.selectNode) canvas.selectNode(node);
+      else node.selected = true;
+
+      const texts: Array<{ pass: string; text: string }> = [];
+      const dashes: Array<{ pass: string; segments: number[] }> = [];
+      const ctxIsCanvasCtx: Record<string, boolean> = {};
+      const origBg = canvas.onDrawBackground;
+      const origFg = canvas.onDrawForeground;
+
+      const instrument = (pass: string, ctx: CanvasRenderingContext2D, draw: () => void) => {
+        const origFillText = ctx.fillText;
+        const origSetLineDash = ctx.setLineDash;
+        ctxIsCanvasCtx[pass] = ctxIsCanvasCtx[pass] ?? ctx === canvas.ctx;
+        try {
+          ctx.fillText = function (this: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth?: number) {
+            texts.push({ pass, text: String(text) });
+            return origFillText.call(this, text, x, y, maxWidth);
+          };
+          ctx.setLineDash = function (this: CanvasRenderingContext2D, segments: number[]) {
+            dashes.push({ pass, segments: [...segments] });
+            return origSetLineDash.call(this, segments);
+          };
+          draw();
+        } finally {
+          ctx.fillText = origFillText;
+          ctx.setLineDash = origSetLineDash;
+        }
+      };
+      try {
+        canvas.onDrawBackground = function (this: unknown, ctx: CanvasRenderingContext2D, area?: unknown) {
+          instrument("background", ctx, () => origBg.call(this, ctx, area));
+        };
+        canvas.onDrawForeground = function (this: unknown, ctx: CanvasRenderingContext2D, area?: unknown) {
+          instrument("foreground", ctx, () => origFg.call(this, ctx, area));
+        };
+
+        canvas.ds.scale = 1;
+        canvas.setDirty?.(true, true);
+        const frames = async (count: number) => {
+          for (let i = 0; i < count; i++) await new Promise((r) => requestAnimationFrame(r));
+        };
+        await frames(30);
+      } finally {
+        canvas.onDrawBackground = origBg;
+        canvas.onDrawForeground = origFg;
+      }
+      return { texts, dashes, ctxIsCanvasCtx };
+    }, channelId);
+
+    const foreground = capture.texts.filter((t) => t.pass === "foreground").map((t) => t.text);
+    const background = capture.texts.filter((t) => t.pass === "background").map((t) => t.text);
+    // The tag rides the pass drawn AFTER the nodes, so a node can no longer
+    // cover it; the dashed link stays in the pass drawn before them.
+    expect(foreground).toContain("MODEL");
+    expect(background).not.toContain("MODEL");
+    expect(
+      capture.dashes.some((d) => d.pass === "background" && d.segments.length === 2 && d.segments[0] === 6 && d.segments[1] === 5),
+    ).toBe(true);
+  });
 });

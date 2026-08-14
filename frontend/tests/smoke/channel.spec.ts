@@ -1,9 +1,26 @@
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 import { openBlankWorkflow, closeScratchWorkflow } from "./comfyWindow";
+
+/** The panel's own host element on the transmitter — where its rows render. */
+async function channelCounts(page: Page): Promise<string[]> {
+  const host = await page.evaluateHandle(() => {
+    const channel = window.app.graph._nodes.find(
+      (n) => (n as { comfyClass?: string }).comfyClass === "FiLChannel",
+    ) as unknown as { _filVueApps?: Record<string, { host: HTMLElement }> } | undefined;
+    const hostEl = channel?._filVueApps ? Object.values(channel._filVueApps)[0]?.host : undefined;
+    if (!hostEl) throw new Error("the Channel panel rendered nothing");
+    return hostEl;
+  });
+  const texts = await host.evaluate((el) =>
+    Array.from(el.querySelectorAll(".fil-channel-count")).map((n) => n.textContent?.trim() ?? ""),
+  );
+  await host.dispose();
+  return texts;
+}
 
 /**
  * The Channel node in a real ComfyUI, wired the way the README shows it:
@@ -85,6 +102,80 @@ test("captures the Channel node for the README gallery", async ({ page }) => {
       height: box.height + TITLE_PX + pad * 2,
     },
   });
+
+  await closeScratchWorkflow(page);
+});
+
+/**
+ * The target dialog's search box and filter chips, live: the panel's row list
+ * is what a user scrolls through on a crowded graph, and neither jsdom nor a
+ * component mount can say whether the dialog the real host renders actually
+ * narrows.
+ */
+test("the channel target dialog searches and filters its rows", async ({ page }) => {
+  await page.goto("/");
+  await openBlankWorkflow(page);
+
+  await page.evaluate(async () => {
+    const litegraph = window.LiteGraph;
+    const unet = litegraph.createNode("UNETLoader") as {
+      pos: [number, number];
+      connect(slot: number, target: unknown, targetSlot: number): unknown;
+    };
+    const channel = litegraph.createNode("FiLChannel") as { pos: [number, number] };
+    const ksA = litegraph.createNode("KSampler") as { pos: [number, number]; title?: string };
+    const ksB = litegraph.createNode("KSampler") as { pos: [number, number]; title?: string };
+    if (!unet || !channel || !ksA || !ksB) throw new Error("one of the nodes did not instantiate");
+
+    unet.pos = [60, 60];
+    channel.pos = [560, 140];
+    ksA.pos = [1060, 60];
+    ksB.pos = [1060, 560];
+    // A distinct title so the search has something only one row can match.
+    ksB.title = "Sampler Bravo";
+    for (const node of [unet, channel, ksA, ksB]) window.app.graph.add(node);
+
+    const frames = async (count: number) => {
+      for (let i = 0; i < count; i++) await new Promise((r) => requestAnimationFrame(r));
+    };
+    await frames(60);
+    unet.connect(0, channel, 0); // MODEL
+    await frames(90);
+  });
+
+  // Both KSamplers take the MODEL broadcast — the row's count says so.
+  await expect.poll(() => channelCounts(page), { timeout: 20_000 }).toEqual(["2"]);
+
+  await page.locator(".fil-channel-gear").click();
+  const search = page.locator(".fil-channel-search-input");
+  await expect.poll(() => search.count(), { timeout: 5_000 }).toBe(1);
+  expect(await page.locator(".fil-channel-target").count()).toBe(2);
+
+  // The query narrows by node title, input label or raw name.
+  await search.fill("bravo");
+  await expect.poll(() => page.locator(".fil-channel-target").count(), { timeout: 5_000 }).toBe(1);
+  expect(await page.locator(".fil-channel-target-node").textContent()).toBe("Sampler Bravo");
+
+  // The clear button brings the full list back.
+  await page.locator(".fil-channel-search-clear").click();
+  await expect.poll(() => page.locator(".fil-channel-target").count(), { timeout: 5_000 }).toBe(2);
+
+  // Both receivers already took the broadcast, so "Available" has nothing
+  // left to offer — and says so instead of going quiet.
+  await page.locator(".fil-channel-filter-chip", { hasText: "Available" }).click();
+  await expect.poll(() => page.locator(".fil-channel-target").count(), { timeout: 5_000 }).toBe(0);
+  expect(await page.locator(".fil-channel-empty").count()).toBe(1);
+
+  await page.locator(".fil-channel-filter-chip", { hasText: "Active" }).click();
+  await expect.poll(() => page.locator(".fil-channel-target").count(), { timeout: 5_000 }).toBe(2);
+
+  // Reopened, the dialog starts clean again — no filter outlives its row.
+  await page.keyboard.press("Escape");
+  await expect.poll(() => search.count(), { timeout: 5_000 }).toBe(0);
+  await page.locator(".fil-channel-gear").click();
+  await expect.poll(() => search.count(), { timeout: 5_000 }).toBe(1);
+  expect(await search.inputValue()).toBe("");
+  expect(await page.locator(".fil-channel-target").count()).toBe(2);
 
   await closeScratchWorkflow(page);
 });

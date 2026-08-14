@@ -11,7 +11,19 @@
   above the nodes, and a touch bolder for it, while the dashed links stay
   in the background where they belong. The fake host gained the foreground
   hook, and the overlay tests render both passes now, asserting each one
-  still chains the handler it replaced.
+  still chains the handler it replaced; a smoke case asserts the split
+  against the host's real draw loop, on the context each pass brings.
+
+- **📡 The smoke suite runs green against the pack it guards again.**
+  Three tripwires had drifted while the Model Cycler and the LoRA Loader
+  were landing: the node count the suite holds the backend to still said
+  seventeen once the two new nodes made nineteen, and the spelled-out list
+  of panel-bearing nodes was missing both panels. The same run gained two
+  live cases for what this release changed: the name-tag pass split above,
+  and the target dialog's search and filters narrowing a real list. The
+  tag case holds one lesson worth keeping — the host's back canvas draws
+  with its own context, so the suite instruments the context each pass
+  hands in, not the one the canvas advertises.
 
 - **📡 A number channel no longer lands in every number it can reach.**
   A single INT channel called `seed` was wiring itself into

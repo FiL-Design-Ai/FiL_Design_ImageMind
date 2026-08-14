@@ -19,7 +19,7 @@ import { openBlankWorkflow, closeScratchWorkflow } from "./comfyWindow";
  */
 
 /** Matches `EXPECTED_IDS` in tests/test_node_contracts.py. */
-const EXPECTED_NODE_COUNT = 17;
+const EXPECTED_NODE_COUNT = 19;
 
 /**
  * The nodes whose frontend module mounts a Vue panel — every `addFilDomWidget`
@@ -38,6 +38,8 @@ const NODES_WITH_PANELS = [
   "FiLHighResFix",
   "FiLImageDecomposer",
   "FiLKSampler",
+  "FiLLoraLoader",
+  "FiLModelCycler",
   "FiLNeuroCleaner",
   "FiLNoiseControl",
   "FiLOpticScanner",

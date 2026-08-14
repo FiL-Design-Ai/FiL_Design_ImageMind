@@ -1,21 +1,25 @@
 /**
- * Draw what the channels are doing, on the canvas.
+ * Draw what the channels are doing, on the canvas — across two passes.
  *
- * Uses `canvas.onDrawBackground`, which LiteGraph offers as a property for
- * exactly this (`LGraphCanvas.ts:637`, called at `:5613` inside
- * `drawBackCanvas`, after the graph transform is applied — so everything here
- * is in graph coordinates). Nodes draw afterwards, in the separate
- * `drawFrontCanvas` pass — so a dashed link never sits on top of the node it
- * touches. `onDrawForeground` (`:5203`, the pairing hook, above nodes) was
- * tried first and moved here once a real graph showed the wrong ordering: a
- * label could land squarely on a node's title bar. The real wire connections
- * are also drawn after this hook (`:5634`, still inside the background pass),
- * so an actual wire always reads on top of a dashed one, never the reverse.
+ * The dashed links ride `canvas.onDrawBackground` (`LGraphCanvas.ts:637`,
+ * called at `:5613` inside `drawBackCanvas`, after the graph transform is
+ * applied — so everything here is in graph coordinates). Nodes draw
+ * afterwards, in the separate `drawFrontCanvas` pass — so a dashed link never
+ * sits on top of the node it touches. The real wire connections are also
+ * drawn after this hook (`:5634`, still inside the background pass), so an
+ * actual wire always reads on top of a dashed one, never the reverse.
+ *
+ * The name tags ride `canvas.onDrawForeground` (`:5203`, above the nodes).
+ * A tag sits beside the input it feeds, which overlaps the node's own body —
+ * drawn in the background pass, the node covered it the moment the two met.
+ * A tag is small and says something, so it draws where nothing can hide it;
+ * the lines stay below, where a stroke across a node reads as clutter.
+ *
  * The pack does not patch `drawConnections` or `drawNode` the way
  * cg-use-everywhere does; there is no need.
  *
- * Whatever handler was already on the canvas is kept and called first, since
- * another extension may own it.
+ * Whatever handler was already on either hook is kept and called first,
+ * since another extension may own it.
  */
 
 import type { ComfyApp } from "@/types/comfy";
