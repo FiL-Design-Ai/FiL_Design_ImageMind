@@ -282,7 +282,7 @@ class FiLLoraLoader(io.ComfyNode):
                     tooltip="CLIP signal with all active stacked LoRAs applied.",
                 ),
                 io.String.Output(
-                    display_name="TRIGGER_WORDS",
+                    display_name="TRIGGERS",
                     tooltip="Aggregated trigger words from all active LoRA adapters.",
                 ),
                 io.String.Output(

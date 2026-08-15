@@ -72,6 +72,25 @@ test.describe("LoRA Loader panel at the width of its own node", () => {
     expect(stack.height).toBeLessThan(270);
   });
 
+  test("the row's occasional controls wait for the pointer", async ({ page }) => {
+    await mountPanel(page, STACK);
+
+    const firstRow = page.locator(".fil-lora-row").first();
+    const quiet = firstRow.locator(".fil-row-quiet-actions");
+
+    // Present, so the row never changes width — just not shown.
+    await expect(quiet).toHaveCount(1);
+    await expect(quiet).toBeHidden();
+    const restingWidth = (await firstRow.locator(".fil-cycler-select-wrap").boundingBox())!.width;
+
+    await firstRow.hover();
+    await expect(quiet).toBeVisible();
+    expect(
+      (await firstRow.locator(".fil-cycler-select-wrap").boundingBox())!.width,
+      "the name field resized when the controls appeared — the row shifts under the cursor",
+    ).toBe(restingWidth);
+  });
+
   test("asking for a separate CLIP weight adds the second slider, and only then", async ({
     page,
   }) => {
@@ -80,6 +99,7 @@ test.describe("LoRA Loader panel at the width of its own node", () => {
     const firstRow = page.locator(".fil-lora-row").first();
     const before = (await firstRow.boundingBox())!.height;
 
+    await firstRow.hover();
     await firstRow.locator(".fil-split-btn").click();
 
     await expect(firstRow.locator(".fil-w-numfield")).toHaveCount(2);

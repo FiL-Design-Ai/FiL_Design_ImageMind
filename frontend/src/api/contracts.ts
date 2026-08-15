@@ -5511,7 +5511,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "id": "FiLLoraLoader",
   "title": "🧬 LoRA Loader",
   "category": "🎨 FiL Design/🧰 Tools",
-  "description": "Automatically cycles through LoRA adapters on each generation.",
+  "description": "Dynamic stack loader for combining multiple LoRA adapters with per-item sliders.",
   "inputs": {
     "required": [
       {
@@ -5546,50 +5546,6 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
         "min": null,
         "max": null,
         "step": null,
-        "units": null,
-        "options": null,
-        "section": null,
-        "visible_when": null,
-        "visible_when_value": null
-      },
-      {
-        "name": "cycle_mode",
-        "kind": "combo",
-        "label": "Cycle mode",
-        "default": "Sequential (Loop)",
-        "tooltip": null,
-        "values": [
-          "Sequential (Loop)",
-          "Sequential (Stop)",
-          "Ping-Pong",
-          "Random",
-          "Fixed Index"
-        ],
-        "columns": null,
-        "searchable": null,
-        "multiline": null,
-        "min": null,
-        "max": null,
-        "step": null,
-        "units": null,
-        "options": null,
-        "section": null,
-        "visible_when": null,
-        "visible_when_value": null
-      },
-      {
-        "name": "index",
-        "kind": "number",
-        "label": "Index",
-        "default": 0,
-        "tooltip": null,
-        "values": null,
-        "columns": null,
-        "searchable": null,
-        "multiline": null,
-        "min": 0,
-        "max": 99999,
-        "step": 1,
         "units": null,
         "options": null,
         "section": null,
@@ -5635,44 +5591,6 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
         "visible_when_value": null
       },
       {
-        "name": "include_bypass",
-        "kind": "boolean",
-        "label": "Include Bypass",
-        "default": false,
-        "tooltip": null,
-        "values": null,
-        "columns": null,
-        "searchable": null,
-        "multiline": null,
-        "min": null,
-        "max": null,
-        "step": null,
-        "units": null,
-        "options": null,
-        "section": null,
-        "visible_when": null,
-        "visible_when_value": null
-      },
-      {
-        "name": "auto_advance",
-        "kind": "boolean",
-        "label": "Auto Next",
-        "default": true,
-        "tooltip": null,
-        "values": null,
-        "columns": null,
-        "searchable": null,
-        "multiline": null,
-        "min": null,
-        "max": null,
-        "step": null,
-        "units": null,
-        "options": null,
-        "section": null,
-        "visible_when": null,
-        "visible_when_value": null
-      },
-      {
         "name": "skip_on_error",
         "kind": "boolean",
         "label": "Skip Bad",
@@ -5705,15 +5623,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
       "type": "CLIP"
     },
     {
-      "name": "LORA_NAME",
-      "type": "STRING"
-    },
-    {
-      "name": "CLEAN_NAME",
-      "type": "STRING"
-    },
-    {
-      "name": "TRIGGER_WORDS",
+      "name": "TRIGGERS",
       "type": "STRING"
     },
     {
@@ -5722,8 +5632,8 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     }
   ],
   "min_size": [
-    340,
-    280
+    400,
+    240
   ],
   "family": "tool"
 },

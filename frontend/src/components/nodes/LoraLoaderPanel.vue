@@ -3,7 +3,7 @@
  * FiLLoraLoader — Cyberpunk HUD panel for dynamic LoRA stack management with sliders.
  * Cleaned up: removed presets and advanced settings per user request.
  */
-import { computed, ref, onMounted, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, ref, onMounted, watch } from "vue";
 import {
   FilButton,
   FilComboBox,
@@ -17,6 +17,7 @@ import type { FilNodeState } from "@/nodes2/filState";
 import { findFilWidget } from "@/nodes2/util";
 import { getJson } from "@/api/client";
 import { ROUTE_PREFIX } from "@/constants/brand";
+import { panelEdgesInGraph, socketBandBox } from "@/nodes2/socketBand";
 
 interface LoraItem {
   id: string;
@@ -92,6 +93,40 @@ const filteredLoraItems = computed(() => {
     .map((item, originalIndex) => ({ item, originalIndex }))
     .filter(({ item }) => item.name.toLowerCase().includes(q));
 });
+
+/**
+ * The toolbar rides in the socket strip when the node's own labels leave room
+ * for it — the trick Pixaroma's LoRA loader uses, with the offsets measured
+ * off this node instead of tuned by hand. `socketBand.ts` explains the rest.
+ */
+const actionsBarEl = ref<HTMLElement | null>(null);
+const bandStyle = ref<Record<string, string> | null>(null);
+
+function measureBand() {
+  const el = actionsBarEl.value;
+  const node = props.state.node as Parameters<typeof socketBandBox>[0] | undefined;
+  if (!el || !node) return;
+
+  // Measure the bar where it sits in flow: floated, its own offsets would be
+  // what the next measurement reads back.
+  const wasFloated = bandStyle.value !== null;
+  if (wasFloated) bandStyle.value = null;
+
+  nextTick(() => {
+    const target = actionsBarEl.value;
+    const panelRoot = target?.parentElement;
+    if (!target || !panelRoot) return;
+    const edges = panelEdgesInGraph(panelRoot);
+    if (!edges) return;
+
+    const scale =
+      (globalThis as { app?: { canvas?: { ds?: { scale: number } } } }).app?.canvas?.ds?.scale || 1;
+    const box = socketBandBox(node, edges, target.getBoundingClientRect().height / scale);
+    bandStyle.value = box
+      ? { top: `${box.top}px`, left: `${box.left}px`, right: `${box.right}px` }
+      : null;
+  });
+}
 
 /** Short stacks are read, not searched — same threshold the cycler uses. */
 const SEARCH_THRESHOLD = 6;
@@ -231,12 +266,28 @@ async function loadInstalledLoras() {
   }
 }
 
+let bandObserver: ResizeObserver | null = null;
+
 onMounted(() => {
   const rawList = String(props.state.nodeState["lora_list"] ?? "");
   if (rawList) {
     loraItems.value = parseLoraList(rawList);
   }
   loadInstalledLoras();
+
+  measureBand();
+  // The strip's width follows the node's, so a resize can turn a fitting
+  // toolbar into one that would cover the labels — and back.
+  const panelRoot = actionsBarEl.value?.parentElement;
+  if (panelRoot && typeof ResizeObserver !== "undefined") {
+    bandObserver = new ResizeObserver(() => measureBand());
+    bandObserver.observe(panelRoot);
+  }
+});
+
+onBeforeUnmount(() => {
+  bandObserver?.disconnect();
+  bandObserver = null;
 });
 
 function resetAllWeights() {
@@ -535,8 +586,16 @@ function onComboClose(index: number) {
 <template>
   <div class="fil-cycler-root">
 
-    <!-- Action Toolbar (Bulk operations & Sort) -->
-    <div class="fil-cycler-actions-bar">
+    <!-- Action Toolbar (Bulk operations & Sort).
+         Lifted into the strip the socket labels leave empty when there is room
+         for it, where it costs the node no height at all. `bandStyle` is null
+         when there is not, and the bar simply stays in flow. -->
+    <div
+      ref="actionsBarEl"
+      class="fil-cycler-actions-bar"
+      :class="{ floated: Boolean(bandStyle) }"
+      :style="bandStyle ?? undefined"
+    >
       <div class="fil-sort-select-wrap">
         <FilSelect
           :model-value="selectedSort"
@@ -613,8 +672,11 @@ function onComboClose(index: number) {
         @drop="onDrop(originalIndex, $event)"
         @dragend="onDragEnd"
       >
-        <!-- Top Row: Grip, Info, Copy Triggers, Missing Badge, Combo, Toggle, Remove -->
-        <div class="fil-lora-top-row">
+        <!-- One line: the four things a stack is read by. Info, the CLIP
+             weight and Remove are wanted once in a while, so they wait until
+             the pointer is on the row; their space is reserved either way, or
+             every row would jump sideways under the cursor. -->
+        <div class="fil-lora-line">
           <div
             class="fil-drag-handle"
             title="Drag handle to reorder item"
@@ -624,20 +686,6 @@ function onComboClose(index: number) {
             ⋮⋮
           </div>
 
-          <button
-            class="fil-row-info-btn"
-            title="LoRA Information"
-            @mousedown.stop
-            @click.stop="openInfoModal(item, originalIndex)"
-          >
-            ⓘ
-          </button>
-
-          <!-- No per-row copy button. The same words were reachable from three
-               places at once — this one, the ⓘ dialog, and "Copy Triggers" in
-               the toolbar — and this was the one that cost every row a control. -->
-
-          <!-- Missing file warning badge -->
           <span
             v-if="isLoraMissing(item.name)"
             class="fil-missing-badge"
@@ -659,65 +707,78 @@ function onComboClose(index: number) {
             />
           </div>
 
-          <FilToggle
-            :model-value="item.enabled ? 'ON' : 'OFF'"
-            bare
-            @update:model-value="(v) => toggleItemEnabled(originalIndex, v === 'ON')"
-          />
-
-          <button
-            class="fil-cycler-remove-btn"
-            title="Remove LoRA"
-            @click="removeLoraItem(originalIndex)"
-          >
-            ✕
-          </button>
-        </div>
-
-        <!-- Weight. One slider; the CLIP one appears only when asked for. -->
-        <div
-          v-if="item.enabled && item.name.trim()"
-          class="fil-lora-weights"
-          @mousedown.stop
-          @pointerdown.stop
-        >
-          <div class="fil-weight-row">
-            <FilSlider
-              class="fil-weight-field"
-              :model-value="item.sm"
-              :min="-3"
-              :max="3"
-              :step="0.05"
-              :label="item.split ? 'Model' : 'Strength'"
-              inline-label
-              :title="item.split ? 'Model strength' : 'Strength applied to both Model and CLIP'"
-              @update:model-value="(v: number) => updateItemPrimary(originalIndex, v)"
-            />
+          <div class="fil-row-quiet-actions">
             <button
-              class="fil-split-btn"
+              class="fil-row-info-btn"
+              title="LoRA information"
+              @mousedown.stop
+              @click.stop="openInfoModal(item, originalIndex)"
+            >
+              ⓘ
+            </button>
+            <button
+              v-if="item.enabled && item.name.trim()"
+              class="fil-row-info-btn fil-split-btn"
               :class="{ active: item.split }"
               :title="item.split ? 'Give CLIP the same strength as Model again' : 'Set CLIP strength separately'"
               :aria-pressed="Boolean(item.split)"
               @mousedown.stop
               @click.stop="toggleItemSplit(originalIndex)"
             >
-              CLIP
+              ⇅
+            </button>
+            <button
+              class="fil-row-info-btn fil-cycler-remove-btn"
+              title="Remove LoRA"
+              @mousedown.stop
+              @click.stop="removeLoraItem(originalIndex)"
+            >
+              ✕
             </button>
           </div>
 
-          <div v-if="item.split" class="fil-weight-row">
+          <!-- Wrapped: a label-less FilNumberInput is `display: contents`, so
+               without a box of its own its arrows become flex items of this
+               row and push the name to nothing. -->
+          <div v-if="item.enabled && item.name.trim()" class="fil-weight-cell">
             <FilSlider
-              class="fil-weight-field"
-              :model-value="item.sc"
-              :min="-3"
-              :max="3"
-              :step="0.05"
-              label="CLIP"
-              inline-label
-              title="CLIP strength"
-              @update:model-value="(v: number) => updateItemSc(originalIndex, v)"
+            :model-value="item.sm"
+            :min="-3"
+            :max="3"
+            :step="0.05"
+            :title="item.split ? 'Model strength' : 'Strength applied to both Model and CLIP'"
+            aria-label="Strength"
+            @mousedown.stop
+            @pointerdown.stop
+            @update:model-value="(v: number) => updateItemPrimary(originalIndex, v)"
             />
-            <span class="fil-split-btn-spacer" aria-hidden="true"></span>
+          </div>
+
+          <FilToggle
+            :model-value="item.enabled ? 'ON' : 'OFF'"
+            bare
+            @update:model-value="(v) => toggleItemEnabled(originalIndex, v === 'ON')"
+          />
+        </div>
+
+        <!-- The CLIP weight, on its own line and only while it is asked for. -->
+        <div
+          v-if="item.split && item.enabled && item.name.trim()"
+          class="fil-lora-weights"
+          @mousedown.stop
+          @pointerdown.stop
+        >
+          <div class="fil-weight-cell fil-weight-cell-clip">
+            <FilSlider
+            :model-value="item.sc"
+            :min="-3"
+            :max="3"
+            :step="0.05"
+            label="CLIP"
+            inline-label
+            title="CLIP strength"
+            @update:model-value="(v: number) => updateItemSc(originalIndex, v)"
+            />
           </div>
         </div>
       </div>
@@ -829,6 +890,8 @@ function onComboClose(index: number) {
   padding: 4px 6px;
   color: var(--fil-text);
   font-family: ui-sans-serif, system-ui, sans-serif;
+  /* The containing block the floated toolbar measures its offsets against. */
+  position: relative;
 }
 
 .fil-cycler-header-banner {
@@ -1072,11 +1135,28 @@ function onComboClose(index: number) {
   to { opacity: 1; box-shadow: 0 0 12px var(--fil-accent, #00f0ff); }
 }
 
-.fil-lora-top-row {
+.fil-lora-line {
   display: flex;
   align-items: center;
   gap: 6px;
   width: 100%;
+  min-width: 0;
+}
+
+/* Reserved, not collapsed: showing these only on hover is the point, but a
+   width that appears with them would shove the name and the weight sideways
+   every time the pointer crossed a row. */
+.fil-row-quiet-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+  visibility: hidden;
+}
+
+.fil-lora-row:hover .fil-row-quiet-actions,
+.fil-lora-row:focus-within .fil-row-quiet-actions {
+  visibility: visible;
 }
 
 .fil-drag-handle {
@@ -1168,41 +1248,14 @@ function onComboClose(index: number) {
 
 .fil-lora-weights {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  justify-content: flex-end;
   padding-top: 4px;
-  border-top: 1px solid color-mix(in srgb, var(--fil-border) 60%, transparent);
   width: 100%;
   box-sizing: border-box;
 }
 
-.fil-weight-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-}
 
 
-.fil-split-btn {
-  background: transparent;
-  border: 1px solid color-mix(in srgb, var(--fil-border) 80%, transparent);
-  color: var(--fil-muted, #94a3b8);
-  font-family: ui-monospace, SFMono-Regular, monospace;
-  font-size: 9px;
-  letter-spacing: 0.3px;
-  padding: 1px 4px;
-  border-radius: 4px;
-  cursor: pointer;
-  white-space: nowrap;
-  flex: none;
-  transition: color 0.12s, border-color 0.12s, background 0.12s;
-}
-
-.fil-split-btn:hover {
-  color: var(--fil-accent-text, #c084fc);
-  border-color: color-mix(in srgb, var(--fil-accent, #a855f7) 55%, transparent);
-}
 
 .fil-split-btn.active {
   color: var(--fil-accent-text, #c084fc);
@@ -1210,12 +1263,6 @@ function onComboClose(index: number) {
   background: color-mix(in srgb, var(--fil-accent, #a855f7) 18%, transparent);
 }
 
-/* Keeps the CLIP slider aligned under the Model one, which the split button
-   would otherwise shift by its own width. */
-.fil-split-btn-spacer {
-  width: 33px;
-  flex: none;
-}
 
 
 
@@ -1248,9 +1295,29 @@ function onComboClose(index: number) {
   to { transform: rotate(360deg); }
 }
 
-.fil-weight-field {
-  flex: 1;
-  min-width: 0;
+.fil-weight-cell {
+  flex: none;
+  width: 96px;
+  display: flex;
+  align-items: center;
+}
+
+/* Lined up under the Model field, past the toggle that follows it. */
+.fil-weight-cell-clip {
+  margin-right: 42px;
+}
+
+/* Out of flow and up into the socket strip. Pointer events stay on the
+   controls themselves so the empty stretch between them still belongs to the
+   canvas — dragging the node by that gap keeps working. */
+.fil-cycler-actions-bar.floated {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.fil-cycler-actions-bar.floated > * {
+  pointer-events: auto;
 }
 
 .fil-actions-menu {

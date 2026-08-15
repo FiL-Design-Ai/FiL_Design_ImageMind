@@ -26,8 +26,12 @@ export const loraLoaderNode: NodeModule = {
   id: "FiLLoraLoader",
   register(nodeType: unknown, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
-      minSize: [340, 280],
-      initialWidth: 340,
+      // Wider than the 340 the panels started at: the row carries a name, a
+      // weight field and two switches, and the strip the toolbar floats into
+      // (see `socketBand.ts`) is only what the labels leave behind — at 340 it
+      // was 213px and the toolbar did not fit in it.
+      minSize: [400, 240],
+      initialWidth: 420,
       family: "tool",
       description: "Stacks LoRA adapters onto MODEL and CLIP, each with its own weights and on/off switch.",
       badges: [{ text: "LORA LOADER", color: "#ec4899", text_color: "#fff" }],
