@@ -37,11 +37,13 @@ export const loraLoaderNode: NodeModule = {
       // at this width they no longer ride between the socket labels — the panel
       // keeps them in flow instead, which `measureBand` decides by measuring
       // rather than by a width threshold written down here.
-      minSize: [DESIGN_WIDTH, 200],
+      // The height is whatever the rows need: the toolbar rides the socket
+      // strip, so a floor of 200 was empty node under the last row.
+      minSize: [DESIGN_WIDTH, 120],
       initialWidth: DESIGN_WIDTH,
       family: "tool",
       description: "Stacks LoRA adapters onto MODEL and CLIP, each with its own weights and on/off switch.",
-      badges: [{ text: "LORA LOADER", color: "#ec4899", text_color: "#fff" }],
+      // No badge: it said "LORA LOADER" beside a title that already says it.
     });
 
     const proto = nodeType as {

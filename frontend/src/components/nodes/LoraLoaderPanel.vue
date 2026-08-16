@@ -670,7 +670,7 @@ function onComboClose(index: number) {
     >
       <!-- Line 1: the trigger words, and re-reading the folder at the far end. -->
       <div class="fil-band-line">
-        <button class="fil-action-link highlight" title="Copy all trigger words of active LoRAs to clipboard" @click="copyAllActiveTriggers">⚡ Copy Triggers</button>
+        <button class="fil-action-link highlight" title="Copy all trigger words of active LoRAs to clipboard" @click="copyAllActiveTriggers">📋 Triggers</button>
         <button
           class="fil-refresh-loras-btn"
           :class="{ spinning: isRefreshingLoras }"
@@ -1505,15 +1505,13 @@ function onComboClose(index: number) {
 /* One type size and one control height across both strips. Pixaroma's node
    reads tidy for exactly this reason: 11px everywhere in its chrome and every
    control in a row the same height. Ours had five sizes and four heights. */
-.fil-cycler-actions-bar.floated,
-.fil-stack-state.floated {
+.fil-cycler-actions-bar.floated {
   font-size: 11px;
 }
 
 .fil-cycler-actions-bar.floated .fil-action-link,
 .fil-cycler-actions-bar.floated .fil-actions-more,
-.fil-cycler-actions-bar.floated .fil-refresh-loras-btn,
-.fil-stack-state.floated .fil-stack-count {
+.fil-cycler-actions-bar.floated .fil-refresh-loras-btn {
   height: 20px;
   box-sizing: border-box;
   font-size: 11px;
@@ -1531,9 +1529,6 @@ function onComboClose(index: number) {
   margin-left: 6px;
 }
 
-.fil-stack-state.floated {
-  justify-content: flex-start;
-}
 
 .fil-cycler-actions-bar.floated {
   position: absolute;
@@ -1615,32 +1610,21 @@ function onComboClose(index: number) {
   box-sizing: border-box;
 }
 
-.fil-stack-state {
-  display: flex;
-  justify-content: flex-end;
-  width: 100%;
-  box-sizing: border-box;
-}
 
-.fil-stack-state.floated {
-  position: absolute;
-  z-index: 2;
-  pointer-events: none;
-  width: auto;
-}
 
-.fil-stack-state.floated > * {
-  pointer-events: auto;
-}
 
 .fil-stack-count {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  /* The same height as the add button it stands beside — they read as one
+     line only if they are one line. */
+  height: 24px;
+  box-sizing: border-box;
   background: var(--fil-surface-2, #18181b);
   border: 1px solid color-mix(in srgb, var(--fil-border) 90%, transparent);
   border-radius: 999px;
-  padding: 1px 8px 1px 4px;
+  padding: 0 10px 0 4px;
   color: var(--fil-muted);
   font-family: ui-monospace, SFMono-Regular, monospace;
   font-size: 10px;

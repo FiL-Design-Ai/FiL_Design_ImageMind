@@ -112,12 +112,31 @@ def test_contract_family_matches_the_frontend_module(nodes):
     assert not mismatched, f"contract family != module family: {mismatched}"
 
 
+# A badge that repeats the title is noise, and the owner asked for this one to
+# go: "LORA LOADER" sat beside a header already reading "🧬 LoRA Loader". The
+# rule stays for every other node — a badge missing by accident still reads as
+# unfinished — so the exception is listed rather than the check dropped.
+NODES_WITHOUT_A_BADGE = {"FiLLoraLoader"}
+
+
 def test_every_node_module_sets_a_badge(nodes):
     """A node without a badge reads as unfinished next to the rest of the pack."""
     modules = _module_presentation()
     missing = [
         node_class.GET_SCHEMA().node_id
         for node_class in nodes
-        if not modules.get(node_class.GET_SCHEMA().node_id, {}).get("hasBadges")
+        if node_class.GET_SCHEMA().node_id not in NODES_WITHOUT_A_BADGE
+        and not modules.get(node_class.GET_SCHEMA().node_id, {}).get("hasBadges")
     ]
     assert not missing, f"node modules without badges: {missing}"
+
+
+def test_the_badge_exceptions_are_still_badge_less(nodes):
+    """A node that grows a badge again should drop off the exception list."""
+    modules = _module_presentation()
+    stale = [
+        node_id
+        for node_id in NODES_WITHOUT_A_BADGE
+        if modules.get(node_id, {}).get("hasBadges")
+    ]
+    assert not stale, f"listed as badge-less but declares one: {stale}"
