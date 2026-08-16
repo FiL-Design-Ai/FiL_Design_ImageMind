@@ -1296,6 +1296,13 @@ function onComboClose(index: number) {
   min-width: 0;
 }
 
+/* Re-read pins to the right of its line, which puts it directly above Clear —
+   the two ends of the strip stay a column instead of drifting with the width
+   of whatever sits to their left. */
+.fil-band-line .fil-refresh-loras-btn {
+  margin-left: auto;
+}
+
 /* The sort box carries an icon, three characters and a chevron — the wide
    default was 96px of strip for that. */
 .fil-cycler-actions-bar.floated .fil-sort-select-wrap {
