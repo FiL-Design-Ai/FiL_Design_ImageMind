@@ -14,6 +14,9 @@ const LoraLoaderVue = defineAsyncComponent(
 // copied from the cycler and named four that do not exist on this node
 // (`cycle_mode`, `index`, `include_bypass`, `auto_advance`), which reads as if
 // the node cycles and hides nothing, since there is nothing there to hide.
+/** The width the design is drawn at — see `LoRA Loader Node.dc.html`. */
+const DESIGN_WIDTH = 660;
+
 const nativeWidgetNames = [
   "lora_list",
   "filter_pattern",
@@ -30,8 +33,14 @@ export const loraLoaderNode: NodeModule = {
       // weight field and two switches, and the strip the toolbar floats into
       // (see `socketBand.ts`) is only what the labels leave behind — at 340 it
       // was 213px and the toolbar did not fit in it.
-      minSize: [400, 240],
-      initialWidth: 420,
+      // The design draws the node at 660, and that is the minimum rather than a
+      // starting point: three lines of controls ride in the socket strip
+      // between the input and output labels, and below this they have nowhere
+      // to sit. `initialWidth` cannot express it — in `nodeStyle.ts` it only
+      // ever narrows a node, and LiteGraph recomputes the size after
+      // `onNodeCreated` anyway, so a width set there is overwritten.
+      minSize: [DESIGN_WIDTH, 200],
+      initialWidth: DESIGN_WIDTH,
       family: "tool",
       description: "Stacks LoRA adapters onto MODEL and CLIP, each with its own weights and on/off switch.",
       badges: [{ text: "LORA LOADER", color: "#ec4899", text_color: "#fff" }],
@@ -78,6 +87,7 @@ export const loraLoaderNode: NodeModule = {
       // showing the empty defaults while the widget still held the user's
       // stack — and the first edit wrote that empty view back over it.
       node._filCyclerState = state;
+
       if (Array.isArray((node as { inputs?: Array<{ name?: string }> }).inputs)) {
         (node as { inputs: Array<{ name?: string }> }).inputs = (
           node as { inputs: Array<{ name?: string }> }

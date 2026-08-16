@@ -11,7 +11,7 @@
  */
 import { test, expect } from "@playwright/test";
 
-const NODE_WIDTH = 340;
+const NODE_WIDTH = 660;
 
 const STACK = [
   "style_v1.safetensors:0.80:0.80",
@@ -56,7 +56,7 @@ async function mountPanel(page: import("@playwright/test").Page, loraList: strin
  * MODEL label. So this asserts what the eye checks: that the bar is on screen
  * where it claims to be, and that the label columns stay clear of it.
  */
-async function mountOnFakeNode(page: import("@playwright/test").Page, nodeWidth = 420) {
+async function mountOnFakeNode(page: import("@playwright/test").Page, nodeWidth = 660) {
   await page.goto("test-playground.html");
   await page.addStyleTag({
     // The strip sits ~92px above the panel, which on a canvas is the node's own
@@ -140,19 +140,22 @@ test.describe("LoRA Loader toolbar in the socket strip", () => {
     expect(barBox.x + barBox.width).toBeLessThan(panelBox.x + panelBox.width - 40);
   });
 
-  test("the stack's state takes the rows below the toolbar", async ({ page }) => {
+  test("carries all three lines of the design inside the strip", async ({ page }) => {
     await mountOnFakeNode(page);
 
-    // Grouped by weight: the bar above works on the list, and what rides the
-    // lower rows is the stack's own state — how many of it is on.
-    const state = page.locator(".fil-stack-state");
-    await expect(state).toHaveClass(/floated/);
-    await expect(page.locator(".fil-stack-count")).toContainText("/");
+    const bar = page.locator(".fil-cycler-actions-bar");
+    await expect(bar).toHaveClass(/floated/);
+    await expect(bar.locator(".fil-band-line")).toHaveCount(3);
 
-    // Two socket rows apart, so neither sits on the other.
-    const toolbar = (await page.locator(".fil-cycler-actions-bar").boundingBox())!;
-    const stateBox = (await state.boundingBox())!;
-    expect(stateBox.y).toBeGreaterThanOrEqual(toolbar.y + toolbar.height);
+    // Add and the counter share the last line, as drawn.
+    const lastLine = bar.locator(".fil-band-line").nth(2);
+    await expect(lastLine.locator(".fil-band-add")).toBeVisible();
+    await expect(lastLine.locator(".fil-stack-count")).toContainText("/");
+
+    // The whole block sits above the panel it belongs to.
+    const barBox = (await bar.boundingBox())!;
+    const panelBox = (await page.locator(".fil-cycler-root").boundingBox())!;
+    expect(barBox.y + barBox.height).toBeLessThanOrEqual(panelBox.y + 1);
   });
 
   test("stays in flow when the node is too narrow for the strip", async ({ page }) => {
@@ -255,23 +258,17 @@ test.describe("LoRA Loader panel at the width of its own node", () => {
     await expect(page.locator(".fil-lora-row")).toHaveCount(3);
   });
 
-  test("the row's occasional controls wait for the pointer", async ({ page }) => {
+  test("the row carries what the design draws, without hovering for it", async ({ page }) => {
     await mountPanel(page, STACK);
 
     const firstRow = page.locator(".fil-lora-row").first();
-    const quiet = firstRow.locator(".fil-row-quiet-actions");
-
-    // Present, so the row never changes width — just not shown.
-    await expect(quiet).toHaveCount(1);
-    await expect(quiet).toBeHidden();
-    const restingWidth = (await firstRow.locator(".fil-cycler-select-wrap").boundingBox())!.width;
-
-    await firstRow.hover();
-    await expect(quiet).toBeVisible();
-    expect(
-      (await firstRow.locator(".fil-cycler-select-wrap").boundingBox())!.width,
-      "the name field resized when the controls appeared — the row shifts under the cursor",
-    ).toBe(restingWidth);
+    // Grip, name, weight, info, switch — visible at rest. Remove, reordering
+    // and the separate CLIP weight are in the row's right-click menu.
+    await expect(firstRow.locator(".fil-drag-handle")).toBeVisible();
+    await expect(firstRow.locator(".fil-cycler-select-wrap")).toBeVisible();
+    await expect(firstRow.locator(".fil-w-numfield")).toHaveCount(1);
+    await expect(firstRow.locator(".fil-row-info-btn")).toBeVisible();
+    await expect(firstRow.locator(".fil-w-toggle")).toBeVisible();
   });
 
   test("asking for a separate CLIP weight adds the second slider, and only then", async ({
@@ -305,21 +302,7 @@ test.describe("LoRA Loader panel at the width of its own node", () => {
     await expect(page.locator(".fil-stack-search-input")).toHaveCount(1);
   });
 
-  test("the rare actions are reachable behind the more button", async ({ page }) => {
-    await mountPanel(page, STACK);
-
-    await expect(page.locator(".fil-actions-menu")).toHaveCount(0);
-    await page.locator(".fil-actions-more").click();
-
-    // Resetting every weight and emptying the stack: rare, and one of them
-    // destructive, so they do not sit next to what gets used.
-    const menu = page.locator(".fil-actions-menu");
-    await expect(menu.locator("button")).toHaveCount(2);
-    expect((await menu.locator("button").allTextContents()).join(" ")).toContain("Clear stack");
-    const bar = (await page.locator(".fil-cycler-actions-bar").boundingBox())!;
-    for (const control of await menu.locator("button").all()) {
-      const box = (await control.boundingBox())!;
-      expect(box.x + box.width).toBeLessThanOrEqual(bar.x + bar.width + 1);
-    }
-  });
+  // The more button is gone: at the width the design asks for, every bulk
+  // action fits on the strip, and what it used to hide is asserted by the unit
+  // case "carries the whole toolbar the design draws, on three lines".
 });

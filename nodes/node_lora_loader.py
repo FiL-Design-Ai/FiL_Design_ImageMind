@@ -274,19 +274,19 @@ class FiLLoraLoader(io.ComfyNode):
             ],
             outputs=[
                 io.Model.Output(
-                    display_name="MODEL",
+                    display_name="model",
                     tooltip="MODEL signal with all active stacked LoRAs applied.",
                 ),
                 io.Clip.Output(
-                    display_name="CLIP",
+                    display_name="clip",
                     tooltip="CLIP signal with all active stacked LoRAs applied.",
                 ),
                 io.String.Output(
-                    display_name="TRIGGERS",
+                    display_name="triggers",
                     tooltip="Aggregated trigger words from all active LoRA adapters.",
                 ),
                 io.String.Output(
-                    display_name="LABEL",
+                    display_name="label",
                     tooltip="Formatted watermark label summarizing applied LoRA stack.",
                 ),
             ],

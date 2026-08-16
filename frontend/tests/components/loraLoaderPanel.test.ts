@@ -165,7 +165,7 @@ describe("LoraLoaderPanel.vue", () => {
     );
   });
 
-  it("keeps the toolbar down to what fits on the node", async () => {
+  it("carries the whole toolbar the design draws, on three lines", async () => {
     getJson.mockImplementation(backend({}));
     const list = "style_v1.safetensors:0.80:0.80";
     const wrapper = mount(LoraLoaderPanel, {
@@ -173,17 +173,22 @@ describe("LoraLoaderPanel.vue", () => {
     });
     await nextTick();
 
-    // Six controls sat here and four fit: "All OFF" was cut in half and
-    // "Clear" was off the edge, unreachable without resizing the node. What is
-    // left on the bar is the list's own work; the stack's state is the counter
-    // below it, and the two rare actions wait behind the more button.
-    expect(wrapper.findAll(".fil-cycler-actions-bar button")).toHaveLength(3);
-    expect(wrapper.find(".fil-actions-menu").exists()).toBe(false);
+    const lines = wrapper.findAll(".fil-cycler-actions-bar .fil-band-line");
+    expect(lines).toHaveLength(3);
 
-    await wrapper.find(".fil-actions-more").trigger("click");
-    const menu = wrapper.findAll(".fil-actions-menu button").map((b) => b.text());
-    expect(menu).toHaveLength(2);
-    expect(menu.join(" ")).toContain("Clear stack");
+    // Nothing hidden behind a more button any more: at the width the design
+    // asks for, every bulk action fits on the strip.
+    const labels = wrapper
+      .findAll(".fil-cycler-actions-bar button")
+      .map((b) => b.text())
+      .join(" ");
+    for (const wanted of ["Copy Triggers", "1.00 All", "All ON", "All OFF", "Clear", "Add LoRA"]) {
+      expect(labels, `"${wanted}" is not on the strip`).toContain(wanted);
+    }
+    expect(wrapper.find(".fil-actions-more").exists()).toBe(false);
+
+    // And the counter keeps its place beside the add button.
+    expect(wrapper.find(".fil-stack-count").text().replace(/\s+/g, "")).toBe("1/1");
   });
 
   it("counts the rows that are on, and flips them all", async () => {

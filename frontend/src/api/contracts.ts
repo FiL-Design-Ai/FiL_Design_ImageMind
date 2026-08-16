@@ -5615,25 +5615,25 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   },
   "outputs": [
     {
-      "name": "MODEL",
+      "name": "model",
       "type": "MODEL"
     },
     {
-      "name": "CLIP",
+      "name": "clip",
       "type": "CLIP"
     },
     {
-      "name": "TRIGGERS",
+      "name": "triggers",
       "type": "STRING"
     },
     {
-      "name": "LABEL",
+      "name": "label",
       "type": "STRING"
     }
   ],
   "min_size": [
-    400,
-    240
+    660,
+    200
   ],
   "family": "tool"
 },

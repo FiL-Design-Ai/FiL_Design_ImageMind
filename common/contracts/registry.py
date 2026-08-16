@@ -796,7 +796,7 @@ _LORA_LOADER = NodeContract(
     title="🧬 LoRA Loader",
     category=CATEGORY_TOOLS,
     description="Dynamic stack loader for combining multiple LoRA adapters with per-item sliders.",
-    min_size=(400, 240),
+    min_size=(660, 200),
     family="tool",
     inputs=NodeInputs(
         required=[
@@ -808,10 +808,10 @@ _LORA_LOADER = NodeContract(
         ],
     ),
     outputs=[
-        NodeOutput(name="MODEL", type="MODEL"),
-        NodeOutput(name="CLIP", type="CLIP"),
-        NodeOutput(name="TRIGGERS", type="STRING"),
-        NodeOutput(name="LABEL", type="STRING"),
+        NodeOutput(name="model", type="MODEL"),
+        NodeOutput(name="clip", type="CLIP"),
+        NodeOutput(name="triggers", type="STRING"),
+        NodeOutput(name="label", type="STRING"),
     ],
 )
 

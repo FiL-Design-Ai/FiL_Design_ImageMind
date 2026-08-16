@@ -124,27 +124,15 @@ const filteredLoraItems = computed(() => {
  * off this node instead of tuned by hand. `socketBand.ts` explains the rest.
  */
 const actionsBarEl = ref<HTMLElement | null>(null);
-const bulkBarEl = ref<HTMLElement | null>(null);
 const bandStyle = ref<Record<string, string> | null>(null);
-/**
- * The bulk actions ride two socket rows below the toolbar. On this node those
- * rows carry `TRIGGERS` and `LABEL` on the right and nothing at all on the
- * left, so the strip there is wider than the one above it — wide enough that
- * hiding them behind a menu was never necessary.
- */
-const bulkBandStyle = ref<Record<string, string> | null>(null);
-
-/** True while the bulk actions have a strip of their own to sit in. */
-const bulkOnBand = computed(() => bulkBandStyle.value !== null);
 
 function measureBand() {
   const node = props.state.node as Parameters<typeof socketBandBox>[0] | undefined;
   if (!actionsBarEl.value || !node) return;
 
-  // Measure both bars where they sit in flow: floated, their own offsets would
-  // be what the next measurement reads back.
+  // Measure the block where it sits in flow: floated, its own offsets would be
+  // what the next measurement reads back.
   bandStyle.value = null;
-  bulkBandStyle.value = null;
 
   nextTick(() => {
     const target = actionsBarEl.value;
@@ -158,20 +146,10 @@ function measureBand() {
     const asBox = (box: ReturnType<typeof socketBandBox>) =>
       box ? { top: `${box.top}px`, left: `${box.left}px`, right: `${box.right}px` } : null;
 
+    // One block of three lines, as the design draws it — so it is measured
+    // once, against the whole strip rather than a row of it.
     const barHeight = target.getBoundingClientRect().height / scale;
     bandStyle.value = asBox(socketBandBox(node, edges, barHeight));
-
-    const bulk = bulkBarEl.value;
-    const bulkHeight = (bulk?.getBoundingClientRect().height || barHeight) / scale;
-    // Two rows down, so the two strips never share a row — and starting at the
-    // same x, because the lower rows have no input label to clear and a strip
-    // that begins further left than the one above it reads as scattered rather
-    // than as two lines of one panel.
-    const bulkBox = bandStyle.value ? socketBandBox(node, edges, bulkHeight, 2) : null;
-    const barBox = bandStyle.value;
-    bulkBandStyle.value = bulkBox
-      ? { ...asBox(bulkBox)!, left: barBox?.left ?? `${bulkBox.left}px` }
-      : null;
   });
 }
 
@@ -535,20 +513,6 @@ function onDragEnd() {
   dragOverIndex.value = null;
 }
 
-/**
- * The rarely-used bulk actions, behind one button.
- *
- * Six controls sat in the toolbar and four fit across a node this wide: "All
- * OFF" was cut in half and "Clear" was off the edge entirely, unreachable
- * without resizing the node.
- */
-const menuOpen = ref(false);
-
-function runFromMenu(action: () => void) {
-  action();
-  menuOpen.value = false;
-}
-
 function toggleAll(enable: boolean) {
   loraItems.value.forEach((item) => {
     item.enabled = enable;
@@ -692,18 +656,9 @@ function onComboClose(index: number) {
       :class="{ floated: Boolean(bandStyle) }"
       :style="bandStyle ?? undefined"
     >
-      <div class="fil-sort-select-wrap">
-        <FilSelect
-          :model-value="selectedSort"
-          :options="sortOptions"
-          @update:model-value="applyLoraSorting"
-        />
-      </div>
-      <button class="fil-action-link highlight" title="Copy all trigger words of active LoRAs to clipboard" @click="copyAllActiveTriggers">⚡ Triggers</button>
-
-      <!-- Grouped by weight, not laid out as one ribbon of equal pills: what
-           works on the list sits left, the two rarely-touched controls right. -->
-      <div class="fil-actions-right-group">
+      <!-- Line 1: the trigger words, and re-reading the folder at the far end. -->
+      <div class="fil-band-line">
+        <button class="fil-action-link highlight" title="Copy all trigger words of active LoRAs to clipboard" @click="copyAllActiveTriggers">⚡ Copy Triggers</button>
         <button
           class="fil-refresh-loras-btn"
           :class="{ spinning: isRefreshingLoras }"
@@ -712,48 +667,41 @@ function onComboClose(index: number) {
           @mousedown.stop
           @click.stop="refreshLoraList"
         >
-          🔄
-        </button>
-        <button
-          class="fil-action-link fil-actions-more"
-          :class="{ open: menuOpen }"
-          title="More actions"
-          aria-label="More actions"
-          :aria-expanded="menuOpen"
-          @click="menuOpen = !menuOpen"
-        >
-          •••
+          ⟳
         </button>
       </div>
-    </div>
 
-    <!-- Two socket rows below the toolbar: the state of the stack rather than
-         more buttons — how many rows are on, and one click to flip them all.
-         It replaces the pair of All ON / All OFF and says something neither of
-         them did. -->
-    <div
-      v-if="loraItems.length"
-      ref="bulkBarEl"
-      class="fil-stack-state"
-      :class="{ floated: bulkOnBand }"
-      :style="bulkBandStyle ?? undefined"
-    >
-      <button
-        class="fil-stack-count"
-        :class="{ allOff: activeLoraCount === 0 }"
-        :title="activeLoraCount === loraItems.length ? 'Switch every LoRA off' : 'Switch every LoRA on'"
-        @click="toggleAll(activeLoraCount !== loraItems.length)"
-      >
-        <span class="fil-stack-switch" :class="{ on: activeLoraCount > 0 }"></span>
-        {{ activeLoraCount }} / {{ loraItems.length }}
-      </button>
-    </div>
+      <!-- Line 2: sorting on the left, the three bulk actions in the middle,
+           and the one that destroys work alone on the right. -->
+      <div class="fil-band-line">
+        <div class="fil-sort-select-wrap">
+          <FilSelect
+            :model-value="selectedSort"
+            :options="sortOptions"
+            @update:model-value="applyLoraSorting"
+          />
+        </div>
+        <div class="fil-band-middle">
+          <button class="fil-action-link highlight" title="Reset all LoRA weights to 1.00" @click="resetAllWeights">▤ 1.00 All</button>
+          <button class="fil-action-link" @click="toggleAll(true)">All ON</button>
+          <button class="fil-action-link" @click="toggleAll(false)">All OFF</button>
+        </div>
+        <button class="fil-action-link danger" @click="clearAllItems">Clear</button>
+      </div>
 
-    <!-- What is left is rare and one of it is destructive, so it waits behind
-         the more button instead of sitting next to what gets used. -->
-    <div v-if="menuOpen" class="fil-actions-menu">
-      <button class="fil-action-link highlight" title="Reset all LoRA weights to 1.00" @click="runFromMenu(resetAllWeights)">🔄 Weights to 1.00</button>
-      <button class="fil-action-link danger" @click="runFromMenu(clearAllItems)">Clear stack</button>
+      <!-- Line 3: adding a LoRA, and what the stack currently amounts to. -->
+      <div class="fil-band-line">
+        <button class="fil-band-add" @click="addLoraItem">+ Add LoRA</button>
+        <button
+          v-if="loraItems.length"
+          class="fil-stack-count"
+          :title="activeLoraCount === loraItems.length ? 'Switch every LoRA off' : 'Switch every LoRA on'"
+          @click="toggleAll(activeLoraCount !== loraItems.length)"
+        >
+          <span class="fil-stack-switch" :class="{ on: activeLoraCount > 0 }"></span>
+          {{ activeLoraCount }} / {{ loraItems.length }}
+        </button>
+      </div>
     </div>
 
     <!-- Search Stack Filter Input -->
@@ -831,17 +779,6 @@ function onComboClose(index: number) {
             />
           </div>
 
-          <div class="fil-row-quiet-actions">
-            <button
-              class="fil-row-info-btn"
-              title="LoRA information"
-              @mousedown.stop
-              @click.stop="openInfoModal(item, originalIndex)"
-            >
-              ⓘ
-            </button>
-          </div>
-
           <!-- Wrapped: a label-less FilNumberInput is `display: contents`, so
                without a box of its own its arrows become flex items of this
                row and push the name to nothing. -->
@@ -858,6 +795,19 @@ function onComboClose(index: number) {
             @update:model-value="(v: number) => updateItemPrimary(originalIndex, v)"
             />
           </div>
+
+          <!-- Info sits in the row itself, as the design draws it: a round `i`
+               between the weight and the switch. Remove, reordering and the
+               separate CLIP weight stay in the row's right-click menu. -->
+          <button
+            class="fil-row-info-btn"
+            title="LoRA information"
+            aria-label="LoRA information"
+            @mousedown.stop
+            @click.stop="openInfoModal(item, originalIndex)"
+          >
+            i
+          </button>
 
           <FilToggle
             :model-value="item.enabled ? 'ON' : 'OFF'"
@@ -941,7 +891,9 @@ function onComboClose(index: number) {
     </div>
 
     <!-- Action Buttons Group -->
-    <div class="fil-cycler-btn-group">
+    <!-- No Add button down here: the design puts it on the third line of the
+         socket strip, beside the counter, where it costs the node no height. -->
+    <div v-if="!loraItems.length" class="fil-cycler-btn-group">
       <FilButton
         variant="accent"
         label="+ Add LoRA"
@@ -1321,21 +1273,47 @@ function onComboClose(index: number) {
   flex: none;
 }
 
-/* Reserved, not collapsed: showing these only on hover is the point, but a
-   width that appears with them would shove the name and the weight sideways
-   every time the pointer crossed a row. */
-.fil-row-quiet-actions {
-  display: flex;
-  align-items: center;
-  gap: 1px;
-  flex: none;
-  visibility: hidden;
-  font-size: 10px;
+/* Three stacked lines, not one row of controls: the bar was a row flex from
+   when it held a single line, and the lines landed side by side. */
+.fil-cycler-actions-bar {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
 }
 
-.fil-lora-row:hover .fil-row-quiet-actions,
-.fil-lora-row:focus-within .fil-row-quiet-actions {
-  visibility: visible;
+.fil-band-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+/* The bulk trio sits in the middle of its line, away from both the sort box
+   and the one control that throws the stack away. */
+.fil-band-middle {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.fil-band-add {
+  flex: 1;
+  height: 24px;
+  border: none;
+  border-radius: 8px;
+  background: var(--fil-accent-strong, #ffd60a);
+  color: #1c1c1e;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 0 14px color-mix(in srgb, var(--fil-accent-strong, #ffd60a) 35%, transparent);
+}
+
+.fil-band-add:hover {
+  filter: brightness(1.06);
 }
 
 .fil-drag-handle {
