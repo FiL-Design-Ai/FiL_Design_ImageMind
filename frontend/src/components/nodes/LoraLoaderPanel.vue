@@ -163,8 +163,15 @@ function measureBand() {
 
     const bulk = bulkBarEl.value;
     const bulkHeight = (bulk?.getBoundingClientRect().height || barHeight) / scale;
-    // Two rows down, so the two bars never share a row.
-    bulkBandStyle.value = bandStyle.value ? asBox(socketBandBox(node, edges, bulkHeight, 2)) : null;
+    // Two rows down, so the two strips never share a row — and starting at the
+    // same x, because the lower rows have no input label to clear and a strip
+    // that begins further left than the one above it reads as scattered rather
+    // than as two lines of one panel.
+    const bulkBox = bandStyle.value ? socketBandBox(node, edges, bulkHeight, 2) : null;
+    const barBox = bandStyle.value;
+    bulkBandStyle.value = bulkBox
+      ? { ...asBox(bulkBox)!, left: barBox?.left ?? `${bulkBox.left}px` }
+      : null;
   });
 }
 
@@ -1495,6 +1502,39 @@ function onComboClose(index: number) {
 /* Out of flow and up into the socket strip. Pointer events stay on the
    controls themselves so the empty stretch between them still belongs to the
    canvas — dragging the node by that gap keeps working. */
+/* One type size and one control height across both strips. Pixaroma's node
+   reads tidy for exactly this reason: 11px everywhere in its chrome and every
+   control in a row the same height. Ours had five sizes and four heights. */
+.fil-cycler-actions-bar.floated,
+.fil-stack-state.floated {
+  font-size: 11px;
+}
+
+.fil-cycler-actions-bar.floated .fil-action-link,
+.fil-cycler-actions-bar.floated .fil-actions-more,
+.fil-cycler-actions-bar.floated .fil-refresh-loras-btn,
+.fil-stack-state.floated .fil-stack-count {
+  height: 20px;
+  box-sizing: border-box;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.fil-cycler-actions-bar.floated :deep(.fil-w-select-input) {
+  height: 20px;
+  font-size: 11px;
+}
+
+/* Contiguous, not pushed to opposite edges: the gap in the middle was what
+   made four controls look like three scattered clusters. */
+.fil-cycler-actions-bar.floated .fil-actions-right-group {
+  margin-left: 6px;
+}
+
+.fil-stack-state.floated {
+  justify-content: flex-start;
+}
+
 .fil-cycler-actions-bar.floated {
   position: absolute;
   z-index: 2;
