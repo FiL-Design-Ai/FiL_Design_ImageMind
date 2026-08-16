@@ -182,7 +182,10 @@ describe("LoraLoaderPanel.vue", () => {
       .findAll(".fil-cycler-actions-bar button")
       .map((b) => b.text())
       .join(" ");
-    for (const wanted of ["Copy Triggers", "1.00 All", "All ON", "All OFF", "Clear", "Add LoRA"]) {
+    // Short labels on the middle three: at 400 the strip between the socket
+    // labels is 253px, and the words spelled out need 360. The meaning is on
+    // their tooltips.
+    for (const wanted of ["Copy Triggers", "1.00", "ON", "OFF", "Clear", "Add LoRA"]) {
       expect(labels, `"${wanted}" is not on the strip`).toContain(wanted);
     }
     expect(wrapper.find(".fil-actions-more").exists()).toBe(false);

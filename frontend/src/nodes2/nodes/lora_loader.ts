@@ -14,8 +14,8 @@ const LoraLoaderVue = defineAsyncComponent(
 // copied from the cycler and named four that do not exist on this node
 // (`cycle_mode`, `index`, `include_bypass`, `auto_advance`), which reads as if
 // the node cycles and hides nothing, since there is nothing there to hide.
-/** The width the design is drawn at — see `LoRA Loader Node.dc.html`. */
-const DESIGN_WIDTH = 660;
+/** The node's width. The design is drawn at 660; 400 is what was asked for. */
+const DESIGN_WIDTH = 400;
 
 const nativeWidgetNames = [
   "lora_list",
@@ -33,12 +33,10 @@ export const loraLoaderNode: NodeModule = {
       // weight field and two switches, and the strip the toolbar floats into
       // (see `socketBand.ts`) is only what the labels leave behind — at 340 it
       // was 213px and the toolbar did not fit in it.
-      // The design draws the node at 660, and that is the minimum rather than a
-      // starting point: three lines of controls ride in the socket strip
-      // between the input and output labels, and below this they have nowhere
-      // to sit. `initialWidth` cannot express it — in `nodeStyle.ts` it only
-      // ever narrows a node, and LiteGraph recomputes the size after
-      // `onNodeCreated` anyway, so a width set there is overwritten.
+      // 400 by request. The design's three lines need about 500px of strip, so
+      // at this width they no longer ride between the socket labels — the panel
+      // keeps them in flow instead, which `measureBand` decides by measuring
+      // rather than by a width threshold written down here.
       minSize: [DESIGN_WIDTH, 200],
       initialWidth: DESIGN_WIDTH,
       family: "tool",

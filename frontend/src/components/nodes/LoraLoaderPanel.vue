@@ -5,7 +5,6 @@
  */
 import { computed, nextTick, onBeforeUnmount, ref, onMounted, watch } from "vue";
 import {
-  FilButton,
   FilComboBox,
   type FilComboOption,
   FilModal,
@@ -149,7 +148,20 @@ function measureBand() {
     // One block of three lines, as the design draws it — so it is measured
     // once, against the whole strip rather than a row of it.
     const barHeight = target.getBoundingClientRect().height / scale;
-    bandStyle.value = asBox(socketBandBox(node, edges, barHeight));
+    const box = socketBandBox(node, edges, barHeight);
+
+    // The strip has to hold the block, not merely exist — and the natural width
+    // has to be asked for. `scrollWidth` answers with the container's own width
+    // here, because the lines stretch (`flex: 1` on the middle group and on the
+    // add button), so a block that needed 360 measured 360 at any width and the
+    // check never fired. `max-content` makes the flex children fall back to
+    // their content, which is the number this decision needs.
+    const measured = target as HTMLElement;
+    const previousWidth = measured.style.width;
+    measured.style.width = "max-content";
+    const needed = measured.offsetWidth / scale;
+    measured.style.width = previousWidth;
+    bandStyle.value = box && box.width >= needed ? asBox(box) : null;
   });
 }
 
@@ -681,12 +693,15 @@ function onComboClose(index: number) {
             @update:model-value="applyLoraSorting"
           />
         </div>
+        <!-- Short labels, full meaning in the tooltip: the strip between the
+             socket labels is 253px on a 400-wide node, and "1.00 All / All ON /
+             All OFF" spelled out needs 360. -->
         <div class="fil-band-middle">
-          <button class="fil-action-link highlight" title="Reset all LoRA weights to 1.00" @click="resetAllWeights">▤ 1.00 All</button>
-          <button class="fil-action-link" @click="toggleAll(true)">All ON</button>
-          <button class="fil-action-link" @click="toggleAll(false)">All OFF</button>
+          <button class="fil-action-link highlight" title="Reset every LoRA weight to 1.00" @click="resetAllWeights">1.00</button>
+          <button class="fil-action-link" title="Switch every LoRA on" @click="toggleAll(true)">ON</button>
+          <button class="fil-action-link" title="Switch every LoRA off" @click="toggleAll(false)">OFF</button>
         </div>
-        <button class="fil-action-link danger" @click="clearAllItems">Clear</button>
+        <button class="fil-action-link danger" title="Remove every LoRA from the stack" @click="clearAllItems">Clear</button>
       </div>
 
       <!-- Line 3: adding a LoRA, and what the stack currently amounts to. -->
@@ -891,16 +906,8 @@ function onComboClose(index: number) {
     </div>
 
     <!-- Action Buttons Group -->
-    <!-- No Add button down here: the design puts it on the third line of the
-         socket strip, beside the counter, where it costs the node no height. -->
-    <div v-if="!loraItems.length" class="fil-cycler-btn-group">
-      <FilButton
-        variant="accent"
-        label="+ Add LoRA"
-        class="fil-cycler-add-btn"
-        @click="addLoraItem"
-      />
-    </div>
+    <!-- No Add button down here at all: it lives on the third line of the
+         toolbar, floated or not, and having one in both places showed two. -->
 
     <!-- LoRA Info Modal -->
     <FilModal
@@ -1284,9 +1291,16 @@ function onComboClose(index: number) {
 .fil-band-line {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 5px;
   width: 100%;
   min-width: 0;
+}
+
+/* The sort box carries an icon, three characters and a chevron — the wide
+   default was 96px of strip for that. */
+.fil-cycler-actions-bar.floated .fil-sort-select-wrap {
+  width: 84px;
+  min-width: 84px;
 }
 
 /* The bulk trio sits in the middle of its line, away from both the sort box

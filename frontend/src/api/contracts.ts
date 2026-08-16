@@ -5632,7 +5632,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     }
   ],
   "min_size": [
-    660,
+    400,
     200
   ],
   "family": "tool"
