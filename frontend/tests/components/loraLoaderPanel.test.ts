@@ -89,6 +89,29 @@ describe("LoraLoaderPanel.vue", () => {
     vi.unstubAllGlobals();
   });
 
+  it("shows the file's own name, and keeps the path where it matters", async () => {
+    getJson.mockImplementation(backend({ "Ideogram/Eva/Eva_epoch_10.safetensors": "" }));
+    const list = "Ideogram/Eva/Eva_epoch_10.safetensors:1.00:1.00";
+    const node = makeNode(list);
+    const wrapper = mount(LoraLoaderPanel, { props: { state: makeState(node, list) as never } });
+
+    await nextTick();
+    await nextTick();
+
+    const shown = wrapper.find(".fil-cycler-select-wrap").text();
+    expect(shown).toContain("Eva_epoch_10");
+    expect(shown, "the folders are back in the row").not.toContain("Ideogram");
+    expect(shown, "the extension is back in the row").not.toContain(".safetensors");
+
+    // The full path is one hover away, and untouched in what the node runs.
+    expect(wrapper.find(".fil-cycler-select-wrap").attributes("title")).toBe(
+      "Ideogram/Eva/Eva_epoch_10.safetensors",
+    );
+    expect(node.widgets.find((w) => w.name === "lora_list")!.value).toBe(
+      "Ideogram/Eva/Eva_epoch_10.safetensors:1.00:1.00",
+    );
+  });
+
   it("shows one weight, and both only when the saved row has two", async () => {
     getJson.mockImplementation(backend({}));
     const same = "style_v1.safetensors:0.80:0.80";

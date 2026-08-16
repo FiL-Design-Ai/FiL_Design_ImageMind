@@ -18,6 +18,7 @@ import { findFilWidget } from "@/nodes2/util";
 import { getJson } from "@/api/client";
 import { ROUTE_PREFIX } from "@/constants/brand";
 import { panelEdgesInGraph, socketBandBox } from "@/nodes2/socketBand";
+import { stackDisplayNames } from "@/nodes2/loraNames";
 
 interface LoraItem {
   id: string;
@@ -82,9 +83,29 @@ const infoModalOpen = ref(false);
 const activeInfoDetail = ref<LoraInfoDetail | null>(null);
 const copySuccessMsg = ref("");
 
+/**
+ * What the row shows: the file's own name, without the folders above it and
+ * without the extension every one of them shares. The full path stays the
+ * value, stays in the tooltip and stays in `lora_list` — this is the label
+ * only. At the row's width the path was eating the part that identifies the
+ * model: `Ideogram\Eva\Eva_epoch_10_ideo4.safetensors` truncated to
+ * `Ideogram\Eva\Eva_ep…`, which says nothing the folder above it did not.
+ */
+function displayLoraName(name: string): string {
+  const base = name.replace(/\\/g, "/").split("/").pop() ?? name;
+  return base.replace(/\.(safetensors|ckpt|pt|pth|bin|onnx|gguf)$/i, "");
+}
+
 const comboOptions = computed<FilComboOption[]>(() =>
-  installedLoras.value.map((m) => ({ value: m, label: m }))
+  installedLoras.value.map((m) => ({ value: m, label: displayLoraName(m) }))
 );
+
+/**
+ * What each row calls its LoRA: the file name without folder or extension,
+ * grown back towards the path only for the entries that would otherwise read
+ * the same. The stored value never changes — see `loraNames.ts`.
+ */
+const displayNames = computed(() => stackDisplayNames(loraItems.value.map((item) => item.name)));
 
 const filteredLoraItems = computed(() => {
   const q = searchFilter.value.trim().toLowerCase();
@@ -769,12 +790,14 @@ function onComboClose(index: number) {
             ⚠️
           </span>
 
-          <div class="fil-cycler-select-wrap">
+          <div class="fil-cycler-select-wrap" :title="item.name || 'Select LoRA'">
             <FilComboBox
               :model-value="item.name"
               :options="comboOptions"
               :searchable="true"
               :auto-open="item.autoOpen"
+              :trigger-label="displayNames[originalIndex]"
+              :title="item.name"
               preview-mode="loras"
               placeholder="Select LoRA..."
               @close="onComboClose(originalIndex)"

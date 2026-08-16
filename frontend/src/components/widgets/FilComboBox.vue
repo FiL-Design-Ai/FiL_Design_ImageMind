@@ -28,6 +28,12 @@ const props = withDefaults(
     title?: string;
     previewMode?: string;
     autoOpen?: boolean;
+    /**
+     * What the closed trigger shows, when that differs from the option's own
+     * label. The list keeps the full label — a LoRA picker needs the path to
+     * choose by — while the row it sits in can show a shortened form.
+     */
+    triggerLabel?: string;
   }>(),
   { searchable: false, placeholder: "Search…" },
 );
@@ -80,7 +86,13 @@ const selected = computed(() => props.options.find((o) => o.value === modelValue
 const filtered = computed(() => {
   if (!props.searchable || !query.value.trim()) return props.options;
   const q = query.value.trim().toLowerCase();
-  return props.options.filter((o) => (o.label ?? o.value).toLowerCase().includes(q));
+  // Both, because a label can be a shortened form of the value: the LoRA
+  // picker shows `Eva_epoch_10` for `Ideogram/Eva/Eva_epoch_10.safetensors`,
+  // and typing the folder it lives in has to keep finding it. Matching the
+  // value as well only ever widens the result.
+  return props.options.filter(
+    (o) => (o.label ?? o.value).toLowerCase().includes(q) || o.value.toLowerCase().includes(q),
+  );
 });
 
 function optionLabel(o: FilComboOption): string {
@@ -248,7 +260,7 @@ defineExpose({
         class="fil-combo-trigger-label"
         :class="{ 'is-placeholder': !selected && !modelValue }"
       >
-        {{ selected ? optionLabel(selected) : (modelValue || placeholder) }}
+        {{ triggerLabel || (selected ? optionLabel(selected) : (modelValue || placeholder)) }}
       </span>
       <span v-if="selected?.badge" class="fil-combo-badge">{{ selected.badge }}</span>
       <span class="fil-combo-chevron">▾</span>
