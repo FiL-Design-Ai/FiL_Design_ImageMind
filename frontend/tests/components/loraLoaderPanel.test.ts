@@ -125,7 +125,13 @@ describe("LoraLoaderPanel.vue", () => {
       "style_v1.safetensors:0.85:0.85",
     );
 
-    await wrapper.find(".fil-split-btn").trigger("click");
+    // The separate CLIP weight is asked for from the row's menu now.
+    await wrapper.find(".fil-lora-row").trigger("contextmenu");
+    await nextTick();
+    const splitItem = wrapper
+      .findAll(".fil-row-menu button")
+      .find((b) => b.text().includes("Separate CLIP weight"))!;
+    await splitItem.trigger("click");
     await nextTick();
     const fields = wrapper.findAll(".fil-w-numfield");
     expect(fields).toHaveLength(2);

@@ -575,6 +575,55 @@ function toggleItemEnabled(index: number, enabled: boolean) {
 // it is the same field the rest of the pack uses, down to the drag-to-scrub and
 // the `1+0.05` arithmetic, none of which the hand-rolled stepper had.
 
+/**
+ * The row's own menu, on right-click.
+ *
+ * `preventDefault` here is what keeps LiteGraph's canvas menu from opening on
+ * top of it; the handler sits on our own row element, so nothing outside this
+ * panel is affected. Rendered in flow inside the panel rather than floating
+ * over the page: a popover above a node gets clipped by the canvas.
+ */
+const rowMenu = ref<{ index: number; x: number; y: number } | null>(null);
+
+function openRowMenu(index: number, event: MouseEvent) {
+  const panel = actionsBarEl.value?.parentElement;
+  const rect = panel?.getBoundingClientRect();
+  rowMenu.value = {
+    index,
+    x: rect ? event.clientX - rect.left : 0,
+    y: rect ? event.clientY - rect.top : 0,
+  };
+}
+
+function closeRowMenu() {
+  rowMenu.value = null;
+}
+
+function runRowAction(action: () => void) {
+  action();
+  closeRowMenu();
+}
+
+/** Move a row one place up or down; the same splice the drag path uses. */
+function moveItem(index: number, delta: number) {
+  const target = index + delta;
+  if (target < 0 || target >= loraItems.value.length) return;
+  const [item] = loraItems.value.splice(index, 1);
+  loraItems.value.splice(target, 0, item);
+  syncToNodeState();
+}
+
+function duplicateItem(index: number) {
+  const item = loraItems.value[index];
+  if (!item) return;
+  loraItems.value.splice(index + 1, 0, {
+    ...item,
+    id: `item_${Date.now()}_${Math.random()}`,
+    autoOpen: false,
+  });
+  syncToNodeState();
+}
+
 function onComboClose(index: number) {
   const item = loraItems.value[index];
   if (item && !item.name.trim()) {
@@ -584,7 +633,7 @@ function onComboClose(index: number) {
 </script>
 
 <template>
-  <div class="fil-cycler-root" :class="{ 'fil-band-open': Boolean(bandStyle) }">
+  <div class="fil-cycler-root" :class="{ 'fil-band-open': Boolean(bandStyle) || Boolean(rowMenu) }">
 
     <!-- Action Toolbar (Bulk operations & Sort).
          Lifted into the strip the socket labels leave empty when there is room
@@ -667,6 +716,7 @@ function onComboClose(index: number) {
           dragOverAbove: dragOverIndex === originalIndex && draggedIndex !== null && originalIndex < draggedIndex,
           dragOverBelow: dragOverIndex === originalIndex && draggedIndex !== null && originalIndex > draggedIndex
         }"
+        @contextmenu.prevent.stop="openRowMenu(originalIndex, $event)"
         @dragover="onDragOver(originalIndex, $event)"
         @dragleave="onDragLeave(originalIndex)"
         @drop="onDrop(originalIndex, $event)"
@@ -715,17 +765,6 @@ function onComboClose(index: number) {
               @click.stop="openInfoModal(item, originalIndex)"
             >
               ⓘ
-            </button>
-            <button
-              v-if="item.enabled && item.name.trim()"
-              class="fil-row-info-btn fil-split-btn"
-              :class="{ active: item.split }"
-              :title="item.split ? 'Give CLIP the same strength as Model again' : 'Set CLIP strength separately'"
-              :aria-pressed="Boolean(item.split)"
-              @mousedown.stop
-              @click.stop="toggleItemSplit(originalIndex)"
-            >
-              ⇅
             </button>
             <button
               class="fil-row-info-btn fil-cycler-remove-btn"
@@ -783,6 +822,57 @@ function onComboClose(index: number) {
         </div>
       </div>
     </TransitionGroup>
+
+    <!-- The row menu. In flow inside the panel, so the canvas cannot clip it,
+         and closed by anything that is not a click on itself. -->
+    <div
+      v-if="rowMenu"
+      class="fil-row-menu-backdrop"
+      @click="closeRowMenu"
+      @contextmenu.prevent="closeRowMenu"
+    >
+      <div
+        class="fil-row-menu"
+        :style="{ top: `${rowMenu.y}px`, left: `${rowMenu.x}px` }"
+        @click.stop
+        @contextmenu.prevent.stop
+      >
+        <button class="fil-row-menu-item" @click="runRowAction(() => openInfoModal(loraItems[rowMenu!.index], rowMenu!.index))">
+          <span class="fil-row-menu-icon">ⓘ</span> More info
+        </button>
+        <button
+          class="fil-row-menu-item"
+          :disabled="rowMenu.index === 0"
+          @click="runRowAction(() => moveItem(rowMenu!.index, -1))"
+        >
+          <span class="fil-row-menu-icon">↑</span> Move up
+        </button>
+        <button
+          class="fil-row-menu-item"
+          :disabled="rowMenu.index >= loraItems.length - 1"
+          @click="runRowAction(() => moveItem(rowMenu!.index, 1))"
+        >
+          <span class="fil-row-menu-icon">↓</span> Move down
+        </button>
+        <button class="fil-row-menu-item" @click="runRowAction(() => duplicateItem(rowMenu!.index))">
+          <span class="fil-row-menu-icon">⧉</span> Duplicate
+        </button>
+        <button class="fil-row-menu-item" @click="runRowAction(() => toggleItemSplit(rowMenu!.index))">
+          <span class="fil-row-menu-icon">⚖</span>
+          {{ loraItems[rowMenu.index]?.split ? "Same weight for CLIP" : "Separate CLIP weight" }}
+        </button>
+        <button
+          class="fil-row-menu-item"
+          @click="runRowAction(() => toggleItemEnabled(rowMenu!.index, !loraItems[rowMenu!.index].enabled))"
+        >
+          <span class="fil-row-menu-icon">◉</span>
+          {{ loraItems[rowMenu.index]?.enabled ? "Disable" : "Enable" }}
+        </button>
+        <button class="fil-row-menu-item danger" @click="runRowAction(() => removeLoraItem(rowMenu!.index))">
+          <span class="fil-row-menu-icon">✕</span> Remove
+        </button>
+      </div>
+    </div>
 
     <!-- Action Buttons Group -->
     <div class="fil-cycler-btn-group">
@@ -883,9 +973,10 @@ function onComboClose(index: number) {
 <style scoped>
 /* Every panel surface in the pack is clipped to its rounded corners by the
    shared rule in `styles/brand.ts` — which also swallowed the toolbar the
-   moment it was lifted above the panel. Opting out is scoped to this panel and
-   to the state that needs it: the pack-wide rule is one edit away from every
-   node, and this is one node with one control outside its box. */
+   moment it was lifted above the panel, and would swallow the row menu where
+   it runs past the last row. Opting out is scoped to this panel and to the two
+   states that need it: the pack-wide rule is one edit away from every node,
+   and this is one node with two things reaching outside its box. */
 .fil-node-shell .fil-cycler-root.fil-band-open {
   overflow: visible;
 }
@@ -1332,6 +1423,61 @@ function onComboClose(index: number) {
 
 .fil-cycler-actions-bar.floated > * {
   pointer-events: auto;
+}
+
+.fil-row-menu-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+}
+
+.fil-row-menu {
+  position: absolute;
+  min-width: 150px;
+  padding: 4px;
+  background: var(--fil-surface-2, #18181b);
+  border: 1px solid color-mix(in srgb, var(--fil-border) 90%, transparent);
+  border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.fil-row-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  color: var(--fil-text);
+  font-size: 11px;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.fil-row-menu-item:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--fil-accent, #a855f7) 22%, transparent);
+}
+
+.fil-row-menu-item:disabled {
+  color: var(--fil-muted);
+  cursor: default;
+  opacity: 0.5;
+}
+
+.fil-row-menu-item.danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--fil-danger, #ef4444) 22%, transparent);
+  color: var(--fil-danger, #ef4444);
+}
+
+.fil-row-menu-icon {
+  width: 12px;
+  text-align: center;
+  color: var(--fil-muted);
 }
 
 .fil-actions-menu {

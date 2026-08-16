@@ -179,6 +179,67 @@ test.describe("LoRA Loader panel at the width of its own node", () => {
     expect(stack.height).toBeLessThan(270);
   });
 
+  test("right-click on a row opens its own menu, not the canvas one", async ({ page }) => {
+    await mountPanel(page, STACK);
+
+    let canvasMenuAsked = false;
+    await page.exposeFunction("__filCanvasMenu", () => {
+      canvasMenuAsked = true;
+    });
+    await page.evaluate(() => {
+      // Anything that reaches the page behind the panel would be LiteGraph's
+      // own menu on a real canvas.
+      document.addEventListener("contextmenu", () => {
+        (window as unknown as { __filCanvasMenu: () => void }).__filCanvasMenu();
+      });
+    });
+
+    await page.locator(".fil-lora-row").first().click({ button: "right" });
+
+    const menu = page.locator(".fil-row-menu");
+    await expect(menu).toBeVisible();
+    const labels = (await menu.locator("button").allTextContents()).join(" ");
+    expect(labels).toContain("More info");
+    expect(labels).toContain("Move down");
+    expect(labels).toContain("Duplicate");
+    expect(labels).toContain("Remove");
+    expect(canvasMenuAsked, "the event carried on past the row").toBe(false);
+
+    // The first row cannot move up, and says so rather than doing nothing.
+    await expect(menu.locator("button", { hasText: "Move up" })).toBeDisabled();
+  });
+
+  test("move down, duplicate and remove rewrite the stack", async ({ page }) => {
+    await mountPanel(page, STACK);
+    const listOf = () =>
+      page.evaluate(() => {
+        const widgets = (
+          document.querySelector(".fil-cycler-root") as unknown as { __vue__?: unknown }
+        );
+        void widgets;
+        return (window as unknown as { __filList: () => string }).__filList();
+      });
+    await page.evaluate(() => {
+      (window as unknown as { __filList: () => string }).__filList = () =>
+        (document.querySelectorAll(".fil-lora-row") as unknown as ArrayLike<Element>).length +
+        ":" +
+        [...document.querySelectorAll(".fil-cycler-select-wrap")]
+          .map((el) => (el.textContent || "").trim().split("\\n")[0])
+          .join("|");
+    });
+
+    const before = await listOf();
+    await page.locator(".fil-lora-row").first().click({ button: "right" });
+    await page.locator(".fil-row-menu button", { hasText: "Duplicate" }).click();
+    const afterDuplicate = await listOf();
+    expect(afterDuplicate).not.toBe(before);
+    await expect(page.locator(".fil-lora-row")).toHaveCount(4);
+
+    await page.locator(".fil-lora-row").first().click({ button: "right" });
+    await page.locator(".fil-row-menu button", { hasText: "Remove" }).click();
+    await expect(page.locator(".fil-lora-row")).toHaveCount(3);
+  });
+
   test("the row's occasional controls wait for the pointer", async ({ page }) => {
     await mountPanel(page, STACK);
 
@@ -206,8 +267,10 @@ test.describe("LoRA Loader panel at the width of its own node", () => {
     const firstRow = page.locator(".fil-lora-row").first();
     const before = (await firstRow.boundingBox())!.height;
 
-    await firstRow.hover();
-    await firstRow.locator(".fil-split-btn").click();
+    // Asked for from the row's menu: as a button in the row it read as
+    // "move up/down" next to a drag handle that already reorders.
+    await firstRow.click({ button: "right" });
+    await page.locator(".fil-row-menu button", { hasText: "Separate CLIP weight" }).click();
 
     await expect(firstRow.locator(".fil-w-numfield")).toHaveCount(2);
     expect((await firstRow.boundingBox())!.height).toBeGreaterThan(before);
