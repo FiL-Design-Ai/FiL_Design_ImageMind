@@ -823,6 +823,7 @@ function onComboClose(index: number) {
               :auto-open="item.autoOpen"
               :trigger-label="displayNames[originalIndex]"
               :title="item.name"
+              browse-folders
               preview-mode="loras"
               placeholder="Select LoRA..."
               @close="onComboClose(originalIndex)"

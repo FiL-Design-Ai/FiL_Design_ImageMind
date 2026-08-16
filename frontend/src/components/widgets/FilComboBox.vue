@@ -34,6 +34,11 @@ const props = withDefaults(
      * choose by — while the row it sits in can show a shortened form.
      */
     triggerLabel?: string;
+    /**
+     * Browse the options as a folder tree, splitting their values on `/` or
+     * `\`. Off by default: it only makes sense where the values are paths.
+     */
+    browseFolders?: boolean;
   }>(),
   { searchable: false, placeholder: "Search…" },
 );
@@ -99,6 +104,103 @@ function optionLabel(o: FilComboOption): string {
   return o.label ?? o.value;
 }
 
+/**
+ * Browsing by folder.
+ *
+ * A flat list is fine for twenty options and useless for four hundred, which is
+ * what a models folder becomes. When `browseFolders` is on, the list shows the
+ * folders at the current level with a count each, and typing anything drops
+ * back to searching every option flat — so nothing is ever more than a search
+ * away, and drilling is a choice rather than a toll.
+ */
+interface BrowseEntry {
+  kind: "back" | "folder" | "option";
+  label: string;
+  count?: number;
+  path?: string;
+  option?: FilComboOption;
+  sub?: string;
+}
+
+const curPath = ref("");
+
+function folderOf(value: string): string {
+  const norm = value.replace(/\\/g, "/");
+  const cut = norm.lastIndexOf("/");
+  return cut < 0 ? "" : norm.slice(0, cut);
+}
+
+function baseOf(value: string): string {
+  const norm = value.replace(/\\/g, "/");
+  return norm.slice(norm.lastIndexOf("/") + 1);
+}
+
+function parentOf(path: string): string {
+  const cut = path.lastIndexOf("/");
+  return cut < 0 ? "" : path.slice(0, cut);
+}
+
+/** Folder navigation is on only while the search box is empty. */
+const browsing = computed(() => Boolean(props.browseFolders) && !query.value.trim());
+
+const crumbs = computed(() => {
+  const parts = curPath.value ? curPath.value.split("/") : [];
+  return parts.map((label, index) => ({ label, path: parts.slice(0, index + 1).join("/") }));
+});
+
+const entries = computed<BrowseEntry[]>(() => {
+  if (!browsing.value) {
+    // Searching: every option, and the folder spelled out beside the name so a
+    // hit is placeable without opening it.
+    return filtered.value.map((o) => ({
+      kind: "option" as const,
+      label: props.browseFolders ? baseOf(optionLabel(o)) : optionLabel(o),
+      option: o,
+      sub: props.browseFolders ? folderOf(o.value) : undefined,
+    }));
+  }
+
+  const prefix = curPath.value ? `${curPath.value}/` : "";
+  const folders = new Map<string, number>();
+  const files: FilComboOption[] = [];
+  for (const option of props.options) {
+    const norm = option.value.replace(/\\/g, "/");
+    if (prefix && !norm.toLowerCase().startsWith(prefix.toLowerCase())) continue;
+    const rest = norm.slice(prefix.length);
+    const slash = rest.indexOf("/");
+    if (slash < 0) files.push(option);
+    else {
+      const name = rest.slice(0, slash);
+      folders.set(name, (folders.get(name) ?? 0) + 1);
+    }
+  }
+
+  const out: BrowseEntry[] = [];
+  if (curPath.value) out.push({ kind: "back", label: "‹ back", path: parentOf(curPath.value) });
+  for (const [name, count] of [...folders.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
+    out.push({
+      kind: "folder",
+      label: name,
+      count,
+      path: curPath.value ? `${curPath.value}/${name}` : name,
+    });
+  }
+  for (const option of files) {
+    out.push({ kind: "option", label: baseOf(optionLabel(option)), option });
+  }
+  return out;
+});
+
+function activate(entry: BrowseEntry): void {
+  if (entry.kind === "option" && entry.option) {
+    select(entry.option);
+    return;
+  }
+  curPath.value = entry.path ?? "";
+  query.value = "";
+  activeIndex.value = 0;
+}
+
 function computePosition() {
   const trigger = triggerRef.value;
   if (!trigger) return;
@@ -139,9 +241,13 @@ function openPanel() {
   if (props.disabled) return;
   open.value = true;
   query.value = "";
+  // Open where the current value lives, not at the root: on a LoRA two folders
+  // deep, a picker that starts at the top makes the user walk back down to it
+  // every time — the bug Pixaroma's own picker records having had.
+  if (props.browseFolders) curPath.value = folderOf(modelValue.value ?? "");
   activeIndex.value = Math.max(
     0,
-    filtered.value.findIndex((o) => o.value === modelValue.value),
+    entries.value.findIndex((entry) => entry.option?.value === modelValue.value),
   );
   nextTick(() => {
     computePosition();
@@ -201,7 +307,9 @@ function onTriggerKeydown(e: KeyboardEvent) {
 }
 
 function onPanelKeydown(e: KeyboardEvent) {
-  const list = filtered.value;
+  // The rows, whatever they are: with folder browsing on, walking the list has
+  // to step over folders too, and Enter on one opens it.
+  const list = entries.value;
   if (e.key === "ArrowDown") {
     e.preventDefault();
     activeIndex.value = list.length ? (activeIndex.value + 1) % list.length : 0;
@@ -210,8 +318,8 @@ function onPanelKeydown(e: KeyboardEvent) {
     activeIndex.value = list.length ? (activeIndex.value - 1 + list.length) % list.length : 0;
   } else if (e.key === "Enter") {
     e.preventDefault();
-    const o = list[activeIndex.value];
-    if (o) select(o);
+    const entry = list[activeIndex.value];
+    if (entry) activate(entry);
   } else if (e.key === "Escape") {
     e.preventDefault();
     close();
@@ -278,24 +386,47 @@ defineExpose({
           spellcheck="false"
           @keydown.stop
         />
+        <div v-if="browsing && crumbs.length" class="fil-combo-crumbs">
+          <button type="button" class="fil-combo-crumb" @click="curPath = ''">All</button>
+          <template v-for="(crumb, i) in crumbs" :key="crumb.path">
+            <span class="fil-combo-crumb-sep">›</span>
+            <button
+              type="button"
+              class="fil-combo-crumb"
+              :class="{ here: i === crumbs.length - 1 }"
+              @click="curPath = crumb.path"
+            >
+              {{ crumb.label }}
+            </button>
+          </template>
+        </div>
         <div class="fil-combo-list" @wheel.stop>
           <button
-            v-for="(o, i) in filtered"
-            :key="o.value"
+            v-for="(entry, i) in entries"
+            :key="entry.kind + (entry.option?.value ?? entry.path ?? entry.label)"
             type="button"
             class="fil-combo-option"
-            :class="{ active: i === activeIndex, selected: o.value === modelValue }"
+            :class="{
+              active: i === activeIndex,
+              selected: entry.option?.value === modelValue,
+              folder: entry.kind !== 'option',
+            }"
             role="option"
-            :aria-selected="o.value === modelValue"
-            @mouseenter="onOptionMouseEnter(o, i, $event)"
+            :aria-selected="entry.option?.value === modelValue"
+            :title="entry.option?.value"
+            @mouseenter="entry.option && onOptionMouseEnter(entry.option, i, $event)"
             @mouseleave="onOptionMouseLeave"
-            @click="select(o)"
+            @click="activate(entry)"
           >
-            <FilIcon v-if="o.icon" :name="o.icon" :size="16" />
-            <span class="fil-combo-option-label">{{ optionLabel(o) }}</span>
-            <span v-if="o.badge" class="fil-combo-badge">{{ o.badge }}</span>
+            <span v-if="entry.kind === 'folder'" class="fil-combo-folder-icon">📁</span>
+            <FilIcon v-else-if="entry.option?.icon" :name="entry.option.icon" :size="16" />
+            <span class="fil-combo-option-label">{{ entry.label }}</span>
+            <span v-if="entry.sub" class="fil-combo-option-sub">{{ entry.sub }}</span>
+            <span v-if="entry.count" class="fil-combo-folder-count">{{ entry.count }}</span>
+            <span v-if="entry.kind === 'folder'" class="fil-combo-folder-chevron">›</span>
+            <span v-if="entry.option?.badge" class="fil-combo-badge">{{ entry.option.badge }}</span>
           </button>
-          <div v-if="filtered.length === 0" class="fil-combo-empty">No matches</div>
+          <div v-if="entries.length === 0" class="fil-combo-empty">No matches</div>
         </div>
       </div>
       <!-- Hover Image Preview Popup -->
@@ -368,6 +499,33 @@ defineExpose({
 }
 .fil-combo-search:focus { border-color: var(--fil-accent); }
 .fil-combo-list { display: flex; flex-direction: column; gap: 2px; max-height: 240px; overflow-y: auto; }
+/* Folder browsing. The rows reuse `.fil-combo-option` so a folder and a file
+   line up and answer the keyboard the same way; only the trimmings differ. */
+.fil-combo-crumbs {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 2px;
+  padding: 0 2px 6px; font-size: 11px; color: var(--fil-muted);
+}
+.fil-combo-crumb {
+  background: transparent; border: none; padding: 1px 3px; border-radius: 4px;
+  color: var(--fil-muted); font-size: 11px; cursor: pointer;
+}
+.fil-combo-crumb:hover { color: var(--fil-accent-text, #c084fc); }
+.fil-combo-crumb.here { color: var(--fil-text); cursor: default; }
+.fil-combo-crumb-sep { color: color-mix(in srgb, var(--fil-border) 90%, transparent); }
+.fil-combo-folder-icon { flex: none; font-size: 12px; }
+.fil-combo-folder-count {
+  flex: none; font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 10px; color: var(--fil-muted);
+}
+.fil-combo-folder-chevron { flex: none; color: var(--fil-muted); }
+/* Where a search hit lives, since the name alone stops saying it once the
+   folders are hidden. */
+.fil-combo-option-sub {
+  flex: none; margin-left: auto; font-size: 10px; color: var(--fil-muted);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 45%;
+}
+.fil-combo-option.folder .fil-combo-option-label { color: var(--fil-text); }
+
 .fil-combo-option {
   display: flex; align-items: center; gap: 6px; width: 100%; box-sizing: border-box;
   padding: 6px 8px; border-radius: 5px; border: none; background: transparent; color: var(--fil-text);
