@@ -140,25 +140,19 @@ test.describe("LoRA Loader toolbar in the socket strip", () => {
     expect(barBox.x + barBox.width).toBeLessThan(panelBox.x + panelBox.width - 40);
   });
 
-  test("the bulk actions take the rows below, and the more button goes away", async ({ page }) => {
+  test("the stack's state takes the rows below the toolbar", async ({ page }) => {
     await mountOnFakeNode(page);
 
-    const bulk = page.locator(".fil-actions-menu");
-    await expect(bulk).toHaveClass(/floated/);
-    await expect(page.locator(".fil-actions-more")).toHaveCount(0);
+    // Grouped by weight: the bar above works on the list, and what rides the
+    // lower rows is the stack's own state — how many of it is on.
+    const state = page.locator(".fil-stack-state");
+    await expect(state).toHaveClass(/floated/);
+    await expect(page.locator(".fil-stack-count")).toContainText("/");
 
-    const labels = (await bulk.locator("button").allTextContents()).join(" ");
-    expect(labels).toContain("1.00 All");
-    expect(labels).toContain("Clear");
-
-    // Two socket rows apart, so neither bar sits on the other.
+    // Two socket rows apart, so neither sits on the other.
     const toolbar = (await page.locator(".fil-cycler-actions-bar").boundingBox())!;
-    const bulkBox = (await bulk.boundingBox())!;
-    expect(bulkBox.y).toBeGreaterThanOrEqual(toolbar.y + toolbar.height);
-
-    // And the lower rows are free on the left, so these start further left
-    // than the toolbar above them.
-    expect(bulkBox.x).toBeLessThan(toolbar.x);
+    const stateBox = (await state.boundingBox())!;
+    expect(stateBox.y).toBeGreaterThanOrEqual(toolbar.y + toolbar.height);
   });
 
   test("stays in flow when the node is too narrow for the strip", async ({ page }) => {
@@ -311,14 +305,17 @@ test.describe("LoRA Loader panel at the width of its own node", () => {
     await expect(page.locator(".fil-stack-search-input")).toHaveCount(1);
   });
 
-  test("the bulk actions are reachable behind the more button", async ({ page }) => {
+  test("the rare actions are reachable behind the more button", async ({ page }) => {
     await mountPanel(page, STACK);
 
     await expect(page.locator(".fil-actions-menu")).toHaveCount(0);
     await page.locator(".fil-actions-more").click();
 
+    // Resetting every weight and emptying the stack: rare, and one of them
+    // destructive, so they do not sit next to what gets used.
     const menu = page.locator(".fil-actions-menu");
-    await expect(menu.locator("button")).toHaveCount(4);
+    await expect(menu.locator("button")).toHaveCount(2);
+    expect((await menu.locator("button").allTextContents()).join(" ")).toContain("Clear stack");
     const bar = (await page.locator(".fil-cycler-actions-bar").boundingBox())!;
     for (const control of await menu.locator("button").all()) {
       const box = (await control.boundingBox())!;

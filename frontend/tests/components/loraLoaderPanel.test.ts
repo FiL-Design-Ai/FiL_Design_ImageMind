@@ -78,7 +78,7 @@ describe("LoraLoaderPanel.vue", () => {
 
     const copyAll = wrapper
       .findAll(".fil-cycler-actions-bar button")
-      .find((b) => b.text().includes("Copy Triggers"))!;
+      .find((b) => b.text().includes("Triggers"))!;
     await copyAll.trigger("click");
 
     // Only the row that is on, and read under the name the API actually sends.
@@ -174,12 +174,38 @@ describe("LoraLoaderPanel.vue", () => {
     await nextTick();
 
     // Six controls sat here and four fit: "All OFF" was cut in half and
-    // "Clear" was off the edge, unreachable without resizing the node.
+    // "Clear" was off the edge, unreachable without resizing the node. What is
+    // left on the bar is the list's own work; the stack's state is the counter
+    // below it, and the two rare actions wait behind the more button.
     expect(wrapper.findAll(".fil-cycler-actions-bar button")).toHaveLength(3);
     expect(wrapper.find(".fil-actions-menu").exists()).toBe(false);
 
     await wrapper.find(".fil-actions-more").trigger("click");
-    expect(wrapper.findAll(".fil-actions-menu button")).toHaveLength(4);
+    const menu = wrapper.findAll(".fil-actions-menu button").map((b) => b.text());
+    expect(menu).toHaveLength(2);
+    expect(menu.join(" ")).toContain("Clear stack");
+  });
+
+  it("counts the rows that are on, and flips them all", async () => {
+    getJson.mockImplementation(backend({}));
+    const list = ["a.safetensors:1.00:1.00", "# b.safetensors:1.00:1.00"].join("\n");
+    const node = makeNode(list);
+    const wrapper = mount(LoraLoaderPanel, { props: { state: makeState(node, list) as never } });
+    await nextTick();
+
+    const count = wrapper.find(".fil-stack-count");
+    expect(count.text().replace(/\s+/g, "")).toBe("1/2");
+
+    // Not everything is on, so the first click turns the rest on rather than
+    // switching off the one that was.
+    await count.trigger("click");
+    expect(count.text().replace(/\s+/g, "")).toBe("2/2");
+    expect(node.widgets.find((w) => w.name === "lora_list")!.value).toBe(
+      ["a.safetensors:1.00:1.00", "b.safetensors:1.00:1.00"].join("\n"),
+    );
+
+    await count.trigger("click");
+    expect(count.text().replace(/\s+/g, "")).toBe("0/2");
   });
 
   it("asks about a name once, even when the lookup fails", async () => {

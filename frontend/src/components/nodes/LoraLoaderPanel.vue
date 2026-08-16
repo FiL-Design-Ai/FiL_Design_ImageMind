@@ -107,6 +107,9 @@ const comboOptions = computed<FilComboOption[]>(() =>
  */
 const displayNames = computed(() => stackDisplayNames(loraItems.value.map((item) => item.name)));
 
+/** How many rows are switched on — the number the stack strip reports. */
+const activeLoraCount = computed(() => loraItems.value.filter((item) => item.enabled).length);
+
 const filteredLoraItems = computed(() => {
   const q = searchFilter.value.trim().toLowerCase();
   if (!q) return loraItems.value.map((item, originalIndex) => ({ item, originalIndex }));
@@ -689,8 +692,11 @@ function onComboClose(index: number) {
           @update:model-value="applyLoraSorting"
         />
       </div>
+      <button class="fil-action-link highlight" title="Copy all trigger words of active LoRAs to clipboard" @click="copyAllActiveTriggers">⚡ Triggers</button>
+
+      <!-- Grouped by weight, not laid out as one ribbon of equal pills: what
+           works on the list sits left, the two rarely-touched controls right. -->
       <div class="fil-actions-right-group">
-        <button class="fil-action-link highlight" title="Copy all trigger words of active LoRAs to clipboard" @click="copyAllActiveTriggers">⚡ Copy Triggers</button>
         <button
           class="fil-refresh-loras-btn"
           :class="{ spinning: isRefreshingLoras }"
@@ -702,7 +708,6 @@ function onComboClose(index: number) {
           🔄
         </button>
         <button
-          v-if="!bulkOnBand"
           class="fil-action-link fil-actions-more"
           :class="{ open: menuOpen }"
           title="More actions"
@@ -715,20 +720,33 @@ function onComboClose(index: number) {
       </div>
     </div>
 
-    <!-- The bulk actions. They ride the strip two socket rows below the
-         toolbar when there is one; on a node too narrow for it they fall back
-         to a row of their own behind the more button. -->
+    <!-- Two socket rows below the toolbar: the state of the stack rather than
+         more buttons — how many rows are on, and one click to flip them all.
+         It replaces the pair of All ON / All OFF and says something neither of
+         them did. -->
     <div
-      v-if="bulkOnBand || menuOpen"
+      v-if="loraItems.length"
       ref="bulkBarEl"
-      class="fil-actions-menu"
+      class="fil-stack-state"
       :class="{ floated: bulkOnBand }"
       :style="bulkBandStyle ?? undefined"
     >
-      <button class="fil-action-link highlight" title="Reset all LoRA weights to 1.00" @click="runFromMenu(resetAllWeights)">🔄 1.00 All</button>
-      <button class="fil-action-link" @click="runFromMenu(() => toggleAll(true))">All ON</button>
-      <button class="fil-action-link" @click="runFromMenu(() => toggleAll(false))">All OFF</button>
-      <button class="fil-action-link danger" @click="runFromMenu(clearAllItems)">Clear</button>
+      <button
+        class="fil-stack-count"
+        :class="{ allOff: activeLoraCount === 0 }"
+        :title="activeLoraCount === loraItems.length ? 'Switch every LoRA off' : 'Switch every LoRA on'"
+        @click="toggleAll(activeLoraCount !== loraItems.length)"
+      >
+        <span class="fil-stack-switch" :class="{ on: activeLoraCount > 0 }"></span>
+        {{ activeLoraCount }} / {{ loraItems.length }}
+      </button>
+    </div>
+
+    <!-- What is left is rare and one of it is destructive, so it waits behind
+         the more button instead of sitting next to what gets used. -->
+    <div v-if="menuOpen" class="fil-actions-menu">
+      <button class="fil-action-link highlight" title="Reset all LoRA weights to 1.00" @click="runFromMenu(resetAllWeights)">🔄 Weights to 1.00</button>
+      <button class="fil-action-link danger" @click="runFromMenu(clearAllItems)">Clear stack</button>
     </div>
 
     <!-- Search Stack Filter Input -->
@@ -1557,17 +1575,75 @@ function onComboClose(index: number) {
   box-sizing: border-box;
 }
 
-.fil-actions-menu.floated {
+.fil-stack-state {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.fil-stack-state.floated {
   position: absolute;
   z-index: 2;
   pointer-events: none;
   width: auto;
-  padding: 0;
-  flex-wrap: nowrap;
 }
 
-.fil-actions-menu.floated > * {
+.fil-stack-state.floated > * {
   pointer-events: auto;
+}
+
+.fil-stack-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--fil-surface-2, #18181b);
+  border: 1px solid color-mix(in srgb, var(--fil-border) 90%, transparent);
+  border-radius: 999px;
+  padding: 1px 8px 1px 4px;
+  color: var(--fil-muted);
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.fil-stack-count:hover {
+  color: var(--fil-text);
+  border-color: color-mix(in srgb, var(--fil-accent, #a855f7) 55%, transparent);
+}
+
+/* Reads as the row switches do, so the tie between them is visible rather
+   than explained. */
+.fil-stack-switch {
+  width: 20px;
+  height: 11px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--fil-border) 90%, transparent);
+  position: relative;
+  flex: none;
+  transition: background 0.12s;
+}
+
+.fil-stack-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--fil-muted);
+  transition: transform 0.12s, background 0.12s;
+}
+
+.fil-stack-switch.on {
+  background: color-mix(in srgb, var(--fil-accent, #a855f7) 65%, transparent);
+}
+
+.fil-stack-switch.on::after {
+  transform: translateX(9px);
+  background: #fff;
 }
 
 .fil-actions-more {
