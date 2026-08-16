@@ -681,6 +681,7 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
             :options="comboOptions"
             :searchable="true"
             :auto-open="item.autoOpen"
+            browse-folders
             :preview-mode="sourceMode === 'Diffusion Models' ? 'diffusion_models' : 'checkpoints'"
             :placeholder="t('cycler_select_model', 'Select model...')"
             @close="onComboClose(originalIndex)"
