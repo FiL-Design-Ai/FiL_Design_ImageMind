@@ -100,17 +100,27 @@ const filteredLoraItems = computed(() => {
  * off this node instead of tuned by hand. `socketBand.ts` explains the rest.
  */
 const actionsBarEl = ref<HTMLElement | null>(null);
+const bulkBarEl = ref<HTMLElement | null>(null);
 const bandStyle = ref<Record<string, string> | null>(null);
+/**
+ * The bulk actions ride two socket rows below the toolbar. On this node those
+ * rows carry `TRIGGERS` and `LABEL` on the right and nothing at all on the
+ * left, so the strip there is wider than the one above it — wide enough that
+ * hiding them behind a menu was never necessary.
+ */
+const bulkBandStyle = ref<Record<string, string> | null>(null);
+
+/** True while the bulk actions have a strip of their own to sit in. */
+const bulkOnBand = computed(() => bulkBandStyle.value !== null);
 
 function measureBand() {
-  const el = actionsBarEl.value;
   const node = props.state.node as Parameters<typeof socketBandBox>[0] | undefined;
-  if (!el || !node) return;
+  if (!actionsBarEl.value || !node) return;
 
-  // Measure the bar where it sits in flow: floated, its own offsets would be
-  // what the next measurement reads back.
-  const wasFloated = bandStyle.value !== null;
-  if (wasFloated) bandStyle.value = null;
+  // Measure both bars where they sit in flow: floated, their own offsets would
+  // be what the next measurement reads back.
+  bandStyle.value = null;
+  bulkBandStyle.value = null;
 
   nextTick(() => {
     const target = actionsBarEl.value;
@@ -121,10 +131,16 @@ function measureBand() {
 
     const scale =
       (globalThis as { app?: { canvas?: { ds?: { scale: number } } } }).app?.canvas?.ds?.scale || 1;
-    const box = socketBandBox(node, edges, target.getBoundingClientRect().height / scale);
-    bandStyle.value = box
-      ? { top: `${box.top}px`, left: `${box.left}px`, right: `${box.right}px` }
-      : null;
+    const asBox = (box: ReturnType<typeof socketBandBox>) =>
+      box ? { top: `${box.top}px`, left: `${box.left}px`, right: `${box.right}px` } : null;
+
+    const barHeight = target.getBoundingClientRect().height / scale;
+    bandStyle.value = asBox(socketBandBox(node, edges, barHeight));
+
+    const bulk = bulkBarEl.value;
+    const bulkHeight = (bulk?.getBoundingClientRect().height || barHeight) / scale;
+    // Two rows down, so the two bars never share a row.
+    bulkBandStyle.value = bandStyle.value ? asBox(socketBandBox(node, edges, bulkHeight, 2)) : null;
   });
 }
 
@@ -665,6 +681,7 @@ function onComboClose(index: number) {
           🔄
         </button>
         <button
+          v-if="!bulkOnBand"
           class="fil-action-link fil-actions-more"
           :class="{ open: menuOpen }"
           title="More actions"
@@ -677,9 +694,16 @@ function onComboClose(index: number) {
       </div>
     </div>
 
-    <!-- The rest of the bulk actions. Laid out in flow rather than floating:
-         a popover over a node gets clipped by the canvas, and this cannot. -->
-    <div v-if="menuOpen" class="fil-actions-menu">
+    <!-- The bulk actions. They ride the strip two socket rows below the
+         toolbar when there is one; on a node too narrow for it they fall back
+         to a row of their own behind the more button. -->
+    <div
+      v-if="bulkOnBand || menuOpen"
+      ref="bulkBarEl"
+      class="fil-actions-menu"
+      :class="{ floated: bulkOnBand }"
+      :style="bulkBandStyle ?? undefined"
+    >
       <button class="fil-action-link highlight" title="Reset all LoRA weights to 1.00" @click="runFromMenu(resetAllWeights)">🔄 1.00 All</button>
       <button class="fil-action-link" @click="runFromMenu(() => toggleAll(true))">All ON</button>
       <button class="fil-action-link" @click="runFromMenu(() => toggleAll(false))">All OFF</button>
@@ -722,10 +746,11 @@ function onComboClose(index: number) {
         @drop="onDrop(originalIndex, $event)"
         @dragend="onDragEnd"
       >
-        <!-- One line: the four things a stack is read by. Info, the CLIP
-             weight and Remove are wanted once in a while, so they wait until
-             the pointer is on the row; their space is reserved either way, or
-             every row would jump sideways under the cursor. -->
+        <!-- One line: the four things a stack is read by. Info waits until the
+             pointer is on the row; its space is reserved either way, or every
+             row would jump sideways under the cursor. Remove, reordering and
+             the CLIP weight live in the row's right-click menu — a stack is
+             read far more often than it is edited. -->
         <div class="fil-lora-line">
           <div
             class="fil-drag-handle"
@@ -765,14 +790,6 @@ function onComboClose(index: number) {
               @click.stop="openInfoModal(item, originalIndex)"
             >
               ⓘ
-            </button>
-            <button
-              class="fil-row-info-btn fil-cycler-remove-btn"
-              title="Remove LoRA"
-              @mousedown.stop
-              @click.stop="removeLoraItem(originalIndex)"
-            >
-              ✕
             </button>
           </div>
 
@@ -1343,21 +1360,7 @@ function onComboClose(index: number) {
   width: 100%;
 }
 
-.fil-cycler-remove-btn {
-  background: transparent;
-  border: none;
-  color: var(--fil-muted);
-  cursor: pointer;
-  font-size: 12px;
-  padding: 2px 5px;
-  border-radius: 4px;
-  transition: color 0.1s, background 0.1s;
-}
 
-.fil-cycler-remove-btn:hover {
-  color: var(--fil-danger);
-  background: color-mix(in srgb, var(--fil-danger) 16%, transparent);
-}
 
 .fil-lora-weights {
   display: flex;
@@ -1529,6 +1532,19 @@ function onComboClose(index: number) {
   padding: 3px 0 1px;
   width: 100%;
   box-sizing: border-box;
+}
+
+.fil-actions-menu.floated {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  width: auto;
+  padding: 0;
+  flex-wrap: nowrap;
+}
+
+.fil-actions-menu.floated > * {
+  pointer-events: auto;
 }
 
 .fil-actions-more {

@@ -101,6 +101,8 @@ export function socketBandBox(
   node: BandNode,
   panel: { top: number; left: number; right: number },
   height: number,
+  /** Which socket row to start from — a second control goes below the first. */
+  startRow = 0,
 ): BandBox | null {
   // Nodes 2.0 lays the body out in the DOM, where there is no painted strip to
   // borrow and a negative offset lands on the node's own chrome.
@@ -115,7 +117,10 @@ export function socketBandBox(
 
   const slotHeight =
     (globalThis as { LiteGraph?: { NODE_SLOT_HEIGHT?: number } }).LiteGraph?.NODE_SLOT_HEIGHT ?? 20;
-  const rowTop = firstRow - slotHeight / 2;
+  // Rows past the last socket are not part of the strip: below it the panel's
+  // own content begins, and a control placed there would sit on top of it.
+  if (startRow > 0 && startRow >= outputs.length) return null;
+  const rowTop = firstRow - slotHeight / 2 + startRow * slotHeight;
   const boxTop = rowTop + Math.max(0, (slotHeight - height) / 2);
   const boxBottom = boxTop + height;
 

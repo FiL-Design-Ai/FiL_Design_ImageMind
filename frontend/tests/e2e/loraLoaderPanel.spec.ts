@@ -140,6 +140,27 @@ test.describe("LoRA Loader toolbar in the socket strip", () => {
     expect(barBox.x + barBox.width).toBeLessThan(panelBox.x + panelBox.width - 40);
   });
 
+  test("the bulk actions take the rows below, and the more button goes away", async ({ page }) => {
+    await mountOnFakeNode(page);
+
+    const bulk = page.locator(".fil-actions-menu");
+    await expect(bulk).toHaveClass(/floated/);
+    await expect(page.locator(".fil-actions-more")).toHaveCount(0);
+
+    const labels = (await bulk.locator("button").allTextContents()).join(" ");
+    expect(labels).toContain("1.00 All");
+    expect(labels).toContain("Clear");
+
+    // Two socket rows apart, so neither bar sits on the other.
+    const toolbar = (await page.locator(".fil-cycler-actions-bar").boundingBox())!;
+    const bulkBox = (await bulk.boundingBox())!;
+    expect(bulkBox.y).toBeGreaterThanOrEqual(toolbar.y + toolbar.height);
+
+    // And the lower rows are free on the left, so these start further left
+    // than the toolbar above them.
+    expect(bulkBox.x).toBeLessThan(toolbar.x);
+  });
+
   test("stays in flow when the node is too narrow for the strip", async ({ page }) => {
     await mountOnFakeNode(page, 240);
 
