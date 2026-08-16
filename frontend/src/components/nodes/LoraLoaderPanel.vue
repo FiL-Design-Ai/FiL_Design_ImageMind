@@ -1238,9 +1238,21 @@ function onComboClose(index: number) {
 .fil-lora-line {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   width: 100%;
   min-width: 0;
+}
+
+.fil-lora-line .fil-drag-handle {
+  font-size: 11px;
+}
+
+/* The switch is a target, not a label — two thirds of its stock size still
+   takes a click comfortably and hands the name another dozen pixels. */
+.fil-lora-line :deep(.fil-w-toggle) {
+  transform: scale(0.82);
+  transform-origin: right center;
+  flex: none;
 }
 
 /* Reserved, not collapsed: showing these only on hover is the point, but a
@@ -1249,9 +1261,10 @@ function onComboClose(index: number) {
 .fil-row-quiet-actions {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 1px;
   flex: none;
   visibility: hidden;
+  font-size: 10px;
 }
 
 .fil-lora-row:hover .fil-row-quiet-actions,
@@ -1395,11 +1408,39 @@ function onComboClose(index: number) {
   to { transform: rotate(360deg); }
 }
 
+/* The name is what a stack is read by, so everything beside it is trimmed to
+   what it needs: the weight is four characters and two arrows, the switch and
+   the handle are targets rather than text. Measured at the node's 400px
+   minimum — the name went from 160px to 214px. */
 .fil-weight-cell {
   flex: none;
-  width: 96px;
+  width: 74px;
   display: flex;
   align-items: center;
+  font-size: 10px;
+}
+
+.fil-weight-cell :deep(.fil-w-num) {
+  font-size: 11px;
+}
+
+.fil-weight-cell :deep(.fil-w-num-arrow) {
+  font-size: 8px;
+  padding: 0 1px;
+}
+
+/* The name itself, two steps up from the widget's own 12px and given the room
+   the rest gave back. */
+.fil-cycler-select-wrap :deep(.fil-combo-trigger) {
+  font-size: 14px;
+  /* A stack is a list of files: names line up on the left, so the eye runs
+     down the starts instead of hunting for each centred one. */
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.fil-cycler-select-wrap :deep(.fil-combo-trigger-label) {
+  text-align: left;
 }
 
 /* Lined up under the Model field, past the toggle that follows it. */
