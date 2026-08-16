@@ -584,7 +584,7 @@ function onComboClose(index: number) {
 </script>
 
 <template>
-  <div class="fil-cycler-root">
+  <div class="fil-cycler-root" :class="{ 'fil-band-open': Boolean(bandStyle) }">
 
     <!-- Action Toolbar (Bulk operations & Sort).
          Lifted into the strip the socket labels leave empty when there is room
@@ -881,6 +881,15 @@ function onComboClose(index: number) {
 </template>
 
 <style scoped>
+/* Every panel surface in the pack is clipped to its rounded corners by the
+   shared rule in `styles/brand.ts` — which also swallowed the toolbar the
+   moment it was lifted above the panel. Opting out is scoped to this panel and
+   to the state that needs it: the pack-wide rule is one edit away from every
+   node, and this is one node with one control outside its box. */
+.fil-node-shell .fil-cycler-root.fil-band-open {
+  overflow: visible;
+}
+
 .fil-cycler-root {
   width: 100%;
   box-sizing: border-box;
@@ -1314,6 +1323,11 @@ function onComboClose(index: number) {
   position: absolute;
   z-index: 2;
   pointer-events: none;
+  /* The bar is `width: 100%` in flow. Left and right insets plus a width is an
+     over-constrained box, and CSS drops the right one — so the bar kept the
+     panel's full width and ran out over the MODEL label instead of stopping
+     short of it. */
+  width: auto;
 }
 
 .fil-cycler-actions-bar.floated > * {

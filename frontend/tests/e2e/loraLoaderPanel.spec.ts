@@ -44,6 +44,113 @@ async function mountPanel(page: import("@playwright/test").Page, loraList: strin
   await page.waitForSelector(".fil-lora-row");
 }
 
+/**
+ * The floated toolbar, against a node shaped like the real one.
+ *
+ * Both ways this broke were invisible to every test that existed: the bar was
+ * in the DOM with the right offsets each time. First the pack-wide panel
+ * surface (`styles/brand.ts`) clips every root to its rounded corners, so a
+ * bar lifted above the panel was simply not painted. Then, with the clip
+ * lifted, the bar kept its in-flow `width: 100%` — left plus right plus a
+ * width is over-constrained, CSS drops the right one, and it ran out over the
+ * MODEL label. So this asserts what the eye checks: that the bar is on screen
+ * where it claims to be, and that the label columns stay clear of it.
+ */
+async function mountOnFakeNode(page: import("@playwright/test").Page, nodeWidth = 420) {
+  await page.goto("test-playground.html");
+  await page.addStyleTag({
+    // The strip sits ~92px above the panel, which on a canvas is the node's own
+    // socket rows. Here it has to be page margin, or the lifted bar lands above
+    // the viewport and the paint check below reads an empty point.
+    content: `#app { max-width: ${nodeWidth - 20}px; padding: 8px; margin-top: 160px; }
+              .fil-node-shell { position: relative; }`,
+  });
+  await page.evaluate((width) => {
+    // The playground has no canvas node, so stand one up: the panel only ever
+    // asks for slot positions, sizes and the canvas transform.
+    const node = {
+      pos: [100, 100],
+      size: [width, 300],
+      inputs: [{ name: "model" }, { name: "clip" }],
+      outputs: [{ name: "MODEL" }, { name: "CLIP" }, { name: "TRIGGERS" }, { name: "LABEL" }],
+      getConnectionPos: (isInput: boolean, slot: number) => [
+        isInput ? 110 : 100 + width - 9,
+        114 + slot * 20,
+      ],
+      widgets: [{ name: "lora_list", value: "a.safetensors:1.00:1.00" }],
+    };
+    (window as unknown as { LiteGraph: Record<string, unknown> }).LiteGraph = {
+      NODE_SLOT_HEIGHT: 20,
+      NODE_TEXT_SIZE: 14,
+      NODE_FONT: "Arial",
+      vueNodesMode: false,
+    };
+    const shell = document.createElement("div");
+    shell.className = "fil-node-shell";
+    document.getElementById("app")!.appendChild(shell);
+    const mount = document.createElement("div");
+    shell.appendChild(mount);
+
+    const rect = shell.getBoundingClientRect();
+    (window as unknown as { app: unknown }).app = {
+      canvas: {
+        canvas: {
+          getBoundingClientRect: () => ({ left: rect.left, top: rect.top - 96 }),
+        },
+        ds: { scale: 1, offset: [-100, -100] },
+      },
+    };
+
+    const state: Record<string, unknown> = {
+      nodeState: { lora_list: "a.safetensors:1.00:1.00" },
+      initialValues: {},
+      ui: {},
+    };
+    Object.defineProperty(state, "node", { value: node, enumerable: false, configurable: true });
+    window.mountComponent("LoraLoaderPanel", { state });
+  }, nodeWidth);
+  await page.waitForSelector(".fil-cycler-actions-bar");
+}
+
+test.describe("LoRA Loader toolbar in the socket strip", () => {
+  test("is lifted, painted, and clear of both label columns", async ({ page }) => {
+    await mountOnFakeNode(page);
+
+    const bar = page.locator(".fil-cycler-actions-bar");
+    await expect(bar).toHaveClass(/floated/);
+
+    const barBox = (await bar.boundingBox())!;
+    const panelBox = (await page.locator(".fil-cycler-root").boundingBox())!;
+
+    // Actually lifted out of the panel, not merely styled.
+    expect(barBox.y + barBox.height).toBeLessThanOrEqual(panelBox.y + 1);
+
+    // Painted, not clipped away by the panel's rounded-corner surface: a
+    // clipped element keeps its rect and stops answering hit tests.
+    const hit = await page.evaluate(() => {
+      const el = document.querySelector(".fil-cycler-actions-bar")!;
+      const r = el.getBoundingClientRect();
+      const found = document.elementFromPoint(r.left + 8, r.top + r.height / 2);
+      return Boolean(found && el.contains(found));
+    });
+    expect(hit, "the bar is in the DOM but nothing is painted where it sits").toBe(true);
+
+    // And it stops short of the columns the labels are drawn in.
+    expect(barBox.x).toBeGreaterThan(panelBox.x);
+    expect(barBox.x + barBox.width).toBeLessThan(panelBox.x + panelBox.width - 40);
+  });
+
+  test("stays in flow when the node is too narrow for the strip", async ({ page }) => {
+    await mountOnFakeNode(page, 240);
+
+    const bar = page.locator(".fil-cycler-actions-bar");
+    await expect(bar).not.toHaveClass(/floated/);
+    const barBox = (await bar.boundingBox())!;
+    const panelBox = (await page.locator(".fil-cycler-root").boundingBox())!;
+    expect(barBox.y).toBeGreaterThanOrEqual(panelBox.y);
+  });
+});
+
 test.describe("LoRA Loader panel at the width of its own node", () => {
   test("nothing in the toolbar is pushed off the edge", async ({ page }) => {
     await mountPanel(page, STACK);
