@@ -16,6 +16,9 @@ export interface CyclerRun {
   clean_name: string;
 }
 
+/** The node's width, matching the LoRA Loader the panel is built after. */
+const DESIGN_WIDTH = 400;
+
 const nativeWidgetNames = [
   "source_mode",
   "model_list",
@@ -41,11 +44,17 @@ export const modelCyclerNode: NodeModule = {
   id: "FiLModelCycler",
   register(nodeType: unknown, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
-      minSize: [340, 260],
-      initialWidth: 340,
+      // The same width the LoRA Loader is built to: the row carries a name, an
+      // info button and a switch, and the toolbar the panel floats into the
+      // socket strip (see `socketBand.ts`) is only what the labels leave behind.
+      // The height floor is whatever the rows need — the toolbar rides the strip
+      // rather than costing node height, so a floor of 260 was empty node under
+      // the last row.
+      minSize: [DESIGN_WIDTH, 120],
+      initialWidth: DESIGN_WIDTH,
       family: "tool",
       description: "Automatically cycles through diffusion models or checkpoints.",
-      badges: [{ text: "CYCLER", color: "#a855f7", text_color: "#fff" }],
+      // No badge: it said "CYCLER" beside a title that already says it.
     });
 
     const proto = nodeType as {

@@ -3,7 +3,7 @@
  * FiLModelCycler — Cyberpunk HUD panel for cycling diffusion models & checkpoints.
  * Inspired by Power Lora Loader (rgthree) & Pixaroma, tailored for model testing.
  */
-import { computed, ref, watch, onMounted } from "vue";
+import { computed, nextTick, onBeforeUnmount, ref, watch, onMounted } from "vue";
 import {
   FilButton,
   FilComboBox,
@@ -19,6 +19,8 @@ import type { FilNodeState } from "@/nodes2/filState";
 import { findFilWidget } from "@/nodes2/util";
 import { getJson, postJson } from "@/api/client";
 import { ROUTE_PREFIX } from "@/constants/brand";
+import { panelEdgesInGraph, socketBandBox } from "@/nodes2/socketBand";
+import { stackDisplayNames } from "@/nodes2/loraNames";
 
 interface ModelItem {
   id: string;
@@ -96,9 +98,25 @@ const selectedPresetName = ref("");
 const savePresetModalOpen = ref(false);
 const newPresetName = ref("");
 
+/**
+ * What a row calls its model: the file's own name, without the folders above it
+ * and without the extension every one of them shares. The full path stays the
+ * value, stays in the tooltip and stays in `model_list` — this is the label.
+ */
+function displayModelName(name: string): string {
+  const base = name.replace(/\\/g, "/").split("/").pop() ?? name;
+  return base.replace(/\.(safetensors|ckpt|pt|pth|bin|onnx|gguf|sft)$/i, "");
+}
+
 const comboOptions = computed<FilComboOption[]>(() =>
-  installedModels.value.map((m) => ({ value: m, label: m }))
+  installedModels.value.map((m) => ({ value: m, label: displayModelName(m) }))
 );
+
+/**
+ * The row labels, grown back towards the path only for the entries that would
+ * otherwise read the same — see `loraNames.ts`, shared with the LoRA stack.
+ */
+const displayNames = computed(() => stackDisplayNames(modelItems.value.map((item) => item.name)));
 
 const presetComboOptions = computed<FilComboOption[]>(() =>
   presetsList.value.map((p) => ({ value: p.name, label: `${p.name} (${p.models.length})` }))
@@ -115,6 +133,55 @@ const filteredModelItems = computed(() => {
 const activeModelCount = computed(
   () => modelItems.value.filter((i) => i.enabled && i.name.trim()).length
 );
+
+/** How many rows are switched on — the number the strip's counter reports. */
+const enabledModelCount = computed(() => modelItems.value.filter((i) => i.enabled).length);
+
+/**
+ * The toolbar rides in the socket strip when the node's own labels leave room
+ * for it — the same block the LoRA Loader uses, measured off this node rather
+ * than tuned by hand. `socketBand.ts` explains the rest.
+ */
+const actionsBarEl = ref<HTMLElement | null>(null);
+const bandStyle = ref<Record<string, string> | null>(null);
+
+function measureBand() {
+  const node = props.state.node as Parameters<typeof socketBandBox>[0] | undefined;
+  if (!actionsBarEl.value || !node) return;
+
+  // Measure the block where it sits in flow: floated, its own offsets would be
+  // what the next measurement reads back.
+  bandStyle.value = null;
+
+  nextTick(() => {
+    const target = actionsBarEl.value;
+    const panelRoot = target?.parentElement;
+    if (!target || !panelRoot) return;
+    const edges = panelEdgesInGraph(panelRoot);
+    if (!edges) return;
+
+    const scale =
+      (globalThis as { app?: { canvas?: { ds?: { scale: number } } } }).app?.canvas?.ds?.scale || 1;
+    const asBox = (box: ReturnType<typeof socketBandBox>) =>
+      box ? { top: `${box.top}px`, left: `${box.left}px`, right: `${box.right}px` } : null;
+
+    const barHeight = target.getBoundingClientRect().height / scale;
+    const box = socketBandBox(node, edges, barHeight);
+
+    // The strip has to hold the block, not merely exist — and the natural width
+    // has to be asked for. `scrollWidth` answers with the container's own width
+    // here, because the lines stretch, so `max-content` is what makes the flex
+    // children fall back to their content.
+    const measured = target as HTMLElement;
+    const previousWidth = measured.style.width;
+    measured.style.width = "max-content";
+    const needed = measured.offsetWidth / scale;
+    measured.style.width = previousWidth;
+    bandStyle.value = box && box.width >= needed ? asBox(box) : null;
+  });
+}
+
+let bandObserver: ResizeObserver | null = null;
 
 /** Short lists are read, not searched — the box only earns its row past this. */
 const SEARCH_THRESHOLD = 6;
@@ -218,6 +285,20 @@ onMounted(() => {
   props.state.ui.onCycleRun = (r: unknown) => {
     lastRun.value = r as CyclerRun;
   };
+
+  measureBand();
+  // The strip's width follows the node's, so a resize can turn a fitting
+  // toolbar into one that would cover the labels — and back.
+  const panelRoot = actionsBarEl.value?.parentElement;
+  if (panelRoot && typeof ResizeObserver !== "undefined") {
+    bandObserver = new ResizeObserver(() => measureBand());
+    bandObserver.observe(panelRoot);
+  }
+});
+
+onBeforeUnmount(() => {
+  bandObserver?.disconnect();
+  bandObserver = null;
 });
 
 watch(sourceMode, () => {
@@ -456,6 +537,54 @@ function toggleItemEnabled(index: number, enabled: boolean) {
   }
 }
 
+/**
+ * The row's own menu, on right-click.
+ *
+ * `preventDefault` on our own row element is what keeps LiteGraph's canvas menu
+ * from opening on top of it. Rendered in flow inside the panel rather than
+ * floating over the page: a popover above a node gets clipped by the canvas.
+ */
+const rowMenu = ref<{ index: number; x: number; y: number } | null>(null);
+
+function openRowMenu(index: number, event: MouseEvent) {
+  const panel = actionsBarEl.value?.parentElement;
+  const rect = panel?.getBoundingClientRect();
+  rowMenu.value = {
+    index,
+    x: rect ? event.clientX - rect.left : 0,
+    y: rect ? event.clientY - rect.top : 0,
+  };
+}
+
+function closeRowMenu() {
+  rowMenu.value = null;
+}
+
+function runRowAction(action: () => void) {
+  action();
+  closeRowMenu();
+}
+
+/** Move a row one place up or down; the same splice the drag path uses. */
+function moveItem(index: number, delta: number) {
+  const target = index + delta;
+  if (target < 0 || target >= modelItems.value.length) return;
+  const [item] = modelItems.value.splice(index, 1);
+  modelItems.value.splice(target, 0, item);
+  syncToNodeState();
+}
+
+function duplicateItem(index: number) {
+  const item = modelItems.value[index];
+  if (!item) return;
+  modelItems.value.splice(index + 1, 0, {
+    ...item,
+    id: `item_${Date.now()}_${Math.random()}`,
+    autoOpen: false,
+  });
+  syncToNodeState();
+}
+
 function selectPreset(presetName: string) {
   selectedPresetName.value = presetName;
   const target = presetsList.value.find((p) => p.name === presetName);
@@ -531,64 +660,65 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
 </script>
 
 <template>
-  <div class="fil-cycler-root">
-    <!-- Source Mode Selector -->
-    <div class="fil-cycler-header">
-      <FilSegmented
-        :model-value="sourceMode"
-        :options="['Diffusion Models', 'Checkpoints']"
-        @update:model-value="(v) => (sourceMode = v)"
-      />
-      <button
-        class="fil-refresh-models-btn"
-        :class="{ spinning: isRefreshingModels }"
-        title="🔄 Refresh installed models list from disk & extra paths"
-        @mousedown.stop
-        @click.stop="refreshModelsList"
-      >
-        🔄
-      </button>
-    </div>
+  <div class="fil-cycler-root" :class="{ 'fil-band-open': Boolean(bandStyle) || Boolean(rowMenu) }">
 
-    <!-- Active Run Status Badge -->
-    <div v-if="lastRun" class="fil-cycler-now">
-      <span class="fil-cycler-now-badge">{{ lastRun.position }}/{{ lastRun.total }}</span>
-      <span class="fil-cycler-now-text" :title="lastRun.model_name">
-        {{ lastRun.clean_name || lastRun.model_name }}
-      </span>
-    </div>
+    <!-- The whole toolbar, in three lines, lifted into the strip the socket
+         labels leave empty when there is room for it — where it costs the node
+         no height at all. `bandStyle` is null when there is not, and the block
+         simply stays in flow. -->
+    <div
+      ref="actionsBarEl"
+      class="fil-cycler-actions-bar"
+      :class="{ floated: Boolean(bandStyle) }"
+      :style="bandStyle ?? undefined"
+    >
+      <!-- Line 1: where the models come from, and re-reading the folder at the
+           far end — directly above the rest of the right-hand column. -->
+      <div class="fil-band-line">
+        <div class="fil-band-source">
+          <FilSegmented
+            :model-value="sourceMode"
+            :options="['Diffusion Models', 'Checkpoints']"
+            @update:model-value="(v) => (sourceMode = v)"
+          />
+        </div>
+        <button
+          class="fil-refresh-models-btn"
+          :class="{ spinning: isRefreshingModels }"
+          title="🔄 Re-read the installed models from disk & extra paths"
+          aria-label="Refresh the model list"
+          @mousedown.stop
+          @click.stop="refreshModelsList"
+        >
+          ⟳
+        </button>
+      </div>
 
-    <!-- Mode bar -->
-    <div class="fil-cycler-controls">
-      <div class="fil-cycler-mode-select">
-        <FilSelect
-          :model-value="cycleMode"
-          :options="cycleOptions"
-          @update:model-value="(v) => (cycleMode = v)"
-        />
-      </div>
-    </div>
-
-    <!-- Presets, sorting and the bulk actions, on one line. They were three
-         bars, and five bars stacked above the list left it under half the
-         node: the list started 153px down a 319px panel. -->
-    <div class="fil-cycler-actions-bar">
-      <div class="fil-sort-select-wrap">
-        <FilSelect
-          :model-value="selectedSort"
-          :options="sortOptions"
-          @update:model-value="applyModelSorting"
-        />
-      </div>
-      <div class="fil-preset-combo-wrap">
-        <FilComboBox
-          :model-value="selectedPresetName"
-          :options="presetComboOptions"
-          placeholder="📂 Preset..."
-          @update:model-value="selectPreset"
-        />
-      </div>
-      <div class="fil-actions-right-group">
+      <!-- Line 2: how the cycle walks the list, how the list is ordered, which
+           saved list it came from — and the rest behind one button. -->
+      <div class="fil-band-line">
+        <div class="fil-cycler-mode-select">
+          <FilSelect
+            :model-value="cycleMode"
+            :options="cycleOptions"
+            @update:model-value="(v) => (cycleMode = v)"
+          />
+        </div>
+        <div class="fil-sort-select-wrap">
+          <FilSelect
+            :model-value="selectedSort"
+            :options="sortOptions"
+            @update:model-value="applyModelSorting"
+          />
+        </div>
+        <div class="fil-preset-combo-wrap">
+          <FilComboBox
+            :model-value="selectedPresetName"
+            :options="presetComboOptions"
+            placeholder="📂 Preset..."
+            @update:model-value="selectPreset"
+          />
+        </div>
         <button
           class="fil-action-link fil-actions-more"
           :class="{ open: menuOpen }"
@@ -600,16 +730,44 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
           •••
         </button>
       </div>
+
+      <!-- Line 3: adding a model, what the queue currently amounts to, and
+           running the lot. -->
+      <div class="fil-band-line">
+        <button class="fil-band-add" @click="addModelItem">+ Add Model</button>
+        <button
+          v-if="modelItems.length"
+          class="fil-stack-count"
+          :title="enabledModelCount === modelItems.length ? 'Switch every model off' : 'Switch every model on'"
+          @click="toggleAll(enabledModelCount !== modelItems.length)"
+        >
+          <span class="fil-stack-switch" :class="{ on: enabledModelCount > 0 }"></span>
+          {{ enabledModelCount }} / {{ modelItems.length }}
+        </button>
+        <button
+          class="fil-action-link fil-cycler-queue-btn"
+          :title="`Queue ${activeModelCount} runs in ComfyUI to test all active models in order.`"
+          @click="queueAllModelsRun"
+        >
+          ▶ Run All ({{ activeModelCount }})
+        </button>
+      </div>
     </div>
 
     <!-- In flow, not floating: a popover over a node gets clipped by the canvas. -->
     <div v-if="menuOpen" class="fil-actions-menu">
       <button class="fil-action-link highlight" title="Save Current List as Preset" @click="runFromMenu(() => (savePresetModalOpen = true))">💾 Save Preset</button>
       <button v-if="selectedPresetName" class="fil-action-link danger" title="Delete Selected Preset" @click="runFromMenu(deleteSelectedPreset)">🗑️ Delete Preset</button>
-      <button class="fil-action-link" @click="runFromMenu(() => toggleAll(true))">All ON</button>
-      <button class="fil-action-link" @click="runFromMenu(() => toggleAll(false))">All OFF</button>
-      <button class="fil-action-link" @click="runFromMenu(populateAllFolderModels)">Populate Folder</button>
-      <button class="fil-action-link danger" @click="runFromMenu(clearAllItems)">Clear</button>
+      <button class="fil-action-link" title="Fill the queue with every model in the folder" @click="runFromMenu(populateAllFolderModels)">Populate Folder</button>
+      <button class="fil-action-link danger" title="Remove every model from the queue" @click="runFromMenu(clearAllItems)">Clear</button>
+    </div>
+
+    <!-- Active Run Status Badge -->
+    <div v-if="lastRun" class="fil-cycler-now">
+      <span class="fil-cycler-now-badge">{{ lastRun.position }}/{{ lastRun.total }}</span>
+      <span class="fil-cycler-now-text" :title="lastRun.model_name">
+        {{ lastRun.clean_name || lastRun.model_name }}
+      </span>
     </div>
 
     <!-- A filter box over three rows is a row of chrome buying nothing. -->
@@ -641,12 +799,15 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
           dragOverAbove: dragOverIndex === originalIndex && draggedIndex !== null && originalIndex < draggedIndex,
           dragOverBelow: dragOverIndex === originalIndex && draggedIndex !== null && originalIndex > draggedIndex
         }"
+        @contextmenu.prevent.stop="openRowMenu(originalIndex, $event)"
         @dragover="onDragOver(originalIndex, $event)"
         @dragleave="onDragLeave(originalIndex)"
         @drop="onDrop(originalIndex, $event)"
         @dragend="onDragEnd"
       >
-        <!-- Drag Handle Grip: only THIS icon is draggable! -->
+        <!-- One line: grip, name, info, switch. Remove and reordering live in
+             the row's right-click menu — a queue is read far more often than it
+             is edited. Only the grip is draggable. -->
         <div
           class="fil-drag-handle"
           title="Drag handle to reorder item"
@@ -655,16 +816,6 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
         >
           ⋮⋮
         </div>
-
-        <!-- Info Button -->
-        <button
-          class="fil-row-info-btn"
-          title="Model Information"
-          @mousedown.stop
-          @click.stop="openInfoModal(item, originalIndex)"
-        >
-          ⓘ
-        </button>
 
         <!-- Missing file warning badge -->
         <span
@@ -675,12 +826,14 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
           ⚠️
         </span>
 
-        <div class="fil-cycler-select-wrap">
+        <div class="fil-cycler-select-wrap" :title="item.name || 'Select model'">
           <FilComboBox
             :model-value="item.name"
             :options="comboOptions"
             :searchable="true"
             :auto-open="item.autoOpen"
+            :trigger-label="displayNames[originalIndex]"
+            :title="item.name"
             browse-folders
             :preview-mode="sourceMode === 'Diffusion Models' ? 'diffusion_models' : 'checkpoints'"
             :placeholder="t('cycler_select_model', 'Select model...')"
@@ -689,38 +842,74 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
           />
         </div>
 
+        <button
+          class="fil-row-info-btn"
+          title="Model Information"
+          aria-label="Model information"
+          @mousedown.stop
+          @click.stop="openInfoModal(item, originalIndex)"
+        >
+          ⓘ
+        </button>
+
         <FilToggle
           :model-value="item.enabled ? 'ON' : 'OFF'"
           bare
           @update:model-value="(v) => toggleItemEnabled(originalIndex, v === 'ON')"
         />
-
-        <button
-          class="fil-cycler-remove-btn"
-          title="Remove model"
-          @click="removeModelItem(originalIndex)"
-        >
-          ✕
-        </button>
       </div>
     </TransitionGroup>
 
-    <!-- Action Buttons Group -->
-    <div class="fil-cycler-btn-group">
-      <FilButton
-        variant="accent"
-        label="+ Add Model"
-        class="fil-cycler-add-btn"
-        @click="addModelItem"
-      />
-      <FilButton
-        variant="standard"
-        :label="`▶ Run All (${activeModelCount})`"
-        class="fil-cycler-queue-btn"
-        :title="`Queue ${activeModelCount} runs in ComfyUI to test all active models in order.`"
-        @click="queueAllModelsRun"
-      />
+    <!-- The row menu. In flow inside the panel, so the canvas cannot clip it,
+         and closed by anything that is not a click on itself. -->
+    <div
+      v-if="rowMenu"
+      class="fil-row-menu-backdrop"
+      @click="closeRowMenu"
+      @contextmenu.prevent="closeRowMenu"
+    >
+      <div
+        class="fil-row-menu"
+        :style="{ top: `${rowMenu.y}px`, left: `${rowMenu.x}px` }"
+        @click.stop
+        @contextmenu.prevent.stop
+      >
+        <button class="fil-row-menu-item" @click="runRowAction(() => openInfoModal(modelItems[rowMenu!.index], rowMenu!.index))">
+          <span class="fil-row-menu-icon">ⓘ</span> More info
+        </button>
+        <button
+          class="fil-row-menu-item"
+          :disabled="rowMenu.index === 0"
+          @click="runRowAction(() => moveItem(rowMenu!.index, -1))"
+        >
+          <span class="fil-row-menu-icon">↑</span> Move up
+        </button>
+        <button
+          class="fil-row-menu-item"
+          :disabled="rowMenu.index >= modelItems.length - 1"
+          @click="runRowAction(() => moveItem(rowMenu!.index, 1))"
+        >
+          <span class="fil-row-menu-icon">↓</span> Move down
+        </button>
+        <button class="fil-row-menu-item" @click="runRowAction(() => duplicateItem(rowMenu!.index))">
+          <span class="fil-row-menu-icon">⧉</span> Duplicate
+        </button>
+        <button
+          class="fil-row-menu-item"
+          @click="runRowAction(() => toggleItemEnabled(rowMenu!.index, !modelItems[rowMenu!.index].enabled))"
+        >
+          <span class="fil-row-menu-icon">◉</span>
+          {{ modelItems[rowMenu.index]?.enabled ? "Disable" : "Enable" }}
+        </button>
+        <button class="fil-row-menu-item danger" @click="runRowAction(() => removeModelItem(rowMenu!.index))">
+          <span class="fil-row-menu-icon">✕</span> Remove
+        </button>
+      </div>
     </div>
+
+    <!-- No buttons down here: adding a model and running the queue both live on
+         the third line of the toolbar, floated or not, and having them in both
+         places showed each of them twice. -->
 
     <!-- Advanced Settings Section -->
     <FilSection
@@ -885,6 +1074,14 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
 </template>
 
 <style scoped>
+/* Every panel surface in the pack is clipped to its rounded corners by the
+   shared rule in `styles/brand.ts` — which also swallows a toolbar lifted above
+   the panel, and the row menu where it runs past the last row. Opting out is
+   scoped to this panel and to the two states that need it. */
+.fil-node-shell .fil-cycler-root.fil-band-open {
+  overflow: visible;
+}
+
 .fil-cycler-root {
   width: 100%;
   box-sizing: border-box;
@@ -894,28 +1091,29 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
   padding: 4px 6px;
   color: var(--fil-text);
   font-family: ui-sans-serif, system-ui, sans-serif;
+  /* The containing block the floated toolbar measures its offsets against. */
+  position: relative;
 }
 
-.fil-cycler-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-}
-
-.fil-cycler-header :deep(.fil-w-segmented) {
+.fil-band-source {
   display: flex;
   flex: 1;
   min-width: 0;
 }
 
-.fil-cycler-header :deep(.fil-w-pill) {
+.fil-band-source :deep(.fil-w-segmented) {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+
+.fil-band-source :deep(.fil-w-pill) {
   flex: 1;
   width: 100%;
   grid-column: 1 / -1;
 }
 
-.fil-cycler-header :deep(.fil-w-seg) {
+.fil-band-source :deep(.fil-w-seg) {
   flex: 1;
   text-align: center;
   white-space: nowrap;
@@ -928,7 +1126,7 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
   color: var(--fil-accent-text, #c084fc);
   cursor: pointer;
   padding: 0 6px;
-  height: 24px;
+  height: 20px;
   border-radius: 4px;
   font-size: 11px;
   display: inline-flex;
@@ -990,16 +1188,116 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
   min-width: 0;
 }
 
-.fil-cycler-controls {
+.fil-band-line {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   width: 100%;
+  min-width: 0;
+}
+
+/* Re-read pins to the right of its line, which puts it in the same column as
+   the ••• button and Run All below it, instead of drifting with the width of
+   whatever sits to their left. */
+.fil-band-line .fil-refresh-models-btn {
+  margin-left: auto;
 }
 
 .fil-cycler-mode-select {
   flex: 1;
   min-width: 0;
+}
+
+/* The mode box carries a sentence — it gives way to the two fixed-width boxes
+   beside it rather than pushing them off the line. */
+.fil-cycler-mode-select :deep(.fil-w-select-input) {
+  height: 20px;
+  min-height: 20px;
+  max-height: 20px;
+  box-sizing: border-box;
+  padding: 0 3px;
+  font-size: 11px;
+  line-height: 18px;
+}
+
+.fil-band-add {
+  flex: 1;
+  height: 24px;
+  border: none;
+  border-radius: 8px;
+  background: var(--fil-accent-strong, #ffd60a);
+  color: #1c1c1e;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 0 14px color-mix(in srgb, var(--fil-accent-strong, #ffd60a) 35%, transparent);
+}
+
+.fil-band-add:hover {
+  filter: brightness(1.06);
+}
+
+/* The counter stands beside the add button and reads as one line with it only
+   if it is the same height. */
+.fil-stack-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  box-sizing: border-box;
+  background: var(--fil-surface-2, #18181b);
+  border: 1px solid color-mix(in srgb, var(--fil-border) 90%, transparent);
+  border-radius: 999px;
+  padding: 0 10px 0 4px;
+  color: var(--fil-muted);
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.fil-stack-count:hover {
+  color: var(--fil-text);
+  border-color: color-mix(in srgb, var(--fil-accent, #a855f7) 55%, transparent);
+}
+
+/* Reads as the row switches do, so the tie between them is visible rather than
+   explained. */
+.fil-stack-switch {
+  width: 20px;
+  height: 11px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--fil-border) 90%, transparent);
+  position: relative;
+  flex: none;
+  transition: background 0.12s;
+}
+
+.fil-stack-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--fil-muted);
+  transition: transform 0.12s, background 0.12s;
+}
+
+.fil-stack-switch.on {
+  background: color-mix(in srgb, var(--fil-accent, #a855f7) 65%, transparent);
+}
+
+.fil-stack-switch.on::after {
+  transform: translateX(9px);
+  background: #fff;
+}
+
+.fil-cycler-queue-btn {
+  height: 24px;
+  max-height: 24px;
+  font-size: 11px;
 }
 
 .fil-cycler-mode-select :deep(.fil-w-select) {
@@ -1039,14 +1337,72 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
   min-width: 0;
 }
 
+/* Same height as the two select boxes it shares the line with. */
+.fil-preset-combo-wrap :deep(.fil-combo-trigger) {
+  width: 100%;
+  height: 20px;
+  min-height: 20px;
+  box-sizing: border-box;
+  padding: 0 6px;
+  font-size: 11px;
+}
+
+/* Three stacked lines, not one row of controls: a row flex puts the lines side
+   by side and the block measures three times too wide to ever fit the strip. */
 .fil-cycler-actions-bar {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 3px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
   padding: 1px 0;
   width: 100%;
   flex-wrap: nowrap;
+}
+
+/* Out of flow and up into the socket strip. Pointer events stay on the controls
+   themselves, so the empty stretch between them still belongs to the canvas and
+   dragging the node by that gap keeps working. */
+.fil-cycler-actions-bar.floated {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  /* The bar is `width: 100%` in flow. Left and right insets plus a width is an
+     over-constrained box and CSS drops the right one, so the bar would keep the
+     panel's full width and run out over the output labels. */
+  width: auto;
+  /* One type size and one control height across the whole strip: Pixaroma's
+     node reads tidy for exactly this reason. */
+  font-size: 11px;
+}
+
+.fil-cycler-actions-bar.floated > * {
+  pointer-events: auto;
+}
+
+.fil-cycler-actions-bar.floated .fil-action-link,
+.fil-cycler-actions-bar.floated .fil-actions-more,
+.fil-cycler-actions-bar.floated .fil-refresh-models-btn {
+  height: 20px;
+  box-sizing: border-box;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.fil-cycler-actions-bar.floated .fil-cycler-queue-btn {
+  height: 24px;
+}
+
+.fil-cycler-actions-bar.floated :deep(.fil-w-select-input) {
+  height: 20px;
+  font-size: 11px;
+}
+
+/* The sort box carries an icon, three characters and a chevron — the wide
+   default was 96px of strip for that. */
+.fil-cycler-actions-bar.floated .fil-sort-select-wrap {
+  width: 84px;
+  min-width: 84px;
+  flex: 0 0 84px;
 }
 
 .fil-sort-select-wrap {
@@ -1077,14 +1433,6 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
   text-align: left;
   text-align-last: left;
   line-height: 18px;
-}
-
-.fil-actions-right-group {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  margin-left: auto;
-  flex-wrap: nowrap;
 }
 
 .fil-action-link {
@@ -1187,7 +1535,8 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
 .fil-cycler-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
+  min-width: 0;
   background: var(--fil-surface-1);
   border: 1px solid var(--fil-border);
   border-radius: 6px;
@@ -1252,7 +1601,7 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
 .fil-drag-handle {
   cursor: grab;
   color: var(--fil-muted);
-  font-size: 13px;
+  font-size: 11px;
   letter-spacing: -1px;
   padding: 2px 4px;
   border-radius: 4px;
@@ -1320,20 +1669,80 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
   width: 100%;
 }
 
-.fil-cycler-remove-btn {
-  background: transparent;
-  border: none;
-  color: var(--fil-muted);
-  cursor: pointer;
-  font-size: 12px;
-  padding: 2px 5px;
-  border-radius: 4px;
-  transition: color 0.1s, background 0.1s;
+/* The name is what a queue is read by, so it gets the room the removed cross
+   and the shorter labels gave back — two steps up from the widget's own 12px,
+   and lined up on the left so the eye runs down the starts. */
+.fil-cycler-select-wrap :deep(.fil-combo-trigger) {
+  font-size: 14px;
+  justify-content: flex-start;
+  text-align: left;
 }
 
-.fil-cycler-remove-btn:hover {
-  color: var(--fil-danger);
-  background: color-mix(in srgb, var(--fil-danger) 16%, transparent);
+.fil-cycler-select-wrap :deep(.fil-combo-trigger-label) {
+  text-align: left;
+}
+
+/* The switch is a target, not a label — two thirds of its stock size still
+   takes a click comfortably and hands the name another dozen pixels. */
+.fil-cycler-row :deep(.fil-w-toggle) {
+  transform: scale(0.82);
+  transform-origin: right center;
+  flex: none;
+}
+
+.fil-row-menu-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+}
+
+.fil-row-menu {
+  position: absolute;
+  min-width: 150px;
+  padding: 4px;
+  background: var(--fil-surface-2, #18181b);
+  border: 1px solid color-mix(in srgb, var(--fil-border) 90%, transparent);
+  border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.fil-row-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  color: var(--fil-text);
+  font-size: 11px;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.fil-row-menu-item:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--fil-accent, #a855f7) 22%, transparent);
+}
+
+.fil-row-menu-item:disabled {
+  color: var(--fil-muted);
+  cursor: default;
+  opacity: 0.5;
+}
+
+.fil-row-menu-item.danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--fil-danger, #ef4444) 22%, transparent);
+  color: var(--fil-danger, #ef4444);
+}
+
+.fil-row-menu-icon {
+  width: 12px;
+  text-align: center;
+  color: var(--fil-muted);
 }
 
 .fil-cycler-btn-group {
@@ -1341,18 +1750,6 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
   gap: 6px;
   width: 100%;
   margin-top: 2px;
-}
-
-.fil-cycler-add-btn {
-  flex: 1;
-  justify-content: center;
-  font-weight: 600;
-}
-
-.fil-cycler-queue-btn {
-  flex: 1;
-  justify-content: center;
-  font-weight: 600;
 }
 
 .fil-cycler-adv-body {

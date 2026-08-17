@@ -116,7 +116,7 @@ def test_contract_family_matches_the_frontend_module(nodes):
 # go: "LORA LOADER" sat beside a header already reading "🧬 LoRA Loader". The
 # rule stays for every other node — a badge missing by accident still reads as
 # unfinished — so the exception is listed rather than the check dropped.
-NODES_WITHOUT_A_BADGE = {"FiLLoraLoader"}
+NODES_WITHOUT_A_BADGE = {"FiLLoraLoader", "FiLModelCycler"}
 
 
 def test_every_node_module_sets_a_badge(nodes):

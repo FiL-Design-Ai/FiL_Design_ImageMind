@@ -129,6 +129,95 @@ describe("ModelCyclerPanel.vue", () => {
     expect(wrapper.find(".fil-cycler-now").text()).toContain("1/2");
   });
 
+  it("carries the whole toolbar the design draws, on three lines", async () => {
+    const list = "modelA.safetensors";
+    const wrapper = mount(ModelCyclerPanel, {
+      props: { state: makeState(makeNode(list), list) as never },
+    });
+    await nextTick();
+
+    const lines = wrapper.findAll(".fil-cycler-actions-bar .fil-band-line");
+    expect(lines).toHaveLength(3);
+
+    // Where the models come from, and re-reading the folder, on the first line.
+    expect(lines[0].find(".fil-band-source").exists()).toBe(true);
+    expect(lines[0].find(".fil-refresh-models-btn").exists()).toBe(true);
+
+    // How the cycle walks the list, how it is ordered, which saved list it came
+    // from — and the rest behind one button.
+    expect(lines[1].find(".fil-cycler-mode-select").exists()).toBe(true);
+    expect(lines[1].find(".fil-sort-select-wrap").exists()).toBe(true);
+    expect(lines[1].find(".fil-preset-combo-wrap").exists()).toBe(true);
+    expect(lines[1].find(".fil-actions-more").exists()).toBe(true);
+
+    // Adding, the count and running the lot share the last line.
+    expect(lines[2].find(".fil-band-add").text()).toContain("Add Model");
+    expect(lines[2].find(".fil-stack-count").text().replace(/\s+/g, "")).toBe("1/1");
+    expect(lines[2].find(".fil-cycler-queue-btn").text()).toContain("Run All");
+  });
+
+  it("counts the rows that are on, and flips them all", async () => {
+    const list = "modelA.safetensors\n# modelB.safetensors";
+    const node = makeNode(list);
+    const wrapper = mount(ModelCyclerPanel, { props: { state: makeState(node, list) as never } });
+    await nextTick();
+
+    const count = wrapper.find(".fil-stack-count");
+    expect(count.text().replace(/\s+/g, "")).toBe("1/2");
+
+    // Not everything is on, so the first click turns the rest on rather than
+    // switching off the one that was.
+    await count.trigger("click");
+    expect(count.text().replace(/\s+/g, "")).toBe("2/2");
+    expect(widgetValue(node, "model_list")).toBe("modelA.safetensors\nmodelB.safetensors");
+
+    await count.trigger("click");
+    expect(count.text().replace(/\s+/g, "")).toBe("0/2");
+  });
+
+  it("shows the file's own name, and keeps the path where it matters", async () => {
+    const list = "SDXL/Realism/juggernaut_v9.safetensors";
+    const node = makeNode(list);
+    const wrapper = mount(ModelCyclerPanel, { props: { state: makeState(node, list) as never } });
+    await nextTick();
+
+    const shown = wrapper.find(".fil-cycler-select-wrap");
+    expect(shown.text()).toContain("juggernaut_v9");
+    expect(shown.text(), "the folders are back in the row").not.toContain("SDXL");
+    expect(shown.text(), "the extension is back in the row").not.toContain(".safetensors");
+
+    // The full path is one hover away, and untouched in what the node runs.
+    expect(shown.attributes("title")).toBe("SDXL/Realism/juggernaut_v9.safetensors");
+    expect(widgetValue(node, "model_list")).toBe("SDXL/Realism/juggernaut_v9.safetensors");
+  });
+
+  it("gives a row its own menu on right-click, and it rewrites the queue", async () => {
+    const list = "modelA.safetensors\nmodelB.safetensors";
+    const node = makeNode(list);
+    const wrapper = mount(ModelCyclerPanel, { props: { state: makeState(node, list) as never } });
+    await nextTick();
+
+    await wrapper.findAll(".fil-cycler-row")[0].trigger("contextmenu");
+    await nextTick();
+
+    const labels = wrapper
+      .findAll(".fil-row-menu button")
+      .map((b) => b.text())
+      .join(" ");
+    for (const wanted of ["More info", "Move up", "Move down", "Duplicate", "Disable", "Remove"]) {
+      expect(labels, `"${wanted}" is missing from the row menu`).toContain(wanted);
+    }
+
+    // The cross is gone from the row itself; removing happens here now.
+    expect(wrapper.find(".fil-cycler-remove-btn").exists()).toBe(false);
+    await wrapper.findAll(".fil-row-menu button").find((b) => b.text().includes("Move down"))!
+      .trigger("click");
+    await nextTick();
+
+    expect(widgetValue(node, "model_list")).toBe("modelB.safetensors\nmodelA.safetensors");
+    expect(wrapper.find(".fil-row-menu").exists(), "the menu stayed open after acting").toBe(false);
+  });
+
   it("reads a row back as off when the workflow is reloaded", async () => {
     const list = "modelA.safetensors\n# modelB.safetensors";
     const node = makeNode(list);
