@@ -75,6 +75,41 @@ export function panelEdgesInGraph(
   return { top: toGraphY(rect.top), left: toGraphX(rect.left), right: toGraphX(rect.right) };
 }
 
+/** The class a panel puts on its toolbar once the block is lifted. */
+const FLOATED_CLASS = "floated";
+
+/**
+ * How wide the block wants to be, in graph pixels — the number to compare a
+ * strip against.
+ *
+ * Two things make the obvious answer wrong, and both were paid for. Reading
+ * `scrollWidth` answers with the container's own width, because the lines
+ * stretch, so a block needing 360 measured 360 at every width and the check
+ * never fired; `max-content` is what makes the flex children fall back to their
+ * content. And the block is styled differently once it is floated — bigger type
+ * and tighter boxes, so that one strip reads as one size — which means
+ * measuring it in flow understates what it will need up there. The cycler's
+ * toolbar measured 253 in its in-flow 9px type, floated into a 223px strip, and
+ * drew its add button on two lines. So it is measured wearing the class it will
+ * be wearing.
+ *
+ * No zoom correction here, and that matters: the canvas scales the panel with a
+ * CSS transform, which moves `getBoundingClientRect` but leaves `offsetWidth`
+ * in layout pixels — already the units the node's own geometry is in. Dividing
+ * it by the scale, as the first version did, halved the answer at 2× zoom and
+ * lifted a 326px block into a 223px strip.
+ */
+export function floatedBandWidth(element: HTMLElement): number {
+  const alreadyFloated = element.classList.contains(FLOATED_CLASS);
+  element.classList.add(FLOATED_CLASS);
+  const previousWidth = element.style.width;
+  element.style.width = "max-content";
+  const needed = element.offsetWidth;
+  element.style.width = previousWidth;
+  if (!alreadyFloated) element.classList.remove(FLOATED_CLASS);
+  return needed;
+}
+
 /** Text width in the font LiteGraph paints slot labels with. */
 function labelWidth(text: string): number {
   const lg = (globalThis as { LiteGraph?: { NODE_TEXT_SIZE?: number; NODE_FONT?: string } }).LiteGraph;

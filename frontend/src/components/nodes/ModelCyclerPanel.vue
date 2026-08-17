@@ -19,7 +19,7 @@ import type { FilNodeState } from "@/nodes2/filState";
 import { findFilWidget } from "@/nodes2/util";
 import { getJson, postJson } from "@/api/client";
 import { ROUTE_PREFIX } from "@/constants/brand";
-import { panelEdgesInGraph, socketBandBox } from "@/nodes2/socketBand";
+import { floatedBandWidth, panelEdgesInGraph, socketBandBox } from "@/nodes2/socketBand";
 import { stackDisplayNames } from "@/nodes2/loraNames";
 
 interface ModelItem {
@@ -168,15 +168,9 @@ function measureBand() {
     const barHeight = target.getBoundingClientRect().height / scale;
     const box = socketBandBox(node, edges, barHeight);
 
-    // The strip has to hold the block, not merely exist — and the natural width
-    // has to be asked for. `scrollWidth` answers with the container's own width
-    // here, because the lines stretch, so `max-content` is what makes the flex
-    // children fall back to their content.
-    const measured = target as HTMLElement;
-    const previousWidth = measured.style.width;
-    measured.style.width = "max-content";
-    const needed = measured.offsetWidth / scale;
-    measured.style.width = previousWidth;
+    // The strip has to hold the block, not merely exist — measured in the shape
+    // the block takes up there, which is not the shape it has down here.
+    const needed = floatedBandWidth(target as HTMLElement);
     bandStyle.value = box && box.width >= needed ? asBox(box) : null;
   });
 }
@@ -1223,6 +1217,10 @@ const weightDtypeOptions = ["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"]
 .fil-band-add {
   flex: 1;
   height: 24px;
+  /* A label allowed to wrap makes the block look narrower than it is, and the
+     strip check believes it — that is how "+ Add Model" ended up on two lines
+     inside a strip 100px too small for it. */
+  white-space: nowrap;
   border: none;
   border-radius: 8px;
   background: var(--fil-accent-strong, #ffd60a);

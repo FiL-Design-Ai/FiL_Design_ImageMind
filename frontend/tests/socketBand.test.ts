@@ -10,7 +10,7 @@
  * them is that the drift becomes impossible, so that is what is asserted.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { socketBandBox } from "@/nodes2/socketBand";
+import { floatedBandWidth, socketBandBox } from "@/nodes2/socketBand";
 
 const SLOT_H = 20;
 
@@ -108,5 +108,62 @@ describe("socketBandBox", () => {
     const plain = socketBandBox(fakeNode({}), panelFor(), 26)!;
 
     expect(socketBandBox(withWidgets, panelFor(), 26)!.left).toBe(plain.left);
+  });
+});
+
+/**
+ * What the block will need up in the strip, which is not what it needs down in
+ * the panel: the floated state uses bigger type and tighter boxes, so measuring
+ * it in flow understated it by 100px and the cycler's toolbar was lifted into a
+ * strip it did not fit, drawing its add button on two lines.
+ *
+ * jsdom has no layout, so the width itself cannot be asserted — what can is the
+ * thing that was wrong: which class the element is wearing at the moment its
+ * width is read, and that the measurement leaves it as it found it.
+ */
+describe("floatedBandWidth", () => {
+  function barWith(classes: string[]): { el: HTMLElement; seen: string[] } {
+    const el = document.createElement("div");
+    for (const c of classes) el.classList.add(c);
+    const seen: string[] = [];
+    Object.defineProperty(el, "offsetWidth", {
+      get() {
+        seen.push(el.className);
+        return 300;
+      },
+    });
+    return { el, seen };
+  }
+
+  it("reads the width while the element wears the floated class", () => {
+    const { el, seen } = barWith(["fil-cycler-actions-bar"]);
+    floatedBandWidth(el);
+    expect(seen).toHaveLength(1);
+    expect(seen[0], "measured in the shape it has in flow, not the floated one").toContain(
+      "floated",
+    );
+  });
+
+  it("puts the element back the way it was", () => {
+    const { el } = barWith(["fil-cycler-actions-bar"]);
+    el.style.width = "77px";
+    floatedBandWidth(el);
+    expect(el.classList.contains("floated")).toBe(false);
+    expect(el.style.width).toBe("77px");
+  });
+
+  it("leaves an already floated block floated", () => {
+    const { el } = barWith(["fil-cycler-actions-bar", "floated"]);
+    floatedBandWidth(el);
+    expect(el.classList.contains("floated")).toBe(true);
+  });
+
+  // The canvas zooms the panel with a CSS transform, which `offsetWidth` does
+  // not see — it is already in the units the node's geometry uses. The first
+  // version divided by the canvas scale anyway, so at 2x zoom a 326px block
+  // reported 163 and was lifted into a 223px strip.
+  it("reports layout pixels, without a zoom correction", () => {
+    const { el } = barWith(["fil-cycler-actions-bar"]);
+    expect(floatedBandWidth(el)).toBe(300);
   });
 });

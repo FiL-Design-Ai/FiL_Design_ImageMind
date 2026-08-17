@@ -16,7 +16,7 @@ import type { FilNodeState } from "@/nodes2/filState";
 import { findFilWidget } from "@/nodes2/util";
 import { getJson } from "@/api/client";
 import { ROUTE_PREFIX } from "@/constants/brand";
-import { panelEdgesInGraph, socketBandBox } from "@/nodes2/socketBand";
+import { floatedBandWidth, panelEdgesInGraph, socketBandBox } from "@/nodes2/socketBand";
 import { stackDisplayNames } from "@/nodes2/loraNames";
 
 interface LoraItem {
@@ -150,17 +150,9 @@ function measureBand() {
     const barHeight = target.getBoundingClientRect().height / scale;
     const box = socketBandBox(node, edges, barHeight);
 
-    // The strip has to hold the block, not merely exist — and the natural width
-    // has to be asked for. `scrollWidth` answers with the container's own width
-    // here, because the lines stretch (`flex: 1` on the middle group and on the
-    // add button), so a block that needed 360 measured 360 at any width and the
-    // check never fired. `max-content` makes the flex children fall back to
-    // their content, which is the number this decision needs.
-    const measured = target as HTMLElement;
-    const previousWidth = measured.style.width;
-    measured.style.width = "max-content";
-    const needed = measured.offsetWidth / scale;
-    measured.style.width = previousWidth;
+    // The strip has to hold the block, not merely exist — measured in the shape
+    // the block takes up there, which is not the shape it has down here.
+    const needed = floatedBandWidth(target as HTMLElement);
     bandStyle.value = box && box.width >= needed ? asBox(box) : null;
   });
 }
@@ -1323,6 +1315,9 @@ function onComboClose(index: number) {
 .fil-band-add {
   flex: 1;
   height: 24px;
+  /* A label allowed to wrap makes the block look narrower than it is, and the
+     strip check believes it. */
+  white-space: nowrap;
   border: none;
   border-radius: 8px;
   background: var(--fil-accent-strong, #ffd60a);
