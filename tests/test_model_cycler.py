@@ -119,8 +119,8 @@ def test_execute_diffusion_models(mock_get_unets: MagicMock) -> None:
             unload_previous=False,
             free_vram=False,
             weight_dtype="fp8_e4m3fn",
-            clip_in=dummy_clip,
-            vae_in=dummy_vae,
+            clip=dummy_clip,
+            vae=dummy_vae,
         )
 
         model, clip, vae, model_name, clean_name = out.args

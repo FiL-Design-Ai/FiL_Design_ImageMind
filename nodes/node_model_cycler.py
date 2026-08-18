@@ -1,7 +1,7 @@
 """FiL Model Cycler — automatic diffusion model and checkpoint switcher.
 
 Cycles through installed checkpoints or UNet/diffusion models on every generation run.
-Outputs loaded MODEL, CLIP, VAE, and formatted string labels for watermark / text overlays on images.
+Outputs loaded model, clip, vae, and formatted string labels for watermark / text overlays on images.
 """
 
 from __future__ import annotations
@@ -298,7 +298,7 @@ class FiLModelCycler(io.ComfyNode):
                     ),
                 ),
                 io.Clip.Input(
-                    "clip_in",
+                    "clip",
                     optional=True,
                     tooltip=t(
                         "tt_cycler_clip_in",
@@ -306,7 +306,7 @@ class FiLModelCycler(io.ComfyNode):
                     ),
                 ),
                 io.Vae.Input(
-                    "vae_in",
+                    "vae",
                     optional=True,
                     tooltip=t(
                         "tt_cycler_vae_in",
@@ -314,25 +314,27 @@ class FiLModelCycler(io.ComfyNode):
                     ),
                 ),
             ],
+            # Inputs and outputs share one lowercase vocabulary: what comes in
+            # as `clip` leaves as `clip`, so a chain of cyclers reads as one pipe.
             outputs=[
                 io.Model.Output(
-                    display_name="MODEL",
-                    tooltip="Active loaded or selected diffusion MODEL.",
+                    display_name="model",
+                    tooltip="Active loaded or selected diffusion model.",
                 ),
                 io.Clip.Output(
-                    display_name="CLIP",
-                    tooltip="Active CLIP (from checkpoint or fallback clip_in).",
+                    display_name="clip",
+                    tooltip="Active CLIP (from checkpoint or fallback clip).",
                 ),
                 io.Vae.Output(
-                    display_name="VAE",
-                    tooltip="Active VAE (from checkpoint or fallback vae_in).",
+                    display_name="vae",
+                    tooltip="Active VAE (from checkpoint or fallback vae).",
                 ),
                 io.String.Output(
-                    display_name="MODEL_NAME",
+                    display_name="model_name",
                     tooltip="Full filename of active model (e.g. flux1-dev.safetensors).",
                 ),
                 io.String.Output(
-                    display_name="CLEAN_NAME",
+                    display_name="clean_name",
                     tooltip="Model name without directory or extension (e.g. flux1-dev).",
                 ),
             ],
@@ -451,8 +453,8 @@ class FiLModelCycler(io.ComfyNode):
         free_vram: bool = True,
         skip_on_error: bool = True,
         weight_dtype: str = "default",
-        clip_in: Any = None,
-        vae_in: Any = None,
+        clip: Any = None,
+        vae: Any = None,
         **_kwargs: Any,
     ) -> io.NodeOutput:
         # Check multiline user list first
@@ -521,8 +523,8 @@ class FiLModelCycler(io.ComfyNode):
         max_attempts = total_models if skip_on_error else 1
 
         selected_model: Any = None
-        selected_clip: Any = clip_in
-        selected_vae: Any = vae_in
+        selected_clip: Any = clip
+        selected_vae: Any = vae
         selected_name = ""
 
         while attempts < max_attempts:

@@ -129,7 +129,7 @@ describe("ModelCyclerPanel.vue", () => {
     expect(wrapper.find(".fil-cycler-now").text()).toContain("1/2");
   });
 
-  it("carries the whole toolbar the design draws, on three lines", async () => {
+  it("carries the whole toolbar the design draws, one question per line", async () => {
     const list = "modelA.safetensors";
     const wrapper = mount(ModelCyclerPanel, {
       props: { state: makeState(makeNode(list), list) as never },
@@ -143,15 +143,17 @@ describe("ModelCyclerPanel.vue", () => {
     expect(lines[0].find(".fil-band-source").exists()).toBe(true);
     expect(lines[0].find(".fil-refresh-models-btn").exists()).toBe(true);
 
-    // How the cycle walks the list, how it is ordered, which saved list it came
-    // from — and the rest behind one button.
-    expect(lines[1].find(".fil-cycler-mode-select").exists()).toBe(true);
+    // How the list is ordered, how the cycle walks it, and emptying it.
     expect(lines[1].find(".fil-sort-select-wrap").exists()).toBe(true);
-    expect(lines[1].find(".fil-preset-combo-wrap").exists()).toBe(true);
-    expect(lines[1].find(".fil-actions-more").exists()).toBe(true);
+    expect(lines[1].find(".fil-cycler-mode-select").exists()).toBe(true);
+    expect(lines[1].text()).toContain("Clear");
+    expect(wrapper.find(".fil-actions-more").exists()).toBe(false);
+    expect(wrapper.text(), "presets are gone from the node").not.toContain("Preset");
 
-    // Adding, the count and running the lot share the last line.
+    // Adding, filling from the folder, the count and running the lot share the
+    // last line.
     expect(lines[2].find(".fil-band-add").text()).toContain("Add Model");
+    expect(lines[2].text()).toContain("Add All");
     expect(lines[2].find(".fil-stack-count").text().replace(/\s+/g, "")).toBe("1/1");
     expect(lines[2].find(".fil-cycler-queue-btn").text()).toContain("Run All");
   });
@@ -216,6 +218,34 @@ describe("ModelCyclerPanel.vue", () => {
 
     expect(widgetValue(node, "model_list")).toBe("modelB.safetensors\nmodelA.safetensors");
     expect(wrapper.find(".fil-row-menu").exists(), "the menu stayed open after acting").toBe(false);
+  });
+
+  /**
+   * The ⓘ crosses three files now — the row emits, the panel looks the model
+   * up by index, the dialog renders what came back. A wiring test, because
+   * every one of those hand-offs is somewhere the name could go missing.
+   */
+  it("opens the info dialog on the model the row is actually showing", async () => {
+    const list = "modelA.safetensors\nSDXL/Realism/juggernaut_v9.safetensors";
+    const node = makeNode(list);
+    const wrapper = mount(ModelCyclerPanel, {
+      props: { state: makeState(node, list) as never },
+      attachTo: document.body,
+    });
+    await nextTick();
+
+    await wrapper.findAll(".fil-cycler-row")[1].find(".fil-row-info-btn").trigger("click");
+    await nextTick();
+
+    // The dialog is teleported to the body, so it is read off the document.
+    const dialog = document.querySelector(".fil-modal-backdrop")!;
+    expect(dialog, "the info dialog never opened").toBeTruthy();
+    expect(dialog.textContent).toContain("juggernaut_v9");
+    // Position is counted in the queue, not in whatever the dialog was handed.
+    expect(dialog.textContent).toContain("#2 of 2");
+
+    wrapper.unmount();
+    document.body.innerHTML = "";
   });
 
   it("reads a row back as off when the workflow is reloaded", async () => {
