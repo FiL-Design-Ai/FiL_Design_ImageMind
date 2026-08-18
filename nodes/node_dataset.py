@@ -22,6 +22,7 @@ from ..common.processing import ImageProcessor, comfy_image_to_pil, is_valid_mod
 from ..common.progress import FilProgress
 from ..common.provider_resilience import sanitize_sensitive_data
 from ..common.provider_runtime import safe_provider_error, unload_local_model
+from ..common.validation import numeric_range_error
 
 _processor = ImageProcessor()
 _model_client = None
@@ -150,7 +151,13 @@ class FiLDatasetForge(io.ComfyNode):
         )
 
     @classmethod
-    def validate_inputs(cls, config=None, **_kwargs):
+    def validate_inputs(cls, config=None, **kwargs):
+        # First, and regardless of `config`: taking `**kwargs` here switches off
+        # ComfyUI's own min/max check for every input on this node, so the range
+        # the schema declares is only enforced if we do it (common/validation.py).
+        out_of_range = numeric_range_error(cls, kwargs)
+        if out_of_range:
+            return out_of_range
         if config is None:
             return True
         if not isinstance(config, dict):

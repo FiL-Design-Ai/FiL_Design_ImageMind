@@ -20,6 +20,7 @@ from ..common.io_types import FilProviderConfig
 from ..common.models import ModelClient
 from ..common.processing import ImageProcessor, is_valid_model_name, normalize_model_name
 from ..common.provider_runtime import safe_provider_error, unload_local_model
+from ..common.validation import numeric_range_error
 
 logger = logging.getLogger(f"{BRAND}.Decomposer")
 
@@ -127,7 +128,13 @@ class FiLImageDecomposer(io.ComfyNode):
         return hash((str(config), str(prompt or ""), str(language or ""), image_key))
 
     @classmethod
-    def validate_inputs(cls, config=None, **_kwargs):
+    def validate_inputs(cls, config=None, **kwargs):
+        # First, and regardless of `config`: taking `**kwargs` here switches off
+        # ComfyUI's own min/max check for every input on this node, so the range
+        # the schema declares is only enforced if we do it (common/validation.py).
+        out_of_range = numeric_range_error(cls, kwargs)
+        if out_of_range:
+            return out_of_range
         if config is None:
             return True
         if not isinstance(config, dict):
