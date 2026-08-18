@@ -77,6 +77,8 @@ export function panelEdgesInGraph(
 
 /** The class a panel puts on its toolbar once the block is lifted. */
 const FLOATED_CLASS = "floated";
+/** Set on the block only while it is being measured — see `floatedBandWidth`. */
+const MEASURE_ATTR = "data-band-measure";
 
 /**
  * How wide the block wants to be, in graph pixels — the number to compare a
@@ -102,10 +104,16 @@ const FLOATED_CLASS = "floated";
 export function floatedBandWidth(element: HTMLElement): number {
   const alreadyFloated = element.classList.contains(FLOATED_CLASS);
   element.classList.add(FLOATED_CLASS);
+  // A panel whose boxes stretch can also say how far each of them will give
+  // way: `[data-band-measure]` pins them to those floors, so `max-content`
+  // reads the squeezed block rather than the roomy one. Panels without such
+  // rules are unaffected.
+  element.setAttribute(MEASURE_ATTR, "");
   const previousWidth = element.style.width;
   element.style.width = "max-content";
   const needed = element.offsetWidth;
   element.style.width = previousWidth;
+  element.removeAttribute(MEASURE_ATTR);
   if (!alreadyFloated) element.classList.remove(FLOATED_CLASS);
   return needed;
 }
@@ -138,6 +146,15 @@ export function socketBandBox(
   height: number,
   /** Which socket row to start from — a second control goes below the first. */
   startRow = 0,
+  /**
+   * As wide as the block is allowed to get, however much strip there is.
+   *
+   * A toolbar handed the whole strip on a wide node stretches its boxes to
+   * match, and the same three controls read as a different panel at every node
+   * width. Capping it keeps one shape; the strip's own edges still win, so the
+   * block stays between the two label columns either way.
+   */
+  maxWidth = Infinity,
 ): BandBox | null {
   // Nodes 2.0 lays the body out in the DOM, where there is no painted strip to
   // borrow and a negative offset lands on the node's own chrome.
@@ -184,15 +201,37 @@ export function socketBandBox(
   const dotRight = node.pos[0] + node.size[0] - 10;
 
   const left = dotLeft + leftReserve + LABEL_PAD - panel.left;
-  const right = panel.right - (dotRight - rightReserve - LABEL_PAD);
-  const width = panel.right - panel.left - left - right;
+  const available = panel.right - panel.left - left - (panel.right - (dotRight - rightReserve - LABEL_PAD));
+  const width = Math.min(available, maxWidth);
 
   if (width < MIN_USABLE_WIDTH) return null;
 
+  // Whatever the cap leaves over is split between the two sides instead of
+  // being handed to one of them. It all went to the right inset before, so the
+  // block sat hard against the input labels with the whole surplus opened up on
+  // the output side — reported from a live node, and the wider the node, the
+  // more lopsided it got. Centred in the strip, the two gaps stay equal at
+  // every width.
+  //
+  // The cap is still spent on the insets rather than on a width of its own: a
+  // box given left, right and a width is over-constrained, CSS drops one of
+  // them, and which one it drops is not the answer anybody wanted.
+  //
+  // Rounded in that order, so the three numbers still agree: the browser lays
+  // the block out as panel − left − right, and rounding each of the three
+  // independently would leave that a pixel off the width reported here.
+  const slack = Math.max(0, available - width);
+  const roundedLeft = Math.round(Math.max(0, left + slack / 2));
+  const roundedWidth = Math.round(width);
+  const roundedRight = Math.max(
+    0,
+    Math.round(panel.right - panel.left) - roundedLeft - roundedWidth,
+  );
+
   return {
     top: Math.round(boxTop - panel.top),
-    left: Math.round(Math.max(0, left)),
-    right: Math.round(Math.max(0, right)),
-    width: Math.round(width),
+    left: roundedLeft,
+    right: roundedRight,
+    width: roundedWidth,
   };
 }

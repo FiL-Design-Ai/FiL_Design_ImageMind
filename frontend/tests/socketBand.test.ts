@@ -96,6 +96,39 @@ describe("socketBandBox", () => {
     expect(socketBandBox(fakeNode({ width: 200 }), panelFor(200), 26)).toBeNull();
   });
 
+  /**
+   * A toolbar laid out at one width should not be handed three of it because
+   * the node was dragged wider — the boxes stretch and the panel reads as a
+   * different one at every node width. What the cap leaves over is then shared:
+   * reported from a live node, the whole surplus used to go to the right inset,
+   * so the block sat against the input labels with a growing hole beside the
+   * outputs.
+   */
+  it("caps the block's width and splits the rest between both sides", () => {
+    const uncapped = socketBandBox(fakeNode({ width: 900 }), panelFor(900), 26)!;
+    const capped = socketBandBox(fakeNode({ width: 900 }), panelFor(900), 26, 0, 400)!;
+
+    expect(uncapped.width).toBeGreaterThan(400);
+    expect(capped.width).toBe(400);
+
+    // Both sides moved in, by the same amount within a rounding.
+    const grewLeft = capped.left - uncapped.left;
+    const grewRight = capped.right - uncapped.right;
+    expect(grewLeft).toBeGreaterThan(0);
+    expect(Math.abs(grewLeft - grewRight), "the surplus landed on one side").toBeLessThanOrEqual(1);
+
+    // The three numbers have to agree with each other: the browser lays the
+    // block out as panel − left − right, and reads the width off that.
+    expect(capped.left + capped.width + capped.right).toBe(
+      uncapped.left + uncapped.width + uncapped.right,
+    );
+  });
+
+  it("lets the strip's own edges win when they are tighter than the cap", () => {
+    const box = socketBandBox(fakeNode({}), panelFor(), 26, 0, 400)!;
+    expect(box.width).toBeLessThan(400);
+  });
+
   it("stays out of it entirely under the Vue renderer", () => {
     (globalThis as { LiteGraph?: { vueNodesMode?: boolean } }).LiteGraph!.vueNodesMode = true;
     expect(socketBandBox(fakeNode({}), panelFor(), 26)).toBeNull();
