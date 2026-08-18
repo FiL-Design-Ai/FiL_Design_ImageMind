@@ -6,6 +6,7 @@
 import { computed, ref, onMounted, watch } from "vue";
 import {
   FilComboBox,
+  FilIcon,
   type FilComboOption,
   FilModal,
   FilSelect,
@@ -411,12 +412,16 @@ function copyToClipboard(text: string, label: string) {
   }, 2500);
 }
 
-const selectedSort = ref("🔤 Name (A-Z)");
+const selectedSort = ref("Name (A-Z)");
 
+// The same three the Model Cycler offers, spelled the same way. Its fourth,
+// "Size (Max to Min)", needs the file sizes the backend sorts models by; the
+// stack sorts in the panel, so it is not offered here rather than offered and
+// doing something else.
 const sortOptions = [
-  "🔤 Name (A-Z)",
-  "🔠 Name (Z-A)",
-  "⚡ Active ON First",
+  "Name (A-Z)",
+  "Name (Z-A)",
+  "Active first",
 ];
 
 function applyLoraSorting(label: string) {
@@ -628,16 +633,16 @@ function onComboClose(index: number) {
     >
       <!-- Line 1: the trigger words, and re-reading the folder at the far end. -->
       <div class="fil-band-line">
-        <button class="fil-action-link highlight" title="Copy all trigger words of active LoRAs to clipboard" @click="copyAllActiveTriggers">📋 Triggers</button>
+        <button class="fil-action-link highlight" title="Copy all trigger words of active LoRAs to clipboard" @click="copyAllActiveTriggers"><FilIcon name="copy" :size="11" /> Triggers</button>
         <button
           class="fil-refresh-loras-btn"
           :class="{ spinning: isRefreshingLoras }"
-          title="🔄 Re-read the LoRA folder from disk"
+          title="Re-read the LoRA folder from disk"
           aria-label="Refresh the LoRA list"
           @mousedown.stop
           @click.stop="refreshLoraList"
         >
-          ⟳
+          <FilIcon name="repeat" :size="14" />
         </button>
       </div>
 
@@ -684,7 +689,7 @@ function onComboClose(index: number) {
         v-model="searchFilter"
         type="search"
         class="fil-stack-search-input"
-        placeholder="🔍 Filter LoRA list..."
+        placeholder="Filter LoRA list..."
         spellcheck="false"
         @keydown.stop
       />
@@ -725,15 +730,15 @@ function onComboClose(index: number) {
             :draggable="!searchFilter"
             @dragstart="onDragStart(originalIndex, $event)"
           >
-            ⋮⋮
+            <FilIcon name="grip" :size="12" />
           </div>
 
           <span
             v-if="isLoraMissing(item.name)"
             class="fil-missing-badge"
-            title="⚠️ Warning: LoRA file is missing from disk!"
+            title="Warning: LoRA file is missing from disk!"
           >
-            ⚠️
+            <FilIcon name="warning" :size="13" />
           </span>
 
           <div class="fil-cycler-select-wrap" :title="item.name || 'Select LoRA'">
@@ -779,7 +784,7 @@ function onComboClose(index: number) {
             @mousedown.stop
             @click.stop="openInfoModal(item, originalIndex)"
           >
-            ⓘ
+            <FilIcon name="info" :size="14" />
           </button>
 
           <FilToggle
@@ -827,38 +832,38 @@ function onComboClose(index: number) {
         @contextmenu.prevent.stop
       >
         <button class="fil-row-menu-item" @click="runRowAction(() => openInfoModal(loraItems[rowMenu!.index], rowMenu!.index))">
-          <span class="fil-row-menu-icon">ⓘ</span> More info
+          <FilIcon class="fil-row-menu-icon" name="info" :size="12" /> More info
         </button>
         <button
           class="fil-row-menu-item"
           :disabled="rowMenu.index === 0"
           @click="runRowAction(() => moveItem(rowMenu!.index, -1))"
         >
-          <span class="fil-row-menu-icon">↑</span> Move up
+          <FilIcon class="fil-row-menu-icon" name="arrowUp" :size="12" /> Move up
         </button>
         <button
           class="fil-row-menu-item"
           :disabled="rowMenu.index >= loraItems.length - 1"
           @click="runRowAction(() => moveItem(rowMenu!.index, 1))"
         >
-          <span class="fil-row-menu-icon">↓</span> Move down
+          <FilIcon class="fil-row-menu-icon" name="arrowDown" :size="12" /> Move down
         </button>
         <button class="fil-row-menu-item" @click="runRowAction(() => duplicateItem(rowMenu!.index))">
-          <span class="fil-row-menu-icon">⧉</span> Duplicate
+          <FilIcon class="fil-row-menu-icon" name="copy" :size="12" /> Duplicate
         </button>
         <button class="fil-row-menu-item" @click="runRowAction(() => toggleItemSplit(rowMenu!.index))">
-          <span class="fil-row-menu-icon">⚖</span>
+          <FilIcon class="fil-row-menu-icon" name="sliders" :size="12" />
           {{ loraItems[rowMenu.index]?.split ? "Same weight for CLIP" : "Separate CLIP weight" }}
         </button>
         <button
           class="fil-row-menu-item"
           @click="runRowAction(() => toggleItemEnabled(rowMenu!.index, !loraItems[rowMenu!.index].enabled))"
         >
-          <span class="fil-row-menu-icon">◉</span>
+          <FilIcon class="fil-row-menu-icon" name="power" :size="12" />
           {{ loraItems[rowMenu.index]?.enabled ? "Disable" : "Enable" }}
         </button>
         <button class="fil-row-menu-item danger" @click="runRowAction(() => removeLoraItem(rowMenu!.index))">
-          <span class="fil-row-menu-icon">✕</span> Remove
+          <FilIcon class="fil-row-menu-icon" name="close" :size="12" /> Remove
         </button>
       </div>
     </div>
@@ -1152,14 +1157,19 @@ function onComboClose(index: number) {
   width: 100%;
 }
 
+/* 32px a row, which is what Pixaroma's stack costs per LoRA and 6 less than
+   ours did: the padding it spent on top and bottom is the line's own height
+   now. On a stack of eight that is a row and a half of node back. */
 .fil-lora-row {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  box-sizing: border-box;
+  min-height: 32px;
+  gap: 0;
   background: var(--fil-surface-1);
   border: 1px solid var(--fil-border);
   border-radius: 6px;
-  padding: 6px 8px;
+  padding: 0 6px;
   position: relative;
   transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1),
               box-shadow 0.2s ease,
@@ -1220,6 +1230,8 @@ function onComboClose(index: number) {
 .fil-lora-line {
   display: flex;
   align-items: center;
+  /* The row is 32 including its border, so the line inside it is 30. */
+  height: 30px;
   gap: 4px;
   width: 100%;
   min-width: 0;
@@ -1363,10 +1375,13 @@ function onComboClose(index: number) {
 
 
 
+/* The second weight only ever appears on rows asked to split, so the padding
+   it needs lives here rather than on every row. */
 .fil-lora-weights {
   display: flex;
   justify-content: flex-end;
-  padding-top: 4px;
+  padding-top: 2px;
+  padding-bottom: 6px;
   width: 100%;
   box-sizing: border-box;
 }
