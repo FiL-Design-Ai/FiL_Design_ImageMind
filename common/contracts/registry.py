@@ -764,7 +764,7 @@ _MODEL_CYCLER = NodeContract(
     title="🔄 Model Cycler",
     category=CATEGORY_TOOLS,
     description="Automatically cycles through diffusion models or checkpoints on each generation.",
-    min_size=(400, 120),
+    min_size=(560, 120),
     family="tool",
     inputs=NodeInputs(
         required=[
@@ -783,11 +783,11 @@ _MODEL_CYCLER = NodeContract(
         ],
     ),
     outputs=[
-        NodeOutput(name="MODEL", type="MODEL"),
-        NodeOutput(name="CLIP", type="CLIP"),
-        NodeOutput(name="VAE", type="VAE"),
-        NodeOutput(name="MODEL_NAME", type="STRING"),
-        NodeOutput(name="CLEAN_NAME", type="STRING"),
+        NodeOutput(name="model", type="MODEL"),
+        NodeOutput(name="clip", type="CLIP"),
+        NodeOutput(name="vae", type="VAE"),
+        NodeOutput(name="model_name", type="STRING"),
+        NodeOutput(name="clean_name", type="STRING"),
     ],
 )
 

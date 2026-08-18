@@ -16,8 +16,23 @@ export interface CyclerRun {
   clean_name: string;
 }
 
-/** The node's width, matching the LoRA Loader the panel is built after. */
-const DESIGN_WIDTH = 400;
+/**
+ * The width new nodes open at, and the floor they cannot be dragged below.
+ *
+ * 560 rather than the LoRA Loader's 400, because this node pays for its own
+ * labels: `model_name` and `clean_name` eat the right-hand column, so the strip
+ * between the labels only outgrows the toolbar's ~375px somewhere around 520.
+ * Measured on the canvas, not guessed — at 400 the block stays in flow and the
+ * design's three lines never ride the sockets.
+ *
+ * And it has to be `minSize`. `initialWidth: 560` was here first and did
+ * nothing at all: `nodeStyle.ts` only ever narrows with it
+ * (`size[0] > initialWidth`), while the cycler computes to ~409 — so every new
+ * node still opened at 400 with the toolbar down in the panel, which is the one
+ * thing the 560 was for. The e2e case "is lifted at the width new nodes start
+ * at" believed it, because a playground node is handed its width directly.
+ */
+const DESIGN_WIDTH = 560;
 
 const nativeWidgetNames = [
   "source_mode",
@@ -44,14 +59,11 @@ export const modelCyclerNode: NodeModule = {
   id: "FiLModelCycler",
   register(nodeType: unknown, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
-      // The same width the LoRA Loader is built to: the row carries a name, an
-      // info button and a switch, and the toolbar the panel floats into the
-      // socket strip (see `socketBand.ts`) is only what the labels leave behind.
-      // The height floor is whatever the rows need — the toolbar rides the strip
-      // rather than costing node height, so a floor of 260 was empty node under
-      // the last row.
+      // Width: see `DESIGN_WIDTH` above — it is the one lever that actually
+      // opens a node wider. The height floor is whatever the rows need: the
+      // toolbar rides the socket strip rather than costing node height, so a
+      // floor of 260 was empty node under the last row.
       minSize: [DESIGN_WIDTH, 120],
-      initialWidth: DESIGN_WIDTH,
       family: "tool",
       description: "Automatically cycles through diffusion models or checkpoints.",
       // No badge: it said "CYCLER" beside a title that already says it.

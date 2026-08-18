@@ -5481,28 +5481,28 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   },
   "outputs": [
     {
-      "name": "MODEL",
+      "name": "model",
       "type": "MODEL"
     },
     {
-      "name": "CLIP",
+      "name": "clip",
       "type": "CLIP"
     },
     {
-      "name": "VAE",
+      "name": "vae",
       "type": "VAE"
     },
     {
-      "name": "MODEL_NAME",
+      "name": "model_name",
       "type": "STRING"
     },
     {
-      "name": "CLEAN_NAME",
+      "name": "clean_name",
       "type": "STRING"
     }
   ],
   "min_size": [
-    400,
+    560,
     120
   ],
   "family": "tool"
