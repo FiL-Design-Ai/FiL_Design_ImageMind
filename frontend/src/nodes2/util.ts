@@ -5,7 +5,15 @@
 export interface ComfyLikeWidget {
   name?: string;
   value?: unknown;
-  options?: { values?: unknown[]; hidden?: boolean; advanced?: boolean; hideInPanel?: boolean };
+  options?: {
+    values?: unknown[];
+    hidden?: boolean;
+    advanced?: boolean;
+    hideInPanel?: boolean;
+    /** The range the backend declared for a numeric widget (`io.Int.Input`). */
+    min?: number;
+    max?: number;
+  };
   hidden?: boolean;
   /**
    * Row offset inside the node body, in node-local pixels. LiteGraph's layout
@@ -163,7 +171,49 @@ export function validateWidgetComboValue<T extends string>(
 /**
  * Generate a random safe integer seed suitable for ComfyUI nodes (up to MAX_SAFE_INTEGER).
  */
-export function randomSeed(): number {
-  return Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
+/**
+ * The range a seed may actually hold, read off the widget the backend declared.
+ *
+ * Not a constant: the pack's seed inputs do not share one range. FiLKSampler,
+ * HiRes Fix, Noise Control and FiLSeed run to `0xFFFFFFFFFFFFFFFF`, while the
+ * two LLM nodes (Optic Scanner, Dataset Forge) stop at 999999999999 — their
+ * seed is forwarded to a provider API, not used as local RNG.
+ *
+ * The floor is clamped to 0 even when the widget says -1: on the LLM nodes -1
+ * is the "let the provider pick" sentinel, so it is not a value a *fixed* seed
+ * may ever land on. The ceiling is clamped to `MAX_SAFE_INTEGER` because above
+ * it JavaScript integers stop being exact and the number shown would not be the
+ * number sent.
+ */
+function seedRange(widget?: ComfyLikeWidget): { min: number; max: number } {
+  const declaredMin = Number(widget?.options?.min);
+  const declaredMax = Number(widget?.options?.max);
+  const min = Math.max(0, Number.isFinite(declaredMin) ? declaredMin : 0);
+  const ceiling = Number.isFinite(declaredMax) ? declaredMax : Number.MAX_SAFE_INTEGER;
+  return { min, max: Math.max(min, Math.min(ceiling, Number.MAX_SAFE_INTEGER)) };
+}
+
+/**
+ * A fresh fixed seed that the node it belongs to can actually accept.
+ *
+ * Without the widget it draws across the full safe-integer range, which is what
+ * this did unconditionally — and on Optic Scanner that produced seeds ~9000×
+ * above the declared maximum of 999999999999. ComfyUI never caught them: the
+ * node's `validate_inputs()` takes `**kwargs`, and `execution.py` skips its
+ * whole min/max check for any node that does. The out-of-range value went
+ * straight to the provider, which rejects or silently ignores a seed it cannot
+ * represent — so "New fixed" produced a different answer on every run, which is
+ * exactly what a broken fixed seed looks like from the outside.
+ */
+export function randomSeed(widget?: ComfyLikeWidget): number {
+  const { min, max } = seedRange(widget);
+  return min + Math.floor(Math.random() * (max - min + 1));
+}
+
+/** Fold a seed into the node's declared range, so a typed value cannot leave it. */
+export function clampSeed(value: number, widget?: ComfyLikeWidget): number {
+  const { min, max } = seedRange(widget);
+  if (!Number.isFinite(value)) return min;
+  return Math.min(max, Math.max(min, Math.floor(value)));
 }
 

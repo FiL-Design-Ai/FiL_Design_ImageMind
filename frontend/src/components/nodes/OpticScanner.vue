@@ -10,7 +10,7 @@ import { toast } from "@/stores/toastStore";
 import { NODE_CONTRACTS, type WidgetSpec } from "@/api/contracts";
 import type { FilNodeState } from "@/nodes2/filState";
 import { useI18n } from "@/composables/useI18n";
-import { findFilWidget, randomSeed } from "@/nodes2/util";
+import { clampSeed, findFilWidget, randomSeed } from "@/nodes2/util";
 import { useWidgetSockets } from "@/composables/useWidgetSockets";
 
 const props = defineProps<{ state: FilNodeState }>();
@@ -300,17 +300,27 @@ const seedMode = computed({
   get: () => (props.state.nodeState.seed_mode as "random" | "fixed") ?? "random",
   set: (v) => { props.state.nodeState.seed_mode = v; },
 });
+/** The node's own seed widget — the range a fixed seed has to fit into. */
+function seedWidget() {
+  return props.state.node ? findFilWidget(props.state.node, "seed") : undefined;
+}
 const seedValue = computed({
-  get: () => Number(props.state.nodeState.seed ?? -1) || -1,
+  // `Number(x) || -1` turned a pinned seed of 0 into -1, which on this node
+  // means "let the provider pick one" — the one value that unpins it.
+  get: () => {
+    const raw = Number(props.state.nodeState.seed ?? -1);
+    return Number.isFinite(raw) ? raw : -1;
+  },
   // Belt and braces — see the same note in HiResFix.vue. The claim that the
   // createSyncedNodeState mirror cannot reach the seed widget was measured
   // false against a live ComfyUI 1.47.10 on 2026-08-02; the direct write stays
   // because a fixed seed that silently fails to queue is expensive, not because
   // the mirror is broken.
   set: (v) => {
-    props.state.nodeState.seed = v;
-    const w = props.state.node ? findFilWidget(props.state.node, "seed") : null;
-    if (w) w.value = v;
+    const w = seedWidget();
+    const value = clampSeed(v, w);
+    props.state.nodeState.seed = value;
+    if (w) w.value = value;
   },
 });
 const seedDisplay = computed(() => (seedMode.value === "fixed" ? `${seedValue.value}` : "random"));
@@ -331,8 +341,7 @@ function setRandomSeed() {
 function useLastSeed() {
   // After a random queue the last value core drew lives on the native seed
   // widget; fall back to lastRunSeed for older saved state.
-  const node = props.state.node;
-  const w = node ? findFilWidget(node, "seed") : null;
+  const w = seedWidget();
   const last = w && Number.isFinite(Number(w.value)) ? Number(w.value) : props.state.lastRunSeed;
   if (last == null || !Number.isFinite(last)) {
     toast.warning(t("sd_no_last_seed", "No last-run seed recorded yet"));
@@ -342,7 +351,7 @@ function useLastSeed() {
   seedMode.value = "fixed";
 }
 function newFixedSeed() {
-  seedValue.value = randomSeed();
+  seedValue.value = randomSeed(seedWidget());
   seedMode.value = "fixed";
 }
 

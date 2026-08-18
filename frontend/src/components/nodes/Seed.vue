@@ -9,7 +9,7 @@ import { FilButton } from "@/components/widgets";
 import { toast } from "@/stores/toastStore";
 import { useI18n } from "@/composables/useI18n";
 import type { FilNodeState } from "@/nodes2/filState";
-import { findFilWidget, randomSeed } from "@/nodes2/util";
+import { clampSeed, findFilWidget, randomSeed } from "@/nodes2/util";
 
 const props = defineProps<{ state: FilNodeState }>();
 const { t } = useI18n();
@@ -19,14 +19,22 @@ const mode = computed({
   get: () => (props.state.nodeState.mode as "random" | "fixed") ?? "random",
   set: (v) => { props.state.nodeState.mode = v; },
 });
+/** The node's own seed widget — the range a fixed seed has to fit into. */
+function seedWidget() {
+  return props.state.node ? findFilWidget(props.state.node, "seed") : undefined;
+}
 const seed = computed({
-  get: () => Number(props.state.nodeState.seed ?? 0) || 0,
+  get: () => {
+    const raw = Number(props.state.nodeState.seed ?? 0);
+    return Number.isFinite(raw) ? raw : 0;
+  },
   // Write the native seed widget directly, not just nodeState — a fixed
   // seed set only via nodeState can fail to reach the queued prompt.
   set: (v) => {
-    props.state.nodeState.seed = v;
-    const w = props.state.node ? findFilWidget(props.state.node, "seed") : null;
-    if (w) w.value = v;
+    const w = seedWidget();
+    const value = clampSeed(v, w);
+    props.state.nodeState.seed = value;
+    if (w) w.value = value;
   },
 });
 
@@ -58,8 +66,7 @@ function setRandom() {
 function useLast() {
   // After a random queue the last value core drew lives on the native seed
   // widget; fall back to lastRunSeed for older saved state.
-  const node = props.state.node;
-  const w = node ? findFilWidget(node, "seed") : null;
+  const w = seedWidget();
   const last = w && Number.isFinite(Number(w.value)) ? Number(w.value) : props.state.lastRunSeed;
   if (last == null || !Number.isFinite(last)) {
     toast.warning(t("sd_no_last_seed", "No last-run seed recorded yet"));
@@ -70,7 +77,7 @@ function useLast() {
 }
 
 function newFixed() {
-  seed.value = randomSeed();
+  seed.value = randomSeed(seedWidget());
   mode.value = "fixed";
 }
 

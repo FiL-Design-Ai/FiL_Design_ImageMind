@@ -6,7 +6,7 @@ import { computed, watch } from "vue";
 import { FilSlider, FilNumberInput, FilSelect, FilSegmented, FilSeedRow, FilSection } from "@/components/widgets";
 import { useI18n } from "@/composables/useI18n";
 import { toast } from "@/stores/toastStore";
-import { findFilWidget, randomSeed } from "@/nodes2/util";
+import { clampSeed, findFilWidget, randomSeed } from "@/nodes2/util";
 import { useWidgetSockets } from "@/composables/useWidgetSockets";
 import { HIRESFIX_SOCKET_INPUTS } from "@/nodes2/nodes/hiresfix";
 import type { FilNodeState } from "@/nodes2/filState";
@@ -112,8 +112,15 @@ const seedMode = computed({
   get: () => ((props.state.nodeState.seed_mode as "random" | "fixed") ?? "random"),
   set: (v: "random" | "fixed") => { props.state.nodeState.seed_mode = v; },
 });
+/** The node's own seed widget — the range a fixed seed has to fit into. */
+function seedWidget() {
+  return props.state.node ? findFilWidget(props.state.node, "seed") : undefined;
+}
 const seedValue = computed({
-  get: () => Number(props.state.nodeState.seed ?? 0) || 0,
+  get: () => {
+    const raw = Number(props.state.nodeState.seed ?? 0);
+    return Number.isFinite(raw) ? raw : 0;
+  },
   // Belt and braces. This used to say the createSyncedNodeState mirror could
   // not reach the seed widget, because its `value` is a prototype accessor tied
   // to control_after_generate's linked-widget machinery. Measured against a
@@ -122,9 +129,10 @@ const seedValue = computed({
   // and a fixed seed that silently fails to queue is expensive — but do not
   // copy it into a new panel believing the mirror is broken. It is not.
   set: (v: number) => {
-    props.state.nodeState.seed = v;
-    const w = props.state.node ? findFilWidget(props.state.node, "seed") : null;
-    if (w) w.value = v;
+    const w = seedWidget();
+    const value = clampSeed(v, w);
+    props.state.nodeState.seed = value;
+    if (w) w.value = value;
   },
 });
 const seedDisplay = computed(() => (seedMode.value === "fixed" ? `${seedValue.value}` : "random"));
@@ -147,8 +155,7 @@ function setRandomSeed() {
 function useLastSeed() {
   // After a random queue the last value core drew lives on the native seed
   // widget; fall back to lastRunSeed if the graphToPrompt hook did populate it.
-  const node = props.state.node;
-  const w = node ? findFilWidget(node, "seed") : null;
+  const w = seedWidget();
   const last = w && Number.isFinite(Number(w.value)) ? Number(w.value) : props.state.lastRunSeed;
   if (last == null || !Number.isFinite(last)) {
     toast.warning(t("sd_no_last_seed", "No last-run seed recorded yet"));
@@ -158,7 +165,7 @@ function useLastSeed() {
   seedMode.value = "fixed";
 }
 function newFixedSeed() {
-  seedValue.value = randomSeed();
+  seedValue.value = randomSeed(seedWidget());
   seedMode.value = "fixed";
 }
 </script>
