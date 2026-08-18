@@ -3,7 +3,7 @@
  * FiLLoraLoader — Cyberpunk HUD panel for dynamic LoRA stack management with sliders.
  * Cleaned up: removed presets and advanced settings per user request.
  */
-import { computed, nextTick, onBeforeUnmount, ref, onMounted, watch } from "vue";
+import { computed, ref, onMounted, watch } from "vue";
 import {
   FilComboBox,
   type FilComboOption,
@@ -16,7 +16,7 @@ import type { FilNodeState } from "@/nodes2/filState";
 import { findFilWidget } from "@/nodes2/util";
 import { getJson } from "@/api/client";
 import { ROUTE_PREFIX } from "@/constants/brand";
-import { floatedBandWidth, panelEdgesInGraph, socketBandBox } from "@/nodes2/socketBand";
+import { useSocketBand, type BandNode } from "@/composables/useSocketBand";
 import { stackDisplayNames } from "@/nodes2/loraNames";
 
 interface LoraItem {
@@ -120,42 +120,24 @@ const filteredLoraItems = computed(() => {
 /**
  * The toolbar rides in the socket strip when the node's own labels leave room
  * for it — the trick Pixaroma's LoRA loader uses, with the offsets measured
- * off this node instead of tuned by hand. `socketBand.ts` explains the rest.
+ * off this node instead of tuned by hand. `useSocketBand.ts` explains the
+ * rest, and the cycler's toolbar is lifted by the same code.
  */
 const actionsBarEl = ref<HTMLElement | null>(null);
-const bandStyle = ref<Record<string, string> | null>(null);
 
-function measureBand() {
-  const node = props.state.node as Parameters<typeof socketBandBox>[0] | undefined;
-  if (!actionsBarEl.value || !node) return;
+/**
+ * The toolbar's own width, whatever the node's is — the width the node itself
+ * is built to. Given the whole strip of a node dragged wider, the sort box and
+ * the button row stretch to fill it and the panel reads differently at every
+ * width.
+ */
+const TOOLBAR_WIDTH = 400;
 
-  // Measure the block where it sits in flow: floated, its own offsets would be
-  // what the next measurement reads back.
-  bandStyle.value = null;
-
-  nextTick(() => {
-    const target = actionsBarEl.value;
-    const panelRoot = target?.parentElement;
-    if (!target || !panelRoot) return;
-    const edges = panelEdgesInGraph(panelRoot);
-    if (!edges) return;
-
-    const scale =
-      (globalThis as { app?: { canvas?: { ds?: { scale: number } } } }).app?.canvas?.ds?.scale || 1;
-    const asBox = (box: ReturnType<typeof socketBandBox>) =>
-      box ? { top: `${box.top}px`, left: `${box.left}px`, right: `${box.right}px` } : null;
-
-    // One block of three lines, as the design draws it — so it is measured
-    // once, against the whole strip rather than a row of it.
-    const barHeight = target.getBoundingClientRect().height / scale;
-    const box = socketBandBox(node, edges, barHeight);
-
-    // The strip has to hold the block, not merely exist — measured in the shape
-    // the block takes up there, which is not the shape it has down here.
-    const needed = floatedBandWidth(target as HTMLElement);
-    bandStyle.value = box && box.width >= needed ? asBox(box) : null;
-  });
-}
+const { bandStyle } = useSocketBand(
+  () => props.state.node as BandNode | undefined,
+  actionsBarEl,
+  { maxWidth: TOOLBAR_WIDTH }
+);
 
 /** Short stacks are read, not searched — same threshold the cycler uses. */
 const SEARCH_THRESHOLD = 6;
@@ -295,28 +277,12 @@ async function loadInstalledLoras() {
   }
 }
 
-let bandObserver: ResizeObserver | null = null;
-
 onMounted(() => {
   const rawList = String(props.state.nodeState["lora_list"] ?? "");
   if (rawList) {
     loraItems.value = parseLoraList(rawList);
   }
   loadInstalledLoras();
-
-  measureBand();
-  // The strip's width follows the node's, so a resize can turn a fitting
-  // toolbar into one that would cover the labels — and back.
-  const panelRoot = actionsBarEl.value?.parentElement;
-  if (panelRoot && typeof ResizeObserver !== "undefined") {
-    bandObserver = new ResizeObserver(() => measureBand());
-    bandObserver.observe(panelRoot);
-  }
-});
-
-onBeforeUnmount(() => {
-  bandObserver?.disconnect();
-  bandObserver = null;
 });
 
 function resetAllWeights() {
@@ -813,7 +779,7 @@ function onComboClose(index: number) {
             @mousedown.stop
             @click.stop="openInfoModal(item, originalIndex)"
           >
-            i
+            ⓘ
           </button>
 
           <FilToggle
@@ -1053,9 +1019,8 @@ function onComboClose(index: number) {
 }
 
 .fil-sort-select-wrap {
-  width: 96px;
-  min-width: 85px;
-  flex: 0 0 96px;
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .fil-sort-select-wrap :deep(.fil-w-select) {
@@ -1066,12 +1031,12 @@ function onComboClose(index: number) {
 .fil-sort-select-wrap :deep(.fil-w-select-input) {
   flex: 1;
   width: 100%;
-  height: 20px;
-  min-height: 20px;
-  max-height: 20px;
+  height: 24px;
+  min-height: 24px;
+  max-height: 24px;
   box-sizing: border-box;
-  padding: 0 3px;
-  font-size: 9px;
+  padding: 0 4px;
+  font-size: 11px;
   font-weight: 600;
   border-color: color-mix(in srgb, var(--fil-accent) 40%, transparent);
   color: var(--fil-accent-text, #c084fc);
@@ -1079,7 +1044,7 @@ function onComboClose(index: number) {
   border-radius: 4px;
   text-align: left;
   text-align-last: left;
-  line-height: 18px;
+  line-height: 22px;
 }
 
 .fil-actions-right-group {
@@ -1091,37 +1056,37 @@ function onComboClose(index: number) {
 }
 
 .fil-action-link {
-  height: 20px;
-  min-height: 20px;
-  max-height: 20px;
+  height: 24px;
+  min-height: 24px;
+  max-height: 24px;
   box-sizing: border-box;
   background: var(--fil-surface-2, #27272a);
-  border: 1px solid color-mix(in srgb, var(--fil-accent) 35%, transparent);
-  color: var(--fil-accent-text, #c084fc);
+  border: 1px solid color-mix(in srgb, var(--fil-text) 18%, transparent);
+  color: var(--fil-text);
   cursor: pointer;
-  padding: 0 4px;
-  border-radius: 4px;
-  font-size: 9px;
-  font-weight: 600;
+  padding: 0 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
   transition: all 0.15s ease-in-out;
   display: inline-flex;
   align-items: center;
   gap: 2px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  line-height: 18px;
+  line-height: 22px;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .fil-action-link:hover {
-  background: color-mix(in srgb, var(--fil-accent) 25%, transparent);
-  border-color: var(--fil-accent, #a855f7);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--fil-accent) 40%, transparent);
+  background: color-mix(in srgb, var(--fil-text) 8%, var(--fil-surface-2, #27272a));
+  border-color: color-mix(in srgb, var(--fil-text) 35%, transparent);
 }
 
 .fil-action-link.danger {
-  border-color: color-mix(in srgb, var(--fil-danger) 40%, transparent);
+  border-color: color-mix(in srgb, var(--fil-danger) 45%, transparent);
   color: var(--fil-danger, #ef4444);
+  background: color-mix(in srgb, var(--fil-danger) 14%, var(--fil-surface-2, #27272a));
 }
 
 .fil-action-link.danger:hover {
@@ -1295,13 +1260,6 @@ function onComboClose(index: number) {
   margin-left: auto;
 }
 
-/* The sort box carries an icon, three characters and a chevron — the wide
-   default was 96px of strip for that. */
-.fil-cycler-actions-bar.floated .fil-sort-select-wrap {
-  width: 84px;
-  min-width: 84px;
-}
-
 /* The bulk trio sits in the middle of its line, away from both the sort box
    and the one control that throws the stack away. */
 .fil-band-middle {
@@ -1319,10 +1277,10 @@ function onComboClose(index: number) {
      strip check believes it. */
   white-space: nowrap;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   background: var(--fil-accent-strong, #ffd60a);
   color: #1c1c1e;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   cursor: pointer;
   box-shadow: 0 0 14px color-mix(in srgb, var(--fil-accent-strong, #ffd60a) 35%, transparent);
@@ -1335,7 +1293,7 @@ function onComboClose(index: number) {
 .fil-drag-handle {
   cursor: grab;
   color: var(--fil-muted);
-  font-size: 13px;
+  font-size: 11px;
   letter-spacing: -1px;
   padding: 2px 4px;
   border-radius: 4px;
@@ -1434,10 +1392,10 @@ function onComboClose(index: number) {
   border: 1px solid color-mix(in srgb, var(--fil-accent) 35%, transparent);
   color: var(--fil-accent-text, #c084fc);
   cursor: pointer;
-  padding: 0 6px;
-  height: 20px;
-  border-radius: 4px;
-  font-size: 10px;
+  padding: 0 8px;
+  height: 24px;
+  border-radius: 6px;
+  font-size: 11px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1506,15 +1464,22 @@ function onComboClose(index: number) {
 
 .fil-cycler-actions-bar.floated .fil-action-link,
 .fil-cycler-actions-bar.floated .fil-actions-more,
-.fil-cycler-actions-bar.floated .fil-refresh-loras-btn {
-  height: 20px;
+.fil-cycler-actions-bar.floated .fil-refresh-loras-btn,
+.fil-cycler-actions-bar.floated .fil-band-add,
+.fil-cycler-actions-bar.floated .fil-stack-count {
+  height: 24px;
+  max-height: 24px;
   box-sizing: border-box;
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 700;
+}
+
+.fil-cycler-actions-bar.floated .fil-action-link {
+  padding: 0 6px;
 }
 
 .fil-cycler-actions-bar.floated :deep(.fil-w-select-input) {
-  height: 20px;
+  height: 24px;
   font-size: 11px;
 }
 

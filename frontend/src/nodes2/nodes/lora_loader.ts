@@ -14,8 +14,14 @@ const LoraLoaderVue = defineAsyncComponent(
 // copied from the cycler and named four that do not exist on this node
 // (`cycle_mode`, `index`, `include_bypass`, `auto_advance`), which reads as if
 // the node cycles and hides nothing, since there is nothing there to hide.
-/** The node's width. The design is drawn at 660; 400 is what was asked for. */
-const DESIGN_WIDTH = 400;
+/**
+ * The node's width, and the same number the Model Cycler opens at — the two
+ * nodes are meant to read as one pair. It buys the toolbar its full size: the
+ * strip is the node's width less about 130, and the block needs some 330 of it
+ * once the controls are the cycler's 24px/11px rather than the 20px/9px this
+ * panel used to draw.
+ */
+const DESIGN_WIDTH = 460;
 
 const nativeWidgetNames = [
   "lora_list",

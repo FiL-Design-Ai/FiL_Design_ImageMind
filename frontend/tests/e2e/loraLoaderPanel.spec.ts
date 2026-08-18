@@ -184,6 +184,19 @@ test.describe("LoRA Loader toolbar in the socket strip", () => {
    *
    * At a 340-wide node the labels leave ~214px of strip and the block wants ~271.
    */
+  test("is lifted, at full size, at the width new nodes start at", async ({ page }) => {
+    // New LoRA nodes are born 460 wide — the same as the Model Cycler, and for
+    // the same reason: the toolbar wears the 24px/11px controls both panels
+    // share now, and below this it would have to be scaled down to fit the
+    // strip, which is exactly what makes the two nodes stop matching.
+    await mountOnFakeNode(page, 460);
+
+    const bar = page.locator(".fil-cycler-actions-bar");
+    await expect(bar).toHaveClass(/floated/);
+    const transform = await bar.evaluate((el) => getComputedStyle(el).transform);
+    expect(transform, "the block had to be shrunk to fit the strip").toBe("none");
+  });
+
   test("shrinks into the strip instead of dropping into the panel", async ({ page }) => {
     await mountOnFakeNode(page, 340);
 
