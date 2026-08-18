@@ -19,6 +19,15 @@ import { isVueNodes } from "@/nodes2/nodes2Adapters";
 
 /** Gap between a socket's label and whatever we park next to it. */
 const LABEL_PAD = 8;
+/**
+ * How far a slot's label sits from its dot, in the host's own drawing.
+ *
+ * `LGraphNode.drawSlots` paints an input's text at x = 20 with the dot at 10,
+ * and mirrors that on the outputs. Measuring the reserve from the dot instead
+ * of from the text put the block 10px closer to the inputs than to the outputs,
+ * which is what the owner was looking at.
+ */
+const LABEL_INSET = 10;
 /** Below this there is no room worth floating a control into. */
 const MIN_USABLE_WIDTH = 120;
 
@@ -118,13 +127,22 @@ export function floatedBandWidth(element: HTMLElement): number {
   return needed;
 }
 
-/** Text width in the font LiteGraph paints slot labels with. */
+/**
+ * Text width in the font LiteGraph paints slot labels with.
+ *
+ * `innerFontStyle` — `normal 12px`, from `NODE_SUBTEXT_SIZE` — and not the 14px
+ * `NODE_TEXT_SIZE`, which is the node's title. Measuring at 14 overstated every
+ * reserve by a sixth, and on a long name like `model_name` that was 12px of
+ * strip handed back for nothing: the block stopped short of the outputs while
+ * sitting hard against the inputs.
+ */
 function labelWidth(text: string): number {
-  const lg = (globalThis as { LiteGraph?: { NODE_TEXT_SIZE?: number; NODE_FONT?: string } }).LiteGraph;
+  const lg = (globalThis as { LiteGraph?: { NODE_SUBTEXT_SIZE?: number; NODE_FONT?: string } })
+    .LiteGraph;
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
-  if (!ctx) return text.length * 8;
-  ctx.font = `${lg?.NODE_TEXT_SIZE ?? 14}px ${lg?.NODE_FONT ?? "Arial"}`;
+  if (!ctx) return text.length * 7;
+  ctx.font = `normal ${lg?.NODE_SUBTEXT_SIZE ?? 12}px ${lg?.NODE_FONT ?? "Arial"}`;
   return Math.ceil(ctx.measureText(text).width);
 }
 
@@ -200,8 +218,13 @@ export function socketBandBox(
   const dotLeft = slotY(node, true, 0) != null ? node.pos[0] + 10 : node.pos[0];
   const dotRight = node.pos[0] + node.size[0] - 10;
 
-  const left = dotLeft + leftReserve + LABEL_PAD - panel.left;
-  const available = panel.right - panel.left - left - (panel.right - (dotRight - rightReserve - LABEL_PAD));
+  // Measured from where the text actually starts, not from the dot.
+  const left = dotLeft + LABEL_INSET + leftReserve + LABEL_PAD - panel.left;
+  const available =
+    panel.right -
+    panel.left -
+    left -
+    (panel.right - (dotRight - LABEL_INSET - rightReserve - LABEL_PAD));
   const width = Math.min(available, maxWidth);
 
   if (width < MIN_USABLE_WIDTH) return null;
