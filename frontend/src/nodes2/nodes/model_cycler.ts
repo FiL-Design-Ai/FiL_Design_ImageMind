@@ -19,20 +19,22 @@ export interface CyclerRun {
 /**
  * The width new nodes open at, and the floor they cannot be dragged below.
  *
- * 560 rather than the LoRA Loader's 400, because this node pays for its own
- * labels: `model_name` and `clean_name` eat the right-hand column, so the strip
- * between the labels only outgrows the toolbar's ~375px somewhere around 520.
- * Measured on the canvas, not guessed — at 400 the block stays in flow and the
- * design's three lines never ride the sockets.
+ * 460 rather than the LoRA Loader's 400, because this node pays for its own
+ * labels: `model_name` and `clean_name` eat the right-hand column. Measured on
+ * the canvas rather than guessed — the strip is the node's width less 148, and
+ * the toolbar needs 284 of it, so 432 is where the block would start being
+ * scaled down to fit. 460 is that floor plus a hand's width of air: the three
+ * lines ride the sockets at full size, with 14px of clear space each side.
  *
- * And it has to be `minSize`. `initialWidth: 560` was here first and did
+ * And it has to be `minSize`. `initialWidth` was tried here first and did
  * nothing at all: `nodeStyle.ts` only ever narrows with it
  * (`size[0] > initialWidth`), while the cycler computes to ~409 — so every new
  * node still opened at 400 with the toolbar down in the panel, which is the one
- * thing the 560 was for. The e2e case "is lifted at the width new nodes start
- * at" believed it, because a playground node is handed its width directly.
+ * thing the wider number was for. The e2e case "is lifted at the width new
+ * nodes start at" believed it, because a playground node is handed its width
+ * directly.
  */
-const DESIGN_WIDTH = 560;
+const DESIGN_WIDTH = 460;
 
 const nativeWidgetNames = [
   "source_mode",

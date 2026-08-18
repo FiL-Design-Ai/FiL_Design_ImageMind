@@ -12,7 +12,7 @@
 import { test, expect } from "@playwright/test";
 
 /** What a new cycler node opens at — `DESIGN_WIDTH` in `model_cycler.ts`. */
-const NODE_WIDTH = 560;
+const NODE_WIDTH = 460;
 
 function models(count: number): string {
   return Array.from({ length: count }, (_, i) => `model_${i + 1}.safetensors`).join("\n");
@@ -186,10 +186,10 @@ test.describe("Model Cycler toolbar in the socket strip", () => {
   });
 
   test("is lifted at the width new nodes start at", async ({ page }) => {
-    // New cycler nodes are born 560 wide: the squeezed toolbar — selects
+    // New cycler nodes are born 460 wide: the squeezed toolbar — selects
     // truncated to their floors, buttons keeping their labels — has to ride
     // the strip there, or the "between the sockets" layout never shows.
-    await mountOnFakeNode(page, 560);
+    await mountOnFakeNode(page, 460);
 
     const bar = page.locator(".fil-cycler-actions-bar");
     await expect(bar).toHaveClass(/floated/);
