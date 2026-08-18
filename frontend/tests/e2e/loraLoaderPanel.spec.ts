@@ -158,14 +158,48 @@ test.describe("LoRA Loader toolbar in the socket strip", () => {
     expect(barBox.y + barBox.height).toBeLessThanOrEqual(panelBox.y + 1);
   });
 
-  test("stays in flow when the node is too narrow for the strip", async ({ page }) => {
-    await mountOnFakeNode(page, 240);
+  /**
+   * The toolbar was laid out at the node's own 400 and stays there: a node
+   * dragged wider hands the strip more room, and a bar that took all of it
+   * would stretch its boxes and read as a different panel at every width.
+   */
+  test("keeps its own width however wide the node is", async ({ page }) => {
+    for (const nodeWidth of [660, 1100]) {
+      await mountOnFakeNode(page, nodeWidth);
+      const bar = page.locator(".fil-cycler-actions-bar");
+      await expect(bar).toHaveClass(/floated/);
+
+      // Within a pixel: the insets are integers and the panel's own width is
+      // not, so the block can land a rounding away from the number asked for.
+      const barBox = (await bar.boundingBox())!;
+      expect(barBox.width, `at a node ${nodeWidth} wide`).toBeGreaterThan(398);
+      expect(barBox.width, `at a node ${nodeWidth} wide`).toBeLessThan(402);
+    }
+  });
+
+  /**
+   * Asked for in as many words: these controls belong between the inputs and
+   * the outputs and must never drop into the panel. A strip too narrow for the
+   * block is not a reason to give up on it — the block is scaled to fit.
+   *
+   * At a 340-wide node the labels leave ~214px of strip and the block wants ~271.
+   */
+  test("shrinks into the strip instead of dropping into the panel", async ({ page }) => {
+    await mountOnFakeNode(page, 340);
 
     const bar = page.locator(".fil-cycler-actions-bar");
-    await expect(bar).not.toHaveClass(/floated/);
+    await expect(bar).toHaveClass(/floated/);
+
+    // Scaled, not merely narrower: the layout the design draws is kept and the
+    // whole block is made smaller.
+    const transform = await bar.evaluate((el) => getComputedStyle(el).transform);
+    expect(transform, "the block was left at full size").not.toBe("none");
+
+    // And it is still up in the strip, clear of the panel below it.
     const barBox = (await bar.boundingBox())!;
     const panelBox = (await page.locator(".fil-cycler-root").boundingBox())!;
-    expect(barBox.y).toBeGreaterThanOrEqual(panelBox.y);
+    expect(barBox.y + barBox.height).toBeLessThanOrEqual(panelBox.y + 1);
+    expect(barBox.x + barBox.width).toBeLessThanOrEqual(panelBox.x + panelBox.width + 1);
   });
 });
 

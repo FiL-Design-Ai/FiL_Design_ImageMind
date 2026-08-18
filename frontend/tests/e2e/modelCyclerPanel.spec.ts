@@ -224,14 +224,29 @@ test.describe("Model Cycler toolbar in the socket strip", () => {
     expect(Math.abs(after.width - before.width), "the toolbar resized").toBeLessThan(2);
   });
 
-  test("stays in flow when the node is too narrow for the strip", async ({ page }) => {
-    await mountOnFakeNode(page, 240);
+  /**
+   * Asked for in as many words: these controls belong between the inputs and
+   * the outputs and must never drop into the panel. A strip too narrow for the
+   * block is not a reason to give up on it — the block is scaled to fit.
+   *
+   * At a 420-wide node the labels leave ~269px of strip and the block wants ~375.
+   */
+  test("shrinks into the strip instead of dropping into the panel", async ({ page }) => {
+    await mountOnFakeNode(page, 420);
 
     const bar = page.locator(".fil-cycler-actions-bar");
-    await expect(bar).not.toHaveClass(/floated/);
+    await expect(bar).toHaveClass(/floated/);
+
+    // Scaled, not merely narrower: the layout the design draws is kept and the
+    // whole block is made smaller.
+    const transform = await bar.evaluate((el) => getComputedStyle(el).transform);
+    expect(transform, "the block was left at full size").not.toBe("none");
+
+    // And it is still up in the strip, clear of the panel below it.
     const barBox = (await bar.boundingBox())!;
     const panelBox = (await page.locator(".fil-cycler-root").boundingBox())!;
-    expect(barBox.y).toBeGreaterThanOrEqual(panelBox.y);
+    expect(barBox.y + barBox.height).toBeLessThanOrEqual(panelBox.y + 1);
+    expect(barBox.x + barBox.width).toBeLessThanOrEqual(panelBox.x + panelBox.width + 1);
   });
 });
 
