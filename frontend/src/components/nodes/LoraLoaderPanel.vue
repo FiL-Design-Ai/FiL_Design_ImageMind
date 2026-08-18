@@ -969,6 +969,25 @@ function onComboClose(index: number) {
   overflow: visible;
 }
 
+
+/* A button, a select and an input do not inherit a font family from the box
+   they sit in — the browser hands them its own default, which is Arial here.
+   So the toolbar was literally set in a different typeface from the panel
+   around it: the node's name and its own list in system-ui, every button on
+   the strip in Arial. Measured on the canvas, not guessed. */
+.fil-cycler-root button,
+.fil-cycler-root select,
+.fil-cycler-root input {
+  font-family: inherit;
+}
+
+
+/* The counter is the exception: its two numbers change under the pointer, and
+   in a proportional face the whole strip shifts when 9 becomes 10. */
+.fil-cycler-root .fil-stack-count {
+  font-family: ui-monospace, SFMono-Regular, monospace;
+}
+
 .fil-cycler-root {
   width: 100%;
   box-sizing: border-box;
