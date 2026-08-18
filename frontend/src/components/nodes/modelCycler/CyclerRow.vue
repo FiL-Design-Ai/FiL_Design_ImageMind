@@ -247,7 +247,7 @@ const { t } = useI18n();
    and lined up on the left so the eye runs down the starts. */
 .fil-cycler-select-wrap :deep(.fil-combo-trigger) {
   width: 100%;
-  font-size: 14px;
+  font-size: 12px;
   justify-content: flex-start;
   text-align: left;
 }

@@ -1467,10 +1467,10 @@ function onComboClose(index: number) {
   padding: 0 1px;
 }
 
-/* The name itself, two steps up from the widget's own 12px and given the room
+/* The name itself, the widget's own 12px and given the room
    the rest gave back. */
 .fil-cycler-select-wrap :deep(.fil-combo-trigger) {
-  font-size: 14px;
+  font-size: 12px;
   /* A stack is a list of files: names line up on the left, so the eye runs
      down the starts instead of hunting for each centred one. */
   justify-content: flex-start;
