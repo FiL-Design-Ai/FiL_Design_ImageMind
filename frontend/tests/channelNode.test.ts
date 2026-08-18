@@ -13,8 +13,8 @@
  */
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { channelNode } from "@/nodes2/nodes/channel";
-import { beginGraphConfigure, endGraphConfigure } from "@/nodes2/wireless";
-import { createNode } from "./fakes/comfyHost";
+import { beginGraphConfigure, endGraphConfigure, setUserSlotName } from "@/nodes2/wireless";
+import { createGraph, createNode, disconnectAutogrowInput, slot } from "./fakes/comfyHost";
 
 vi.mock("@/nodes2/domWidgetHost", () => ({
   addFilDomWidget: () => ({ name: "fil_channel_view", value: {} }),
@@ -136,6 +136,90 @@ describe("channel.ts — onConnectionsChange dispatch", () => {
       (nodeType.prototype.onConnectionsChange as (...a: unknown[]) => unknown).call(node, 1, 1, true, {}, {});
 
       expect(node._filPendingAmbiguityChecks).toEqual([1]);
+    });
+  });
+
+  /**
+   * The live bug pulling a wire out produced. This node's inputs grow, and the
+   * host compacts the group the moment one is freed: every link below the gap
+   * moves up a slot while the slots — and the names written on their labels —
+   * stay where they are (`disconnectAutogrowInput` in the fake carries the
+   * host's own source reference). So unplugging `positive` left the surviving
+   * wire wearing the word "positive", and `fil_channel_names` carried that
+   * through a reload into the sampler.
+   */
+  describe("when the host compacts the group after a wire leaves", () => {
+    const frame = () => new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+    /** Host pass, our pass, and the settle the host's own re-announcement adds. */
+    const settle = async () => {
+      for (let i = 0; i < 5; i++) await frame();
+    };
+
+    function buildWiredChannel() {
+      const positive = createNode({ id: 10, comfyClass: "CLIPTextEncode", outputs: [slot("CONDITIONING", "CONDITIONING")] });
+      const negative = createNode({ id: 11, comfyClass: "CLIPTextEncode", outputs: [slot("CONDITIONING", "CONDITIONING")] });
+      const channel = createNode({
+        id: 1,
+        comfyClass: "FiLChannel",
+        // Two wired and one free is what an autogrow group looks like once a
+        // second wire has landed: the host always keeps one to grow into.
+        inputs: [
+          slot("value.value0", "CONDITIONING"),
+          slot("value.value1", "CONDITIONING"),
+          slot("value.value2", "CONDITIONING"),
+        ],
+      });
+      createGraph([positive, negative, channel]);
+
+      const nodeType = { prototype: {} } as { prototype: Record<string, unknown> };
+      channelNode.register(nodeType as never, { name: "FiLChannel" } as never);
+      (nodeType.prototype.onNodeCreated as (this: unknown) => unknown).call(channel);
+      // A real node carries the handler on its prototype; the fake needs it
+      // where the host's own compaction can reach it.
+      channel.onConnectionsChange = nodeType.prototype.onConnectionsChange;
+
+      positive.connect?.(0, channel, 0);
+      negative.connect?.(0, channel, 1);
+      setUserSlotName(channel, channel.inputs[0], "positive");
+      setUserSlotName(channel, channel.inputs[1], "negative");
+      // Whatever the wiring queued is not what these tests are about.
+      delete (channel as Record<string, unknown>)._filPendingAmbiguityChecks;
+      delete (channel as Record<string, unknown>)._filPendingNamingChecks;
+
+      return { channel, negativeLink: channel.inputs[1].link };
+    }
+
+    it("carries each name onto the slot its wire ended up in", async () => {
+      const { channel, negativeLink } = buildWiredChannel();
+
+      disconnectAutogrowInput(channel, 0);
+      await settle();
+
+      // The host moved the negative wire down into the freed slot...
+      expect(channel.inputs[0].link).toBe(negativeLink);
+      // ...and its name came with it, instead of the departed one's staying put.
+      expect(channel.inputs[0].label).toBe("negative");
+      expect(channel.properties.fil_channel_names).toEqual({ "value.value0": "negative" });
+    });
+
+    it("does not mistake the host's own re-announcements for wires the user drew", async () => {
+      const { channel } = buildWiredChannel();
+
+      disconnectAutogrowInput(channel, 0);
+      await settle();
+
+      expect(channel._filPendingNamingChecks ?? []).toEqual([]);
+      expect(channel._filPendingAmbiguityChecks ?? []).toEqual([]);
+    });
+
+    it("leaves a wire the user draws afterwards to ask its own questions", async () => {
+      const { channel } = buildWiredChannel();
+
+      disconnectAutogrowInput(channel, 0);
+      await settle();
+      (channel.onConnectionsChange as (...a: unknown[]) => unknown).call(channel, 1, 1, true, {}, {});
+
+      expect(channel._filPendingNamingChecks).toEqual([1]);
     });
   });
 });

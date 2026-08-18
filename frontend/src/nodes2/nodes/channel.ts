@@ -4,7 +4,13 @@ import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
 import { applyFxComposables } from "@/nodes2/applyFxComposables";
-import { graphBeingConfigured, invalidateWirelessPlan } from "@/nodes2/wireless";
+import {
+  graphBeingConfigured,
+  invalidateWirelessPlan,
+  remapUserSlotNames,
+  snapshotSlotLinks,
+  type WirelessNode,
+} from "@/nodes2/wireless";
 
 const ChannelPanelVue = defineAsyncComponent(() => import("@/components/nodes/ChannelPanel.vue"));
 
@@ -25,6 +31,63 @@ const ChannelPanelVue = defineAsyncComponent(() => import("@/components/nodes/Ch
  * the wireless overlay already draws the channel's name (which falls back to
  * its type) next to every input it feeds, so nothing is lost.
  */
+/**
+ * The node's own record of the host's reshuffle, kept on the plain node object
+ * for the same reason the pending-check queues are: it has to survive whether
+ * or not the panel happens to be mounted.
+ */
+interface CompactingNode extends WirelessNode {
+  _filCompactionDepth?: number;
+  _filCompactionBefore?: Map<string, number | null>;
+  _filChannelState?: { ui?: { refresh?: () => void } };
+}
+
+/** rAF where there is one; a timer keeps this working in a bare test environment. */
+function nextFrame(run: () => void): void {
+  if (typeof requestAnimationFrame === "function") requestAnimationFrame(run);
+  else setTimeout(run, 0);
+}
+
+function compacting(node: CompactingNode): boolean {
+  return (node._filCompactionDepth ?? 0) > 0;
+}
+
+/**
+ * A wire has left the node, so the host is about to compact the group: it
+ * moves every link below the freed slot up one, re-stamps `link.target_slot`,
+ * announces each moved link as a *connection*, and deletes the trailing
+ * empties — all of it a frame later, and all of it leaving the slots' own
+ * labels untouched (`autogrowInputDisconnected`, frontend `settingStore-*`).
+ *
+ * Two things follow. The names have to be walked back onto the slots their
+ * wires actually landed in, which needs a reading from before the move; and
+ * the announcements the move makes are the host's bookkeeping, not a wire
+ * anybody drew, so nothing may queue a question off them.
+ *
+ * A counter rather than a flag, and the *earliest* snapshot rather than the
+ * latest: several wires can leave in one burst, and link ids do not change
+ * while the host bubbles them, so the first reading still says where every
+ * surviving wire started.
+ */
+function beginCompaction(node: CompactingNode): void {
+  node._filCompactionDepth = (node._filCompactionDepth ?? 0) + 1;
+  node._filCompactionBefore ??= snapshotSlotLinks(node);
+  // The host's own pass runs a frame from now; ours has to land after it.
+  nextFrame(() => nextFrame(() => settleCompaction(node)));
+}
+
+function settleCompaction(node: CompactingNode): void {
+  node._filCompactionDepth = Math.max(0, (node._filCompactionDepth ?? 1) - 1);
+  if (compacting(node)) return; // a later disconnect in the same burst is still settling
+
+  const before = node._filCompactionBefore;
+  node._filCompactionBefore = undefined;
+  if (!before) return;
+
+  if (remapUserSlotNames(node, before)) invalidateWirelessPlan();
+  node._filChannelState?.ui?.refresh?.();
+}
+
 export const channelNode: NodeModule = {
   id: "FiLChannel",
   register(nodeType: unknown, _nodeData: ComfyNodeData): void {
@@ -62,8 +125,7 @@ export const channelNode: NodeModule = {
     const originalConnections = proto.onConnectionsChange as ((...a: unknown[]) => unknown) | undefined;
     proto.onConnectionsChange = function (this: unknown, ...args: unknown[]) {
       const result = originalConnections?.apply(this, args);
-      const node = this as {
-        _filChannelState?: { ui?: { refresh?: () => void } };
+      const node = this as CompactingNode & {
         _filPendingAmbiguityChecks?: number[];
         _filPendingNamingChecks?: number[];
       };
@@ -95,8 +157,24 @@ export const channelNode: NodeModule = {
       // makes the "positive or negative?" question a once-per-wire one: the
       // answer lands on the slot's label, the label serialises with the
       // workflow, and a restored wire never queues either check.
+      //
+      // `compacting()` guards the third case, and the one the host makes up
+      // itself: a wire leaving the node makes it shuffle the ones below into
+      // the freed slot, announcing each as a fresh connection. Those are not
+      // decisions — the wires were already resolved where they came from —
+      // and taking them for new ones asked "positive or negative?" about a
+      // wire nobody had touched. `beginCompaction` explains the rest.
       const [side, slot, connected] = args as [number, number, boolean];
-      if (side === 1 && connected === true && typeof slot === "number" && !graphBeingConfigured()) {
+      if (side === 1 && connected === false && !graphBeingConfigured()) {
+        beginCompaction(node);
+      }
+      if (
+        side === 1 &&
+        connected === true &&
+        typeof slot === "number" &&
+        !graphBeingConfigured() &&
+        !compacting(node)
+      ) {
         (node._filPendingAmbiguityChecks ??= []).push(slot);
         (node._filPendingNamingChecks ??= []).push(slot);
       }

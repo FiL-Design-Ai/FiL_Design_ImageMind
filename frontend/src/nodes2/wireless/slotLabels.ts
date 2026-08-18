@@ -25,6 +25,17 @@
  * `restoreUserSlotNames` writes it back onto any slot the host let fall.
  * That is what makes the question once-per-wire across restarts, not merely
  * within a session.
+ *
+ * One more thing a name has to survive, and the reason `remapUserSlotNames`
+ * exists: the host compacts an autogrow group whenever a wire leaves it.
+ * `autogrowInputDisconnected` (frontend `settingStore-*.js.map`) moves every
+ * *link* below the freed one up a slot, re-stamps `link.target_slot`, and
+ * deletes the trailing empties — but the slot objects, and therefore their
+ * labels, stay exactly where they were. So unplugging the first of a
+ * `positive`/`negative` pair left the surviving wire wearing the name of the
+ * one that went, and `fil_channel_names` carried that mistake through a
+ * reload. Names are keyed by slot; links are what actually moved; so the fix
+ * is to follow the links.
  */
 
 import { defaultChannelSlotLabel, isChannelValueInput, type WirelessNode, type WirelessSlot } from "./types";
@@ -132,6 +143,118 @@ export function restoreUserSlotNames(node: WirelessNode): boolean {
     writeReceipt(node, slot.name, undefined); // a restored name is the user's too
     changed = true;
   }
+  return changed;
+}
+
+/** Hand a slot back to the host: no user name, no receipt, the bare default label. */
+function clearUserSlotName(node: WirelessNode, slot: WirelessSlot): boolean {
+  let changed = false;
+
+  const saved = userNames(node);
+  if (saved && slot.name in saved) {
+    delete saved[slot.name];
+    if (Object.keys(saved).length === 0) delete node.properties![USER_NAMES_PROPERTY];
+    changed = true;
+  }
+
+  writeReceipt(node, slot.name, undefined);
+  const wanted = defaultChannelSlotLabel(slot.name);
+  if (slot.label !== wanted) {
+    slot.label = wanted;
+    changed = true;
+  }
+  return changed;
+}
+
+/** The name this slot goes by, whether it is worn on the label or only vaulted. */
+function currentUserName(node: WirelessNode, slot: WirelessSlot): string | undefined {
+  const label = slot.label?.trim();
+  if (label && !isAutoLabel(node, slot)) return label;
+  return userNames(node)?.[slot.name];
+}
+
+/**
+ * What each value slot holds right now — the "before" half of a compaction.
+ *
+ * Taken the moment a wire leaves the node, ahead of the host's own reshuffle
+ * (which it defers a frame), so `remapUserSlotNames` can tell where every
+ * surviving link ended up.
+ */
+export function snapshotSlotLinks(node: WirelessNode): Map<string, number | null> {
+  const snapshot = new Map<string, number | null>();
+  for (const slot of node.inputs ?? []) {
+    if (!slot || !isChannelValueInput(slot.name)) continue;
+    snapshot.set(slot.name, slot.link ?? null);
+  }
+  return snapshot;
+}
+
+/**
+ * Move every name onto the slot its wire ended up in.
+ *
+ * `before` is `snapshotSlotLinks`'s reading from before the host compacted the
+ * group. A slot whose link id did not move is left completely alone — that is
+ * the common case and the one this must not disturb. A slot now holding a link
+ * that used to sit elsewhere takes that slot's name; a slot left empty by the
+ * shuffle gives its name up, because the wire it described is gone.
+ *
+ * A link the snapshot never saw belongs to a wire drawn after it was taken,
+ * not to the shuffle, and is skipped: nothing here should second-guess a wire
+ * it has no "before" for. Vault entries for slots the host deleted outright go
+ * too, or a later wire into a re-created slot of the same name would inherit a
+ * name nobody gave it.
+ *
+ * Returns true when anything moved, so the caller can redraw and re-plan.
+ */
+export function remapUserSlotNames(node: WirelessNode, before: Map<string, number | null>): boolean {
+  const slots = (node.inputs ?? []).filter(
+    (slot): slot is WirelessSlot => !!slot && isChannelValueInput(slot.name),
+  );
+
+  // Read every name first: the loop below rewrites labels, and a name must be
+  // read from before that started, not from a slot already rewritten.
+  const nameBySlot = new Map<string, string | undefined>();
+  const slotByLink = new Map<number, string>();
+  for (const [slotName, link] of before) {
+    const slot = slots.find((s) => s.name === slotName);
+    nameBySlot.set(slotName, slot ? currentUserName(node, slot) : userNames(node)?.[slotName]);
+    if (link != null) slotByLink.set(link, slotName);
+  }
+
+  let changed = false;
+  for (const slot of slots) {
+    const wasLink = before.get(slot.name) ?? null;
+    const nowLink = slot.link ?? null;
+    if (wasLink === nowLink) continue; // the host left this one where it was
+
+    if (nowLink != null && !slotByLink.has(nowLink)) continue; // a wire drawn since the snapshot
+
+    const carried = nowLink != null ? nameBySlot.get(slotByLink.get(nowLink)!) : undefined;
+    if (carried) {
+      if (setUserSlotName(node, slot, carried)) changed = true;
+    } else if (clearUserSlotName(node, slot)) {
+      changed = true;
+    }
+  }
+
+  // Slots the host removed outright keep nothing behind them.
+  const live = new Set(slots.map((slot) => slot.name));
+  const saved = userNames(node);
+  if (saved) {
+    for (const slotName of Object.keys(saved)) {
+      if (live.has(slotName)) continue;
+      delete saved[slotName];
+      changed = true;
+    }
+    if (Object.keys(saved).length === 0) delete node.properties![USER_NAMES_PROPERTY];
+  }
+  const kept = receipts(node);
+  if (kept) {
+    for (const slotName of Object.keys(kept)) {
+      if (!live.has(slotName)) writeReceipt(node, slotName, undefined);
+    }
+  }
+
   return changed;
 }
 

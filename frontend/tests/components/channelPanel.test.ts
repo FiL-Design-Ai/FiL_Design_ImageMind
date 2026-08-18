@@ -11,8 +11,16 @@ import { reactive, nextTick } from "vue";
 import { mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import ChannelPanel from "@/components/nodes/ChannelPanel.vue";
-import { createGraph, createNode, installHostPalette, slot, type FakeNode } from "../fakes/comfyHost";
-import { invalidateWirelessPlan, subscribeInput } from "@/nodes2/wireless";
+import {
+  createGraph,
+  createNode,
+  disconnectAutogrowInput,
+  installHostPalette,
+  slot,
+  type FakeNode,
+} from "../fakes/comfyHost";
+import { channelNode } from "@/nodes2/nodes/channel";
+import { invalidateWirelessPlan, setUserSlotName, subscribeInput } from "@/nodes2/wireless";
 import {
   _resetWirelessMemory,
   noteChannelPairs,
@@ -847,6 +855,48 @@ describe("ChannelPanel.vue", () => {
       expect(ch.inputs[0].label).toBe("base model");
       expect(ch.properties.fil_channel_names).toEqual({ "value.value0": "base model" });
       expect(wrapper.text()).toContain("base model");
+    });
+  });
+
+  /**
+   * Pulling a wire out makes the host compact the group — the links below the
+   * gap slide up while the slots, and the names written on them, stay put
+   * (`disconnectAutogrowInput` in the fake names the host source). Seen from
+   * the panel, the failure was plain: unplug `positive` and the remaining row
+   * called itself "positive" while carrying the negative wire.
+   */
+  describe("after the host compacts the group", () => {
+    const settleFrames = async () => {
+      for (let i = 0; i < 5; i++) await new Promise((r) => requestAnimationFrame(() => r(null)));
+      await nextTick();
+    };
+
+    it("the surviving row keeps its own name, and nothing is re-asked", async () => {
+      const pos = loader(1, "CONDITIONING", "CLIPTextEncode");
+      const neg = loader(2, "CONDITIONING", "CLIPTextEncode");
+      const ch = transmitter(3, ["CONDITIONING", "CONDITIONING", "CONDITIONING"]);
+      createGraph([pos, neg, ch]);
+      pos.connect!(0, ch, 0);
+      neg.connect!(0, ch, 1);
+      setUserSlotName(ch, ch.inputs[0], "positive");
+      setUserSlotName(ch, ch.inputs[1], "negative");
+
+      // The dispatch under test lives on the node type, not in the panel.
+      const nodeType = { prototype: {} } as { prototype: Record<string, unknown> };
+      channelNode.register(nodeType as never, { name: "FiLChannel" } as never);
+      ch.onConnectionsChange = nodeType.prototype.onConnectionsChange;
+
+      const { wrapper, state } = await panelWithState(ch);
+      // What `onNodeCreated` hands the node in the real thing — the seam the
+      // settle uses to nudge the panel instead of waiting for its own poll.
+      (ch as Record<string, unknown>)._filChannelState = state;
+
+      disconnectAutogrowInput(ch, 0);
+      await settleFrames();
+
+      expect(wrapper.findAll(".fil-channel-name").map((n) => n.text())).toEqual(["negative"]);
+      expect(ch.properties.fil_channel_names).toEqual({ "value.value0": "negative" });
+      expect(modal().querySelector(".fil-channel-naming-actions")).toBeNull();
     });
   });
 

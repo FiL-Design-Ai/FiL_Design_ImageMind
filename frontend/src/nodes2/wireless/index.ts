@@ -31,7 +31,9 @@ export {
 export {
   applySlotNames,
   isAutoLabel,
+  remapUserSlotNames,
   setUserSlotName,
+  snapshotSlotLinks,
   restoreUserSlotNames,
   AUTO_LABEL_PROPERTY,
   USER_NAMES_PROPERTY,

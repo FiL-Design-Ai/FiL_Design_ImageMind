@@ -352,6 +352,81 @@ export function createSubgraphTree(
   return root;
 }
 
+/**
+ * Pull a wire out of an autogrow group the way the host really does it.
+ *
+ * `node.disconnectInput` alone is only half the story for a node whose inputs
+ * grow (`io.Autogrow` — 📡 Channel's `value.value0`, `value.value1`, ...). The
+ * frontend's own `autogrowInputDisconnected` then *compacts the group*: every
+ * link below the freed slot moves up one, `link.target_slot` is re-stamped,
+ * each moved link is announced through `onConnectionsChange` as though it had
+ * just been connected, and the trailing empty slots beyond `min` are deleted.
+ * The slot objects themselves never move — so their `label`s stay put while
+ * the wires underneath them slide.
+ *
+ * That is the whole reason this exists: the pack keeps a channel's name on the
+ * slot's label, and a fake that only cleared `input.link` agreed with the
+ * pack's assumption instead of the host's behaviour. Read from the host's own
+ * source — `settingStore-*.js.map` in `comfyui_frontend_package`, function
+ * `autogrowInputDisconnected` — and reproduced here for a single-input
+ * template (stride 1), which is the shape 📡 Channel declares.
+ *
+ * The compaction is deferred a frame, exactly as the host defers it with
+ * `requestAnimationFrame`; a caller has to let frames pass before asserting.
+ */
+export function disconnectAutogrowInput(node: FakeNode, slotIndex: number, min = 1): void {
+  const input = node.inputs[slotIndex];
+  if (!input) return;
+  const groupName = input.name.slice(0, input.name.lastIndexOf("."));
+
+  node.disconnectInput?.(slotIndex);
+  announce(node, slotIndex, false, null, input);
+
+  // The host's own pass, a frame later.
+  requestAnimationFrame(() => {
+    if (slotIndex + 1 >= node.inputs.length) return; // freeing the last slot moves nothing
+    const group = node.inputs.filter(
+      (slot) => slot.name.startsWith(`${groupName}.`) && slot.name.lastIndexOf(".") === groupName.length,
+    );
+    const ordinal = group.indexOf(input);
+    if (ordinal < 0 || ordinal + 1 < min) return;
+
+    for (let i = ordinal; i + 1 < group.length; i++) {
+      const current = group[i];
+      current.link = group[i + 1].link ?? null;
+      if (current.link == null) continue;
+      const link = node.graph.links?.[current.link];
+      if (!link) continue;
+      const index = node.inputs.indexOf(current);
+      (link as FakeLink).target_slot = index;
+      announce(node, index, true, link, current);
+    }
+
+    const last = group[group.length - 1];
+    last.link = null;
+    announce(node, node.inputs.length - 1, false, null, last);
+
+    // Trailing empties beyond `min` go, keeping one free slot to grow into.
+    const removalChecks = group.slice(min);
+    let keep = removalChecks.length - 1;
+    for (; keep >= 0; keep--) if (removalChecks[keep].link != null) break;
+    const toRemove = removalChecks.slice(keep + 2);
+    if (toRemove.length > 0) node.inputs = node.inputs.filter((slot) => !toRemove.includes(slot));
+  });
+}
+
+function announce(
+  node: FakeNode,
+  slotIndex: number,
+  connected: boolean,
+  link: unknown,
+  slot: FakeSlot,
+): void {
+  const handler = node.onConnectionsChange;
+  // `LGraphNode.ts`: (NodeSlotType.INPUT, slot, connected, link_info, ioInfo).
+  if (typeof handler === "function") handler.call(node, 1, slotIndex, connected, link, slot);
+}
+
 /** What a drawing pass did, without a real 2D context — jsdom has none. */
 export interface DrawRecord {
   strokes: number;
