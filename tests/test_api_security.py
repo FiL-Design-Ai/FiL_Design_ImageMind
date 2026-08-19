@@ -255,3 +255,46 @@ def test_unknown_provider_and_invalid_auth_payload():
     assert build_models_response("unknown") == ({"error": "unknown provider"}, 404)
     assert apply_auth_payload({"accounts": []}) == ({"error": "accounts must be an object"}, 400)
     assert apply_auth_payload({"accounts": {"unknown": {}}}) == ({"error": "invalid provider account"}, 400)
+
+def test_a_preview_is_found_whatever_the_downloader_called_it(tmp_path, monkeypatch):
+    """Every shape a picture beside a model comes in, and the pick order.
+
+    The list knew `.png`, `.preview.png`, `.jpg`, `.jpeg` and `.webp`, which
+    leaves out the form ComfyUI Manager and the Civitai helpers write most
+    often: `model.preview.jpeg`. Those models showed an empty box in the info
+    dialog and no thumbnail in the picker, with nothing on screen to say why.
+    """
+    from FiL_Design_ImageMind.server_routes import _inspect_model_file
+
+    models = _fake_model_dir(tmp_path, monkeypatch)
+
+    for suffix in (".preview.png", ".preview.jpeg", ".preview.jpg", ".preview.webp",
+                   ".png", ".jpg", ".jpeg", ".webp"):
+        picture = models / f"inside{suffix}"
+        picture.write_bytes(b"fake image bytes")
+        found = _inspect_model_file("checkpoints", "inside.safetensors")
+        assert found.get("has_preview") is True, f"{suffix} was not looked for"
+        assert found["preview_path"].endswith(suffix)
+        picture.unlink()
+
+    # And when a model has both, the one somebody chose wins over the one that
+    # merely sits there.
+    chosen = models / "inside.preview.jpeg"
+    stray = models / "inside.png"
+    chosen.write_bytes(b"fake jpeg bytes")
+    stray.write_bytes(b"fake png bytes")
+    assert _inspect_model_file("checkpoints", "inside.safetensors")["preview_path"].endswith(
+        ".preview.jpeg"
+    )
+
+
+def test_a_webp_preview_is_labelled_as_an_image():
+    """`mimetypes` on a stock Windows Python does not know `.webp`, so the file
+    went out as `application/octet-stream`. An `<img>` sniffs and renders it
+    anyway; nothing that reads the header does."""
+    from FiL_Design_ImageMind.server_routes import PREVIEW_CONTENT_TYPES, PREVIEW_EXTENSIONS
+
+    for ext in PREVIEW_EXTENSIONS:
+        bare = ext.replace(".preview", "")
+        assert PREVIEW_CONTENT_TYPES[bare].startswith("image/")
+    assert PREVIEW_CONTENT_TYPES[".webp"] == "image/webp"

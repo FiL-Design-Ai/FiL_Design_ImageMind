@@ -95,6 +95,24 @@ def _fetch_civitai_metadata_and_preview(full_path: str) -> bool:
         return False
 
 
+#: Picture files that can sit beside a model, best first.
+PREVIEW_EXTENSIONS = (
+    ".preview.png", ".preview.jpeg", ".preview.jpg", ".preview.webp",
+    ".png", ".jpg", ".jpeg", ".webp",
+)
+
+#: What to call each of them on the way out. `mimetypes` on a stock Windows
+#: Python does not know `.webp`, so `FileResponse` labelled those
+#: `application/octet-stream` — browsers sniff an `<img>` and render it anyway,
+#: but nothing else that reads the header can.
+PREVIEW_CONTENT_TYPES = {
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".webp": "image/webp",
+}
+
+
 def _inspect_model_file(mode: str, rel_path: str, fetch_remote: bool = False) -> dict:
     import datetime
     import json
@@ -201,8 +219,17 @@ def _inspect_model_file(mode: str, rel_path: str, fetch_remote: bool = False) ->
         except Exception:
             pass
 
+    # `.preview.*` first, and all four of them. A picture a downloader wrote
+    # beside the model is named `model.preview.jpeg` as often as `model.png` —
+    # ComfyUI Manager and the Civitai helpers both use that form — and the list
+    # here knew only `.preview.png`, so a model whose preview was a `.jpeg` or a
+    # `.webp` in that form showed an empty box. Pixaroma's LoRA loader carries
+    # exactly these eight (`nodes/_lora_helpers.py`, `_PREVIEW_EXTS`), and the
+    # order matters as much as the list: a `.preview.*` file is the one somebody
+    # chose, while a bare `.png` beside a model is as likely to be a sample the
+    # user dropped there.
     preview_path = None
-    for ext in [".png", ".preview.png", ".jpg", ".jpeg", ".webp"]:
+    for ext in PREVIEW_EXTENSIONS:
         candidate = base_no_ext + ext
         if os.path.isfile(candidate):
             preview_path = candidate
@@ -543,7 +570,10 @@ def register_routes():
         preview_file = info.get("preview_path")
         if not preview_file or not os.path.isfile(preview_file):
             return web.Response(status=404)
-        return web.FileResponse(preview_file)
+        suffix = os.path.splitext(preview_file)[1].lower()
+        content_type = PREVIEW_CONTENT_TYPES.get(suffix)
+        headers = {"Content-Type": content_type} if content_type else None
+        return web.FileResponse(preview_file, headers=headers)
 
     @server.routes.post(f"/{ROUTE_SLUG}/sort_models")
     async def sort_models(request):
