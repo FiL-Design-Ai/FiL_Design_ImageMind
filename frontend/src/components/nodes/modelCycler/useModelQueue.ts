@@ -72,12 +72,19 @@ export function useModelQueue(state: FilNodeState, sourceMode: Ref<string>) {
   const draggedIndex = ref<number | null>(null);
   const dragOverIndex = ref<number | null>(null);
 
+  /**
+   * The last thing this panel wrote, so a value arriving from anywhere else can
+   * be told apart from the echo of our own write.
+   */
+  let ourLastWrite = String(state.nodeState["model_list"] ?? "");
+
   /** `model_list` as the backend wants it, on the state and on the widget. */
   function sync() {
     const serialized = items.value
       .filter((item) => item.name.trim())
       .map((item) => (item.enabled ? item.name : `# ${item.name}`))
       .join("\n");
+    ourLastWrite = serialized;
     state.nodeState["model_list"] = serialized;
     const widget = state.node ? findFilWidget(state.node, "model_list") : null;
     if (widget) widget.value = serialized;
@@ -142,7 +149,28 @@ export function useModelQueue(state: FilNodeState, sourceMode: Ref<string>) {
 
   function loadFromState() {
     const raw = String(state.nodeState["model_list"] ?? "");
+    ourLastWrite = raw;
     if (raw) items.value = parseModelList(raw);
+
+    // And keep following it. Reported from a live graph: switching between two
+    // open workflows emptied the list. Reading it once on mount was the reason —
+    // on a switch the node is built and its panel mounted before `onConfigure`
+    // restores the saved widget values, so the panel reads an empty `model_list`
+    // and nothing ever tells it the real one arrived a moment later. On a fresh
+    // page load the same race lands the other way, because the panel's chunk is
+    // still being fetched while the values are restored — which is why this only
+    // ever showed up when switching.
+    //
+    // `ourLastWrite` keeps the panel from re-parsing its own writing, which would
+    // rebuild every row — new ids, dropped `autoOpen` — on each edit.
+    watch(
+      () => String(state.nodeState["model_list"] ?? ""),
+      (incoming) => {
+        if (incoming === ourLastWrite) return;
+        ourLastWrite = incoming;
+        items.value = incoming ? parseModelList(incoming) : [];
+      }
+    );
   }
 
   /** Drop the queue and rebuild it from `# `-marked names — sorting, folders. */

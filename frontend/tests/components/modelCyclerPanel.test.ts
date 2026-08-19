@@ -248,6 +248,26 @@ describe("ModelCyclerPanel.vue", () => {
     document.body.innerHTML = "";
   });
 
+  it("picks up a queue that arrives after it mounted", async () => {
+    // Reported from a live graph: switching between two open workflows emptied
+    // the list. On a switch the node is built and its panel mounted before
+    // `onConfigure` restores the saved widget values, so the panel reads an
+    // empty `model_list` — and used to never hear that the real one landed a
+    // moment later.
+    const node = makeNode("");
+    const state = makeState(node, "");
+    const wrapper = mount(ModelCyclerPanel, { props: { state: state as never } });
+    await nextTick();
+    expect(wrapper.findAll(".fil-cycler-row")).toHaveLength(0);
+
+    state.nodeState.model_list = "modelA.safetensors\n# modelB.safetensors";
+    await nextTick();
+
+    const rows = wrapper.findAll(".fil-cycler-row");
+    expect(rows, "the queue never followed the value it is drawn from").toHaveLength(2);
+    expect(rows[1].classes()).toContain("disabled");
+  });
+
   it("reads a row back as off when the workflow is reloaded", async () => {
     const list = "modelA.safetensors\n# modelB.safetensors";
     const node = makeNode(list);

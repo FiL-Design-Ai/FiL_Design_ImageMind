@@ -195,6 +195,12 @@ function float(val: string): number {
   return isNaN(n) ? 1.0 : n;
 }
 
+/**
+ * The last thing this panel wrote, so a value arriving from anywhere else can
+ * be told apart from the echo of our own write.
+ */
+let ourLastWrite = String(props.state.nodeState["lora_list"] ?? "");
+
 function syncToNodeState() {
   const serialized = loraItems.value
     .filter((item) => item.name.trim())
@@ -203,6 +209,7 @@ function syncToNodeState() {
       return item.enabled ? entry : `# ${entry}`;
     })
     .join("\n");
+  ourLastWrite = serialized;
   props.state.nodeState["lora_list"] = serialized;
   const w = props.state.node ? findFilWidget(props.state.node, "lora_list") : null;
   if (w) w.value = serialized;
@@ -278,9 +285,30 @@ async function loadInstalledLoras() {
 
 onMounted(() => {
   const rawList = String(props.state.nodeState["lora_list"] ?? "");
+  ourLastWrite = rawList;
   if (rawList) {
     loraItems.value = parseLoraList(rawList);
   }
+
+  // And keep following it. Reported from a live graph: switching between two
+  // open workflows emptied the stack. Reading it once on mount was the reason
+  // — on a switch the node is built and its panel mounted before
+  // `onConfigure` restores the saved widget values, so the panel reads an
+  // empty `lora_list` and nothing ever tells it the real one arrived a moment
+  // later. On a fresh page load the same race lands the other way, because the
+  // panel's chunk is still being fetched while the values are restored — which
+  // is why this only ever showed up when switching.
+  //
+  // `ourLastWrite` keeps the panel from re-parsing its own writing, which would
+  // rebuild every row — new ids, dropped weights mid-drag — on each edit.
+  watch(
+    () => String(props.state.nodeState["lora_list"] ?? ""),
+    (incoming) => {
+      if (incoming === ourLastWrite) return;
+      ourLastWrite = incoming;
+      loraItems.value = incoming ? parseLoraList(incoming) : [];
+    }
+  );
   loadInstalledLoras();
 });
 

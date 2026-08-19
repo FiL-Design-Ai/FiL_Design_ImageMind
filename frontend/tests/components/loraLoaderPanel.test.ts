@@ -256,6 +256,45 @@ describe("LoraLoaderPanel.vue", () => {
     }
   });
 
+  it("picks up a list that arrives after it mounted", async () => {
+    // Reported from a live graph: switching between two open workflows emptied
+    // the stack. On a switch the node is built and its panel mounted before
+    // `onConfigure` restores the saved widget values, so the panel reads an
+    // empty `lora_list` — and used to never hear that the real one landed a
+    // moment later.
+    getJson.mockImplementation(backend({}));
+    const node = makeNode("");
+    const state = makeState(node, "");
+    const wrapper = mount(LoraLoaderPanel, { props: { state: state as never } });
+    await nextTick();
+    expect(wrapper.findAll(".fil-lora-row")).toHaveLength(0);
+
+    // What `onConfigure` does a tick later.
+    state.nodeState.lora_list = "style_v1.safetensors:0.80:0.80\n# cyber_v2.safetensors:1.00:1.00";
+    await nextTick();
+
+    const rows = wrapper.findAll(".fil-lora-row");
+    expect(rows, "the stack never followed the value it is drawn from").toHaveLength(2);
+    expect(rows[1].classes()).toContain("disabled");
+  });
+
+  it("does not rebuild its rows when the change came from itself", async () => {
+    getJson.mockImplementation(backend({}));
+    const list = "style_v1.safetensors:0.80:0.80";
+    const node = makeNode(list);
+    const wrapper = mount(LoraLoaderPanel, { props: { state: makeState(node, list) as never } });
+    await nextTick();
+
+    const idBefore = (wrapper.vm as unknown as { loraItems: Array<{ id: string }> }).loraItems[0].id;
+    await wrapper.find(".fil-w-num-arrow-right").trigger("click");
+    await nextTick();
+
+    // Re-parsing our own write would hand every row a new id, which throws away
+    // what the row is holding — an open picker, a slider mid-drag.
+    const idAfter = (wrapper.vm as unknown as { loraItems: Array<{ id: string }> }).loraItems[0].id;
+    expect(idAfter).toBe(idBefore);
+  });
+
   it("keeps a row's off state through a reload", async () => {
     getJson.mockImplementation(backend({}));
     const list = "style_v1.safetensors:0.80:0.80\n# cyber_v2.safetensors:1.00:1.00";
