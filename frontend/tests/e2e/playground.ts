@@ -9,7 +9,13 @@ import FilTextInput from "@/components/widgets/FilTextInput.vue";
 import FilToggle from "@/components/widgets/FilToggle.vue";
 import LoraLoaderPanel from "@/components/nodes/LoraLoaderPanel.vue";
 import ModelCyclerPanel from "@/components/nodes/ModelCyclerPanel.vue";
+import OpticScanner from "@/components/nodes/OpticScanner.vue";
 import { elementWantsWheel, scrollRegionWantsWheel } from "@/composables/scrollGuard";
+import { injectFilBrandVars } from "@/styles/brand";
+
+// The panels read every colour, radius and control height off `--fil-*`. In
+// ComfyUI main.ts injects them; here nothing else would.
+injectFilBrandVars();
 
 // Registry of available components for testing
 const components: Record<string, Component> = {
@@ -25,6 +31,7 @@ const components: Record<string, Component> = {
   // on the node at all — and jsdom answers none of those.
   LoraLoaderPanel,
   ModelCyclerPanel,
+  OpticScanner,
 };
 
 // The wheel predicate reads `getComputedStyle().overflowY` and live scroll
@@ -63,10 +70,16 @@ window.mountComponent = (name: string, props: any) => {
     return;
   }
 
+  // A node panel only looks like itself inside the node shell (the glass card
+  // rule in styles/brand.ts is scoped to `.fil-node-shell`) at the width the
+  // node actually has. Opt-in via `__shell`, so mounting a bare widget keeps
+  // behaving exactly as before.
+  const { __shell: shellWidth, ...componentProps } = props ?? {};
+
   const Wrapper = defineComponent({
     data() {
       return {
-        localProps: { ...props },
+        localProps: { ...componentProps },
       };
     },
     render() {
@@ -92,6 +105,12 @@ window.mountComponent = (name: string, props: any) => {
   if (appContainer) {
     appContainer.innerHTML = "";
     const mountPoint = document.createElement("div");
+    if (shellWidth) {
+      mountPoint.className = "fil-node-shell";
+      mountPoint.style.width = `${shellWidth}px`;
+      mountPoint.style.background = "var(--fil-panel-alt)";
+      mountPoint.style.borderRadius = "8px";
+    }
     appContainer.appendChild(mountPoint);
     currentApp.mount(mountPoint);
   }

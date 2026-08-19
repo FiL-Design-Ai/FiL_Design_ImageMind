@@ -11,8 +11,14 @@ const props = withDefaults(
   defineProps<{
     title: string;
     collapsible?: boolean;
+    /**
+     * Optional right-aligned readout of what the section currently holds, so a
+     * collapsed section can be read without opening it. Empty (the default)
+     * renders nothing at all — every other node's header is untouched.
+     */
+    summary?: string;
   }>(),
-  { collapsible: true },
+  { collapsible: true, summary: "" },
 );
 
 const modelValue = defineModel<boolean>({ default: false });
@@ -36,6 +42,7 @@ const arrow = computed(() => (modelValue.value ? "▶" : "▼"));
   >
     <span class="fil-w-section-arrow">{{ arrow }}</span>
     <span class="fil-w-section-title">{{ title }}</span>
+    <span v-if="summary" class="fil-w-section-summary">{{ summary }}</span>
   </button>
 </template>
 
@@ -83,6 +90,29 @@ const arrow = computed(() => (modelValue.value ? "▶" : "▼"));
   display: inline-block;
   width: 8px;
   font-size: 9px;
+  color: var(--fil-accent-text);
+}
+/* The title keeps the row's own uppercase treatment; the summary is a value,
+ * not a heading, so it drops the caps and the letter-spacing. It is also the
+ * part that gives way first — hence `flex: 0 1 auto` on the summary and no
+ * rule at all on the title: a header without a summary (every other node's)
+ * lays out exactly as it did before this was added. */
+.fil-w-section-summary {
+  /* The readout never claims more than half the row: past that it truncates,
+   * rather than squeezing the title until it wraps onto a second line and the
+   * header grows taller than every other one in the panel. `min-width: 0` is
+   * what lets a nowrap flex item shrink at all (its default is min-content). */
+  flex: 0 1 auto;
+  margin-left: auto;
+  min-width: 0;
+  max-width: 50%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
   color: var(--fil-accent-text);
 }
 </style>

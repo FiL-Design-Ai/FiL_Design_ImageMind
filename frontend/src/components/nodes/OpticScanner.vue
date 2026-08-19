@@ -26,9 +26,8 @@ const widgets: WidgetSpec[] = [
 // stay in normal case — the header still renders uppercase.
 const SECTION_LABEL_KEYS: Record<string, [string, string]> = {
   prompt: ["scn_section_prompt", "📝 Prompt/Text"],
-  agent: ["scn_section_agent", "🕵️ Agent"],
-  focus: ["scn_section_focus", "🎯 Focus"],
-  model: ["scn_section_model", "🧠 Model"],
+  custom: ["scn_section_custom", "✨ Custom Style"],
+  agent: ["scn_section_agent", "🕵️ Agent & Model"],
   output: ["scn_section_output", "📤 Output"],
   advanced: ["scn_section_advanced", "🎨 Style"],
   actions: ["scn_section_actions", "⚡ Actions"],
@@ -100,10 +99,19 @@ const FIELD_EMOJIS: Record<string, string> = {
   video_camera: "🎥",
 };
 
+/**
+ * Shorter names for the three grids that share the Agent block: under a header
+ * already reading "AGENT & MODEL", "Agent Focus" and "Model Type" repeat it.
+ */
+const SHORT_FIELD_NAMES: Record<string, string> = {
+  agent_focus: "Focus",
+  model_type: "Model",
+};
+
 function formatFieldLabel(w: WidgetSpec): string {
   if (w.label) return w.label;
   const emoji = FIELD_EMOJIS[w.name] || "";
-  const base = w.name
+  const base = SHORT_FIELD_NAMES[w.name] ?? w.name
     .replace(/_/g, " ")
     .replace(/\b\w/g, (ch) => ch.toUpperCase());
   return emoji ? `${emoji} ${base}` : base;
@@ -220,11 +228,68 @@ function clearAllStyles() {
   setValue("nsfw_art_style", "None");
 }
 
+// ── How the contract's sections become the panel's blocks ────────────────
+//
+// The contract names one section per *axis* (agent, focus, model), which is
+// what it is for — it describes the fields, not the panel. Drawn one header
+// each, those three cost five rows of chrome before a single chip, on a node
+// whose actual job is the prompt at the top. They are one block here, with the
+// per-field labels below telling the grids apart (which is why `agent_focus`
+// got its own section in registry.py in the first place — the labels are what
+// pays that comment off).
+//
+// `custom_style` moves the other way: it is a prompt field by contract, but
+// it is edited far less often than the two above it, so it gets a collapsible
+// block of its own rather than a permanent 48px.
+const SECTION_MERGE: Record<string, string> = { focus: "agent", model: "agent" };
+const WIDGET_SECTION: Record<string, string> = { custom_style: "custom", response_format: "format" };
+/** Draw order. A section not listed here follows in contract order. */
+const SECTION_ORDER = ["prompt", "custom", "agent", "output", "format"];
+
+function sectionOf(w: WidgetSpec): string {
+  const named = WIDGET_SECTION[w.name];
+  if (named) return named;
+  const section = (w.section as string) || "_";
+  return SECTION_MERGE[section] ?? section;
+}
+
 const grouped = computed(() => {
   const map: Record<string, WidgetSpec[]> = {};
-  for (const w of widgets) ((map[(w.section as string) || "_"] ??= [])) .push(w);
-  return map;
+  for (const w of widgets) ((map[sectionOf(w)] ??= [])).push(w);
+  const ordered: Record<string, WidgetSpec[]> = {};
+  for (const key of SECTION_ORDER) if (map[key]) ordered[key] = map[key];
+  for (const key of Object.keys(map)) if (!(key in ordered)) ordered[key] = map[key];
+  return ordered;
 });
+
+/** Sections whose header carries a readout of what is selected inside. */
+const SECTION_SUMMARY_FIELDS: Record<string, string[]> = {
+  agent: ["agent", "agent_focus", "model_type"],
+  output: ["detail_level", "language", "prompt_mode"],
+};
+
+/** `"⚪ None"` → `"None"`: the chips carry emojis, a one-line readout can't. */
+function stripLeadingEmoji(value: string): string {
+  return value.replace(/^[\p{Emoji_Presentation}\p{Extended_Pictographic}️\s]+/gu, "").trim();
+}
+
+/**
+ * What a collapsed section is currently set to, e.g. `None · None · Auto/None`.
+ * Only rendered while collapsed — open, the fields say it themselves.
+ */
+function sectionSummary(section: string): string {
+  if (!isCollapsed(section)) return "";
+  const fields = SECTION_SUMMARY_FIELDS[section];
+  if (!fields) return "";
+  return fields
+    .map((name) => {
+      const spec = widgets.find((w) => w.name === name);
+      const fallback = spec?.default != null ? String(spec.default) : "";
+      return stripLeadingEmoji(String(getValue(name, fallback)));
+    })
+    .filter((part) => part)
+    .join(" · ");
+}
 
 
 
@@ -272,10 +337,13 @@ watch(() => String(getValue("model_type", "Auto/None")), () => {
 // here. Previously FilSection was passed a hardcoded `model-value="false"`
 // with no listener — the arrow looked clickable but toggling it did nothing.
 //
-// Agent/Focus/Output/Styles start collapsed on a fresh node (before the user
-// has ever toggled them) so the panel isn't cluttered on first drop; once a
-// value is explicitly stored in `state.ui` it always wins over this default.
-const DEFAULT_COLLAPSED = new Set(["agent", "focus", "output", "advanced"]);
+// Custom Style/Agent/Output/Styles start collapsed on a fresh node (before the
+// user has ever toggled them) so the panel isn't cluttered on first drop; once
+// a value is explicitly stored in `state.ui` it always wins over this default.
+// A workflow saved before `focus`/`model` merged into `agent` still carries
+// `collapsed_focus`/`collapsed_model` in `state.ui`; nothing reads them now,
+// and they cost a few bytes rather than a migration.
+const DEFAULT_COLLAPSED = new Set(["custom", "agent", "output", "advanced"]);
 
 function isCollapsed(section: string): boolean {
   const stored = (props.state.ui as Record<string, unknown>)[`collapsed_${section}`];
@@ -362,35 +430,41 @@ function newFixedSeed() {
     <template v-for="(specs, section) in grouped" :key="section">
       <div v-if="section !== 'styles'" class="fil-section-block"
         :class="{ 'is-growable': section === 'prompt' }">
-        <FilSection v-if="section !== '_' && section !== 'prompt'" :title="sectionLabel(String(section))"
+        <!-- The style row sits between the text fields it belongs to and the
+             first collapsed block, so it stays reachable with everything below
+             it shut. -->
+        <div v-if="section === 'agent'" class="fil-single-style-block">
+          <button
+            class="fil-style-picker-btn"
+            :class="{ 'has-styles': activeStylesCount > 0 }"
+            @click="isUnifiedStylePickerOpen = true"
+          >
+            {{ activeStylesSummary }}
+          </button>
+          <FilButton
+            variant="standard"
+            label="🧹"
+            :title="t('scn_style_clear', 'Clear every selected style')"
+            class="fil-style-clear-btn"
+            @click="clearAllStyles"
+          />
+
+          <StyleBrowser
+            v-model:open="isUnifiedStylePickerOpen"
+            :sources="styleSources"
+            @update:source="(p: { id: string; value: string }) => setValue(p.id, p.value)"
+            @clear-all="clearAllStyles"
+          />
+        </div>
+
+        <FilSection v-if="section !== '_' && section !== 'prompt' && section !== 'format'"
+          :title="sectionLabel(String(section))"
+          :summary="sectionSummary(String(section))"
           :model-value="isCollapsed(String(section))"
           @update:model-value="(v: boolean) => setCollapsed(String(section), v)" />
         <!-- Skip native widgets — prompt/negative_prompt/custom_style are rendered
              by LiteGraph above the Vue panel and support drag-to-connect natively. -->
         <template v-for="w in specs" :key="w.name">
-          <!-- Inject Unified Style Picker above Response Format -->
-          <div v-if="w.name === 'response_format'" class="fil-w-row fil-single-style-block">
-            <div style="display: flex; gap: 4px; margin-bottom: 3px;">
-              <button
-                class="fil-style-picker-btn"
-                :class="{ 'has-styles': activeStylesCount > 0 }"
-                @click="isUnifiedStylePickerOpen = true"
-              >
-                {{ activeStylesSummary }}
-              </button>
-            </div>
-            <div style="display: flex; margin-bottom: 6px;">
-              <FilButton variant="standard" label="🧹 Clear Style" @click="clearAllStyles" style="flex: 1" />
-            </div>
-
-            <StyleBrowser
-              v-model:open="isUnifiedStylePickerOpen"
-              :sources="styleSources"
-              @update:source="(p: { id: string; value: string }) => setValue(p.id, p.value)"
-              @clear-all="clearAllStyles"
-            />
-          </div>
-
           <div
             v-if="isWidgetVisible(w)"
             v-show="section === '_' || section === 'prompt' || !isCollapsed(String(section))"
@@ -416,17 +490,28 @@ function newFixedSeed() {
             <FilSelect v-else-if="w.name === 'video_camera'"
               :options="w.values || []" :model-value="String(getValue(w.name, 'Auto'))" inline-label
               :label="formatFieldLabel(w)" @update:model-value="(v: string) => setValue(w.name, v)" />
-            <FilChipGrid v-else-if="w.kind === 'chip_grid'"
-              :options="w.values || []" :model-value="String(getValue(w.name, ''))"
-              :columns="w.columns ?? 3" @update:model-value="(v: string) => setValue(w.name, v)" />
+            <!-- Three chip grids share the Agent block and two more sit under
+                 Output; without a label each, a stack of grids reads as one
+                 undivided field. -->
+            <template v-else-if="w.kind === 'chip_grid'">
+              <div class="fil-w-sublabel">{{ formatFieldLabel(w) }}</div>
+              <FilChipGrid
+                :options="w.values || []" :model-value="String(getValue(w.name, ''))"
+                :columns="w.columns ?? 3" @update:model-value="(v: string) => setValue(w.name, v)" />
+            </template>
             <FilChipList v-else-if="w.kind === 'chip_list'"
               :options="w.values || []" :model-value="(getValue(w.name, null) as string | null)"
               :searchable="w.searchable ?? true" @update:model-value="(v: string | null) => setValue(w.name, v)" />
             <FilSegmented v-else-if="w.kind === 'segmented'"
               :options="w.options || []" :model-value="String(getValue(w.name, ''))"
               :label="formatFieldLabel(w)" @update:model-value="(v: string) => setValue(w.name, v)" />
-            <FilChipGrid v-else :options="w.values || []" :model-value="String(getValue(w.name, ''))"
-              :columns="w.columns ?? 3" @update:model-value="(v: string) => setValue(w.name, v)" />
+            <!-- Anything left (the `language` combo) draws as chips too. -->
+            <template v-else>
+              <div class="fil-w-sublabel">{{ formatFieldLabel(w) }}</div>
+              <FilChipGrid
+                :options="w.values || []" :model-value="String(getValue(w.name, ''))"
+                :columns="w.columns ?? 3" @update:model-value="(v: string) => setValue(w.name, v)" />
+            </template>
           </div>
         </template>
       </div>
@@ -483,7 +568,20 @@ function newFixedSeed() {
  * widget default — the prompt fields start taller than a generic one. */
 .fil-w-row :deep(.fil-w-textarea) { min-height: 48px; }
 .fil-w-row.is-growable :deep(.fil-w-textarea) { flex: 1 1 auto; height: auto; }
-.fil-single-style-block { margin-top: 2px; }
+/* Picker and its Clear button share one row: the button carries a broom and
+ * nothing else, so the row costs the height of the picker alone. */
+.fil-single-style-block { display: flex; gap: 5px; margin: 2px 0 4px 0; min-width: 0; }
+.fil-single-style-block .fil-style-picker-btn { flex: 1 1 auto; min-width: 0; }
+.fil-style-clear-btn { flex: 0 0 34px; border-radius: var(--fil-pill-radius); }
+/* Label above a chip grid — same weight as a row label (FilSelect/FilSegmented
+ * use 11px muted), so a grid inside a block reads as one labelled field. */
+.fil-w-sublabel {
+  font-size: 11px;
+  color: var(--fil-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /* The seed row is FilSeedRow now — shared with HiResFix. */
 

@@ -1,0 +1,209 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; background: #14171c; color: #e8edf3;
+           font-family: ui-sans-serif, system-ui, "Segoe UI", sans-serif; }
+    a { color: #f08a45; } a:hover { color: #edad82; }
+    .nd { width: 380px; background: #222934; border-radius: 8px; overflow: hidden;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.45); }
+    .nd-head { height: 30px; background: #171b22; display: flex; align-items: center;
+               gap: 8px; padding: 0 10px 0 0; }
+    .stripe { width: 3px; height: 30px; background: #f08a45; }
+    .nd-title { font-size: 12px; font-weight: 600; color: #e8edf3; flex-grow: 1;
+                padding-left: 7px; }
+    .badge { font-size: 9px; font-weight: 700; color: #ffffff; background: #7c5cfc;
+             border-radius: 3px; padding: 1px 5px; letter-spacing: 0.4px; }
+    .socks { display: flex; justify-content: space-between; padding: 6px 8px 2px 8px; }
+    .sock { display: flex; align-items: center; gap: 5px; font-size: 10px; color: #a4afbb;
+            height: 15px; }
+    .sock.out { justify-content: flex-end; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .panel { display: flex; flex-direction: column; gap: 4px; padding: 6px 8px 14px 8px;
+             margin: 4px 4px 4px 4px; background: rgba(100,180,220,0.06);
+             border-radius: 20px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.08); }
+    .blk { display: flex; flex-direction: column; gap: 5px; }
+    .sec { display: flex; align-items: center; gap: 6px; padding: 3px 6px; border-radius: 5px;
+           background: rgba(255,255,255,0.04); color: #a4afbb; font-size: 11px;
+           font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; }
+    .arw { font-size: 9px; color: #edad82; width: 8px; }
+    .ta { min-height: 48px; padding: 8px 10px; background: #222934; border-radius: 10px;
+          border: 1px solid rgba(164,175,187,0.55); font-size: 12px; font-style: italic;
+          color: rgba(232,237,243,0.3); }
+    .chips { display: grid; gap: 5px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .chips.c5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .chip { background: #222934; border: 1px solid rgba(164,175,187,0.55); border-radius: 5px;
+            padding: 6px 4px; font-size: 10px; color: #e8edf3; text-align: center;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .chip.on { color: #edad82; border-color: #f08a45; font-weight: 500;
+               box-shadow: 0 0 8px rgba(240,138,69,0.55); }
+    .row { display: grid; grid-template-columns: 32% minmax(60px, 1fr); gap: 4px;
+           align-items: center; }
+    .lab { font-size: 11px; color: #a4afbb; overflow: hidden; text-overflow: ellipsis;
+           white-space: nowrap; }
+    .pill { height: 26px; background: rgba(255,255,255,0.08); border-radius: 5px; padding: 2px;
+            display: flex; gap: 0; }
+    .seg { display: flex; align-items: center; justify-content: center; flex-grow: 1;
+           border-radius: 4px; font-size: 11px; color: #a4afbb; overflow: hidden;
+           text-overflow: ellipsis; white-space: nowrap; }
+    .seg.on { background: #f08a45; color: #241206; font-weight: 500; }
+    .sel { height: 26px; background: #222934; border: 1px solid rgba(164,175,187,0.55);
+           border-radius: 10px; padding: 0 8px; font-size: 12px; color: #e8edf3;
+           display: flex; align-items: center; justify-content: flex-end; }
+    .stylebtn { height: 26px; border-radius: 17px; background: rgba(255,255,255,0.06);
+                border: 1px solid rgba(0,150,200,0.4); font-size: 12px; font-weight: 600;
+                color: #e8edf3; display: flex; align-items: center; justify-content: center; }
+    .btn { height: 26px; border-radius: 5px; background: rgba(255,255,255,0.04);
+           border: 1px solid rgba(164,175,187,0.55); color: #e8edf3; font-size: 11.5px;
+           display: flex; align-items: center; justify-content: center; }
+    .seedfield { flex-grow: 1.3; height: 26px; background: rgba(0,0,0,0.35);
+                 border: 1px solid rgba(164,175,187,0.55); border-radius: 17px;
+                 font-family: ui-monospace, Consolas, monospace; font-size: 12px;
+                 color: #a4afbb; font-style: italic; display: flex; align-items: center;
+                 justify-content: center; }
+    .seedpill { flex-grow: 1; height: 26px; border-radius: 17px; font-size: 11px;
+                font-weight: 600; color: #e8edf3; background: rgba(255,255,255,0.06);
+                border: 1px solid rgba(0,150,200,0.4); display: flex; align-items: center;
+                justify-content: center; }
+    .note { font-size: 11px; color: #8d97a3; padding: 10px 2px 0 2px; line-height: 1.5;
+            text-wrap: pretty; }
+    .hint { font-size: 10px; color: #8d97a3; padding: 1px 2px; }
+  </style>
+</helmet>
+<div style="padding: 24px">
+  <div class="nd">
+    <div class="nd-head">
+      <div class="stripe"></div>
+      <div class="nd-title">🕵️ Optic Scanner</div>
+      <div class="badge">LLM</div>
+    </div>
+
+    <div class="socks">
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="sock"><div class="dot" style="background: #e467a4"></div>config</div>
+        <div class="sock"><div class="dot" style="background: #64b5f6"></div>image</div>
+        <div class="sock"><div class="dot" style="background: #c9d1d9"></div>prompt</div>
+        <div class="sock"><div class="dot" style="background: #c9d1d9"></div>negative_prompt</div>
+        <div class="sock"><div class="dot" style="background: #c9d1d9"></div>custom_style</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="sock out">prompt<div class="dot" style="background: #c9d1d9"></div></div>
+        <div class="sock out">metadata_json<div class="dot" style="background: #c9d1d9"></div></div>
+        <div class="sock out">metadata_dict<div class="dot" style="background: #83dd5f"></div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="blk">
+        <div class="ta" style="min-height: 64px">✍️ Prompt</div>
+        <div class="ta">🚫 Negative Prompt</div>
+        <div class="ta">✨ Custom Style</div>
+        <div class="stylebtn">🎨 Style: None</div>
+        <div class="btn">🧹 Clear Style</div>
+        <div class="row">
+          <div class="lab">📋 Response Format</div>
+          <div class="pill">
+            <div class="seg on">text</div>
+            <div class="seg">tags</div>
+            <div class="seg">json</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="blk">
+        <div class="sec"><div class="arw">▼</div>🕵️ Agent</div>
+        <div class="chips">
+          <div class="chip on">⚪ None</div>
+          <div class="chip">👤 Portrait</div>
+          <div class="chip">📦 Products</div>
+          <div class="chip">🌿 Nature &amp; L…</div>
+          <div class="chip">🎨 Art &amp; Illu…</div>
+          <div class="chip">👗 Fashion</div>
+          <div class="chip">🐾 Animals</div>
+          <div class="chip">🏛 Architecture</div>
+          <div class="chip">🪑 Interior</div>
+          <div class="chip">🌆 City</div>
+          <div class="chip">🚗 Transport</div>
+          <div class="chip">🍽 Food</div>
+          <div class="chip">🎮 Games</div>
+        </div>
+      </div>
+
+      <div class="blk">
+        <div class="sec"><div class="arw">▼</div>🎯 Focus</div>
+        <div class="chips">
+          <div class="chip on">⚪ None</div>
+          <div class="chip">📐 Composition</div>
+          <div class="chip">💡 Lighting &amp; C…</div>
+          <div class="chip">🔬 Ultra Detail</div>
+          <div class="chip">🎬 Cinematic</div>
+          <div class="chip">🎭 Emotion &amp; M…</div>
+        </div>
+      </div>
+
+      <div class="blk">
+        <div class="sec"><div class="arw">▼</div>🧠 Model</div>
+        <div class="chips">
+          <div class="chip on">Auto/None</div>
+          <div class="chip">Z-Image Turbo</div>
+          <div class="chip">FLUX</div>
+          <div class="chip">SDXL</div>
+          <div class="chip">QWEN</div>
+          <div class="chip">Krea 2</div>
+          <div class="chip">Ideogram 4</div>
+          <div class="chip">Video</div>
+          <div class="chip">MiniMax H3</div>
+        </div>
+      </div>
+
+      <div class="blk">
+        <div class="sec"><div class="arw">▼</div>📤 Output</div>
+        <div class="chips c5">
+          <div class="chip">tiny</div>
+          <div class="chip">short</div>
+          <div class="chip on">normal</div>
+          <div class="chip">detailed</div>
+          <div class="chip">ultra</div>
+        </div>
+        <div class="row">
+          <div class="lab">🌐 Language</div>
+          <div class="sel">en</div>
+        </div>
+        <div class="row">
+          <div class="lab">⚙️ Prompt Mode</div>
+          <div class="pill">
+            <div class="seg on">Auto</div>
+            <div class="seg">Hybrid</div>
+            <div class="seg">Two-Stage</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 6px">
+        <div class="seedfield">Random</div>
+        <div class="seedpill">Random</div>
+        <div class="seedpill">Use last</div>
+        <div class="seedpill">New fixed</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">Как сейчас: пять заголовков секций, три текстовых поля всегда развёрнуты,
+    строка стилей внутри блока промпта. Ширина 380 px, высота панели ≈ 740 px.</div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
