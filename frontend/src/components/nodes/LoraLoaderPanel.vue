@@ -150,8 +150,6 @@ watch(showSearch, (visible) => {
   if (!visible) searchFilter.value = "";
 });
 
-
-
 function parseLoraList(raw: string): LoraItem[] {
   const lines = raw
     .split("\n")
@@ -969,7 +967,6 @@ function onComboClose(index: number) {
   overflow: visible;
 }
 
-
 /* A button, a select and an input do not inherit a font family from the box
    they sit in — the browser hands them its own default, which is Arial here.
    So the toolbar was literally set in a different typeface from the panel
@@ -980,7 +977,6 @@ function onComboClose(index: number) {
 .fil-cycler-root input {
   font-family: inherit;
 }
-
 
 /* The counter is the exception: its two numbers change under the pointer, and
    in a proportional face the whole strip shifts when 9 becomes 10. */
@@ -999,40 +995,7 @@ function onComboClose(index: number) {
   font-family: ui-sans-serif, system-ui, sans-serif;
   /* The containing block the floated toolbar measures its offsets against. */
   position: relative;
-}
-
-.fil-cycler-header-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 4px 8px;
-  background: var(--fil-surface-2, #27272a);
-  border: 1px solid var(--fil-border);
-  border-radius: 6px;
-}
-
-.fil-header-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--fil-accent, #a855f7);
-  letter-spacing: 0.3px;
-}
-
-.fil-header-counter {
-  font-family: monospace;
-  font-size: 10px;
-  color: var(--fil-accent-text, #c084fc);
-  background: color-mix(in srgb, var(--fil-accent) 15%, transparent);
-  padding: 2px 6px;
-  border-radius: 4px;
-  border: 1px solid color-mix(in srgb, var(--fil-accent) 30%, transparent);
-}
-
-.fil-cycler-actions-bar {
+}.fil-cycler-actions-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1069,17 +1032,7 @@ function onComboClose(index: number) {
   text-align: left;
   text-align-last: left;
   line-height: 22px;
-}
-
-.fil-actions-right-group {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  margin-left: auto;
-  flex-wrap: nowrap;
-}
-
-.fil-action-link {
+}.fil-action-link {
   height: 24px;
   min-height: 24px;
   max-height: 24px;
@@ -1392,8 +1345,6 @@ function onComboClose(index: number) {
   width: 100%;
 }
 
-
-
 /* The second weight only ever appears on rows asked to split, so the padding
    it needs lives here rather than on every row. */
 .fil-lora-weights {
@@ -1403,25 +1354,7 @@ function onComboClose(index: number) {
   padding-bottom: 6px;
   width: 100%;
   box-sizing: border-box;
-}
-
-
-
-
-.fil-split-btn.active {
-  color: var(--fil-accent-text, #c084fc);
-  border-color: color-mix(in srgb, var(--fil-accent, #a855f7) 70%, transparent);
-  background: color-mix(in srgb, var(--fil-accent, #a855f7) 18%, transparent);
-}
-
-
-
-
-
-
-
-
-.fil-refresh-loras-btn {
+}.fil-refresh-loras-btn {
   background: var(--fil-surface-2, #27272a);
   border: 1px solid color-mix(in srgb, var(--fil-accent) 35%, transparent);
   color: var(--fil-accent-text, #c084fc);
@@ -1486,18 +1419,14 @@ function onComboClose(index: number) {
   margin-right: 42px;
 }
 
-/* Out of flow and up into the socket strip. Pointer events stay on the
-   controls themselves so the empty stretch between them still belongs to the
-   canvas — dragging the node by that gap keeps working. */
-/* One type size and one control height across both strips. Pixaroma's node
-   reads tidy for exactly this reason: 11px everywhere in its chrome and every
-   control in a row the same height. Ours had five sizes and four heights. */
+/* One type size and one control height across the strip. Pixaroma's node reads
+   tidy for exactly this reason: 11px everywhere in its chrome and every control
+   in a row the same height. Ours had five sizes and four heights. */
 .fil-cycler-actions-bar.floated {
   font-size: 11px;
 }
 
 .fil-cycler-actions-bar.floated .fil-action-link,
-.fil-cycler-actions-bar.floated .fil-actions-more,
 .fil-cycler-actions-bar.floated .fil-refresh-loras-btn,
 .fil-cycler-actions-bar.floated .fil-band-add,
 .fil-cycler-actions-bar.floated .fil-stack-count {
@@ -1516,13 +1445,6 @@ function onComboClose(index: number) {
   height: 24px;
   font-size: 11px;
 }
-
-/* Contiguous, not pushed to opposite edges: the gap in the middle was what
-   made four controls look like three scattered clusters. */
-.fil-cycler-actions-bar.floated .fil-actions-right-group {
-  margin-left: 6px;
-}
-
 
 .fil-cycler-actions-bar.floated {
   position: absolute;
@@ -1592,22 +1514,7 @@ function onComboClose(index: number) {
   width: 12px;
   text-align: center;
   color: var(--fil-muted);
-}
-
-.fil-actions-menu {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 3px;
-  padding: 3px 0 1px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-
-
-
-.fil-stack-count {
+}.fil-stack-count {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1662,47 +1569,7 @@ function onComboClose(index: number) {
 .fil-stack-switch.on::after {
   transform: translateX(9px);
   background: #fff;
-}
-
-.fil-actions-more {
-  font-family: ui-monospace, SFMono-Regular, monospace;
-  letter-spacing: 1px;
-}
-
-.fil-actions-more.open {
-  color: var(--fil-accent-text, #c084fc);
-}
-
-.fil-slider-val {
-  font-family: monospace;
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--fil-accent-text, #c084fc);
-  background: var(--fil-inset);
-  padding: 1px 4px;
-  border-radius: 3px;
-  border: 1px solid var(--fil-border);
-}
-
-
-
-
-
-
-.fil-cycler-btn-group {
-  display: flex;
-  gap: 6px;
-  width: 100%;
-  margin-top: 2px;
-}
-
-.fil-cycler-add-btn {
-  flex: 1;
-  justify-content: center;
-  font-weight: 600;
-}
-
-.fil-info-modal-content {
+}.fil-info-modal-content {
   display: flex;
   flex-direction: column;
   gap: 12px;

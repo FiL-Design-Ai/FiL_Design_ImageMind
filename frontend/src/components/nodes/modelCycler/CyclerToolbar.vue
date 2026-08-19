@@ -381,15 +381,7 @@ defineExpose({ el });
 .fil-stack-switch.on::after {
   transform: translateX(9px);
   background: #fff;
-}
-
-/* The triangle reads as "go" in the accent, the label stays white. */
-.fil-run-icon {
-  color: var(--fil-accent-text, #ffd60a);
-  font-size: 9px;
-}
-
-/* ---- lifted into the socket strip ---- */
+}/* ---- lifted into the socket strip ---- */
 
 /* Out of flow and up into the socket strip. Pointer events stay on the controls
    themselves, so the empty stretch between them still belongs to the canvas and
