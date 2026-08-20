@@ -30,36 +30,51 @@ logger = logging.getLogger(f"{BRAND}.API")
 _ROUTES_REGISTERED = False
 
 
-def _fetch_civitai_metadata_and_preview(full_path: str) -> bool:
-    """Auto-fetch metadata & thumbnail preview from Civitai API if not present locally."""
+def _fetch_civitai_metadata_and_preview(full_path: str) -> str:
+    """Fetch metadata and a preview from Civitai when they are not already here.
+
+    Returns what happened, because the panel has to be able to tell the user:
+    `cached` (both were already beside the model), `fetched`, `not_found` (the
+    file is not on Civitai), `offline` (the site could not be reached),
+    `unreadable`/`too_small`/`no_file` (nothing to hash).
+    """
     import hashlib
     import json
     import os
     import urllib.request
 
     if not full_path or not os.path.isfile(full_path):
-        return False
+        return "no_file"
 
     base_no_ext, _ = os.path.splitext(full_path)
-    preview_exists = any(
-        os.path.isfile(base_no_ext + ext)
-        for ext in [".png", ".preview.png", ".jpg", ".jpeg", ".webp"]
-    )
+    preview_exists = any(os.path.isfile(base_no_ext + ext) for ext in PREVIEW_EXTENSIONS)
     meta_json_path = base_no_ext + ".metadata.json"
     meta_exists = os.path.isfile(meta_json_path)
 
     if preview_exists and meta_exists:
-        return True
+        return "cached"
 
-    # Fast hashing: calculate SHA256 of the first 64MB of the file
-    sha256 = hashlib.sha256()
+    # AutoV1: the SHA256 of 64 KB starting one megabyte in, cut to eight
+    # characters. That is one of the hash forms Civitai indexes, and it is the
+    # cheap one — the others are over the whole file, which is minutes of disk
+    # for a 24 GB checkpoint.
+    #
+    # What stood here hashed the first 64 MB and called it fast. No index holds
+    # that number, so every lookup 404'd and this function had never once
+    # brought back a preview or a line of metadata. Everything that looked like
+    # it worked came from sidecar files other tools had already written.
+    # Measured against a model with a Civitai record beside it: the 64 MB
+    # digest was 52107A83..., the file's real SHA256 A09D5578..., and the
+    # AutoV1 below 265E0CE2 — which is exactly what Civitai has on file for it.
     try:
         with open(full_path, "rb") as f:
-            chunk = f.read(64 * 1024 * 1024)
-            sha256.update(chunk)
-        file_hash = sha256.hexdigest().upper()
+            f.seek(0x100000)
+            chunk = f.read(0x10000)
     except Exception:
-        return False
+        return "unreadable"
+    if not chunk:
+        return "too_small"
+    file_hash = hashlib.sha256(chunk).hexdigest()[:8].upper()
 
     url = f"https://civitai.com/api/v1/model-versions/by-hash/{file_hash}"
     try:
@@ -68,7 +83,7 @@ def _fetch_civitai_metadata_and_preview(full_path: str) -> bool:
         )
         with urllib.request.urlopen(req, timeout=4) as resp:
             if resp.status != 200:
-                return False
+                return "not_found"
             data = json.loads(resp.read().decode("utf-8"))
 
         if not meta_exists and isinstance(data, dict):
@@ -90,9 +105,13 @@ def _fetch_civitai_metadata_and_preview(full_path: str) -> bool:
                             with open(save_img_path, "wb") as img_f:
                                 img_f.write(img_resp.read())
 
-        return True
+        return "fetched"
+    except urllib.error.HTTPError as err:
+        # 404 is the ordinary answer for a model nobody uploaded, and it is not
+        # the same news as "the site is down".
+        return "not_found" if err.code == 404 else "offline"
     except Exception:
-        return False
+        return "offline"
 
 
 #: Picture files that can sit beside a model, best first.
@@ -213,11 +232,12 @@ def _inspect_model_file(mode: str, rel_path: str, fetch_remote: bool = False) ->
     # this on open, once per listed model: a 64 MB read plus a network call per
     # item, and two new files written into the user's model folder without them
     # asking. The info dialog passes `fetch=1`; background lookups do not.
+    civitai_status = None
     if fetch_remote:
         try:
-            _fetch_civitai_metadata_and_preview(full_path)
+            civitai_status = _fetch_civitai_metadata_and_preview(full_path)
         except Exception:
-            pass
+            civitai_status = "offline"
 
     # `.preview.*` first, and all four of them. A picture a downloader wrote
     # beside the model is named `model.preview.jpeg` as often as `model.png` —
@@ -365,6 +385,10 @@ def _inspect_model_file(mode: str, rel_path: str, fetch_remote: bool = False) ->
         "trigger_words": trigger_words,
         "sample_prompts": sample_prompts,
         "has_meta_json": meta_json_path is not None,
+        # What the Civitai lookup did, when one was asked for. The dialog says
+        # it out loud: a model with no record on the site used to read exactly
+        # like one whose lookup silently failed.
+        "civitai_status": civitai_status,
         "metadata": metadata_tags,
     }
 

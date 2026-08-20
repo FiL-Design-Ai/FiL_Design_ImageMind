@@ -53,6 +53,22 @@ void props;
         />
       </div>
 
+      <!-- The one thing this dialog never said: whether it is still asking, and
+           what the answer was. A model with no record on Civitai read exactly
+           like a lookup that had quietly failed — both showed "Unknown". -->
+      <div v-if="detail.isLoading" class="fil-info-status busy">
+        <span class="fil-info-spinner" /> Looking this model up on Civitai…
+      </div>
+      <div
+        v-else-if="detail.civitai_status === 'not_found'"
+        class="fil-info-status"
+      >
+        Not on Civitai — everything below is read from the file itself.
+      </div>
+      <div v-else-if="detail.civitai_status === 'offline'" class="fil-info-status warn">
+        Civitai could not be reached. Showing what the file itself says.
+      </div>
+
       <div v-if="detail.model_title || detail.creator" class="fil-info-title-block">
         <div v-if="detail.model_title" class="model-meta-title">{{ detail.model_title }}</div>
         <div class="model-meta-sub">
@@ -146,6 +162,37 @@ void props;
 </template>
 
 <style scoped>
+.fil-info-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: var(--fil-inset);
+  border: 1px solid var(--fil-border);
+  color: var(--fil-muted);
+  font-size: 11px;
+}
+
+.fil-info-status.warn {
+  border-color: color-mix(in srgb, var(--fil-danger, #ef4444) 40%, transparent);
+  color: var(--fil-danger, #ef4444);
+}
+
+.fil-info-spinner {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--fil-accent, #a855f7) 35%, transparent);
+  border-top-color: var(--fil-accent, #a855f7);
+  animation: fil-info-spin 0.7s linear infinite;
+  flex: none;
+}
+
+@keyframes fil-info-spin {
+  to { transform: rotate(360deg); }
+}
+
 .fil-info-modal-content {
   display: flex;
   flex-direction: column;

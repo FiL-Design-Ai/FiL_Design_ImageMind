@@ -298,3 +298,65 @@ def test_a_webp_preview_is_labelled_as_an_image():
         bare = ext.replace(".preview", "")
         assert PREVIEW_CONTENT_TYPES[bare].startswith("image/")
     assert PREVIEW_CONTENT_TYPES[".webp"] == "image/webp"
+
+def test_the_civitai_lookup_asks_with_a_hash_civitai_indexes(tmp_path, monkeypatch):
+    """The hash that goes to `by-hash`, checked against a real recorded one.
+
+    What stood here hashed the first 64 MB of the file and called it fast. No
+    index holds that number, so every lookup 404'd and the feature had never
+    once brought back a preview or a line of metadata — everything that looked
+    like it worked came from sidecars other tools had written. Measured on a
+    model with a Civitai record beside it: the 64 MB digest was 52107A83, the
+    file's own SHA256 A09D5578, and the AutoV1 Civitai has on file 265E0CE2.
+    """
+    import hashlib
+
+    from FiL_Design_ImageMind import server_routes
+
+    # A file long enough to have the slice AutoV1 is taken from.
+    model = tmp_path / "model.safetensors"
+    slice_bytes = b"payload" + bytes(0x10000 - len(b"payload"))
+    model.write_bytes(bytes(0x100000) + slice_bytes + b"tail")
+
+    expected = hashlib.sha256(slice_bytes).hexdigest()[:8].upper()
+
+    asked = {}
+
+    class _Resp:
+        status = 404
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    def _fake_urlopen(req, timeout=0):
+        asked["url"] = req.full_url if hasattr(req, "full_url") else str(req)
+        return _Resp()
+
+    # The function imports urllib inside itself, so the module is what to patch.
+    import urllib.request as _u
+
+    monkeypatch.setattr(_u, "urlopen", _fake_urlopen)
+
+    outcome = server_routes._fetch_civitai_metadata_and_preview(str(model))
+
+    assert asked["url"].endswith(expected), (
+        f"asked Civitai for {asked['url'].rsplit('/', 1)[-1]}, which it does not index"
+    )
+    # And a model nobody uploaded is reported as that, not as a failure.
+    assert outcome == "not_found"
+
+
+def test_a_model_with_everything_beside_it_is_not_asked_about_at_all(tmp_path):
+    """Two files already there means no hashing and no network call."""
+    from FiL_Design_ImageMind.server_routes import _fetch_civitai_metadata_and_preview
+
+    model = tmp_path / "model.safetensors"
+    model.write_bytes(b"x")
+    (tmp_path / "model.preview.jpeg").write_bytes(b"picture")
+    (tmp_path / "model.metadata.json").write_text("{}", encoding="utf-8")
+
+    assert _fetch_civitai_metadata_and_preview(str(model)) == "cached"
+

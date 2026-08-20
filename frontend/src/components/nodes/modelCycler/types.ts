@@ -37,6 +37,8 @@ export interface ModelInfoDetail {
   has_meta_json?: boolean;
   metadata?: Record<string, string>;
   isLoading?: boolean;
+  /** What the Civitai lookup did: cached | fetched | not_found | offline | … */
+  civitai_status?: string;
 }
 
 /** What the backend reports about the run that just happened. */

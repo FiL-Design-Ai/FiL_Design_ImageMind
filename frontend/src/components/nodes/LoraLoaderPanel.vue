@@ -55,6 +55,8 @@ interface LoraInfoDetail {
   trigger_words?: string;
   sample_prompts?: string[];
   isLoading?: boolean;
+  /** What the Civitai lookup did: cached | fetched | not_found | offline | … */
+  civitai_status?: string;
 }
 
 const props = defineProps<{ state: FilNodeState }>();
@@ -408,6 +410,7 @@ async function openInfoModal(item: LoraItem, index: number) {
         trigger_words: twStr,
         sample_prompts: res.sample_prompts || [],
         isLoading: false,
+        civitai_status: (res as { civitai_status?: string }).civitai_status ?? "offline",
       };
     } else if (activeInfoDetail.value) {
       activeInfoDetail.value = {
@@ -415,6 +418,7 @@ async function openInfoModal(item: LoraItem, index: number) {
         size_str: "N/A",
         mtime_str: "N/A",
         isLoading: false,
+        civitai_status: "offline",
       };
     }
   } catch {
@@ -424,6 +428,7 @@ async function openInfoModal(item: LoraItem, index: number) {
         size_str: "N/A",
         mtime_str: "N/A",
         isLoading: false,
+        civitai_status: "offline",
       };
     }
   }
@@ -905,6 +910,25 @@ function onComboClose(index: number) {
       width="520px"
     >
       <div v-if="activeInfoDetail" class="fil-info-modal-content">
+        <!-- The one thing this dialog never said: whether it is still asking,
+             and what the answer was. A LoRA with no record on Civitai read
+             exactly like a lookup that had quietly failed. -->
+        <div v-if="activeInfoDetail.isLoading" class="fil-info-status busy">
+          <span class="fil-info-spinner" /> Looking this LoRA up on Civitai…
+        </div>
+        <div
+          v-else-if="activeInfoDetail.civitai_status === 'not_found'"
+          class="fil-info-status"
+        >
+          Not on Civitai — everything below is read from the file itself.
+        </div>
+        <div
+          v-else-if="activeInfoDetail.civitai_status === 'offline'"
+          class="fil-info-status warn"
+        >
+          Civitai could not be reached. Showing what the file itself says.
+        </div>
+
         <div v-if="copySuccessMsg" class="fil-copy-toast">
           {{ copySuccessMsg }}
         </div>
@@ -1604,6 +1628,37 @@ function onComboClose(index: number) {
   font-size: 13px;
   color: var(--fil-text);
   position: relative;
+}
+
+.fil-info-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: var(--fil-inset);
+  border: 1px solid var(--fil-border);
+  color: var(--fil-muted);
+  font-size: 11px;
+}
+
+.fil-info-status.warn {
+  border-color: color-mix(in srgb, var(--fil-danger, #ef4444) 40%, transparent);
+  color: var(--fil-danger, #ef4444);
+}
+
+.fil-info-spinner {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--fil-accent, #a855f7) 35%, transparent);
+  border-top-color: var(--fil-accent, #a855f7);
+  animation: fil-info-spin 0.7s linear infinite;
+  flex: none;
+}
+
+@keyframes fil-info-spin {
+  to { transform: rotate(360deg); }
 }
 
 .fil-copy-toast {

@@ -59,6 +59,7 @@ export function useModelInfo(sourceMode: Ref<string>) {
       arch: res?.arch || "Diffusion Model",
       precision: res?.precision || "FP16",
       isLoading: false,
+      civitai_status: res?.civitai_status ?? "offline",
     };
 
     detail.value =
