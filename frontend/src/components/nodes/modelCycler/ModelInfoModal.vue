@@ -4,7 +4,7 @@
  * Civitai adds to it. Opened from a row's ⓘ or its right-click menu.
  */
 import { ROUTE_PREFIX } from "@/constants/brand";
-import { FilModal } from "@/components/widgets";
+import { FilIcon, FilModal } from "@/components/widgets";
 import { folderKey, type ModelInfoDetail } from "./types";
 
 const props = defineProps<{
@@ -38,6 +38,7 @@ void props;
     :open="open"
     :title="`Model Info — ${detail?.model_title || detail?.cleanName || 'Details'}`"
     width="540px"
+    resizable
     @update:open="(v) => $emit('update:open', v)"
   >
     <div v-if="detail" class="fil-info-modal-content">
@@ -119,7 +120,7 @@ void props;
             title="Copy All Triggers to Clipboard"
             @click="$emit('copy', detail.trained_words.join(', '), 'Trigger Words')"
           >
-            📋 Copy Triggers
+            <FilIcon name="copy" :size="11" /> Copy Triggers
           </button>
         </div>
         <div class="fil-info-tags-list">
@@ -142,7 +143,7 @@ void props;
               title="Copy Prompt"
               @click="$emit('copy', pmt, `Prompt #${pidx + 1}`)"
             >
-              📋 Copy
+              <FilIcon name="copy" :size="11" /> Copy
             </button>
           </div>
         </div>
@@ -333,7 +334,9 @@ void props;
   flex-direction: column;
   gap: 6px;
   margin-top: 4px;
-  max-height: 120px;
+  /* Grows with the dialog when the reader drags it bigger, instead of staying
+     a 120px slot inside a window twice the height. */
+  max-height: min(120px, 34vh);
   overflow-y: auto;
   background: var(--fil-inset);
   padding: 6px 8px;
@@ -343,7 +346,9 @@ void props;
 
 .fil-info-prompt-item {
   display: flex;
-  align-items: center;
+  /* The number and the copy button sit at the top of a prompt that now runs to
+     several lines, rather than floating in the middle of it. */
+  align-items: flex-start;
   gap: 6px;
   font-size: 11px;
   line-height: 1.3;
@@ -354,12 +359,15 @@ void props;
   font-weight: 700;
 }
 
+/* Wrapped, not cut. A sample prompt is a paragraph — clipping it to one line
+   with an ellipsis hid the part that says what the model is good at, and made
+   the dialog scroll sideways to show a line nobody could read anyway. */
 .prompt-text {
   flex: 1;
+  min-width: 0;
   color: var(--fil-text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .fil-info-field {

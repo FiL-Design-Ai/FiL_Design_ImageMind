@@ -8,8 +8,17 @@ const props = withDefaults(
     width?: string;
     closeOnEsc?: boolean;
     closeOnBackdrop?: boolean;
+    /**
+     * Let the reader drag the dialog bigger.
+     *
+     * Off by default: a dialog that is a form or a confirmation has one right
+     * size and a resize grip on it is furniture. It earns its place on a dialog
+     * holding content the caller cannot size for the reader — a model's Civitai
+     * prompts, which are three lines on one model and thirty on the next.
+     */
+    resizable?: boolean;
   }>(),
-  { closeOnEsc: true, closeOnBackdrop: true, width: "520px" },
+  { closeOnEsc: true, closeOnBackdrop: true, width: "520px", resizable: false },
 );
 
 const open = defineModel<boolean>("open", { default: false });
@@ -106,7 +115,13 @@ onBeforeUnmount(() => {
         @pointerdown="onBackdropClick"
         @click="onBackdropClick"
       >
-        <div class="fil-modal-panel" :style="{ maxWidth: width }" @pointerdown.stop @click.stop>
+        <div
+          class="fil-modal-panel"
+          :class="{ resizable }"
+          :style="{ maxWidth: resizable ? undefined : width, width: resizable ? width : undefined }"
+          @pointerdown.stop
+          @click.stop
+        >
           <div class="fil-modal-header">
             <span class="fil-modal-title">{{ title }}</span>
             <button class="fil-modal-close" title="Close" @click="close">
@@ -144,6 +159,17 @@ onBeforeUnmount(() => {
   flex-direction: column;
   overflow: hidden;
 }
+/* Dragged from the bottom-right corner, within what the viewport can hold.
+   `resize` needs a scroll container to work on, which the panel already is. */
+.fil-modal-panel.resizable {
+  resize: both;
+  overflow: auto;
+  min-width: 320px;
+  min-height: 200px;
+  max-width: 96vw;
+  max-height: 90vh;
+}
+
 .fil-modal-header {
   display: flex;
   align-items: center;

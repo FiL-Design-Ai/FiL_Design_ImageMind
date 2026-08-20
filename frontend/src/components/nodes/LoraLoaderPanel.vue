@@ -908,6 +908,7 @@ function onComboClose(index: number) {
       v-model:open="infoModalOpen"
       :title="`LoRA Info — ${activeInfoDetail?.cleanName || 'Details'}`"
       width="520px"
+      resizable
     >
       <div v-if="activeInfoDetail" class="fil-info-modal-content">
         <!-- The one thing this dialog never said: whether it is still asking,
@@ -980,7 +981,7 @@ function onComboClose(index: number) {
               class="fil-copy-mini-btn"
               @click="copyToClipboard(activeInfoDetail.trigger_words || '', 'Trigger Words')"
             >
-              📋 Copy All
+              <FilIcon name="copy" :size="11" /> Copy All
             </button>
           </div>
           <code class="fil-info-code highlight-code">{{ activeInfoDetail.trigger_words }}</code>
@@ -994,7 +995,7 @@ function onComboClose(index: number) {
               class="fil-copy-mini-btn"
               @click="copyToClipboard(pmt, `Sample Prompt #${idx + 1}`)"
             >
-              📋 Copy
+              <FilIcon name="copy" :size="11" /> Copy
             </button>
           </div>
         </div>
@@ -1762,6 +1763,24 @@ function onComboClose(index: number) {
 .fil-info-label {
   color: var(--fil-muted);
   font-size: 11px;
+}
+
+/* A prompt and its copy button on one row, the prompt wrapping to as many
+   lines as it needs. Neither class had a rule, so the button landed under a
+   `width: 100%` block of code. */
+.fil-sample-prompt-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  width: 100%;
+}
+
+.fil-info-code.flex-code {
+  flex: 1;
+  min-width: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 .fil-info-code {
