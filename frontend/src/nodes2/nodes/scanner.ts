@@ -112,27 +112,8 @@ export const scannerNode: NodeModule = {
 
       exposeWidgetInputSockets(node, SCANNER_TEXT_INPUTS);
       // `growable`: the panel's prompt fields absorb whatever height the user
-      // drags past the content (see OpticScanner.vue's `.is-growable` rows) —
-      // which is why this estimate has to be close. Anything above the panel's
-      // own minimum is stretch the user never asked for, and the prompt fields
-      // swallow it silently: at the old 580 a freshly dropped node came up
-      // 664px tall around ~300px of folded panel. Measured at 297px with every
-      // section folded (the state a fresh node is in), 320 leaves a little room
-      // for a locale with taller labels without inventing empty space.
-      addFilDomWidget(node, VIEW_WIDGET, OpticScannerVue, { state, height: 320, growable: true });
-
-      // LiteGraph sizes a fresh node from the widgets its constructor saw — all
-      // twenty of them, before the loop above hid them — and never revisits that
-      // number once they are gone. Measured on a live graph: a node dropped on
-      // the canvas came up 664px tall around a 320px panel, and the growable
-      // host charged the difference to the stretch, so the prompt fields
-      // silently ate ~250px of it. Re-fitting here reads as "no stretch" to that
-      // host, and a saved workflow still wins: `configure()` restores its own
-      // size a moment after this runs.
-      const sizable = node as { size?: [number, number]; setSize?: (s: [number, number]) => void; computeSize?: () => [number, number] };
-      if (sizable.size && sizable.setSize && sizable.computeSize) {
-        sizable.setSize([sizable.size[0], sizable.computeSize()[1]]);
-      }
+      // drags past the content (see OpticScanner.vue's `.is-growable` rows).
+      addFilDomWidget(node, VIEW_WIDGET, OpticScannerVue, { state, height: 580, growable: true });
       return result;
     };
 
