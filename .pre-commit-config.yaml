@@ -42,7 +42,9 @@ repos:
       - id: end-of-file-fixer
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.10
+    # Kept equal to the version ci.yml pins, so the hook and the job cannot
+    # disagree about what passes.
+    rev: v0.15.2
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]

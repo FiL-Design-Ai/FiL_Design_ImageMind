@@ -290,3 +290,33 @@ def test_the_local_runner_claims_no_step_that_is_gone():
     assert not stale, (
         "\n  ".join(["tools/check_all.py claims CI steps that are not in ci.yml:"] + stale)
     )
+
+
+def test_the_lint_tools_are_pinned_and_agree_with_pre_commit():
+    """One version of ruff, named in two files, must be one version.
+
+    `pip install "ruff>=0.4.10"` was a floor, so CI ran whatever ruff had
+    released that morning while `.pre-commit-config.yaml` pinned v0.4.10 — the
+    local hook and the job could pass and fail on the same tree. The job had in
+    fact been red long enough that nobody read it, and a live `NameError` in
+    `/sort_models` sat behind thirty-four cosmetic findings nobody was going to
+    scroll past.
+    """
+    workflow_text = WORKFLOW.read_text(encoding="utf-8")
+    pins = dict(re.findall(r'"(ruff|bandit)==([\d.]+)"', workflow_text))
+
+    floors = re.findall(r'"(?:ruff|bandit)>=[\d.]+"', workflow_text)
+    assert not floors, (
+        f"lint tools installed with a version floor rather than a pin: {floors}. "
+        "A new release then turns this job red on a commit that changed nothing."
+    )
+    assert set(pins) == {"ruff", "bandit"}, f"expected both pinned, found {pins}"
+
+    pre_commit = (PACKAGE_ROOT / ".pre-commit-config.yaml").read_text(encoding="utf-8")
+    hook_rev = re.search(r"ruff-pre-commit\s*\n\s*(?:#[^\n]*\n\s*)*rev:\s*v?([\d.]+)", pre_commit)
+    assert hook_rev, "could not find the ruff rev in .pre-commit-config.yaml"
+    assert hook_rev.group(1) == pins["ruff"], (
+        f"ruff is v{hook_rev.group(1)} in .pre-commit-config.yaml and "
+        f"{pins['ruff']} in ci.yml — the hook and the job would disagree about "
+        "what passes."
+    )

@@ -84,8 +84,13 @@ jobs:
         with:
           python-version: '3.10'
 
+      # Pinned, not floored. `>=` meant a new ruff release could turn this job
+      # red on a commit that changed nothing — which is how it came to be red
+      # for long enough that nobody read it, and a live NameError in
+      # /sort_models sat behind thirty-four cosmetic findings. Raise these
+      # deliberately, with `ruff check .` green in the same commit.
       - name: Install lint tools
-        run: pip install "ruff>=0.4.10" "bandit>=1.7.7"
+        run: pip install "ruff==0.15.2" "bandit==1.7.7"
 
       # Config lives in pyproject.toml. Without it, ruff run inside a ComfyUI
       # tree silently inherits ComfyUI's own rules while the same command here
