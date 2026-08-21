@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(.kilo/**)",
+      "Read(.qwen/**)",
+      "Read(_archive/**)",
+      "Read(.ruff_cache/**)",
+      "Read(frontend/node_modules/**)"
+    ]
+  }
+}
