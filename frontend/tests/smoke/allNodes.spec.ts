@@ -1,8 +1,19 @@
 import { test, expect, type Page } from "@playwright/test";
 import { openBlankWorkflow, closeScratchWorkflow } from "./comfyWindow";
-// Relative, not `@/`: these specs run in Playwright's own runtime rather than
-// through Vite, and nothing else under tests/smoke resolves the alias.
-import contracts from "../../src/api/contracts.json";
+// Read, not imported. These specs run in Playwright's own Node runtime rather
+// than through Vite: `@/` is not resolved there, and a bare JSON import needs
+// an `with { type: "json" }` attribute that the Vitest side does not use. A
+// file read behaves the same in both.
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const contracts = JSON.parse(
+  readFileSync(
+    resolve(dirname(fileURLToPath(import.meta.url)), "../../src/api/contracts.json"),
+    "utf8",
+  ),
+) as { data: Record<string, unknown> };
 
 /**
  * Every node, in a real ComfyUI, on one canvas.
