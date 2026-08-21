@@ -65,6 +65,65 @@ export default tseslint.config(
     },
   },
   {
+    /**
+     * A node's frontend must not reach into another node's.
+     *
+     * This is the property that makes a pack of nineteen nodes survive being
+     * edited: fixing one panel physically cannot break another when they do
+     * not know about each other. `tests/test_layer_boundaries.py` enforces the
+     * same rule on the Python side, and shared behaviour belongs one level up
+     * — `components/widgets/`, `composables/`, `nodes2/` — not sideways.
+     *
+     * `StyleBrowser.vue` and `ProviderModelPicker.vue` are the two exceptions,
+     * and only because of where they sit: neither is a node body. They are
+     * shared components filed under `components/nodes/` and would need no
+     * exception at all from `components/widgets/`. Moving them is a rename
+     * worth doing on its own, not inside a lint rule.
+     */
+    files: ["src/components/nodes/**/*.vue"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: [
+                "@/components/nodes/*",
+                "./*.vue",
+                "../*.vue",
+                "!@/components/nodes/StyleBrowser.vue",
+                "!@/components/nodes/ProviderModelPicker.vue",
+              ],
+              message:
+                "A node panel must not import another node panel. Shared UI belongs in " +
+                "components/widgets/ or composables/. See tests/test_layer_boundaries.py " +
+                "for the same rule on the Python side.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    /** The same boundary for the registration modules. */
+    files: ["src/nodes2/nodes/**/*.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/nodes2/nodes/*", "./*", "../nodes/*"],
+              message:
+                "A node module must not import a sibling node module. Shared registration " +
+                "helpers belong in nodes2/ (util, nodeStyle, domWidgetHost, applyFxComposables).",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ["tests/**/*.{ts,vue}"],
     languageOptions: {
       globals: {
