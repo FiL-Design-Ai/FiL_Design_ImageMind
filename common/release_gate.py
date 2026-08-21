@@ -38,6 +38,7 @@ RELEASE_NODES: set[str] = {
     "FiLChannel",
     "FiLModelCycler",
     "FiLLoraLoader",
+    "FiLEditEncoder",
 }
 
 _TRUTHY = {"1", "true", "yes", "on"}

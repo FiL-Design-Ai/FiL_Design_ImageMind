@@ -558,6 +558,28 @@ Cycles through LoRA adapters on each generation run with automatic trigger-word 
 </details>
 
 <details>
+<summary><b>🎯 Edit Encoder</b> — <code>FiLEditEncoder</code> — prompt + reference images in one conditioning for FLUX.2-family edit models</summary>
+
+Replaces core's scattered chain (`ImageScaleToTotalPixels` → `VAEEncode` → chained
+`ReferenceLatent` nodes) for FLUX.2-family edit workflows (Krea2, Klein, Dev): every wired
+reference is resized to the pixel budget, VAE-encoded, and attached to the prompt
+conditioning together with the reference-layout method. Native ComfyUI widgets only.
+
+| Input | Type | Default | Notes |
+|---|---|---|---|
+| `clip` | CLIP | — | edit model's text encoder (e.g. Qwen3-VL for FLUX.2/Krea2) |
+| `prompt` | STRING | `""` | edit instruction |
+| `vae` | VAE | — | edit model's VAE — encodes every reference image |
+| `images` | IMAGE ×N | — | auto-growing reference slots (`image_1..image_10`) |
+| `megapixels` | FLOAT | `1.0` | pixel budget each reference is resized to (aspect kept, /8-aligned) |
+| `auto_size` | BOOLEAN | `true` | ON: references smaller than the budget keep their native size, the budget only caps |
+| `reference_latents_method` | COMBO | `offset` | offset, index, uxo, index_timestep_zero |
+
+**Outputs:** `CONDITIONING`
+
+</details>
+
+<details>
 <summary><b>♻️ Seed</b> — <code>FiLSeed</code> · <b>🧹 Cleaner</b> — <code>FiLNeuroCleaner</code> · <b>🔀 Cyber Switch</b> — <code>FiLSignalSwitch</code> · <b>📡 Channel</b> — <code>FiLChannel</code></summary>
 
 **♻️ Seed** — `seed` INT (0 – 2⁶⁴-1) → `SEED` INT. Panel is one row: the value plus 🔀 randomize,
@@ -637,6 +659,9 @@ value untouched; OFF passes `None` on the wire without blocking optional downstr
 - ⚡ **KSampler** (`FiLKSampler`) — сэмплер с passthrough и скриптами.
 - 🔬 **HighRes Fix** (`FiLHighResFix`) — скрипт двухстадийного апскейла и повторного сэмплинга.
 - 🎛️ **Noise Control** (`FiLNoiseControl`) — управление RNG и вариативный шум.
+
+#### 🎨 FiL Design/Conditioning
+- 🎯 **Edit Encoder** (`FiLEditEncoder`) — промпт + референсы в одном кондее для edit-моделей семейства FLUX.2 (Krea2, Klein, Dev).
 
 #### 🎨 FiL Design/Image
 - 🔍 **Upscaler Advanced** (`FiLUpscaleTileCalc`) — планировщик тайловой сетки и апскейлер.

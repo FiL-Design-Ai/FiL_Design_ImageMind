@@ -32,8 +32,8 @@ _ID_RE = re.compile(r"""\bid:\s*["'](FiL\w+)["']""")
 _ALIAS_IMPORT_RE = re.compile(r"""["'](@/[^"']+)["']""")
 
 # Nodes that deliberately ship no Vue panel — native ComfyUI widgets only.
-# Empty today: every module in nodes2/nodes/ mounts one. Kept as the place to
-# record such a decision, mirroring NODES_WITHOUT_PANELS in the smoke suite.
+# Kept as the place to record such a decision, mirroring NODES_WITHOUT_PANELS
+# in the smoke suite.
 NODES_WITHOUT_PANELS: set[str] = set()
 
 

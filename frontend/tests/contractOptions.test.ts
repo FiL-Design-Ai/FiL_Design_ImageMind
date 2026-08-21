@@ -37,6 +37,7 @@ const NODE_ID_BY_FILE: Record<string, string> = {
   "TileAssemblyPanel.vue": "FiLTileAssembly",
   "ModelCyclerPanel.vue": "FiLModelCycler",
   "LoraLoaderPanel.vue": "FiLLoraLoader",
+  "EditEncoderPanel.vue": "FiLEditEncoder",
 };
 
 /**

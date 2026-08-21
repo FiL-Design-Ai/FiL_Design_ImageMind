@@ -591,5 +591,21 @@
   "tt_lora_loader_strength_model": "Default MODEL strength (overridden by inline weight if provided).",
   "tt_lora_loader_strength_clip": "Default CLIP strength (overridden by inline weight if provided).",
   "tt_lora_loader_skip_on_error": "If a LoRA file fails to load, log warning and skip to next LoRA instead of crashing queue.",
-  "err_lora_no_input": "🧬 LoRA Loader: nothing is wired in — connect MODEL (and CLIP if the LoRA touches it)."
+  "err_lora_no_input": "🧬 LoRA Loader: nothing is wired in — connect MODEL (and CLIP if the LoRA touches it).",
+  "ee_clip": "Text encoder of the edit model (e.g. Qwen3-VL for FLUX.2/Krea2).",
+  "ee_prompt": "Edit instruction: what to change, keep, or compose from the references.",
+  "ee_vae": "VAE of the edit model. Only needed when reference_mode uses latents.",
+  "ee_images": "Reference images to edit from. Each adds its latent to the conditioning — VRAM and sampling time grow with every one.",
+  "ee_method": "Only used when reference_mode sends latents. On Krea 2 every value behaves the same except index_timestep_zero.",
+  "ee_out": "Prompt conditioning carrying every reference latent — feed the sampler's positive input.",
+  "eep_prompt_ph": "What to change, keep, or compose from the references…",
+  "eep_refs": "refs",
+  "eep_refs_tt": "Reference images wired into the slots below the panel — each one adds a latent to the conditioning.",
+  "ee_mode": "How references reach the model. 'vision': the text encoder looks at them, nothing enters the frame (Krea 2). 'latents': VAE-encoded into the frame itself (FLUX.2/Kontext) — this is what tiles the source into the output. 'both': both channels.",
+  "ee_system": "Your own role text. Only used when system_preset is 'custom'.",
+  "ee_preset": "Role sent to the text encoder. 'none' for a prompt that gives an instruction ('change X, keep Y') — it is followed most closely that way. 'use reference' for a prompt that only describes a style, which otherwise leaves the model no reason to look at the reference. 'custom' uses the system_prompt field.",
+  "ee_prompt_preset": "A ready-made opening, prepended to whatever you type. Edit models follow an explicit instruction far more closely than a bare description.",
+  "ee_strength": "How hard the references pull. 1.0 is the plain encode and costs nothing; anything else encodes a second time against blank references and interpolates, so 0 ignores them and above 1 exaggerates them.",
+  "ee_vl_mp": "Size of the copy the text encoder reads. 0.15 MP (~384x384) is what core uses.",
+  "ee_lat_mp": "Cap for the copy the VAE encodes, when reference_mode uses latents."
 }

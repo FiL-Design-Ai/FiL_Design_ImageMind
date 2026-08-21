@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+### Added
+
+- **🎯 Edit Encoder (`FiLEditEncoder`) — one node where the edit pipeline used to want six.**
+  Core ComfyUI assembles an FLUX.2-family edit workflow (Krea2, Klein, Dev) out of
+  separate pieces: `ImageScaleToTotalPixels` → `VAEEncode` → a chain of
+  `ReferenceLatent` nodes — one per reference image — plus a standalone
+  `CLIPTextEncode`. The new node in `🎨 FiL Design/🔗 Conditioning` folds the whole
+  chain into one: prompt in, auto-growing reference slots (up to ten) in, and out comes
+  a single `CONDITIONING` carrying every reference as a VAE-encoded latent plus the
+  `reference_latents_method` the model reads. Each reference is resized to a megapixel
+  budget the node exposes as a widget (aspect kept, /8-aligned) — with `auto_size` on
+  by default, so references smaller than the budget keep their native resolution and
+  the budget only caps the big ones. The order on the wire
+  is the order on the conditioning even though Autogrow hands the slots back as a dict,
+  and references without a wired VAE fail fast with a message instead of silently
+  degrading to a text-only encode. The node stays model-agnostic on purpose — it only
+  speaks the generic `reference_latents` protocol — and ships with the pack's branded
+  panel: prompt textarea, auto-size toggle, megapixel slider, reference-method select
+  and a live wired-reference counter, while the Autogrow slots stay core-managed below it.
+
 ### Fixed
 
 - **📡 A channel's name tag no longer hides under the node it feeds.**
@@ -147,6 +167,30 @@
   `appearanceSettings.test.ts` and `comfyPalette.test.ts`.
 
 ### Changed
+
+- **✍️ The Krea 2 prompt profile now follows Krea's own docs, and one rule it taught
+  went to every model that has no negative prompt.**
+  The profile was written against the fal.ai community guide, which budgets 5-20 to
+  80-140 words; Krea's own guidance and prompt-expansion system prompt
+  ([krea-ai/krea-2](https://github.com/krea-ai/krea-2), `docs/`) say long detailed
+  prompts yield the best results, so the target is now one flowing paragraph of
+  120-200 words where the detail level leaves room. Four rules came with it, each
+  fixing a failure this pack could already produce: the medium is named in the
+  opening words — with the stylisation and the proportions that carry it, or a
+  cartoon request comes back photoreal; on-image text is asked for exactly once,
+  because a second copy in a reflection or a mirrored sign renders as scrambled
+  letters; the paragraph closes on one concrete object near enough to see its
+  surface; and nothing absent is ever named. That last one is now shared: the words
+  *no*, *not* and *without* are banned inside the generated prompt for every profile
+  whose target has no negative-prompt field — Z-Image Turbo, FLUX, Krea 2,
+  Ideogram 4, Video and MiniMax H3. "Express constraints positively" left the model
+  free to write "the street holds no cars", and an image model cannot subtract:
+  naming an absent thing tends to add it. The clause lives in one place
+  (`_NO_ABSENCE_CLAUSE` in `common/logic.py`) and attaches by the rule's own
+  `negative_strategy`, so a new positive-constraints model picks it up unedited —
+  and the Video profile's own on-screen-text line, the last place the guidance
+  still asked for a negative ("no other lettering, no subtitles"), was reworded
+  positively to match.
 
 - **📡 A channel now says what it carries by borrowing its source's own name.**
   Dragging a wire from ♻️ Seed named the channel `INT` — true and useless.

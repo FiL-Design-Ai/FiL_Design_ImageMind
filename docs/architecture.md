@@ -15,8 +15,9 @@ Canonical node ids:
 - `FiLSeed` — Values
 - `FiLNeuroCleaner`, `FiLSignalSwitch`, `FiLChannel` — Tools
 - `FiLModelCycler`, `FiLLoraLoader` — Sampling
+- `FiLEditEncoder` — Conditioning
 
-Nineteen in all. Nothing here is maintained by hand: `tools/preflight_check.py`
+Twenty in all. Nothing here is maintained by hand: `tools/preflight_check.py`
 derives the list from `__init__.py`, and `tests/test_node_contracts.py` proves
 every node has a contract, a frontend module and a place in the release gate.
 
@@ -34,7 +35,7 @@ This is a new public contract. Workflows created for the former backup implement
 - `common/contracts/nodes/<node>.py`: one module per node holding its `CONTRACT` —
   ids, titles, categories and the widget layer the frontend renders.
   `common/contracts/widgets.py` holds the builders they share.
-- `common/contracts/registry.py`: collects those nineteen contracts and nothing
+- `common/contracts/registry.py`: collects those twenty contracts and nothing
   else. It may not build a `NodeContract` itself
   (`tests/test_contract_generation.py`), and it may not import from the running
   host: a contract that is different on a machine with ComfyUI installed cannot

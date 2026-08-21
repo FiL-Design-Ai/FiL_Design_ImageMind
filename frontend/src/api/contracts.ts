@@ -5637,6 +5637,182 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   ],
   "family": "tool"
 },
+  "FiLEditEncoder": {
+  "id": "FiLEditEncoder",
+  "title": "🎯 Edit Encoder",
+  "category": "🎨 FiL Design/🔗 Conditioning",
+  "description": "Prompt + reference images in one conditioning for FLUX.2-family edit models.",
+  "inputs": {
+    "required": [
+      {
+        "name": "prompt",
+        "kind": "string",
+        "label": "Prompt",
+        "default": "",
+        "tooltip": "Edit instruction: what to change, keep, or compose from the references.",
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": true,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "prompt_preset",
+        "kind": "combo",
+        "label": "Preset",
+        "default": "none",
+        "tooltip": "A ready-made opening, prepended to whatever you type.",
+        "values": [
+          "none",
+          "edit this image",
+          "keep subject, change scene",
+          "keep scene, change subject",
+          "use as style reference"
+        ],
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "reference_mode",
+        "kind": "combo",
+        "label": "Reference mode",
+        "default": "vision",
+        "tooltip": "'vision': the encoder looks at the references, nothing enters the frame. 'latents': they are VAE-encoded into the frame itself, which is what tiles the source into the output. 'both': both channels.",
+        "values": [
+          "vision",
+          "latents",
+          "both"
+        ],
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      }
+    ],
+    "optional": [
+      {
+        "name": "reference_strength",
+        "kind": "slider",
+        "label": "Reference strength",
+        "default": 1,
+        "tooltip": "How hard the references pull. 1.0 costs one encode; anything else encodes again against blank references and interpolates.",
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": 0,
+        "max": 3,
+        "step": 0.05,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "system_preset",
+        "kind": "combo",
+        "label": "System preset",
+        "default": "none",
+        "tooltip": "'none' for a prompt that gives an instruction. 'use reference' for a prompt that only describes a style. 'custom' uses the field below.",
+        "values": [
+          "none",
+          "use reference",
+          "custom"
+        ],
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": "advanced",
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "system_prompt",
+        "kind": "string",
+        "label": "System prompt",
+        "default": "",
+        "tooltip": "Optional role for the text encoder. Empty leaves the tokenizer's own template alone. Vision-language encoders only.",
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": true,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": "advanced",
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "reference_latents_method",
+        "kind": "combo",
+        "label": "Latents method",
+        "default": "index_timestep_zero",
+        "tooltip": "Only used when reference_mode sends latents.",
+        "values": [
+          "index_timestep_zero",
+          "index",
+          "offset",
+          "uxo"
+        ],
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": "advanced",
+        "visible_when": null,
+        "visible_when_value": null
+      }
+    ],
+    "hidden": []
+  },
+  "outputs": [
+    {
+      "name": "conditioning",
+      "type": "CONDITIONING"
+    }
+  ],
+  "min_size": [
+    300,
+    150
+  ],
+  "family": "conditioning"
+},
 };
 
 export type NodeId = keyof typeof NODE_CONTRACTS;

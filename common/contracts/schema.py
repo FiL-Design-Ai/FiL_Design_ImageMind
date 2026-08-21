@@ -69,7 +69,8 @@ class NodeOutput(BaseModel):
 
     name: str
     type: Literal[
-        "INT", "FLOAT", "STRING", "BOOLEAN", "DICT", "IMAGE", "MASK", "LATENT", "MODEL", "CLIP", "VAE", "ANY"
+        "INT", "FLOAT", "STRING", "BOOLEAN", "DICT", "IMAGE", "MASK", "LATENT", "MODEL", "CLIP", "VAE",
+        "CONDITIONING", "ANY"
     ]
 
 

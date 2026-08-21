@@ -24,6 +24,7 @@ from .nodes.cleaner import CONTRACT as CLEANER
 from .nodes.color_wizard import CONTRACT as COLOR_WIZARD
 from .nodes.dataset import CONTRACT as DATASET_FORGE
 from .nodes.decomposer import CONTRACT as DECOMPOSER
+from .nodes.edit_encoder import CONTRACT as EDIT_ENCODER
 from .nodes.hiresfix import CONTRACT as HIRESFIX
 from .nodes.ksampler import CONTRACT as KSAMPLER
 from .nodes.lora_loader import CONTRACT as LORA_LOADER
@@ -61,6 +62,7 @@ NODE_SCHEMAS: dict[str, NodeContract] = {
         CHANNEL,
         MODEL_CYCLER,
         LORA_LOADER,
+        EDIT_ENCODER,
     )
 }
 

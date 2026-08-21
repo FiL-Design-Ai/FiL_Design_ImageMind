@@ -75,6 +75,10 @@
     "FiLLoraLoader": {
       "title": "🧬 LoRA Loader",
       "category": "🎨 FiL Design/🧰 Tools"
+    },
+    "FiLEditEncoder": {
+      "title": "🎯 Edit Encoder",
+      "category": "🎨 FiL Design/🔗 Conditioning"
     }
   },
   "schemas": {
@@ -128,6 +132,7 @@
                 "MODEL",
                 "CLIP",
                 "VAE",
+                "CONDITIONING",
                 "ANY"
               ],
               "title": "Type",
@@ -490,6 +495,7 @@
                 "MODEL",
                 "CLIP",
                 "VAE",
+                "CONDITIONING",
                 "ANY"
               ],
               "title": "Type",
@@ -852,6 +858,7 @@
                 "MODEL",
                 "CLIP",
                 "VAE",
+                "CONDITIONING",
                 "ANY"
               ],
               "title": "Type",
@@ -1214,6 +1221,7 @@
                 "MODEL",
                 "CLIP",
                 "VAE",
+                "CONDITIONING",
                 "ANY"
               ],
               "title": "Type",
@@ -1576,6 +1584,7 @@
                 "MODEL",
                 "CLIP",
                 "VAE",
+                "CONDITIONING",
                 "ANY"
               ],
               "title": "Type",
@@ -1938,6 +1947,7 @@
                 "MODEL",
                 "CLIP",
                 "VAE",
+                "CONDITIONING",
                 "ANY"
               ],
               "title": "Type",
@@ -2300,6 +2310,7 @@
                 "MODEL",
                 "CLIP",
                 "VAE",
+                "CONDITIONING",
                 "ANY"
               ],
               "title": "Type",
@@ -2662,6 +2673,7 @@
                 "MODEL",
                 "CLIP",
                 "VAE",
+                "CONDITIONING",
                 "ANY"
               ],
               "title": "Type",
@@ -3024,6 +3036,7 @@
                 "MODEL",
                 "CLIP",
                 "VAE",
+                "CONDITIONING",
                 "ANY"
               ],
               "title": "Type",
@@ -3386,6 +3399,7 @@
                 "MODEL",
                 "CLIP",
                 "VAE",
+                "CONDITIONING",
                 "ANY"
               ],
               "title": "Type",
@@ -3748,6 +3762,7 @@
                 "MODEL",
                 "CLIP",
                 "VAE",
+                "CONDITIONING",
                 "ANY"
               ],
               "title": "Type",
@@ -4110,6 +4125,7 @@
                 "MODEL",
                 "CLIP",
                 "VAE",
+                "CONDITIONING",
                 "ANY"
               ],
               "title": "Type",
@@ -4472,6 +4488,7 @@
                 "MODEL",
                 "CLIP",
                 "VAE",
+                "CONDITIONING",
                 "ANY"
               ],
               "title": "Type",
@@ -4834,6 +4851,7 @@
                 "MODEL",
                 "CLIP",
                 "VAE",
+                "CONDITIONING",
                 "ANY"
               ],
               "title": "Type",
@@ -5196,6 +5214,7 @@
                 "MODEL",
                 "CLIP",
                 "VAE",
+                "CONDITIONING",
                 "ANY"
               ],
               "title": "Type",
@@ -5558,6 +5577,7 @@
                 "MODEL",
                 "CLIP",
                 "VAE",
+                "CONDITIONING",
                 "ANY"
               ],
               "title": "Type",
@@ -5920,6 +5940,7 @@
                 "MODEL",
                 "CLIP",
                 "VAE",
+                "CONDITIONING",
                 "ANY"
               ],
               "title": "Type",
@@ -6282,6 +6303,7 @@
                 "MODEL",
                 "CLIP",
                 "VAE",
+                "CONDITIONING",
                 "ANY"
               ],
               "title": "Type",
@@ -6644,6 +6666,370 @@
                 "MODEL",
                 "CLIP",
                 "VAE",
+                "CONDITIONING",
+                "ANY"
+              ],
+              "title": "Type",
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "type"
+          ],
+          "title": "NodeOutput",
+          "type": "object"
+        },
+        "WidgetKind": {
+          "description": "Frontend rendering hint for a single widget.",
+          "enum": [
+            "combo",
+            "segmented",
+            "chip_grid",
+            "chip_list",
+            "number",
+            "slider",
+            "boolean",
+            "string",
+            "color",
+            "dict",
+            "custom"
+          ],
+          "title": "WidgetKind",
+          "type": "string"
+        },
+        "WidgetSpec": {
+          "additionalProperties": false,
+          "description": "A single widget on a node body.",
+          "properties": {
+            "name": {
+              "description": "Widget name; matches the ComfyUI INPUT_TYPES key.",
+              "title": "Name",
+              "type": "string"
+            },
+            "kind": {
+              "$ref": "#/$defs/WidgetKind"
+            },
+            "label": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional display label (defaults to the widget name).",
+              "title": "Label"
+            },
+            "default": {
+              "default": null,
+              "title": "Default"
+            },
+            "tooltip": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Tooltip"
+            },
+            "values": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Values"
+            },
+            "columns": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Layout hint for chip grids.",
+              "title": "Columns"
+            },
+            "searchable": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Whether a chip list shows a search box.",
+              "title": "Searchable"
+            },
+            "multiline": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Whether string widget uses multiline textarea.",
+              "title": "Multiline"
+            },
+            "min": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Min"
+            },
+            "max": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Max"
+            },
+            "step": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Step"
+            },
+            "units": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Units"
+            },
+            "options": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Options"
+            },
+            "section": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Section"
+            },
+            "visible_when": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Visible When"
+            },
+            "visible_when_value": {
+              "anyOf": [
+                {},
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Visible When Value"
+            }
+          },
+          "required": [
+            "name",
+            "kind"
+          ],
+          "title": "WidgetSpec",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Full frontend contract for a single FiL Design ImageMind node.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "category": {
+          "title": "Category",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "inputs": {
+          "$ref": "#/$defs/NodeInputs"
+        },
+        "outputs": {
+          "items": {
+            "$ref": "#/$defs/NodeOutput"
+          },
+          "title": "Outputs",
+          "type": "array"
+        },
+        "min_size": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min Size"
+        },
+        "family": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Family"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "category"
+      ],
+      "title": "NodeContract",
+      "type": "object"
+    },
+    "FiLEditEncoder": {
+      "$defs": {
+        "NodeInputs": {
+          "additionalProperties": false,
+          "properties": {
+            "required": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Required",
+              "type": "array"
+            },
+            "optional": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Optional",
+              "type": "array"
+            },
+            "hidden": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Hidden",
+              "type": "array"
+            }
+          },
+          "title": "NodeInputs",
+          "type": "object"
+        },
+        "NodeOutput": {
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "title": "Name",
+              "type": "string"
+            },
+            "type": {
+              "enum": [
+                "INT",
+                "FLOAT",
+                "STRING",
+                "BOOLEAN",
+                "DICT",
+                "IMAGE",
+                "MASK",
+                "LATENT",
+                "MODEL",
+                "CLIP",
+                "VAE",
+                "CONDITIONING",
                 "ANY"
               ],
               "title": "Type",
@@ -12538,6 +12924,182 @@
         120
       ],
       "family": "tool"
+    },
+    "FiLEditEncoder": {
+      "id": "FiLEditEncoder",
+      "title": "🎯 Edit Encoder",
+      "category": "🎨 FiL Design/🔗 Conditioning",
+      "description": "Prompt + reference images in one conditioning for FLUX.2-family edit models.",
+      "inputs": {
+        "required": [
+          {
+            "name": "prompt",
+            "kind": "string",
+            "label": "Prompt",
+            "default": "",
+            "tooltip": "Edit instruction: what to change, keep, or compose from the references.",
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "multiline": true,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "prompt_preset",
+            "kind": "combo",
+            "label": "Preset",
+            "default": "none",
+            "tooltip": "A ready-made opening, prepended to whatever you type.",
+            "values": [
+              "none",
+              "edit this image",
+              "keep subject, change scene",
+              "keep scene, change subject",
+              "use as style reference"
+            ],
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "reference_mode",
+            "kind": "combo",
+            "label": "Reference mode",
+            "default": "vision",
+            "tooltip": "'vision': the encoder looks at the references, nothing enters the frame. 'latents': they are VAE-encoded into the frame itself, which is what tiles the source into the output. 'both': both channels.",
+            "values": [
+              "vision",
+              "latents",
+              "both"
+            ],
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          }
+        ],
+        "optional": [
+          {
+            "name": "reference_strength",
+            "kind": "slider",
+            "label": "Reference strength",
+            "default": 1,
+            "tooltip": "How hard the references pull. 1.0 costs one encode; anything else encodes again against blank references and interpolates.",
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": 0,
+            "max": 3,
+            "step": 0.05,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "system_preset",
+            "kind": "combo",
+            "label": "System preset",
+            "default": "none",
+            "tooltip": "'none' for a prompt that gives an instruction. 'use reference' for a prompt that only describes a style. 'custom' uses the field below.",
+            "values": [
+              "none",
+              "use reference",
+              "custom"
+            ],
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "advanced",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "system_prompt",
+            "kind": "string",
+            "label": "System prompt",
+            "default": "",
+            "tooltip": "Optional role for the text encoder. Empty leaves the tokenizer's own template alone. Vision-language encoders only.",
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "multiline": true,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "advanced",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "reference_latents_method",
+            "kind": "combo",
+            "label": "Latents method",
+            "default": "index_timestep_zero",
+            "tooltip": "Only used when reference_mode sends latents.",
+            "values": [
+              "index_timestep_zero",
+              "index",
+              "offset",
+              "uxo"
+            ],
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "advanced",
+            "visible_when": null,
+            "visible_when_value": null
+          }
+        ],
+        "hidden": []
+      },
+      "outputs": [
+        {
+          "name": "conditioning",
+          "type": "CONDITIONING"
+        }
+      ],
+      "min_size": [
+        300,
+        150
+      ],
+      "family": "conditioning"
     }
   },
   "settings_prefix": "FiL_Design_ImageMind."
