@@ -1,5 +1,8 @@
 import { test, expect, type Page } from "@playwright/test";
 import { openBlankWorkflow, closeScratchWorkflow } from "./comfyWindow";
+// Relative, not `@/`: these specs run in Playwright's own runtime rather than
+// through Vite, and nothing else under tests/smoke resolves the alias.
+import contracts from "../../src/api/contracts.json";
 
 /**
  * Every node, in a real ComfyUI, on one canvas.
@@ -18,39 +21,43 @@ import { openBlankWorkflow, closeScratchWorkflow } from "./comfyWindow";
  * works there, and closes it again.
  */
 
-/** Matches `EXPECTED_IDS` in tests/test_node_contracts.py. */
-const EXPECTED_NODE_COUNT = 19;
+/**
+ * Every node the pack ships, read from the generated contracts.
+ *
+ * This file used to carry two hand-written copies of that list — a count of 19
+ * and the panel roster below — the second of which pointed at an `EXPECTED_IDS`
+ * set in `tests/test_node_contracts.py` that was itself a third copy. All of
+ * them were the same nineteen strings, so adding a node meant remembering three
+ * files, and the check each one performed was against another copy of itself.
+ *
+ * `contracts.json` is generated from `common/contracts/`, and CI proves the
+ * committed copy matches it (`npm run check:contracts`,
+ * `tests/test_contract_generation.py`), so reading it here is reading the
+ * backend.
+ */
+const EXPECTED_IDS = Object.keys(contracts.data).sort();
+const EXPECTED_NODE_COUNT = EXPECTED_IDS.length;
 
 /**
- * The nodes whose frontend module mounts a Vue panel — every `addFilDomWidget`
- * caller in `src/nodes2/nodes/`.
+ * Nodes that deliberately ship no Vue panel — native ComfyUI widgets only.
  *
- * Spelled out rather than counted, because a node whose panel silently stops
- * mounting would otherwise just drop out of the sample and take its own
- * assertion with it. Update this deliberately when a node gains or loses a
- * panel.
+ * Empty today: every node module in `src/nodes2/nodes/` calls
+ * `addFilDomWidget`. `docs/architecture.md` claimed five nodes were in this
+ * position (Cleaner, Decomposer, Noise Control, Tile Assembly, KSampler) long
+ * after each of them grew a panel — `KSamplerPanel.vue` is 1169 lines. Listing
+ * the exceptions rather than the rule is what keeps that from happening again:
+ * a node losing its panel fails here until someone writes down that it was on
+ * purpose.
  */
-const NODES_WITH_PANELS = [
-  "FiLChannel",
-  "FiLCinemaRig",
-  "FiLColorWizard",
-  "FiLDatasetForge",
-  "FiLHighResFix",
-  "FiLImageDecomposer",
-  "FiLKSampler",
-  "FiLLoraLoader",
-  "FiLModelCycler",
-  "FiLNeuroCleaner",
-  "FiLNoiseControl",
-  "FiLOpticScanner",
-  "FiLProviderLoader",
-  "FiLSeed",
-  "FiLSignalSwitch",
-  "FiLStyleMixer",
-  "FiLTileAssembly",
-  "FiLUpscaleSimple",
-  "FiLUpscaleTileCalc",
-];
+const NODES_WITHOUT_PANELS = new Set<string>([]);
+
+/**
+ * The nodes whose frontend module mounts a Vue panel.
+ *
+ * Derived, so a node whose panel silently stops mounting fails this assertion
+ * instead of dropping out of the sample and taking its own check with it.
+ */
+const NODES_WITH_PANELS = EXPECTED_IDS.filter((id) => !NODES_WITHOUT_PANELS.has(id));
 
 /**
  * Anything the pack put in the console.
@@ -104,7 +111,9 @@ test.describe("the pack in a real ComfyUI", () => {
       Object.keys(window.LiteGraph.registered_node_types).filter((id) => id.startsWith("FiL")).sort(),
     );
 
-    expect(registered).toHaveLength(EXPECTED_NODE_COUNT);
+    // By name, not by count: nineteen registered nodes and nineteen contracts
+    // can still be nineteen different nodes.
+    expect(registered).toEqual(EXPECTED_IDS);
     expect(errors.ours, errorReport(errors, "errors while loading the graph")).toEqual([]);
   });
 

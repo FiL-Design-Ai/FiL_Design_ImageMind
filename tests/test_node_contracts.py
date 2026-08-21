@@ -15,29 +15,6 @@ from executor_harness import as_the_executor_calls_it
 _execute = as_the_executor_calls_it(FiLOpticScanner)
 
 
-EXPECTED_IDS = {
-    "FiLSeed",
-    "FiLProviderLoader",
-    "FiLOpticScanner",
-    "FiLNeuroCleaner",
-    "FiLUpscaleTileCalc",
-    "FiLUpscaleSimple",
-    "FiLTileAssembly",
-    "FiLKSampler",
-    "FiLHighResFix",
-    "FiLNoiseControl",
-    "FiLImageDecomposer",
-    "FiLStyleMixer",
-    "FiLCinemaRig",
-    "FiLColorWizard",
-    "FiLSignalSwitch",
-    "FiLDatasetForge",
-    "FiLChannel",
-    "FiLModelCycler",
-    "FiLLoraLoader",
-}
-
-
 def _all_node_ids(monkeypatch) -> set[str]:
     """Node-ids of every node class, with the release gate bypassed."""
     monkeypatch.setenv("FIL_RELEASE_ALL", "1")
@@ -125,12 +102,32 @@ def test_package_has_comfy_entrypoint():
     assert package.WEB_DIRECTORY == "./frontend/dist"
 
 
-def test_entrypoint_returns_all_nodes():
+def test_the_release_gate_currently_holds_nothing_back(monkeypatch):
+    """Every node the package declares also reaches the ComfyUI menu.
+
+    Staging a node behind `common/release_gate.py` is a decision; leaving one
+    there by accident is a node nobody can add to a graph, and the rest of the
+    suite runs with `FIL_RELEASE_ALL=1` so it would not notice.
+
+    This used to compare `RELEASE_NODES` against a hand-written `EXPECTED_IDS`
+    set kept in this file — two copies of the same nineteen strings, which is
+    the check `common/contracts/registry.py` already retired for the reason its
+    own comment gives. The gated list is read from the entrypoint and the full
+    list is derived, so promoting or staging a node is what moves this test.
+    """
     package = importlib.import_module("FiL_Design_ImageMind")
     ext = asyncio.run(package.comfy_entrypoint())
-    node_classes = asyncio.run(ext.get_node_list())
-    node_ids = {c.GET_SCHEMA().node_id for c in node_classes}
-    assert node_ids == EXPECTED_IDS
+    released = {c.GET_SCHEMA().node_id for c in asyncio.run(ext.get_node_list())}
+
+    # After `released`: this sets FIL_RELEASE_ALL for the rest of the test.
+    everything = _all_node_ids(monkeypatch)
+
+    assert released == everything, (
+        "nodes declared but held back by the release gate: "
+        f"{sorted(everything - released)}\n"
+        "Add them to RELEASE_NODES in common/release_gate.py, or record here "
+        "that they are staged on purpose."
+    )
 
 
 def test_contracts_use_fil_design_imagemind_categories_and_valid_schema():
