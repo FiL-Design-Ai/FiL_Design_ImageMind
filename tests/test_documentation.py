@@ -119,6 +119,50 @@ def test_landing_pages_document_every_registered_node():
         assert not missing, f"{page.name} does not document: {missing}"
 
 
+def test_the_architecture_note_lists_every_node():
+    """`docs/architecture.md` describes the pack to whoever changes it next.
+
+    It had drifted quietly: two nodes missing from its own canonical list, "15"
+    registration modules for 19, "9" Vue node bodies, "all fourteen nodes", five
+    nodes described as having no panel when every one of them had gained one
+    (KSamplerPanel.vue is 1169 lines), and a reference to an import-time
+    `assert set(CANONICAL_IDS) == {...}` that had been deliberately removed. A
+    document wrong in six places is worse than no document, because it is
+    believed.
+
+    The counts are gone from the prose rather than checked here — a number that
+    has to be edited whenever a node is added is a number that will be wrong.
+    What remains is this: every node the pack registers must be named.
+    """
+    node_ids = _registered_node_ids()
+    text = (ROOT / "docs" / "architecture.md").read_text(encoding="utf-8")
+    missing = sorted(nid for nid in node_ids if nid not in text)
+    assert not missing, f"docs/architecture.md does not mention: {missing}"
+
+
+def test_the_adding_a_node_checklist_points_at_checks_that_exist():
+    """Its value is the right-hand column: which check catches a skipped step.
+
+    A checklist naming a test that no longer exists teaches whoever follows it
+    that the checks are decoration.
+    """
+    text = (ROOT / "docs" / "adding-a-node.md").read_text(encoding="utf-8")
+    referenced = set(re.findall(r"\b(test_\w+\.py|\w+\.test\.ts)\b", text))
+    referenced |= set(re.findall(r"\b(tools/\w+\.py)\b", text))
+
+    missing = []
+    for name in sorted(referenced):
+        if name.startswith("tools/"):
+            if not (ROOT / name).is_file():
+                missing.append(name)
+        elif name.endswith(".test.ts"):
+            if not (ROOT / "frontend" / "tests" / name).is_file():
+                missing.append(name)
+        elif not (ROOT / "tests" / name).is_file():
+            missing.append(name)
+    assert not missing, f"docs/adding-a-node.md names checks that do not exist: {missing}"
+
+
 def test_readme_style_counts_match_the_libraries():
     """The numbers README quotes must be the numbers the pack ships.
 
@@ -367,6 +411,7 @@ def test_comfyignore_keeps_dev_tooling_and_repo_only_docs_out():
         "scripts/dump_contracts.py", "requirements-dev.txt",
         ".pre-commit-config.yaml", ".github/workflows/ci.yml",
         "CLAUDE.md", "audit.md", "audit-next.md", "fix.md", "docs/add-theme.md",
+        "docs/adding-a-node.md", "tools/check_all.py",
         "docs/comfyui-css-variables.md", "docs/VERIFICATION.md",
         "docs/wireless.md", "docs/release/RELEASE_CHECKLIST.md",
         "frontend/src/App.vue", "frontend/public/style-previews/x.webp",

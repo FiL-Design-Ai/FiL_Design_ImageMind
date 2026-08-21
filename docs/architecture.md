@@ -14,6 +14,11 @@ Canonical node ids:
 - `FiLDatasetForge` — Dataset
 - `FiLSeed` — Values
 - `FiLNeuroCleaner`, `FiLSignalSwitch`, `FiLChannel` — Tools
+- `FiLModelCycler`, `FiLLoraLoader` — Sampling
+
+Nineteen in all. Nothing here is maintained by hand: `tools/preflight_check.py`
+derives the list from `__init__.py`, and `tests/test_node_contracts.py` proves
+every node has a contract, a frontend module and a place in the release gate.
 
 `FiLBeforeAfterCompare` was removed in 1.0.0 along with its `/compare/save` route and output folder.
 
@@ -26,7 +31,15 @@ This is a new public contract. Workflows created for the former backup implement
 - `nodes/node_*.py`: ComfyUI inputs, outputs and node-owned behavior.
 - `common/`: provider, prompt, image and style helpers used by more than one runtime area.
 - `common/style_engine/`: data-only style rules, presets, the resolver, and the public `StyleEnforcer` used by Optic Scanner to produce enforcement blocks.
-- `common/contracts/registry.py`: canonical ids, titles, categories and input/output schemas for every node — single source of truth, used by the frontend contract endpoint and validated at import time via its own `assert set(CANONICAL_IDS) == {...}`.
+- `common/contracts/nodes/<node>.py`: one module per node holding its `CONTRACT` —
+  ids, titles, categories and the widget layer the frontend renders.
+  `common/contracts/widgets.py` holds the builders they share.
+- `common/contracts/registry.py`: collects those nineteen contracts and nothing
+  else. It may not build a `NodeContract` itself
+  (`tests/test_contract_generation.py`), and it may not import from the running
+  host: a contract that is different on a machine with ComfyUI installed cannot
+  be checked against the committed artifacts, which is how `contracts.json`
+  came to hold one developer's sampler list.
 - `server_routes.py`: `/fil_design_imagemind/*` HTTP API. It must not expose API keys or internal exception details.
 
 Do not add import aliases, background preflight threads or fallback imports from `FiL_Design_ImageMind_backup`. Add shared helpers only after two runtime areas need them.
@@ -38,9 +51,26 @@ Optional engines (`common/style_engine/`) may be skipped at import time if the r
 - **`frontend/dist/`** — built UMD bundle (`fil_design_imagemind.js` + `style.css`), served by ComfyUI via `WEB_DIRECTORY = "./frontend/dist"`.
 - **`frontend/src/api/contracts.ts`** — auto-generated from Pydantic JSON Schema (`scripts/gen_contracts.mjs`).
 - **`frontend/src/api/client.ts`** — typed HTTP client for `/fil_design_imagemind/*` routes.
+- **`frontend/src/types/comfy.ts`** — the host, described once: `LGraphNode`,
+  `LGraphNodeType`, `ComfyLikeWidget`, `LGraphSlot`, `LGraphLink`,
+  `DomWidgetOptions`. Everything crossing the seam is typed with these rather
+  than `unknown` re-declared inline at each call site; `tests/typeRatchet.test.ts`
+  keeps the few remaining exceptions from multiplying. Keep them in step with
+  `tests/fakes/comfyHost.ts` — the fake is the better-researched of the two and
+  has already corrected this file three times.
 - **`frontend/src/nodes2/domWidgetHost.ts`** — core `node.addDOMWidget()` harness that mounts Vue components.
-- **`frontend/src/nodes2/nodes/*.ts`** — one registration module per node (15).
-- **`frontend/src/components/nodes/*.vue`** — Vue node bodies (9, plus the shared `ProviderModelPicker`). Nodes whose panel is a handful of plain widgets (Cleaner, Decomposer, Noise Control, Tile Assembly, KSampler) use native ComfyUI widgets and only get node styling — a DOM widget there costs the whole browser-vs-LiteGraph layout reconciliation for nothing.
+- **`frontend/src/nodes2/nodes/*.ts`** — one registration module per node, one per
+  node id. A module may not import a sibling (`eslint.config.js`); shared
+  registration behaviour lives one level up in `nodes2/`.
+- **`frontend/src/components/nodes/*.vue`** — Vue node bodies, one per node, plus
+  the shared `ProviderModelPicker` and `StyleBrowser` (which are not node bodies
+  and would need no exception from `components/widgets/`). Every node has a panel:
+  this document claimed five did not — Cleaner, Decomposer, Noise Control, Tile
+  Assembly and KSampler — long after each grew one, `KSamplerPanel.vue` being 1169
+  lines of it. `tests/test_node_wiring.py` now checks each panel exists and is
+  reachable, because a panel is loaded through `defineAsyncComponent(() =>
+  import(...))` and a renamed one passes `vue-tsc` untouched.
+  A panel may not import another panel (`eslint.config.js`).
 - **`frontend/src/components/widgets/*.vue`** — design-system widgets (19 components).
 - **`frontend/src/stores/`** — Pinia stores: `toastStore`, `providerStore`.
 - **`frontend/src/stores/settings/`** — settings modules, all aggregated in `allSettings.ts`.
@@ -102,7 +132,17 @@ python.exe tools/preflight_check.py
 python.exe tools/scan_node_conflicts.py
 ```
 
-Run `npm run typecheck` and `npm test` under `frontend/`. Finally restart ComfyUI and verify all fourteen nodes under `🎨 FiL Design/...`.
+Or, for everything CI runs, in one command:
+
+```powershell
+python.exe tools/check_all.py --fast   # no browser, no ComfyUI
+python.exe tools/check_all.py          # everything
+```
+
+`tests/test_ci_workflow.py` proves that runner covers every step in `ci.yml`, so
+a check that exists only in CI cannot stay that way.
+
+Finally restart ComfyUI and verify every node under `🎨 FiL Design/...`.
 
 Tests that require `torch` use `pytest.importorskip("torch")` so the suite stays green without the framework installed.
 
