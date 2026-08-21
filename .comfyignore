@@ -33,6 +33,7 @@ frontend/playwright.comfy.config.ts
 tests/
 tools/
 scripts/
+scratch/
 requirements-dev.txt
 .flake8
 .pre-commit-config.yaml

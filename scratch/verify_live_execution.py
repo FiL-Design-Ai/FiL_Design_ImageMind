@@ -1,7 +1,6 @@
 import urllib.request
 import json
 import os
-import sys
 
 BASE_URL = "http://127.0.0.1:8188"
 

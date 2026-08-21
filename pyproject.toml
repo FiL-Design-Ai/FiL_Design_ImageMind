@@ -82,3 +82,5 @@ ignore = ["E501", "E722", "E731", "E402", "E741"]
 # logger and a user-settable log level.
 "tools/*" = ["T201", "T203"]
 "scripts/*" = ["T201", "T203"]
+# Same again for the scratch scripts kept for reproducing a live issue by hand.
+"scratch/*" = ["T201", "T203"]

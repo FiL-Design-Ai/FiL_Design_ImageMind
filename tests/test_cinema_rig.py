@@ -291,19 +291,6 @@ def test_unknown_axis_names_fall_through_as_literal_wording() -> None:
 
 
 def test_every_default_selection_is_a_real_option() -> None:
-    from FiL_Design_ImageMind.common.cinema_rig import (
-        aperture_options,
-        camera_angle_options,
-        camera_movement_options,
-        camera_options,
-        director_preset_options,
-        focal_length_options,
-        grading_options,
-        lens_options,
-        lighting_setup_options,
-        optics_filter_options,
-        shot_framing_options,
-    )
 
     assert RIG_DEFAULTS["camera"] in camera_options()
     assert RIG_DEFAULTS["lens"] in lens_options()
