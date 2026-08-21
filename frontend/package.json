@@ -9,6 +9,7 @@
     "build": "vue-tsc --noEmit && vite build && node scripts/sourceHash.mjs --write",
     "build:watch": "vite build --watch",
     "check:bundle": "node scripts/sourceHash.mjs --check",
+    "check:contracts": "node scripts/gen_contracts.mjs --check",
     "typecheck": "vue-tsc --noEmit",
     "preview": "vite preview",
     "test": "vitest run",

@@ -109,6 +109,21 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
+      # For `check:contracts` below: the generator shells out to
+      # `scripts/dump_contracts.py`. It needs no ComfyUI and no torch — the
+      # contract layer is plain Pydantic, and `registry.py` is forbidden from
+      # importing the host (tests/test_contract_generation.py). The pack's
+      # declared runtime dependencies are the whole requirement.
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install contract dependencies
+        run: pip install -r requirements.txt
+
       - name: Install dependencies
         working-directory: frontend
         run: npm ci
@@ -116,6 +131,19 @@ jobs:
       - name: Lint
         working-directory: frontend
         run: npm run lint
+
+      # `frontend/src/api/contracts.{json,ts}` are generated from
+      # `common/contracts/` by a manual `npm run gen:contracts`, and both are
+      # committed. Skip that step and every other check here still passes: the
+      # Python suite reads the registry, the frontend suite reads the stale
+      # JSON, and `check:bundle` compares `frontend/src` against itself. The
+      # bundle then ships a contract the backend does not describe.
+      #
+      # Before `check:bundle`, because regenerating changes `frontend/src` and
+      # would invalidate the bundle hash — this says which of the two is wrong.
+      - name: Check the committed contracts match common/contracts/
+        working-directory: frontend
+        run: npm run check:contracts
 
       # `frontend/dist` is committed — ComfyUI loads it through WEB_DIRECTORY
       # and the registry publish ships whatever is in git. A source change

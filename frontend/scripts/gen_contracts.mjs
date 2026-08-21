@@ -13,8 +13,8 @@
  *   npm run gen:contracts
  */
 import { spawnSync } from "node:child_process";
-import { mkdirSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -41,9 +41,12 @@ function loadPayload() {
     console.error("[gen_contracts] could not parse dump JSON:", err);
     process.exit(1);
   }
-  mkdirSync(dirname(JSON_OUT), { recursive: true });
-  writeFileSync(JSON_OUT, JSON.stringify(payload, null, 2) + "\n", "utf8");
   return payload;
+}
+
+/** The `contracts.json` text for a payload — the one place its shape is decided. */
+function renderJson(payload) {
+  return JSON.stringify(payload, null, 2) + "\n";
 }
 
 function renderFile(payload) {
@@ -117,9 +120,60 @@ function renderFile(payload) {
   return out.join("\n");
 }
 
+/**
+ * Are the committed artifacts what this checkout's contracts produce?
+ *
+ * Both are in git and the frontend imports them directly, so editing
+ * `common/contracts/` without regenerating ships a contract the backend no
+ * longer describes — and nothing else notices. The Python suite reads the
+ * registry, the frontend suite reads the stale `contracts.json`, and
+ * `sourceHash.mjs --check` only compares `frontend/src` against itself.
+ *
+ * Compared as rendered text, which is safe here precisely because both sides
+ * are produced by the same `JSON.stringify`: `seed.max` arrives from Python as
+ * `1.8446744073709552e+19` and is normalised to `18446744073709552000` on the
+ * way in, exactly as it was when the committed file was written. Comparing the
+ * raw dump against the file instead would report four differences that are the
+ * same number spelled two ways. (`tests/test_contract_generation.py` guards the
+ * same seam from the Python side, where the values are numbers rather than
+ * text and are compared numerically.)
+ */
+function check(payload) {
+  const stale = [];
+  for (const [path, expected] of [
+    [JSON_OUT, renderJson(payload)],
+    [TS_OUT, renderFile(payload) + "\n"],
+  ]) {
+    const shown = relative(REPO_ROOT, path).split("\\").join("/");
+    if (!existsSync(path)) {
+      stale.push(`${shown} is missing`);
+    } else if (readFileSync(path, "utf8") !== expected) {
+      stale.push(`${shown} differs from what common/contracts/ produces`);
+    }
+  }
+
+  if (stale.length) {
+    console.error(
+      `The committed contract artifacts are out of date:\n  ${stale.join("\n  ")}\n\n` +
+        "They are committed and the frontend imports them directly, so this would\n" +
+        "ship a contract the backend does not describe. Regenerate and commit both:\n" +
+        "  npm run gen:contracts",
+    );
+    process.exit(1);
+  }
+  const count = Object.keys(payload.data || {}).length;
+  console.info(`[gen_contracts] committed contracts are current (${count} contracts)`);
+}
+
+function write(payload) {
+  mkdirSync(dirname(JSON_OUT), { recursive: true });
+  writeFileSync(JSON_OUT, renderJson(payload), "utf8");
+  mkdirSync(dirname(TS_OUT), { recursive: true });
+  writeFileSync(TS_OUT, renderFile(payload) + "\n", "utf8");
+  const count = Object.keys(payload.data || {}).length;
+  console.info(`[gen_contracts] wrote ${TS_OUT} (${count} contracts)`);
+}
+
 const payload = loadPayload();
-const fileContent = renderFile(payload);
-mkdirSync(dirname(TS_OUT), { recursive: true });
-writeFileSync(TS_OUT, fileContent + "\n", "utf8");
-const count = Object.keys(payload.data || {}).length;
-console.info(`[gen_contracts] wrote ${TS_OUT} (${count} contracts)`);
+if (process.argv.includes("--check")) check(payload);
+else write(payload);

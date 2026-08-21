@@ -84,22 +84,35 @@ def _combo(name: str, values: list[str], default: str, **kw: Any) -> WidgetSpec:
     return WidgetSpec(name=name, kind=WidgetKind.COMBO, values=values, default=default, **kw)
 
 
-def _samplers() -> list[str]:
-    try:
-        import comfy.samplers
+# Host-filled option lists.
+#
+# These used to read `comfy.samplers.KSampler.SAMPLERS` and fall back to a
+# single entry when ComfyUI was not importable — which made this module's
+# output depend on the machine that ran it. `scripts/dump_contracts.py` on a
+# workstation with ComfyUI produced 44 samplers; the same script in a bare
+# checkout produced one, and `frontend/src/api/contracts.json` is committed.
+# So `npm run gen:contracts` silently baked one developer's install into the
+# artifact every user receives, and no check could catch it: any comparison
+# would fail on whichever machine was not the one that last generated it.
+#
+# A contract that cannot be reproduced cannot be guarded, so the live lists are
+# not the contract's business. They are the running ComfyUI's: the node reads
+# them lazily in `define_schema()` (nodes/node_ksampler.py) and the panel reads
+# them off the live widget (`comboOptions` in KSamplerPanel.vue), neither of
+# which consults these values. This is the same "the host fills this in"
+# spelling already used by `pixel_upscaler` and `control_net_name` below, and
+# `test_contract_option_lists_match_the_node_schema` skips single-entry lists
+# for exactly that reason.
+SAMPLER_PLACEHOLDER = "euler"
+SCHEDULER_PLACEHOLDER = "normal"
 
-        return list(comfy.samplers.KSampler.SAMPLERS)
-    except Exception:
-        return ["euler"]
+
+def _samplers() -> list[str]:
+    return [SAMPLER_PLACEHOLDER]
 
 
 def _schedulers() -> list[str]:
-    try:
-        import comfy.samplers
-
-        return list(comfy.samplers.KSampler.SCHEDULERS)
-    except Exception:
-        return ["normal"]
+    return [SCHEDULER_PLACEHOLDER]
 
 
 def _chip_grid(name: str, values: list[str], default: str, columns: int, **kw: Any) -> WidgetSpec:
