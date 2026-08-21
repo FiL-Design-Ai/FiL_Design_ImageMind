@@ -8,6 +8,8 @@
  * (collapsed sections, hover indicators) live under `ui`. Anything in
  * either key set survives workflow save/load.
  */
+import type { LGraphNode } from "@/types/comfy";
+
 export interface FilNodeState {
   /** Per-widget values, indexed by widget name. ComfyUI serializes these. */
   nodeState: Record<string, unknown>;
@@ -18,7 +20,7 @@ export interface FilNodeState {
   /** Optional aux slot used by Seed: the last seed the backend used. */
   lastRunSeed?: number | null;
   /** Optional reference to the native ComfyUI node (used for widget manipulation). */
-  node?: unknown;
+  node?: LGraphNode;
 }
 
 /** Minimum props contract every Vue node component accepts. */

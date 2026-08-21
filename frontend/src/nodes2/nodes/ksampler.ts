@@ -1,5 +1,5 @@
 import { defineAsyncComponent } from "vue";
-import type { ComfyNodeData } from "@/types/comfy";
+import type { ComfyNodeData, LGraphNode, LGraphNodeType } from "@/types/comfy";
 import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
@@ -48,7 +48,7 @@ const HIDE = [
 
 export const ksamplerNode: NodeModule = {
   id: "FiLKSampler",
-  register(nodeType: unknown, _nodeData: ComfyNodeData): void {
+  register(nodeType: LGraphNodeType, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
       // Height stays low on purpose: computeSize() wins via Math.max in
       // domWidgetHost.ts, so anything larger here is only dead space under the
@@ -71,7 +71,7 @@ export const ksamplerNode: NodeModule = {
     };
     const p = proto.prototype;
 
-    const syncAll = (node: unknown, target: Record<string, unknown>, quiet = false) => {
+    const syncAll = (node: LGraphNode, target: Record<string, unknown>, quiet = false) => {
       for (const name of Object.keys(numericDefaults)) {
         target[name] = sanitizeWidgetValue(findFilWidget(node, name), "number", numericDefaults[name], quiet);
       }
@@ -84,9 +84,9 @@ export const ksamplerNode: NodeModule = {
     };
 
     const originalCreated = p.onNodeCreated;
-    p.onNodeCreated = function (this: unknown, ...args: unknown[]) {
+    p.onNodeCreated = function (this: LGraphNode, ...args: unknown[]) {
       const result = originalCreated?.apply(this, args);
-      const node = this as { widgets?: unknown[]; _filKSamplerState?: unknown };
+      const node = this as LGraphNode & { _filKSamplerState?: unknown };
       const initial: Record<string, unknown> = {};
       syncAll(node, initial);
       for (const name of HIDE) {
@@ -114,9 +114,9 @@ export const ksamplerNode: NodeModule = {
     // Workflow-loaded widgets_values land after onNodeCreated, so the sanitized
     // defaults have to be re-read here or a saved graph shows the defaults.
     const originalConfigure = p.onConfigure;
-    p.onConfigure = function (this: unknown, ...args: unknown[]) {
+    p.onConfigure = function (this: LGraphNode, ...args: unknown[]) {
       const result = originalConfigure?.apply(this, args);
-      const node = this as { widgets?: unknown[]; _filKSamplerState?: PersistedPanelState };
+      const node = this as LGraphNode & { _filKSamplerState?: PersistedPanelState };
       const state = node._filKSamplerState;
       if (!state) return result;
       // With `fil_state` present the values re-read below are overwritten by
@@ -132,7 +132,7 @@ export const ksamplerNode: NodeModule = {
     };
 
     const originalRemoved = p.onRemoved;
-    p.onRemoved = function (this: unknown, ...args: unknown[]) {
+    p.onRemoved = function (this: LGraphNode, ...args: unknown[]) {
       unmountAllFilWidgets(this);
       return originalRemoved?.apply(this, args);
     };

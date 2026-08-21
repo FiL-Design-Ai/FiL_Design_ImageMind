@@ -23,6 +23,7 @@
  * builder actually reads — are corrected too.
  */
 
+import type { LGraphNode } from "@/types/comfy";
 import { reactive } from "vue";
 
 /** Key the panel state is stored under on the serialized node. */
@@ -41,7 +42,7 @@ export interface PersistedPanelState {
  * whatever `onSerialize` the prototype already carries, so a core or
  * third-party hook on the same callback keeps running.
  */
-export function installFilStatePersistence(node: unknown, state: PersistedPanelState): void {
+export function installFilStatePersistence(node: LGraphNode, state: PersistedPanelState): void {
   const n = node as { onSerialize?: (o: Record<string, unknown>) => void };
   const previous = n.onSerialize?.bind(n);
   n.onSerialize = (o: Record<string, unknown>) => {
@@ -99,7 +100,7 @@ export function restoreFilState(state: PersistedPanelState, info: unknown): bool
  * from falsely marking as 'modified' on startup.
  */
 export function cleanNodePropertyDefaults(
-  node: unknown,
+  node: LGraphNode,
   defaults: Record<string, unknown>,
 ): void {
   const n = node as { properties?: Record<string, unknown> };

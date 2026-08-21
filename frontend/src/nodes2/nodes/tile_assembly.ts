@@ -1,5 +1,5 @@
 import { defineAsyncComponent } from "vue";
-import type { ComfyNodeData } from "@/types/comfy";
+import type { ComfyNodeData, LGraphNode, LGraphNodeType } from "@/types/comfy";
 import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
@@ -9,7 +9,7 @@ const TileAssemblyPanel = defineAsyncComponent(() => import("@/components/nodes/
 
 export const tileAssemblyNode: NodeModule = {
   id: "FiLTileAssembly",
-  register(nodeType: unknown, _nodeData: ComfyNodeData): void {
+  register(nodeType: LGraphNodeType, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
       // 200-tall floor predated the panel; with it the node just carried a
       // big empty strip below the description line.
@@ -32,14 +32,14 @@ export const tileAssemblyNode: NodeModule = {
     // never matches — the node wears stock chrome. The description panel is
     // both the marker and the only UI the node had no home for.
     const originalCreated = p.onNodeCreated;
-    p.onNodeCreated = function (this: unknown, ...args: unknown[]) {
+    p.onNodeCreated = function (this: LGraphNode, ...args: unknown[]) {
       const result = originalCreated?.apply(this, args);
       addFilDomWidget(this, "fil_tile_assembly_view", TileAssemblyPanel, { state: {}, height: 20 });
       return result;
     };
 
     const originalRemoved = p.onRemoved;
-    p.onRemoved = function (this: unknown, ...args: unknown[]) {
+    p.onRemoved = function (this: LGraphNode, ...args: unknown[]) {
       unmountAllFilWidgets(this);
       return originalRemoved?.apply(this, args);
     };

@@ -1,5 +1,5 @@
 import { defineAsyncComponent } from "vue";
-import type { ComfyNodeData } from "@/types/comfy";
+import type { ComfyNodeData, LGraphNode, LGraphNodeType } from "@/types/comfy";
 import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
@@ -90,7 +90,7 @@ function settleCompaction(node: CompactingNode): void {
 
 export const channelNode: NodeModule = {
   id: "FiLChannel",
-  register(nodeType: unknown, _nodeData: ComfyNodeData): void {
+  register(nodeType: LGraphNodeType, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
       minSize: [250, 80],
       initialWidth: 250,
@@ -102,7 +102,7 @@ export const channelNode: NodeModule = {
     const proto = (nodeType as { prototype: Record<string, unknown> }).prototype;
 
     const originalCreated = proto.onNodeCreated as ((...a: unknown[]) => unknown) | undefined;
-    proto.onNodeCreated = function (this: unknown, ...args: unknown[]) {
+    proto.onNodeCreated = function (this: LGraphNode, ...args: unknown[]) {
       const result = originalCreated?.apply(this, args);
 
       // Nothing to sync: this node has no widgets, and channels are derived from
@@ -123,7 +123,7 @@ export const channelNode: NodeModule = {
     // labels, and the panel's own poll would take up to half a second to notice.
     // Plugging something in has to look instant, so it is nudged directly.
     const originalConnections = proto.onConnectionsChange as ((...a: unknown[]) => unknown) | undefined;
-    proto.onConnectionsChange = function (this: unknown, ...args: unknown[]) {
+    proto.onConnectionsChange = function (this: LGraphNode, ...args: unknown[]) {
       const result = originalConnections?.apply(this, args);
       const node = this as CompactingNode & {
         _filPendingAmbiguityChecks?: number[];
@@ -184,7 +184,7 @@ export const channelNode: NodeModule = {
     };
 
     const originalRemoved = proto.onRemoved as ((...a: unknown[]) => unknown) | undefined;
-    proto.onRemoved = function (this: unknown, ...args: unknown[]) {
+    proto.onRemoved = function (this: LGraphNode, ...args: unknown[]) {
       unmountAllFilWidgets(this);
       return originalRemoved?.apply(this, args);
     };

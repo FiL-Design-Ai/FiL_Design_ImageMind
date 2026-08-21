@@ -7,6 +7,7 @@
  *
  * Gets app from globalThis.app (available at runtime after ComfyUI init).
  */
+import type { LGraphNode } from "@/types/comfy";
 import { useConnectionFx } from "@/composables/useConnectionFx";
 
 /**
@@ -30,7 +31,7 @@ export function applyFxComposables(proto: { prototype?: unknown }): void {
 
   // Patch onConnect to apply Connection FX connection event
   const origConnect = p.onConnect as ((...args: unknown[]) => unknown) | undefined;
-  p.onConnect = function (this: unknown, ...args: unknown[]) {
+  p.onConnect = function (this: LGraphNode, ...args: unknown[]) {
     const { onConnect } = useConnectionFx();
     onConnect(...(args as Parameters<typeof onConnect>));
     return origConnect?.apply(this, args);
@@ -38,7 +39,7 @@ export function applyFxComposables(proto: { prototype?: unknown }): void {
 
   // Patch onDisconnect to apply Connection FX disconnection event
   const origDisconnect = p.onDisconnect as ((...args: unknown[]) => unknown) | undefined;
-  p.onDisconnect = function (this: unknown, ...args: unknown[]) {
+  p.onDisconnect = function (this: LGraphNode, ...args: unknown[]) {
     const { onDisconnect } = useConnectionFx();
     onDisconnect(...(args as Parameters<typeof onDisconnect>));
     return origDisconnect?.apply(this, args);

@@ -18,7 +18,7 @@
  * links there would write invented wires into the user's file.
  */
 
-import type { ComfyApp } from "@/types/comfy";
+import type { ComfyApp, LGraphNode } from "@/types/comfy";
 import { LOG_TAG } from "@/constants/brand";
 import { wirelessEnabled, wirelessWidgetFeedsEnabled } from "@/stores/settings/wirelessSettings";
 import { applyWirelessTree, type WirelessPlan, type WirelessTreePlan } from "./plan";
@@ -95,7 +95,7 @@ export function installWirelessPromptBridge(app: ComfyApp): void {
     return;
   }
 
-  app.queuePrompt = async function (this: unknown, ...args: unknown[]) {
+  app.queuePrompt = async function (this: LGraphNode, ...args: unknown[]) {
     state.queueDepth += 1;
     try {
       return await originalQueuePrompt?.apply(this, args);
@@ -104,7 +104,7 @@ export function installWirelessPromptBridge(app: ComfyApp): void {
     }
   };
 
-  app.graphToPrompt = async function (this: unknown, ...args: unknown[]) {
+  app.graphToPrompt = async function (this: LGraphNode, ...args: unknown[]) {
     if (!queueingPrompt() || !wirelessEnabled()) {
       return await originalGraphToPrompt.apply(this, args);
     }

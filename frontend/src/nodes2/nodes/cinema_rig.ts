@@ -1,5 +1,5 @@
 import { defineAsyncComponent } from "vue";
-import type { ComfyNodeData } from "@/types/comfy";
+import type { ComfyNodeData, LGraphNode, LGraphNodeType } from "@/types/comfy";
 import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
@@ -43,7 +43,7 @@ const boolDefaults: Record<string, boolean> = {
 
 export const cinemaRigNode: NodeModule = {
   id: "FiLCinemaRig",
-  register(nodeType: unknown, _nodeData: ComfyNodeData): void {
+  register(nodeType: LGraphNodeType, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
       minSize: [300, 380],
       initialWidth: 300,
@@ -61,7 +61,7 @@ export const cinemaRigNode: NodeModule = {
     };
     const p = proto.prototype;
 
-    const syncAll = (node: unknown, target: Record<string, unknown>) => {
+    const syncAll = (node: LGraphNode, target: Record<string, unknown>) => {
       for (const name of Object.keys(stringDefaults)) {
         target[name] = sanitizeWidgetValue(findFilWidget(node, name), "string", stringDefaults[name]);
       }
@@ -71,9 +71,9 @@ export const cinemaRigNode: NodeModule = {
     };
 
     const originalCreated = p.onNodeCreated;
-    p.onNodeCreated = function (this: unknown, ...args: unknown[]) {
+    p.onNodeCreated = function (this: LGraphNode, ...args: unknown[]) {
       const result = originalCreated?.apply(this, args);
-      const node = this as { widgets?: unknown[]; _filCinemaRigState?: unknown };
+      const node = this as LGraphNode & { _filCinemaRigState?: unknown };
       const initial: Record<string, unknown> = {};
       syncAll(node, initial);
       for (const name of [...Object.keys(stringDefaults), ...Object.keys(boolDefaults)]) {
@@ -92,9 +92,9 @@ export const cinemaRigNode: NodeModule = {
     };
 
     const originalConfigure = p.onConfigure;
-    p.onConfigure = function (this: unknown, ...args: unknown[]) {
+    p.onConfigure = function (this: LGraphNode, ...args: unknown[]) {
       const result = originalConfigure?.apply(this, args);
-      const node = this as { widgets?: unknown[]; _filCinemaRigState?: { nodeState: Record<string, unknown> } };
+      const node = this as LGraphNode & { _filCinemaRigState?: { nodeState: Record<string, unknown> } };
       const state = node._filCinemaRigState;
       if (!state) return result;
       syncAll(node, state.nodeState);
@@ -103,7 +103,7 @@ export const cinemaRigNode: NodeModule = {
     };
 
     const originalRemoved = p.onRemoved;
-    p.onRemoved = function (this: unknown, ...args: unknown[]) {
+    p.onRemoved = function (this: LGraphNode, ...args: unknown[]) {
       unmountAllFilWidgets(this);
       return originalRemoved?.apply(this, args);
     };

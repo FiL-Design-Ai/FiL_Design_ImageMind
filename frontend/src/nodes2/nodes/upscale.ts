@@ -1,5 +1,5 @@
 import { defineAsyncComponent } from "vue";
-import type { ComfyNodeData } from "@/types/comfy";
+import type { ComfyNodeData, LGraphNode, LGraphNodeType } from "@/types/comfy";
 import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
@@ -18,7 +18,7 @@ export const UPSCALE_SOCKET_INPUTS = ["upscale_factor", "tile_size", "tile_overl
 
 export const upscaleNode: NodeModule = {
   id: "FiLUpscaleTileCalc",
-  register(nodeType: unknown, _nodeData: ComfyNodeData): void {
+  register(nodeType: LGraphNodeType, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
       // Height is deliberately LOW here — it only has to cover the very
       // first paint before Vue mounts. computeSize() reliably reports the
@@ -57,9 +57,9 @@ export const upscaleNode: NodeModule = {
     const comboDefaults: Record<string, string> = { auto_profile: "Balanced" };
 
     const originalCreated = p.onNodeCreated;
-    p.onNodeCreated = function (this: unknown, ...args: unknown[]) {
+    p.onNodeCreated = function (this: LGraphNode, ...args: unknown[]) {
       const result = originalCreated?.apply(this, args);
-      const node = this as { widgets?: unknown[]; _filUpscaleState?: unknown };
+      const node = this as LGraphNode & { _filUpscaleState?: unknown };
       const initialNodeState: Record<string, unknown> = {};
       const initialValues: Record<string, unknown> = {};
       for (const name of Object.keys(numericDefaults)) {
@@ -100,9 +100,9 @@ export const upscaleNode: NodeModule = {
     // overwrite the sanitized defaults set above. Re-sanitizing here is
     // what actually prevents a stale/corrupted value reaching `execute()`.
     const originalConfigure = p.onConfigure;
-    p.onConfigure = function (this: unknown, ...args: unknown[]) {
+    p.onConfigure = function (this: LGraphNode, ...args: unknown[]) {
       const result = originalConfigure?.apply(this, args);
-      const node = this as { widgets?: unknown[]; _filUpscaleState?: { nodeState: Record<string, unknown> } };
+      const node = this as LGraphNode & { _filUpscaleState?: { nodeState: Record<string, unknown> } };
       const state = node._filUpscaleState;
       if (!state) return result;
       for (const name of Object.keys(numericDefaults)) {
@@ -119,7 +119,7 @@ export const upscaleNode: NodeModule = {
     };
 
     const originalRemoved = p.onRemoved;
-    p.onRemoved = function (this: unknown, ...args: unknown[]) {
+    p.onRemoved = function (this: LGraphNode, ...args: unknown[]) {
       unmountAllFilWidgets(this);
       return originalRemoved?.apply(this, args);
     };

@@ -28,6 +28,7 @@
  * — the canvas draw hook is the only mechanism that works there, which is the
  * whole reason this file exists rather than a stylesheet rule.
  */
+import type { LGraphNodeType } from "@/types/comfy";
 import { ACTIVE_PALETTE } from "@/styles/brand";
 import { SCOPE_ALL, SCOPE_CONNECTED, SCOPE_OURS, themeScope } from "@/stores/settings/appearanceSettings";
 
@@ -109,7 +110,7 @@ function shouldTint(node: GraphNode): boolean {
  * Called from `beforeRegisterNodeDef` for every node type ComfyUI registers —
  * ours bail out, since `nodeStyle.ts` already dresses them properly.
  */
-export function tintForeignNode(nodeType: unknown): void {
+export function tintForeignNode(nodeType: LGraphNodeType): void {
   const proto = (nodeType as { prototype?: ForeignProto })?.prototype;
   if (!proto) return;
   if (proto._filForeignTinted) return;

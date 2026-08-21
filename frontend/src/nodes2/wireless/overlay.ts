@@ -22,7 +22,7 @@
  * since another extension may own it.
  */
 
-import type { ComfyApp } from "@/types/comfy";
+import type { ComfyApp, LGraphNode } from "@/types/comfy";
 import { LOG_TAG } from "@/constants/brand";
 import {
   LINKS_NEVER,
@@ -215,7 +215,7 @@ export function installWirelessOverlay(app: ComfyApp): void {
   if ((canvas as { __filWirelessOverlay?: boolean }).__filWirelessOverlay) return;
 
   const previousBg = canvas.onDrawBackground;
-  canvas.onDrawBackground = function (this: unknown, ctx: CanvasRenderingContext2D, area: unknown) {
+  canvas.onDrawBackground = function (this: LGraphNode, ctx: CanvasRenderingContext2D, area: unknown) {
     previousBg?.call(this, ctx, area);
     if (!wirelessEnabled()) return;
     try {
@@ -229,7 +229,7 @@ export function installWirelessOverlay(app: ComfyApp): void {
   };
 
   const previousFg = canvas.onDrawForeground;
-  canvas.onDrawForeground = function (this: unknown, ctx: CanvasRenderingContext2D, area: unknown) {
+  canvas.onDrawForeground = function (this: LGraphNode, ctx: CanvasRenderingContext2D, area: unknown) {
     previousFg?.call(this, ctx, area);
     if (!wirelessEnabled()) return;
     try {

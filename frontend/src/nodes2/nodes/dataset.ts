@@ -1,5 +1,5 @@
 import { defineAsyncComponent } from "vue";
-import type { ComfyNodeData } from "@/types/comfy";
+import type { ComfyNodeData, LGraphNode, LGraphNodeType } from "@/types/comfy";
 import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
@@ -48,12 +48,12 @@ function hideNativeWidgets(node: { widgets?: unknown[] }): void {
  * this panel exposes no random/fixed pill: `seed = -1` already means "let the
  * provider pick", so anything the user types is meant to stay put.
  */
-function pinSeedControl(node: unknown): void {
+function pinSeedControl(node: LGraphNode): void {
   const ctrl = findFilWidget(node, "control_after_generate");
   if (ctrl) ctrl.value = "fixed";
 }
 
-function syncFromWidgets(nodeState: Record<string, unknown>, node: unknown): void {
+function syncFromWidgets(nodeState: Record<string, unknown>, node: LGraphNode): void {
   for (const [name, fallback] of Object.entries(STRING_DEFAULTS)) {
     nodeState[name] = sanitizeWidgetValue(findFilWidget(node, name), "string", fallback);
   }
@@ -67,7 +67,7 @@ function syncFromWidgets(nodeState: Record<string, unknown>, node: unknown): voi
 
 export const datasetForgeNode: NodeModule = {
   id: "FiLDatasetForge",
-  register(nodeType: unknown, _nodeData: ComfyNodeData): void {
+  register(nodeType: LGraphNodeType, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
       minSize: [350, 460],
       initialWidth: 350,
@@ -87,9 +87,9 @@ export const datasetForgeNode: NodeModule = {
     const p = proto.prototype;
 
     const originalCreated = p.onNodeCreated;
-    p.onNodeCreated = function (this: unknown, ...args: unknown[]) {
+    p.onNodeCreated = function (this: LGraphNode, ...args: unknown[]) {
       const result = originalCreated?.apply(this, args);
-      const node = this as { widgets?: unknown[]; _filDatasetForgeState?: unknown };
+      const node = this as LGraphNode & { _filDatasetForgeState?: unknown };
 
       const initialNodeState: Record<string, unknown> = {};
       syncFromWidgets(initialNodeState, node);
@@ -117,9 +117,9 @@ export const datasetForgeNode: NodeModule = {
     // defaults after onNodeCreated — re-sanitize on configure, same as every
     // other Vue-panel node in this pack.
     const originalConfigure = p.onConfigure;
-    p.onConfigure = function (this: unknown, ...args: unknown[]) {
+    p.onConfigure = function (this: LGraphNode, ...args: unknown[]) {
       const result = originalConfigure?.apply(this, args);
-      const node = this as { widgets?: unknown[]; _filDatasetForgeState?: { nodeState: Record<string, unknown> } };
+      const node = this as LGraphNode & { _filDatasetForgeState?: { nodeState: Record<string, unknown> } };
       const state = node._filDatasetForgeState;
       if (!state) return result;
       syncFromWidgets(state.nodeState, node);
@@ -130,7 +130,7 @@ export const datasetForgeNode: NodeModule = {
     };
 
     const originalRemoved = p.onRemoved;
-    p.onRemoved = function (this: unknown, ...args: unknown[]) {
+    p.onRemoved = function (this: LGraphNode, ...args: unknown[]) {
       unmountAllFilWidgets(this);
       return originalRemoved?.apply(this, args);
     };

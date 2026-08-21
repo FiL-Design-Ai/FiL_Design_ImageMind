@@ -5,7 +5,7 @@
  * `id` must match the Python `NODE_CLASS_MAPPINGS` key exactly.
  * `register` is called from `beforeRegisterNodeDef` in filExtension.ts.
  */
-import type { ComfyNodeData } from "@/types/comfy";
+import type { ComfyNodeData, LGraphNodeType } from "@/types/comfy";
 import { seedNode } from "@/nodes2/nodes/seed";
 import { providerNode } from "@/nodes2/nodes/provider";
 import { scannerNode } from "@/nodes2/nodes/scanner";
@@ -28,7 +28,7 @@ import { loraLoaderNode } from "@/nodes2/nodes/lora_loader";
 
 export interface NodeModule {
   id: string;
-  register(nodeType: unknown, nodeData: ComfyNodeData): void | Promise<void>;
+  register(nodeType: LGraphNodeType, nodeData: ComfyNodeData): void | Promise<void>;
 }
 
 const modules: NodeModule[] = [

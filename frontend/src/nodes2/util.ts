@@ -2,37 +2,16 @@
  * Small utilities shared across the per-node Vue registrations.
  */
 
-export interface ComfyLikeWidget {
-  name?: string;
-  value?: unknown;
-  options?: {
-    values?: unknown[];
-    hidden?: boolean;
-    advanced?: boolean;
-    hideInPanel?: boolean;
-    /** The range the backend declared for a numeric widget (`io.Int.Input`). */
-    min?: number;
-    max?: number;
-  };
-  hidden?: boolean;
-  /**
-   * Row offset inside the node body, in node-local pixels. LiteGraph's layout
-   * pass writes it for visible widgets; for hidden ones we write it ourselves
-   * to position their input sockets (see nodes2/widgetInputSockets.ts).
-   */
-  y?: number;
-  /**
-   * Optional `computeSize` (LiteGraph widget layout callback). We keep it
-   * around so visibility toggles can restore the original after hide.
-   */
-  computeSize?: (...args: unknown[]) => unknown;
-  __filOriginalComputeSize?: (...args: unknown[]) => unknown;
-}
+import type { ComfyLikeWidget, LGraphNode } from "@/types/comfy";
 
-export function findFilWidget(node: unknown, name: string): ComfyLikeWidget | undefined {
-  const n = node as { widgets?: ComfyLikeWidget[] };
-  if (!n.widgets) return undefined;
-  return n.widgets.find((w) => w.name === name);
+// `ComfyLikeWidget` describes the host, so it lives with the rest of the host
+// types now. Re-exported because this is where the pack has always imported it
+// from, and moving that too would touch every caller for no gain.
+export type { ComfyLikeWidget };
+
+export function findFilWidget(node: LGraphNode, name: string): ComfyLikeWidget | undefined {
+  if (!node.widgets) return undefined;
+  return node.widgets.find((w) => w.name === name);
 }
 
 /**
@@ -75,7 +54,7 @@ export function hideWidget(w: ComfyLikeWidget | undefined): ComfyLikeWidget | un
 }
 
 /** `hideWidget` by name — the shape almost every node registration wants. */
-export function hideNativeWidget(node: unknown, name: string): ComfyLikeWidget | undefined {
+export function hideNativeWidget(node: LGraphNode, name: string): ComfyLikeWidget | undefined {
   return hideWidget(findFilWidget(node, name));
 }
 
@@ -93,7 +72,7 @@ export function hideNativeWidget(node: unknown, name: string): ComfyLikeWidget |
  * hidden). Wrapping the plain object in a Proxy keeps every existing Vue
  * component unchanged — `nodeState[name] = value` already goes through it.
  */
-export function createSyncedNodeState(node: unknown, initial: Record<string, unknown>): Record<string, unknown> {
+export function createSyncedNodeState(node: LGraphNode, initial: Record<string, unknown>): Record<string, unknown> {
   return new Proxy({ ...initial }, {
     set(target, prop, value) {
       target[prop as string] = value;

@@ -19,6 +19,7 @@
  * renderer to draw the dot unconditionally — `drawSlots()` otherwise only
  * shows a widget socket while the pointer is over it or a link is attached.
  */
+import type { LGraphNode, LGraphSlot } from "@/types/comfy";
 import { reactive } from "vue";
 import { findFilWidget } from "@/nodes2/util";
 
@@ -28,22 +29,18 @@ const SLOT_HALF_HEIGHT = 10;
 /** Row pitch used for the fallback stacking, matching LiteGraph's slot rows. */
 const SLOT_PITCH = 20;
 
-interface SlotLike {
-  name?: string;
-  link?: number | null;
+// Extends the shared host types rather than restating them, so this file's
+// view of a slot cannot drift from what the rest of the pack agrees one is.
+interface SlotLike extends LGraphSlot {
   alwaysVisible?: boolean;
-  /** Set by ComfyUI on the slot it mirrors a widget with; absent on real inputs. */
-  widget?: unknown;
   /** `[x, y, width, height]` in graph coordinates — LiteGraph's hit-test box. */
   boundingRect?: ArrayLike<number>;
   _filLabelledByPanel?: boolean;
 }
 
-interface NodeLike {
+interface NodeLike extends LGraphNode {
   inputs?: SlotLike[];
-  size?: [number, number];
   _widgetSlotsDirty?: boolean;
-  graph?: { setDirtyCanvas?: (a: boolean, b: boolean) => void };
 }
 
 /**
@@ -76,7 +73,7 @@ interface NodeLike {
  * patch runs once at module registration, before any instance exists) is
  * what LiteGraph actually calls.
  */
-function installMissingSocketLabels(node: unknown): void {
+function installMissingSocketLabels(node: LGraphNode): void {
   const n = node as { _filSocketLabelsInstalled?: boolean; onDrawForeground?: (...a: unknown[]) => unknown };
   if (n._filSocketLabelsInstalled) return;
   n._filSocketLabelsInstalled = true;
@@ -137,7 +134,7 @@ export interface WidgetSocketAnchor {
  * pixels — but the same list decides the same thing, so `keepVueSocketRow`
  * below is driven from here rather than from a second list somewhere else.
  */
-export function exposeWidgetInputSockets(node: unknown, names: string[]): void {
+export function exposeWidgetInputSockets(node: LGraphNode, names: string[]): void {
   const n = node as NodeLike;
   installMissingSocketLabels(node);
   for (const name of names) keepVueSocketRow(node, name);
@@ -184,7 +181,7 @@ export function exposeWidgetInputSockets(node: unknown, names: string[]): void {
  * unmanaged leftovers would otherwise sit hover-revealable at a row inside
  * the node body.
  */
-function parkSocketsBelow(node: unknown, n: NodeLike, managed: string[], hidden: string[], nodeHeight: number): boolean {
+function parkSocketsBelow(node: LGraphNode, n: NodeLike, managed: string[], hidden: string[], nodeHeight: number): boolean {
   let moved = false;
   let parked = 0;
   for (const slot of n.inputs ?? []) {
@@ -238,7 +235,7 @@ function parkSocketsBelow(node: unknown, n: NodeLike, managed: string[], hidden:
  * unconditionally, so clearing it is also what keeps the two renderers saying
  * the same thing.
  */
-function keepVueSocketRow(node: unknown, name: string): void {
+function keepVueSocketRow(node: LGraphNode, name: string): void {
   const w = findFilWidget(node, name);
   if (!w) return;
   if (!w.options) w.options = {};
@@ -262,7 +259,7 @@ function countRealInputs(n: NodeLike): number {
  * layout cadence, and a read taken between the panel resizing and the next
  * `arrange()` is stale by exactly the height that changed.
  */
-export function anchorWidgetInputSockets(node: unknown, anchors: WidgetSocketAnchor[]): void {
+export function anchorWidgetInputSockets(node: LGraphNode, anchors: WidgetSocketAnchor[]): void {
   const view = readCanvasView();
   const nodeY = (node as { pos?: [number, number] }).pos?.[1];
   const nodeHeight = (node as { size?: [number, number] }).size?.[1];
@@ -331,7 +328,7 @@ export function anchorWidgetInputSockets(node: unknown, anchors: WidgetSocketAnc
 export function installWidgetSocketSync(prototype: unknown, names: string[], stateKey: string): void {
   const p = prototype as { onConnectionsChange?: (...a: unknown[]) => unknown };
   const original = p.onConnectionsChange;
-  p.onConnectionsChange = function (this: unknown, ...args: unknown[]) {
+  p.onConnectionsChange = function (this: LGraphNode, ...args: unknown[]) {
     const result = original?.apply(this, args);
     exposeWidgetInputSockets(this, names);
     const state = (this as Record<string, unknown>)[stateKey] as { ui?: Record<string, unknown> } | undefined;
@@ -357,7 +354,7 @@ export function installWidgetSocketSync(prototype: unknown, names: string[], sta
 import { subscribedChannel } from "@/nodes2/wireless/subscriptions";
 import type { WirelessNode } from "@/nodes2/wireless/types";
 
-export function readLinkedInputs(node: unknown, names: string[]): Record<string, boolean> {
+export function readLinkedInputs(node: LGraphNode, names: string[]): Record<string, boolean> {
   const n = node as NodeLike & WirelessNode;
   const linked: Record<string, boolean> = {};
   for (const name of names) {
@@ -418,7 +415,7 @@ function requestArrange(n: NodeLike): void {
  * Safely detaches a physical wire connected to a widget slot, showing an Undo toast.
  * Pixaroma pattern: allows switching mode/channel without losing the original wire.
  */
-export function takeOverWiredInput(node: unknown, inputName: string): boolean {
+export function takeOverWiredInput(node: LGraphNode, inputName: string): boolean {
   const n = node as {
     inputs?: Array<{ name: string; link?: number | null }>;
     disconnectInput?: (slot: number) => void;

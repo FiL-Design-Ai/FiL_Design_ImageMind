@@ -1,3 +1,4 @@
+import type { LGraphNode } from "@/types/comfy";
 import { describe, it, expect } from "vitest";
 import { nextTick, reactive, watch } from "vue";
 import { createSyncedNodeState } from "@/nodes2/util";
@@ -18,7 +19,7 @@ function makeNode() {
   };
 }
 
-function makeState(node: unknown) {
+function makeState(node: LGraphNode) {
   return {
     nodeState: createSyncedNodeState(node, { prompt: "", response_format: "text" }),
     ui: {} as Record<string, unknown>,

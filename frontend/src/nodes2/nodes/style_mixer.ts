@@ -1,5 +1,5 @@
 import { defineAsyncComponent, reactive } from "vue";
-import type { ComfyNodeData } from "@/types/comfy";
+import type { ComfyNodeData, LGraphNode, LGraphNodeType } from "@/types/comfy";
 import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
@@ -117,7 +117,7 @@ export function updateImageSlotVisibility(node: any): void {
 
 export const styleMixerNode: NodeModule = {
   id: "FiLStyleMixer",
-  register(nodeType: unknown, _nodeData: ComfyNodeData): void {
+  register(nodeType: LGraphNodeType, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
       minSize: [320, 320],
       initialWidth: 320,
@@ -137,9 +137,9 @@ export const styleMixerNode: NodeModule = {
     const p = proto.prototype;
 
     const origCreated = p.onNodeCreated;
-    p.onNodeCreated = function (this: unknown, ...args: unknown[]) {
+    p.onNodeCreated = function (this: LGraphNode, ...args: unknown[]) {
       const res = origCreated?.apply(this, args);
-      const node = this as { widgets?: unknown[]; _filStyleMixerState?: unknown };
+      const node = this as LGraphNode & { _filStyleMixerState?: unknown };
 
       const initialValues: Record<string, unknown> = {};
       const initialNodeState: Record<string, unknown> = {};
@@ -186,7 +186,7 @@ export const styleMixerNode: NodeModule = {
     };
 
     const origConfigure = p.onConfigure;
-    p.onConfigure = function (this: unknown, ...args: unknown[]) {
+    p.onConfigure = function (this: LGraphNode, ...args: unknown[]) {
       const res = origConfigure?.apply(this, args);
       const node = this as { _filStyleMixerState?: { nodeState: Record<string, unknown>; ui: Record<string, unknown> } };
       const state = node._filStyleMixerState;
@@ -211,7 +211,7 @@ export const styleMixerNode: NodeModule = {
     };
 
     const origConnectionsChange = p.onConnectionsChange;
-    p.onConnectionsChange = function (this: unknown, type: unknown, index: unknown, connected: unknown, link_info: unknown, input_or_output: unknown) {
+    p.onConnectionsChange = function (this: LGraphNode, type: unknown, index: unknown, connected: unknown, link_info: unknown, input_or_output: unknown) {
       const res = origConnectionsChange?.apply(this, [type, index, connected, link_info, input_or_output]);
       if (type === 1 || (type as any)?.name === "input") {
         updateImageSlotVisibility(this);
@@ -221,7 +221,7 @@ export const styleMixerNode: NodeModule = {
     };
 
     const origRemoved = p.onRemoved;
-    p.onRemoved = function (this: unknown, ...args: unknown[]) {
+    p.onRemoved = function (this: LGraphNode, ...args: unknown[]) {
       unmountAllFilWidgets(this);
       return origRemoved?.apply(this, args);
     };

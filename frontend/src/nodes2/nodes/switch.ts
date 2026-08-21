@@ -1,5 +1,5 @@
 import { defineAsyncComponent } from "vue";
-import type { ComfyNodeData } from "@/types/comfy";
+import type { ComfyNodeData, LGraphNode, LGraphNodeType } from "@/types/comfy";
 import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
@@ -8,35 +8,7 @@ import { applyFxComposables } from "@/nodes2/applyFxComposables";
 
 const SwitchVue = defineAsyncComponent(() => import("@/components/nodes/Switch.vue"));
 
-interface LiteGraphSlot {
-  name: string;
-  type: string;
-  link?: number | null;
-  color_on?: string;
-  color_off?: string;
-}
-
-interface LiteGraphLink {
-  id: number;
-  origin_id: number;
-  origin_slot: number;
-  target_id: number;
-  target_slot: number;
-  type: string;
-}
-
-interface LiteGraphNode {
-  inputs?: LiteGraphSlot[];
-  outputs?: LiteGraphSlot[];
-  graph?: {
-    links?: Record<number, LiteGraphLink>;
-    getNodeById?: (id: number) => LiteGraphNode | null;
-    setDirtyCanvas?: (a: boolean, b: boolean) => void;
-  };
-  _filSwitchState?: unknown;
-}
-
-function updateDynamicOutputSocket(node: LiteGraphNode): void {
+function updateDynamicOutputSocket(node: LGraphNode): void {
   if (!node.inputs?.[0] || !node.outputs?.[0]) return;
   const inputSlot = node.inputs[0];
   const outputSlot = node.outputs[0];
@@ -45,13 +17,17 @@ function updateDynamicOutputSocket(node: LiteGraphNode): void {
   if (linkId != null && node.graph?.links) {
     const link = node.graph.links[linkId];
     if (link) {
-      const originNode = node.graph.getNodeById?.(link.origin_id);
-      const originSlot = originNode?.outputs?.[link.origin_slot];
-      const detectedType = originSlot?.type || link.type || "*";
+      const originNode =
+        link.origin_id != null ? node.graph.getNodeById?.(link.origin_id) : undefined;
+      const originSlot =
+        link.origin_slot != null ? originNode?.outputs?.[link.origin_slot] : undefined;
+      // `LGraphSlot.type` is `string | number` — LiteGraph spells a wildcard
+      // both ways depending on version.
+      const detectedType = String(originSlot?.type || link.type || "*");
 
       outputSlot.type = detectedType;
-      (outputSlot as any).label = detectedType === "*" ? "output" : detectedType.toLowerCase();
-      (inputSlot as any).label = detectedType === "*" ? "input" : detectedType.toLowerCase();
+      outputSlot.label = detectedType === "*" ? "output" : detectedType.toLowerCase();
+      inputSlot.label = detectedType === "*" ? "input" : detectedType.toLowerCase();
       if (originSlot?.color_on) outputSlot.color_on = originSlot.color_on;
       if (originSlot?.color_off) outputSlot.color_off = originSlot.color_off;
       node.graph.setDirtyCanvas?.(true, true);
@@ -60,8 +36,8 @@ function updateDynamicOutputSocket(node: LiteGraphNode): void {
   }
 
   outputSlot.type = "*";
-  (outputSlot as any).label = "output";
-  (inputSlot as any).label = "input";
+  outputSlot.label = "output";
+  inputSlot.label = "input";
   delete outputSlot.color_on;
   delete outputSlot.color_off;
   node.graph?.setDirtyCanvas?.(true, true);
@@ -72,7 +48,7 @@ function updateDynamicOutputSocket(node: LiteGraphNode): void {
  */
 export const switchNode: NodeModule = {
   id: "FiLSignalSwitch",
-  register(nodeType: unknown, _nodeData: ComfyNodeData): void {
+  register(nodeType: LGraphNodeType, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
       minSize: [250, 52],
       initialWidth: 250,
@@ -92,9 +68,9 @@ export const switchNode: NodeModule = {
     const p = proto.prototype;
 
     const originalCreated = p.onNodeCreated;
-    p.onNodeCreated = function (this: unknown, ...args: unknown[]) {
+    p.onNodeCreated = function (this: LGraphNode, ...args: unknown[]) {
       const result = originalCreated?.apply(this, args);
-      const node = this as LiteGraphNode;
+      const node = this as LGraphNode;
 
       const enableWidget = findFilWidget(node, "enable");
       const initialEnable = sanitizeWidgetValue(enableWidget, "boolean", true);
@@ -120,9 +96,9 @@ export const switchNode: NodeModule = {
     };
 
     const originalConfigure = p.onConfigure;
-    p.onConfigure = function (this: unknown, ...args: unknown[]) {
+    p.onConfigure = function (this: LGraphNode, ...args: unknown[]) {
       const result = originalConfigure?.apply(this, args);
-      const node = this as LiteGraphNode & { _filSwitchState?: { nodeState: Record<string, unknown> } };
+      const node = this as LGraphNode & { _filSwitchState?: { nodeState: Record<string, unknown> } };
       const state = node._filSwitchState;
       if (state) {
         state.nodeState.enable = sanitizeWidgetValue(findFilWidget(node, "enable"), "boolean", true);
@@ -132,14 +108,14 @@ export const switchNode: NodeModule = {
     };
 
     const originalConnectionsChange = p.onConnectionsChange;
-    p.onConnectionsChange = function (this: unknown, ...args: unknown[]) {
+    p.onConnectionsChange = function (this: LGraphNode, ...args: unknown[]) {
       const result = originalConnectionsChange?.apply(this, args);
-      updateDynamicOutputSocket(this as LiteGraphNode);
+      updateDynamicOutputSocket(this as LGraphNode);
       return result;
     };
 
     const originalRemoved = p.onRemoved;
-    p.onRemoved = function (this: unknown, ...args: unknown[]) {
+    p.onRemoved = function (this: LGraphNode, ...args: unknown[]) {
       unmountAllFilWidgets(this);
       return originalRemoved?.apply(this, args);
     };

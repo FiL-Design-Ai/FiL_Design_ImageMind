@@ -1,5 +1,5 @@
 import { defineAsyncComponent } from "vue";
-import type { ComfyNodeData } from "@/types/comfy";
+import type { ComfyNodeData, LGraphNode, LGraphNodeType } from "@/types/comfy";
 import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
@@ -18,7 +18,7 @@ const SeedVue = defineAsyncComponent(() => import("@/components/nodes/Seed.vue")
  */
 export const seedNode: NodeModule = {
   id: "FiLSeed",
-  register(nodeType: unknown, _nodeData: ComfyNodeData): void {
+  register(nodeType: LGraphNodeType, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
       // 300, not 250: the readout has to hold a full-range seed. The widget's
       // max is 0xFFFFFFFFFFFFFFFF, and ComfyUI's own `randomize` draws across
@@ -43,9 +43,9 @@ export const seedNode: NodeModule = {
     const p = proto.prototype;
 
     const originalCreated = p.onNodeCreated;
-    p.onNodeCreated = function (this: unknown, ...args: unknown[]) {
+    p.onNodeCreated = function (this: LGraphNode, ...args: unknown[]) {
       const result = originalCreated?.apply(this, args);
-      const node = this as { widgets?: unknown[]; size?: [number, number]; _filSeedState?: unknown };
+      const node = this as LGraphNode & { _filSeedState?: unknown };
 
       const seedWidget = findFilWidget(node, "seed");
       const initialSeed = sanitizeWidgetValue(seedWidget, "number", 0);
@@ -90,9 +90,9 @@ export const seedNode: NodeModule = {
     // actually in place, is what prevents it reaching `execute()`. See
     // provider.ts / sanitizeWidgetValue() for the reproduced case this guards.
     const originalConfigure = p.onConfigure;
-    p.onConfigure = function (this: unknown, ...args: unknown[]) {
+    p.onConfigure = function (this: LGraphNode, ...args: unknown[]) {
       const result = originalConfigure?.apply(this, args);
-      const node = this as { widgets?: unknown[]; _filSeedState?: { nodeState: Record<string, unknown> } };
+      const node = this as LGraphNode & { _filSeedState?: { nodeState: Record<string, unknown> } };
       const state = node._filSeedState;
       if (!state) return result;
       state.nodeState.seed = sanitizeWidgetValue(findFilWidget(node, "seed"), "number", 0);
@@ -100,7 +100,7 @@ export const seedNode: NodeModule = {
     };
 
     const originalRemoved = p.onRemoved;
-    p.onRemoved = function (this: unknown, ...args: unknown[]) {
+    p.onRemoved = function (this: LGraphNode, ...args: unknown[]) {
       unmountAllFilWidgets(this);
       return originalRemoved?.apply(this, args);
     };

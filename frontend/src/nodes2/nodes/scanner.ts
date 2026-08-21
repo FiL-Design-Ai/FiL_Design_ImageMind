@@ -1,5 +1,5 @@
 import { defineAsyncComponent } from "vue";
-import type { ComfyNodeData } from "@/types/comfy";
+import type { ComfyNodeData, LGraphNode, LGraphNodeType } from "@/types/comfy";
 import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
@@ -42,7 +42,7 @@ function hideNativeWidgets(node: { widgets?: unknown[] }): void {
 
 export const scannerNode: NodeModule = {
   id: "FiLOpticScanner",
-  register(nodeType: unknown, _nodeData: ComfyNodeData): void {
+  register(nodeType: LGraphNodeType, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
       // Height kept LOW on purpose — computeSize() (~660px real content)
       // always wins via Math.max in domWidgetHost.ts, so a buffer above it
@@ -77,9 +77,9 @@ export const scannerNode: NodeModule = {
     ];
 
     const originalCreated = p.onNodeCreated;
-    p.onNodeCreated = function (this: unknown, ...args: unknown[]) {
+    p.onNodeCreated = function (this: LGraphNode, ...args: unknown[]) {
       const result = originalCreated?.apply(this, args);
-      const node = this as { widgets?: unknown[]; _filScannerSeedState?: unknown };
+      const node = this as LGraphNode & { _filScannerSeedState?: unknown };
 
       const initialValues: Record<string, unknown> = {};
       const initialNodeState: Record<string, unknown> = {};
@@ -118,10 +118,9 @@ export const scannerNode: NodeModule = {
     };
 
     const originalConfigure = p.onConfigure;
-    p.onConfigure = function (this: unknown, ...args: unknown[]) {
+    p.onConfigure = function (this: LGraphNode, ...args: unknown[]) {
       const result = originalConfigure?.apply(this, args);
-      const node = this as {
-        widgets?: unknown[];
+      const node = this as LGraphNode & {
         _filScannerSeedState?: { nodeState: Record<string, unknown>; ui: Record<string, unknown>; lastRunSeed?: number | null };
       };
       const state = node._filScannerSeedState;
@@ -153,7 +152,7 @@ export const scannerNode: NodeModule = {
     };
 
     const originalRemoved = p.onRemoved;
-    p.onRemoved = function (this: unknown, ...args: unknown[]) {
+    p.onRemoved = function (this: LGraphNode, ...args: unknown[]) {
       unmountAllFilWidgets(this);
       return originalRemoved?.apply(this, args);
     };

@@ -1,5 +1,5 @@
 import { defineAsyncComponent } from "vue";
-import type { ComfyNodeData } from "@/types/comfy";
+import type { ComfyNodeData, LGraphNode, LGraphNodeType } from "@/types/comfy";
 import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
@@ -11,7 +11,7 @@ const ProviderLoaderVue = defineAsyncComponent(() => import("@/components/nodes/
 
 export const providerNode: NodeModule = {
   id: "FiLProviderLoader",
-  register(nodeType: unknown, _nodeData: ComfyNodeData): void {
+  register(nodeType: LGraphNodeType, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
       // Height kept LOW on purpose — computeSize() (~350px real content)
       // always wins via Math.max in domWidgetHost.ts, so a buffer above it
@@ -51,9 +51,9 @@ export const providerNode: NodeModule = {
     ];
 
     const originalCreated = p.onNodeCreated;
-    p.onNodeCreated = function (this: unknown, ...args: unknown[]) {
+    p.onNodeCreated = function (this: LGraphNode, ...args: unknown[]) {
       const result = originalCreated?.apply(this, args);
-      const node = this as { widgets?: unknown[]; _filProviderState?: Record<string, unknown> };
+      const node = this as LGraphNode & { _filProviderState?: Record<string, unknown> };
 
       // Each read also resets the widget's own `.value` (not just this
       // display copy) when it doesn't match the expected type — a stale
@@ -129,9 +129,9 @@ export const providerNode: NodeModule = {
     // here, once values are actually in their final restored place, is
     // what actually prevents the corrupted value from reaching `execute()`.
     const originalConfigure = p.onConfigure;
-    p.onConfigure = function (this: unknown, ...args: unknown[]) {
+    p.onConfigure = function (this: LGraphNode, ...args: unknown[]) {
       const result = originalConfigure?.apply(this, args);
-      const node = this as { widgets?: unknown[]; _filProviderState?: Record<string, unknown> };
+      const node = this as LGraphNode & { _filProviderState?: Record<string, unknown> };
       const state = node._filProviderState;
       if (!state) return result;
       const nodeState = state.nodeState as Record<string, unknown>;
@@ -142,7 +142,7 @@ export const providerNode: NodeModule = {
     };
 
     const originalRemoved = p.onRemoved;
-    p.onRemoved = function (this: unknown, ...args: unknown[]) {
+    p.onRemoved = function (this: LGraphNode, ...args: unknown[]) {
       unmountAllFilWidgets(this);
       return originalRemoved?.apply(this, args);
     };

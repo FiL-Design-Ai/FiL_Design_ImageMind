@@ -1,3 +1,4 @@
+import type { LGraphNode } from "@/types/comfy";
 /**
  * Colours for the pack's own custom slot types.
  *
@@ -63,7 +64,7 @@ interface ColorableNode {
  * so this touches only sockets on FiL nodes and nothing belonging to the host
  * or another pack — no global map, no shared state.
  */
-export function applyFilSlotColors(node: unknown): void {
+export function applyFilSlotColors(node: LGraphNode): void {
   const n = node as ColorableNode;
   for (const slot of [...(n.inputs ?? []), ...(n.outputs ?? [])]) {
     if (!slot) continue;

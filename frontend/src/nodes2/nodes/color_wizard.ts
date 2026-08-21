@@ -1,5 +1,5 @@
 import { defineAsyncComponent, reactive } from "vue";
-import type { ComfyNodeData } from "@/types/comfy";
+import type { ComfyNodeData, LGraphNode, LGraphNodeType } from "@/types/comfy";
 import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
@@ -27,7 +27,7 @@ const hiddenWidgetNames = [
 
 export const colorWizardNode: NodeModule = {
   id: "FiLColorWizard",
-  register(nodeType: unknown, _nodeData: ComfyNodeData): void {
+  register(nodeType: LGraphNodeType, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
       minSize: [300, 310],
       initialWidth: 300,
@@ -46,9 +46,9 @@ export const colorWizardNode: NodeModule = {
     const p = proto.prototype;
 
     const origCreated = p.onNodeCreated;
-    p.onNodeCreated = function (this: unknown, ...args: unknown[]) {
+    p.onNodeCreated = function (this: LGraphNode, ...args: unknown[]) {
       const res = origCreated?.apply(this, args);
-      const node = this as { widgets?: unknown[]; _filColorWizardState?: unknown };
+      const node = this as LGraphNode & { _filColorWizardState?: unknown };
 
       const initialValues: Record<string, unknown> = {};
       const initialNodeState: Record<string, unknown> = {};
@@ -79,7 +79,7 @@ export const colorWizardNode: NodeModule = {
     };
 
     const origConfigure = p.onConfigure;
-    p.onConfigure = function (this: unknown, ...args: unknown[]) {
+    p.onConfigure = function (this: LGraphNode, ...args: unknown[]) {
       const res = origConfigure?.apply(this, args);
       const node = this as { _filColorWizardState?: { nodeState: Record<string, unknown> } };
       const state = node._filColorWizardState;
@@ -97,7 +97,7 @@ export const colorWizardNode: NodeModule = {
     };
 
     const origRemoved = p.onRemoved;
-    p.onRemoved = function (this: unknown, ...args: unknown[]) {
+    p.onRemoved = function (this: LGraphNode, ...args: unknown[]) {
       unmountAllFilWidgets(this);
       return origRemoved?.apply(this, args);
     };

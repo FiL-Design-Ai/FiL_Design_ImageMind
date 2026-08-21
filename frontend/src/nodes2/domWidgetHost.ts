@@ -24,6 +24,7 @@
  *   - `nodeSizeSync`   — reconciling the node's box with that height
  *   - `observers`      — what tells us the panel moved
  */
+import type { LGraphNode } from "@/types/comfy";
 import { createApp, reactive, type Component, type App as VueApp } from "vue";
 import { useActivePinia } from "@/stores";
 import FilNodeShell from "@/components/widgets/FilNodeShell.vue";
@@ -91,7 +92,7 @@ interface DomWidgetNode extends SizableNode {
  * @param opts State container + size + optional onDraw.
  */
 export function addFilDomWidget<S extends object = Record<string, unknown>>(
-  node: unknown,
+  node: LGraphNode,
   name: string,
   root: Component,
   opts: FilWidgetOptions<S>,
@@ -103,7 +104,7 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
     return null;
   }
 
-  const host = createHostElement(firstDeclaredBadge(n)?.text);
+  const host = createHostElement(firstDeclaredBadge(node)?.text);
   attachWheelForwarding(host);
 
   // The reactive `state` is the single source of truth for getValue/setValue.
@@ -196,7 +197,7 @@ export function addFilDomWidget<S extends object = Record<string, unknown>>(
 }
 
 /** Cleanup helper called from each node's `onRemoved` callback. */
-export function unmountAllFilWidgets(node: unknown): void {
+export function unmountAllFilWidgets(node: LGraphNode): void {
   const n = node as { _filVueApps?: Record<string, FilWidgetController> };
   if (!n._filVueApps) return;
   for (const key of Object.keys(n._filVueApps)) {

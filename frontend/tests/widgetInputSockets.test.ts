@@ -1,3 +1,4 @@
+import type { NodeModule as FilNodeModule } from "@/nodes2/nodeRegistry";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { exposeWidgetInputSockets, anchorWidgetInputSockets } from "@/nodes2/widgetInputSockets";
 
@@ -16,7 +17,9 @@ const SLOT_PITCH = 20;
 
 interface Slot {
   name: string;
-  widget?: unknown;
+  // Same shape the host produces (`LGraphSlot`): `null` on a slot with no
+  // widget behind it, not merely absent.
+  widget?: { name?: string } | null;
   link?: number | null;
   alwaysVisible?: boolean;
   boundingRect?: number[];
@@ -157,7 +160,10 @@ describe("widget input socket rows", () => {
  * caught: the value went up and nothing that watched it ever heard.
  */
 describe("node modules bump linkVersion on a connection change", () => {
-  const CASES: [string, () => Promise<{ node: { register: (t: unknown, d: never) => void }; stateKey: string }>][] = [
+  // `NodeModule` itself (imported as `FilNodeModule` — the bare name is a
+  // Node.js global from @types/node), rather than a structural copy of it: a copy stops
+  // matching the moment the real interface is tightened, and this one had.
+  const CASES: [string, () => Promise<{ node: FilNodeModule; stateKey: string }>][] = [
     ["FiLOpticScanner", async () => ({
       node: (await import("@/nodes2/nodes/scanner")).scannerNode,
       stateKey: "_filScannerSeedState",

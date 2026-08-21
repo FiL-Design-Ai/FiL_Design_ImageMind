@@ -4,6 +4,7 @@
  * entry, and the node's title/body color. Mirrors the legacy
  * `web/core/node_style.js` contract.
  */
+import type { LGraphNode, LGraphNodeType } from "@/types/comfy";
 import { ACTIVE_PALETTE, activeThemeName } from "@/styles/brand";
 import { patchRecreateMenuItem } from "@/nodes2/recreateNode";
 import { applyFilSlotColors } from "@/nodes2/slotTypeColors";
@@ -40,7 +41,7 @@ const DEFAULT_FAMILY = "fil";
  * the pill below can use the text a node already declares without waiting on
  * that fix.
  */
-export function firstDeclaredBadge(node: unknown): { text: string; color?: string; text_color?: string } | undefined {
+export function firstDeclaredBadge(node: LGraphNode): { text: string; color?: string; text_color?: string } | undefined {
   const proto = Object.getPrototypeOf(node) as { badges?: Array<{ text: string; color?: string; text_color?: string }> } | null;
   return proto?.badges?.[0];
 }
@@ -81,7 +82,7 @@ function drawInlineBadge(
   ctx.textBaseline = "alphabetic";
 }
 
-export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = {}): void {
+export function registerStyledNode(nodeType: LGraphNodeType, opts: StyledNodeOptions = {}): void {
   const proto = nodeType as {
     prototype: {
       _filStyled?: boolean;
@@ -141,7 +142,7 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
   // grey-green default on FIL_HIRES_SCRIPT/FIL_TILE_LAYOUT/FIL_PROVIDER_CONFIG
   // until something else forces a repaint.
   const originalConfigure = p.onConfigure;
-  p.onConfigure = function (this: unknown, ...args: unknown[]) {
+  p.onConfigure = function (this: LGraphNode, ...args: unknown[]) {
     const result = originalConfigure?.apply(this, args);
     applyFilSlotColors(this);
     return result;
@@ -463,7 +464,7 @@ export function registerStyledNode(nodeType: unknown, opts: StyledNodeOptions = 
       if (wrapped && wrappedFor === current) return wrapped;
       const inner = current;
       wrappedFor = current;
-      wrapped = function (this: unknown, ...args: unknown[]) {
+      wrapped = function (this: LGraphNode, ...args: unknown[]) {
         const result = inner?.apply(this, args);
         const options = args[1] as unknown[] | undefined;
         if (Array.isArray(options)) patchRecreateMenuItem(this as Parameters<typeof patchRecreateMenuItem>[0], options);

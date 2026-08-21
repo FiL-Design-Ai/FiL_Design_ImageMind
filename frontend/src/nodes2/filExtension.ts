@@ -12,7 +12,7 @@
  * Node modules live in `src/nodes2/nodes/` and are looked up by canonical id.
  * Settings modules live in `src/stores/settings/` and contribute `ALL_SETTINGS`.
  */
-import type { ComfyApp, ComfyExtension, ComfyNodeData } from "@/types/comfy";
+import type { ComfyApp, ComfyExtension, ComfyNodeData, LGraphNodeType } from "@/types/comfy";
 import { NODE_MODULES } from "@/nodes2/nodeRegistry";
 import { tintForeignNode } from "@/nodes2/foreignNodeTint";
 import { installToasts } from "@/nodes2/installers/toasts";
@@ -165,7 +165,7 @@ export function createFilExtension(app: ComfyApp): ComfyExtension {
       return {};
     },
 
-    async beforeRegisterNodeDef(nodeType: unknown, nodeData: ComfyNodeData): Promise<void> {
+    async beforeRegisterNodeDef(nodeType: LGraphNodeType, nodeData: ComfyNodeData): Promise<void> {
       const nodeModule = NODE_MODULES[nodeData.name];
       if (!nodeModule) {
         // Someone else's node. It gets a title-bar stripe only if the user set

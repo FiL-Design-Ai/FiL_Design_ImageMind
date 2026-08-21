@@ -1,5 +1,5 @@
 import { defineAsyncComponent } from "vue";
-import type { ComfyNodeData } from "@/types/comfy";
+import type { ComfyNodeData, LGraphNode, LGraphNodeType } from "@/types/comfy";
 import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
@@ -33,7 +33,7 @@ const nativeWidgetNames = [
 
 export const loraLoaderNode: NodeModule = {
   id: "FiLLoraLoader",
-  register(nodeType: unknown, _nodeData: ComfyNodeData): void {
+  register(nodeType: LGraphNodeType, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
       // Wider than the 340 the panels started at: the row carries a name, a
       // weight field and two switches, and the strip the toolbar floats into
@@ -61,7 +61,7 @@ export const loraLoaderNode: NodeModule = {
     };
     const p = proto.prototype;
 
-    const syncAll = (node: unknown, target: Record<string, unknown>) => {
+    const syncAll = (node: LGraphNode, target: Record<string, unknown>) => {
       for (const name of nativeWidgetNames) {
         const w = findFilWidget(node, name);
         if (w) target[name] = w.value;
@@ -69,9 +69,9 @@ export const loraLoaderNode: NodeModule = {
     };
 
     const originalCreated = p.onNodeCreated;
-    p.onNodeCreated = function (this: unknown, ...args: unknown[]) {
+    p.onNodeCreated = function (this: LGraphNode, ...args: unknown[]) {
       const result = originalCreated?.apply(this, args);
-      const node = this as { widgets?: unknown[]; _filCyclerState?: unknown };
+      const node = this as LGraphNode & { _filCyclerState?: unknown };
       const initial: Record<string, unknown> = {};
       syncAll(node, initial);
       for (const name of nativeWidgetNames) {
@@ -107,10 +107,9 @@ export const loraLoaderNode: NodeModule = {
     };
 
     const originalConfigure = p.onConfigure;
-    p.onConfigure = function (this: unknown, ...args: unknown[]) {
+    p.onConfigure = function (this: LGraphNode, ...args: unknown[]) {
       const result = originalConfigure?.apply(this, args);
-      const node = this as {
-        widgets?: unknown[];
+      const node = this as LGraphNode & {
         _filCyclerState?: { nodeState: Record<string, unknown> };
       };
       if (!node._filCyclerState) return result;
@@ -124,7 +123,7 @@ export const loraLoaderNode: NodeModule = {
     // defines. Dead on both ends.
 
     const originalRemoved = p.onRemoved;
-    p.onRemoved = function (this: unknown, ...args: unknown[]) {
+    p.onRemoved = function (this: LGraphNode, ...args: unknown[]) {
       unmountAllFilWidgets(this);
       return originalRemoved?.apply(this, args);
     };
