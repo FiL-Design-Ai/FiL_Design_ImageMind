@@ -641,19 +641,30 @@ Minimal processing for natural, conversational prompting.
 
 ### Official guidance
 
-Per Krea AI's own guide, exploratory prompting is the recommended default approach, not just a fallback:
+**Which source wins.** Krea publish their own guidance and their own prompt-expansion system prompt at [github.com/krea-ai/krea-2](https://github.com/krea-ai/krea-2) under `docs/`. That is the authority for this profile, and it says **long detailed prompts yield the best results** while the model still copes with minimal prompt engineering. It supersedes the shorter word budgets of the [fal.ai community guide](https://fal.ai/learn/tools/krea-2-prompting-guide) this profile used to follow (5-20 / 30-80 / 80-140 words); those ranges remain sound advice for a human prompting *by hand and iterating*, but the LLM writing a finished prompt in one pass aims higher.
 
-1. Start intentionally vague.
-2. Use the first generations as research.
-3. Find a direction you like, then narrow from there — work like an art director: start broad, home in.
+**Target length: 120-200 words**, spent on light, texture, materials and the arrangement of things in the frame — never on padding, stacked adjectives or invented extras. The detail level widget still narrows it when the user asks for short.
 
-Word count guidelines: **5-20 words** for exploration (intentionally vague), **30-80 words** for controlled generation, **80-140 words** for complex scenes. Add detail only if needed — basic subject + light cue + mood word first, technical steering words second, composition/style/references only if still needed. Technical words that reliably steer output: "shallow depth of field", "golden hour", "shot on 35mm", "bokeh background", "soft natural lighting".
+Krea's own points, in their terms: natural language rather than a rigid format (no weight syntax, no keyword soup, no `Style:` labels); preserve every original subject, action, colour and spatial relationship; add no new objects, props, characters or animals the input does not imply; invent no highly specific clothing, colours or materials the input does not support; honour a requested medium; quote text that must be rendered; output one cohesive paragraph.
+
+**The four rules that carry most of the quality.** Each fixes a failure mode measured over 33 runs while building this formula, and each is worded the way it is for a reason:
+
+1. **Name the medium in the opening words** — and when the thing is not meant to look real, say that too (*a stylised 3D cartoon character*, *a children's book illustration*, *an anime frame*, *a claymation figure*), with the proportions that carry the look: head size against the body, eye size and glossy highlights, rounded and simplified features. The same medium covers wildly different looks, so a cartoon request left implicit comes back photoreal.
+2. **Never name what is absent.** The words *no*, *not* and *without* are banned outright inside the prompt, along with *missing*, *absent*, *empty*, *unseen*. An image model cannot subtract, so naming an absent thing tends to add it — "no other signs blink nearby" puts signs in the frame. Banning the phrasings by example only produced new phrasings; banning the words worked. This one is shared with every other profile whose target has no negative-prompt field (see below).
+3. **Close on a concrete object** physically in the picture, near enough to see its surface. This is the other half of rule 2: it gives the model a better use for the slot it otherwise fills with a sentence about emptiness.
+4. **Ask for on-image text once.** Exactly the words to render go in double quotes, and nothing sends a second copy to a reflection, a mirror, water or a second sign — the first copy renders cleanly and the second comes back as scrambled letters. When the idea carries text, the closing object should carry none.
+
+Also carried over: describe what the light is *doing* rather than giving it a proper name (an early version produced `cinematic lighting named "Golden Hour"`, which also collided with the quotes rule and put those words into the picture); use materials that suit *this* idea (an example naming "damp cobbles, brushed steel" gave a cat portrait a cobblestone street); skip empty praise words like *beautiful*, *premium*, *masterpiece*, *8k*.
 
 Krea 2's **style transfer** is a distinguishing feature: reference images can transfer palette, lines (composition), texture, lighting, or composition onto a new scene.
 
-Other carried-over rules: put on-image text in quotes (`"HELLO" sign in neon`, not `HELLO sign in neon`); prefer natural-language clauses over comma-separated tags; avoid over-engineering — too many instructions add noise rather than control.
+Worth knowing for local setups: Krea 2 is a FLUX.2-family model whose text encoder is a Qwen3-VL — the same encoder the pack's Edit Encoder node wires — so the prompt-writing job itself can be run by a local language model. Downstream, the krea-2 API's `creativity` parameter controls server-side prompt expansion — `raw` passes the text through unchanged.
 
-Source: [Krea 2 Prompting Guide](https://fal.ai/learn/tools/krea-2-prompting-guide).
+Sources: [krea-ai/krea-2](https://github.com/krea-ai/krea-2) (`docs/`, authoritative), [Krea 2 Prompting Guide](https://fal.ai/learn/tools/krea-2-prompting-guide) (community, superseded on length).
+
+### The absence ban is shared
+
+`_NO_ABSENCE_CLAUSE` in `common/logic.py` is appended automatically to every profile whose rule carries `negative_strategy: positive_constraints` — Z-Image Turbo, FLUX, Krea 2, Ideogram 4, Video and MiniMax H3. Adding a model with that strategy picks the rule up with no further edit; there is no second copy to keep in sync.
 
 ### When to Use
 - You prefer natural language prompts

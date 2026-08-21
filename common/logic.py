@@ -57,16 +57,50 @@ MODEL_TYPE_GUIDANCE: Dict[str, str] = {
         "Include style and quality details. SDXL generates best from coherent "
         "sentences, not tag lists."
     ),
+    # Rewritten 2026-08-21 against Krea's own guidance and prompt-expansion
+    # system prompt (github.com/krea-ai/krea-2, docs/), which supersedes the
+    # shorter word budgets of the fal.ai community guide this profile used to
+    # follow: long detailed prompts yield the best results. Four rules carry
+    # most of the quality here and each fixes a measured failure: the medium
+    # named in the opening words (a cartoon request comes back photoreal
+    # otherwise), the absence ban (an image model cannot subtract), the
+    # single-copy text rule (a mirrored second copy renders as scrambled
+    # letters), and the concrete closing object (it gives the model somewhere
+    # better to put the sentence it otherwise fills with emptiness).
     "Krea 2": (
-        "Target generator: Krea 2. Write natural-language prose following: subject, "
-        "scene, composition, lighting, mood, medium/style, technical detail. Krea 2 "
-        "does not need a giant prompt — do not stack many style adjectives, it can "
-        "muddy the output, especially if a style/moodboard reference is also in play. "
-        "No negatives — express all constraints positively. No markdown. The official "
-        "docs name subject, setting, lighting and mood as the details that sharpen "
-        "results most. Downstream, the krea-2 API's creativity parameter controls "
-        "server-side prompt expansion — raw passes this text through unchanged, the "
-        "default expander rewrites short prompts."
+        "Target generator: Krea 2. Write ONE flowing natural-language paragraph in "
+        "ordinary sentences — plain prose, free of markdown, field labels, tag "
+        "lists, weight syntax and any trailing dump of keywords. Your first words "
+        "name the medium the idea asks for (a photograph, a 3D render, an oil "
+        "painting, a watercolour, a pencil sketch, an illustration); when the idea "
+        "names none, write it as a photograph. When the thing is meant to look "
+        "unreal, say so in those same opening words (a stylised 3D cartoon "
+        "character, a children's book illustration, an anime frame, a comic panel, "
+        "a claymation figure) and give the proportions that carry the look — head "
+        "size against the body, eye size and whether the eyes carry glossy "
+        "highlights, features rounded and simplified rather than anatomical: left "
+        "unstated, a cartoon request comes back photoreal. Then cover subject, "
+        "scene, composition and mood, spending the room on what the light is DOING "
+        "and what the surfaces are made of, in words that suit THIS idea — "
+        "describe the light rather than giving it a proper name, and skip empty "
+        "praise words like beautiful, premium, masterpiece or 8k. Keep faith with "
+        "the idea: every subject, action, colour and spatial relationship in it "
+        "survives, a requested colour mood shows in the words chosen for the light "
+        "and the surfaces, and nothing extra is invented — a boat stays a boat "
+        "rather than gaining broken oars and a torn sail. Krea 2 responds to "
+        "detail, so aim for 120-200 words where the detail level leaves room, but "
+        "spend them on light, texture, materials and the arrangement of things in "
+        "the frame: stacked style adjectives muddy the output, especially if a "
+        "style/moodboard reference is also in play. The official docs name "
+        "subject, setting, lighting and mood as the details that sharpen results "
+        "most. Put any text that must appear in the image in double quotes, and "
+        "ask for it ONCE — a second copy sent to a reflection, a mirror, water or "
+        "a second sign comes back as scrambled letters, so when the idea carries "
+        "text, close on a surface that carries none. End the paragraph on one "
+        "concrete thing physically in the picture, close enough to see its surface. "
+        "Downstream, the krea-2 API's creativity parameter controls server-side "
+        "prompt expansion — raw passes this text through unchanged, the default "
+        "expander rewrites short prompts."
     ),
     "Ideogram 4": (
         "Target generator: Ideogram 4.0. Write a plain natural-language descriptive "
@@ -124,8 +158,9 @@ MODEL_TYPE_GUIDANCE: Dict[str, str] = {
         "commentary — other vendors' parsers read free text only and may render "
         "stray markup on screen. Express all constraints positively — most video "
         "models have no negative-prompt mechanism. Put any text that must appear "
-        "on screen in quotes and state that only that text appears — no other "
-        "lettering, no subtitles."
+        "on screen in quotes and state that only that text appears, that this "
+        "is the only lettering in the shot and that the frame stays clear of "
+        "burned-in subtitles."
     ),
     # H3-specific facts re-verified 2026-08-05 (platform.minimax.io/docs/guides/
     # video-generation): the API accepts 4-15 whole-second durations, T2V needs
@@ -164,6 +199,30 @@ MODEL_TYPE_GUIDANCE: Dict[str, str] = {
     ),
     "Auto/None": "",
 }
+
+
+# The absence ban, shared by every profile whose target generator has no
+# negative-prompt field. "Express constraints positively" leaves the model free
+# to write "the street holds no cars", and an image model cannot subtract: a
+# sentence about what is gone only adds the thing it names. Banning the three
+# words outright is what stopped it (measured while building the Krea 2
+# formula; banning phrasings by example only produced new phrasings), and the
+# closing-object rule in the Krea 2 profile is its other half — it gives the
+# model a better use for the slot it kept filling with emptiness.
+_NO_ABSENCE_CLAUSE = (
+    "NEVER NAME WHAT IS ABSENT: inside the prompt itself the words 'no', 'not' "
+    "and 'without' must never appear, and nothing may be called missing, absent, "
+    "empty or unseen — an image model cannot subtract, so naming an absent thing "
+    "tends to add it. Show emptiness through the bare things that ARE there: the "
+    "wide stretch of wet asphalt, the shuttered windows, the still air, the "
+    "single lit window far down the street."
+)
+
+# Appended here rather than written into each string above so the rule has one
+# source of truth and cannot drift between profiles as they are edited.
+for _model_type, _guidance in MODEL_TYPE_GUIDANCE.items():
+    if _guidance and model_uses_positive_constraints(_model_type):
+        MODEL_TYPE_GUIDANCE[_model_type] = f"{_guidance} {_NO_ABSENCE_CLAUSE}"
 
 
 def build_model_type_guidance(model_type: str) -> str:

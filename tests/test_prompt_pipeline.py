@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from FiL_Design_ImageMind.common.data import get_visible_style_keys
+from FiL_Design_ImageMind.common.data import (
+    get_visible_style_keys,
+    model_uses_positive_constraints,
+)
 from FiL_Design_ImageMind.common.logic import (
     PromptGenerator,
     build_model_type_guidance,
@@ -53,6 +56,58 @@ def test_system_prompt_bundle_includes_ideogram4_guidance():
     assert "no JSON" in system_prompt
     assert "high_level_description" not in system_prompt
     assert "compositional_deconstruction" not in system_prompt
+
+
+def test_krea2_guidance_follows_krea_own_docs():
+    # Rewritten against krea-ai/krea-2 docs/, which supersede the fal.ai
+    # community guide's shorter budgets: long detailed prompts win here.
+    guidance = build_model_type_guidance("Krea 2")
+
+    # One paragraph of prose, at the length Krea's own docs ask for.
+    assert "ONE flowing natural-language paragraph" in guidance
+    assert "120-200 words" in guidance
+
+    # The medium leads, and stylisation has to be spelled out or a cartoon
+    # request comes back photoreal.
+    assert "first words" in guidance and "name the medium" in guidance
+    assert "stylised 3D cartoon character" in guidance
+    assert "head size against the body" in guidance
+
+    # On-image text is asked for once — a mirrored second copy renders as
+    # scrambled letters.
+    assert "double quotes" in guidance
+    assert "ONCE" in guidance
+
+    # The closing object is the other half of the absence ban: it gives the
+    # model somewhere better to put its final sentence.
+    assert "close enough to see its surface" in guidance
+
+    # Faithfulness: the canonical invented-props case is named on purpose,
+    # because naming it is what stopped it.
+    assert "broken oars" in guidance
+
+
+def test_absence_ban_reaches_every_positive_constraints_model():
+    # An image model cannot subtract, so naming an absent thing tends to add
+    # it. The clause attaches by negative_strategy, not by a hand-kept list.
+    for model_type in ("Z-Image Turbo", "FLUX", "Krea 2", "Ideogram 4", "Video", "MiniMax H3"):
+        guidance = build_model_type_guidance(model_type)
+        assert model_uses_positive_constraints(model_type), model_type
+        assert "NEVER NAME WHAT IS ABSENT" in guidance, model_type
+        assert "cannot subtract" in guidance, model_type
+
+    # Models with a real negative prompt keep their own policy.
+    for model_type in ("SDXL", "QWEN"):
+        assert "NEVER NAME WHAT IS ABSENT" not in build_model_type_guidance(model_type)
+
+
+def test_video_on_screen_text_clause_stays_positive():
+    # The last place the guidance still asked for a negative ("no other
+    # lettering, no subtitles") — reworded, or it contradicts the ban above.
+    guidance = build_model_type_guidance("Video")
+    assert "only that text appears" in guidance
+    assert "only lettering in the shot" in guidance
+    assert "no other lettering" not in guidance
 
 
 def test_system_prompt_bundle_auto_has_no_model_guidance():

@@ -284,7 +284,13 @@ Runtime diagnostics for Two-Stage are derived from the exact Stage 1 and Stage 2
 
 ### Krea 2
 
-- coherent natural-language prompt with a clear separation between what is shown and how it looks
+- one flowing natural-language paragraph, 120-200 words where the detail level leaves room — Krea's own docs ([krea-ai/krea-2](https://github.com/krea-ai/krea-2)) say long detailed prompts yield the best results, and that authority supersedes the shorter fal.ai community ranges
+- the medium is named in the opening words (a photograph, a 3D render, an oil painting, a pencil sketch); when the result is meant to look unreal, the style is named there too, with the proportions that carry it — otherwise a cartoon request comes back photoreal
+- the light is described by what it is doing, the surfaces by what they are made of, in words that suit that idea; empty praise words (beautiful, premium, masterpiece, 8k) stay out
+- nothing absent is ever named: the words *no*, *not*, *without* are banned inside the prompt, and emptiness is shown through the bare things that are there — an image model cannot subtract
+- the paragraph closes on one concrete object near enough to see its surface, which is what keeps the model from finishing on a sentence about emptiness
+- on-image text is quoted once and once only — a second copy in a reflection or a mirrored sign renders as scrambled letters
+- the idea is kept faithfully: no invented props, characters or scenery, and a requested colour mood shows in the words chosen for the light and the surfaces
 - short detail levels preserve exploratory variation; higher levels progressively specify medium, style, composition, movement, and light
 - no quality-tag spam or contradictory style stacks
 - no automatic negative prompt; manual exclusions are converted into positive composition constraints
