@@ -187,8 +187,8 @@ defineExpose({ el });
   color: var(--fil-accent-text, #c084fc);
   cursor: pointer;
   padding: 0 8px;
-  height: 24px;
-  border-radius: 6px;
+  height: var(--fil-control-h);
+  border-radius: var(--fil-radius, 5px);
   font-size: 11px;
   display: inline-flex;
   align-items: center;
@@ -233,13 +233,13 @@ defineExpose({ el });
 .fil-cycler-mode-select :deep(.fil-w-select-input) {
   flex: 1;
   width: 100%;
-  height: 24px;
-  min-height: 24px;
-  max-height: 24px;
+  height: var(--fil-control-h);
+  min-height: var(--fil-control-h);
+  max-height: var(--fil-control-h);
   box-sizing: border-box;
   padding: 0 4px;
   font-size: 11px;
-  line-height: 22px;
+  line-height: 24px;
   text-align: left;
   text-align-last: left;
 }
@@ -258,16 +258,16 @@ defineExpose({ el });
    mockup draws Add All and Run All. Accent stays for the
    icons that carry state, not for the button chrome. */
 .fil-action-link {
-  height: 24px;
-  min-height: 24px;
-  max-height: 24px;
+  height: var(--fil-control-h);
+  min-height: var(--fil-control-h);
+  max-height: var(--fil-control-h);
   box-sizing: border-box;
   background: var(--fil-surface-2, #27272a);
   border: 1px solid color-mix(in srgb, var(--fil-border) 90%, transparent);
   color: var(--fil-text);
   cursor: pointer;
   padding: 0 8px;
-  border-radius: 6px;
+  border-radius: var(--fil-radius, 5px);
   font-size: 11px;
   font-weight: 700;
   transition: all 0.15s ease-in-out;
@@ -275,7 +275,7 @@ defineExpose({ el });
   align-items: center;
   gap: 5px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  line-height: 22px;
+  line-height: 24px;
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -301,13 +301,13 @@ defineExpose({ el });
 
 .fil-band-add {
   flex: 1;
-  height: 24px;
+  height: var(--fil-control-h);
   /* A label allowed to wrap makes the block look narrower than it is, and the
      strip check believes it — that is how "+ Add Model" ended up on two lines
      inside a strip 100px too small for it. */
   white-space: nowrap;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--fil-radius, 5px);
   background: var(--fil-accent-strong, #ffd60a);
   color: #1c1c1e;
   font-size: 12px;
@@ -324,8 +324,8 @@ defineExpose({ el });
 .fil-cycler-queue-btn,
 .fil-cycler-populate-btn,
 .fil-stack-count {
-  height: 24px;
-  max-height: 24px;
+  height: var(--fil-control-h);
+  max-height: var(--fil-control-h);
   font-size: 11px;
 }
 
@@ -398,8 +398,8 @@ defineExpose({ el });
      node reads tidy for exactly this reason. Four lines have to clear the
      strip's own height too, so the gap is tighter than it is in flow. */
   font-size: 11px;
-  /* Three 24px lines and two gaps have to clear the strip's own height — on
-     the cycler's five outputs that is about 100px, and the block comes to 78. */
+  /* Three 26px lines and two gaps have to clear the strip's own height — on
+     the cycler's five outputs that is about 100px, and the block comes to 84. */
   gap: 3px;
   padding: 0;
 }
@@ -420,19 +420,19 @@ defineExpose({ el });
 .fil-cycler-actions-bar.floated .fil-stack-count,
 .fil-cycler-actions-bar.floated .fil-cycler-queue-btn,
 .fil-cycler-actions-bar.floated .fil-cycler-populate-btn {
-  height: 24px;
-  max-height: 24px;
+  height: var(--fil-control-h);
+  max-height: var(--fil-control-h);
   box-sizing: border-box;
   font-size: 11px;
   font-weight: 700;
 }
 
 .fil-cycler-actions-bar.floated :deep(.fil-w-pill) {
-  height: 24px;
+  height: var(--fil-control-h);
 }
 
 .fil-cycler-actions-bar.floated :deep(.fil-w-select-input) {
-  height: 24px;
+  height: var(--fil-control-h);
   font-size: 11px;
   overflow: hidden;
   text-overflow: ellipsis;
