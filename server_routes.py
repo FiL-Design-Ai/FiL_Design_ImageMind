@@ -601,6 +601,16 @@ def register_routes():
 
     @server.routes.post(f"/{ROUTE_SLUG}/sort_models")
     async def sort_models(request):
+        # Both are used by `_get_meta` below and neither was imported, in a file
+        # where every other route imports `os` for itself. `re.sub` is the first
+        # statement of `_get_meta`, so any request carrying a non-empty `models`
+        # array raised `NameError` and came back 500 — the Model Cycler's sort
+        # button (useModelQueue.ts) has never worked. `ruff` reported it as seven
+        # F821s the whole time; the job that runs ruff was failing on unrelated
+        # noise, so nobody read its output.
+        import os
+        import re
+
         if _reject_cross_site(request):
             return web.json_response({"error": "cross-site request blocked"}, status=403)
         try:

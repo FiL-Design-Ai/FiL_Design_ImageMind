@@ -377,16 +377,8 @@ def test_the_run_reports_the_live_position_for_the_panel() -> None:
     assert second.ui["fil_cycler"][0]["clean_name"] == "a2"
 
 
-def test_sort_models_logic() -> None:
-    models = ["# zebra.safetensors", "alpha.safetensors", "beta.safetensors"]
-
-    # Test name_asc
-    sorted_asc = sorted(models, key=lambda x: x.replace("#", "").strip().lower())
-    assert sorted_asc[0] == "alpha.safetensors"
-    assert sorted_asc[1] == "beta.safetensors"
-
-    # Test enabled_first
-    sorted_enabled = sorted(models, key=lambda x: 1 if x.startswith("#") else 0)
-    assert sorted_enabled[0] == "alpha.safetensors"
-    assert sorted_enabled[1] == "beta.safetensors"
-    assert sorted_enabled[2] == "# zebra.safetensors"
+# `test_sort_models_logic` stood here. It was named after the /sort_models
+# route and never called it: it re-implemented the sorting inside the test and
+# asserted on its own copy, so it passed for as long as it existed while the
+# real handler raised NameError on the first line it reached. The route is
+# covered by tests/test_server_routes.py now, through the handler itself.
