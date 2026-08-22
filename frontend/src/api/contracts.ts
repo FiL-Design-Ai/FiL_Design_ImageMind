@@ -5712,6 +5712,31 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     ],
     "optional": [
       {
+        "name": "reference_treatment",
+        "kind": "combo",
+        "label": "Treatment",
+        "default": "normal",
+        "tooltip": "What to do to each reference before the text encoder looks at it. The blurs and 'palette wash' strip detail the model should not copy. Never touches the copy the VAE encodes.",
+        "values": [
+          "normal",
+          "grayscale",
+          "soft blur",
+          "strong blur",
+          "palette wash"
+        ],
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
         "name": "reference_strength",
         "kind": "slider",
         "label": "Reference strength",
@@ -5844,6 +5869,10 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     {
       "name": "summary",
       "type": "STRING"
+    },
+    {
+      "name": "references",
+      "type": "IMAGE"
     }
   ],
   "min_size": [

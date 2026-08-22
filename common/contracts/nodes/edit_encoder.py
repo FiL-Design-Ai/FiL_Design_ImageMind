@@ -34,6 +34,14 @@ CONTRACT = NodeContract(
             ),
         ],
         optional=[
+            _combo(
+                "reference_treatment",
+                values=["normal", "grayscale", "soft blur", "strong blur", "palette wash"],
+                default="normal", label="Treatment",
+                tooltip="What to do to each reference before the text encoder looks at it. "
+                        "The blurs and 'palette wash' strip detail the model should not copy. "
+                        "Never touches the copy the VAE encodes.",
+            ),
             _slider(
                 "reference_strength", default=1.0, minv=0.0, maxv=3.0, step=0.05,
                 label="Reference strength",
@@ -78,5 +86,6 @@ CONTRACT = NodeContract(
     outputs=[
         NodeOutput(name="conditioning", type="CONDITIONING"),
         NodeOutput(name="summary", type="STRING"),
+        NodeOutput(name="references", type="IMAGE"),
     ],
 )

@@ -643,3 +643,107 @@ def test_strength_in_vision_mode_reports_a_plain_blend():
                             images={"image1": torch.rand(1, 64, 64, 3)})
     assert clip.encodes == 2
     assert "blended against blank references" in _summary_of(result)
+
+
+def _references_of(result):
+    return result.args[2]
+
+
+def test_the_references_output_shows_what_the_text_encoder_read():
+    """`vision`/`both` return the VL copy — the one the encoder was given."""
+    clip = _VisionClip()
+    _, _, result = _execute(clip=clip, reference_mode="vision",
+                            vision_megapixels=0.04,   # ~205x205
+                            images={"image1": torch.rand(1, 512, 512, 3)})
+    preview = _references_of(result)
+    assert preview.shape[0] == 1 and preview.shape[-1] == 3
+    # The size the encoder saw, not the size that was wired in.
+    assert 180 <= preview.shape[1] <= 230 and preview.shape[1] == preview.shape[2]
+
+
+def test_the_references_output_shows_the_vae_copy_in_latents_mode():
+    """There is no VL copy there — showing the wired image instead would lie."""
+    _, _, result = _execute(vae=_FakeVae(), reference_mode="latents",
+                            latent_megapixels=0.25,   # ~512x512
+                            images={"image1": torch.rand(1, 2048, 2048, 3)})
+    preview = _references_of(result)
+    assert preview.shape[1] % 8 == 0
+    assert 450 <= preview.shape[1] <= 560
+
+
+def test_references_of_different_sizes_are_padded_not_rescaled():
+    """Rescaling to agree would defeat the point of the output."""
+    clip = _VisionClip()
+    _, _, result = _execute(clip=clip, reference_mode="vision",
+                            images={"image1": torch.rand(1, 256, 512, 3),   # landscape
+                                    "image2": torch.rand(1, 512, 256, 3)})  # portrait
+    preview = _references_of(result)
+    assert preview.shape[0] == 2
+    # One canvas as large as the largest of each axis, both frames on it.
+    assert preview.shape[1] == preview.shape[2]
+    # Padding is black, so the corners of the landscape frame are empty.
+    assert float(preview[0, 0, 0].abs().sum()) == 0.0
+
+
+def test_the_references_output_is_a_valid_empty_image_with_nothing_wired():
+    """A downstream Preview Image must not break a graph that has no refs."""
+    _, _, result = _execute()
+    preview = _references_of(result)
+    assert preview.shape == (1, 64, 64, 3)
+    assert float(preview.abs().sum()) == 0.0
+
+
+def test_treatment_changes_what_the_encoder_sees():
+    """Every treatment must reach the tokenizer, not just the preview."""
+    clip = _VisionClip()
+    plain, _, _ = _execute(clip=clip, reference_mode="vision",
+                           images={"image1": torch.rand(1, 256, 256, 3)})
+    untreated = plain.images[0].clone()
+
+    for treatment in ("grayscale", "soft blur", "strong blur", "palette wash"):
+        clip = _VisionClip()
+        _execute(clip=clip, reference_mode="vision", reference_treatment=treatment,
+                 images={"image1": torch.rand(1, 256, 256, 3)})
+        seen = clip.images[0]
+        assert seen.shape == untreated.shape, treatment
+        # Every one of them removes signal; none leaves the picture untouched.
+        assert float(seen.std()) < float(untreated.std()), treatment
+
+
+def test_grayscale_leaves_no_colour():
+    clip = _VisionClip()
+    _execute(clip=clip, reference_mode="vision", reference_treatment="grayscale",
+             images={"image1": torch.rand(1, 64, 64, 3)})
+    seen = clip.images[0]
+    assert torch.allclose(seen[..., 0], seen[..., 1])
+    assert torch.allclose(seen[..., 1], seen[..., 2])
+
+
+def test_treatment_never_touches_the_copy_the_vae_encodes():
+    """It is concatenated into the frame — treating it pastes a blur into the picture."""
+    vae = _FakeVae()
+    source = torch.rand(1, 128, 128, 3)
+    _execute(clip=_VisionClip(), vae=vae, reference_mode="both",
+             reference_treatment="strong blur", images={"image1": source})
+    assert torch.allclose(vae.encoded[0], source)
+
+
+def test_an_unknown_treatment_passes_the_image_through():
+    """Fail open: a value from a newer version must not corrupt the reference."""
+    clip = _VisionClip()
+    source = torch.rand(1, 64, 64, 3)
+    _execute(clip=clip, reference_mode="vision", reference_treatment="hall of mirrors",
+             vision_megapixels=0.0039,  # 64x64: no resize, so the pixels are comparable
+             images={"image1": source})
+    assert torch.allclose(clip.images[0], source, atol=1e-4)
+
+
+def test_the_summary_names_the_treatment():
+    clip = _VisionClip()
+    _, _, result = _execute(clip=clip, reference_mode="vision",
+                            reference_treatment="palette wash",
+                            images={"image1": torch.rand(1, 64, 64, 3)})
+    assert "treated 'palette wash'" in _summary_of(result)
+    _, _, plain = _execute(clip=_VisionClip(), reference_mode="vision",
+                           images={"image1": torch.rand(1, 64, 64, 3)})
+    assert "treated" not in _summary_of(plain)

@@ -25,6 +25,7 @@ import torch
 from comfy_api.latest import io
 
 from . import _edit_encode_cache as encode_cache
+from . import _edit_reference_prep as reference_prep
 from ..common.brand import CATEGORY_CONDITIONING
 from ..common.localization import t
 
@@ -227,7 +228,7 @@ def _slot_index(name: str) -> int:
 
 
 def _summary(
-    mode, vl_shapes, latent_shapes, strength, blended,
+    mode, vl_shapes, latent_shapes, strength, blended, treatment,
     role_source, role_sent, method, speaks_vision,
 ):
     """Plain-language account of what this run actually did.
@@ -252,7 +253,8 @@ def _summary(
         lines.append(f"{count} reference(s), mode '{mode}'.")
         if vl_shapes:
             sizes = ", ".join(f"{w}x{h}" for h, w in vl_shapes)
-            lines.append(f"  text encoder reads: {sizes}")
+            treated = "" if treatment in (None, "", "normal") else f", treated '{treatment}'"
+            lines.append(f"  text encoder reads: {sizes}{treated}")
         if latent_shapes:
             sizes = ", ".join(f"{w}x{h}" for h, w in latent_shapes)
             lines.append(f"  VAE encodes: {sizes}  (method '{method}')")
@@ -420,6 +422,15 @@ class FiLEditEncoder(io.ComfyNode):
                         "How references reach the model. 'vision': the text encoder looks at them, nothing enters the frame (Krea 2). 'latents': they are VAE-encoded into the frame itself (FLUX.2/Kontext) — this is what tiles the source into the output. 'both': both channels.",
                     ),
                 ),
+                io.Combo.Input(
+                    "reference_treatment",
+                    options=reference_prep.TREATMENTS,
+                    default="normal",
+                    tooltip=t(
+                        "ee_treatment",
+                        "What to do to each reference before the text encoder looks at it. 'normal' shows it as it is. The blurs and 'palette wash' strip detail the model should not copy, which is how you use a picture for its style or its colours without pulling its subject in. Never touches the copy the VAE encodes.",
+                    ),
+                ),
                 io.Float.Input(
                     "reference_strength",
                     default=1.0, min=0.0, max=3.0, step=0.05,
@@ -467,6 +478,10 @@ class FiLEditEncoder(io.ComfyNode):
                     display_name="summary",
                     tooltip=t("ee_summary", "What this run did with the references, and a note when a setting looks like a bug but is not."),
                 ),
+                io.Image.Output(
+                    display_name="references",
+                    tooltip=t("ee_refs_out", "The prepared copies the model actually received — the text encoder's in 'vision' and 'both', the VAE's in 'latents'. Wire a Preview Image here to see what it read."),
+                ),
             ],
             search_aliases=["edit", "reference", "flux2", "krea", "klein", "inpaint", "conditioning"],
         )
@@ -482,6 +497,7 @@ class FiLEditEncoder(io.ComfyNode):
         system_preset="none",
         system_prompt="",
         reference_mode="vision",
+        reference_treatment="normal",
         reference_latents_method="index_timestep_zero",
         reference_strength=1.0,
         vision_megapixels=0.15,
@@ -504,6 +520,10 @@ class FiLEditEncoder(io.ComfyNode):
         images_vl = []
         vl_shapes = []
         latent_shapes = []
+        # What goes to the `references` output: the copies the model was
+        # actually given. In `vision`/`both` that is what the text encoder read;
+        # in `latents` there is no such copy, so it is what the VAE encoded.
+        prepared = []
         for image in references:
             samples = image.movedim(-1, 1)
             native = samples.shape[3] * samples.shape[2]
@@ -519,9 +539,12 @@ class FiLEditEncoder(io.ComfyNode):
                     "area",
                     "disabled",
                 )
-                vl_image = vl.movedim(1, -1)[:, :, :, :3]
+                vl_image = reference_prep.apply_treatment(
+                    vl.movedim(1, -1)[:, :, :, :3], reference_treatment
+                )
                 images_vl.append(vl_image)
                 vl_shapes.append((int(vl_image.shape[1]), int(vl_image.shape[2])))
+                prepared.append(vl_image)
 
             if wants_latents:
                 # The copy the VAE encodes. Full-auto: never upscale — small
@@ -538,7 +561,10 @@ class FiLEditEncoder(io.ComfyNode):
                 height = max(8, round(samples.shape[2] * scale_by / 8.0) * 8)
                 scaled = comfy.utils.common_upscale(samples, width, height, "area", "disabled")
                 latent_shapes.append((height, width))
-                ref_latents.append(vae.encode(scaled.movedim(1, -1)[:, :, :, :3]))
+                latent_image = scaled.movedim(1, -1)[:, :, :, :3]
+                if not wants_vision:
+                    prepared.append(latent_image)
+                ref_latents.append(vae.encode(latent_image))
 
         # `images` reaching the tokenizer is what makes the vision half of the
         # encoder look at the references at all. An empty list selects the
@@ -614,7 +640,8 @@ class FiLEditEncoder(io.ComfyNode):
             conditioning,
             _summary(
                 reference_mode, vl_shapes, latent_shapes, reference_strength, blended,
-                role_source, bool(tokenize_kwargs.get("llama_template")),
+                reference_treatment, role_source, bool(tokenize_kwargs.get("llama_template")),
                 reference_latents_method, _speaks_vision(clip),
             ),
+            reference_prep.as_preview_batch(prepared),
         )
