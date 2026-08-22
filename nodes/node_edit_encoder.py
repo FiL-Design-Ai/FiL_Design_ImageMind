@@ -315,7 +315,7 @@ def _treatments_for(count: int, default: str, override: str) -> list[str]:
 
 def _summary(
     mode, vl_shapes, latent_shapes, strength, blended, treatments, prompt_preset,
-    role_source, role_sent, method, speaks_vision, masked, main_geometry,
+    role_source, role_sent, method, speaks_vision, masked, main_geometry, sent_text,
 ):
     """Plain-language account of what this run actually did.
 
@@ -381,6 +381,11 @@ def _summary(
                 "NOTE: a mask is wired but no reference is — there is nothing to mask, "
                 "and the latent output is empty."
             )
+
+    # The exact string that reached the tokenizer. The node prepends presets and,
+    # when a role is sent, the vision blocks — so what was asked for is not what
+    # was typed, and there was no way to see the difference.
+    lines.append(f"Sent to the encoder: {sent_text!r}")
 
     if not role_source:
         lines.append("Encoder role: none.")
@@ -825,7 +830,7 @@ class FiLEditEncoder(io.ComfyNode):
             treatments, prompt_preset, role_source,
             bool(tokenize_kwargs.get("llama_template")),
             reference_latents_method, _speaks_vision(clip),
-            mask is not None, main_geometry,
+            mask is not None, main_geometry, text,
         )
 
         return io.NodeOutput(

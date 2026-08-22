@@ -906,3 +906,24 @@ def test_a_mask_with_no_reference_says_so():
     _, _, result = _execute(clip=_VisionClip(), vae=_FakeVae(), reference_mode="vision",
                             mask=torch.ones(1, 64, 64))
     assert "nothing to mask" in _summary_of(result)
+
+
+def test_the_summary_quotes_what_was_actually_sent():
+    """Presets and vision blocks mean the encoder never gets what was typed."""
+    clip = _VisionClip()
+    _, _, result = _execute(clip=clip, prompt="a rainy Tokyo street",
+                            reference_mode="vision",
+                            prompt_preset="keep subject, change scene",
+                            images={"image1": torch.rand(1, 64, 64, 3)})
+    text = _summary_of(result)
+    assert "Sent to the encoder:" in text
+    # Exactly what the tokenizer saw, preset and all.
+    assert clip.prompts[0] in text
+
+
+def test_the_quoted_text_includes_the_vision_blocks_when_a_role_is_sent():
+    clip = _VisionClip()
+    _, _, result = _execute(clip=clip, reference_mode="vision",
+                            system_preset="use reference",
+                            images={"image1": torch.rand(1, 64, 64, 3)})
+    assert "Picture 1:" in _summary_of(result)
