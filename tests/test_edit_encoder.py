@@ -935,6 +935,26 @@ def test_a_role_whose_treatment_was_overridden_away_says_so():
     assert "overridden to 'normal'" not in _summary_of(kept)
 
 
+def test_the_run_carries_a_picture_of_what_the_model_saw():
+    """The card shows the treated copy, so "palette" explains itself on sight."""
+    _, _, result = _execute(
+        clip=_VisionClip(), reference_mode="vision",
+        reference_cards='[{"role": "palette"}, {"role": "as is"}]',
+        images={"image1": torch.rand(1, 64, 64, 3), "image2": torch.rand(1, 64, 64, 3)},
+    )
+    entry = result.ui["fil_edit_encoder"][0]
+    thumbs = entry["thumbs"]
+    assert len(thumbs) == 2
+    assert all(t.startswith("data:image/png;base64,") for t in thumbs)
+    # Small enough to ride along with every run report.
+    assert all(len(t) < 40_000 for t in thumbs)
+
+
+def test_a_run_with_no_references_carries_no_pictures():
+    _, _, result = _execute(clip=_VisionClip(), reference_mode="vision")
+    assert result.ui["fil_edit_encoder"][0]["thumbs"] == []
+
+
 def test_a_cut_role_still_means_what_it_meant():
     """Roles that rendered identically were removed from the list, not from saved graphs.
 

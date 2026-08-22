@@ -959,6 +959,12 @@ class FiLEditEncoder(io.ComfyNode):
             # node or not, and the panel shows the last line on the node itself.
             ui={
                 "text": [summary],
-                "fil_edit_encoder": [{"summary": summary, "warned": "NOTE:" in summary}],
+                "fil_edit_encoder": [{
+                    "summary": summary,
+                    "warned": "NOTE:" in summary,
+                    # What each card's picture looked like by the time the model
+                    # saw it — the panel puts them on the cards themselves.
+                    "thumbs": reference_prep.thumbnails(prepared),
+                }],
             },
         )

@@ -117,6 +117,23 @@ function setStrength(slot: number, strength: number) {
   write(cards.value.map((card, i) => (i === slot ? { ...card, strength } : card)));
 }
 
+const thumbTip = computed(() =>
+  t("eep_thumb_tt",
+    "The prepared copy this reference was reduced to before the model looked at it — the "
+    + "role's treatment is already applied here."),
+);
+
+/**
+ * The prepared copy of one reference, as the last run left it.
+ *
+ * Empty until a run has happened, and empty for a slot wired since — the card
+ * then shows its placeholder rather than the picture from a different graph.
+ */
+function thumb(slot: number): string {
+  const list = lastRun.value?.thumbs;
+  return Array.isArray(list) ? (list[slot] ?? "") : "";
+}
+
 /** "0.55" / "−0.50 away" — the sign is a direction, so it gets a word. */
 function strengthLabel(value: number): string {
   return value < 0 ? `${value.toFixed(2)} ${t("eep_away", "away")}` : value.toFixed(2);
@@ -226,7 +243,8 @@ const report = computed(() => {
     <div v-if="refs" class="fil-ee-cards">
       <div v-for="(card, i) in cards" :key="i" class="fil-ee-card">
         <div class="fil-ee-card-row">
-          <span class="fil-ee-slot">{{ i + 1 }}</span>
+          <img v-if="thumb(i)" class="fil-ee-thumb" :src="thumb(i)" alt="" :title="thumbTip" />
+          <span v-else class="fil-ee-slot">{{ i + 1 }}</span>
           <FilSelect :model-value="card.role" :options="ROLE_OPTIONS" :option-labels="ROLE_LABELS"
             :title="roleTip"
             @update:model-value="(v: string) => setRole(i, v)" />
@@ -272,6 +290,10 @@ const report = computed(() => {
 .fil-ee-card-row > :last-child { flex: 1 1 auto; min-width: 0; }
 /* Fixed gutter so the select and the slider start on the same line, whatever
  * the strength reads — the number sits where the slot number does. */
+/* Same gutter as the slot number it replaces, so the select below never shifts
+ * sideways when a run fills the thumbnails in. */
+.fil-ee-thumb { flex: 0 0 auto; width: 34px; height: 34px; object-fit: cover;
+  border-radius: 3px; display: block; }
 .fil-ee-slot { flex: 0 0 auto; width: 34px; text-align: right; font-size: 11px;
   line-height: 1.2; color: var(--fil-muted); font-variant-numeric: tabular-nums; }
 /* The last run, in one line. Clipped rather than wrapped so the node keeps its

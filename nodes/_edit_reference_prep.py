@@ -141,3 +141,47 @@ def apply_treatment(image, treatment: str):
     else:
         return image
     return samples.movedim(1, -1)
+
+
+# The prepared copies, small enough to travel with the run report.
+#
+# `as_preview_batch` above answers the same question for anyone who wires the
+# `references` output to a preview node. This answers it for everyone who does
+# not — which, going by every silent trap this node has had, is who needs it.
+# A card saying "palette" next to a washed-out colour field explains itself;
+# the same card next to nothing explains nothing.
+#
+# Sent as data URIs inside the `ui` payload rather than written to ComfyUI's
+# temp folder: at this size a thumbnail is a few kilobytes, and files would
+# mean names, collisions and cleanup for a picture whose whole life is one
+# panel repaint.
+THUMBNAIL_SIDE = 96
+
+
+def thumbnails(images: list, side: int = THUMBNAIL_SIDE) -> list[str]:
+    """One `data:image/png;base64,...` per prepared reference, in slot order.
+
+    Failure is per image and silent by design: a thumbnail that cannot be made
+    must cost its own card a picture, never the run. Pillow arrives with
+    ComfyUI, but this is the only place in the node that needs it, so the
+    import stays local.
+    """
+    import base64
+    import io
+
+    from PIL import Image
+
+    out = []
+    for image in images:
+        try:
+            frame = image[0] if image.ndim == 4 else image
+            array = (frame[..., :3].clamp(0, 1) * 255).round().to(torch.uint8).cpu().numpy()
+            picture = Image.fromarray(array, "RGB")
+            picture.thumbnail((side, side), Image.LANCZOS)
+            buffer = io.BytesIO()
+            picture.save(buffer, format="PNG", optimize=True)
+            encoded = base64.b64encode(buffer.getvalue()).decode("ascii")
+            out.append(f"data:image/png;base64,{encoded}")
+        except Exception:
+            out.append("")
+    return out

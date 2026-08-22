@@ -43,7 +43,12 @@ const HIDE = [...Object.keys(stringDefaults), ...Object.keys(numericDefaults)];
 const REF_SLOT_RE = /(^|\.)image\d+$/;
 
 /** What the backend parks on the node after every run (`ui.fil_edit_encoder`). */
-export type EditEncoderRun = { summary: string; warned: boolean };
+export type EditEncoderRun = {
+  summary: string;
+  warned: boolean;
+  /** One data URI per prepared reference, in slot order — what the model saw. */
+  thumbs?: string[];
+};
 
 export function countRefs(node: LGraphNode): number {
   const inputs = (node as { inputs?: { name?: string; link?: number | null }[] }).inputs ?? [];
