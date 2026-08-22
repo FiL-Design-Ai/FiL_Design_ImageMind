@@ -296,7 +296,7 @@ def _treatments_for(count: int, default: str, override: str) -> list[str]:
     return [names[min(index, len(names) - 1)] for index in range(count)]
 
 
-def _card_notes(cards, strengths, vl_shapes, can_weigh) -> list[str]:
+def _card_notes(cards, strengths, windows, vl_shapes, can_weigh) -> list[str]:
     """One short warning per card, empty where the card did what it said.
 
     The `summary` output already says all of this, in one place, for the whole
@@ -315,10 +315,13 @@ def _card_notes(cards, strengths, vl_shapes, can_weigh) -> list[str]:
                 "This mode never shows the references to the text encoder, so this "
                 "card's role and strength did nothing."
             )
-        elif weight != 1.0 and not can_weigh:
+        elif not can_weigh and (
+            weight != 1.0
+            or (slot < len(windows) and windows[slot] != edit_roles.DEFAULT_WINDOW)
+        ):
             notes.append(
-                "This text encoder builds no per-image embeddings, so the strength "
-                "did nothing — every reference pulled the same."
+                "This text encoder builds no per-image embeddings, so neither the "
+                "strength nor the window could be applied to this reference alone."
             )
         else:
             notes.append("")
@@ -327,6 +330,7 @@ def _card_notes(cards, strengths, vl_shapes, can_weigh) -> list[str]:
 
 def _summary(
     mode, vl_shapes, latent_shapes, strength, prompt_strength, prompt_weighed, treatments, cards,
+    windows,
     card_strengths, can_weigh, role_source, role_sent, method, speaks_vision,
     masked, main_geometry, sent_text,
 ):
@@ -382,6 +386,21 @@ def _summary(
             for slot, weight in enumerate(card_strengths, start=1)
             if weight != 1.0
         ]
+        timed = [
+            (slot, window)
+            for slot, window in enumerate(windows, start=1)
+            if window != edit_roles.DEFAULT_WINDOW
+        ]
+        if timed and vl_shapes and can_weigh:
+            lines.append(
+                "  windows: "
+                + ", ".join(
+                    "{} '{}' ({:g}-{:g})".format(
+                        slot, window, *edit_roles.WINDOWS[window]
+                    )
+                    for slot, window in timed
+                )
+            )
         if weights and not vl_shapes:
             lines.append(
                 "  per-reference strengths ignored — this mode never shows the "
@@ -501,6 +520,22 @@ def _summary(
             "'vision' channel reaches nothing here. Use 'latents' for this model."
         )
     return "\n".join(lines)
+
+
+def _with_timestep_range(conditioning, start: float, end: float):
+    """A copy of `conditioning` that only applies over `[start, end)`.
+
+    The same two keys core's `ConditioningSetTimestepRange` writes. Copied
+    rather than set in place: the caller holds the unranged conditioning and
+    ranges it again for the next segment.
+    """
+    ranged = []
+    for tokens, extra in conditioning:
+        extra = dict(extra)
+        extra["start_percent"] = float(start)
+        extra["end_percent"] = float(end)
+        ranged.append([tokens, extra])
+    return ranged
 
 
 def _blend_conditioning(weak, strong, strength: float):
@@ -993,34 +1028,82 @@ class FiLEditEncoder(io.ComfyNode):
         if not can_weigh:
             pulls, pushes = {}, {}
 
-        conditioning = encode(images_vl, pulls or None)
+        def composed(silenced=()):
+            """The conditioning with `silenced` slots held out, at full cost.
 
-        # One extra pass per pushed-away reference: the same encode with that
-        # one back at full weight, so the difference is what it was adding.
-        # Subtracting more of that difference than there was pushes past merely
-        # dropping it, which is what "away from this image" means.
-        #
-        # Several pushed at once are handled one at a time and superposed, which
-        # assumes their contributions add. Nothing here has measured that, and
-        # it is the reason the pushes are applied in slot order rather than
-        # being combined into one correction.
-        for slot, weight in pushes.items():
-            lifted = {other: value for other, value in pulls.items() if other != slot}
-            conditioning = _blend_conditioning(
-                conditioning, encode(images_vl, lifted or None), -weight
-            )
+            One place, so a sampling window — which needs this several times
+            over with different slots held out — cannot drift from the plain
+            path that has no windows at all.
+            """
+            weights = dict(pulls)
+            for slot in silenced:
+                weights[slot] = 0.0
+            conditioning = encode(images_vl, weights or None)
 
-        # The instruction's own weight. Silenced in place — same tokens, same
-        # length — so the difference between the two encodes is the text and
-        # nothing else, and can be re-added at any strength. Removing the
-        # instruction instead would change the sequence length, and
-        # `_blend_conditioning` would hand back the unweighted encode without
-        # a word; that is the trap this whole path is shaped around.
+            # One extra pass per pushed-away reference: the same encode with
+            # that one back at full weight, so the difference is what it was
+            # adding. Subtracting more of that difference than there was pushes
+            # past merely dropping it, which is what "away from this image"
+            # means.
+            #
+            # Several pushed at once are handled one at a time and superposed,
+            # which assumes their contributions add. Nothing here has measured
+            # that, and it is the reason the pushes are applied in slot order
+            # rather than being combined into one correction.
+            for slot, weight in pushes.items():
+                if slot in silenced:
+                    continue
+                lifted = {other: value for other, value in weights.items() if other != slot}
+                conditioning = _blend_conditioning(
+                    conditioning, encode(images_vl, lifted or None), -weight
+                )
+
+            # The instruction's own weight. Silenced in place — same tokens,
+            # same length — so the difference between the two encodes is the
+            # text and nothing else, and can be re-added at any strength.
+            # Removing the instruction instead would change the sequence
+            # length, and `_blend_conditioning` would hand back the unweighted
+            # encode without a word; that is the trap this path is shaped
+            # around.
+            if prompt_span is not None:
+                conditioning = _blend_conditioning(
+                    encode(images_vl, weights or None, mute=True),
+                    conditioning,
+                    prompt_strength,
+                )
+            return conditioning
+
         prompt_weighed = prompt_span is not None
-        if prompt_weighed:
-            conditioning = _blend_conditioning(
-                encode(images_vl, pulls or None, mute=True), conditioning, prompt_strength
-            )
+
+        # When during the run each reference is allowed to speak. Measured on
+        # Krea 2: the early steps settle the layout and the later ones the
+        # look, so a reference held out of the first fifth lends its surface
+        # without dictating the frame (see `edit_roles.WINDOWS`).
+        #
+        # The run is cut at every window edge, and each piece is encoded with
+        # the references that are silent there held out. Pieces are then
+        # concatenated — a sampler reads a conditioning list and applies each
+        # entry over its own `start_percent`/`end_percent`, which is how core's
+        # `ConditioningSetTimestepRange` and `ConditioningCombine` do it by
+        # hand.
+        windows = edit_roles.windows_for(cards)[:len(images_vl)]
+        windowed = can_weigh and any(
+            window != edit_roles.DEFAULT_WINDOW for window in windows
+        )
+        if not windowed:
+            conditioning = composed()
+        else:
+            edges = edit_roles.WINDOW_EDGES
+            segments = []
+            for low, high in zip(edges, edges[1:]):
+                if high <= low:
+                    continue
+                silenced = tuple(
+                    slot for slot, window in enumerate(windows)
+                    if not edit_roles.active_at(window, low, high)
+                )
+                segments.extend(_with_timestep_range(composed(silenced), low, high))
+            conditioning = segments
 
         if ref_latents:
             # `append=True` for the latents, as every core node that sets them
@@ -1036,7 +1119,7 @@ class FiLEditEncoder(io.ComfyNode):
 
         summary = _summary(
             reference_mode, vl_shapes, latent_shapes, reference_strength,
-            prompt_strength, prompt_weighed, treatments, cards, strengths, can_weigh, role_source,
+            prompt_strength, prompt_weighed, treatments, cards, windows, strengths, can_weigh, role_source,
             bool(tokenize_kwargs.get("llama_template")),
             reference_latents_method, _speaks_vision(clip),
             mask is not None, main_geometry, text,
@@ -1062,7 +1145,7 @@ class FiLEditEncoder(io.ComfyNode):
                     "thumbs": reference_prep.thumbnails(prepared),
                     # And, per card, the reason its own picture may not have
                     # arrived — on the card rather than in one shared sentence.
-                    "notes": _card_notes(cards, strengths, vl_shapes, can_weigh),
+                    "notes": _card_notes(cards, strengths, windows, vl_shapes, can_weigh),
                 }],
             },
         )

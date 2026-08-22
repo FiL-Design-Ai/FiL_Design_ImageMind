@@ -85,6 +85,21 @@
   the renders are recorded in `nodes/_edit_clip_hooks.py` so the idea is not had
   a second time.
 
+- **🎯 Edit Encoder: a reference can be told *when* to speak.**
+  A card takes a `window`: `whole run`, `layout`, or `look`. The boundaries come
+  from renders rather than round numbers — on Krea 2 at a realistic step count,
+  a reference present only in the first 15% hands over its framing and none of
+  its identity, while one held back until 40% lends its armour to a figure the
+  instruction composed. That is the structure-against-surface separation the
+  per-layer experiment failed to find; it lives in sampling time, not in the
+  encoder's depth. The same test at 8 steps says the feature does nothing, which
+  is a resolution artefact and is written down next to the table so the
+  measurement is not repeated badly. Under the hood the run is cut at every
+  window edge and each piece encoded with the references that are silent there
+  held out, then concatenated — the same `start_percent`/`end_percent` core's
+  `ConditioningSetTimestepRange` writes, which is also how the experiment was
+  built before any of this existed.
+
 ### Fixed
 
 - **📡 A channel's name tag no longer hides under the node it feeds.**

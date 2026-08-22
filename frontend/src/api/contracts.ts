@@ -5668,7 +5668,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
         "kind": "string",
         "label": "Reference cards",
         "default": "",
-        "tooltip": "A job for each reference, in slot order, as JSON: [{\"role\": \"lighting\"}, {\"role\": \"palette\"}]. The role decides what the model takes from that picture and brings the treatment that makes it true. Roles: as is, material, lighting, palette.",
+        "tooltip": "A job for each reference, in slot order, as JSON: [{\"role\": \"lighting\"}, {\"role\": \"palette\", \"window\": \"look\"}]. The role decides what the model takes from that picture and brings the treatment that makes it true; `strength` weighs that one reference (below zero steers away from it) and `window` says when during sampling it speaks — 'whole run', 'layout' for the early steps that settle the framing, 'look' for the later ones that settle the surface. Roles: as is, material, lighting, palette.",
         "values": [
           "as is",
           "material",

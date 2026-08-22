@@ -518,6 +518,92 @@ def test_the_muted_pass_is_cached_apart_from_the_plain_one():
     assert clip.encodes == 2, "moving the dial should reuse both passes"
 
 
+def _ranges_of(result):
+    """Every `[start, end)` the returned conditioning carries, in order."""
+    return [
+        (entry[1].get("start_percent"), entry[1].get("end_percent"))
+        for entry in result.args[0]
+    ]
+
+
+def test_without_a_window_the_conditioning_stays_one_piece():
+    """The plain path must not grow a timestep range it never asked for."""
+    _, _, result = _execute(clip=_ScalingClip(), reference_mode="vision",
+                            images={"image1": torch.rand(1, 64, 64, 3)})
+    assert _ranges_of(result) == [(None, None)]
+
+
+def test_a_window_cuts_the_run_at_its_edges():
+    _, _, result = _execute(
+        clip=_ScalingClip(), reference_mode="vision",
+        reference_cards='[{"role": "as is", "window": "look"}]',
+        images={"image1": torch.rand(1, 64, 64, 3)},
+    )
+    # Cut at every edge any window can fall on, so segments never straddle one.
+    assert _ranges_of(result) == [(0.0, 0.15), (0.15, 0.4), (0.4, 1.0)]
+
+
+def test_a_look_card_is_silent_early_and_a_layout_card_late():
+    """The whole point: which reference is speaking depends on when."""
+    clip = _ScalingClip()
+    image = torch.rand(1, 64, 64, 3)
+    _, _, look = _execute(clip=clip, reference_mode="vision",
+                          reference_cards='[{"role": "as is", "window": "look"}]',
+                          images={"image1": image})
+    early, middle, late = (entry[0][0, 0].item() for entry in look.args[0])
+    assert early == middle == 0.0, "a 'look' reference must not speak while the layout settles"
+    assert late > 0.0
+
+    _, _, layout = _execute(clip=_ScalingClip(), reference_mode="vision",
+                            reference_cards='[{"role": "as is", "window": "layout"}]',
+                            images={"image1": image})
+    early, middle, late = (entry[0][0, 0].item() for entry in layout.args[0])
+    assert early > 0.0
+    assert middle == late == 0.0
+
+
+def test_two_cards_can_speak_at_different_times():
+    clip = _ScalingClip()
+    _, _, result = _execute(
+        clip=clip, reference_mode="vision",
+        reference_cards='[{"role": "as is", "window": "layout"}, {"role": "as is", "window": "look"}]',
+        images={"image1": torch.rand(1, 64, 64, 3), "image2": torch.rand(1, 64, 64, 3)},
+    )
+    early, middle, late = (entry[0][0, 0].item() for entry in result.args[0])
+    # One reference each at the ends, neither in the gap between the windows.
+    assert early == pytest.approx(late)
+    assert middle == 0.0
+    assert early > middle
+
+
+def test_the_summary_names_each_window_and_its_edges():
+    _, _, result = _execute(
+        clip=_ScalingClip(), reference_mode="vision",
+        reference_cards='[{"role": "as is", "window": "look"}]',
+        images={"image1": torch.rand(1, 64, 64, 3)},
+    )
+    assert "windows: 1 'look' (0.4-1)" in _summary_of(result)
+
+
+def test_an_unweighable_encoder_cannot_honour_a_window_and_says_so():
+    _, _, result = _execute(
+        clip=_VisionClip(), reference_mode="vision",
+        reference_cards='[{"role": "as is", "window": "look"}]',
+        images={"image1": torch.rand(1, 64, 64, 3)},
+    )
+    assert _ranges_of(result) == [(None, None)], "no encoder seam, no honest window"
+    assert "nor the window" in result.ui["fil_edit_encoder"][0]["notes"][0]
+
+
+def test_an_unreadable_window_falls_back_to_the_whole_run():
+    _, _, result = _execute(
+        clip=_ScalingClip(), reference_mode="vision",
+        reference_cards='[{"role": "as is", "window": "whenever"}]',
+        images={"image1": torch.rand(1, 64, 64, 3)},
+    )
+    assert _ranges_of(result) == [(None, None)]
+
+
 def test_a_card_weighs_its_own_reference():
     """The dial the node could not offer before: one picture, not all of them."""
     plain = _ScalingClip()

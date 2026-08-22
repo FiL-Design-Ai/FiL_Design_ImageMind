@@ -209,7 +209,10 @@ def parse_cards(text: str, count: int) -> list[dict]:
     that was written for reference 2 is a guess this node has no business
     making.
     """
-    cards = [{"role": DEFAULT_ROLE, "treatment": "", "strength": 1.0} for _ in range(count)]
+    cards = [
+        {"role": DEFAULT_ROLE, "treatment": "", "strength": 1.0, "window": DEFAULT_WINDOW}
+        for _ in range(count)
+    ]
     text = (text or "").strip()
     if not text:
         return cards
@@ -241,7 +244,66 @@ def parse_cards(text: str, count: int) -> list[dict]:
         cards[slot]["role"] = resolve_role(str(entry.get("role") or DEFAULT_ROLE))
         cards[slot]["treatment"] = str(entry.get("treatment") or "")
         cards[slot]["strength"] = _strength(entry.get("strength"))
+        cards[slot]["window"] = _window(entry.get("window"))
     return cards
+
+
+# When during sampling a reference is allowed to speak.
+#
+# Rendered on Krea 2 2026-08-23, 24 steps, one reference, one seed, the scene
+# instruction "standing on a rainy Tokyo street at night", with the windows
+# built by hand out of core's `ConditioningSetTimestepRange` and
+# `ConditioningCombine` so the answer did not depend on this node being right:
+#
+#   reference only in the first 15%   the reference is gone — an ordinary
+#                                     woman in a hoodie — but the framing is
+#                                     the reference's: a portrait, head on
+#   reference only in the first 40%   subject and armour arrive, the fine face
+#                                     markings do not
+#   reference only after 40%          a full-length figure with an umbrella,
+#                                     wearing the reference's armour: the
+#                                     instruction decided the frame, the
+#                                     reference decided the surface
+#   reference only after 15%          near enough the plain encode
+#
+# So the early steps carry layout and the later ones carry look, and the
+# boundary is not where a round number would put it: at 0.15 the reference
+# still dictates the composition, at 0.4 it no longer does.
+#
+# The same test at 8 steps says none of this — it reads as a plain on/off
+# switch, because 15% of eight steps is one step. Anyone re-measuring this
+# needs a realistic step count or they will conclude the feature does nothing.
+WINDOWS = {
+    "whole run": (0.0, 1.0),
+    "layout": (0.0, 0.15),
+    "look": (0.4, 1.0),
+}
+DEFAULT_WINDOW = "whole run"
+
+# Every boundary any window can start or end on, which is where the sampling
+# run has to be cut into segments.
+WINDOW_EDGES = sorted({edge for window in WINDOWS.values() for edge in window})
+
+
+def _window(value) -> str:
+    """One card's window, defaulting to the whole run for anything unreadable."""
+    name = str(value or DEFAULT_WINDOW)
+    return name if name in WINDOWS else DEFAULT_WINDOW
+
+
+def windows_for(cards: list[dict]) -> list[str]:
+    """Each card's window in slot order."""
+    return [str(card.get("window", DEFAULT_WINDOW)) for card in cards]
+
+
+def active_at(window: str, start: float, end: float) -> bool:
+    """True when a card with this window speaks over the whole `[start, end)`.
+
+    Asked per segment rather than per step: segments are cut on the window
+    edges, so a segment is always wholly inside a window or wholly outside it.
+    """
+    low, high = WINDOWS.get(window, WINDOWS[DEFAULT_WINDOW])
+    return low <= start and end <= high
 
 
 def _strength(value) -> float:

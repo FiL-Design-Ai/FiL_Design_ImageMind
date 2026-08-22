@@ -588,6 +588,15 @@ what the last run did. Everything else the node accepts stays out of the way —
 widgets a card replaced are hidden, and the size caps and the latents method sit under
 advanced.
 
+**A card** carries a `role`, a signed `strength`, an optional `window`, and an optional
+`treatment` override — e.g. `[{"role": "lighting"}, {"role": "palette", "window": "look"}]`.
+
+**Windows** say when during sampling a reference speaks, and the boundaries are measured, not
+guessed: on Krea 2 the early steps settle the layout and the later ones the look. `layout`
+(the first 15%) lets a reference choose the framing and then go quiet; `look` (after 40%) holds
+it back until the frame is decided, so it lends its surface without dictating the composition;
+`whole run` is the default. Each distinct window costs an encoder pass the first time.
+
 **Roles** (`reference_cards`): `as is` · `material` (surface, subject loosens) ·
 `lighting` (light and layout, subject replaced) · `palette` (colours only). Each brings the
 treatment that makes it true. A card's `strength` is signed: `1` holds the reference, `0`

@@ -58,7 +58,22 @@ const ROLE_OPTIONS: string[] =
   ?? ["as is"];
 const DEFAULT_ROLE = ROLE_OPTIONS[0] ?? "as is";
 
-type Card = { role: string; strength: number; treatment?: string };
+type Card = { role: string; strength: number; window: string; treatment?: string };
+
+/**
+ * When during sampling a reference speaks — the values and the labels of
+ * `common/edit_roles.WINDOWS`, which also carries the renders that chose the
+ * boundaries. Written out here rather than read from the contract because the
+ * contract's `values` list belongs to the roles; if a window is ever added
+ * there, it has to be added here too.
+ */
+const WINDOW_OPTIONS = ["whole run", "layout", "look"];
+const DEFAULT_WINDOW = "whole run";
+const WINDOW_LABELS: Record<string, string> = {
+  "whole run": "⏱ all",
+  layout: "⏱ layout",
+  look: "⏱ look",
+};
 
 /** What the backend clamps a card's pull to (`common/edit_roles.STRENGTH_*`). */
 const STRENGTH_MIN = -1;
@@ -86,8 +101,10 @@ const cards = computed<Card[]>(() => {
     const role = typeof entry?.role === "string" ? entry.role : DEFAULT_ROLE;
     const raw = Number(entry?.strength);
     const strength = Number.isFinite(raw) ? Math.min(STRENGTH_MAX, Math.max(STRENGTH_MIN, raw)) : 1;
+    const asked = typeof entry?.window === "string" ? entry.window : DEFAULT_WINDOW;
+    const window = WINDOW_OPTIONS.includes(asked) ? asked : DEFAULT_WINDOW;
     const resolved = ROLE_OPTIONS.includes(role) ? role : (MERGED_ROLES[role] ?? DEFAULT_ROLE);
-    return { role: ROLE_OPTIONS.includes(resolved) ? resolved : DEFAULT_ROLE, strength };
+    return { role: ROLE_OPTIONS.includes(resolved) ? resolved : DEFAULT_ROLE, strength, window };
   });
 });
 
@@ -102,14 +119,28 @@ const cards = computed<Card[]>(() => {
  * look edited.
  */
 function write(next: Card[]) {
-  const touched = next.some(card => card.role !== DEFAULT_ROLE || card.strength !== 1);
+  const touched = next.some(
+    card => card.role !== DEFAULT_ROLE || card.strength !== 1 || card.window !== DEFAULT_WINDOW,
+  );
+  // Defaults are left out of the JSON: they are what the backend fills in, and
+  // writing them down makes an untouched card look edited.
   cardsField.value = touched
-    ? JSON.stringify(next.map(card => (card.strength === 1 ? { role: card.role } : card)))
+    ? JSON.stringify(next.map((card) => {
+        const out: Record<string, unknown> = { role: card.role };
+        if (card.strength !== 1) out.strength = card.strength;
+        if (card.window !== DEFAULT_WINDOW) out.window = card.window;
+        if (card.treatment) out.treatment = card.treatment;
+        return out;
+      }))
     : "";
 }
 
 function setRole(slot: number, role: string) {
   write(cards.value.map((card, i) => (i === slot ? { ...card, role } : card)));
+}
+
+function setWindow(slot: number, window: string) {
+  write(cards.value.map((card, i) => (i === slot ? { ...card, window } : card)));
 }
 
 function setStrength(slot: number, strength: number) {
@@ -172,6 +203,14 @@ const promptStrengthTip = computed(() =>
     + "costs nothing. Below 1 the references decide more and the text less; 0 is what the "
     + "model takes from the pictures alone. Above 1 pushes the instruction harder. Anything "
     + "but 1 encodes a second time with the instruction silenced."),
+);
+
+const windowTip = computed(() =>
+  t("eep_window_tt",
+    "When during sampling this reference speaks. Measured on Krea 2: the early steps settle "
+    + "the layout and the later ones the look. 'layout' lets it choose the framing and then "
+    + "go quiet; 'look' holds it back until the frame is decided, so it lends its surface "
+    + "without dictating the composition. Each window costs an encoder pass the first time."),
 );
 
 const strengthTip = computed(() =>
@@ -272,6 +311,9 @@ const report = computed(() => {
           <FilSelect :model-value="card.role" :options="ROLE_OPTIONS" :option-labels="ROLE_LABELS"
             :title="roleTip"
             @update:model-value="(v: string) => setRole(i, v)" />
+          <FilSelect class="fil-ee-window" :model-value="card.window" :options="WINDOW_OPTIONS"
+            :option-labels="WINDOW_LABELS" :title="windowTip"
+            @update:model-value="(v: string) => setWindow(i, v)" />
         </div>
         <div class="fil-ee-card-row">
           <span class="fil-ee-slot">{{ strengthLabel(card.strength) }}</span>
@@ -303,6 +345,8 @@ const report = computed(() => {
   padding-left: 40px; }
 .fil-ee-card-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .fil-ee-card-row > :last-child { flex: 1 1 auto; min-width: 0; }
+/* The window is a short fixed choice next to the role, which is the long one. */
+.fil-ee-card-row > .fil-ee-window { flex: 0 0 auto; width: 92px; }
 /* Fixed gutter so the select and the slider start on the same line, whatever
  * the strength reads — the number sits where the slot number does. */
 /* Same gutter as the slot number it replaces, so the select below never shifts

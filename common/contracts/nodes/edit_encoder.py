@@ -27,9 +27,13 @@ CONTRACT = NodeContract(
             _string(
                 "reference_cards", default="", label="Reference cards",
                 tooltip="A job for each reference, in slot order, as JSON: "
-                        '[{"role": "lighting"}, {"role": "palette"}]. The role decides '
-                        "what the model takes from that picture and brings the "
-                        "treatment that makes it true. Roles: "
+                        '[{"role": "lighting"}, {"role": "palette", "window": "look"}]. '
+                        "The role decides what the model takes from that picture and "
+                        "brings the treatment that makes it true; `strength` weighs that "
+                        "one reference (below zero steers away from it) and `window` says "
+                        "when during sampling it speaks — 'whole run', 'layout' for the "
+                        "early steps that settle the framing, 'look' for the later ones "
+                        "that settle the surface. Roles: "
                         + ", ".join(ROLE_NAMES) + ".",
                 values=ROLE_NAMES,
             ),
