@@ -142,14 +142,27 @@ SYSTEM_PROMPT_SUGGESTED = (
 #   keep subject, change scene  works, and holds the reference's pose closest
 #                               of the three.
 #
-# The two that were cut asked for something this channel cannot give. 'Use as
-# a style reference — not its subject' and 'keep the scene, change the subject'
-# both came back with the subject copied in full: `vision` hands the whole
-# picture to the encoder, and wording cannot make it unsee the parts it is told
-# to ignore. `krea-reference` gets that effect by *treating* the image first —
-# greyscale, blur, palette wash — so only the wanted aspect survives to be
-# looked at. Until this node can do the same, a preset promising it would be
-# the same silent wrongness the rest of this file exists to prevent.
+#   use as style reference     works, but only with a `reference_treatment`.
+#
+# 'keep the scene, change the subject' stays cut: it came back with the subject
+# copied in full, and there is nothing to treat that would fix it — the whole
+# picture is the subject there.
+#
+# 'use as style reference' was cut for the same reason and has been restored,
+# because `reference_treatment` is the thing that was missing. Measured on
+# Krea 2, one seed, a style-only prompt, the same portrait reference:
+#
+#   treatment 'normal'        the reference's subject is reproduced in full,
+#                             exactly as when the preset was first cut.
+#   treatment 'palette wash'  the subject is gone and a new one appears.
+#
+# And the washed reference is still doing something: the same run against a
+# teal reference instead of a warm one gives a different picture in a cooler
+# palette, so this is not simply the reference being ignored.
+#
+# The preset therefore ships with the one condition it needs, and `_summary`
+# says so out loud when it is selected with no treatment — the alternative
+# would be the silent wrongness that got it cut the first time.
 PROMPT_PRESETS = {
     "none": "",
     "edit this image": "Edit the reference image. ",
@@ -157,7 +170,15 @@ PROMPT_PRESETS = {
         "Keep the subject of the reference image — their face, hair and pose — "
         "exactly as they are, and change the scene around them to: "
     ),
+    "use as style reference": (
+        "Use the reference image only for its style — its palette, its light and "
+        "the way it is rendered. Do not reproduce its subject. Paint instead: "
+    ),
 }
+
+# The preset above needs the reference treated, or it promises what it cannot
+# deliver. Named here so `_summary` and the preset list cannot drift apart.
+STYLE_PRESET = "use as style reference"
 
 SYSTEM_PRESETS = {
     "none": "",
@@ -228,7 +249,7 @@ def _slot_index(name: str) -> int:
 
 
 def _summary(
-    mode, vl_shapes, latent_shapes, strength, blended, treatment,
+    mode, vl_shapes, latent_shapes, strength, blended, treatment, prompt_preset,
     role_source, role_sent, method, speaks_vision,
 ):
     """Plain-language account of what this run actually did.
@@ -287,6 +308,13 @@ def _summary(
             "NOTE: the latent channel concatenates each reference to the frame's own "
             "tokens. Tiling the source into the output is what it does, not a fault — "
             "switch reference_mode to 'vision' if that is not what you want."
+        )
+    if vl_shapes and prompt_preset == STYLE_PRESET and treatment in (None, "", "normal"):
+        lines.append(
+            "NOTE: the style preset asks the encoder to ignore the reference's subject, "
+            "and wording alone does not achieve that — it is handed the whole picture. "
+            "Set reference_treatment (measured: 'palette wash') so there is no subject "
+            "left to copy."
         )
     if vl_shapes and not speaks_vision:
         lines.append(
@@ -640,7 +668,7 @@ class FiLEditEncoder(io.ComfyNode):
             conditioning,
             _summary(
                 reference_mode, vl_shapes, latent_shapes, reference_strength, blended,
-                reference_treatment, role_source, bool(tokenize_kwargs.get("llama_template")),
+                reference_treatment, prompt_preset, role_source, bool(tokenize_kwargs.get("llama_template")),
                 reference_latents_method, _speaks_vision(clip),
             ),
             reference_prep.as_preview_batch(prepared),

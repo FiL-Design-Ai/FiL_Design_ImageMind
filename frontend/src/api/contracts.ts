@@ -5672,7 +5672,8 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
         "values": [
           "none",
           "edit this image",
-          "keep subject, change scene"
+          "keep subject, change scene",
+          "use as style reference"
         ],
         "columns": null,
         "searchable": null,

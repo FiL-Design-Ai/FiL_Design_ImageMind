@@ -21,7 +21,8 @@ CONTRACT = NodeContract(
             ),
             _combo(
                 "prompt_preset",
-                values=["none", "edit this image", "keep subject, change scene"],
+                values=["none", "edit this image", "keep subject, change scene",
+                        "use as style reference"],
                 default="none", label="Preset",
                 tooltip="A ready-made opening, prepended to whatever you type.",
             ),

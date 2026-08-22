@@ -747,3 +747,24 @@ def test_the_summary_names_the_treatment():
     _, _, plain = _execute(clip=_VisionClip(), reference_mode="vision",
                            images={"image1": torch.rand(1, 64, 64, 3)})
     assert "treated" not in _summary_of(plain)
+
+
+def test_the_style_preset_warns_when_the_reference_is_untreated():
+    """It asks the encoder to ignore a subject it can see. Treating removes it.
+
+    Measured on Krea 2: with `normal` the reference's subject is reproduced in
+    full (which is why this preset was cut once); with `palette wash` it is
+    gone and the palette still carries.
+    """
+    clip = _VisionClip()
+    _, _, result = _execute(clip=clip, reference_mode="vision",
+                            prompt_preset="use as style reference",
+                            images={"image1": torch.rand(1, 64, 64, 3)})
+    assert "Set reference_treatment" in _summary_of(result)
+
+    clip = _VisionClip()
+    _, _, treated = _execute(clip=clip, reference_mode="vision",
+                             prompt_preset="use as style reference",
+                             reference_treatment="palette wash",
+                             images={"image1": torch.rand(1, 64, 64, 3)})
+    assert "Set reference_treatment" not in _summary_of(treated)
