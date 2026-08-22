@@ -94,6 +94,27 @@ _REFERENCE_METHODS = ["index_timestep_zero", "index", "offset", "uxo"]
 # The two copies are sized on their own axes — `vision_megapixels` for the one
 # the encoder reads, `latent_megapixels` for the one the VAE encodes. They feed
 # different halves of the model and neither wants the other's resolution.
+#
+# How hard the reference is held, measured on Krea 2 with one seed, one
+# reference and one instruction ("standing on a rainy Tokyo street at night"):
+#
+#   vision, 0.15 MP   the subject is recognisable but loose — much of the
+#                     reference's hardware is invented afresh
+#   vision, 0.50 MP   closer: the implant and the cabling come back
+#   vision, 1.00 MP   closest of the three; face structure and hardware hold
+#   latents           destroyed — the frame is a mosaic of reference tiles
+#   both              the edit lands, with the mosaic bleeding through it
+#
+# So on this architecture the answer to "hold the reference better" is more
+# vision resolution, not the latent channel. The default stays 0.15 (core's
+# value for the Qwen edit nodes) because raising it changes the output of every
+# saved workflow silently, and it costs vision tokens and time — but the dial is
+# the one worth turning, and the tooltip says so.
+#
+# Related diagnostic, since the encoder cannot be asked what it saw: run with an
+# empty prompt. What comes out is what the model took from the picture and
+# nothing else — measured above, it is very nearly a reconstruction of the
+# reference.
 
 # A role the vision-language encoder can be given before it reads the picture,
 # offered through `system_preset` below.
@@ -600,7 +621,7 @@ class FiLEditEncoder(io.ComfyNode):
                     optional=True, advanced=True,
                     tooltip=t(
                         "ee_vl_mp",
-                        "Size of the copy the text encoder reads. 0.15 MP (~384x384) is what core uses — bigger lets it read fine detail, at more vision tokens and more time.",
+                        "Size of the copy the text encoder reads. This is the dial for holding a reference more closely: measured on Krea 2, 0.15 MP keeps the subject only loosely while 1.0 MP holds its structure and detail. 0.15 (~384x384) is what core uses and is kept as the default because raising it changes every saved workflow's output — and costs vision tokens and time.",
                     ),
                 ),
                 io.Float.Input(
