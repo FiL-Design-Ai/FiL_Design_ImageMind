@@ -71,6 +71,20 @@
   without a word. Its span is found by tokenizing the same call twice and taking
   the first divergence, so no special-token id is hardcoded anywhere.
 
+- **🎯 Edit Encoder: the per-layer weighting that other packs advertise does not
+  apply here, and the seam that does exist is too weak to use.**
+  `krea-reference` weighs references "per layer" by splitting the conditioning's
+  feature dimension into twelve and scaling the slices. On Qwen3-VL — Krea 2's
+  text encoder — that dimension is one layer's hidden state, so those slices are
+  arbitrary pieces of a 1024-wide vector, and neither the explanation nor the
+  tuned numbers transfer. The architecture does have a genuine depth seam: the
+  base image embedding enters at the input while `deepstack` is injected inside
+  the transformer at three fixed layers. Weighing those apart was built, rendered
+  on Krea 2, and removed — the reference's identity rides the base embedding
+  entirely, and the injections carry too little to steer with. No control shipped;
+  the renders are recorded in `nodes/_edit_clip_hooks.py` so the idea is not had
+  a second time.
+
 ### Fixed
 
 - **📡 A channel's name tag no longer hides under the node it feeds.**

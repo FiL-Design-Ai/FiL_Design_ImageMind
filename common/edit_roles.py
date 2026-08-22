@@ -78,9 +78,14 @@ nothing you can see is an option that costs a decision and returns nothing. The
 cut names live on in `MERGED_ROLES` so saved workflows keep their meaning.
 
 The four that remain are what this node can currently prove. Splitting `light`
-from `layout`, or `style` from `palette`, needs the mechanism `krea-reference`
-uses for it — per-layer conditioning weights, structure taps separately from
-appearance taps — and until that exists the words alone did not move a render.
+from `layout`, or `style` from `palette`, would need a mechanism that reaches
+the encoder at more than one depth, and the obvious candidate has been tried
+and rejected: `nodes/_edit_clip_hooks.scaled_images` carries the renders. In
+short, `krea-reference`'s "per-layer weights" do not describe this
+architecture, and the real depth seam it does have — the base image embedding
+against the `deepstack` injections — turned out to carry the identity entirely
+in the base half, with the injections too weak to steer. Bringing any of the
+cut roles back means bringing a render where it differs, not an argument.
 """
 
 from __future__ import annotations
@@ -262,7 +267,8 @@ def _strength(value) -> float:
 
     So the dial is not linear and the tooltips must not imply that it is. Nearly
     all of the loosening happens close to zero, and below zero is a different
-    thing rather than less of the same.
+    thing rather than less of the same. `prompt_strength` is the opposite —
+    even the whole way across — which is why the two are described apart.
 
     Unreadable values become 1.0 — the same "a typo must not cost a render"
     rule the card parser follows.

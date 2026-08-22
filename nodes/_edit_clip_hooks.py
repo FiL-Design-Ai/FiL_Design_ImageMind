@@ -101,8 +101,38 @@ def _scaled(value, factor):
 
 
 @contextmanager
-def scaled_images(clip, scales: dict[int, float] | None):
+def scaled_images(clip, scales: dict | None):
     """Weigh each reference by `scales[slot]` for the duration of one encode.
+
+    One number per slot, weighing everything that picture contributes. There
+    was a `(base, deepstack)` pair here for a while and it is gone; the note
+    below is why, kept so the idea is not had a second time.
+
+    `krea-reference` weighs references "per layer" by splitting the
+    conditioning's feature dimension into twelve and scaling the slices. That
+    does not carry over: on Qwen3-VL the conditioning is one layer's hidden
+    state (`Qwen3VLClipModel` is an `SDClipModel` with `layer="hidden"`), not a
+    stack of twelve, so those slices are arbitrary pieces of a 1024-wide
+    vector. Their renders are real; the explanation and the numbers are not
+    transferable.
+
+    The architecture does have a real depth seam — the base embedding enters at
+    the input while `deepstack` is injected inside the transformer at three
+    fixed layers (`deepstack_visual_indexes`, comfy/text_encoders/llama.py) —
+    and weighing those apart was built and rendered on Krea 2 2026-08-22, one
+    reference, one seed:
+
+      base 1, deep 0    the same subject, the same frame; the difference is
+                        the size of a seed change
+      base 0, deep 1    the reference is gone — another face, plain armour,
+                        none of its markings
+      base 1, deep 2    a seed change again
+      base 0.5, deep 1  close to the plain encode
+
+    So the identity rides the base embedding and the injections carry too
+    little to steer with: no structure-against-detail axis, nothing worth a
+    control. The split was removed rather than shipped dark. Reviving it means
+    showing a render where the two halves do different work.
 
     Slots not named in `scales` are left at 1.0. An empty or absent mapping,
     and an encoder with no `preprocess_embed`, both yield without patching
@@ -137,8 +167,9 @@ def scaled_images(clip, scales: dict[int, float] | None):
         if factor is None or factor == 1.0 or embedding is None:
             return result
         # `deepstack` carries the same picture into several layers; scaling the
-        # embedding alone would weigh the reference in one place and not the
-        # others.
+        # embedding alone would weigh the reference in some layers and not in
+        # others. They move together — see the note above for the renders that
+        # settled it.
         if isinstance(extra, dict) and "deepstack" in extra:
             extra = dict(extra)
             extra["deepstack"] = _scaled(extra["deepstack"], factor)
