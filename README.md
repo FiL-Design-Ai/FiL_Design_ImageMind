@@ -581,6 +581,7 @@ and a pull of its own — and the node says in words what it did with them.
 | `vision_megapixels` | FLOAT | `0.15` | size of the copy the text encoder reads |
 | `latent_megapixels` | FLOAT | `1.0` | cap for the copy the VAE encodes (smaller references stay native) |
 | `reference_latents_method` | COMBO | `index_timestep_zero` | index_timestep_zero, index, offset, uxo |
+| `prompt_strength` | FLOAT | `1.0` | how loudly the written instruction speaks against the pictures |
 
 The panel is four things: the prompt, the reference mode, one card per wired reference, and
 what the last run did. Everything else the node accepts stays out of the way — the legacy
@@ -593,6 +594,14 @@ treatment that makes it true. A card's `strength` is signed: `1` holds the refer
 drops it, and below zero steers *away* from it. Per-reference strength needs a
 vision-language encoder (Qwen3-VL); the card says so on itself when there is none, and the
 `summary` output spells it out.
+
+**Prompt strength** cross-fades between the words and the pictures, and measured on Krea 2 it
+does it evenly: `0` is what the model took from the references alone, `0.5` brings the written
+scene in half way, `1` is the instruction as written, `1.5` pushes it harder. Anything but `1`
+encodes a second time with the instruction silenced in place — the tokens stay, their
+embeddings go to zero — so both passes are the same length and can be weighed against each
+other. Note the contrast with a card's own strength, which holds its reference right up to `0`
+and then lets go all at once.
 
 Each card shows a thumbnail of the copy the model actually received, treatment already
 applied — picking `palette` turns the portrait on the card into a colour field.

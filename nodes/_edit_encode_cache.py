@@ -61,7 +61,7 @@ def _tensor_fingerprint(value):
     )
 
 
-def make_key(clip, text: str, template, images, scales=None) -> tuple | None:
+def make_key(clip, text: str, template, images, scales=None, muted=False) -> tuple | None:
     """Key for one encode context, or None when it cannot be cached.
 
     `id(clip)` rather than the object: the key has to be hashable and must not
@@ -82,7 +82,7 @@ def make_key(clip, text: str, template, images, scales=None) -> tuple | None:
     # tensors already in hand the way `reference_strength` is. Two runs that
     # differ only in a card's strength are two different passes.
     weights = tuple(sorted((int(slot), float(value)) for slot, value in (scales or {}).items()))
-    return (id(clip), str(text), str(template), tuple(prints), weights)
+    return (id(clip), str(text), str(template), tuple(prints), weights, bool(muted))
 
 
 def lookup(key, clip):

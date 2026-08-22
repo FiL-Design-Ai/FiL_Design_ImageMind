@@ -99,6 +99,14 @@ CONTRACT = NodeContract(
                 default="index_timestep_zero", label="Latents method", section="advanced",
                 tooltip="Only used when reference_mode sends latents.",
             ),
+            _slider(
+                "prompt_strength", default=1.0, minv=0.0, maxv=2.0, step=0.05,
+                label="Prompt strength",
+                tooltip="How loudly the written instruction speaks against the pictures. "
+                        "1.0 is as written and costs nothing. Below 1 the references decide "
+                        "more; 0 is what the model takes from the pictures alone. Anything "
+                        "but 1.0 encodes a second time with the instruction silenced.",
+            ),
         ],
     ),
     outputs=[

@@ -388,6 +388,136 @@ def _weight_of(result):
     return float(result[0][0][0][0, 0])
 
 
+IMAGE_EMBED_SIZE = 3
+
+
+class _MutingLeaf:
+    """A text model whose `process_tokens` this node can silence a span inside.
+
+    One embedding position per token, `IMAGE_EMBED_SIZE` of them per picture —
+    the expansion that makes a token span and an embedding span two different
+    things, which is the arithmetic the hook has to get right.
+    """
+
+    def process_tokens(self, tokens, device=None):
+        # A bare list of rows, exactly as comfy/sd1_clip.py passes it — the
+        # shape this fake used to get wrong, which let a crash reach a render.
+        assert not hasattr(tokens, "values"), "process_tokens takes rows, not the token dict"
+        row = tokens[0]
+        positions, info, index = 0, [], 0
+        for item in row:
+            element = item[0] if isinstance(item, tuple) else item
+            if isinstance(element, dict) and element.get("type") == "image":
+                info.append({"type": "image", "index": index, "size": IMAGE_EMBED_SIZE})
+                positions += IMAGE_EMBED_SIZE
+                index += 1
+            else:
+                positions += 1
+        embeds = torch.ones(1, positions, 4)
+        mask = torch.ones(1, positions)
+        return embeds, mask, [positions], info
+
+
+class _MutingClip(_VisionClip):
+    """A CLIP that tokenizes text into words, so an instruction has a span."""
+
+    def __init__(self):
+        super().__init__()
+        self.cond_stage_model = type("Cond", (), {"clip": "leaf", "leaf": _MutingLeaf()})()
+
+    def tokenize(self, prompt, images=None, llama_template=None, **kwargs):
+        super().tokenize(prompt, images=images, llama_template=llama_template, **kwargs)
+        row = [{"type": "image"} for _ in (images or [])]
+        row += list(range(1, len(str(prompt).split()) + 1))
+        return {"qwen3vl": [row]}
+
+    def encode_from_tokens_scheduled(self, tokens):
+        # Counted apart from `prompts`, which also records the two throwaway
+        # tokenizations the span search makes. Encoder passes are the cost.
+        self.encodes = getattr(self, "encodes", 0) + 1
+        rows = next(iter(tokens.values()))
+        embeds, mask, _, _ = self.cond_stage_model.leaf.process_tokens(rows)
+        total = float((embeds.sum(dim=-1) * mask).sum())
+        return [[torch.full((1, 4), total), {"pooled_output": torch.zeros(1, 4)}]]
+
+
+def test_the_instruction_can_be_weighed_against_the_pictures():
+    """Silenced in place, so the two encodes stay the same length and compare."""
+    clip = _MutingClip()
+    image = torch.rand(1, 64, 64, 3)
+    _, _, full = _execute(clip=clip, reference_mode="vision", prompt="one two three four",
+                          images={"image1": image})
+    quiet = _MutingClip()
+    _, _, muted = _execute(clip=quiet, reference_mode="vision", prompt="one two three four",
+                           prompt_strength=0.0, images={"image1": image})
+    # Four instruction words silenced, out of an embedding row that also holds
+    # the picture's own positions.
+    assert _weight_of(muted) == pytest.approx(_weight_of(full) - 4 * 4)
+    assert "Prompt strength 0" in _summary_of(muted)
+    # One extra pass, and only when the dial is off 1.0.
+    assert quiet.encodes == 2 and clip.encodes == 1
+
+
+def test_the_prompt_dial_lands_halfway_at_a_half():
+    clip = _MutingClip()
+    image = torch.rand(1, 64, 64, 3)
+    _, _, full = _execute(clip=clip, reference_mode="vision", prompt="one two three four",
+                          images={"image1": image})
+    _, _, half = _execute(clip=_MutingClip(), reference_mode="vision",
+                          prompt="one two three four", prompt_strength=0.5,
+                          images={"image1": image})
+    assert _weight_of(half) == pytest.approx(_weight_of(full) - 8.0)
+
+
+def test_the_prompt_dial_costs_nothing_at_one():
+    clip = _MutingClip()
+    _execute(clip=clip, reference_mode="vision", prompt="one two three",
+             prompt_strength=1.0, images={"image1": torch.rand(1, 64, 64, 3)})
+    assert clip.encodes == 1
+
+
+def test_a_hook_that_breaks_costs_the_feature_and_not_the_render():
+    """Both hooks read ComfyUI's internals, so both must fail to the plain pass."""
+    clip = _MutingClip()
+    leaf = clip.cond_stage_model.leaf
+    original = leaf.process_tokens
+
+    def hostile(tokens, device=None):
+        embeds, mask, num, info = original(tokens, device)
+        return embeds, mask, num, [{"type": "image", "index": 0, "size": "not a number"}]
+
+    leaf.process_tokens = hostile
+    _, _, result = _execute(clip=clip, reference_mode="vision", prompt="one two three",
+                            prompt_strength=0.0, images={"image1": torch.rand(1, 64, 64, 3)})
+    # It ran, and it produced conditioning rather than an exception.
+    assert result.args[0]
+
+
+def test_an_encoder_that_cannot_be_silenced_says_so():
+    """`_VisionClip` exposes no `process_tokens`, so there is nothing to mute."""
+    _, _, result = _execute(clip=_VisionClip(), reference_mode="vision", prompt="one two",
+                            prompt_strength=0.4, images={"image1": torch.rand(1, 64, 64, 3)})
+    assert "prompt strength 0.4 did nothing" in _summary_of(result)
+
+
+def test_an_empty_instruction_has_no_strength_to_weigh():
+    _, _, result = _execute(clip=_MutingClip(), reference_mode="vision", prompt="",
+                            prompt_strength=0.5, images={"image1": torch.rand(1, 64, 64, 3)})
+    assert "did nothing" in _summary_of(result)
+
+
+def test_the_muted_pass_is_cached_apart_from_the_plain_one():
+    clip = _MutingClip()
+    image = torch.rand(1, 64, 64, 3)
+    kwargs = dict(clip=clip, reference_mode="vision", prompt="one two three", images={"image1": image})
+    _execute(prompt_strength=0.5, **kwargs)
+    assert clip.encodes == 2, "the plain pass and the silenced one"
+    _execute(prompt_strength=0.5, **kwargs)
+    assert clip.encodes == 2, "the same dial re-encoded"
+    _execute(prompt_strength=1.5, **kwargs)
+    assert clip.encodes == 2, "moving the dial should reuse both passes"
+
+
 def test_a_card_weighs_its_own_reference():
     """The dial the node could not offer before: one picture, not all of them."""
     plain = _ScalingClip()

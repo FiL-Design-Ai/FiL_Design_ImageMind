@@ -158,6 +158,22 @@ const roleTip = computed(() =>
     + "to copy."),
 );
 
+const promptStrength = computed({
+  get: () => {
+    const raw = Number(props.state.nodeState.prompt_strength ?? props.state.initialValues.prompt_strength ?? 1);
+    return Number.isFinite(raw) ? raw : 1;
+  },
+  set: (v: number) => { props.state.nodeState.prompt_strength = v; },
+});
+
+const promptStrengthTip = computed(() =>
+  t("ee_prompt_strength",
+    "How loudly the written instruction speaks against the pictures. 1 is as written and "
+    + "costs nothing. Below 1 the references decide more and the text less; 0 is what the "
+    + "model takes from the pictures alone. Above 1 pushes the instruction harder. Anything "
+    + "but 1 encodes a second time with the instruction silenced."),
+);
+
 const strengthTip = computed(() =>
   t("eep_strength_tt",
     "How hard this one reference pulls, and which way. Measured on Krea 2: 1 holds the "
@@ -236,6 +252,13 @@ const report = computed(() => {
       v-model="prompt" :rows="3" :linked="isLinked('prompt')"
       :placeholder="t('eep_prompt_ph', 'What to change, keep, or compose from the references…')"
       :title="linkedTip('prompt', t('ee_prompt', 'Edit instruction: what to change, keep, or compose from the references.'))" />
+
+    <FilSlider :ref="(el: unknown) => setFieldEl('prompt_strength', el)"
+      :model-value="promptStrength" :min="0" :max="2" :step="0.05"
+      :disabled="isLinked('prompt_strength')" inline-label
+      :label="t('eep_prompt_strength', '🗣️ Prompt')"
+      :title="linkedTip('prompt_strength', promptStrengthTip)"
+      @update:model-value="(v: number) => { promptStrength = v; }" />
 
     <FilSegmented v-model="referenceMode" :options="modeOptions" :option-labels="MODE_LABELS"
       :label="t('eep_mode', '🎯 References reach')"

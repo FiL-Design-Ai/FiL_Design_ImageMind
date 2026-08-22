@@ -5878,6 +5878,25 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
         "section": "advanced",
         "visible_when": null,
         "visible_when_value": null
+      },
+      {
+        "name": "prompt_strength",
+        "kind": "slider",
+        "label": "Prompt strength",
+        "default": 1,
+        "tooltip": "How loudly the written instruction speaks against the pictures. 1.0 is as written and costs nothing. Below 1 the references decide more; 0 is what the model takes from the pictures alone. Anything but 1.0 encodes a second time with the instruction silenced.",
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": 0,
+        "max": 2,
+        "step": 0.05,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
       }
     ],
     "hidden": []

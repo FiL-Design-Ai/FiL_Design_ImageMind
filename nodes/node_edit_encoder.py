@@ -326,7 +326,7 @@ def _card_notes(cards, strengths, vl_shapes, can_weigh) -> list[str]:
 
 
 def _summary(
-    mode, vl_shapes, latent_shapes, strength, treatments, cards,
+    mode, vl_shapes, latent_shapes, strength, prompt_strength, prompt_weighed, treatments, cards,
     card_strengths, can_weigh, role_source, role_sent, method, speaks_vision,
     masked, main_geometry, sent_text,
 ):
@@ -416,6 +416,19 @@ def _summary(
             lines.append(
                 "NOTE: a mask is wired but no reference is — there is nothing to mask, "
                 "and the latent output is empty."
+            )
+
+    if abs(prompt_strength - 1.0) > 1e-6:
+        if prompt_weighed:
+            lines.append(
+                f"Prompt strength {prompt_strength:g} — the instruction was encoded twice, once "
+                "silenced, and the difference re-weighed."
+            )
+        else:
+            lines.append(
+                f"NOTE: prompt strength {prompt_strength:g} did nothing. It needs a written "
+                "instruction and a text encoder whose token embeddings this node can reach "
+                "(Qwen3-VL); one of the two was missing."
             )
 
     # The exact string that reached the tokenizer. The node prepends presets and,
@@ -529,6 +542,16 @@ def _blend_conditioning(weak, strong, strength: float):
             extra["pooled_output"] = weak_pooled + (strong_pooled - weak_pooled) * strength
         blended.append([weak_tokens + (strong_tokens - weak_tokens) * strength, extra])
     return blended
+
+
+def _rows(tokens):
+    """The first tokenizer's row list out of a `{name: [row, ...]}` bag."""
+    values = getattr(tokens, "values", None)
+    if not callable(values):
+        return []
+    for rows in values():
+        return rows
+    return []
 
 
 def _connected_images(images: dict | None) -> list:
@@ -693,6 +716,20 @@ class FiLEditEncoder(io.ComfyNode):
                         "Only used when reference_mode sends latents. On Krea 2 every value behaves the same except index_timestep_zero.",
                     ),
                 ),
+                io.Float.Input(
+                    "prompt_strength",
+                    default=1.0, min=0.0, max=2.0, step=0.05,
+                    optional=True,
+                    tooltip=t(
+                        "ee_prompt_strength",
+                        "How loudly the written instruction speaks against the pictures. 1.0 is as "
+                        "written and costs nothing. Below 1 the references decide more and the text "
+                        "less; 0 is what the model takes from the pictures alone. Above 1 pushes the "
+                        "instruction harder. Anything but 1.0 encodes a second time with the "
+                        "instruction silenced, and needs a text encoder this node can reach into — "
+                        "the summary says when it could not.",
+                    ),
+                ),
             ],
             outputs=[
                 io.Conditioning.Output(
@@ -737,6 +774,7 @@ class FiLEditEncoder(io.ComfyNode):
         treatment_per_reference="",
         reference_latents_method="index_timestep_zero",
         reference_strength=1.0,
+        prompt_strength=1.0,
         vision_megapixels=0.15,
         latent_megapixels=1.0,
     ) -> io.NodeOutput:
@@ -881,7 +919,29 @@ class FiLEditEncoder(io.ComfyNode):
             text = edit_roles.inline_prefix(cards) + prompt
         template = tokenize_kwargs.get("llama_template")
 
-        def encode(with_images, scales=None):
+        # Where the written instruction sits in the tokenized row, found by
+        # tokenizing the same call twice — as sent, and with the instruction
+        # emptied. Done once, up here, because it depends on the text and not
+        # on any of the weights below.
+        def tokenize(with_text, with_images):
+            return clip.tokenize(
+                with_text, **{**tokenize_kwargs, "images": with_images}
+            )
+
+        prompt_span = None
+        can_mute = clip_hooks.supports_muting(clip)
+        wants_prompt_dial = abs(prompt_strength - 1.0) > 1e-6
+        if wants_prompt_dial and can_mute and prompt.strip():
+            prompt_span = clip_hooks.prompt_token_span(
+                _rows(tokenize(text, images_vl)),
+                # `text` is always the prefixes plus the instruction, in that
+                # order, so the instruction is a suffix and can be cut by
+                # length. Searching for it instead could match the same words
+                # inside a role line.
+                _rows(tokenize(text[: len(text) - len(prompt)], images_vl)),
+            )
+
+        def encode(with_images, scales=None, mute=False):
             """One encoder pass, reused when the same inputs come back.
 
             `scales` weighs individual references *inside* this pass, so it is
@@ -890,15 +950,16 @@ class FiLEditEncoder(io.ComfyNode):
             That is what keeps turning the global dial free while a per-card
             one costs a pass the first time it moves.
             """
-            key = encode_cache.make_key(clip, text, template, with_images, scales)
+            key = encode_cache.make_key(clip, text, template, with_images, scales, mute)
             cached = encode_cache.lookup(key, clip)
             if cached is not None:
                 return cached
-            tokens = clip.tokenize(text, **{**tokenize_kwargs, "images": with_images})
+            tokens = tokenize(text, with_images)
             if scales:
                 clip_hooks.tag_images(tokens)
             with clip_hooks.scaled_images(clip, scales):
-                conditioning = clip.encode_from_tokens_scheduled(tokens)
+                with clip_hooks.muted_prompt(clip, prompt_span if mute else None):
+                    conditioning = clip.encode_from_tokens_scheduled(tokens)
             encode_cache.store(key, clip, conditioning)
             return conditioning
 
@@ -949,6 +1010,18 @@ class FiLEditEncoder(io.ComfyNode):
                 conditioning, encode(images_vl, lifted or None), -weight
             )
 
+        # The instruction's own weight. Silenced in place — same tokens, same
+        # length — so the difference between the two encodes is the text and
+        # nothing else, and can be re-added at any strength. Removing the
+        # instruction instead would change the sequence length, and
+        # `_blend_conditioning` would hand back the unweighted encode without
+        # a word; that is the trap this whole path is shaped around.
+        prompt_weighed = prompt_span is not None
+        if prompt_weighed:
+            conditioning = _blend_conditioning(
+                encode(images_vl, pulls or None, mute=True), conditioning, prompt_strength
+            )
+
         if ref_latents:
             # `append=True` for the latents, as every core node that sets them
             # does — chaining this after another edit node must add to its
@@ -963,7 +1036,7 @@ class FiLEditEncoder(io.ComfyNode):
 
         summary = _summary(
             reference_mode, vl_shapes, latent_shapes, reference_strength,
-            treatments, cards, strengths, can_weigh, role_source,
+            prompt_strength, prompt_weighed, treatments, cards, strengths, can_weigh, role_source,
             bool(tokenize_kwargs.get("llama_template")),
             reference_latents_method, _speaks_vision(clip),
             mask is not None, main_geometry, text,

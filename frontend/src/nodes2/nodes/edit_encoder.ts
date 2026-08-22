@@ -14,7 +14,7 @@ const EditEncoderVue = defineAsyncComponent(() => import("@/components/nodes/Edi
  * native widget, which hides its input slot with it — `exposeWidgetInputSockets`
  * gives the slot a row and a visible dot back.
  */
-export const EDIT_ENCODER_SOCKET_INPUTS = ["prompt", "reference_strength"];
+export const EDIT_ENCODER_SOCKET_INPUTS = ["prompt", "prompt_strength", "reference_strength"];
 
 /**
  * Widgets the node still honours but nobody should have to see.
@@ -44,7 +44,7 @@ const stringDefaults: Record<string, string> = {
   reference_mode: "vision",
   reference_cards: "",
 };
-const numericDefaults: Record<string, number> = { reference_strength: 1 };
+const numericDefaults: Record<string, number> = { reference_strength: 1, prompt_strength: 1 };
 const HIDE = [
   ...Object.keys(stringDefaults),
   ...Object.keys(numericDefaults),

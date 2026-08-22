@@ -56,6 +56,21 @@
   strength did not land, because a single sentence at the bottom of the node
   cannot say *which* of five cards it is about.
 
+- **🎯 Edit Encoder: the written instruction has a dial of its own.**
+  The pictures could be weighed against each other and against nothing; the words
+  could not be weighed at all. Worse, the usual way of trying — `(word:1.2)` — is
+  inert on this family: ComfyUI tokenizes Qwen3-VL with `disable_weights=True`
+  (`comfy/text_encoders/qwen3vl.py`), so per-word emphasis reaches no edit model
+  built on it. `prompt_strength` fills the gap: `0` is what the model took from
+  the references alone, `1` the instruction as written, `2` the instruction
+  pushed. Rendered on Krea 2 it cross-fades evenly the whole way, which is worth
+  saying next to a card's own strength — that one holds its reference until zero
+  and then drops it. The instruction is silenced *in place* for the comparison
+  pass, its tokens kept and their embeddings zeroed, because removing them would
+  change the sequence length and the blend would hand back the unweighted encode
+  without a word. Its span is found by tokenizing the same call twice and taking
+  the first divergence, so no special-token id is hardcoded anywhere.
+
 ### Fixed
 
 - **📡 A channel's name tag no longer hides under the node it feeds.**

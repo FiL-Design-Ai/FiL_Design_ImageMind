@@ -608,6 +608,8 @@
   "eep_away": "away",
   "eep_strength_tt": "How hard this one reference pulls, and which way. Measured on Krea 2: 1 holds the reference, and so does 0.5 — nearly all of the loosening happens close to 0, where the reference drops out entirely. Below zero is not less but opposite: the result comes back with the reference's traits inverted, at the cost of one more encoder pass. Needs a vision-language encoder such as Qwen3-VL; the report says so when there is none.",
   "eep_thumb_tt": "The prepared copy this reference was reduced to before the model looked at it — the role's treatment is already applied here.",
+  "eep_prompt_strength": "🗣️ Prompt",
+  "ee_prompt_strength": "How loudly the written instruction speaks against the pictures. 1 is as written and costs nothing. Below 1 the references decide more and the text less; 0 is what the model takes from the pictures alone. Above 1 pushes the instruction harder. Anything but 1 encodes a second time with the instruction silenced.",
   "eep_treatment": "🎨 Treatment",
   "eep_strength": "💪 Strength",
   "eep_refs_tt": "Reference images wired into the slots below the panel — each one adds a latent to the conditioning.",
