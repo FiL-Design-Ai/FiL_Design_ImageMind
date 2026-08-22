@@ -839,3 +839,70 @@ def test_a_misspelled_treatment_is_named_rather_than_swallowed():
     text = _summary_of(result)
     assert "no such treatment: 'palette wsah'" in text
     assert result.ui["fil_edit_encoder"][0]["warned"] is True
+
+
+def _latent_of(result):
+    return result.args[3]
+
+
+def test_a_mask_comes_back_aligned_to_the_reference_the_model_saw():
+    """The whole reason this belongs here: only this node knows the resize.
+
+    A mask is drawn at the reference's own size; the reference reaches the
+    model resized. Pairing them anywhere else means reproducing this node's
+    arithmetic.
+    """
+    vae = _FakeVae()
+    _, _, result = _execute(clip=_VisionClip(), vae=vae, reference_mode="vision",
+                            latent_megapixels=0.25,
+                            images={"image1": torch.rand(1, 2048, 2048, 3)},
+                            mask=torch.ones(1, 2048, 2048))
+    latent = _latent_of(result)
+    encoded = vae.encoded[0]
+    assert latent["samples"] is vae.latents[0]
+    # (-1, 1, H, W), the shape core's SetLatentNoiseMask writes.
+    assert latent["noise_mask"].shape == (1, 1, encoded.shape[1], encoded.shape[2])
+
+
+def test_a_mask_encodes_the_reference_even_in_vision_mode():
+    """There is nothing to sample on top of otherwise — but it must not leak
+    into the conditioning, which is exactly what `vision` mode is for."""
+    vae = _FakeVae()
+    _, _, result = _execute(clip=_VisionClip(), vae=vae, reference_mode="vision",
+                            images={"image1": torch.rand(1, 64, 64, 3)},
+                            mask=torch.ones(1, 64, 64))
+    assert len(vae.encoded) == 1
+    assert "reference_latents" not in result.args[0][0][1]
+    assert _latent_of(result)["samples"] is vae.latents[0]
+
+
+def test_the_mask_takes_the_first_reference_not_the_last():
+    vae = _FakeVae()
+    _, _, result = _execute(clip=_VisionClip(), vae=vae, reference_mode="latents",
+                            images={"image2": torch.rand(1, 128, 64, 3),
+                                    "image1": torch.rand(1, 64, 128, 3)},
+                            mask=torch.ones(1, 64, 128))
+    assert _latent_of(result)["samples"] is vae.latents[0]
+    # Slot 1 is the landscape one; that is the geometry the summary names.
+    assert "reference 1 at 128x64" in _summary_of(result)
+
+
+def test_a_mask_without_a_vae_fails_with_a_sentence_that_says_what_to_do():
+    with pytest.raises(ValueError, match="vae"):
+        _execute(clip=_VisionClip(), reference_mode="vision",
+                 images={"image1": torch.rand(1, 64, 64, 3)},
+                 mask=torch.ones(1, 64, 64))
+
+
+def test_the_latent_output_is_empty_but_valid_without_a_vae():
+    _, _, result = _execute(clip=_VisionClip(), reference_mode="vision",
+                            images={"image1": torch.rand(1, 64, 64, 3)})
+    latent = _latent_of(result)
+    assert latent["samples"].shape == (1, 16, 64, 64)
+    assert "noise_mask" not in latent
+
+
+def test_a_mask_with_no_reference_says_so():
+    _, _, result = _execute(clip=_VisionClip(), vae=_FakeVae(), reference_mode="vision",
+                            mask=torch.ones(1, 64, 64))
+    assert "nothing to mask" in _summary_of(result)

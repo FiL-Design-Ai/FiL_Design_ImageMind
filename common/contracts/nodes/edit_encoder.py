@@ -95,5 +95,6 @@ CONTRACT = NodeContract(
         NodeOutput(name="conditioning", type="CONDITIONING"),
         NodeOutput(name="summary", type="STRING"),
         NodeOutput(name="references", type="IMAGE"),
+        NodeOutput(name="latent", type="LATENT"),
     ],
 )

@@ -260,6 +260,38 @@ def _slot_index(name: str) -> int:
 #
 # So the treatment is per reference and the strength is not, and the summary
 # never implies otherwise.
+# Channels for the placeholder latent when the VAE encoded nothing. The FLUX.2
+# family this node targets is 16; core's `fix_empty_latent_channels` corrects an
+# all-zero latent to whatever the model wants anyway, so this is a shape to hand
+# on rather than a claim about the model.
+_EMPTY_LATENT_CHANNELS = 16
+
+
+def _masked_latent(main_latent, main_geometry, mask):
+    """The `latent` output: the main reference, plus the mask aligned to it.
+
+    The alignment is the point. A mask is drawn on the reference at its own
+    size, while the reference reaches the model resized — and this node is the
+    only thing that knows by how much, so pairing them anywhere else means
+    reproducing its arithmetic and getting it wrong on the day it changes.
+
+    Stored at image resolution in `(-1, 1, H, W)`, which is what core's
+    `SetLatentNoiseMask` writes; `comfy.sample` scales it to latent size itself.
+    """
+    if main_latent is None:
+        return {"samples": torch.zeros(1, _EMPTY_LATENT_CHANNELS, 64, 64)}
+    latent = {"samples": main_latent}
+    if mask is None:
+        return latent
+    height, width = main_geometry
+    resized = comfy.utils.common_upscale(
+        mask.reshape((-1, 1, mask.shape[-2], mask.shape[-1])),
+        width, height, "bilinear", "disabled",
+    )
+    latent["noise_mask"] = resized
+    return latent
+
+
 def _treatments_for(count: int, default: str, override: str) -> list[str]:
     """One treatment name per reference, in slot order.
 
@@ -283,7 +315,7 @@ def _treatments_for(count: int, default: str, override: str) -> list[str]:
 
 def _summary(
     mode, vl_shapes, latent_shapes, strength, blended, treatments, prompt_preset,
-    role_source, role_sent, method, speaks_vision,
+    role_source, role_sent, method, speaks_vision, masked, main_geometry,
 ):
     """Plain-language account of what this run actually did.
 
@@ -336,6 +368,19 @@ def _summary(
                 )
             else:
                 lines.append(f"  strength {strength:g} — blended against blank references.")
+
+    if masked:
+        if main_geometry:
+            height, width = main_geometry
+            lines.append(
+                f"Masked edit: the latent output is reference 1 at {width}x{height}, "
+                "with the mask scaled to match. Sample on top of it."
+            )
+        else:
+            lines.append(
+                "NOTE: a mask is wired but no reference is — there is nothing to mask, "
+                "and the latent output is empty."
+            )
 
     if not role_source:
         lines.append("Encoder role: none.")
@@ -469,6 +514,14 @@ class FiLEditEncoder(io.ComfyNode):
                         "Reference images to edit from. Each adds its latent to the conditioning — VRAM and sampling time grow with every one.",
                     ),
                 ),
+                io.Mask.Input(
+                    "mask",
+                    optional=True,
+                    tooltip=t(
+                        "ee_mask",
+                        "Edit only this area of the FIRST reference. The node returns that reference as a latent with the mask aligned to it, so the sampler re-denoises the marked part and leaves the rest — this node is the only thing that knows how the reference was resized, which is what makes the mask line up. Needs the VAE wired.",
+                    ),
+                ),
                 io.Combo.Input(
                     "prompt_preset",
                     options=list(PROMPT_PRESETS),
@@ -578,6 +631,16 @@ class FiLEditEncoder(io.ComfyNode):
                     display_name="references",
                     tooltip=t("ee_refs_out", "The prepared copies the model actually received — the text encoder's in 'vision' and 'both', the VAE's in 'latents'. Wire a Preview Image here to see what it read."),
                 ),
+                # Appended, not inserted: an output added above this one
+                # renumbers every output after it and re-wires saved workflows
+                # without a word.
+                io.Latent.Output(
+                    display_name="latent",
+                    tooltip=t(
+                        "ee_latent",
+                        "The first reference, VAE-encoded, to sample on top of — carrying the mask when one is wired. Empty unless the VAE encoded it: that is reference_mode 'latents'/'both', or any mode with a mask.",
+                    ),
+                ),
             ],
             search_aliases=["edit", "reference", "flux2", "krea", "klein", "inpaint", "conditioning"],
         )
@@ -589,6 +652,7 @@ class FiLEditEncoder(io.ComfyNode):
         prompt,
         vae=None,
         images=None,
+        mask=None,
         prompt_preset="none",
         system_preset="none",
         system_prompt="",
@@ -612,12 +676,24 @@ class FiLEditEncoder(io.ComfyNode):
                 "is not wired. Wire the edit model's VAE, or switch "
                 "reference_mode to 'vision'."
             )
+        if references and mask is not None and vae is None:
+            raise ValueError(
+                "FiLEditEncoder: a `mask` is wired, which means sampling on top of "
+                "the first reference, but `vae` is not. Wire the edit model's VAE, "
+                "or remove the mask."
+            )
 
         treatments = _treatments_for(
             len(references), reference_treatment, treatment_per_reference
         )
 
         ref_latents = []
+        # The first reference, encoded, for the `latent` output — what a masked
+        # edit samples on top of. Kept apart from `ref_latents`: a mask must not
+        # smuggle a reference into the conditioning that `vision` mode
+        # deliberately keeps out of the frame.
+        main_latent = None
+        main_geometry = None
         images_vl = []
         vl_shapes = []
         latent_shapes = []
@@ -647,7 +723,9 @@ class FiLEditEncoder(io.ComfyNode):
                 vl_shapes.append((int(vl_image.shape[1]), int(vl_image.shape[2])))
                 prepared.append(vl_image)
 
-            if wants_latents:
+            # The mask needs the first reference encoded whatever the mode:
+            # there is nothing to sample on top of otherwise.
+            if wants_latents or (mask is not None and slot == 0):
                 # The copy the VAE encodes. Full-auto: never upscale — small
                 # references stay native (fewer latent tokens, no invented
                 # detail), the cap only tames the giants.
@@ -661,11 +739,16 @@ class FiLEditEncoder(io.ComfyNode):
                 width = max(8, round(samples.shape[3] * scale_by / 8.0) * 8)
                 height = max(8, round(samples.shape[2] * scale_by / 8.0) * 8)
                 scaled = comfy.utils.common_upscale(samples, width, height, "area", "disabled")
-                latent_shapes.append((height, width))
                 latent_image = scaled.movedim(1, -1)[:, :, :, :3]
-                if not wants_vision:
-                    prepared.append(latent_image)
-                ref_latents.append(vae.encode(latent_image))
+                encoded = vae.encode(latent_image)
+                if slot == 0:
+                    main_latent = encoded
+                    main_geometry = (height, width)
+                if wants_latents:
+                    latent_shapes.append((height, width))
+                    if not wants_vision:
+                        prepared.append(latent_image)
+                    ref_latents.append(encoded)
 
         # `images` reaching the tokenizer is what makes the vision half of the
         # encoder look at the references at all. An empty list selects the
@@ -742,12 +825,14 @@ class FiLEditEncoder(io.ComfyNode):
             treatments, prompt_preset, role_source,
             bool(tokenize_kwargs.get("llama_template")),
             reference_latents_method, _speaks_vision(clip),
+            mask is not None, main_geometry,
         )
 
         return io.NodeOutput(
             conditioning,
             summary,
             reference_prep.as_preview_batch(prepared),
+            _masked_latent(main_latent, main_geometry, mask),
             # The report is worth nothing unwired. Every trap this node has is
             # silent by nature, so its warning has to reach someone who does not
             # already know to go looking for it — `execution.py` sends an

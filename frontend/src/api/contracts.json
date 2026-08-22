@@ -13181,6 +13181,10 @@
         {
           "name": "references",
           "type": "IMAGE"
+        },
+        {
+          "name": "latent",
+          "type": "LATENT"
         }
       ],
       "min_size": [

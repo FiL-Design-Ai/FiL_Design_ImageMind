@@ -5893,6 +5893,10 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     {
       "name": "references",
       "type": "IMAGE"
+    },
+    {
+      "name": "latent",
+      "type": "LATENT"
     }
   ],
   "min_size": [

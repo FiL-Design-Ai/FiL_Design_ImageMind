@@ -14520,6 +14520,10 @@ var pS, mS = n((() => {
 				{
 					name: "references",
 					type: "IMAGE"
+				},
+				{
+					name: "latent",
+					type: "LATENT"
 				}
 			],
 			min_size: [300, 300],
