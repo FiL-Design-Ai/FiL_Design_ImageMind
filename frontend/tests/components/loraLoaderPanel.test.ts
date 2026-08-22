@@ -295,6 +295,23 @@ describe("LoraLoaderPanel.vue", () => {
     expect(idAfter).toBe(idBefore);
   });
 
+  it("lets a weight go as far as the node itself accepts", async () => {
+    // The sliders were fixed at -3..3 while `node_lora_loader.py` takes
+    // -10..10, so a third of the range the node runs could not be reached from
+    // the panel at all. The bounds come from the node's own contract now, so
+    // the two cannot drift apart again.
+    getJson.mockImplementation(backend({}));
+    const list = "style_v1.safetensors:0.80:0.80";
+    const wrapper = mount(LoraLoaderPanel, {
+      props: { state: makeState(makeNode(list), list) as never },
+    });
+    await nextTick();
+
+    const field = wrapper.findComponent({ name: "FilSlider" });
+    expect(field.props("min")).toBe(-10);
+    expect(field.props("max")).toBe(10);
+  });
+
   it("keeps a row's off state through a reload", async () => {
     getJson.mockImplementation(backend({}));
     const list = "style_v1.safetensors:0.80:0.80\n# cyber_v2.safetensors:1.00:1.00";

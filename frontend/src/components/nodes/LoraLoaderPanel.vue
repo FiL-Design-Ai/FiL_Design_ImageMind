@@ -19,6 +19,7 @@ import { getJson } from "@/api/client";
 import { ROUTE_PREFIX } from "@/constants/brand";
 import { useSocketBand, type BandNode } from "@/composables/useSocketBand";
 import { stackDisplayNames } from "@/nodes2/loraNames";
+import { NODE_CONTRACTS } from "@/api/contracts";
 
 interface LoraItem {
   id: string;
@@ -71,6 +72,28 @@ function createRef<T>(name: string, defaultValue: T) {
     },
   });
 }
+
+/**
+ * What a weight is allowed to be, taken from the node's own contract rather
+ * than typed in again here.
+ *
+ * The sliders said -3..3 while `node_lora_loader.py` accepts -10..10, so a
+ * third of the range the node runs was simply unreachable from the panel. Two
+ * numbers written down twice drift, and this pack has the scars: the same kind
+ * of copy had `min_size` disagreeing with the frontend on 11 of 13 nodes.
+ */
+const STRENGTH = (() => {
+  const contract = NODE_CONTRACTS["FiLLoraLoader"];
+  const spec = [
+    ...(contract?.inputs.required ?? []),
+    ...(contract?.inputs.optional ?? []),
+  ].find((w) => w.name === "strength_model");
+  return {
+    min: spec?.min ?? -10,
+    max: spec?.max ?? 10,
+    step: spec?.step ?? 0.05,
+  };
+})();
 
 const globalSm = createRef<number>("strength_model", 1.0);
 const globalSc = createRef<number>("strength_clip", 1.0);
@@ -794,9 +817,9 @@ function onComboClose(index: number) {
           <div v-if="item.enabled && item.name.trim()" class="fil-weight-cell">
             <FilSlider
             :model-value="item.sm"
-            :min="-3"
-            :max="3"
-            :step="0.05"
+            :min="STRENGTH.min"
+            :max="STRENGTH.max"
+            :step="STRENGTH.step"
             :title="item.split ? 'Model strength' : 'Strength applied to both Model and CLIP'"
             aria-label="Strength"
             @mousedown.stop
@@ -835,9 +858,9 @@ function onComboClose(index: number) {
           <div class="fil-weight-cell fil-weight-cell-clip">
             <FilSlider
             :model-value="item.sc"
-            :min="-3"
-            :max="3"
-            :step="0.05"
+            :min="STRENGTH.min"
+            :max="STRENGTH.max"
+            :step="STRENGTH.step"
             label="CLIP"
             inline-label
             title="CLIP strength"
