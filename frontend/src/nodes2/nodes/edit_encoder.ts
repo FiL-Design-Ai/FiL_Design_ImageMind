@@ -16,13 +16,18 @@ const EditEncoderVue = defineAsyncComponent(() => import("@/components/nodes/Edi
  */
 export const EDIT_ENCODER_SOCKET_INPUTS = ["prompt", "reference_strength"];
 
-// The panel drives the four controls that decide what happens to a reference.
-// The advanced ones — both megapixel caps, the encoder role, and
+// The panel drives the controls that decide what happens to a reference. The
+// advanced ones — both megapixel caps, the encoder role, and
 // `reference_latents_method` — stay native widgets below the panel.
+//
+// `reference_cards` is JSON the panel writes a card at a time. It stays a
+// hidden native widget rather than a panel-only value so a graph built through
+// the API can still fill it in, and so a workflow saved before roles existed
+// hands its old `prompt_preset` value straight to the backend's parser.
 const stringDefaults: Record<string, string> = {
   prompt: "",
   reference_mode: "vision",
-  prompt_preset: "none",
+  reference_cards: "",
   reference_treatment: "normal",
 };
 const numericDefaults: Record<string, number> = { reference_strength: 1 };

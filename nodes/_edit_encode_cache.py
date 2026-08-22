@@ -3,9 +3,9 @@
 Encoding is the expensive half of `FiLEditEncoder`, and `reference_strength`
 made it twice as expensive: anything other than 1.0 encodes a second time
 against blank references so the two can be interpolated. Both passes depend
-only on what goes *into* the tokenizer — the text, the template, and the
-prepared images. The strength itself is applied afterwards, on tensors that are
-already computed.
+only on what goes *into* the tokenizer — the text, the template, the prepared
+images, and the per-reference weights the encode itself runs under. That global
+strength is applied afterwards, on tensors that are already computed.
 
 So turning the strength dial re-runs no encoder at all once its two passes are
 in here, which is the difference between a slider that is usable and one that
@@ -26,10 +26,12 @@ from collections import OrderedDict
 
 import torch
 
-# One run stores at most two entries (the real references and the blank ones),
-# so four holds the current setup plus the one before it. Conditioning tensors
-# are large; this is deliberately not a general-purpose cache.
-MAX_ENTRIES = 4
+# A run stores the pass it was going to make anyway, plus one per thing that
+# needs a comparison: the blank-reference pass behind `reference_strength`, and
+# one per reference a card pushes away from. Eight holds a two-reference setup
+# with both pushed away, and the setup before it. Conditioning tensors are
+# large; this is deliberately not a general-purpose cache.
+MAX_ENTRIES = 8
 
 _CACHE: OrderedDict = OrderedDict()
 
@@ -59,7 +61,7 @@ def _tensor_fingerprint(value):
     )
 
 
-def make_key(clip, text: str, template, images) -> tuple | None:
+def make_key(clip, text: str, template, images, scales=None) -> tuple | None:
     """Key for one encode context, or None when it cannot be cached.
 
     `id(clip)` rather than the object: the key has to be hashable and must not
@@ -75,7 +77,12 @@ def make_key(clip, text: str, template, images) -> tuple | None:
             prints.append(_tensor_fingerprint(image))
         except Exception:
             return None
-    return (id(clip), str(text), str(template), tuple(prints))
+    # Per-reference weights belong in the key: they are applied *during* the
+    # encode, through a hook inside the text encoder, and not afterwards on
+    # tensors already in hand the way `reference_strength` is. Two runs that
+    # differ only in a card's strength are two different passes.
+    weights = tuple(sorted((int(slot), float(value)) for slot, value in (scales or {}).items()))
+    return (id(clip), str(text), str(template), tuple(prints), weights)
 
 
 def lookup(key, clip):

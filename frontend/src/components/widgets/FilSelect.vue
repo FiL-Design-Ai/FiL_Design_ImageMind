@@ -24,6 +24,11 @@ const props = defineProps<{
    * moved to a hover tooltip (native `title`) instead of sitting in the text.
    * Off by default — every other call site keeps showing the full string. */
   hintFromParens?: boolean;
+  /** Opt-in display names, keyed by option value — the same prop FilSegmented
+   * takes. The stored value stays the option itself, so a caller can show
+   * "🎨 style" without the workflow holding anything but "style". Options with
+   * no entry render as themselves. */
+  optionLabels?: Record<string, string>;
 }>();
 
 const modelValue = defineModel<T>({ required: true });
@@ -36,6 +41,8 @@ function splitHint(opt: string): { main: string; hint: string | null } {
 }
 
 function optionText(opt: string): string {
+  const labelled = props.optionLabels?.[opt];
+  if (labelled) return labelled;
   return props.hintFromParens ? splitHint(opt).main : opt;
 }
 

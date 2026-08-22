@@ -69,7 +69,9 @@ def as_preview_batch(images: list, fallback_side: int = EMPTY_SIDE) -> torch.Ten
 #
 # Kernel sizes follow that pack (kg_krea_v9/images.py), which tuned them by
 # rendering at roughly the resolution this node's vision copy uses.
-TREATMENTS = ["normal", "grayscale", "soft blur", "strong blur", "palette wash"]
+TREATMENTS = [
+    "normal", "grayscale", "soft blur", "strong blur", "shape wash", "palette wash",
+]
 
 _SOFT_BLUR = 5
 _STRONG_BLUR = 13
@@ -129,6 +131,11 @@ def apply_treatment(image, treatment: str):
         samples = _blur(samples, _SOFT_BLUR)
     elif treatment == "strong blur":
         samples = _blur(samples, _STRONG_BLUR)
+    elif treatment == "shape wash":
+        # Colour gone and detail gone, mass left: what survives is where the
+        # big shapes sit. The order matters only for cost — blurring one
+        # channel instead of three — not for the result.
+        samples = _blur(_grayscale(samples), _STRONG_BLUR)
     elif treatment == "palette wash":
         samples = _palette_wash(samples)
     else:

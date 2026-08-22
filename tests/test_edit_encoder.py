@@ -332,6 +332,158 @@ class _VisionClip(_FakeClip):
         return super().tokenize(prompt, images=images, **kwargs)
 
 
+class _Transformer:
+    """The seam the per-reference weights hook into.
+
+    Real encoders build one image embedding per picture here; this returns a
+    constant so a scaled one is recognisable by its sum alone. `deepstack` is
+    present because the hook has to weigh those copies too — a reference scaled
+    in the embedding and not in its per-layer copies is weighed in some layers
+    and not others.
+    """
+
+    def preprocess_embed(self, embed, device=None):
+        return torch.ones(1, 4), {"deepstack": [torch.ones(1, 4)]}
+
+
+class _CondStage:
+    def __init__(self):
+        self.clip = "leaf"
+        self.leaf = type("Leaf", (), {"transformer": _Transformer()})()
+
+
+class _ScalingClip(_VisionClip):
+    """A CLIP that can weigh one reference at a time, and shows what it weighed.
+
+    `encode_from_tokens_scheduled` walks the token rows the way the real
+    encoder does — one `preprocess_embed` per image dict — so whatever the hook
+    did to those embeddings lands in the conditioning, where a test can read it.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.cond_stage_model = _CondStage()
+
+    def tokenize(self, prompt, images=None, llama_template=None, **kwargs):
+        super().tokenize(prompt, images=images, llama_template=llama_template, **kwargs)
+        rows = [[{"type": "image"} for _ in (images or [])] + [1, 2]]
+        return {"qwen3vl": rows}
+
+    def encode_from_tokens_scheduled(self, tokens):
+        transformer = self.cond_stage_model.leaf.transformer
+        total = 0.0
+        for rows in tokens.values():
+            for row in rows:
+                for item in row:
+                    element = item[0] if isinstance(item, tuple) else item
+                    if isinstance(element, dict) and element.get("type") == "image":
+                        embedding, extra = transformer.preprocess_embed(element)
+                        total += float(embedding.sum())
+                        total += float(sum(d.sum() for d in extra["deepstack"]))
+        return [[torch.full((1, 4), total), {"pooled_output": torch.zeros(1, 4)}]]
+
+
+def _weight_of(result):
+    """The single number `_ScalingClip` folds every image embedding into."""
+    return float(result[0][0][0][0, 0])
+
+
+def test_a_card_weighs_its_own_reference():
+    """The dial the node could not offer before: one picture, not all of them."""
+    plain = _ScalingClip()
+    _, _, before = _execute(clip=plain, reference_mode="vision", images={
+        "image1": torch.rand(1, 64, 64, 3), "image2": torch.rand(1, 64, 64, 3),
+    })
+
+    weighed = _ScalingClip()
+    _, _, after = _execute(
+        clip=weighed, reference_mode="vision",
+        reference_cards='[{"role": "as is"}, {"role": "as is", "strength": 0.5}]',
+        images={"image1": torch.rand(1, 64, 64, 3), "image2": torch.rand(1, 64, 64, 3)},
+    )
+    # Two references at 1.0 against one at 1.0 and one at 0.5: three quarters.
+    assert _weight_of(after) == pytest.approx(_weight_of(before) * 0.75)
+
+
+def test_a_strength_of_zero_drops_one_reference_and_keeps_the_other():
+    clip = _ScalingClip()
+    _, _, result = _execute(
+        clip=clip, reference_mode="vision",
+        reference_cards='[{"role": "as is", "strength": 0}, {"role": "as is"}]',
+        images={"image1": torch.rand(1, 64, 64, 3), "image2": torch.rand(1, 64, 64, 3)},
+    )
+    single = _ScalingClip()
+    _, _, one = _execute(clip=single, reference_mode="vision",
+                         images={"image1": torch.rand(1, 64, 64, 3)})
+    assert _weight_of(result) == pytest.approx(_weight_of(one))
+
+
+def test_pushing_away_goes_past_dropping_the_reference():
+    """"Away" is not "ignore": it needs the pass that shows what was there."""
+    clip = _ScalingClip()
+    _, _, result = _execute(
+        clip=clip, reference_mode="vision",
+        reference_cards='[{"role": "as is", "strength": -0.5}]',
+        images={"image1": torch.rand(1, 64, 64, 3)},
+    )
+    # Held out the reference is 0; the pass with it back is 8. Half that
+    # difference the other way is -4.
+    assert _weight_of(result) == pytest.approx(-4.0)
+    # The extra pass is the cost, and it is one, not one per reference.
+    assert len(clip.prompts) == 2
+
+
+def test_the_encoder_is_left_exactly_as_it_was_found():
+    """A shared model left patched would weigh every other node's encode."""
+    clip = _ScalingClip()
+    original = clip.cond_stage_model.leaf.transformer.preprocess_embed
+    _execute(clip=clip, reference_mode="vision",
+             reference_cards='[{"role": "as is", "strength": 0.25}]',
+             images={"image1": torch.rand(1, 64, 64, 3)})
+    assert clip.cond_stage_model.leaf.transformer.preprocess_embed == original
+
+
+def test_the_summary_names_each_reference_weight():
+    clip = _ScalingClip()
+    _, _, result = _execute(
+        clip=clip, reference_mode="vision",
+        reference_cards='[{"role": "as is", "strength": 0.4}, {"role": "as is", "strength": -0.5}]',
+        images={"image1": torch.rand(1, 64, 64, 3), "image2": torch.rand(1, 64, 64, 3)},
+    )
+    summary = _summary_of(result)
+    assert "strengths: 1 0.4, 2 -0.5 (away)" in summary
+
+
+def test_an_encoder_without_the_seam_says_so_instead_of_pretending():
+    """`_VisionClip` has no `cond_stage_model`, so there is nothing to weigh."""
+    clip = _VisionClip()
+    _, _, result = _execute(clip=clip, reference_mode="vision",
+                            reference_cards='[{"role": "as is", "strength": 0.3}]',
+                            images={"image1": torch.rand(1, 64, 64, 3)})
+    assert "no per-image embeddings to weigh" in _summary_of(result)
+
+
+def test_the_same_weights_encode_once_and_a_changed_one_does_not_reuse_it():
+    cards = '[{"role": "as is", "strength": 0.5}]'
+    clip = _ScalingClip()
+    image = torch.rand(1, 64, 64, 3)
+    _execute(clip=clip, reference_mode="vision", reference_cards=cards, images={"image1": image})
+    passes = len(clip.prompts)
+    _execute(clip=clip, reference_mode="vision", reference_cards=cards, images={"image1": image})
+    assert len(clip.prompts) == passes, "the same weights re-encoded"
+
+    _execute(clip=clip, reference_mode="vision",
+             reference_cards='[{"role": "as is", "strength": 0.75}]', images={"image1": image})
+    assert len(clip.prompts) > passes, "a moved dial served a stale encode"
+
+
+def test_a_weight_in_latents_mode_says_it_did_nothing():
+    _, _, result = _execute(clip=_VisionClip(), vae=_FakeVae(), reference_mode="latents",
+                            reference_cards='[{"role": "as is", "strength": 0.5}]',
+                            images={"image1": torch.rand(1, 64, 64, 3)})
+    assert "per-reference strengths ignored" in _summary_of(result)
+
+
 def test_the_system_prompt_reaches_a_vision_encoder_with_its_blocks():
     """Template and vision blocks travel together or not at all.
 
@@ -433,16 +585,21 @@ def test_a_role_that_cannot_be_delivered_is_reported():
     assert "NOT sent (custom field)" in _summary_of(result)
 
 
-def test_a_prompt_preset_is_prepended_not_substituted():
-    """The preset opens the instruction; what the user typed still follows."""
+def test_a_role_opens_the_instruction_when_there_is_no_system_channel():
+    """`_FakeClip` takes no images, so the roles have nowhere else to go.
+
+    This is the FLUX.2/Mistral3 case. Dropping the prompt presets for roles
+    would have emptied the node on those models if the roles only ever went
+    into a Qwen system template.
+    """
     clip, _, _ = _execute(
         prompt="a rainy Tokyo street at night",
-        prompt_preset="keep subject, change scene",
+        reference_cards='[{"role": "lighting"}]',
         reference_mode="vision",
         images={"image1": torch.rand(1, 64, 64, 3)},
     )
     text = clip.prompts[0]
-    assert text.startswith("Keep the subject of the reference image")
+    assert text.startswith("Reference 1: use its light and layout, not its subject.")
     assert text.endswith("a rainy Tokyo street at night")
 
 
@@ -749,25 +906,111 @@ def test_the_summary_names_the_treatment():
     assert "treated" not in _summary_of(plain)
 
 
-def test_the_style_preset_warns_when_the_reference_is_untreated():
-    """It asks the encoder to ignore a subject it can see. Treating removes it.
+def test_a_role_brings_its_own_treatment():
+    """The half that makes "style, not subject" true rather than merely asked for.
 
     Measured on Krea 2: with `normal` the reference's subject is reproduced in
-    full (which is why this preset was cut once); with `palette wash` it is
+    full (which is why a style preset was cut once); with `palette wash` it is
     gone and the palette still carries.
     """
     clip = _VisionClip()
     _, _, result = _execute(clip=clip, reference_mode="vision",
-                            prompt_preset="use as style reference",
+                            reference_cards='[{"role": "style"}]',
                             images={"image1": torch.rand(1, 64, 64, 3)})
-    assert "Set reference_treatment" in _summary_of(result)
+    assert "treated 'palette wash'" in _summary_of(result)
+
+
+def test_a_role_whose_treatment_was_overridden_away_says_so():
+    """Overriding it is allowed. Doing it silently is what got a preset cut."""
+    clip = _VisionClip()
+    _, _, result = _execute(clip=clip, reference_mode="vision",
+                            reference_cards='[{"role": "style", "treatment": "normal"}]',
+                            images={"image1": torch.rand(1, 64, 64, 3)})
+    assert "overridden to 'normal'" in _summary_of(result)
 
     clip = _VisionClip()
-    _, _, treated = _execute(clip=clip, reference_mode="vision",
-                             prompt_preset="use as style reference",
-                             reference_treatment="palette wash",
-                             images={"image1": torch.rand(1, 64, 64, 3)})
-    assert "Set reference_treatment" not in _summary_of(treated)
+    _, _, kept = _execute(clip=clip, reference_mode="vision",
+                          reference_cards='[{"role": "style"}]',
+                          images={"image1": torch.rand(1, 64, 64, 3)})
+    assert "overridden to 'normal'" not in _summary_of(kept)
+
+
+def test_a_cut_role_still_means_what_it_meant():
+    """Roles that rendered identically were removed from the list, not from saved graphs.
+
+    A workflow saved with `style` has to keep doing what it did — falling back
+    to the default role would quietly change the picture it produces.
+    """
+    clip = _VisionClip()
+    _, _, result = _execute(
+        clip=clip, reference_mode="vision",
+        reference_cards='[{"role": "style"}, {"role": "shape only"}]',
+        images={"image1": torch.rand(1, 64, 64, 3), "image2": torch.rand(1, 64, 64, 3)},
+    )
+    summary = _summary_of(result)
+    assert "1 'palette'" in summary and "2 'lighting'" in summary
+
+
+def test_an_unknown_role_falls_back_rather_than_failing_a_run():
+    _, _, result = _execute(clip=_VisionClip(), reference_mode="vision",
+                            reference_cards='[{"role": "kitchen sink"}]',
+                            images={"image1": torch.rand(1, 64, 64, 3)})
+    assert "roles:" not in _summary_of(result)
+
+
+def test_each_reference_gets_its_own_job():
+    """The whole reason roles are per card: subject from one, palette from another."""
+    clip = _VisionClip()
+    _, _, result = _execute(
+        clip=clip, reference_mode="vision",
+        reference_cards='[{"role": "lighting"}, {"role": "palette"}]',
+        images={"image1": torch.rand(1, 64, 64, 3), "image2": torch.rand(1, 64, 64, 3)},
+    )
+    summary = _summary_of(result)
+    assert "1 'lighting'" in summary and "2 'palette'" in summary
+    assert "'strong blur'" in summary and "'palette wash'" in summary
+
+
+def test_the_node_wide_treatment_still_rules_every_slot_without_a_job():
+    """What a workflow saved before roles existed has, and all it has."""
+    clip = _VisionClip()
+    _, _, result = _execute(clip=clip, reference_mode="vision",
+                            reference_treatment="grayscale",
+                            images={"image1": torch.rand(1, 64, 64, 3)})
+    assert "treated 'grayscale'" in _summary_of(result)
+
+
+def test_a_saved_prompt_preset_becomes_the_role_that_replaced_it():
+    """`reference_cards` holds the widget index `prompt_preset` used to.
+
+    An old workflow hands its preset name straight to the card parser, which is
+    the only reason removing that combo does not shift every widget after it.
+    """
+    clip = _VisionClip()
+    _, _, result = _execute(clip=clip, reference_mode="vision",
+                            reference_cards="use as style reference",
+                            images={"image1": torch.rand(1, 64, 64, 3)})
+    assert "1 'palette'" in _summary_of(result)
+
+
+def test_an_unreadable_card_field_does_not_fail_the_run():
+    """It is a field people type into; a stray bracket must not cost a render."""
+    clip = _VisionClip()
+    _, _, result = _execute(clip=clip, reference_mode="vision",
+                            reference_cards='[{"role": "style"',
+                            images={"image1": torch.rand(1, 64, 64, 3)})
+    assert "roles:" not in _summary_of(result)
+
+
+def test_roles_reach_a_vision_encoder_in_its_system_block():
+    """Where an encoder has a system channel, that is where the roles go."""
+    clip = _VisionClip()
+    _execute(clip=clip, reference_mode="vision",
+             reference_cards='[{"role": "style"}]',
+             images={"image1": torch.rand(1, 64, 64, 3)})
+    assert "Input 1: take only its colours" in clip.templates[0]
+    # ...and not twice: the inline opening is for encoders without one.
+    assert not clip.prompts[0].startswith("Reference 1:")
 
 
 def test_the_run_reports_itself_to_the_panel():
@@ -909,15 +1152,15 @@ def test_a_mask_with_no_reference_says_so():
 
 
 def test_the_summary_quotes_what_was_actually_sent():
-    """Presets and vision blocks mean the encoder never gets what was typed."""
+    """Roles and vision blocks mean the encoder never gets what was typed."""
     clip = _VisionClip()
     _, _, result = _execute(clip=clip, prompt="a rainy Tokyo street",
                             reference_mode="vision",
-                            prompt_preset="keep subject, change scene",
+                            reference_cards='[{"role": "lighting"}]',
                             images={"image1": torch.rand(1, 64, 64, 3)})
     text = _summary_of(result)
     assert "Sent to the encoder:" in text
-    # Exactly what the tokenizer saw, preset and all.
+    # Exactly what the tokenizer saw, blocks and all.
     assert clip.prompts[0] in text
 
 

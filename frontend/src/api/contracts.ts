@@ -5664,16 +5664,16 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
         "visible_when_value": null
       },
       {
-        "name": "prompt_preset",
-        "kind": "combo",
-        "label": "Preset",
-        "default": "none",
-        "tooltip": "A ready-made opening, prepended to whatever you type.",
+        "name": "reference_cards",
+        "kind": "string",
+        "label": "Reference cards",
+        "default": "",
+        "tooltip": "A job for each reference, in slot order, as JSON: [{\"role\": \"lighting\"}, {\"role\": \"palette\"}]. The role decides what the model takes from that picture and brings the treatment that makes it true. Roles: as is, material, lighting, palette.",
         "values": [
-          "none",
-          "edit this image",
-          "keep subject, change scene",
-          "use as style reference"
+          "as is",
+          "material",
+          "lighting",
+          "palette"
         ],
         "columns": null,
         "searchable": null,
@@ -5723,6 +5723,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
           "grayscale",
           "soft blur",
           "strong blur",
+          "shape wash",
           "palette wash"
         ],
         "columns": null,

@@ -24,8 +24,10 @@ import node_helpers
 import torch
 from comfy_api.latest import io
 
+from . import _edit_clip_hooks as clip_hooks
 from . import _edit_encode_cache as encode_cache
 from . import _edit_reference_prep as reference_prep
+from ..common import edit_roles
 from ..common.brand import CATEGORY_CONDITIONING
 from ..common.localization import t
 
@@ -116,6 +118,20 @@ _REFERENCE_METHODS = ["index_timestep_zero", "index", "offset", "uxo"]
 # nothing else — measured above, it is very nearly a reconstruction of the
 # reference.
 
+# The ready-made openings that used to live here — "edit this image", "keep
+# subject, change scene", "use as style reference" — are gone, and with them the
+# `prompt_preset` widget. Each said one thing about *every* reference at once, in
+# words only, and the one that mattered ("style, not its subject") could not keep
+# its promise: wording alone does not make an encoder unsee what it was handed,
+# which is why that preset was once cut outright and then restored with a
+# treatment it had no way to require.
+#
+# A role replaces them: one job, given to one picture, carrying the treatment
+# that makes the job true. `common/edit_roles` holds the table, and maps the four old
+# preset names onto the roles that replaced them so a workflow saved before this
+# keeps meaning what it meant.
+
+
 # A role the vision-language encoder can be given before it reads the picture,
 # offered through `system_preset` below.
 #
@@ -147,60 +163,6 @@ SYSTEM_PROMPT_SUGGESTED = (
 #
 # So the rule the presets encode: describing a style, pick `use reference`;
 # giving an instruction, leave it on `none`.
-# Ready-made openings for the instruction itself.
-#
-# Not a replacement for the prompt: each is prepended to whatever is typed, so
-# "keep subject, change scene" plus "a rainy Tokyo street" reads as one
-# instruction.
-#
-# Three, because five were written and two of them lied. Each entry below was
-# generated on Krea 2 in `vision` mode, one seed, the same reference:
-#
-#   none                        the reference carries through anyway — in
-#                               `vision` the encoder is looking at it whatever
-#                               the words say.
-#   edit this image             much the same, said out loud.
-#   keep subject, change scene  works, and holds the reference's pose closest
-#                               of the three.
-#
-#   use as style reference     works, but only with a `reference_treatment`.
-#
-# 'keep the scene, change the subject' stays cut: it came back with the subject
-# copied in full, and there is nothing to treat that would fix it — the whole
-# picture is the subject there.
-#
-# 'use as style reference' was cut for the same reason and has been restored,
-# because `reference_treatment` is the thing that was missing. Measured on
-# Krea 2, one seed, a style-only prompt, the same portrait reference:
-#
-#   treatment 'normal'        the reference's subject is reproduced in full,
-#                             exactly as when the preset was first cut.
-#   treatment 'palette wash'  the subject is gone and a new one appears.
-#
-# And the washed reference is still doing something: the same run against a
-# teal reference instead of a warm one gives a different picture in a cooler
-# palette, so this is not simply the reference being ignored.
-#
-# The preset therefore ships with the one condition it needs, and `_summary`
-# says so out loud when it is selected with no treatment — the alternative
-# would be the silent wrongness that got it cut the first time.
-PROMPT_PRESETS = {
-    "none": "",
-    "edit this image": "Edit the reference image. ",
-    "keep subject, change scene": (
-        "Keep the subject of the reference image — their face, hair and pose — "
-        "exactly as they are, and change the scene around them to: "
-    ),
-    "use as style reference": (
-        "Use the reference image only for its style — its palette, its light and "
-        "the way it is rendered. Do not reproduce its subject. Paint instead: "
-    ),
-}
-
-# The preset above needs the reference treated, or it promises what it cannot
-# deliver. Named here so `_summary` and the preset list cannot drift apart.
-STYLE_PRESET = "use as style reference"
-
 SYSTEM_PRESETS = {
     "none": "",
     "use reference": SYSTEM_PROMPT_SUGGESTED,
@@ -335,8 +297,9 @@ def _treatments_for(count: int, default: str, override: str) -> list[str]:
 
 
 def _summary(
-    mode, vl_shapes, latent_shapes, strength, blended, treatments, prompt_preset,
-    role_source, role_sent, method, speaks_vision, masked, main_geometry, sent_text,
+    mode, vl_shapes, latent_shapes, strength, blended, treatments, cards,
+    card_strengths, can_weigh, role_source, role_sent, method, speaks_vision,
+    masked, main_geometry, sent_text,
 ):
     """Plain-language account of what this run actually did.
 
@@ -373,6 +336,37 @@ def _summary(
                     f"{w}x{h} '{name}'" for (h, w), name in zip(vl_shapes, treatments)
                 )
                 lines.append(f"  text encoder reads: {pairs}")
+        # The job each picture was given, which is the thing a reader wants to
+        # check first and the thing no other line says: a treatment named on
+        # its own does not reveal that it arrived because a role asked for it.
+        jobs = [
+            (slot, card.get("role"))
+            for slot, card in enumerate(cards, start=1)
+            if card.get("role", edit_roles.DEFAULT_ROLE) != edit_roles.DEFAULT_ROLE
+        ]
+        if jobs:
+            lines.append(
+                "  roles: " + ", ".join(f"{slot} '{role}'" for slot, role in jobs)
+            )
+        weights = [
+            (slot, weight)
+            for slot, weight in enumerate(card_strengths, start=1)
+            if weight != 1.0
+        ]
+        if weights and not vl_shapes:
+            lines.append(
+                "  per-reference strengths ignored — this mode never shows the "
+                "references to the text encoder, and that is the only place a single "
+                "one can be weighed."
+            )
+        elif weights and can_weigh:
+            lines.append(
+                "  strengths: "
+                + ", ".join(
+                    f"{slot} {weight:g}" + (" (away)" if weight < 0 else "")
+                    for slot, weight in weights
+                )
+            )
         if latent_shapes:
             sizes = ", ".join(f"{w}x{h}" for h, w in latent_shapes)
             lines.append(f"  VAE encodes: {sizes}  (method '{method}')")
@@ -417,6 +411,11 @@ def _summary(
             f"Encoder role: NOT sent ({role_source}) — a role only reaches a "
             "vision-language encoder that was given images to look at."
         )
+        if edit_roles.inline_prefix(cards):
+            lines.append(
+                "  the reference roles went into the instruction itself instead — "
+                "they are the opening of the text quoted above."
+            )
 
     if latent_shapes:
         lines.append(
@@ -434,16 +433,33 @@ def _summary(
             f"references went to the encoder untouched. Known: "
             f"{', '.join(reference_prep.TREATMENTS)}."
         )
-    if (
-        vl_shapes
-        and prompt_preset == STYLE_PRESET
-        and all(name in (None, "", "normal") for name in treatments)
-    ):
+    # A role brings its own treatment, so the only way to end up with a role
+    # that cannot keep its promise is to override that treatment by hand. It is
+    # a legitimate thing to want — and it is also exactly the silent failure
+    # that got a prompt preset cut once, so it says so.
+    disarmed = [
+        slot
+        for slot, card in enumerate(cards, start=1)
+        if slot <= len(treatments)
+        and treatments[slot - 1] in (None, "", "normal")
+        and (edit_roles.ROLES.get(card.get("role")) or edit_roles.ROLES[edit_roles.DEFAULT_ROLE]).treatment
+        not in (None, "", "normal")
+    ]
+    if vl_shapes and disarmed:
         lines.append(
-            "NOTE: the style preset asks the encoder to ignore the reference's subject, "
-            "and wording alone does not achieve that — it is handed the whole picture. "
-            "Set reference_treatment (measured: 'palette wash') so there is no subject "
-            "left to copy."
+            "NOTE: reference(s) "
+            + ", ".join(str(slot) for slot in disarmed)
+            + " were given a role that asks the encoder to ignore part of the picture, "
+            "with the treatment that makes that true overridden to 'normal'. Wording "
+            "alone does not achieve it — the encoder is handed the whole picture. Clear "
+            "the override to let the role bring its own treatment back."
+        )
+    if vl_shapes and not can_weigh and any(weight != 1.0 for weight in card_strengths):
+        lines.append(
+            "NOTE: a card asked for its own strength, and this text encoder builds no "
+            "per-image embeddings to weigh (only vision-language ones such as Qwen3-VL "
+            "do). Every reference pulled the same. reference_strength still weighs them "
+            "all together."
         )
     if vl_shapes and not speaks_vision:
         lines.append(
@@ -548,13 +564,26 @@ class FiLEditEncoder(io.ComfyNode):
                         "Edit only this area of the FIRST reference. The node returns that reference as a latent with the mask aligned to it, so the sampler re-denoises the marked part and leaves the rest — this node is the only thing that knows how the reference was resized, which is what makes the mask line up. Needs the VAE wired.",
                     ),
                 ),
-                io.Combo.Input(
-                    "prompt_preset",
-                    options=list(PROMPT_PRESETS),
-                    default="none",
+                # Deliberately at the index `prompt_preset` used to hold. A
+                # saved workflow stores widget values positionally, so removing
+                # that combo outright would shift every widget after it by one;
+                # taking its place instead means the old preset name arrives
+                # here, where `edit_roles.parse_cards` recognises it and
+                # returns the role that replaced it.
+                io.String.Input(
+                    "reference_cards",
+                    default="",
+                    optional=True,
                     tooltip=t(
-                        "ee_prompt_preset",
-                        "A ready-made opening, prepended to whatever you type. Edit models follow an explicit instruction far more closely than a bare description.",
+                        "ee_cards",
+                        "A job for each reference, in slot order, as JSON: "
+                        '[{"role": "subject"}, {"role": "style"}]. The role decides what '
+                        "the model takes from that picture and brings the treatment that "
+                        "makes it true — 'style' washes the reference to a colour field so "
+                        "there is no subject left to copy. Add \"treatment\" to a card to "
+                        "override that. Roles: "
+                        + ", ".join(edit_roles.ROLE_NAMES)
+                        + ". Empty means every reference is used as it is.",
                     ),
                 ),
                 io.Combo.Input(
@@ -593,7 +622,7 @@ class FiLEditEncoder(io.ComfyNode):
                     default="normal",
                     tooltip=t(
                         "ee_treatment",
-                        "What to do to each reference before the text encoder looks at it. 'normal' shows it as it is. The blurs and 'palette wash' strip detail the model should not copy, which is how you use a picture for its style or its colours without pulling its subject in. Never touches the copy the VAE encodes.",
+                        "What to do to each reference before the text encoder looks at it. 'normal' shows it as it is. The blurs and 'palette wash' strip detail the model should not copy. This applies to every reference that was not given a role in reference_cards — a role brings its own treatment. Never touches the copy the VAE encodes.",
                     ),
                 ),
                 io.String.Input(
@@ -679,7 +708,7 @@ class FiLEditEncoder(io.ComfyNode):
         vae=None,
         images=None,
         mask=None,
-        prompt_preset="none",
+        reference_cards="",
         system_preset="none",
         system_prompt="",
         reference_mode="vision",
@@ -690,8 +719,8 @@ class FiLEditEncoder(io.ComfyNode):
         vision_megapixels=0.15,
         latent_megapixels=1.0,
     ) -> io.NodeOutput:
-        prompt = PROMPT_PRESETS.get(prompt_preset, "") + prompt
         references = _connected_images(images)
+        cards = edit_roles.parse_cards(reference_cards, len(references))
         wants_vision = reference_mode in ("vision", "both")
         wants_latents = reference_mode in ("latents", "both")
 
@@ -709,9 +738,19 @@ class FiLEditEncoder(io.ComfyNode):
                 "or remove the mask."
             )
 
-        treatments = _treatments_for(
-            len(references), reference_treatment, treatment_per_reference
-        )
+        # Three sources, one answer per slot: the card's own override, the
+        # role's treatment, and — for every slot still doing the default job —
+        # the node-wide widgets, which is what a workflow saved before roles
+        # existed has and all it has.
+        treatments = [
+            name
+            for name, _source in edit_roles.treatments_for(
+                cards,
+                _treatments_for(
+                    len(references), reference_treatment, treatment_per_reference
+                ),
+            )
+        ]
 
         ref_latents = []
         # The first reference, encoded, for the `latent` output — what a masked
@@ -789,9 +828,19 @@ class FiLEditEncoder(io.ComfyNode):
         # image count.
         role, role_source = _role_text(system_preset, system_prompt)
 
+        # The roles the cards asked for, in the same block as the encoder role:
+        # both are things said to the model before it looks at anything, and an
+        # encoder that reads one reads the other.
+        job_lines = edit_roles.system_lines(cards)
+        system_block = '\n'.join(
+            ([role.strip()] if role.strip() else []) + job_lines
+        )
+        if job_lines:
+            role_source = f"{role_source} + reference roles" if role_source else "reference roles"
+
         text = prompt
         tokenize_kwargs = {"images": images_vl}
-        if images_vl and role.strip() and _speaks_vision(clip):
+        if images_vl and system_block and _speaks_vision(clip):
             # The two go together or not at all: supplying `llama_template`
             # turns off the tokenizer's own vision-block insertion, so the
             # blocks have to come from the text — one per image, or the block
@@ -800,27 +849,71 @@ class FiLEditEncoder(io.ComfyNode):
                 _VISION_BLOCK.format(i + 1) for i in range(len(images_vl))
             ) + prompt
             tokenize_kwargs["llama_template"] = (
-                _TEMPLATE_PREFIX + role.strip() + _TEMPLATE_SUFFIX
+                _TEMPLATE_PREFIX + system_block + _TEMPLATE_SUFFIX
             )
+        else:
+            # No system channel to put them in — FLUX.2's Mistral3 has none, and
+            # neither has a run with no pictures for the encoder to look at. The
+            # roles then go where the model will still read them: the front of
+            # the instruction. Saying nothing here is how removing the prompt
+            # presets would have quietly emptied this node on those models.
+            text = edit_roles.inline_prefix(cards) + prompt
         template = tokenize_kwargs.get("llama_template")
 
-        def encode(with_images):
+        def encode(with_images, scales=None):
             """One encoder pass, reused when the same inputs come back.
 
-            Only the inputs are keyed — the strength is applied below, on
-            tensors this has already produced. That is what makes turning the
-            dial cost nothing: both passes are already in hand.
+            `scales` weighs individual references *inside* this pass, so it is
+            part of what identifies it; the node-wide strength below is not,
+            because that one is arithmetic on tensors this has already produced.
+            That is what keeps turning the global dial free while a per-card
+            one costs a pass the first time it moves.
             """
-            key = encode_cache.make_key(clip, text, template, with_images)
+            key = encode_cache.make_key(clip, text, template, with_images, scales)
             cached = encode_cache.lookup(key, clip)
             if cached is not None:
                 return cached
             tokens = clip.tokenize(text, **{**tokenize_kwargs, "images": with_images})
-            conditioning = clip.encode_from_tokens_scheduled(tokens)
+            if scales:
+                clip_hooks.tag_images(tokens)
+            with clip_hooks.scaled_images(clip, scales):
+                conditioning = clip.encode_from_tokens_scheduled(tokens)
             encode_cache.store(key, clip, conditioning)
             return conditioning
 
-        conditioning = encode(images_vl)
+        # What each card asked for, split by direction. A weight at or above
+        # zero is how hard that reference pulls and rides along in the pass the
+        # encoder was going to run anyway. Below zero means *away from* this
+        # picture, which cannot be done in one pass: it needs the encode with
+        # that reference held out, to see what it was contributing.
+        strengths = edit_roles.strengths_for(cards)
+        looked_at = strengths[:len(images_vl)]
+        pulls = {
+            slot: (0.0 if weight < 0 else weight)
+            for slot, weight in enumerate(looked_at)
+            if weight != 1.0
+        }
+        pushes = {slot: -weight for slot, weight in enumerate(looked_at) if weight < 0}
+        can_weigh = clip_hooks.supports_scaling(clip)
+        if not can_weigh:
+            pulls, pushes = {}, {}
+
+        conditioning = encode(images_vl, pulls or None)
+
+        # One extra pass per pushed-away reference: the same encode with that
+        # one back at full weight, so the difference is what it was adding.
+        # Subtracting more of that difference than there was pushes past merely
+        # dropping it, which is what "away from this image" means.
+        #
+        # Several pushed at once are handled one at a time and superposed, which
+        # assumes their contributions add. Nothing here has measured that, and
+        # it is the reason the pushes are applied in slot order rather than
+        # being combined into one correction.
+        for slot, weight in pushes.items():
+            lifted = {other: value for other, value in pulls.items() if other != slot}
+            conditioning = _blend_conditioning(
+                conditioning, encode(images_vl, lifted or None), -weight
+            )
 
         # Only when asked for: at 1.0 this is the encode above and nothing more
         # is spent. In `latents` mode `images_vl` is empty and there is no
@@ -848,7 +941,7 @@ class FiLEditEncoder(io.ComfyNode):
 
         summary = _summary(
             reference_mode, vl_shapes, latent_shapes, reference_strength, blended,
-            treatments, prompt_preset, role_source,
+            treatments, cards, strengths, can_weigh, role_source,
             bool(tokenize_kwargs.get("llama_template")),
             reference_latents_method, _speaks_vision(clip),
             mask is not None, main_geometry, text,

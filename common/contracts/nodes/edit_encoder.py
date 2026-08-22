@@ -5,6 +5,11 @@ from __future__ import annotations
 from ..widgets import _combo, _slider, _string
 from ..schema import NodeContract, NodeInputs, NodeOutput
 from ...brand import CATEGORY_CONDITIONING
+# The role names come from the node's own table rather than a copy: this file is
+# a mirror of the node's schema, and a mirror that can drift is worse than none.
+# `common/edit_roles` is where that table lives precisely so this layer can read
+# it — it imports nothing but `json`, and nothing from the running host.
+from ...edit_roles import ROLE_NAMES
 
 CONTRACT = NodeContract(
     id="FiLEditEncoder",
@@ -19,12 +24,14 @@ CONTRACT = NodeContract(
                 "prompt", default="", multiline=True, label="Prompt",
                 tooltip="Edit instruction: what to change, keep, or compose from the references.",
             ),
-            _combo(
-                "prompt_preset",
-                values=["none", "edit this image", "keep subject, change scene",
-                        "use as style reference"],
-                default="none", label="Preset",
-                tooltip="A ready-made opening, prepended to whatever you type.",
+            _string(
+                "reference_cards", default="", label="Reference cards",
+                tooltip="A job for each reference, in slot order, as JSON: "
+                        '[{"role": "lighting"}, {"role": "palette"}]. The role decides '
+                        "what the model takes from that picture and brings the "
+                        "treatment that makes it true. Roles: "
+                        + ", ".join(ROLE_NAMES) + ".",
+                values=ROLE_NAMES,
             ),
             _combo(
                 "reference_mode", values=["vision", "latents", "both"], default="vision",
@@ -37,7 +44,8 @@ CONTRACT = NodeContract(
         optional=[
             _combo(
                 "reference_treatment",
-                values=["normal", "grayscale", "soft blur", "strong blur", "palette wash"],
+                values=["normal", "grayscale", "soft blur", "strong blur",
+                        "shape wash", "palette wash"],
                 default="normal", label="Treatment",
                 tooltip="What to do to each reference before the text encoder looks at it. "
                         "The blurs and 'palette wash' strip detail the model should not copy. "

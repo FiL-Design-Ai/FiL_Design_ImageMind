@@ -13,6 +13,7 @@
  */
 import { computed } from "vue";
 import { FilTextArea, FilSelect, FilSegmented, FilSlider } from "@/components/widgets";
+import { NODE_CONTRACTS } from "@/api/contracts";
 import { useI18n } from "@/composables/useI18n";
 import { findFilWidget } from "@/nodes2/util";
 import { useWidgetSockets } from "@/composables/useWidgetSockets";
@@ -40,10 +41,128 @@ function comboOptions(name: string, fallback: string[]): string[] {
   return Array.isArray(vals) && vals.length ? (vals as string[]) : fallback;
 }
 
+const refs = computed(() => Number((props.state.ui as { refs?: number }).refs ?? 0));
+
 const prompt = stringField("prompt", "");
 const referenceMode = stringField("reference_mode", "vision");
-const promptPreset = stringField("prompt_preset", "none");
 const treatment = stringField("reference_treatment", "normal");
+const cardsField = stringField("reference_cards", "");
+
+/**
+ * The jobs a reference can be given, from the contract rather than a copy kept
+ * here. `reference_cards` is a string widget, so there is no native combo whose
+ * options `comboOptions` could read — the backend puts the vocabulary on the
+ * spec's `values` for exactly this.
+ */
+const ROLE_OPTIONS: string[] =
+  NODE_CONTRACTS["FiLEditEncoder"]?.inputs.required.find(w => w.name === "reference_cards")?.values
+  ?? ["as is"];
+const DEFAULT_ROLE = ROLE_OPTIONS[0] ?? "as is";
+
+type Card = { role: string; strength: number; treatment?: string };
+
+/** What the backend clamps a card's pull to (`common/edit_roles.STRENGTH_*`). */
+const STRENGTH_MIN = -1;
+const STRENGTH_MAX = 2;
+
+/**
+ * One card per wired reference, whatever the field currently holds.
+ *
+ * Parsed leniently and padded to the number of wired slots, mirroring
+ * `_edit_roles.parse_cards`: the field can hold hand-written JSON, or a
+ * `prompt_preset` value left over from a workflow saved before roles existed.
+ * Neither is worth an error message on a panel — the backend recognises the
+ * legacy names, and anything unreadable simply reads as "no jobs given".
+ */
+const cards = computed<Card[]>(() => {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(cardsField.value || "[]");
+  } catch {
+    parsed = null;
+  }
+  const list = Array.isArray(parsed) ? parsed : [];
+  return Array.from({ length: refs.value }, (_, i) => {
+    const entry = list[i] as Partial<Card> | undefined;
+    const role = typeof entry?.role === "string" ? entry.role : DEFAULT_ROLE;
+    const raw = Number(entry?.strength);
+    const strength = Number.isFinite(raw) ? Math.min(STRENGTH_MAX, Math.max(STRENGTH_MIN, raw)) : 1;
+    const resolved = ROLE_OPTIONS.includes(role) ? role : (MERGED_ROLES[role] ?? DEFAULT_ROLE);
+    return { role: ROLE_OPTIONS.includes(resolved) ? resolved : DEFAULT_ROLE, strength };
+  });
+});
+
+/**
+ * Write the cards back, and write nothing at all when every reference is doing
+ * the default job at full strength: an empty field is what a fresh node has,
+ * and a workflow saved after clicking a role back to "as is" should not look
+ * different from one where nobody touched it.
+ *
+ * A strength of 1 is left out of the JSON for the same reason — it is the
+ * default the backend fills in, and writing it down makes an untouched card
+ * look edited.
+ */
+function write(next: Card[]) {
+  const touched = next.some(card => card.role !== DEFAULT_ROLE || card.strength !== 1);
+  cardsField.value = touched
+    ? JSON.stringify(next.map(card => (card.strength === 1 ? { role: card.role } : card)))
+    : "";
+}
+
+function setRole(slot: number, role: string) {
+  write(cards.value.map((card, i) => (i === slot ? { ...card, role } : card)));
+}
+
+function setStrength(slot: number, strength: number) {
+  write(cards.value.map((card, i) => (i === slot ? { ...card, strength } : card)));
+}
+
+/** "0.55" / "−0.50 away" — the sign is a direction, so it gets a word. */
+function strengthLabel(value: number): string {
+  return value < 0 ? `${value.toFixed(2)} ${t("eep_away", "away")}` : value.toFixed(2);
+}
+
+/** Kept out of the template: the fallback quotes a role name, and a quoted
+ * string inside a Vue attribute expression has nowhere left to nest. */
+const roleTip = computed(() =>
+  t("eep_role_tt",
+    "What the model takes from this picture. The role brings the treatment that makes it "
+    + "true — \"style\" washes the reference to a colour field so there is no subject left "
+    + "to copy."),
+);
+
+const strengthTip = computed(() =>
+  t("eep_strength_tt",
+    "How hard this one reference pulls, and which way. Measured on Krea 2: 1 holds the "
+    + "reference, and so does 0.5 — nearly all of the loosening happens close to 0, where "
+    + "the reference drops out entirely. Below zero is not less but opposite: the result "
+    + "comes back with the reference's traits inverted, at the cost of one more encoder "
+    + "pass. Needs a vision-language encoder such as Qwen3-VL; the report says so when "
+    + "there is none."),
+);
+
+const ROLE_LABELS: Record<string, string> = {
+  "as is": "— as is",
+  material: "🧱 material",
+  lighting: "💡 light & layout",
+  palette: "🌈 palette",
+};
+
+/**
+ * Roles that were offered and rendered identically to the one they map to, so
+ * they no longer appear in the list (`common/edit_roles.MERGED_ROLES` carries
+ * the same table and the renders that cut them).
+ *
+ * A saved workflow still holds them, and the backend resolves them this way —
+ * so the panel has to as well. Falling back to the default role instead would
+ * show a card doing one job while the encode did another.
+ */
+const MERGED_ROLES: Record<string, string> = {
+  subject: "as is",
+  style: "palette",
+  composition: "lighting",
+  "shape only": "lighting",
+};
 
 const strength = computed({
   get: () => {
@@ -54,7 +173,6 @@ const strength = computed({
 });
 
 const modeOptions = computed(() => comboOptions("reference_mode", ["vision", "latents", "both"]));
-const presetOptions = computed(() => comboOptions("prompt_preset", ["none"]));
 const treatmentOptions = computed(() => comboOptions("reference_treatment", ["normal"]));
 
 const MODE_LABELS: Record<string, string> = {
@@ -62,8 +180,6 @@ const MODE_LABELS: Record<string, string> = {
   latents: "🧩 latents",
   both: "👁️🧩 both",
 };
-
-const refs = computed(() => Number((props.state.ui as { refs?: number }).refs ?? 0));
 
 /**
  * What the last run did, straight from its `ui` payload. Shown because every
@@ -107,9 +223,22 @@ const report = computed(() => {
       :label="t('eep_mode', '🎯 References reach')"
       :title="t('ee_mode', 'How references reach the model.')" />
 
-    <FilSelect v-model="promptPreset" :options="presetOptions" inline-label
-      :label="t('eep_preset', '📝 Opening')"
-      :title="t('ee_prompt_preset', 'A ready-made opening, prepended to whatever you type.')" />
+    <div v-if="refs" class="fil-ee-cards">
+      <div v-for="(card, i) in cards" :key="i" class="fil-ee-card">
+        <div class="fil-ee-card-row">
+          <span class="fil-ee-slot">{{ i + 1 }}</span>
+          <FilSelect :model-value="card.role" :options="ROLE_OPTIONS" :option-labels="ROLE_LABELS"
+            :title="roleTip"
+            @update:model-value="(v: string) => setRole(i, v)" />
+        </div>
+        <div class="fil-ee-card-row">
+          <span class="fil-ee-slot">{{ strengthLabel(card.strength) }}</span>
+          <FilSlider :model-value="card.strength"
+            :min="STRENGTH_MIN" :max="STRENGTH_MAX" :step="0.05" :title="strengthTip"
+            @update:model-value="(v: number) => setStrength(i, v)" />
+        </div>
+      </div>
+    </div>
 
     <FilSelect v-model="treatment" :options="treatmentOptions" inline-label
       :label="t('eep_treatment', '🎨 Treatment')"
@@ -135,6 +264,16 @@ const report = computed(() => {
 .fil-ee-root { width: 100%; box-sizing: border-box; min-width: 0; display: flex; flex-direction: column; gap: var(--fil-node-gap); padding: var(--fil-node-pad);
   color: var(--fil-text); font-family: ui-sans-serif, system-ui, sans-serif; }
 .fil-ee-head { font-size: 11px; line-height: 1.2; color: var(--fil-muted); }
+/* One row per wired reference. The slot number is the whole label: it is what
+ * the summary, the socket and the vision blocks all count by. */
+.fil-ee-cards { display: flex; flex-direction: column; gap: 4px; }
+.fil-ee-card { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.fil-ee-card-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.fil-ee-card-row > :last-child { flex: 1 1 auto; min-width: 0; }
+/* Fixed gutter so the select and the slider start on the same line, whatever
+ * the strength reads — the number sits where the slot number does. */
+.fil-ee-slot { flex: 0 0 auto; width: 34px; text-align: right; font-size: 11px;
+  line-height: 1.2; color: var(--fil-muted); font-variant-numeric: tabular-nums; }
 /* The last run, in one line. Clipped rather than wrapped so the node keeps its
  * height whatever the report says; the full text is the tooltip. */
 .fil-ee-report { font-size: 11px; line-height: 1.3; color: var(--fil-muted);
