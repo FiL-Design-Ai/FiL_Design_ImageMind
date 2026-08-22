@@ -4,6 +4,7 @@ import FilModal from "@/components/widgets/FilModal.vue";
 import FilSegmented from "@/components/widgets/FilSegmented.vue";
 import FilSlider from "@/components/widgets/FilSlider.vue";
 import FilChipGrid from "@/components/widgets/FilChipGrid.vue";
+import FilComboBox from "@/components/widgets/FilComboBox.vue";
 import FilChipList from "@/components/widgets/FilChipList.vue";
 import FilTextInput from "@/components/widgets/FilTextInput.vue";
 import FilToggle from "@/components/widgets/FilToggle.vue";
@@ -24,6 +25,7 @@ const components: Record<string, Component> = {
   FilSlider,
   FilChipGrid,
   FilChipList,
+  FilComboBox,
   FilTextInput,
   FilToggle,
   // Whole node panels, not widgets: how tall a row ends up is a question about

@@ -211,6 +211,21 @@ function computePosition() {
   const spaceBelow = viewportH - rect.bottom;
   const openUpward = spaceBelow < maxPanelHeight && rect.top > spaceBelow;
 
+  /**
+   * How tall the list is allowed to be, from the room the screen actually has
+   * rather than a number typed once.
+   *
+   * It was a flat 240px: seven or eight names out of the four hundred a models
+   * folder holds, on a monitor with room for thirty. The panel also carries a
+   * search box and, when browsing folders, a row of crumbs — hence the reserve
+   * — and it keeps a margin from the screen edge so the last row is never
+   * pressed against it.
+   */
+  const PANEL_CHROME = 92;
+  const EDGE_MARGIN = 16;
+  const room = (openUpward ? rect.top : spaceBelow) - PANEL_CHROME - EDGE_MARGIN;
+  const listMaxHeight = Math.round(Math.min(560, Math.max(180, room)));
+
   const panelWidth = Math.max(rect.width, 380);
   let left = rect.left;
   if (left + panelWidth > viewportW - 12) {
@@ -220,6 +235,7 @@ function computePosition() {
   panelStyle.value = {
     left: `${left}px`,
     width: `${panelWidth}px`,
+    "--fil-combo-list-max": `${listMaxHeight}px`,
     minWidth: "320px",
     maxWidth: "calc(100vw - 24px)",
     ...(openUpward
@@ -498,7 +514,14 @@ defineExpose({
   color: var(--fil-text); font-family: var(--fil-font-sans, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif); font-size: 12px; outline: none;
 }
 .fil-combo-search:focus { border-color: var(--fil-accent); }
-.fil-combo-list { display: flex; flex-direction: column; gap: 2px; max-height: 240px; overflow-y: auto; }
+.fil-combo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  /* Set per opening from the room the screen has — see computePosition. */
+  max-height: var(--fil-combo-list-max, 240px);
+  overflow-y: auto;
+}
 /* Folder browsing. The rows reuse `.fil-combo-option` so a folder and a file
    line up and answer the keyboard the same way; only the trimmings differ. */
 .fil-combo-crumbs {
