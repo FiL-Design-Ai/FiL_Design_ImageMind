@@ -542,3 +542,41 @@ def test_uncacheable_inputs_are_skipped_rather_than_failing():
     assert cache.make_key(_CountingClip(), "text", None, ["not a tensor"]) is None
     cache.store(None, _CountingClip(), "x")      # no key: a no-op, not a crash
     assert cache.lookup(None, _CountingClip()) is None
+
+
+def _summary_of(result):
+    return result.args[1]
+
+
+def test_the_summary_reports_what_the_run_did():
+    vae = _FakeVae()
+    _, _, result = _execute(
+        clip=_VisionClip(), vae=vae, reference_mode="both", reference_strength=0.5,
+        images={"image1": torch.rand(1, 512, 256, 3)},
+    )
+    text = _summary_of(result)
+    assert "1 reference(s), mode 'both'" in text
+    assert "text encoder reads:" in text and "VAE encodes:" in text
+    assert "strength 0.5" in text
+
+
+def test_the_summary_warns_that_latents_tile_the_source():
+    """The behaviour that looked like a bug for a whole day. It is a setting."""
+    vae = _FakeVae()
+    _, _, result = _execute(vae=vae, reference_mode="latents",
+                            images={"image1": torch.rand(1, 64, 64, 3)})
+    assert "Tiling the source into the output is what it does" in _summary_of(result)
+
+
+def test_the_summary_warns_when_the_encoder_cannot_see():
+    """Vision mode against FLUX.2's Mistral3 reaches nothing at all."""
+    clip = _VisionClip()
+    clip.tokenizer = object()          # no llama_template_images
+    _, _, result = _execute(clip=clip, reference_mode="vision",
+                            images={"image1": torch.rand(1, 64, 64, 3)})
+    assert "takes no images" in _summary_of(result)
+
+
+def test_the_summary_says_so_when_there_are_no_references():
+    _, _, result = _execute()
+    assert "plain text encode" in _summary_of(result)

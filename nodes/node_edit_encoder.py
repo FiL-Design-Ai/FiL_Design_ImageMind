@@ -120,25 +120,34 @@ SYSTEM_PROMPT_SUGGESTED = (
 # giving an instruction, leave it on `none`.
 # Ready-made openings for the instruction itself.
 #
-# Not a replacement for the prompt — each is prepended to whatever is typed, so
-# "keep the subject, change the scene" plus "a rainy Tokyo street" reads as one
-# instruction. An edit model follows an explicit instruction far more closely
-# than a bare description; that is the whole finding behind `system_preset`,
-# and these save writing the sentence every time.
+# Not a replacement for the prompt: each is prepended to whatever is typed, so
+# "keep subject, change scene" plus "a rainy Tokyo street" reads as one
+# instruction.
+#
+# Three, because five were written and two of them lied. Each entry below was
+# generated on Krea 2 in `vision` mode, one seed, the same reference:
+#
+#   none                        the reference carries through anyway — in
+#                               `vision` the encoder is looking at it whatever
+#                               the words say.
+#   edit this image             much the same, said out loud.
+#   keep subject, change scene  works, and holds the reference's pose closest
+#                               of the three.
+#
+# The two that were cut asked for something this channel cannot give. 'Use as
+# a style reference — not its subject' and 'keep the scene, change the subject'
+# both came back with the subject copied in full: `vision` hands the whole
+# picture to the encoder, and wording cannot make it unsee the parts it is told
+# to ignore. `krea-reference` gets that effect by *treating* the image first —
+# greyscale, blur, palette wash — so only the wanted aspect survives to be
+# looked at. Until this node can do the same, a preset promising it would be
+# the same silent wrongness the rest of this file exists to prevent.
 PROMPT_PRESETS = {
     "none": "",
     "edit this image": "Edit the reference image. ",
     "keep subject, change scene": (
         "Keep the subject of the reference image — their face, hair and pose — "
         "exactly as they are, and change the scene around them to: "
-    ),
-    "keep scene, change subject": (
-        "Keep the scene and background of the reference image exactly as it is, "
-        "and change the subject to: "
-    ),
-    "use as style reference": (
-        "Use the reference image only as a style reference — its colour, "
-        "lighting and texture, not its subject or composition. Generate: "
     ),
 }
 
@@ -189,6 +198,47 @@ def _slot_index(name: str) -> int:
     """
     match = _SLOT_INDEX_RE.search(name)
     return int(match.group(1)) if match else 0
+
+
+def _summary(mode, vl_shapes, latent_shapes, strength, role_sent, method, speaks_vision):
+    """Plain-language account of what this run actually did.
+
+    Every trap found while getting this node working was silent: references
+    discarded because no method was written, the source tiled into the frame
+    because the latent channel was on, an instruction encoded with no idea what
+    it referred to. None of them raised anything. This says out loud what the
+    node chose, and warns about the two that still look like bugs when they are
+    settings.
+    """
+    lines = []
+    count = max(len(vl_shapes), len(latent_shapes))
+    if not count:
+        lines.append("No references wired — this is a plain text encode.")
+    else:
+        lines.append(f"{count} reference(s), mode '{mode}'.")
+        if vl_shapes:
+            sizes = ", ".join(f"{w}x{h}" for h, w in vl_shapes)
+            lines.append(f"  text encoder reads: {sizes}")
+        if latent_shapes:
+            sizes = ", ".join(f"{w}x{h}" for h, w in latent_shapes)
+            lines.append(f"  VAE encodes: {sizes}  (method '{method}')")
+        if abs(strength - 1.0) > 1e-6:
+            lines.append(f"  strength {strength:g} — blended against blank references.")
+
+    lines.append(f"Encoder role: {'sent' if role_sent else 'none'}.")
+
+    if latent_shapes:
+        lines.append(
+            "NOTE: the latent channel concatenates each reference to the frame's own "
+            "tokens. Tiling the source into the output is what it does, not a fault — "
+            "switch reference_mode to 'vision' if that is not what you want."
+        )
+    if vl_shapes and not speaks_vision:
+        lines.append(
+            "NOTE: this text encoder takes no images (FLUX.2's Mistral3 is one), so the "
+            "'vision' channel reaches nothing here. Use 'latents' for this model."
+        )
+    return "\n".join(lines)
 
 
 def _blend_conditioning(weak, strong, strength: float):
@@ -360,6 +410,10 @@ class FiLEditEncoder(io.ComfyNode):
                     display_name="conditioning",
                     tooltip=t("ee_out", "Prompt conditioning carrying every reference latent — feed the sampler's positive input."),
                 ),
+                io.String.Output(
+                    display_name="summary",
+                    tooltip=t("ee_summary", "What this run did with the references, and a note when a setting looks like a bug but is not."),
+                ),
             ],
             search_aliases=["edit", "reference", "flux2", "krea", "klein", "inpaint", "conditioning"],
         )
@@ -395,6 +449,8 @@ class FiLEditEncoder(io.ComfyNode):
 
         ref_latents = []
         images_vl = []
+        vl_shapes = []
+        latent_shapes = []
         for image in references:
             samples = image.movedim(-1, 1)
             native = samples.shape[3] * samples.shape[2]
@@ -410,7 +466,9 @@ class FiLEditEncoder(io.ComfyNode):
                     "area",
                     "disabled",
                 )
-                images_vl.append(vl.movedim(1, -1)[:, :, :, :3])
+                vl_image = vl.movedim(1, -1)[:, :, :, :3]
+                images_vl.append(vl_image)
+                vl_shapes.append((int(vl_image.shape[1]), int(vl_image.shape[2])))
 
             if wants_latents:
                 # The copy the VAE encodes. Full-auto: never upscale — small
@@ -426,6 +484,7 @@ class FiLEditEncoder(io.ComfyNode):
                 width = max(8, round(samples.shape[3] * scale_by / 8.0) * 8)
                 height = max(8, round(samples.shape[2] * scale_by / 8.0) * 8)
                 scaled = comfy.utils.common_upscale(samples, width, height, "area", "disabled")
+                latent_shapes.append((height, width))
                 ref_latents.append(vae.encode(scaled.movedim(1, -1)[:, :, :, :3]))
 
         # `images` reaching the tokenizer is what makes the vision half of the
@@ -499,4 +558,11 @@ class FiLEditEncoder(io.ComfyNode):
                 conditioning, {"reference_latents_method": reference_latents_method}
             )
 
-        return io.NodeOutput(conditioning)
+        return io.NodeOutput(
+            conditioning,
+            _summary(
+                reference_mode, vl_shapes, latent_shapes, reference_strength,
+                bool(tokenize_kwargs.get("llama_template")), reference_latents_method,
+                _speaks_vision(clip),
+            ),
+        )

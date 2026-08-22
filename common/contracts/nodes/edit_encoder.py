@@ -21,8 +21,7 @@ CONTRACT = NodeContract(
             ),
             _combo(
                 "prompt_preset",
-                values=["none", "edit this image", "keep subject, change scene",
-                        "keep scene, change subject", "use as style reference"],
+                values=["none", "edit this image", "keep subject, change scene"],
                 default="none", label="Preset",
                 tooltip="A ready-made opening, prepended to whatever you type.",
             ),
@@ -63,5 +62,6 @@ CONTRACT = NodeContract(
     ),
     outputs=[
         NodeOutput(name="conditioning", type="CONDITIONING"),
+        NodeOutput(name="summary", type="STRING"),
     ],
 )

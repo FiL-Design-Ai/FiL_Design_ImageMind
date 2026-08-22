@@ -14302,9 +14302,7 @@ var pS, mS = n((() => {
 						values: [
 							"none",
 							"edit this image",
-							"keep subject, change scene",
-							"keep scene, change subject",
-							"use as style reference"
+							"keep subject, change scene"
 						],
 						columns: null,
 						searchable: null,
@@ -14434,6 +14432,9 @@ var pS, mS = n((() => {
 			outputs: [{
 				name: "conditioning",
 				type: "CONDITIONING"
+			}, {
+				name: "summary",
+				type: "STRING"
 			}],
 			min_size: [300, 150],
 			family: "conditioning"

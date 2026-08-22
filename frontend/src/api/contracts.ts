@@ -5672,9 +5672,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
         "values": [
           "none",
           "edit this image",
-          "keep subject, change scene",
-          "keep scene, change subject",
-          "use as style reference"
+          "keep subject, change scene"
         ],
         "columns": null,
         "searchable": null,
@@ -5805,6 +5803,10 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     {
       "name": "conditioning",
       "type": "CONDITIONING"
+    },
+    {
+      "name": "summary",
+      "type": "STRING"
     }
   ],
   "min_size": [

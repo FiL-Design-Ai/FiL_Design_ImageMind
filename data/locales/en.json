@@ -607,5 +607,6 @@
   "ee_prompt_preset": "A ready-made opening, prepended to whatever you type. Edit models follow an explicit instruction far more closely than a bare description.",
   "ee_strength": "How hard the references pull. 1.0 is the plain encode and costs nothing; anything else encodes a second time against blank references and interpolates, so 0 ignores them and above 1 exaggerates them.",
   "ee_vl_mp": "Size of the copy the text encoder reads. 0.15 MP (~384x384) is what core uses.",
-  "ee_lat_mp": "Cap for the copy the VAE encodes, when reference_mode uses latents."
+  "ee_lat_mp": "Cap for the copy the VAE encodes, when reference_mode uses latents.",
+  "ee_summary": "What this run did with the references, and a note when a setting looks like a bug but is not."
 }
