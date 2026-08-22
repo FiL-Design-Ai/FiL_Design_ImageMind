@@ -37,20 +37,35 @@ CONTRACT = NodeContract(
             _slider(
                 "reference_strength", default=1.0, minv=0.0, maxv=3.0, step=0.05,
                 label="Reference strength",
-                tooltip="How hard the references pull. 1.0 costs one encode; anything "
-                        "else encodes again against blank references and interpolates.",
+                tooltip="How hard the references pull on the text encoder. 1.0 costs one "
+                        "encode; anything else encodes again against blank references and "
+                        "interpolates. No effect in reference_mode 'latents'.",
             ),
             _combo(
-                "system_preset", values=["none", "use reference", "custom"], default="none",
+                "system_preset", values=["none", "use reference"], default="none",
                 label="System preset", section="advanced",
-                tooltip="'none' for a prompt that gives an instruction. 'use reference' for a "
-                        "prompt that only describes a style. 'custom' uses the field below.",
+                tooltip="'none' for a prompt that gives an instruction — and it lets the "
+                        "field below supply a role of your own. 'use reference' for a prompt "
+                        "that only describes a style.",
             ),
             _string(
                 "system_prompt", default="", multiline=True, label="System prompt",
                 section="advanced",
-                tooltip="Optional role for the text encoder. Empty leaves the tokenizer's own "
-                        "template alone. Vision-language encoders only.",
+                tooltip="Optional role for the text encoder, used when system_preset is "
+                        "'none'. Empty leaves the tokenizer's own template alone. "
+                        "Vision-language encoders only.",
+            ),
+            _slider(
+                "vision_megapixels", default=0.15, minv=0.01, maxv=4.0, step=0.01,
+                label="Vision MP", section="advanced",
+                tooltip="Size of the copy the text encoder reads. 0.15 MP (~384x384) is "
+                        "what core uses.",
+            ),
+            _slider(
+                "latent_megapixels", default=1.0, minv=0.1, maxv=4.0, step=0.05,
+                label="Latent MP", section="advanced",
+                tooltip="Cap for the copy the VAE encodes, when reference_mode uses "
+                        "latents. Smaller references stay at native size.",
             ),
             _combo(
                 "reference_latents_method",

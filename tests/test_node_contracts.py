@@ -74,6 +74,50 @@ def test_contract_widgets_exist_in_the_node_schema(monkeypatch):
     assert not stale, f"contract widgets with no matching schema input: {stale}"
 
 
+def test_node_schema_widgets_exist_in_the_contract(monkeypatch):
+    """The other direction: a schema widget must reach the frontend contract.
+
+    The check above only ever looked contract -> schema, so a widget added to a
+    node's `define_schema()` and forgotten in its contract broke nothing and
+    said nothing — the frontend simply never learned the field existed. That is
+    how `vision_megapixels` and `latent_megapixels` sat outside FiLEditEncoder's
+    contract while everything stayed green.
+
+    `force_input=True` inputs are excluded: they are declared sockets, drawn as
+    a dot and never as a widget. Anything else that genuinely stays native is
+    listed in `SCHEMA_ONLY_WIDGETS` with its reason.
+    """
+    from comfy_api.latest import io
+
+    from FiL_Design_ImageMind.common.contracts.registry import NODE_SCHEMAS, SCHEMA_ONLY_WIDGETS
+
+    monkeypatch.setenv("FIL_RELEASE_ALL", "1")
+    package = importlib.import_module("FiL_Design_ImageMind")
+    ext = asyncio.run(package.comfy_entrypoint())
+
+    missing: dict[str, list[str]] = {}
+    for node_class in asyncio.run(ext.get_node_list()):
+        schema = node_class.GET_SCHEMA()
+        contract = NODE_SCHEMAS.get(schema.node_id)
+        if contract is None:
+            continue
+        widgets = {
+            i.id
+            for i in schema.inputs
+            if isinstance(i, io.WidgetInput) and not getattr(i, "force_input", False)
+        }
+        known = {w.name for w in list(contract.inputs.required) + list(contract.inputs.optional)}
+        gap = sorted(widgets - known - SCHEMA_ONLY_WIDGETS.get(schema.node_id, set()))
+        if gap:
+            missing[schema.node_id] = gap
+
+    assert not missing, (
+        "schema widgets missing from the frontend contract "
+        f"(add them under common/contracts/nodes/, or declare them in "
+        f"SCHEMA_ONLY_WIDGETS with a reason): {missing}"
+    )
+
+
 def test_every_node_class_has_a_frontend_module(monkeypatch):
     """Every node id must have a `nodes2/nodes/*.ts` module wired into the registry."""
     import re

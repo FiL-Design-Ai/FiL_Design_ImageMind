@@ -379,15 +379,30 @@ def test_the_default_sends_no_system_prompt():
     assert clip.prompts[0] == "make it rain"
 
 
-def test_an_empty_custom_prompt_sends_none():
+def test_an_empty_role_field_sends_none():
     clip = _VisionClip()
-    _execute(clip=clip, reference_mode="vision", system_preset="custom",
+    _execute(clip=clip, reference_mode="vision",
              system_prompt="   ", images={"image1": torch.rand(1, 64, 64, 3)})
     assert clip.templates == [None]
     assert clip.prompts[0] == "make it rain"
 
 
-def test_custom_preset_uses_the_field():
+def test_the_field_is_used_without_asking_for_a_preset():
+    """Typing a role and leaving the preset alone must send that role.
+
+    It used to be discarded unless `system_preset` was switched to "custom" —
+    silently, which is the one failure mode this node exists to not have.
+    """
+    clip = _VisionClip()
+    _, _, result = _execute(clip=clip, reference_mode="vision",
+                            system_prompt="Only change the sky.",
+                            images={"image1": torch.rand(1, 64, 64, 3)})
+    assert "Only change the sky." in clip.templates[0]
+    assert "sent (custom field)" in _summary_of(result)
+
+
+def test_the_legacy_custom_preset_still_reads_the_field():
+    """Saved workflows carry `system_preset="custom"`; it means what it meant."""
     clip = _VisionClip()
     _execute(clip=clip, reference_mode="vision", system_preset="custom",
              system_prompt="Only change the sky.",
@@ -395,13 +410,27 @@ def test_custom_preset_uses_the_field():
     assert "Only change the sky." in clip.templates[0]
 
 
-def test_the_field_is_ignored_unless_the_preset_asks_for_it():
-    """A leftover custom text must not leak into a named preset."""
+def test_a_named_preset_wins_over_a_leftover_field():
+    """A stale custom text must not leak into a named preset."""
     clip = _VisionClip()
-    _execute(clip=clip, reference_mode="vision", system_preset="none",
-             system_prompt="Only change the sky.",
-             images={"image1": torch.rand(1, 64, 64, 3)})
+    _, _, result = _execute(clip=clip, reference_mode="vision",
+                            system_preset="use reference",
+                            system_prompt="Only change the sky.",
+                            images={"image1": torch.rand(1, 64, 64, 3)})
+    assert "Only change the sky." not in clip.templates[0]
+    assert "maintaining consistency" in clip.templates[0]
+    assert "sent (preset 'use reference')" in _summary_of(result)
+
+
+def test_a_role_that_cannot_be_delivered_is_reported():
+    """A text-only encoder never receives the role — say so, do not imply it did."""
+    clip = _VisionClip()
+    clip.tokenizer = object()          # no llama_template_images anywhere
+    _, _, result = _execute(clip=clip, reference_mode="vision",
+                            system_prompt="Only change the sky.",
+                            images={"image1": torch.rand(1, 64, 64, 3)})
     assert clip.templates == [None]
+    assert "NOT sent (custom field)" in _summary_of(result)
 
 
 def test_a_prompt_preset_is_prepended_not_substituted():
@@ -580,3 +609,37 @@ def test_the_summary_warns_when_the_encoder_cannot_see():
 def test_the_summary_says_so_when_there_are_no_references():
     _, _, result = _execute()
     assert "plain text encode" in _summary_of(result)
+
+
+def test_strength_is_ignored_in_latents_mode_and_says_so():
+    """The dial interpolates two *text-encoder* passes.
+
+    `latents` mode has no such pass — the references go through the VAE. The
+    summary used to announce a blend anyway, because it printed the line from
+    the strength value rather than from what happened.
+    """
+    clip = _CountingClip()
+    _, _, result = _execute(clip=clip, vae=_FakeVae(), reference_mode="latents",
+                            reference_strength=0.5,
+                            images={"image1": torch.rand(1, 64, 64, 3)})
+    assert clip.encodes == 1
+    text = _summary_of(result)
+    assert "strength 0.5 ignored" in text
+    assert "blended against blank references" not in text
+
+
+def test_strength_in_both_mode_names_the_half_it_touched():
+    clip = _CountingClip()
+    _, _, result = _execute(clip=clip, vae=_FakeVae(), reference_mode="both",
+                            reference_strength=0.5,
+                            images={"image1": torch.rand(1, 64, 64, 3)})
+    assert clip.encodes == 2
+    assert "applied to the vision half only" in _summary_of(result)
+
+
+def test_strength_in_vision_mode_reports_a_plain_blend():
+    clip = _CountingClip()
+    _, _, result = _execute(clip=clip, reference_mode="vision", reference_strength=0.5,
+                            images={"image1": torch.rand(1, 64, 64, 3)})
+    assert clip.encodes == 2
+    assert "blended against blank references" in _summary_of(result)

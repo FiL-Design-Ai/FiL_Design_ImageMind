@@ -77,6 +77,21 @@ UI_ONLY_WIDGETS: dict[str, set[str]] = {
     "FiLSeed": {"mode", "use_last_seed", "new_fixed"},
 }
 
+# The other direction: schema widgets that deliberately have no contract entry,
+# because they stay native ComfyUI widgets and no panel renders them.
+# `force_input=True` inputs are sockets by declaration and are excluded
+# automatically — only real widgets need listing here.
+#
+# Without this pair of maps the parity was one-way, which is how
+# `vision_megapixels` and `latent_megapixels` lived in FiLEditEncoder's schema
+# for a whole feature's worth of work while its contract knew seven widgets of
+# nine. See tests/test_node_contracts.py.
+SCHEMA_ONLY_WIDGETS: dict[str, set[str]] = {
+    # Provider-side generation seed. Advanced, rarely touched, and the scanner
+    # panel is already the largest in the pack — it stays a native widget.
+    "FiLOpticScanner": {"seed"},
+}
+
 # NOTE: no hand-written id list guards this module any more. A duplicated list
 # here only ever compared two copies of the same file's content, which is how
 # FiLColorWizard shipped registered-but-contract-less. Parity against the actual

@@ -70,7 +70,14 @@ REFERENCE_MODES = ["vision", "latents", "both"]
 #
 # So there is no "auto". An earlier revision of this file had one, meaning
 # "write no method at all"; on FLUX.2 that is right (its detected default is
-# "index") and on Krea 2 it quietly disabled the entire feature.
+# "index", comfy/model_detection.py) and on Krea 2 it quietly disabled the
+# entire feature.
+#
+# Core knows a fifth value, "negative_index", and it is deliberately not here:
+# it belongs to Qwen Image Layered (comfy/model_detection.py, the
+# `use_additional_t_cond` branch), an architecture this node does not target.
+# Adding it would offer a value that does nothing for every model this node is
+# for. Revisit only if Qwen Image joins the target list.
 _REFERENCE_METHODS = ["index_timestep_zero", "index", "offset", "uxo"]
 
 # A second, much smaller copy of every reference goes to the *text* encoder.
@@ -155,7 +162,26 @@ SYSTEM_PRESETS = {
     "none": "",
     "use reference": SYSTEM_PROMPT_SUGGESTED,
 }
+
+# Legacy value. `system_preset` used to offer a third entry, "custom", and the
+# `system_prompt` field below did nothing unless it was selected — so text typed
+# into the field with the preset left on "none" was discarded without a word.
+# The rule is now "a named preset wins; otherwise the field is used", which
+# makes "custom" indistinguishable from "none" and so it is gone from the list.
+# Saved workflows still carry it, and it still means what it always meant.
 PRESET_CUSTOM = "custom"
+
+
+def _role_text(system_preset: str, system_prompt: str) -> tuple[str, str]:
+    """The role to send, and where it came from (for the summary).
+
+    Returns `("", "")` when there is no role at all.
+    """
+    if system_preset not in ("none", PRESET_CUSTOM):
+        text = SYSTEM_PRESETS.get(system_preset, "")
+        return (text, f"preset {system_preset!r}") if text.strip() else ("", "")
+    text = system_prompt or ""
+    return (text, "custom field") if text.strip() else ("", "")
 
 _TEMPLATE_PREFIX = "<|im_start|>system\n"
 _TEMPLATE_SUFFIX = "<|im_end|>\n<|im_start|>user\n{}<|im_end|>\n<|im_start|>assistant\n"
@@ -200,7 +226,10 @@ def _slot_index(name: str) -> int:
     return int(match.group(1)) if match else 0
 
 
-def _summary(mode, vl_shapes, latent_shapes, strength, role_sent, method, speaks_vision):
+def _summary(
+    mode, vl_shapes, latent_shapes, strength, blended,
+    role_source, role_sent, method, speaks_vision,
+):
     """Plain-language account of what this run actually did.
 
     Every trap found while getting this node working was silent: references
@@ -209,6 +238,11 @@ def _summary(mode, vl_shapes, latent_shapes, strength, role_sent, method, speaks
     it referred to. None of them raised anything. This says out loud what the
     node chose, and warns about the two that still look like bugs when they are
     settings.
+
+    `blended` is passed rather than derived from `strength`, because the two
+    part company: the strength dial interpolates two *text-encoder* passes, and
+    in `latents` mode there is no such pass to interpolate. This line used to be
+    printed from `strength` alone and so announced a blend that never happened.
     """
     lines = []
     count = max(len(vl_shapes), len(latent_shapes))
@@ -223,9 +257,28 @@ def _summary(mode, vl_shapes, latent_shapes, strength, role_sent, method, speaks
             sizes = ", ".join(f"{w}x{h}" for h, w in latent_shapes)
             lines.append(f"  VAE encodes: {sizes}  (method '{method}')")
         if abs(strength - 1.0) > 1e-6:
-            lines.append(f"  strength {strength:g} — blended against blank references.")
+            if not blended:
+                lines.append(
+                    f"  strength {strength:g} ignored — this mode has no vision pass to "
+                    "blend. Reference strength only weighs what the text encoder reads."
+                )
+            elif latent_shapes:
+                lines.append(
+                    f"  strength {strength:g} — applied to the vision half only; the "
+                    "latents are unweighted."
+                )
+            else:
+                lines.append(f"  strength {strength:g} — blended against blank references.")
 
-    lines.append(f"Encoder role: {'sent' if role_sent else 'none'}.")
+    if not role_source:
+        lines.append("Encoder role: none.")
+    elif role_sent:
+        lines.append(f"Encoder role: sent ({role_source}).")
+    else:
+        lines.append(
+            f"Encoder role: NOT sent ({role_source}) — a role only reaches a "
+            "vision-language encoder that was given images to look at."
+        )
 
     if latent_shapes:
         lines.append(
@@ -339,12 +392,12 @@ class FiLEditEncoder(io.ComfyNode):
                 ),
                 io.Combo.Input(
                     "system_preset",
-                    options=list(SYSTEM_PRESETS) + [PRESET_CUSTOM],
+                    options=list(SYSTEM_PRESETS),
                     default="none",
                     advanced=True,
                     tooltip=t(
                         "ee_preset",
-                        "Role sent to the text encoder. 'none' for a prompt that gives an instruction ('change X, keep Y') — it is followed most closely that way. 'use reference' for a prompt that only describes a style, which otherwise leaves the model no reason to look at the reference. 'custom' uses the system_prompt field below.",
+                        "Role sent to the text encoder. 'none' for a prompt that gives an instruction ('change X, keep Y') — it is followed most closely that way, and leaves the system_prompt field below free to supply a role of your own. 'use reference' for a prompt that only describes a style, which otherwise leaves the model no reason to look at the reference.",
                     ),
                 ),
                 io.String.Input(
@@ -355,7 +408,7 @@ class FiLEditEncoder(io.ComfyNode):
                     advanced=True,
                     tooltip=t(
                         "ee_system",
-                        "Optional role for the text encoder, sent before it reads the references. Empty (the default) leaves the tokenizer's own template alone, which held a pose better than the usual 'describe then modify' wording in testing. Only reaches vision-language encoders (Qwen3-VL); ignored for FLUX.2's Mistral3, which would read it literally.",
+                        "Optional role for the text encoder, sent before it reads the references. Used whenever system_preset is 'none' and this is not empty. Empty (the default) leaves the tokenizer's own template alone, which held a pose better than the usual 'describe then modify' wording in testing. Only reaches vision-language encoders (Qwen3-VL); ignored for FLUX.2's Mistral3, which would read it literally.",
                     ),
                 ),
                 io.Combo.Input(
@@ -373,7 +426,7 @@ class FiLEditEncoder(io.ComfyNode):
                     optional=True,
                     tooltip=t(
                         "ee_strength",
-                        "How hard the references pull. 1.0 is the plain encode and costs nothing; anything else encodes a second time against blank references and interpolates, so 0 ignores them and above 1 exaggerates them.",
+                        "How hard the references pull on the text encoder. 1.0 is the plain encode and costs nothing; anything else encodes a second time against blank references and interpolates, so 0 ignores them and above 1 exaggerates them. Has no effect in reference_mode 'latents', which has no text-encoder pass to weigh — the summary output says so.",
                     ),
                 ),
                 io.Float.Input(
@@ -401,7 +454,7 @@ class FiLEditEncoder(io.ComfyNode):
                     advanced=True,
                     tooltip=t(
                         "ee_method",
-                        "How the model lays references against the target. Leave on 'auto' — the model knows: FLUX.2 uses 'index' (reference on its own plane, i.e. edit it), and 'offset' is FLUX.1-Kontext's put-them-side-by-side.",
+                        "Only used when reference_mode sends latents. On Krea 2 every value behaves the same except index_timestep_zero.",
                     ),
                 ),
             ],
@@ -498,11 +551,7 @@ class FiLEditEncoder(io.ComfyNode):
         # `krea-reference` does, means supplying the template too — do one or
         # the other, never half of each, or the block count stops matching the
         # image count.
-        role = (
-            (system_prompt or "")
-            if system_preset == PRESET_CUSTOM
-            else SYSTEM_PRESETS.get(system_preset, "")
-        )
+        role, role_source = _role_text(system_preset, system_prompt)
 
         text = prompt
         tokenize_kwargs = {"images": images_vl}
@@ -538,8 +587,11 @@ class FiLEditEncoder(io.ComfyNode):
         conditioning = encode(images_vl)
 
         # Only when asked for: at 1.0 this is the encode above and nothing more
-        # is spent.
-        if images_vl and abs(reference_strength - 1.0) > 1e-6:
+        # is spent. In `latents` mode `images_vl` is empty and there is no
+        # second pass to interpolate — the summary says so rather than letting
+        # the dial look like it did something.
+        blended = bool(images_vl) and abs(reference_strength - 1.0) > 1e-6
+        if blended:
             conditioning = _blend_conditioning(
                 encode([torch.zeros_like(image) for image in images_vl]),
                 conditioning,
@@ -561,8 +613,8 @@ class FiLEditEncoder(io.ComfyNode):
         return io.NodeOutput(
             conditioning,
             _summary(
-                reference_mode, vl_shapes, latent_shapes, reference_strength,
-                bool(tokenize_kwargs.get("llama_template")), reference_latents_method,
-                _speaks_vision(clip),
+                reference_mode, vl_shapes, latent_shapes, reference_strength, blended,
+                role_source, bool(tokenize_kwargs.get("llama_template")),
+                reference_latents_method, _speaks_vision(clip),
             ),
         )
