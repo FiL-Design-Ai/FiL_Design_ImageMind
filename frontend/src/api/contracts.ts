@@ -5878,7 +5878,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   ],
   "min_size": [
     300,
-    150
+    300
   ],
   "family": "conditioning"
 },

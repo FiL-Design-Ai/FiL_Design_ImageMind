@@ -14,12 +14,19 @@ const EditEncoderVue = defineAsyncComponent(() => import("@/components/nodes/Edi
  * native widget, which hides its input slot with it — `exposeWidgetInputSockets`
  * gives the slot a row and a visible dot back.
  */
-export const EDIT_ENCODER_SOCKET_INPUTS = ["prompt"];
+export const EDIT_ENCODER_SOCKET_INPUTS = ["prompt", "reference_strength"];
 
-// The panel drives only the prompt; resize is full-auto on the backend and
-// `reference_latents_method` stays a native advanced widget below the panel.
-const stringDefaults: Record<string, string> = { prompt: "" };
-const HIDE = [...Object.keys(stringDefaults)];
+// The panel drives the four controls that decide what happens to a reference.
+// The advanced ones — both megapixel caps, the encoder role, and
+// `reference_latents_method` — stay native widgets below the panel.
+const stringDefaults: Record<string, string> = {
+  prompt: "",
+  reference_mode: "vision",
+  prompt_preset: "none",
+  reference_treatment: "normal",
+};
+const numericDefaults: Record<string, number> = { reference_strength: 1 };
+const HIDE = [...Object.keys(stringDefaults), ...Object.keys(numericDefaults)];
 
 /** Autogrow reference slots as the UI names them: `image1`, `image2`, … */
 const REF_SLOT_RE = /^image\d+$/;
@@ -31,15 +38,15 @@ function countRefs(node: LGraphNode): number {
 
 /**
  * FiLEditEncoder — prompt + reference images into one edit conditioning.
- * The panel is deliberately lean: a live wired-reference counter and the
- * prompt textarea. The Autogrow reference slots stay core-managed below it,
- * and the reference-layout method stays a native advanced widget.
+ * The panel holds the wired-reference counter, the prompt, and the three
+ * controls that decide what happens to a reference. The Autogrow reference
+ * slots stay core-managed below it, as do the advanced widgets.
  */
 export const editEncoderNode: NodeModule = {
   id: "FiLEditEncoder",
   register(nodeType: LGraphNodeType, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
-      minSize: [300, 150],
+      minSize: [300, 300],
       initialWidth: 300,
       family: "conditioning",
       description: "Prompt + reference images in one conditioning for FLUX.2-family edit models.",
@@ -60,6 +67,9 @@ export const editEncoderNode: NodeModule = {
       for (const name of Object.keys(stringDefaults)) {
         target[name] = sanitizeWidgetValue(findFilWidget(node, name), "string", stringDefaults[name]);
       }
+      for (const name of Object.keys(numericDefaults)) {
+        target[name] = sanitizeWidgetValue(findFilWidget(node, name), "number", numericDefaults[name]);
+      }
     };
 
     const originalCreated = p.onNodeCreated;
@@ -78,7 +88,7 @@ export const editEncoderNode: NodeModule = {
       };
       Object.defineProperty(state, "node", { value: node, enumerable: false, configurable: true });
       node._filEditEncoderState = state;
-      addFilDomWidget(node, "fil_edit_encoder_view", EditEncoderVue, { state, height: 110 });
+      addFilDomWidget(node, "fil_edit_encoder_view", EditEncoderVue, { state, height: 250 });
       exposeWidgetInputSockets(this, EDIT_ENCODER_SOCKET_INPUTS);
       return result;
     };
