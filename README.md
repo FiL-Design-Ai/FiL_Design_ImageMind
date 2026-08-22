@@ -561,21 +561,36 @@ Cycles through LoRA adapters on each generation run with automatic trigger-word 
 <summary><b>🎯 Edit Encoder</b> — <code>FiLEditEncoder</code> — prompt + reference images in one conditioning for FLUX.2-family edit models</summary>
 
 Replaces core's scattered chain (`ImageScaleToTotalPixels` → `VAEEncode` → chained
-`ReferenceLatent` nodes) for FLUX.2-family edit workflows (Krea2, Klein, Dev): every wired
-reference is resized to the pixel budget, VAE-encoded, and attached to the prompt
-conditioning together with the reference-layout method. Native ComfyUI widgets only.
+`ReferenceLatent` nodes) for FLUX.2-family edit workflows (Krea2, Klein, Dev). Two channels
+carry a reference: `vision` hands it to the text encoder, which looks at it without putting
+anything into the frame; `latents` VAE-encodes it into the frame's own tokens, which is the
+Kontext behaviour that tiles the source into the output. Each reference gets a *card* — a job
+and a pull of its own — and the node says in words what it did with them.
 
 | Input | Type | Default | Notes |
 |---|---|---|---|
 | `clip` | CLIP | — | edit model's text encoder (e.g. Qwen3-VL for FLUX.2/Krea2) |
 | `prompt` | STRING | `""` | edit instruction |
-| `vae` | VAE | — | edit model's VAE — encodes every reference image |
-| `images` | IMAGE ×N | — | auto-growing reference slots (`image_1..image_10`) |
-| `megapixels` | FLOAT | `1.0` | pixel budget each reference is resized to (aspect kept, /8-aligned) |
-| `auto_size` | BOOLEAN | `true` | ON: references smaller than the budget keep their native size, the budget only caps |
-| `reference_latents_method` | COMBO | `offset` | offset, index, uxo, index_timestep_zero |
+| `vae` | VAE | — | only needed when references are VAE-encoded, or when a mask is wired |
+| `images` | IMAGE ×N | — | auto-growing reference slots (`image1..image10`) |
+| `mask` | MASK | — | edit only this area of the FIRST reference; the `latent` output carries it aligned |
+| `reference_cards` | STRING | `""` | a job per reference as JSON, e.g. `[{"role": "lighting", "strength": 0.6}]` |
+| `reference_mode` | COMBO | `vision` | vision, latents, both |
+| `reference_treatment` | COMBO | `normal` | normal, grayscale, soft blur, strong blur, palette wash — applied before the encoder looks |
+| `reference_strength` | FLOAT | `1.0` | weighs every reference at once; cards weigh them one at a time |
+| `vision_megapixels` | FLOAT | `0.15` | size of the copy the text encoder reads |
+| `latent_megapixels` | FLOAT | `1.0` | cap for the copy the VAE encodes (smaller references stay native) |
+| `reference_latents_method` | COMBO | `index_timestep_zero` | index_timestep_zero, index, offset, uxo |
 
-**Outputs:** `CONDITIONING`
+**Roles** (`reference_cards`): `as is` · `material` (surface, subject loosens) ·
+`lighting` (light and layout, subject replaced) · `palette` (colours only). Each brings the
+treatment that makes it true. A card's `strength` is signed: `1` holds the reference, `0`
+drops it, and below zero steers *away* from it. Per-reference strength needs a
+vision-language encoder (Qwen3-VL); the `summary` output says so when there is none.
+
+**Outputs:** `CONDITIONING` · `summary` (STRING — what the run actually did) ·
+`references` (IMAGE — the prepared copies the model received) · `latent` (LATENT — the first
+reference encoded, carrying the mask)
 
 </details>
 

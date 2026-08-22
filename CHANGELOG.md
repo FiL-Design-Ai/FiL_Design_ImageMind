@@ -14,13 +14,32 @@
   `reference_latents_method` the model reads. Each reference is resized to a megapixel
   budget the node exposes as a widget (aspect kept, /8-aligned) — with `auto_size` on
   by default, so references smaller than the budget keep their native resolution and
-  the budget only caps the big ones. The order on the wire
+  the budget only caps the big ones (the widget is now split in two — one budget for
+  the copy the text encoder reads, one for the copy the VAE encodes). The order on the wire
   is the order on the conditioning even though Autogrow hands the slots back as a dict,
   and references without a wired VAE fail fast with a message instead of silently
   degrading to a text-only encode. The node stays model-agnostic on purpose — it only
   speaks the generic `reference_latents` protocol — and ships with the pack's branded
-  panel: prompt textarea, auto-size toggle, megapixel slider, reference-method select
-  and a live wired-reference counter, while the Autogrow slots stay core-managed below it.
+  panel: prompt textarea, reference cards, mode segments and a live wired-reference
+  counter, while the Autogrow slots stay core-managed below it.
+
+- **🎯 Edit Encoder: every reference gets its own job, and its own pull.**
+  One prompt preset used to speak for the whole node and one strength dial weighed
+  every reference at once, so the thing these graphs exist for — *this* picture for
+  its subject, *that* one for its colours, and hold the first harder — could not be
+  said. Each slot now takes a **card**: a role, and a signed strength. The role brings
+  the image treatment that makes it true instead of promising it in words the encoder
+  can ignore; `prompt_preset` is gone, and a saved workflow's old value lands in the
+  same widget position and becomes the role that replaced it. Strength weighs one
+  reference inside the pass the encoder was going to run anyway, by scaling the
+  embeddings that picture produces (`deepstack` included); below zero it encodes once
+  more with that reference held out and subtracts past its contribution, which steers
+  *away from* the image rather than merely ignoring it. Encoders without that seam
+  (FLUX.2's Mistral3) are reported in the `summary` output, never silently ignored.
+  Four roles ship — `as is`, `material`, `lighting`, `palette` — because that is how
+  many the renders could tell apart: every role that shared a treatment with another
+  produced the same picture, and two that used greyscale drained the colour out of the
+  result. Cut names still resolve, so saved graphs keep their meaning.
 
 ### Fixed
 
