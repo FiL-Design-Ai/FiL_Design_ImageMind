@@ -1,4 +1,4 @@
-import { defineAsyncComponent } from "vue";
+import { defineAsyncComponent, reactive } from "vue";
 import type { ComfyNodeData, LGraphNode, LGraphNodeType } from "@/types/comfy";
 import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
@@ -28,12 +28,37 @@ const stringDefaults: Record<string, string> = {
 const numericDefaults: Record<string, number> = { reference_strength: 1 };
 const HIDE = [...Object.keys(stringDefaults), ...Object.keys(numericDefaults)];
 
-/** Autogrow reference slots as the UI names them: `image1`, `image2`, … */
-const REF_SLOT_RE = /^image\d+$/;
+/**
+ * Autogrow reference slots as ComfyUI actually names them: the template's
+ * prefix is joined to the Autogrow input's own id, so the first slot is
+ * `images.image0` — not `image1`. The counter matched the guessed spelling and
+ * so read zero however many references were wired; the optional leading path is
+ * what fixes it, and a bare `image0` stays matched for a host that drops it.
+ */
+const REF_SLOT_RE = /(^|\.)image\d+$/;
 
-function countRefs(node: LGraphNode): number {
+/** What the backend parks on the node after every run (`ui.fil_edit_encoder`). */
+export type EditEncoderRun = { summary: string; warned: boolean };
+
+export function countRefs(node: LGraphNode): number {
   const inputs = (node as { inputs?: { name?: string; link?: number | null }[] }).inputs ?? [];
   return inputs.filter((i) => typeof i.name === "string" && REF_SLOT_RE.test(i.name) && i.link != null).length;
+}
+
+/**
+ * The panel's `ui` bag, through the proxy the panel actually watches.
+ *
+ * `addFilDomWidget` mounts against `reactive(state)`, and a write to the RAW
+ * object the module parked on the node fires no trap — the value changes and
+ * every watcher stays silent. The reference counter read zero for exactly this
+ * reason on top of matching the wrong slot names. `reactive()` caches per
+ * target, so this is the same proxy the component holds. The same trap is
+ * written up at length in nodes2/widgetInputSockets.ts.
+ */
+function liveUi(node: LGraphNode): Record<string, unknown> | null {
+  const state = (node as { _filEditEncoderState?: { ui: Record<string, unknown> } })._filEditEncoderState;
+  if (!state?.ui) return null;
+  return (reactive(state) as { ui: Record<string, unknown> }).ui;
 }
 
 /**
@@ -58,6 +83,7 @@ export const editEncoderNode: NodeModule = {
         onNodeCreated?: (...a: unknown[]) => unknown;
         onConfigure?: (...a: unknown[]) => unknown;
         onConnectionsChange?: (...a: unknown[]) => unknown;
+        onExecuted?: (output: Record<string, unknown>, ...a: unknown[]) => unknown;
         onRemoved?: (...a: unknown[]) => unknown;
       };
     };
@@ -75,7 +101,7 @@ export const editEncoderNode: NodeModule = {
     const originalCreated = p.onNodeCreated;
     p.onNodeCreated = function (this: LGraphNode, ...args: unknown[]) {
       const result = originalCreated?.apply(this, args);
-      const node = this as LGraphNode & { _filEditEncoderState?: { ui: Record<string, unknown> } };
+      const node = this as LGraphNode & { _filEditEncoderState?: { ui: Record<string, unknown> }; _filEditEncoderLastRun?: EditEncoderRun };
       const initial: Record<string, unknown> = {};
       syncAll(node, initial);
       for (const name of HIDE) {
@@ -84,7 +110,7 @@ export const editEncoderNode: NodeModule = {
       const state = {
         nodeState: createSyncedNodeState(node, initial),
         initialValues: { ...initial },
-        ui: { refs: countRefs(node) },
+        ui: { refs: countRefs(node), lastRun: node._filEditEncoderLastRun ?? null },
       };
       Object.defineProperty(state, "node", { value: node, enumerable: false, configurable: true });
       node._filEditEncoderState = state;
@@ -100,7 +126,8 @@ export const editEncoderNode: NodeModule = {
       const state = node._filEditEncoderState;
       if (!state) return result;
       syncAll(node, state.nodeState);
-      state.ui.refs = countRefs(node);
+      const ui = liveUi(node);
+      if (ui) ui.refs = countRefs(node);
       exposeWidgetInputSockets(this, EDIT_ENCODER_SOCKET_INPUTS);
       return result;
     };
@@ -108,9 +135,30 @@ export const editEncoderNode: NodeModule = {
     const originalConnectionsChange = p.onConnectionsChange;
     p.onConnectionsChange = function (this: LGraphNode, ...args: unknown[]) {
       const result = originalConnectionsChange?.apply(this, args);
-      const node = this as LGraphNode & { _filEditEncoderState?: { ui: Record<string, unknown> } };
-      if (node._filEditEncoderState) {
-        node._filEditEncoderState.ui.refs = countRefs(node);
+      const ui = liveUi(this);
+      if (ui) ui.refs = countRefs(this);
+      return result;
+    };
+
+    // What the run actually did, on the node rather than only on an output
+    // nobody wired. Every trap this node has is silent — a discarded reference,
+    // a strength that does nothing in this mode, a preset that needs a
+    // treatment — so the report has to arrive without being asked for.
+    const originalExecuted = p.onExecuted;
+    p.onExecuted = function (this: LGraphNode, output: Record<string, unknown>, ...args: unknown[]) {
+      const result = originalExecuted?.apply(this, [output, ...args]);
+      const entry = Array.isArray(output?.fil_edit_encoder) ? output.fil_edit_encoder[0] : null;
+      if (entry && typeof entry === "object") {
+        const node = this as LGraphNode & {
+          _filEditEncoderLastRun?: EditEncoderRun;
+          _filEditEncoderState?: { ui: Record<string, unknown> };
+        };
+        // Parked as well as announced: a panel whose async chunk is still
+        // loading reads it on mount instead of showing nothing until the run
+        // after next.
+        node._filEditEncoderLastRun = entry as EditEncoderRun;
+        const ui = liveUi(this);
+        if (ui) ui.lastRun = entry as EditEncoderRun;
       }
       return result;
     };

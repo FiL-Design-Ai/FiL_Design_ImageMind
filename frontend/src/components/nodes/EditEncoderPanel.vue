@@ -16,11 +16,11 @@ import { FilTextArea, FilSelect, FilSegmented, FilSlider } from "@/components/wi
 import { useI18n } from "@/composables/useI18n";
 import { findFilWidget } from "@/nodes2/util";
 import { useWidgetSockets } from "@/composables/useWidgetSockets";
-import { EDIT_ENCODER_SOCKET_INPUTS } from "@/nodes2/nodes/edit_encoder";
+import { EDIT_ENCODER_SOCKET_INPUTS, type EditEncoderRun } from "@/nodes2/nodes/edit_encoder";
 import type { FilNodeState } from "@/nodes2/filState";
 
 const props = defineProps<{ state: FilNodeState }>();
-const { t } = useI18n();
+const { t, tPlural } = useI18n();
 
 const { setFieldEl, isLinked } = useWidgetSockets(props.state, EDIT_ENCODER_SOCKET_INPUTS);
 const linkedTip = (name: string, own: string) =>
@@ -64,12 +64,38 @@ const MODE_LABELS: Record<string, string> = {
 };
 
 const refs = computed(() => Number((props.state.ui as { refs?: number }).refs ?? 0));
+
+/**
+ * What the last run did, straight from its `ui` payload. Shown because every
+ * way this node can disappoint is silent: a reference discarded, a strength
+ * that does nothing in this mode, a style preset with nothing treated. The
+ * `summary` output says all of it — and says it to nobody unless it is wired.
+ *
+ * The first line is the shape of the run; a NOTE line is the part worth
+ * interrupting for, so that is what a warned run shows.
+ */
+const lastRun = computed(() => (props.state.ui as { lastRun?: EditEncoderRun | null }).lastRun ?? null);
+
+const report = computed(() => {
+  const run = lastRun.value;
+  if (!run?.summary) return null;
+  const lines = run.summary.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  const note = lines.find(l => l.startsWith("NOTE:"));
+  const text = (note ?? lines[0]).replace(/^NOTE:\s*/, "");
+  return {
+    // The NOTE prefix carried the capital letter; put one back rather than
+    // opening the line mid-sentence.
+    text: text.charAt(0).toUpperCase() + text.slice(1),
+    warned: !!note,
+    full: run.summary,
+  };
+});
 </script>
 
 <template>
   <div class="fil-ee-root">
     <div class="fil-ee-head" :title="t('eep_refs_tt', 'Reference images wired into the slots below the panel — each one adds a latent to the conditioning.')">
-      🖼️ {{ refs }} {{ t('eep_refs', 'refs') }}
+      🖼️ {{ refs }} {{ tPlural('eep_refs', refs, 'reference', 'references', 'references') }}
     </div>
 
     <FilTextArea :ref="(el: unknown) => setFieldEl('prompt', el)"
@@ -95,6 +121,11 @@ const refs = computed(() => Number((props.state.ui as { refs?: number }).refs ??
       :label="t('eep_strength', '💪 Strength')"
       :title="linkedTip('reference_strength', t('ee_strength', 'How hard the references pull on the text encoder.'))"
       @update:model-value="(v: number) => (strength = v)" />
+
+    <!-- Last, because it reports on everything above it. -->
+    <div v-if="report" class="fil-ee-report" :class="{ warned: report.warned }" :title="report.full">
+      {{ report.warned ? '⚠️' : '✅' }} {{ report.text }}
+    </div>
   </div>
 </template>
 
@@ -104,4 +135,9 @@ const refs = computed(() => Number((props.state.ui as { refs?: number }).refs ??
 .fil-ee-root { width: 100%; box-sizing: border-box; min-width: 0; display: flex; flex-direction: column; gap: var(--fil-node-gap); padding: var(--fil-node-pad);
   color: var(--fil-text); font-family: ui-sans-serif, system-ui, sans-serif; }
 .fil-ee-head { font-size: 11px; line-height: 1.2; color: var(--fil-muted); }
+/* The last run, in one line. Clipped rather than wrapped so the node keeps its
+ * height whatever the report says; the full text is the tooltip. */
+.fil-ee-report { font-size: 11px; line-height: 1.3; color: var(--fil-muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fil-ee-report.warned { color: var(--fil-danger); white-space: normal; }
 </style>

@@ -664,12 +664,24 @@ class FiLEditEncoder(io.ComfyNode):
                 conditioning, {"reference_latents_method": reference_latents_method}
             )
 
+        summary = _summary(
+            reference_mode, vl_shapes, latent_shapes, reference_strength, blended,
+            reference_treatment, prompt_preset, role_source,
+            bool(tokenize_kwargs.get("llama_template")),
+            reference_latents_method, _speaks_vision(clip),
+        )
+
         return io.NodeOutput(
             conditioning,
-            _summary(
-                reference_mode, vl_shapes, latent_shapes, reference_strength, blended,
-                reference_treatment, prompt_preset, role_source, bool(tokenize_kwargs.get("llama_template")),
-                reference_latents_method, _speaks_vision(clip),
-            ),
+            summary,
             reference_prep.as_preview_batch(prepared),
+            # The report is worth nothing unwired. Every trap this node has is
+            # silent by nature, so its warning has to reach someone who does not
+            # already know to go looking for it — `execution.py` sends an
+            # `executed` message for any node returning a `ui` payload, output
+            # node or not, and the panel shows the last line on the node itself.
+            ui={
+                "text": [summary],
+                "fil_edit_encoder": [{"summary": summary, "warned": "NOTE:" in summary}],
+            },
         )

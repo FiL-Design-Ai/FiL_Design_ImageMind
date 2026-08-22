@@ -768,3 +768,26 @@ def test_the_style_preset_warns_when_the_reference_is_untreated():
                              reference_treatment="palette wash",
                              images={"image1": torch.rand(1, 64, 64, 3)})
     assert "Set reference_treatment" not in _summary_of(treated)
+
+
+def test_the_run_reports_itself_to_the_panel():
+    """The summary output says nothing to anyone who has not wired it.
+
+    `execution.py` sends an `executed` message for any node returning a `ui`
+    payload, so the panel can show the last run without the graph asking.
+    """
+    vae = _FakeVae()
+    _, _, result = _execute(vae=vae, reference_mode="latents", reference_strength=0.5,
+                            images={"image1": torch.rand(1, 64, 64, 3)})
+    entry = result.ui["fil_edit_encoder"][0]
+    assert entry["summary"] == result.args[1]
+    # The latents NOTE is exactly the kind of thing worth interrupting for.
+    assert entry["warned"] is True
+    assert result.ui["text"] == [result.args[1]]
+
+
+def test_a_quiet_run_is_not_flagged_as_a_warning():
+    clip = _VisionClip()
+    _, _, result = _execute(clip=clip, reference_mode="vision",
+                            images={"image1": torch.rand(1, 64, 64, 3)})
+    assert result.ui["fil_edit_encoder"][0]["warned"] is False
