@@ -296,8 +296,37 @@ def _treatments_for(count: int, default: str, override: str) -> list[str]:
     return [names[min(index, len(names) - 1)] for index in range(count)]
 
 
+def _card_notes(cards, strengths, vl_shapes, can_weigh) -> list[str]:
+    """One short warning per card, empty where the card did what it said.
+
+    The `summary` output already says all of this, in one place, for the whole
+    run — and that is the problem it does not solve: which of five cards the
+    sentence is about. A note sits on the card it belongs to, so the answer is
+    where the question is asked.
+
+    Ordered worst first: a card that reached nothing at all is worth saying
+    before a card whose strength was the part that did not land.
+    """
+    notes = []
+    for slot in range(len(cards)):
+        weight = strengths[slot] if slot < len(strengths) else 1.0
+        if not vl_shapes:
+            notes.append(
+                "This mode never shows the references to the text encoder, so this "
+                "card's role and strength did nothing."
+            )
+        elif weight != 1.0 and not can_weigh:
+            notes.append(
+                "This text encoder builds no per-image embeddings, so the strength "
+                "did nothing — every reference pulled the same."
+            )
+        else:
+            notes.append("")
+    return notes
+
+
 def _summary(
-    mode, vl_shapes, latent_shapes, strength, blended, treatments, cards,
+    mode, vl_shapes, latent_shapes, strength, treatments, cards,
     card_strengths, can_weigh, role_source, role_sent, method, speaks_vision,
     masked, main_geometry, sent_text,
 ):
@@ -310,10 +339,10 @@ def _summary(
     node chose, and warns about the two that still look like bugs when they are
     settings.
 
-    `blended` is passed rather than derived from `strength`, because the two
-    part company: the strength dial interpolates two *text-encoder* passes, and
-    in `latents` mode there is no such pass to interpolate. This line used to be
-    printed from `strength` alone and so announced a blend that never happened.
+    `card_strengths` are the weights the encode actually ran under — the cards
+    multiplied by the node-wide dial and clamped — not the numbers typed on
+    either control. Two dials that combine have to report their product, or the
+    line is a claim about the settings rather than about the run.
     """
     lines = []
     count = max(len(vl_shapes), len(latent_shapes))
@@ -370,19 +399,11 @@ def _summary(
         if latent_shapes:
             sizes = ", ".join(f"{w}x{h}" for h, w in latent_shapes)
             lines.append(f"  VAE encodes: {sizes}  (method '{method}')")
-        if abs(strength - 1.0) > 1e-6:
-            if not blended:
-                lines.append(
-                    f"  strength {strength:g} ignored — this mode has no vision pass to "
-                    "blend. Reference strength only weighs what the text encoder reads."
-                )
-            elif latent_shapes:
-                lines.append(
-                    f"  strength {strength:g} — applied to the vision half only; the "
-                    "latents are unweighted."
-                )
-            else:
-                lines.append(f"  strength {strength:g} — blended against blank references.")
+        if abs(strength - 1.0) > 1e-6 and not vl_shapes:
+            lines.append(
+                f"  reference_strength {strength:g} ignored — it multiplies what the text "
+                "encoder reads, and this mode never shows it the references."
+            )
 
     if masked:
         if main_geometry:
@@ -593,7 +614,7 @@ class FiLEditEncoder(io.ComfyNode):
                     advanced=True,
                     tooltip=t(
                         "ee_preset",
-                        "Role sent to the text encoder. 'none' for a prompt that gives an instruction ('change X, keep Y') — it is followed most closely that way, and leaves the system_prompt field below free to supply a role of your own. 'use reference' for a prompt that only describes a style, which otherwise leaves the model no reason to look at the reference.",
+                        "Legacy: a canned role for the text encoder. Reference cards write the roles now, one per picture, so this is kept for workflows saved before them and is hidden in the panel.",
                     ),
                 ),
                 io.String.Input(
@@ -622,7 +643,7 @@ class FiLEditEncoder(io.ComfyNode):
                     default="normal",
                     tooltip=t(
                         "ee_treatment",
-                        "What to do to each reference before the text encoder looks at it. 'normal' shows it as it is. The blurs and 'palette wash' strip detail the model should not copy. This applies to every reference that was not given a role in reference_cards — a role brings its own treatment. Never touches the copy the VAE encodes.",
+                        "Legacy: the treatment for every reference that has no role of its own. Roles bring the treatment that matches the job, so this is kept for workflows saved before them and is hidden in the panel. A card's role, or its own 'treatment', wins over it.",
                     ),
                 ),
                 io.String.Input(
@@ -632,7 +653,7 @@ class FiLEditEncoder(io.ComfyNode):
                     advanced=True,
                     tooltip=t(
                         "ee_treatments",
-                        "Override the treatment for each reference separately: names in slot order, comma separated, e.g. 'normal, palette wash'. Fewer names than references repeats the last one. Empty uses the treatment above for all of them. This is what lets one reference bring a subject while another brings only its palette.",
+                        "Legacy: per-reference treatments as comma-separated names in slot order. Reference cards replaced it — a card carries its own 'treatment' next to its role — and it is kept only so workflows saved before them keep working.",
                     ),
                 ),
                 io.Float.Input(
@@ -641,7 +662,7 @@ class FiLEditEncoder(io.ComfyNode):
                     optional=True,
                     tooltip=t(
                         "ee_strength",
-                        "How hard the references pull on the text encoder. 1.0 is the plain encode and costs nothing; anything else encodes a second time against blank references and interpolates, so 0 ignores them and above 1 exaggerates them. Has no effect in reference_mode 'latents', which has no text-encoder pass to weigh — the summary output says so.",
+                        "One dial over every reference card: each card's own strength is multiplied by this. 1.0 changes nothing. Set the cards for 'this one harder than that one' — this is for driving them all together from the graph. No effect in reference_mode 'latents', which never shows the references to the text encoder.",
                     ),
                 ),
                 io.Float.Input(
@@ -886,7 +907,20 @@ class FiLEditEncoder(io.ComfyNode):
         # encoder was going to run anyway. Below zero means *away from* this
         # picture, which cannot be done in one pass: it needs the encode with
         # that reference held out, to see what it was contributing.
-        strengths = edit_roles.strengths_for(cards)
+        # The node-wide dial is a multiplier over the cards rather than a
+        # mechanism of its own. It used to be one: an encode against blank
+        # references, interpolated with the real one. That bought a second way
+        # to say the same thing, cost an extra pass to say it, and could only
+        # ever move every reference together — so it is gone, and the dial now
+        # rides the same seam the cards do. A card at 0.8 under a dial at 0.5
+        # pulls at 0.4; a pushed-away card keeps its sign and is pushed less
+        # hard. Clamped to the range the renders covered, which is also why the
+        # summary prints what the encode actually used rather than what was
+        # typed on either control.
+        strengths = [
+            max(edit_roles.STRENGTH_MIN, min(edit_roles.STRENGTH_MAX, weight * reference_strength))
+            for weight in edit_roles.strengths_for(cards)
+        ]
         looked_at = strengths[:len(images_vl)]
         pulls = {
             slot: (0.0 if weight < 0 else weight)
@@ -915,18 +949,6 @@ class FiLEditEncoder(io.ComfyNode):
                 conditioning, encode(images_vl, lifted or None), -weight
             )
 
-        # Only when asked for: at 1.0 this is the encode above and nothing more
-        # is spent. In `latents` mode `images_vl` is empty and there is no
-        # second pass to interpolate — the summary says so rather than letting
-        # the dial look like it did something.
-        blended = bool(images_vl) and abs(reference_strength - 1.0) > 1e-6
-        if blended:
-            conditioning = _blend_conditioning(
-                encode([torch.zeros_like(image) for image in images_vl]),
-                conditioning,
-                reference_strength,
-            )
-
         if ref_latents:
             # `append=True` for the latents, as every core node that sets them
             # does — chaining this after another edit node must add to its
@@ -940,7 +962,7 @@ class FiLEditEncoder(io.ComfyNode):
             )
 
         summary = _summary(
-            reference_mode, vl_shapes, latent_shapes, reference_strength, blended,
+            reference_mode, vl_shapes, latent_shapes, reference_strength,
             treatments, cards, strengths, can_weigh, role_source,
             bool(tokenize_kwargs.get("llama_template")),
             reference_latents_method, _speaks_vision(clip),
@@ -965,6 +987,9 @@ class FiLEditEncoder(io.ComfyNode):
                     # What each card's picture looked like by the time the model
                     # saw it — the panel puts them on the cards themselves.
                     "thumbs": reference_prep.thumbnails(prepared),
+                    # And, per card, the reason its own picture may not have
+                    # arrived — on the card rather than in one shared sentence.
+                    "notes": _card_notes(cards, strengths, vl_shapes, can_weigh),
                 }],
             },
         )

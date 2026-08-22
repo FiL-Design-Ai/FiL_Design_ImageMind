@@ -41,6 +41,21 @@
   produced the same picture, and two that used greyscale drained the colour out of the
   result. Cut names still resolve, so saved graphs keep their meaning.
 
+- **🎯 Edit Encoder: one control per decision.**
+  Reference cards had left three older widgets saying the same things worse —
+  a treatment for every reference at once, the same again as a comma-separated
+  list, and a canned encoder role — so the node offered two ways to make one
+  choice. All three are hidden now (kept in the schema, because removing a widget
+  shifts every saved workflow's values past it by one) and a card's role decides.
+  `reference_strength` stopped being a mechanism of its own as well: it used to
+  encode the references a second time as blanks and interpolate, and it now
+  multiplies the cards through the same seam they use — one pass instead of two,
+  one idea instead of two, and it keeps its input socket for driving every card
+  from the graph. The panel is down to the prompt, the reference mode, the cards
+  and the report. Each card also carries its own warning when its role or its
+  strength did not land, because a single sentence at the bottom of the node
+  cannot say *which* of five cards it is about.
+
 ### Fixed
 
 - **📡 A channel's name tag no longer hides under the node it feeds.**

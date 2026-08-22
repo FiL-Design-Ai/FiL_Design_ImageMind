@@ -644,17 +644,51 @@ def test_strength_of_one_encodes_once():
     assert clip.encodes == 1
 
 
-def test_strength_interpolates_between_blank_and_real_references():
-    """0 lands on the blank encode, 1 on the real one, 2 overshoots past it."""
-    for strength, expected in ((0.0, 0.0), (0.5, 0.5), (2.0, 2.0)):
-        clip = _CountingClip()
-        _, _, result = _execute(
-            clip=clip, reference_mode="vision", reference_strength=strength,
-            images={"image1": torch.rand(1, 64, 64, 3)},
-        )
-        assert clip.encodes == 2
-        assert result.args[0][0][0][0, 0].item() == pytest.approx(expected)
-        assert result.args[0][0][1]["pooled_output"][0, 0].item() == pytest.approx(expected)
+def test_the_node_wide_dial_multiplies_every_card():
+    """One dial over the cards, not a second mechanism beside them.
+
+    It used to interpolate against an encode of blank references — a second way
+    to say the same thing that cost a second pass to say it. Now it rides the
+    same per-reference seam the cards do, so a card at 1.0 under a dial at 0.5
+    is a reference weighed at 0.5.
+    """
+    plain = _ScalingClip()
+    _, _, full = _execute(clip=plain, reference_mode="vision",
+                          images={"image1": torch.rand(1, 64, 64, 3)})
+
+    dialled = _ScalingClip()
+    _, _, halved = _execute(clip=dialled, reference_mode="vision", reference_strength=0.5,
+                            images={"image1": torch.rand(1, 64, 64, 3)})
+    assert _weight_of(halved) == pytest.approx(_weight_of(full) * 0.5)
+    # And it does it in the pass the encoder was going to run anyway.
+    assert len(dialled.prompts) == 1
+
+
+def test_the_dial_and_the_card_combine_rather_than_one_winning():
+    clip = _ScalingClip()
+    _, _, result = _execute(
+        clip=clip, reference_mode="vision", reference_strength=0.5,
+        reference_cards='[{"role": "as is", "strength": 0.4}]',
+        images={"image1": torch.rand(1, 64, 64, 3)},
+    )
+    plain = _ScalingClip()
+    _, _, full = _execute(clip=plain, reference_mode="vision",
+                          images={"image1": torch.rand(1, 64, 64, 3)})
+    assert _weight_of(result) == pytest.approx(_weight_of(full) * 0.2)
+    # The summary reports the product, not either number as typed.
+    assert "strengths: 1 0.2" in _summary_of(result)
+
+
+def test_the_dial_keeps_a_pushed_card_pushed():
+    """Multiplying must not flip a direction the card chose."""
+    clip = _ScalingClip()
+    _, _, result = _execute(
+        clip=clip, reference_mode="vision", reference_strength=0.5,
+        reference_cards='[{"role": "as is", "strength": -1}]',
+        images={"image1": torch.rand(1, 64, 64, 3)},
+    )
+    assert "(away)" in _summary_of(result)
+    assert _weight_of(result) < 0
 
 
 def test_strength_is_ignored_without_references():
@@ -678,17 +712,6 @@ def test_the_same_inputs_encode_once():
     _execute(clip=clip, reference_mode="vision", images=images)
     _execute(clip=clip, reference_mode="vision", images=images)
     assert clip.encodes == 1
-
-
-def test_turning_the_strength_dial_encodes_nothing_new():
-    """The point of the cache: strengths are applied to tensors already held."""
-    clip = _CountingClip()
-    images = {"image1": torch.rand(1, 64, 64, 3)}
-    _execute(clip=clip, reference_mode="vision", reference_strength=0.5, images=images)
-    assert clip.encodes == 2          # the real references and the blank ones
-    for strength in (0.25, 0.75, 1.6):
-        _execute(clip=clip, reference_mode="vision", reference_strength=strength, images=images)
-    assert clip.encodes == 2          # and nothing since
 
 
 def test_an_edited_reference_is_not_served_from_the_cache():
@@ -743,7 +766,6 @@ def test_the_summary_reports_what_the_run_did():
     text = _summary_of(result)
     assert "1 reference(s), mode 'both'" in text
     assert "text encoder reads:" in text and "VAE encodes:" in text
-    assert "strength 0.5" in text
 
 
 def test_the_summary_warns_that_latents_tile_the_source():
@@ -783,23 +805,6 @@ def test_strength_is_ignored_in_latents_mode_and_says_so():
     text = _summary_of(result)
     assert "strength 0.5 ignored" in text
     assert "blended against blank references" not in text
-
-
-def test_strength_in_both_mode_names_the_half_it_touched():
-    clip = _CountingClip()
-    _, _, result = _execute(clip=clip, vae=_FakeVae(), reference_mode="both",
-                            reference_strength=0.5,
-                            images={"image1": torch.rand(1, 64, 64, 3)})
-    assert clip.encodes == 2
-    assert "applied to the vision half only" in _summary_of(result)
-
-
-def test_strength_in_vision_mode_reports_a_plain_blend():
-    clip = _CountingClip()
-    _, _, result = _execute(clip=clip, reference_mode="vision", reference_strength=0.5,
-                            images={"image1": torch.rand(1, 64, 64, 3)})
-    assert clip.encodes == 2
-    assert "blended against blank references" in _summary_of(result)
 
 
 def _references_of(result):
@@ -948,6 +953,38 @@ def test_the_run_carries_a_picture_of_what_the_model_saw():
     assert all(t.startswith("data:image/png;base64,") for t in thumbs)
     # Small enough to ride along with every run report.
     assert all(len(t) < 40_000 for t in thumbs)
+
+
+def test_a_card_that_did_nothing_says_so_on_itself():
+    """One shared sentence cannot say *which* of five cards it is about."""
+    _, _, result = _execute(
+        clip=_VisionClip(), vae=_FakeVae(), reference_mode="latents",
+        reference_cards='[{"role": "palette"}]',
+        images={"image1": torch.rand(1, 64, 64, 3)},
+    )
+    notes = result.ui["fil_edit_encoder"][0]["notes"]
+    assert len(notes) == 1
+    assert "never shows the references to the text encoder" in notes[0]
+
+
+def test_a_card_that_landed_carries_no_note():
+    _, _, result = _execute(
+        clip=_ScalingClip(), reference_mode="vision",
+        reference_cards='[{"role": "palette", "strength": 0.5}]',
+        images={"image1": torch.rand(1, 64, 64, 3)},
+    )
+    assert result.ui["fil_edit_encoder"][0]["notes"] == [""]
+
+
+def test_an_unweighable_encoder_marks_only_the_cards_that_asked():
+    _, _, result = _execute(
+        clip=_VisionClip(), reference_mode="vision",
+        reference_cards='[{"role": "as is"}, {"role": "as is", "strength": 0.5}]',
+        images={"image1": torch.rand(1, 64, 64, 3), "image2": torch.rand(1, 64, 64, 3)},
+    )
+    notes = result.ui["fil_edit_encoder"][0]["notes"]
+    assert notes[0] == ""
+    assert "builds no per-image embeddings" in notes[1]
 
 
 def test_a_run_with_no_references_carries_no_pictures():

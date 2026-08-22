@@ -47,30 +47,32 @@ CONTRACT = NodeContract(
                 values=["normal", "grayscale", "soft blur", "strong blur",
                         "shape wash", "palette wash"],
                 default="normal", label="Treatment",
-                tooltip="What to do to each reference before the text encoder looks at it. "
-                        "The blurs and 'palette wash' strip detail the model should not copy. "
-                        "Never touches the copy the VAE encodes.",
+                section="advanced",
+                tooltip="Legacy: the treatment for every reference without a role of its own. "
+                        "Reference cards carry the treatment their role needs, so this is kept "
+                        "for workflows saved before them and hidden in the panel.",
             ),
             _slider(
                 "reference_strength", default=1.0, minv=0.0, maxv=3.0, step=0.05,
                 label="Reference strength",
-                tooltip="How hard the references pull on the text encoder. 1.0 costs one "
-                        "encode; anything else encodes again against blank references and "
-                        "interpolates. No effect in reference_mode 'latents'.",
+                section="advanced",
+                tooltip="One dial over every card: each card's own strength is multiplied by "
+                        "this. Meant for driving them all together from the graph — set the "
+                        "cards for one reference against another. No effect in "
+                        "reference_mode 'latents'.",
             ),
             _string(
                 "treatment_per_reference", default="", label="Per reference",
                 section="advanced",
-                tooltip="Treatment for each reference separately: names in slot order, "
-                        "comma separated (e.g. 'normal, palette wash'). Fewer names than "
-                        "references repeats the last. Empty uses the treatment above.",
+                tooltip="Legacy: per-reference treatments in slot order, comma separated. "
+                        "A card carries its own treatment next to its role; this is kept only "
+                        "so workflows saved before cards keep working.",
             ),
             _combo(
                 "system_preset", values=["none", "use reference"], default="none",
                 label="System preset", section="advanced",
-                tooltip="'none' for a prompt that gives an instruction — and it lets the "
-                        "field below supply a role of your own. 'use reference' for a prompt "
-                        "that only describes a style.",
+                tooltip="Legacy: a canned role for the text encoder. Reference cards write "
+                        "the roles now, one per picture; kept for workflows saved before them.",
             ),
             _string(
                 "system_prompt", default="", multiline=True, label="System prompt",

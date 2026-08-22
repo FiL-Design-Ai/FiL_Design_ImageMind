@@ -45,7 +45,6 @@ const refs = computed(() => Number((props.state.ui as { refs?: number }).refs ??
 
 const prompt = stringField("prompt", "");
 const referenceMode = stringField("reference_mode", "vision");
-const treatment = stringField("reference_treatment", "normal");
 const cardsField = stringField("reference_cards", "");
 
 /**
@@ -124,6 +123,17 @@ const thumbTip = computed(() =>
 );
 
 /**
+ * Why this card's picture may not have arrived, straight from the last run.
+ *
+ * The `summary` says the same thing once for the whole node, which is exactly
+ * what makes it useless with five cards wired: it cannot say *which*.
+ */
+function note(slot: number): string {
+  const list = lastRun.value?.notes;
+  return Array.isArray(list) ? (list[slot] ?? "") : "";
+}
+
+/**
  * The prepared copy of one reference, as the last run left it.
  *
  * Empty until a run has happened, and empty for a slot wired since — the card
@@ -181,16 +191,7 @@ const MERGED_ROLES: Record<string, string> = {
   "shape only": "lighting",
 };
 
-const strength = computed({
-  get: () => {
-    const raw = Number(props.state.nodeState.reference_strength ?? props.state.initialValues.reference_strength ?? 1);
-    return Number.isFinite(raw) ? raw : 1;
-  },
-  set: (v: number) => { props.state.nodeState.reference_strength = v; },
-});
-
 const modeOptions = computed(() => comboOptions("reference_mode", ["vision", "latents", "both"]));
-const treatmentOptions = computed(() => comboOptions("reference_treatment", ["normal"]));
 
 const MODE_LABELS: Record<string, string> = {
   vision: "👁️ vision",
@@ -255,22 +256,11 @@ const report = computed(() => {
             :min="STRENGTH_MIN" :max="STRENGTH_MAX" :step="0.05" :title="strengthTip"
             @update:model-value="(v: number) => setStrength(i, v)" />
         </div>
+        <div v-if="note(i)" class="fil-ee-card-note" :title="note(i)">⚠️ {{ note(i) }}</div>
       </div>
     </div>
 
-    <FilSelect v-model="treatment" :options="treatmentOptions" inline-label
-      :label="t('eep_treatment', '🎨 Treatment')"
-      :title="t('ee_treatment', 'What to do to each reference before the text encoder looks at it.')" />
-
-    <FilSlider :ref="(el: unknown) => setFieldEl('reference_strength', el)"
-      :model-value="strength" :min="0" :max="3" :step="0.05"
-      :disabled="isLinked('reference_strength')" inline-label
-      :label="t('eep_strength', '💪 Strength')"
-      :title="linkedTip('reference_strength', t('ee_strength', 'How hard the references pull on the text encoder.'))"
-      @update:model-value="(v: number) => (strength = v)" />
-
-    <!-- Last, because it reports on everything above it. -->
-    <div v-if="report" class="fil-ee-report" :class="{ warned: report.warned }" :title="report.full">
+<div v-if="report" class="fil-ee-report" :class="{ warned: report.warned }" :title="report.full">
       {{ report.warned ? '⚠️' : '✅' }} {{ report.text }}
     </div>
   </div>
@@ -286,6 +276,8 @@ const report = computed(() => {
  * the summary, the socket and the vision blocks all count by. */
 .fil-ee-cards { display: flex; flex-direction: column; gap: 4px; }
 .fil-ee-card { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.fil-ee-card-note { font-size: 10px; line-height: 1.3; color: var(--fil-warn, #f0b429);
+  padding-left: 40px; }
 .fil-ee-card-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .fil-ee-card-row > :last-child { flex: 1 1 auto; min-width: 0; }
 /* Fixed gutter so the select and the slider start on the same line, whatever

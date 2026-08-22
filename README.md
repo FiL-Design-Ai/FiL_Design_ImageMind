@@ -576,17 +576,26 @@ and a pull of its own — and the node says in words what it did with them.
 | `mask` | MASK | — | edit only this area of the FIRST reference; the `latent` output carries it aligned |
 | `reference_cards` | STRING | `""` | a job per reference as JSON, e.g. `[{"role": "lighting", "strength": 0.6}]` |
 | `reference_mode` | COMBO | `vision` | vision, latents, both |
-| `reference_treatment` | COMBO | `normal` | normal, grayscale, soft blur, strong blur, palette wash — applied before the encoder looks |
-| `reference_strength` | FLOAT | `1.0` | weighs every reference at once; cards weigh them one at a time |
+| `reference_treatment` | COMBO | `normal` | legacy — a role brings the treatment it needs; hidden in the panel |
+| `reference_strength` | FLOAT | `1.0` | multiplies every card at once — for driving them from the graph; hidden in the panel |
 | `vision_megapixels` | FLOAT | `0.15` | size of the copy the text encoder reads |
 | `latent_megapixels` | FLOAT | `1.0` | cap for the copy the VAE encodes (smaller references stay native) |
 | `reference_latents_method` | COMBO | `index_timestep_zero` | index_timestep_zero, index, offset, uxo |
+
+The panel is four things: the prompt, the reference mode, one card per wired reference, and
+what the last run did. Everything else the node accepts stays out of the way — the legacy
+widgets a card replaced are hidden, and the size caps and the latents method sit under
+advanced.
 
 **Roles** (`reference_cards`): `as is` · `material` (surface, subject loosens) ·
 `lighting` (light and layout, subject replaced) · `palette` (colours only). Each brings the
 treatment that makes it true. A card's `strength` is signed: `1` holds the reference, `0`
 drops it, and below zero steers *away* from it. Per-reference strength needs a
-vision-language encoder (Qwen3-VL); the `summary` output says so when there is none.
+vision-language encoder (Qwen3-VL); the card says so on itself when there is none, and the
+`summary` output spells it out.
+
+Each card shows a thumbnail of the copy the model actually received, treatment already
+applied — picking `palette` turns the portrait on the card into a colour field.
 
 **Outputs:** `CONDITIONING` · `summary` (STRING — what the run actually did) ·
 `references` (IMAGE — the prepared copies the model received) · `latent` (LATENT — the first

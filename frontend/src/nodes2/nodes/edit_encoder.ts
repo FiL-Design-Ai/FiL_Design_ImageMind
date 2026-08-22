@@ -16,6 +16,21 @@ const EditEncoderVue = defineAsyncComponent(() => import("@/components/nodes/Edi
  */
 export const EDIT_ENCODER_SOCKET_INPUTS = ["prompt", "reference_strength"];
 
+/**
+ * Widgets the node still honours but nobody should have to see.
+ *
+ * `reference_treatment`, `treatment_per_reference` and `system_preset` all say
+ * something a reference card now says better, per picture instead of once for
+ * the node. They stay in the schema because removing a widget shifts every
+ * saved workflow's values past it by one — but showing them would offer two
+ * controls for one decision, and the panel's whole case is that there is one.
+ *
+ * `reference_strength` is hidden for a different reason: it is a multiplier
+ * over the cards, useful driven from the graph and redundant by hand, so it
+ * keeps its input socket (see `EDIT_ENCODER_SOCKET_INPUTS`) and loses its dial.
+ */
+const LEGACY_WIDGETS = ["reference_treatment", "treatment_per_reference", "system_preset"];
+
 // The panel drives the controls that decide what happens to a reference. The
 // advanced ones — both megapixel caps, the encoder role, and
 // `reference_latents_method` — stay native widgets below the panel.
@@ -28,10 +43,13 @@ const stringDefaults: Record<string, string> = {
   prompt: "",
   reference_mode: "vision",
   reference_cards: "",
-  reference_treatment: "normal",
 };
 const numericDefaults: Record<string, number> = { reference_strength: 1 };
-const HIDE = [...Object.keys(stringDefaults), ...Object.keys(numericDefaults)];
+const HIDE = [
+  ...Object.keys(stringDefaults),
+  ...Object.keys(numericDefaults),
+  ...LEGACY_WIDGETS,
+];
 
 /**
  * Autogrow reference slots as ComfyUI actually names them: the template's
@@ -48,6 +66,8 @@ export type EditEncoderRun = {
   warned: boolean;
   /** One data URI per prepared reference, in slot order — what the model saw. */
   thumbs?: string[];
+  /** Per card, why its picture may not have arrived. Empty string when it did. */
+  notes?: string[];
 };
 
 export function countRefs(node: LGraphNode): number {
