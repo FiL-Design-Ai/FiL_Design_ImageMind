@@ -13045,6 +13045,25 @@
             "visible_when_value": null
           },
           {
+            "name": "treatment_per_reference",
+            "kind": "string",
+            "label": "Per reference",
+            "default": "",
+            "tooltip": "Treatment for each reference separately: names in slot order, comma separated (e.g. 'normal, palette wash'). Fewer names than references repeats the last. Empty uses the treatment above.",
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "advanced",
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
             "name": "system_preset",
             "kind": "combo",
             "label": "System preset",

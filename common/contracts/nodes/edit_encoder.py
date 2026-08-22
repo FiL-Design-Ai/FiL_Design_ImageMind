@@ -50,6 +50,13 @@ CONTRACT = NodeContract(
                         "encode; anything else encodes again against blank references and "
                         "interpolates. No effect in reference_mode 'latents'.",
             ),
+            _string(
+                "treatment_per_reference", default="", label="Per reference",
+                section="advanced",
+                tooltip="Treatment for each reference separately: names in slot order, "
+                        "comma separated (e.g. 'normal, palette wash'). Fewer names than "
+                        "references repeats the last. Empty uses the treatment above.",
+            ),
             _combo(
                 "system_preset", values=["none", "use reference"], default="none",
                 label="System preset", section="advanced",

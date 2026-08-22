@@ -791,3 +791,51 @@ def test_a_quiet_run_is_not_flagged_as_a_warning():
     _, _, result = _execute(clip=clip, reference_mode="vision",
                             images={"image1": torch.rand(1, 64, 64, 3)})
     assert result.ui["fil_edit_encoder"][0]["warned"] is False
+
+
+def test_each_reference_can_be_treated_differently():
+    """The case the override exists for: one for its subject, one for its palette."""
+    clip = _VisionClip()
+    _, _, result = _execute(clip=clip, reference_mode="vision",
+                            treatment_per_reference="normal, grayscale",
+                            images={"image1": torch.rand(1, 64, 64, 3),
+                                    "image2": torch.rand(1, 64, 64, 3)})
+    first, second = clip.images[0], clip.images[1]
+    assert not torch.allclose(first[..., 0], first[..., 1])   # untouched, still colour
+    assert torch.allclose(second[..., 0], second[..., 1])     # grey
+    assert "'normal'" in _summary_of(result) and "'grayscale'" in _summary_of(result)
+
+
+def test_one_name_covers_every_reference():
+    clip = _VisionClip()
+    _execute(clip=clip, reference_mode="vision", treatment_per_reference="grayscale",
+             images={"image1": torch.rand(1, 64, 64, 3), "image2": torch.rand(1, 64, 64, 3)})
+    for seen in clip.images:
+        assert torch.allclose(seen[..., 0], seen[..., 2])
+
+
+def test_the_override_wins_over_the_combo():
+    clip = _VisionClip()
+    _execute(clip=clip, reference_mode="vision", reference_treatment="grayscale",
+             treatment_per_reference="normal", images={"image1": torch.rand(1, 64, 64, 3)})
+    seen = clip.images[0]
+    assert not torch.allclose(seen[..., 0], seen[..., 1])
+
+
+def test_an_empty_override_leaves_the_combo_alone():
+    clip = _VisionClip()
+    _execute(clip=clip, reference_mode="vision", reference_treatment="grayscale",
+             treatment_per_reference="  ", images={"image1": torch.rand(1, 64, 64, 3)})
+    assert torch.allclose(clip.images[0][..., 0], clip.images[0][..., 1])
+
+
+def test_a_misspelled_treatment_is_named_rather_than_swallowed():
+    """It already passes the image through; the run has to say which one did."""
+    clip = _VisionClip()
+    _, _, result = _execute(clip=clip, reference_mode="vision",
+                            treatment_per_reference="grayscale, palette wsah",
+                            images={"image1": torch.rand(1, 64, 64, 3),
+                                    "image2": torch.rand(1, 64, 64, 3)})
+    text = _summary_of(result)
+    assert "no such treatment: 'palette wsah'" in text
+    assert result.ui["fil_edit_encoder"][0]["warned"] is True

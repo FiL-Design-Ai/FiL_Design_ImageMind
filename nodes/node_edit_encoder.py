@@ -248,8 +248,41 @@ def _slot_index(name: str) -> int:
     return int(match.group(1)) if match else 0
 
 
+# Per-reference *strength* is deliberately absent, and this is not an oversight
+# to be filled in later without measuring. `_blend_conditioning` interpolates
+# two whole encodes; the contribution of one reference is not separable from
+# the others inside a single conditioning tensor. A per-reference version would
+# mean encoding once per reference with that one blanked and superposing the
+# differences — N+1 encodes and an assumption of linearity that nothing here
+# has tested. `krea-reference` gets it honestly instead, by scaling image
+# embeddings inside the CLIP through a context manager, which is a patch on
+# ComfyUI internals this node would then own.
+#
+# So the treatment is per reference and the strength is not, and the summary
+# never implies otherwise.
+def _treatments_for(count: int, default: str, override: str) -> list[str]:
+    """One treatment name per reference, in slot order.
+
+    The combo covers the common case — the same treatment for everything — and
+    the override is for the case that made per-reference treatment worth having
+    at all: one reference for its subject, another for its palette. Comma
+    separated, in slot order.
+
+    Fewer names than references repeats the last, so a single name still means
+    "all of them" and `"palette wash, normal"` against three references treats
+    the first and leaves the rest alone. Names are not validated here: an
+    unknown one passes the image through untouched and `_summary` says which,
+    rather than failing a run over a typo in a field that is meant to be typed
+    in quickly.
+    """
+    names = [part.strip() for part in (override or "").split(",") if part.strip()]
+    if not names:
+        return [default] * count
+    return [names[min(index, len(names) - 1)] for index in range(count)]
+
+
 def _summary(
-    mode, vl_shapes, latent_shapes, strength, blended, treatment, prompt_preset,
+    mode, vl_shapes, latent_shapes, strength, blended, treatments, prompt_preset,
     role_source, role_sent, method, speaks_vision,
 ):
     """Plain-language account of what this run actually did.
@@ -273,9 +306,20 @@ def _summary(
     else:
         lines.append(f"{count} reference(s), mode '{mode}'.")
         if vl_shapes:
-            sizes = ", ".join(f"{w}x{h}" for h, w in vl_shapes)
-            treated = "" if treatment in (None, "", "normal") else f", treated '{treatment}'"
-            lines.append(f"  text encoder reads: {sizes}{treated}")
+            uniform = len(set(treatments)) <= 1
+            if uniform:
+                sizes = ", ".join(f"{w}x{h}" for h, w in vl_shapes)
+                one = treatments[0] if treatments else "normal"
+                treated = "" if one in (None, "", "normal") else f", treated '{one}'"
+                lines.append(f"  text encoder reads: {sizes}{treated}")
+            else:
+                # Different treatments per reference is the whole reason the
+                # override exists, so name which got what rather than leaving
+                # it to be counted out against the slot order.
+                pairs = ", ".join(
+                    f"{w}x{h} '{name}'" for (h, w), name in zip(vl_shapes, treatments)
+                )
+                lines.append(f"  text encoder reads: {pairs}")
         if latent_shapes:
             sizes = ", ".join(f"{w}x{h}" for h, w in latent_shapes)
             lines.append(f"  VAE encodes: {sizes}  (method '{method}')")
@@ -309,7 +353,21 @@ def _summary(
             "tokens. Tiling the source into the output is what it does, not a fault — "
             "switch reference_mode to 'vision' if that is not what you want."
         )
-    if vl_shapes and prompt_preset == STYLE_PRESET and treatment in (None, "", "normal"):
+    unknown = sorted({
+        name for name in treatments
+        if name and name not in reference_prep.TREATMENTS
+    })
+    if vl_shapes and unknown:
+        lines.append(
+            f"NOTE: no such treatment: {', '.join(repr(n) for n in unknown)}. Those "
+            f"references went to the encoder untouched. Known: "
+            f"{', '.join(reference_prep.TREATMENTS)}."
+        )
+    if (
+        vl_shapes
+        and prompt_preset == STYLE_PRESET
+        and all(name in (None, "", "normal") for name in treatments)
+    ):
         lines.append(
             "NOTE: the style preset asks the encoder to ignore the reference's subject, "
             "and wording alone does not achieve that — it is handed the whole picture. "
@@ -459,6 +517,16 @@ class FiLEditEncoder(io.ComfyNode):
                         "What to do to each reference before the text encoder looks at it. 'normal' shows it as it is. The blurs and 'palette wash' strip detail the model should not copy, which is how you use a picture for its style or its colours without pulling its subject in. Never touches the copy the VAE encodes.",
                     ),
                 ),
+                io.String.Input(
+                    "treatment_per_reference",
+                    default="",
+                    optional=True,
+                    advanced=True,
+                    tooltip=t(
+                        "ee_treatments",
+                        "Override the treatment for each reference separately: names in slot order, comma separated, e.g. 'normal, palette wash'. Fewer names than references repeats the last one. Empty uses the treatment above for all of them. This is what lets one reference bring a subject while another brings only its palette.",
+                    ),
+                ),
                 io.Float.Input(
                     "reference_strength",
                     default=1.0, min=0.0, max=3.0, step=0.05,
@@ -526,6 +594,7 @@ class FiLEditEncoder(io.ComfyNode):
         system_prompt="",
         reference_mode="vision",
         reference_treatment="normal",
+        treatment_per_reference="",
         reference_latents_method="index_timestep_zero",
         reference_strength=1.0,
         vision_megapixels=0.15,
@@ -544,6 +613,10 @@ class FiLEditEncoder(io.ComfyNode):
                 "reference_mode to 'vision'."
             )
 
+        treatments = _treatments_for(
+            len(references), reference_treatment, treatment_per_reference
+        )
+
         ref_latents = []
         images_vl = []
         vl_shapes = []
@@ -552,7 +625,7 @@ class FiLEditEncoder(io.ComfyNode):
         # actually given. In `vision`/`both` that is what the text encoder read;
         # in `latents` there is no such copy, so it is what the VAE encoded.
         prepared = []
-        for image in references:
+        for slot, image in enumerate(references):
             samples = image.movedim(-1, 1)
             native = samples.shape[3] * samples.shape[2]
 
@@ -568,7 +641,7 @@ class FiLEditEncoder(io.ComfyNode):
                     "disabled",
                 )
                 vl_image = reference_prep.apply_treatment(
-                    vl.movedim(1, -1)[:, :, :, :3], reference_treatment
+                    vl.movedim(1, -1)[:, :, :, :3], treatments[slot]
                 )
                 images_vl.append(vl_image)
                 vl_shapes.append((int(vl_image.shape[1]), int(vl_image.shape[2])))
@@ -666,7 +739,7 @@ class FiLEditEncoder(io.ComfyNode):
 
         summary = _summary(
             reference_mode, vl_shapes, latent_shapes, reference_strength, blended,
-            reference_treatment, prompt_preset, role_source,
+            treatments, prompt_preset, role_source,
             bool(tokenize_kwargs.get("llama_template")),
             reference_latents_method, _speaks_vision(clip),
         )
