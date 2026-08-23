@@ -270,6 +270,13 @@ def parse_cards(text: str, count: int) -> list[dict]:
 # boundary is not where a round number would put it: at 0.15 the reference
 # still dictates the composition, at 0.4 it no longer does.
 #
+# What this node builds out of those numbers was then rendered against the
+# hand-built version and came back pixel-identical — mean absolute difference
+# 0.00/255, maximum 0, for both windows — while differing from a windowless
+# render by 52/255 and 35/255. So the segmenting and the concatenation do
+# exactly what assembling it by hand does, and they are not quietly doing
+# nothing.
+#
 # The same test at 8 steps says none of this — it reads as a plain on/off
 # switch, because 15% of eight steps is one step. Anyone re-measuring this
 # needs a realistic step count or they will conclude the feature does nothing.
