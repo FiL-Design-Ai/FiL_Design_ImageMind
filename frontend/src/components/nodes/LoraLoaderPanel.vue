@@ -772,11 +772,13 @@ function onComboClose(index: number) {
         @drop="onDrop(originalIndex, $event)"
         @dragend="onDragEnd"
       >
-        <!-- One line: the four things a stack is read by. Info waits until the
-             pointer is on the row; its space is reserved either way, or every
-             row would jump sideways under the cursor. Remove, reordering and
-             the CLIP weight live in the row's right-click menu — a stack is
-             read far more often than it is edited. -->
+        <!-- One line, left to right: the grip, the info button beside it, the
+             warning when the file is gone, the name, its weight, the switch.
+             Asked for that way — the two buttons that are not about this LoRA's
+             identity sit together at the handle end, leaving the name and its
+             number an unbroken run. Remove, reordering and the CLIP weight live
+             in the row's right-click menu: a stack is read far more often than
+             it is edited. -->
         <div class="fil-lora-line">
           <div
             class="fil-drag-handle"
@@ -786,6 +788,16 @@ function onComboClose(index: number) {
           >
             <FilIcon name="grip" :size="12" />
           </div>
+
+          <button
+            class="fil-row-info-btn"
+            title="LoRA information"
+            aria-label="LoRA information"
+            @mousedown.stop
+            @click.stop="openInfoModal(item, originalIndex)"
+          >
+            <FilIcon name="info" :size="14" />
+          </button>
 
           <span
             v-if="isLoraMissing(item.name)"
@@ -827,19 +839,6 @@ function onComboClose(index: number) {
             @update:model-value="(v: number) => updateItemPrimary(originalIndex, v)"
             />
           </div>
-
-          <!-- Info sits in the row itself, as the design draws it: a round `i`
-               between the weight and the switch. Remove, reordering and the
-               separate CLIP weight stay in the row's right-click menu. -->
-          <button
-            class="fil-row-info-btn"
-            title="LoRA information"
-            aria-label="LoRA information"
-            @mousedown.stop
-            @click.stop="openInfoModal(item, originalIndex)"
-          >
-            <FilIcon name="info" :size="14" />
-          </button>
 
           <FilToggle
             :model-value="item.enabled ? 'ON' : 'OFF'"

@@ -66,6 +66,16 @@ const { t } = useI18n();
       <FilIcon name="grip" :size="12" />
     </div>
 
+    <button
+      class="fil-row-info-btn"
+      title="Model Information"
+      aria-label="Model information"
+      @mousedown.stop
+      @click.stop="$emit('info')"
+    >
+      <FilIcon name="info" :size="14" />
+    </button>
+
     <span
       v-if="missing"
       class="fil-missing-badge"
@@ -89,16 +99,6 @@ const { t } = useI18n();
         @update:model-value="(val: string) => $emit('update:name', val)"
       />
     </div>
-
-    <button
-      class="fil-row-info-btn"
-      title="Model Information"
-      aria-label="Model information"
-      @mousedown.stop
-      @click.stop="$emit('info')"
-    >
-      <FilIcon name="info" :size="14" />
-    </button>
 
     <FilToggle
       :model-value="item.enabled ? 'ON' : 'OFF'"
