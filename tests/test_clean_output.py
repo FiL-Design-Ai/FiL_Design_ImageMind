@@ -45,3 +45,21 @@ def test_russian_wrapper_and_label_are_stripped():
 def test_a_real_line_starting_with_vot_survives():
     """The wrapper rule is narrowed to meta nouns on purpose."""
     assert clean_output("Вот маяк стоит на скале") == "Вот маяк стоит на скале"
+
+
+def test_strip_non_latin_true_removes_cjk_by_default():
+    assert clean_output("一位少女站在雨中") == ""
+
+
+def test_strip_non_latin_false_preserves_cjk():
+    """Prompt Director's zh output passes through with its ideographs."""
+    text = "一位少女站在雨中，胶片质感"
+    assert clean_output(text, OutputCleanConfig(strip_non_latin=False)) == text
+
+
+def test_strip_non_latin_false_still_cleans_metadata():
+    text = "<think>reasoning</think>一位少女, masterpiece"
+    result = clean_output(text, OutputCleanConfig(strip_non_latin=False))
+    assert "think" not in result
+    assert "masterpiece" in result
+    assert "一位少女" in result

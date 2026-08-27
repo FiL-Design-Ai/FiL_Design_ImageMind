@@ -41,6 +41,7 @@ function upscalerNode() {
     pos: [0, 0] as [number, number],
     size: [300, 400] as [number, number],
     graph: { setDirtyCanvas: () => undefined },
+    _filSocketPolicy: undefined as "always" | "linked" | undefined,
   };
 }
 
@@ -99,6 +100,7 @@ describe("widget input socket rows", () => {
 
   it("shows a dot next to a field the panel is rendering", () => {
     const node = upscalerNode();
+    node._filSocketPolicy = "always";
     installCanvas();
     exposeWidgetInputSockets(node, NAMES);
     anchorWidgetInputSockets(node, [{ name: "upscale_factor", el: fieldAt(200) }]);
@@ -107,11 +109,26 @@ describe("widget input socket rows", () => {
     expect(node.inputs[3].alwaysVisible).toBe(true);
   });
 
+  it("default policy: idle sockets stay hidden until hovered or wired", () => {
+    const node = upscalerNode();
+    installCanvas();
+    exposeWidgetInputSockets(node, NAMES);
+    expect(node.inputs[3].alwaysVisible).toBe(false);
+    anchorWidgetInputSockets(node, [{ name: "upscale_factor", el: fieldAt(200) }]);
+    // A rendered field with no wire keeps the dot down; drawSlots() still
+    // reveals it on hover, and the hit box sits at the field either way.
+    expect(node.inputs[3].alwaysVisible).toBe(false);
+    node.inputs[3].link = 7;
+    anchorWidgetInputSockets(node, [{ name: "upscale_factor", el: fieldAt(200) }]);
+    expect(node.inputs[3].alwaysVisible).toBe(true);
+  });
+
   it("stops drawing a dot the panel has no field for", () => {
     // Color Wizard's `saturate` and the Upscaler's collapsed tile fields: there
     // is nothing on screen for the dot to sit beside, so an always-visible one
     // reads as a stray socket.
     const node = upscalerNode();
+    node._filSocketPolicy = "always";
     installCanvas();
     exposeWidgetInputSockets(node, NAMES);
     expect(node.inputs[4].alwaysVisible).toBe(true);
@@ -123,6 +140,7 @@ describe("widget input socket rows", () => {
 
   it("brings the dot back when the section opens again", () => {
     const node = upscalerNode();
+    node._filSocketPolicy = "always";
     installCanvas();
     exposeWidgetInputSockets(node, NAMES);
     anchorWidgetInputSockets(node, [{ name: "tile_size", el: null }]);
@@ -136,6 +154,7 @@ describe("widget input socket rows", () => {
     // A zero-height rect happens for a frame whenever the panel re-renders;
     // hiding on that would make every dot flicker.
     const node = upscalerNode();
+    node._filSocketPolicy = "always";
     installCanvas();
     exposeWidgetInputSockets(node, NAMES);
     anchorWidgetInputSockets(node, [{ name: "tile_size", el: fieldAt(260) }]);

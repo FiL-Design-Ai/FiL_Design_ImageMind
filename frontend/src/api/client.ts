@@ -68,6 +68,24 @@ export interface ProbeResponse {
   latency_ms?: number;
 }
 
+/** POST /fil_design_imagemind/director_assist request body — the Prompt
+ * Director's instruction rewrite buttons. `provider`/`model` (and the two
+ * optional dials) are read off the connected Provider Loader by the panel. */
+export interface DirectorAssistRequest {
+  operation: "rephrase" | "densify" | "expand";
+  text: string;
+  provider: string;
+  model: string;
+  temperature?: number;
+  rate_limit_ms?: number;
+}
+
+/** The route answers `{result}` on success or `{error}` with a non-2xx status. */
+export interface DirectorAssistResponse {
+  result?: string;
+  error?: string;
+}
+
 export interface ImageDescriptor {
   filename: string;
   subfolder?: string;
@@ -158,6 +176,8 @@ export const providerApi = {
     getJson<ProviderModelsResponse>(`${ROUTE_PREFIX}/models/${encodeURIComponent(provider)}${force ? "?force=1" : ""}`),
   probe: (provider: string, model = "") =>
     postJson<ProbeResponse>(`${ROUTE_PREFIX}/provider_probe`, { provider, model }),
+  directorAssist: (body: DirectorAssistRequest) =>
+    postJson<DirectorAssistResponse>(`${ROUTE_PREFIX}/director_assist`, body),
   listProviders: () => getJson<{ providers: Record<string, string> }>(`${ROUTE_PREFIX}/providers`),
   nodeContracts: () => getJson<NodeContractsPayload>(`${ROUTE_PREFIX}/node_contracts`),
   samplerOptions: () => getJson<SamplerOptionsPayload>(`${ROUTE_PREFIX}/sampler_options`),

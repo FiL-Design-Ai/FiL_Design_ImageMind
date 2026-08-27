@@ -9,6 +9,11 @@ from .styles.photo import PHOTO_STYLES
 
 LANGUAGES = ["en", "ru"]
 
+# Prompt Director's output language for the rewritten prompt — a separate list
+# on purpose: Scanner describes for the user (en/ru), the Director writes image
+# prompts and also targets Chinese-diT users (zh).
+DIRECTOR_LANGUAGES = ["en", "ru", "zh"]
+
 # Detail level -> [min_words, max_words]. The max bound drives post-conversion
 # word truncation in convert_to_dit_format. Order is the UI dropdown order.
 DETAIL_LEVELS: Dict[str, Dict[str, Any]] = {

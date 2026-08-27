@@ -86,6 +86,7 @@ image pipeline with themed controls, cycle model checkpoints automatically, or g
 | If you want to... | Start with |
 |---|---|
 | Describe an image or make a prompt from it | 🕵️ Optic Scanner + 🔌 Provider Loader |
+| Rewrite or restyle an existing prompt (anime → photorealism) | 💬 Prompt Director + 🔌 Provider Loader |
 | Convert analysis into model-ready text | 🎛️ Style Mixer and the model prompt profiles |
 | Upscale large images in a controlled way | 🔍 Upscaler Advanced → 🧩 Tile Assembly |
 | Automatically cycle through checkpoints | 🔄 Model Cycler |
@@ -622,6 +623,27 @@ reference encoded, carrying the mask)
 </details>
 
 <details>
+<summary><b>💬 Prompt Director</b> — <code>FiLPromptDirector</code> — tells the LLM how to rewrite an existing prompt</summary>
+
+One-shot prompt rewriter: you give it a free-form instruction and a prompt you already have,
+the LLM rewrites the prompt to follow the instruction — style transfer (anime → photorealism),
+re-lighting, medium change — while keeping the subject, composition and every detail the
+instruction does not touch. The output follows the pack's DiT rules: high density, tactile
+physical truth, zero meta-noise.
+
+| Input | Type | Default | Notes |
+|---|---|---|---|
+| `config` | FilProviderConfig | — | from Provider Loader (owns temperature / max_tokens / rate limit / unload) |
+| `instruction` | STRING | `""` | what to do with the prompt, in free form |
+| `source_prompt` | STRING | `""` | the prompt to rewrite; a wired STRING link overrides the widget |
+| `language` | COMBO | `en` | language of the finished prompt: en / ru / zh |
+| `seed` | INT | `0` | fixed seed reuses the cached answer (instant, no API call); a new seed asks for a fresh variant |
+
+**Outputs:** `prompt` (STRING — the rewritten prompt, wire it into your pipeline)
+
+</details>
+
+<details>
 <summary><b>♻️ Seed</b> — <code>FiLSeed</code> · <b>🧹 Cleaner</b> — <code>FiLNeuroCleaner</code> · <b>🔀 Cyber Switch</b> — <code>FiLSignalSwitch</code> · <b>📡 Channel</b> — <code>FiLChannel</code></summary>
 
 **♻️ Seed** — `seed` INT (0 – 2⁶⁴-1) → `SEED` INT. Panel is one row: the value plus 🔀 randomize,
@@ -659,7 +681,7 @@ value untouched; OFF passes `None` on the wire without blocking optional downstr
 
 Набор кастомных узлов для **ComfyUI** на **V3 API** (`io.ComfyNode`, декларативный
 `define_schema()`, асинхронный `execute()`) с фронтендом на Vue 3 + TypeScript, собранным в
-`frontend/dist`. Четыре основных направления (19 узлов):
+`frontend/dist`. Четыре основных направления (21 узел):
 
 | Направление | Что даёт |
 |---|---|
@@ -683,11 +705,13 @@ value untouched; OFF passes `None` on the wire without blocking optional downstr
 
 ### Справочник по узлам
 
-Все 19 узлов по категориям:
+Все 22 узла по категориям:
 
 #### 🎨 FiL Design/LLM
 - 🔌 **Provider Loader** (`FiLProviderLoader`) — выбор провайдера, модели и параметров запроса.
 - 🕵️ **Optic Scanner** (`FiLOpticScanner`) — зрение, анализ кадра и генерация промптов под DiT-архитектуры.
+- 💬 **Prompt Director** (`FiLPromptDirector`) — переработка готового промпта по свободной инструкции: смена стиля (аниме → фотореализм), свет, медиум.
+- 📝 **Prompter** (`FiLPrompter`) — смарт-текстовое поле с 3 кнопками улучшения промпта на лету.
 - 🧹 **LLM Unloader** (`FiLLLMUnloader`) — мгновенный сброс VRAM и выгрузка моделей.
 
 #### 🎨 FiL Design/Analysis

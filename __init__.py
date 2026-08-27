@@ -37,6 +37,8 @@ class FiLExtension(ComfyExtension):
         from .nodes.node_model_cycler import FiLModelCycler
         from .nodes.node_lora_loader import FiLLoraLoader
         from .nodes.node_edit_encoder import FiLEditEncoder
+        from .nodes.node_prompt_director import FiLPromptDirector
+        from .nodes.node_prompter import FiLPrompter
         return filter_release_nodes([
             FiLSeed,
             FiLProviderLoader,
@@ -58,6 +60,8 @@ class FiLExtension(ComfyExtension):
             FiLModelCycler,
             FiLLoraLoader,
             FiLEditEncoder,
+            FiLPromptDirector,
+            FiLPrompter,
         ])
 
 

@@ -5925,6 +5925,151 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   ],
   "family": "conditioning"
 },
+  "FiLPromptDirector": {
+  "id": "FiLPromptDirector",
+  "title": "💬 Prompt Director",
+  "category": "🎨 FiL Design/🧠 LLM",
+  "description": "Tells the LLM how to rewrite an existing prompt: style transfer (anime → photorealism), re-lighting, medium change. Instruction + source prompt in, a finished DiT prompt out.",
+  "inputs": {
+    "required": [
+      {
+        "name": "instruction",
+        "kind": "string",
+        "label": "Instruction",
+        "default": "",
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": true,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "source_prompt",
+        "kind": "string",
+        "label": "Source prompt",
+        "default": "",
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": true,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "language",
+        "kind": "segmented",
+        "label": "Language",
+        "default": "en",
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": [
+          "en",
+          "ru",
+          "zh"
+        ],
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "seed",
+        "kind": "number",
+        "label": "Seed",
+        "default": 0,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": 0,
+        "max": 18446744073709552000,
+        "step": 1,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      }
+    ],
+    "optional": [],
+    "hidden": []
+  },
+  "outputs": [
+    {
+      "name": "prompt",
+      "type": "STRING"
+    }
+  ],
+  "min_size": [
+    340,
+    300
+  ],
+  "family": "llm"
+},
+  "FiLPrompter": {
+  "id": "FiLPrompter",
+  "title": "📝 Prompter",
+  "category": "🎨 FiL Design/🧠 LLM",
+  "description": "A text node whose prompt the three assist buttons (rephrase / densify / expand) rewrite live through the Provider Loader's LLM; at queue time the text passes through untouched.",
+  "inputs": {
+    "required": [
+      {
+        "name": "prompt",
+        "kind": "string",
+        "label": "Prompt",
+        "default": "",
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": true,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      }
+    ],
+    "optional": [],
+    "hidden": []
+  },
+  "outputs": [
+    {
+      "name": "prompt",
+      "type": "STRING"
+    }
+  ],
+  "min_size": [
+    340,
+    140
+  ],
+  "family": "llm"
+},
 };
 
 export type NodeId = keyof typeof NODE_CONTRACTS;

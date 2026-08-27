@@ -30,6 +30,7 @@
  */
 import { computed, onMounted, onUnmounted, shallowRef } from "vue";
 import { useI18n } from "@/composables/useI18n";
+import { useWirelessStore } from "@/stores/wirelessStore";
 import FilIcon from "@/components/widgets/FilIcon.vue";
 import {
   channelColorFor,
@@ -44,6 +45,7 @@ import {
 } from "@/nodes2/wireless";
 
 const { t } = useI18n();
+const store = useWirelessStore();
 
 interface HostCanvas {
   graph?: WirelessGraph;
@@ -196,6 +198,18 @@ const noProblems = computed(() => t("wireless_diag_no_problems", "Nothing to rep
 
 <template>
   <div class="fil-wireless-diag">
+    <div class="fil-wireless-diag-top-bar">
+      <span class="fil-wireless-diag-top-title">📡 Wireless</span>
+      <button
+        class="fil-wireless-diag-expand-btn"
+        :title="t('wireless_btn_open_modal', 'Open Dashboard (Alt+W)')"
+        @click="store.openDashboard('overview')"
+      >
+        <FilIcon name="expand" :size="12" />
+        <span>{{ t("wireless_btn_open_modal", "Open Dashboard (Alt+W)") }}</span>
+      </button>
+    </div>
+
     <section class="fil-wireless-diag-section">
       <h4 class="fil-wireless-diag-heading">{{ t("wireless_diag_channels", "Channels") }}</h4>
       <p v-if="channels.length === 0" class="fil-wireless-diag-empty">{{ emptyChannels }}</p>
@@ -247,6 +261,39 @@ const noProblems = computed(() => t("wireless_diag_no_problems", "Nothing to rep
   height: 100%;
   overflow-y: auto;
   box-sizing: border-box;
+}
+
+.fil-wireless-diag-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--fil-border, rgba(255, 255, 255, 0.08));
+}
+
+.fil-wireless-diag-top-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fil-text);
+}
+
+.fil-wireless-diag-expand-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--fil-border, rgba(255, 255, 255, 0.12));
+  background: var(--fil-surface, rgba(255, 255, 255, 0.04));
+  color: var(--fil-accent, #58a6ff);
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.fil-wireless-diag-expand-btn:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: var(--fil-accent, #58a6ff);
 }
 
 .fil-wireless-diag-section {

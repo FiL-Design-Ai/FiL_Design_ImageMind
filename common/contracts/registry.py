@@ -30,6 +30,8 @@ from .nodes.ksampler import CONTRACT as KSAMPLER
 from .nodes.lora_loader import CONTRACT as LORA_LOADER
 from .nodes.model_cycler import CONTRACT as MODEL_CYCLER
 from .nodes.noise_control import CONTRACT as NOISE_CONTROL
+from .nodes.prompt_director import CONTRACT as PROMPT_DIRECTOR
+from .nodes.prompter import CONTRACT as PROMPTER
 from .nodes.provider import CONTRACT as PROVIDER
 from .nodes.scanner import CONTRACT as SCANNER
 from .nodes.seed import CONTRACT as SEED
@@ -63,6 +65,8 @@ NODE_SCHEMAS: dict[str, NodeContract] = {
         MODEL_CYCLER,
         LORA_LOADER,
         EDIT_ENCODER,
+        PROMPT_DIRECTOR,
+        PROMPTER,
     )
 }
 

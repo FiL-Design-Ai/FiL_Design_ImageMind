@@ -21,6 +21,7 @@ import { installProviderManager } from "@/nodes2/installers/providerManager";
 import { installHelpToolbar } from "@/nodes2/installers/helpToolbar";
 import { installShortcuts } from "@/nodes2/installers/shortcuts";
 import { installWireless } from "@/nodes2/installers/wireless";
+import { installWirelessDashboard } from "@/nodes2/installers/wirelessDashboard";
 import { installCanvasMotion } from "@/nodes2/installers/canvasMotion";
 import { wirelessBottomPanelTab } from "@/nodes2/installers/wirelessPanel";
 import { beginGraphConfigure, endGraphConfigure } from "@/nodes2/wireless";
@@ -108,6 +109,7 @@ export function createFilExtension(app: ComfyApp): ComfyExtension {
       {
         path: ["FiL Design"],
         commands: [
+          "FiL_Design_ImageMind.openWirelessDashboard",
           "FiL_Design_ImageMind.helpCheatsheet",
           "FiL_Design_ImageMind.exportThemeAsPalette",
         ],
@@ -131,6 +133,7 @@ export function createFilExtension(app: ComfyApp): ComfyExtension {
         () => installProviderManager(app),
         () => installRunButtonFx(app),
         () => installHelpToolbar(app),
+        () => installWirelessDashboard(app),
         // A no-op when the host has `extensionManager` — the commands above
         // already did the work. Only a very old or dev-only ComfyUI falls back
         // to a keydown listener.

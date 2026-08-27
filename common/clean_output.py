@@ -40,6 +40,9 @@ class OutputCleanConfig:
     strip_think: bool = True
     strip_code_fences: bool = True
     strip_role_prefixes: bool = True
+    # The final pass keeps only ASCII + Cyrillic; CJK output (Prompt Director's
+    # zh language mode) must opt out or every ideograph gets deleted.
+    strip_non_latin: bool = True
 
 
 def clean_output(text: str, config: Optional[OutputCleanConfig] = None) -> str:
@@ -62,7 +65,8 @@ def clean_output(text: str, config: Optional[OutputCleanConfig] = None) -> str:
         cleaned = re.sub(r"^[A-Z\s]{5,25}:\s*", "", cleaned, flags=re.MULTILINE)
 
     cleaned = cleaned.replace("**", "").replace("__", "").replace("#", "").replace("* ", "")
-    cleaned = re.sub(r"[^\x00-\x7F\u0400-\u04FF\s.,!?;:\"\'()-]+", "", cleaned)
+    if cfg.strip_non_latin:
+        cleaned = re.sub(r"[^\x00-\x7F\u0400-\u04FF\s.,!?;:\"\'()-]+", "", cleaned)
     cleaned = re.sub(r"\s{2,}", " ", cleaned)
     cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
     cleaned = re.sub(r"\s+([.,!?;:])", r"\1", cleaned)

@@ -13,6 +13,8 @@ import { useHelpStore } from "@/stores/helpStore";
 import { toast } from "@/stores/toastStore";
 import { readSetting } from "@/stores/settings/providerSettings";
 
+import { useWirelessStore } from "@/stores/wirelessStore";
+
 const SETTING_ENABLED = "FiL_Design_ImageMind.Shortcuts.Enabled";
 const CHEATSHEET_ID = "__cheatsheet__";
 
@@ -39,12 +41,19 @@ export const filCommands: ComfyCommand[] = [
     icon: "?",
     function: openCheatsheet,
   },
+  {
+    id: "FiL_Design_ImageMind.openWirelessDashboard",
+    label: "FiL_Design_ImageMind — 📡 Wireless Dashboard",
+    menubarLabel: "📡 Wireless Dashboard",
+    icon: "📡",
+    function: openWirelessDashboard,
+  },
 ];
 
 export const filKeybindings: ComfyKeybinding[] = [
   { commandId: "FiL_Design_ImageMind.helpCheatsheet", combo: { key: "?", shift: true } },
-  // NB: Ctrl+Shift+K is reserved by core (Workspace.ToggleBottomPanel) — binding it
-  // via the native API throws a duplicate-keybinding error, so we don't register it.
+  // NB: openWirelessDashboard is registered as a command in filCommands and handled
+  // via global Alt+W listener to prevent ComfyUI duplicate-keybinding warnings on reload.
 ];
 
 function isFormField(target: EventTarget | null): boolean {
@@ -75,6 +84,12 @@ function openCheatsheet() {
   store.value_open?.(CHEATSHEET_ID);
 }
 
+function openWirelessDashboard() {
+  if (!shortcutsEnabled()) return;
+  const store = useWirelessStore();
+  store.toggleDashboard();
+}
+
 /**
  * Modern ComfyUI registers `filCommands` / `filKeybindings` declaratively via
  * the extension object (filExtension.ts), so nothing to do here beyond a log.
@@ -82,14 +97,8 @@ function openCheatsheet() {
  * ComfyUI) do we install the window-level keydown fallback.
  */
 export function installShortcuts(app: ComfyApp): void {
-  const hasNativeCommands = Boolean((app as { extensionManager?: unknown }).extensionManager);
-  if (hasNativeCommands) {
-    console.info("[FiL_Design_ImageMind] shortcuts registered via native commands API");
-    return;
-  }
-
   window.addEventListener("keydown", (event) => onFallbackKey(event, app), true);
-  console.info("[FiL_Design_ImageMind] shortcuts installed (fallback keydown handler)");
+  console.info("[FiL_Design_ImageMind] shortcuts installed");
 }
 
 function onFallbackKey(event: KeyboardEvent, app: ComfyApp): void {
@@ -110,6 +119,13 @@ function onFallbackKey(event: KeyboardEvent, app: ComfyApp): void {
   }
 
   if (inField) return;
+
+  // Alt+W → Wireless Dashboard.
+  if (event.altKey && (event.key === "w" || event.key === "W" || event.code === "KeyW")) {
+    openWirelessDashboard();
+    event.preventDefault();
+    return;
+  }
 
   // Ctrl+Shift+K or Shift+? → cheatsheet.
   if ((event.ctrlKey || event.metaKey) && event.shiftKey && (event.key === "K" || event.key === "k")) {

@@ -38,6 +38,8 @@ const NODE_ID_BY_FILE: Record<string, string> = {
   "ModelCyclerPanel.vue": "FiLModelCycler",
   "LoraLoaderPanel.vue": "FiLLoraLoader",
   "EditEncoderPanel.vue": "FiLEditEncoder",
+  "PromptDirectorPanel.vue": "FiLPromptDirector",
+  "PrompterPanel.vue": "FiLPrompter",
 };
 
 /**
@@ -56,7 +58,7 @@ const UI_ONLY_LITERALS = new Set(["ON", "OFF"]);
  * against and nothing here is hand-typed. Listed by name rather than skipped
  * by a pattern, so a genuinely unmapped panel still fails loudly.
  */
-const NOT_A_NODE_PANEL = new Set(["ProviderModelPicker.vue", "StyleBrowser.vue"]);
+const NOT_A_NODE_PANEL = new Set(["ProviderModelPicker.vue", "StyleBrowser.vue", "AssistColumn.vue"]);
 
 // The generated JSON carries explicit nulls for unset fields, so the spec type
 // has to allow them; casting through `unknown` keeps vue-tsc happy about the

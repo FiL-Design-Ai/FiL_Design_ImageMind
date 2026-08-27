@@ -443,7 +443,7 @@ class ModelClient:
             self._note_rate_limit(provider, resp)
             resp.raise_for_status()
             result = strategy.parse_response(resp.json())
-            if use_cache:
+            if use_cache and result and result.strip():
                 self._cache.set(provider, model_name, system_prompt, user_prompt, result, img_hash, seed, temperature)
             return result
 

@@ -79,6 +79,7 @@ audit.md
 audit-next.md
 fix.md
 wireless.md
+docs/archive/
 
 # Local runtime/cache
 .fil_cache/
@@ -113,3 +114,7 @@ data/auth.json.backup-*
 # Still listed so a leftover copy on disk stays out of git and out of the
 # published archive.
 data/provider_vision_smoke.json
+
+# Ad-hoc verification drafts (Playwright/one-off scripts) — never committed
+*.tmp.mjs
+frontend/_verify_*.mjs

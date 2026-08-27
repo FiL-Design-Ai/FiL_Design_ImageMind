@@ -17,6 +17,7 @@ from .common.provider_accounts import (
 from .common.base import set_log_level
 from .common.config import PROVIDERS, get_config
 from .common.contracts import public_node_contracts_v2
+from .common.director_assist import run_director_assist, validate_assist_request
 from .common.localization import get_localization_manager
 from .common.model_folders import (
     ensure_extra_model_paths as _ensure_extra_model_paths,
@@ -540,6 +541,41 @@ def register_routes():
         # provider's full timeout. Inline it stalled the whole ComfyUI server
         # (event loop) for the entire probe, so it runs in a worker thread.
         result = await asyncio.to_thread(probe_provider, provider, model)
+        return web.json_response(result)
+
+
+    @server.routes.post(f"/{ROUTE_SLUG}/director_assist")
+    async def director_assist(request):
+        if _reject_cross_site(request):
+            return web.json_response({"error": "cross-site request blocked"}, status=403)
+        try:
+            data = await request.json()
+        except Exception:
+            return web.json_response({"error": "invalid JSON"}, status=400)
+        error = validate_assist_request(data)
+        if error:
+            return web.json_response({"error": error}, status=400)
+        # The panel forwards the Provider Loader's own dials; clamp so a broken
+        # widget cannot send nonsense into the provider call.
+        try:
+            temperature = min(max(float(data.get("temperature", 0.7)), 0.0), 2.0)
+        except (TypeError, ValueError):
+            temperature = 0.7
+        try:
+            rate_limit_ms = min(max(int(data.get("rate_limit_ms", 100)), 0), 5000)
+        except (TypeError, ValueError):
+            rate_limit_ms = 100
+        result = await asyncio.to_thread(
+            run_director_assist,
+            str(data.get("provider", "")).strip().lower(),
+            str(data.get("model", "")).strip(),
+            str(data.get("operation", "")),
+            str(data.get("text", "")),
+            temperature,
+            rate_limit_ms,
+        )
+        if "error" in result:
+            return web.json_response(result, status=502)
         return web.json_response(result)
 
 

@@ -2,6 +2,7 @@
  * Import from `@/components/widgets` to keep deep-imports stable.
  * Keep this list in sync with the *.vue files in this folder.
  */
+export { default as AssistColumn } from "./AssistColumn.vue";
 export { default as FilBrowser } from "./FilBrowser.vue";
 export { default as FilBrowserSidebar } from "./FilBrowserSidebar.vue";
 export { default as FilButton } from "./FilButton.vue";
@@ -26,3 +27,4 @@ export { default as FilTextInput } from "./FilTextInput.vue";
 export { default as FilToastStack } from "./FilToastStack.vue";
 export { default as FilToggle } from "./FilToggle.vue";
 export { default as FilWirelessDiagnostics } from "./FilWirelessDiagnostics.vue";
+export { default as FilWirelessModal } from "./FilWirelessModal.vue";

@@ -4,6 +4,67 @@
 
 ### Added
 
+- **📡 Wireless Dashboard — Interactive HUD and visual management for wireless channels.**
+  Floating modal HUD for the wireless distribution engine, invoked via `Alt+W`, menu `FiL Design -> 📡 Wireless Dashboard`, or the bottom panel dock tab.
+  Features instant **Focus & Trace** (centers canvas and selects the channel transmitter and all its receiving nodes, even within subgraphs), **Mute / Unmute** (temporarily stops channel signal distribution without pulling physical wires), **Unlink All** (batch detach receivers), data type filter pills (`MODEL`, `VAE`, `CLIP`, `LATENT`, `IMAGE`...), live search, and graph-wide issue diagnostics.
+- **📝 Prompter (`FiLPrompter`) — smart text node with live LLM assist buttons.**
+  New node in `🧠 FiL Design/LLM`: prompt passes through untouched at queue execution time
+  (zero LLM cost), while three assist buttons (rephrase / densify / expand) placed right next
+  to the text field edit the prompt live via the `/director_assist` backend route. Connecting a
+  Provider Loader powers the assist buttons; unwired runs stay plain text pass-throughs.
+- **💬 Prompt Director (`FiLPromptDirector`) — tells the LLM how to rewrite a prompt you already have.**
+  New node in `🧠 FiL Design/LLM`: one free-form **instruction** field («сделай
+  фотореалистично, как настоящее фото») plus one **source prompt** field (widget text
+  or a wired STRING link — the link wins), and out comes a finished DiT prompt that
+  follows the instruction while keeping the subject, composition and every detail the
+  instruction did not touch. The system prompt carries the pack's DiT rules — high
+  density, tactile physical truth, Z-index depth, zero meta-noise — and closes with
+  the language rule, placed last because that is the rule models drop first; the
+  finished prompt can come out in English, Russian or Chinese (`language` widget).
+  Generation parameters stay where they belong — Provider Loader owns temperature,
+  max_tokens, rate limit and the unload switch. The `seed` widget doubles as a cost
+  control: a fixed seed answers from the ModelClient cache (instant, no API call),
+  a fresh seed asks the model for another variant. Answers run through `clean_output`
+  so preambles and fences never reach the pipeline — with a new
+  `OutputCleanConfig(strip_non_latin=False)` opt-out, because the cleaner's final
+  ASCII+Cyrillic pass would otherwise delete every Chinese ideograph. The single
+  output is the rewritten `prompt` — a pre-cleanup `raw` twin existed during
+  development but never shipped: the cleaned text reads well enough to judge,
+  so the diagnostic did not earn its socket. The node ships with
+  the pack's branded panel: the two textareas lead it and both accept a STRING
+  link (a link overrides the field), then the language segmented control, and
+  the seed with its after-generate select rendered at the bottom, Noise Control
+  style. The field sockets behave like stock ComfyUI widgets: invisible at
+  rest, revealed while a wire is hovered onto the node, and kept up once one
+  feeds the field. After FiL saw it on Prompt Director he asked for the same
+  everywhere, so `linked` is now the pack-wide default in
+  `widgetInputSockets.ts` (`_filSocketPolicy: "always"` opts a node back into
+  permanent dots) — Scanner, KSampler, Upscalers and the rest all idle clean.
+  The panel is growable (`growable: true` on the DOM widget, OpticScanner's
+  idiom): dragging the node box taller hands the spare pixels to the two
+  textareas via `flex: 1` instead of leaving dead space under the content,
+  and the saved stretch comes back with the workflow.
+
+- **💬 Prompt Director assist buttons — rephrase / densify / expand beside the instruction field.**
+  Three 24px icon buttons (Bootstrap Icons, same source as the rest of
+  `composables/icons.ts`: `repeat`, `arrows-angle-contract`,
+  `arrows-angle-expand`) rewrite the instruction in place through the wired
+  Provider Loader's LLM: *rephrase* keeps the exact meaning with clearer
+  wording, *densify* cuts filler for a shorter, denser line, *expand* adds
+  concrete physical direction — light behavior, material truth, optics,
+  Z-index depth — per the pack's DiT rules, zero meta-noise. Every op answers
+  in the input's own language and touches only the instruction; the director
+  still does the full prompt rewrite afterwards. Backend is a new
+  `/director_assist` route over `common/director_assist.py`, which runs
+  `ModelClient` one-shot and uncached in a worker thread, the same pattern
+  `provider_probe` uses, with the request validated (operation whitelist,
+  4000-char cap, known provider, real model). The panel reads
+  provider/model/temperature/rate limit off the config link's origin node and
+  keeps the buttons disabled until a Provider Loader is wired — the instance
+  `onConnectionsChange` hook is patched so the state flips on connect and
+  disconnect. The busy button spins; failures surface through the pack's
+  toast stack instead of silently eating the text.
+
 - **🎯 Edit Encoder (`FiLEditEncoder`) — one node where the edit pipeline used to want six.**
   Core ComfyUI assembles an FLUX.2-family edit workflow (Krea2, Klein, Dev) out of
   separate pieces: `ImageScaleToTotalPixels` → `VAEEncode` → a chain of
@@ -99,6 +160,16 @@
   held out, then concatenated — the same `start_percent`/`end_percent` core's
   `ConditioningSetTimestepRange` writes, which is also how the experiment was
   built before any of this existed.
+
+### Changed
+
+- **💬 A linked FilTextArea now recolours instead of dashing.**
+  The linked state used to be a dashed accent border over the usual surface —
+  at a glance it read as a focus state, and the dash itself was vetoed. The
+  field now keeps a solid accent border and tints its fill with the theme
+  accent (`color-mix` 14% over the panel fill), so a textarea fed from the
+  graph is unmistakable in every FilTextArea caller — Prompt Director, Optic
+  Scanner, Decomposer and the rest.
 
 ### Fixed
 

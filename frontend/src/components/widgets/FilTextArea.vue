@@ -110,10 +110,12 @@ const modelValue = defineModel<string>({ required: true });
   opacity: 0.5;
 }
 /* A link on the matching input socket wins over whatever is typed here, so the
- * field reads as a display of that fact instead of an editable value. */
+ * field reads as a display of that fact instead of an editable value. The
+ * recoloured surface is the whole signal — a dashed border read as "focus
+ * state" and was vetoed outright (FiL, 2026-08-26). */
 .fil-w-textarea.is-linked {
-  border-style: dashed;
   border-color: var(--fil-accent);
+  background: color-mix(in srgb, var(--fil-accent) 14%, var(--fil-panel-alt));
   color: var(--fil-muted);
   cursor: not-allowed;
 }

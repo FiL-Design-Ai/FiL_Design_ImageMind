@@ -41,6 +41,12 @@ interface SlotLike extends LGraphSlot {
 interface NodeLike extends LGraphNode {
   inputs?: SlotLike[];
   _widgetSlotsDirty?: boolean;
+  /**
+   * `"linked"` (the default — FiL's ask 2026-08-26: every panel node idles as
+   * clean as a stock ComfyUI node): widget sockets stay invisible until
+   * hovered or wired. `"always"` opts a node back into permanent dots.
+   */
+  _filSocketPolicy?: "always" | "linked";
 }
 
 /**
@@ -147,10 +153,15 @@ export function exposeWidgetInputSockets(node: LGraphNode, names: string[]): voi
   // starting at the real-input count is the first row that cannot collide.
   const firstFreeRow = countRealInputs(n);
   let row = 0;
+  const alwaysDots = n._filSocketPolicy === "always";
   for (const name of names) {
     const slot = n.inputs?.find((i) => i.name === name);
     if (!slot) continue;
-    slot.alwaysVisible = true;
+    // Under the default linked policy the dot is revealed by drawSlots() on
+    // hover and stays up once a wire lands (both paths below honour the flag);
+    // the row and hit box are assigned either way, so an invisible socket is
+    // still a drop target exactly where the field sits.
+    slot.alwaysVisible = alwaysDots;
     const w = findFilWidget(node, name);
     // A stacking row per field, unconditionally: LiteGraph leaves `y` at 0 on
     // widgets it never lays out (every widget here is hidden), so testing for
@@ -267,6 +278,7 @@ export function anchorWidgetInputSockets(node: LGraphNode, anchors: WidgetSocket
 
   let moved = false;
   const hidden: string[] = [];
+  const alwaysDots = (node as NodeLike)._filSocketPolicy === "always";
   for (const { name, el } of anchors) {
     if (!el) {
       // No element at all means the panel is not rendering that field: a
@@ -284,7 +296,14 @@ export function anchorWidgetInputSockets(node: LGraphNode, anchors: WidgetSocket
       hidden.push(name);
       continue;
     }
-    setAlwaysVisible(node as NodeLike, name, true);
+    // Linked policy (the default): the dot (and its label, which keys off
+    // alwaysVisible) only stays up while a wire actually feeds the field;
+    // drawSlots() keeps revealing it on hover so a new wire still has a
+    // target to land on.
+    setAlwaysVisible(
+      node as NodeLike, name,
+      alwaysDots || (node as NodeLike).inputs?.find((i) => i.name === name)?.link != null,
+    );
     setLabelledByPanel(node as NodeLike, name, true);
     const w = findFilWidget(node, name);
     if (!w) continue;
