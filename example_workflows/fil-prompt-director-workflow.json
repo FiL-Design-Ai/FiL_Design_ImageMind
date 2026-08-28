@@ -1,0 +1,243 @@
+{
+  "id": "fil-prompt-director-workflow-v1",
+  "revision": 0,
+  "last_node_id": 5,
+  "last_link_id": 4,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "FiLProviderLoader",
+      "pos": [40, 60],
+      "size": [360, 440],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {"name": "provider", "type": "COMBO", "widget": {"name": "provider"}, "link": null},
+        {"name": "model", "type": "COMBO", "widget": {"name": "model"}, "link": null},
+        {"name": "refresh_models", "type": "BOOLEAN", "widget": {"name": "refresh_models"}, "link": null},
+        {"name": "unload_llm", "type": "BOOLEAN", "widget": {"name": "unload_llm"}, "link": null},
+        {"name": "temperature", "type": "FLOAT", "widget": {"name": "temperature"}, "link": null},
+        {"name": "max_tokens", "type": "INT", "widget": {"name": "max_tokens"}, "link": null},
+        {"name": "rate_limit_ms", "type": "INT", "widget": {"name": "rate_limit_ms"}, "link": null},
+        {"name": "max_image_side", "type": "INT", "widget": {"name": "max_image_side"}, "link": null}
+      ],
+      "outputs": [
+        {"name": "config", "type": "FIL_PROVIDER_CONFIG", "links": [1, 3]},
+        {"name": "model", "type": "STRING", "links": null}
+      ],
+      "properties": {"Node name for S&R": "FiLProviderLoader"},
+      "widgets_values": [
+        "ollama",
+        "qwen2.5:7b",
+        false,
+        false,
+        0.7,
+        0,
+        100,
+        1024,
+        {
+          "nodeState": {
+            "provider": "ollama",
+            "model": "qwen2.5:7b",
+            "temperature": 0.7,
+            "max_tokens": 0,
+            "rate_limit_ms": 100,
+            "max_image_side": 1024,
+            "refresh_models": false,
+            "unload_llm": false
+          }
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "FiLPrompter",
+      "pos": [440, 60],
+      "size": [360, 200],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {"name": "prompt", "type": "STRING", "widget": {"name": "prompt"}, "link": null}
+      ],
+      "outputs": [
+        {"name": "prompt", "type": "STRING", "links": [2]}
+      ],
+      "properties": {"Node name for S&R": "FiLPrompter"},
+      "widgets_values": [
+        "a cybernetic samurai sitting in a ramen bar in Neo-Tokyo, rain outside, neon reflections",
+        {
+          "nodeState": {
+            "prompt": "a cybernetic samurai sitting in a ramen bar in Neo-Tokyo, rain outside, neon reflections"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "FiLPromptDirector",
+      "pos": [440, 300],
+      "size": [380, 340],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {"name": "config", "type": "FIL_PROVIDER_CONFIG", "link": 1},
+        {"name": "instruction", "type": "STRING", "widget": {"name": "instruction"}, "link": null},
+        {"name": "source_prompt", "type": "STRING", "widget": {"name": "source_prompt"}, "link": 2},
+        {"name": "language", "type": "COMBO", "widget": {"name": "language"}, "link": null},
+        {"name": "seed", "type": "INT", "widget": {"name": "seed"}, "link": null}
+      ],
+      "outputs": [
+        {"name": "prompt", "type": "STRING", "links": [4]}
+      ],
+      "properties": {"Node name for S&R": "FiLPromptDirector"},
+      "widgets_values": [
+        "Make it look like a real 35mm film photograph with volumetric rain, tactile worn fabrics, warm lantern light and deep atmospheric depth.",
+        "",
+        "en",
+        123456,
+        "fixed",
+        {
+          "nodeState": {
+            "instruction": "Make it look like a real 35mm film photograph with volumetric rain, tactile worn fabrics, warm lantern light and deep atmospheric depth.",
+            "source_prompt": "",
+            "language": "en",
+            "seed": 123456,
+            "control_after_generate": "fixed"
+          }
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "FiLCinemaRig",
+      "pos": [860, 60],
+      "size": [380, 580],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {"name": "config", "type": "FIL_PROVIDER_CONFIG", "link": 3},
+        {"name": "image", "type": "IMAGE", "link": null},
+        {"name": "scene_prompt", "type": "STRING", "widget": {"name": "scene_prompt"}, "link": 4},
+        {"name": "mode", "type": "COMBO", "widget": {"name": "mode"}, "link": null},
+        {"name": "setup_mode", "type": "COMBO", "widget": {"name": "setup_mode"}, "link": null},
+        {"name": "camera", "type": "COMBO", "widget": {"name": "camera"}, "link": null},
+        {"name": "lens", "type": "COMBO", "widget": {"name": "lens"}, "link": null},
+        {"name": "focal_length", "type": "COMBO", "widget": {"name": "focal_length"}, "link": null},
+        {"name": "aperture", "type": "COMBO", "widget": {"name": "aperture"}, "link": null},
+        {"name": "camera_angle", "type": "COMBO", "widget": {"name": "camera_angle"}, "link": null},
+        {"name": "shot_framing", "type": "COMBO", "widget": {"name": "shot_framing"}, "link": null},
+        {"name": "camera_movement", "type": "COMBO", "widget": {"name": "camera_movement"}, "link": null},
+        {"name": "lighting_setup", "type": "COMBO", "widget": {"name": "lighting_setup"}, "link": null},
+        {"name": "optics_filter", "type": "COMBO", "widget": {"name": "optics_filter"}, "link": null},
+        {"name": "director_preset", "type": "COMBO", "widget": {"name": "director_preset"}, "link": null},
+        {"name": "color_grading", "type": "COMBO", "widget": {"name": "color_grading"}, "link": null},
+        {"name": "enable_grading", "type": "BOOLEAN", "widget": {"name": "enable_grading"}, "link": null},
+        {"name": "polish_mode", "type": "COMBO", "widget": {"name": "polish_mode"}, "link": null}
+      ],
+      "outputs": [
+        {"name": "prompt", "type": "STRING", "links": []},
+        {"name": "rig_text", "type": "STRING", "links": []},
+        {"name": "meta_dict", "type": "DICT", "links": []}
+      ],
+      "properties": {"Node name for S&R": "FiLCinemaRig"},
+      "widgets_values": [
+        "",
+        "Film",
+        "Manual",
+        "ARRI Alexa 65",
+        "ARRI Prime DNA",
+        "50mm (Normal)",
+        "T1.4 (Shallow DoF)",
+        "Eye Level",
+        "Medium Shot",
+        "Static (Tripod)",
+        "Cinematic Volumetric",
+        "None",
+        "Custom (Manual Rig)",
+        "Kodak Vision3 500T 5219",
+        true,
+        "None (Assemble Rig Only)",
+        {
+          "nodeState": {
+            "scene_prompt": "",
+            "mode": "Film",
+            "setup_mode": "Manual",
+            "camera": "ARRI Alexa 65",
+            "lens": "ARRI Prime DNA",
+            "focal_length": "50mm (Normal)",
+            "aperture": "T1.4 (Shallow DoF)",
+            "camera_angle": "Eye Level",
+            "shot_framing": "Medium Shot",
+            "camera_movement": "Static (Tripod)",
+            "lighting_setup": "Cinematic Volumetric",
+            "optics_filter": "None",
+            "director_preset": "Custom (Manual Rig)",
+            "color_grading": "Kodak Vision3 500T 5219",
+            "enable_grading": true,
+            "polish_mode": "None (Assemble Rig Only)"
+          }
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "FiLPrompter",
+      "pos": [1280, 60],
+      "size": [360, 200],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {"name": "prompt", "type": "STRING", "widget": {"name": "prompt"}, "link": null}
+      ],
+      "outputs": [
+        {"name": "prompt", "type": "STRING", "links": []}
+      ],
+      "properties": {"Node name for S&R": "FiLPrompter"},
+      "widgets_values": [
+        "",
+        {
+          "nodeState": {
+            "prompt": ""
+          }
+        }
+      ]
+    }
+  ],
+  "links": [
+    [1, 1, 0, 3, 0, "FIL_PROVIDER_CONFIG"],
+    [2, 2, 0, 3, 2, "STRING"],
+    [3, 1, 0, 4, 0, "FIL_PROVIDER_CONFIG"],
+    [4, 3, 0, 4, 2, "STRING"]
+  ],
+  "groups": [
+    {
+      "title": "🧠 1. LLM Provider & Base Prompter",
+      "bounding": [20, 10, 820, 650],
+      "color": "#1f3b4d",
+      "font_size": 24
+    },
+    {
+      "title": "🎬 2. Cinema Rig Camera Direction",
+      "bounding": [840, 10, 820, 650],
+      "color": "#3f2b4d",
+      "font_size": 24
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.85,
+      "offset": [40, 40]
+    },
+    "workspace_info": {
+      "name": "FiL Prompt Director Studio Workflow",
+      "description": "Demonstrates prompt rewriting via FiLPromptDirector and live assist editing with FiLPrompter and Cinema Rig."
+    }
+  },
+  "version": 0.4
+}

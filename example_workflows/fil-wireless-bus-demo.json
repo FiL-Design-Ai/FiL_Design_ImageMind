@@ -1,0 +1,298 @@
+{
+  "id": "fil-wireless-bus-demo-v1",
+  "revision": 0,
+  "last_node_id": 11,
+  "last_link_id": 10,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "CheckpointLoaderSimple",
+      "pos": [40, 100],
+      "size": [315, 98],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {"name": "ckpt_name", "type": "COMBO", "widget": {"name": "ckpt_name"}, "link": null}
+      ],
+      "outputs": [
+        {"name": "MODEL", "type": "MODEL", "links": [1]},
+        {"name": "CLIP", "type": "CLIP", "links": [2]},
+        {"name": "VAE", "type": "VAE", "links": [3]}
+      ],
+      "properties": {"Node name for S&R": "CheckpointLoaderSimple"},
+      "widgets_values": ["v1-5-pruned-emaonly.safetensors"]
+    },
+    {
+      "id": 2,
+      "type": "FiLChannel",
+      "pos": [420, 100],
+      "size": [220, 130],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {"name": "value.value0", "type": "MODEL", "link": 1, "label": "MODEL"},
+        {"name": "value.value1", "type": "CLIP", "link": 2, "label": "CLIP"},
+        {"name": "value.value2", "type": "VAE", "link": 3, "label": "VAE"}
+      ],
+      "outputs": [],
+      "properties": {"Node name for S&R": "FiLChannel"},
+      "widgets_values": []
+    },
+    {
+      "id": 3,
+      "type": "FiLPrompter",
+      "pos": [40, 260],
+      "size": [340, 160],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {"name": "prompt", "type": "STRING", "widget": {"name": "prompt"}, "link": null}
+      ],
+      "outputs": [
+        {"name": "prompt", "type": "STRING", "links": [4]}
+      ],
+      "properties": {"Node name for S&R": "FiLPrompter"},
+      "widgets_values": [
+        "cinematic photorealistic portrait of an astronaut on Mars, detailed tactile suit, cosmic dust, golden hour lighting, 8k",
+        {
+          "nodeState": {
+            "prompt": "cinematic photorealistic portrait of an astronaut on Mars, detailed tactile suit, cosmic dust, golden hour lighting, 8k"
+          }
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "CLIPTextEncode",
+      "pos": [420, 260],
+      "size": [300, 100],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {"name": "clip", "type": "CLIP", "link": 2},
+        {"name": "text", "type": "STRING", "widget": {"name": "text"}, "link": 4}
+      ],
+      "outputs": [
+        {"name": "CONDITIONING", "type": "CONDITIONING", "links": [5]}
+      ],
+      "properties": {"Node name for S&R": "CLIPTextEncode"},
+      "widgets_values": [""]
+    },
+    {
+      "id": 5,
+      "type": "FiLPrompter",
+      "pos": [40, 460],
+      "size": [340, 140],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {"name": "prompt", "type": "STRING", "widget": {"name": "prompt"}, "link": null}
+      ],
+      "outputs": [
+        {"name": "prompt", "type": "STRING", "links": [6]}
+      ],
+      "properties": {"Node name for S&R": "FiLPrompter"},
+      "widgets_values": [
+        "blurry, cartoon, watermark, text, low quality, oversaturated, deformed",
+        {
+          "nodeState": {
+            "prompt": "blurry, cartoon, watermark, text, low quality, oversaturated, deformed"
+          }
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "CLIPTextEncode",
+      "pos": [420, 460],
+      "size": [300, 100],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {"name": "clip", "type": "CLIP", "link": 2},
+        {"name": "text", "type": "STRING", "widget": {"name": "text"}, "link": 6}
+      ],
+      "outputs": [
+        {"name": "CONDITIONING", "type": "CONDITIONING", "links": [7]}
+      ],
+      "properties": {"Node name for S&R": "CLIPTextEncode"},
+      "widgets_values": [""]
+    },
+    {
+      "id": 7,
+      "type": "FiLChannel",
+      "pos": [760, 260],
+      "size": [220, 120],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {"name": "value.value0", "type": "CONDITIONING", "link": 5, "label": "positive"},
+        {"name": "value.value1", "type": "CONDITIONING", "link": 7, "label": "negative"}
+      ],
+      "outputs": [],
+      "properties": {"Node name for S&R": "FiLChannel"},
+      "widgets_values": []
+    },
+    {
+      "id": 8,
+      "type": "EmptyLatentImage",
+      "pos": [760, 420],
+      "size": [220, 106],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {"name": "width", "type": "INT", "widget": {"name": "width"}, "link": null},
+        {"name": "height", "type": "INT", "widget": {"name": "height"}, "link": null},
+        {"name": "batch_size", "type": "INT", "widget": {"name": "batch_size"}, "link": null}
+      ],
+      "outputs": [
+        {"name": "LATENT", "type": "LATENT", "links": [8]}
+      ],
+      "properties": {"Node name for S&R": "EmptyLatentImage"},
+      "widgets_values": [512, 512, 1]
+    },
+    {
+      "id": 9,
+      "type": "FiLKSampler",
+      "pos": [1040, 140],
+      "size": [360, 440],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {"name": "model", "type": "MODEL", "link": null},
+        {"name": "positive", "type": "CONDITIONING", "link": null},
+        {"name": "negative", "type": "CONDITIONING", "link": null},
+        {"name": "latent", "type": "LATENT", "link": 8},
+        {"name": "vae", "type": "VAE", "link": null},
+        {"name": "script", "type": "FIL_HIRES_SCRIPT", "link": null},
+        {"name": "seed", "type": "INT", "widget": {"name": "seed"}, "link": null},
+        {"name": "steps", "type": "INT", "widget": {"name": "steps"}, "link": null},
+        {"name": "cfg", "type": "FLOAT", "widget": {"name": "cfg"}, "link": null},
+        {"name": "sampler_name", "type": "COMBO", "widget": {"name": "sampler_name"}, "link": null},
+        {"name": "scheduler", "type": "COMBO", "widget": {"name": "scheduler"}, "link": null},
+        {"name": "denoise", "type": "FLOAT", "widget": {"name": "denoise"}, "link": null},
+        {"name": "eta", "type": "FLOAT", "widget": {"name": "eta"}, "link": null},
+        {"name": "bongmath", "type": "BOOLEAN", "widget": {"name": "bongmath"}, "link": null},
+        {"name": "preview_method", "type": "COMBO", "widget": {"name": "preview_method"}, "link": null},
+        {"name": "vae_decode", "type": "COMBO", "widget": {"name": "vae_decode"}, "link": null}
+      ],
+      "outputs": [
+        {"name": "model", "type": "MODEL", "links": null},
+        {"name": "positive", "type": "CONDITIONING", "links": null},
+        {"name": "negative", "type": "CONDITIONING", "links": null},
+        {"name": "latent", "type": "LATENT", "links": [9]},
+        {"name": "vae", "type": "VAE", "links": null},
+        {"name": "image", "type": "IMAGE", "links": null}
+      ],
+      "properties": {"Node name for S&R": "FiLKSampler"},
+      "widgets_values": [
+        42,
+        "fixed",
+        20,
+        7.0,
+        "euler",
+        "normal",
+        1.0,
+        1.0,
+        true,
+        "auto",
+        "true",
+        {
+          "nodeState": {
+            "seed": 42,
+            "control_after_generate": "fixed",
+            "steps": 20,
+            "cfg": 7.0,
+            "sampler_name": "euler",
+            "scheduler": "normal",
+            "denoise": 1.0,
+            "eta": 1.0,
+            "bongmath": true,
+            "preview_method": "auto",
+            "vae_decode": "true"
+          }
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "VAEDecode",
+      "pos": [1440, 140],
+      "size": [210, 46],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {"name": "samples", "type": "LATENT", "link": 9},
+        {"name": "vae", "type": "VAE", "link": null}
+      ],
+      "outputs": [
+        {"name": "IMAGE", "type": "IMAGE", "links": [10]}
+      ],
+      "properties": {"Node name for S&R": "VAEDecode"},
+      "widgets_values": []
+    },
+    {
+      "id": 11,
+      "type": "PreviewImage",
+      "pos": [1440, 240],
+      "size": [340, 360],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {"name": "images", "type": "IMAGE", "link": 10}
+      ],
+      "outputs": [],
+      "properties": {"Node name for S&R": "PreviewImage"},
+      "widgets_values": []
+    }
+  ],
+  "links": [
+    [1, 1, 0, 2, 0, "MODEL"],
+    [2, 1, 1, 2, 1, "CLIP"],
+    [3, 1, 2, 2, 2, "VAE"],
+    [4, 3, 0, 4, 1, "STRING"],
+    [5, 4, 0, 7, 0, "CONDITIONING"],
+    [6, 5, 0, 6, 1, "STRING"],
+    [7, 6, 0, 7, 1, "CONDITIONING"],
+    [8, 8, 0, 9, 3, "LATENT"],
+    [9, 9, 3, 10, 0, "LATENT"],
+    [10, 10, 0, 11, 0, "IMAGE"]
+  ],
+  "groups": [
+    {
+      "title": "📡 1. Model & Conditioning Bus (FiLChannel)",
+      "bounding": [20, 40, 980, 580],
+      "color": "#2a363b",
+      "font_size": 24
+    },
+    {
+      "title": "⚡ 2. Generation & Decoding (Wireless Receivers)",
+      "bounding": [1020, 40, 780, 580],
+      "color": "#3f2b3b",
+      "font_size": 24
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.9,
+      "offset": [50, 50]
+    },
+    "workspace_info": {
+      "name": "FiL Wireless Bus & Dashboard Demo",
+      "description": "Demonstrates wireless channel distribution. Press Alt+W or check the bottom Wireless tab to view and manage live channels!"
+    }
+  },
+  "version": 0.4
+}

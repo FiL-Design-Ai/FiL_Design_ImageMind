@@ -8,9 +8,15 @@ from pathlib import Path
 import pytest
 
 
+from FiL_Design_ImageMind.common.release_gate import RELEASE_NODES
+
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOWS = sorted((ROOT / "example_workflows").glob("*.json"))
-CURRENT_TYPES = {"LoadImage", "FiLProviderLoader", "FiLOpticScanner"}
+CORE_TYPES = {
+    "LoadImage", "SaveImage", "PreviewImage", "CheckpointLoaderSimple",
+    "CLIPTextEncode", "EmptyLatentImage", "VAEDecode", "VAEEncode",
+}
+CURRENT_TYPES = set(RELEASE_NODES) | CORE_TYPES
 REMOVED_TYPES = {
     "CyberDeckProviderLoader", "LLMServerLoaderPro", "OpticScanner",
     "PromptChat", "CyberSeed", "FiLDataSniffer",
@@ -33,7 +39,7 @@ def test_user_documentation_lists_only_current_nodes():
 
 
 def test_example_workflows_are_valid_and_use_current_types():
-    assert len(WORKFLOWS) == 2
+    assert len(WORKFLOWS) == 4
     for path in WORKFLOWS:
         workflow = json.loads(path.read_text(encoding="utf-8"))
         assert {node["type"] for node in workflow["nodes"]} <= CURRENT_TYPES
