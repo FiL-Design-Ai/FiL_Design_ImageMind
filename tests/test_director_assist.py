@@ -68,3 +68,17 @@ def test_unknown_provider_rejected():
 @pytest.mark.parametrize("model", ["", "(loading...)", "(no models)"])
 def test_placeholder_model_rejected(model):
     assert validate_assist_request(_valid_body(model=model)) is not None
+
+
+def test_prompt_context_system_prompt():
+    prompt = build_assist_system_prompt("expand", context="prompt")
+    assert "image generation prompt" in prompt
+    assert "light behavior" in prompt
+    assert "material truth" in prompt
+
+
+def test_unknown_context_rejected():
+    assert validate_assist_request(_valid_body(context="invalid_context")) is not None
+    assert validate_assist_request(_valid_body(context="prompt")) is None
+    assert validate_assist_request(_valid_body(context="instruction")) is None
+

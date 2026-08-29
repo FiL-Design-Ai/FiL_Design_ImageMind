@@ -36,11 +36,12 @@ const prompt = stringField("prompt", "");
         class="fil-pr-grow"
         v-model="prompt"
         :rows="4"
+        toolbar
         :linked="isLinked('prompt')"
         :placeholder="t('prp_prompt_ph', 'Type your prompt here or wire a STRING link…')"
-        :title="linkedTip('prompt', t('prp_prompt_tt', 'The prompt text — passed directly to the output on generate. The 3 buttons edit it live.'))"
+        :title="linkedTip('prompt', t('prp_prompt_tt', 'The prompt text — passed directly to the output on generate. The assist buttons edit it live.'))"
       />
-      <AssistColumn v-model="prompt" :state="state" :editable="!isLinked('prompt')" />
+      <AssistColumn v-model="prompt" :state="state" :editable="!isLinked('prompt')" context="prompt" />
     </div>
   </div>
 </template>
@@ -51,7 +52,7 @@ const prompt = stringField("prompt", "");
   color: var(--fil-text); font-family: ui-sans-serif, system-ui, sans-serif;
   height: 100%;
 }
-.fil-pr-prompt-row { display: flex; gap: 6px; min-width: 0; flex: 1 1 auto; min-height: 0; }
-.fil-pr-prompt-row > :first-child { flex: 1; min-width: 0; height: auto; }
-.fil-pr-grow { flex: 1 1 auto; min-height: 50px; height: auto; }
+.fil-pr-prompt-row { display: flex; gap: 6px; min-width: 0; flex: 1 1 auto; min-height: 0; height: 100%; }
+.fil-pr-prompt-row > :first-child { flex: 1 1 auto; min-width: 0; height: 100%; display: flex; flex-direction: column; min-height: 0; }
+.fil-pr-grow { flex: 1 1 auto; min-height: 50px; height: 100%; display: flex; flex-direction: column; min-height: 0; }
 </style>

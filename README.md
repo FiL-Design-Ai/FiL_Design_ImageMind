@@ -743,6 +743,7 @@ value untouched; OFF passes `None` on the wire without blocking optional downstr
 - 🧬 **LoRA Loader** (`FiLLoraLoader`) — авто-переключатель и парсер LoRA с автоизвлечением триггер-слов, режимом bypass и плашками подписей.
 - ♻️ **Seed Generator** (`FiLSeed`) — управление генератором случайных чисел (до MAX_SAFE_INTEGER).
 - 🔀 **Cyber Switch** (`FiLSignalSwitch`) — универсальный переключатель сигналов с пробросом `None`.
+- 👁️ **Show Any** (`FiLShowAny`) — универсальный инспектор и монитор любых данных со сквозной передачей, счётчиком и копированием.
 - 📡 **Channel** (`FiLChannel`) — беспроводная трансляция сигналов по всему графу.
 
 ---

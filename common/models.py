@@ -4,7 +4,7 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Dict, List, Optional
 
-from .base import FiLError, InferenceError
+from .base import ContentBlockedError, FiLError, InferenceError
 from .brand import BRAND
 from .config import PROVIDERS, get_config
 from .network import HTTPClient, RateLimiter, retry_after_seconds
@@ -238,7 +238,16 @@ class OpenAIStrategy(ModelStrategy):
             raise InferenceError(f"Provider returned an error: {error}")
         choices = data.get("choices") or []
         if choices:
-            content = (choices[0].get("message", {}).get("content", "") or "").strip()
+            choice = choices[0]
+            finish_reason = choice.get("finish_reason")
+            if finish_reason == "content_filter":
+                raise ContentBlockedError(
+                    "The model response was blocked by the provider's content safety filter (finish_reason: content_filter). "
+                    "Please adjust your prompt (remove sensitive/NSFW terms) or switch to a less restrictive model/provider.",
+                    reason="content_filter",
+                    details=choice,
+                )
+            content = (choice.get("message", {}).get("content", "") or "").strip()
             # `length` is checked before the text is handed back, not after it
             # turns out to be empty. Reasoning models hit the empty case first,
             # spending the whole budget before the visible reply starts —
@@ -247,7 +256,7 @@ class OpenAIStrategy(ModelStrategy):
             # the model was cut off mid-sentence, and returning that as the
             # finished text is worse than the empty case: nothing downstream can
             # tell a clipped prompt from a short one.
-            if choices[0].get("finish_reason") == "length":
+            if finish_reason == "length":
                 usage = data.get("usage") or {}
                 reasoning = (usage.get("completion_tokens_details") or {}).get("reasoning_tokens") or 0
                 detail = f" ({reasoning} of them on reasoning)" if reasoning else ""
@@ -309,16 +318,37 @@ class GoogleStrategy(ModelStrategy):
         error = data.get("error")
         if error:
             raise InferenceError(f"Provider returned an error: {error}")
+
+        prompt_feedback = data.get("promptFeedback") or {}
+        block_reason = prompt_feedback.get("blockReason")
+        if block_reason:
+            ratings = prompt_feedback.get("safetyRatings") or []
+            flagged = [
+                f"{r.get('category')}: {r.get('probability')}"
+                for r in ratings
+                if r.get("blocked") or str(r.get("probability")).upper() in ("HIGH", "MEDIUM")
+            ]
+            detail = f" ({', '.join(flagged)})" if flagged else ""
+            raise ContentBlockedError(
+                f"Google Gemini blocked the prompt due to content safety policy [{block_reason}]{detail}. "
+                "Please adjust your prompt (remove sensitive, NSFW, or prohibited terms) or switch to a less restrictive model/provider.",
+                reason=block_reason,
+                details=prompt_feedback,
+            )
+
         candidates = data.get("candidates") or []
         if candidates:
-            parts = candidates[0].get("content", {}).get("parts", [])
+            candidate = candidates[0]
+            finish_reason = candidate.get("finishReason")
+            parts = candidate.get("content", {}).get("parts", [])
             text = "".join(p.get("text", "") for p in parts)
+
             # Gemini spells the same truncation `MAX_TOKENS`, its thinking
             # models spend the budget the same way, and — same as the
             # OpenAI-shaped providers — the flag is read before the text is
             # handed back, so a half-finished answer climbs the ladder instead
             # of passing for a whole one.
-            if candidates[0].get("finishReason") == "MAX_TOKENS":
+            if finish_reason == "MAX_TOKENS":
                 usage = data.get("usageMetadata") or {}
                 thoughts = usage.get("thoughtsTokenCount") or 0
                 detail = f" ({thoughts} of them on thinking)" if thoughts else ""
@@ -328,6 +358,22 @@ class GoogleStrategy(ModelStrategy):
                     spent=usage.get("candidatesTokenCount") or thoughts,
                     partial=text,
                 )
+
+            if finish_reason in ("SAFETY", "RECITATION", "BLOCKLIST", "PROHIBITED_CONTENT", "SPII"):
+                ratings = candidate.get("safetyRatings") or []
+                flagged = [
+                    f"{r.get('category')}: {r.get('probability')}"
+                    for r in ratings
+                    if r.get("blocked") or str(r.get("probability")).upper() in ("HIGH", "MEDIUM")
+                ]
+                detail = f" ({', '.join(flagged)})" if flagged else ""
+                raise ContentBlockedError(
+                    f"Google Gemini stopped generation due to safety policy [{finish_reason}]{detail}. "
+                    "Please adjust your prompt (remove sensitive, NSFW, or prohibited terms) or switch to a less restrictive model/provider.",
+                    reason=finish_reason,
+                    details=candidate,
+                )
+
             if text:
                 return text
         raise InferenceError(f"Could not find a response in provider payload: {data!r}")

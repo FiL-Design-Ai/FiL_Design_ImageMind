@@ -6070,6 +6070,48 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   ],
   "family": "llm"
 },
+  "FiLShowAny": {
+  "id": "FiLShowAny",
+  "title": "👁️ Show Any",
+  "category": "🎨 FiL Design/🧰 Tools",
+  "description": "Universal data inspector & pass-through monitor. Displays formatted data, text, or JSON with live word/char counters and 1-click Copy.",
+  "inputs": {
+    "required": [],
+    "optional": [
+      {
+        "name": "text",
+        "kind": "string",
+        "label": "Text",
+        "default": "",
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": true,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      }
+    ],
+    "hidden": []
+  },
+  "outputs": [
+    {
+      "name": "*",
+      "type": "ANY"
+    }
+  ],
+  "min_size": [
+    320,
+    140
+  ],
+  "family": "tools"
+},
 };
 
 export type NodeId = keyof typeof NODE_CONTRACTS;

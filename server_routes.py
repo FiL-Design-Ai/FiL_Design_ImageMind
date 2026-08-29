@@ -565,6 +565,7 @@ def register_routes():
             rate_limit_ms = min(max(int(data.get("rate_limit_ms", 100)), 0), 5000)
         except (TypeError, ValueError):
             rate_limit_ms = 100
+        context = str(data.get("context", "instruction")).strip().lower()
         result = await asyncio.to_thread(
             run_director_assist,
             str(data.get("provider", "")).strip().lower(),
@@ -573,6 +574,7 @@ def register_routes():
             str(data.get("text", "")),
             temperature,
             rate_limit_ms,
+            context,
         )
         if "error" in result:
             return web.json_response(result, status=502)

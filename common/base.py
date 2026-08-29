@@ -69,6 +69,14 @@ class InferenceError(FiLError):
         super().__init__(msg, "INFERENCE_ERROR")
 
 
+class ContentBlockedError(InferenceError):
+    def __init__(self, msg: str, reason: str = "PROHIBITED_CONTENT", details: Optional[Dict[str, Any]] = None):
+        super().__init__(msg)
+        self.code = "CONTENT_BLOCKED_ERROR"
+        self.reason = reason
+        self.details = details or {}
+
+
 def get_logger(name: Optional[str] = None) -> logging.Logger:
     logger = logging.getLogger(f"{BRAND}.{name}" if name else BRAND)
     if not logger.handlers:

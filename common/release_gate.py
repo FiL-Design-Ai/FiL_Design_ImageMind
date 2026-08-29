@@ -41,6 +41,7 @@ RELEASE_NODES: set[str] = {
     "FiLEditEncoder",
     "FiLPromptDirector",
     "FiLPrompter",
+    "FiLShowAny",
 }
 
 _TRUTHY = {"1", "true", "yes", "on"}

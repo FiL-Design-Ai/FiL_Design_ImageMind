@@ -66,14 +66,14 @@ const LANGUAGE_LABELS: Record<string, string> = { en: "🇬🇧 English", ru: "�
          which is what `setFieldEl` anchors the socket dot to. -->
     <div class="fil-pd-instruction-row">
       <FilTextArea :ref="(el: unknown) => setFieldEl('instruction', el)"
-        v-model="instruction" :rows="3" :linked="isLinked('instruction')"
+        v-model="instruction" :rows="3" toolbar :linked="isLinked('instruction')"
         :placeholder="t('pdp_instruction_ph', 'What to change: style, light, medium… e.g. “make it photorealistic, like a real photo”')"
         :title="linkedTip('instruction', t('pdp_instruction_tt', 'The instruction is the only creative direction the LLM follows. Type it or wire a STRING link.'))" />
-      <AssistColumn v-model="instruction" :state="state" :editable="!isLinked('instruction')" />
+      <AssistColumn v-model="instruction" :state="state" :editable="!isLinked('instruction')" context="instruction" />
     </div>
 
     <FilTextArea :ref="(el: unknown) => setFieldEl('source_prompt', el)" class="fil-pd-grow"
-      v-model="sourcePrompt" :rows="4" :linked="isLinked('source_prompt')"
+      v-model="sourcePrompt" :rows="4" toolbar :linked="isLinked('source_prompt')"
       :placeholder="t('pdp_source_ph', 'The prompt to rewrite — type it or wire a STRING link…')"
       :title="linkedTip('source_prompt', t('pdp_source_tt', 'The existing prompt the LLM rewrites. A wired link overrides this field.'))" />
 

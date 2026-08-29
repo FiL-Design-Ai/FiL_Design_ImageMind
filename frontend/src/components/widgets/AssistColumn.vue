@@ -11,12 +11,16 @@ import { ASSIST_OPS, useAssist } from "@/composables/useAssist";
 import { useI18n } from "@/composables/useI18n";
 import type { FilNodeState } from "@/nodes2/filState";
 
-const props = defineProps<{
-  state: FilNodeState;
-  modelValue: string;
-  /** False while a link drives the field — the buttons cannot rewrite it. */
-  editable: boolean;
-}>();
+const props = withDefaults(
+  defineProps<{
+    state: FilNodeState;
+    modelValue: string;
+    /** False while a link drives the field — the buttons cannot rewrite it. */
+    editable: boolean;
+    context?: "instruction" | "prompt";
+  }>(),
+  { context: "instruction" },
+);
 const emit = defineEmits<{ (e: "update:modelValue", value: string): void }>();
 const { t } = useI18n();
 
@@ -26,7 +30,12 @@ const text = computed({
 });
 const editable = computed(() => props.editable);
 
-const { configLinked, busyOp, assist } = useAssist(() => props.state.node, text, editable);
+const { configLinked, busyOp, assist, canUndo, canRedo, undo, redo } = useAssist(
+  () => props.state.node,
+  text,
+  editable,
+  props.context,
+);
 
 function buttonTitle(op: (typeof ASSIST_OPS)[number]): string {
   if (!configLinked.value) return t("pda_no_config_tt", "Connect a Provider Loader to enable these buttons.");
@@ -44,11 +53,33 @@ function buttonTitle(op: (typeof ASSIST_OPS)[number]): string {
       @click="assist(op)">
       <FilIcon :name="busyOp === op.id ? 'spinner' : op.icon" :size="13" />
     </button>
+    <div class="fil-assist-divider" />
+    <button type="button"
+      class="fil-assist-btn"
+      :disabled="!canUndo || busyOp !== null"
+      :title="t('pda_undo_tt', 'Undo — restore previous text.')"
+      @click="undo">
+      <FilIcon name="undo" :size="13" />
+    </button>
+    <button type="button"
+      class="fil-assist-btn"
+      :disabled="!canRedo || busyOp !== null"
+      :title="t('pda_redo_tt', 'Redo — restore next text.')"
+      @click="redo">
+      <FilIcon name="redo" :size="13" />
+    </button>
   </div>
 </template>
 
 <style scoped>
-.fil-assist-col { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; align-self: center; }
+.fil-assist-col { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; align-self: flex-start; margin-top: 1px; }
+.fil-assist-divider {
+  width: 16px;
+  height: 1px;
+  margin: 2px auto;
+  background: var(--fil-glass-border, rgba(0, 150, 200, 0.25));
+  opacity: 0.6;
+}
 .fil-assist-btn {
   width: 24px; height: 24px; padding: 0;
   display: inline-flex; align-items: center; justify-content: center;

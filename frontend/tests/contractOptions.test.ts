@@ -40,6 +40,7 @@ const NODE_ID_BY_FILE: Record<string, string> = {
   "EditEncoderPanel.vue": "FiLEditEncoder",
   "PromptDirectorPanel.vue": "FiLPromptDirector",
   "PrompterPanel.vue": "FiLPrompter",
+  "ShowAnyPanel.vue": "FiLShowAny",
 };
 
 /**

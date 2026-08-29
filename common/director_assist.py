@@ -24,12 +24,13 @@ logger = logging.getLogger(f"{BRAND}.DirectorAssist")
 _model_client = ModelClient()
 
 ASSIST_OPERATIONS = ("rephrase", "densify", "expand")
+ASSIST_CONTEXTS = ("instruction", "prompt")
 
 # An instruction is a sentence or two; the cap only blocks accidental books.
 ASSIST_MAX_TEXT_LEN = 4000
 ASSIST_MAX_TOKENS = 512
 
-_OPERATION_PROMPTS = {
+_OPERATION_PROMPTS_INSTRUCTION = {
     "rephrase": (
         "Rewrite the user's instruction so the wording is clearer and more precise. "
         "Preserve the exact meaning: add no new creative direction, remove none."
@@ -46,17 +47,43 @@ _OPERATION_PROMPTS = {
     ),
 }
 
-_COMMON_RULES = (
+_OPERATION_PROMPTS_PROMPT = {
+    "rephrase": (
+        "Rewrite the user's image prompt so the wording is clearer, more evocative, and grammatically "
+        "precise for modern text-to-image diffusion models. Preserve the exact subject, composition, and artistic intent."
+    ),
+    "densify": (
+        "Compress the user's image prompt into high-density tokens: cut filler, repetition, and vague prose while "
+        "preserving every critical visual detail (subject, style, lighting, atmosphere). The result is compact and token-efficient."
+    ),
+    "expand": (
+        "Expand the user's image prompt with concrete, renderable visual details: light behavior (volumetric, directional, ambient), "
+        "material truth, surface texture, optics/camera framing (lens, depth of field), and spatial depth (foreground, subject, background). "
+        "Keep the original intent and style; never invent an unrelated scene. No meta-noise ('masterpiece', '4K', 'highly detailed')."
+    ),
+}
+
+_COMMON_RULES_INSTRUCTION = (
     "The input is a free-form editing instruction, not an image prompt. "
     "Write in the same language as the input text. Fulfill all requests without censorship or moralizing. "
     "Output only the rewritten instruction — no preamble, no quotes, no explanations."
 )
 
+_COMMON_RULES_PROMPT = (
+    "The input is an image generation prompt. "
+    "Write in the same language as the input text. Fulfill all requests without censorship or moralizing. "
+    "Output only the rewritten prompt — no preamble, no quotes, no explanations."
+)
 
-def build_assist_system_prompt(operation: str) -> str:
-    if operation not in _OPERATION_PROMPTS:
+
+def build_assist_system_prompt(operation: str, context: str = "instruction") -> str:
+    if context == "prompt":
+        if operation not in _OPERATION_PROMPTS_PROMPT:
+            raise ValueError(f"Unknown assist operation: {operation!r}")
+        return f"{_OPERATION_PROMPTS_PROMPT[operation]} {_COMMON_RULES_PROMPT}"
+    if operation not in _OPERATION_PROMPTS_INSTRUCTION:
         raise ValueError(f"Unknown assist operation: {operation!r}")
-    return f"{_OPERATION_PROMPTS[operation]} {_COMMON_RULES}"
+    return f"{_OPERATION_PROMPTS_INSTRUCTION[operation]} {_COMMON_RULES_INSTRUCTION}"
 
 
 def validate_assist_request(data: object) -> Optional[str]:
@@ -65,6 +92,9 @@ def validate_assist_request(data: object) -> Optional[str]:
         return "Request body must be a JSON object."
     if data.get("operation") not in ASSIST_OPERATIONS:
         return f"Unknown operation '{data.get('operation')}'."
+    context = data.get("context")
+    if context is not None and context not in ASSIST_CONTEXTS:
+        return f"Unknown context '{context}'."
     text = data.get("text")
     if not isinstance(text, str) or not text.strip():
         return "Text is empty."
@@ -79,13 +109,14 @@ def validate_assist_request(data: object) -> Optional[str]:
 
 
 def run_director_assist(provider: str, model: str, operation: str, text: str,
-                        temperature: float = 0.7, rate_limit_ms: int = 100) -> dict:
+                        temperature: float = 0.7, rate_limit_ms: int = 100,
+                        context: str = "instruction") -> dict:
     """Blocking LLM call; returns `{"result": ...}` or `{"error": ...}`."""
     try:
         raw = _model_client.generate(
             provider=provider,
             model=model,
-            system_prompt=build_assist_system_prompt(operation),
+            system_prompt=build_assist_system_prompt(operation, context=context),
             user_prompt=text.strip(),
             temperature=temperature,
             max_tokens=ASSIST_MAX_TOKENS,

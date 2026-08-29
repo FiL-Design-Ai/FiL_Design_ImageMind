@@ -78,6 +78,7 @@ export interface DirectorAssistRequest {
   model: string;
   temperature?: number;
   rate_limit_ms?: number;
+  context?: "instruction" | "prompt";
 }
 
 /** The route answers `{result}` on success or `{error}` with a non-2xx status. */

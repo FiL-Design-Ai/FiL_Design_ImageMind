@@ -5,7 +5,7 @@
  * state flipped per-instance through onConnectionsChange, and a busy spinner
  * while the `/director_assist` call runs.
  */
-import { onBeforeUnmount, onMounted, ref, type Ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch, type Ref } from "vue";
 import { providerApi } from "@/api/client";
 import { useI18n } from "@/composables/useI18n";
 import type { IconName } from "@/composables/icons";
@@ -34,6 +34,7 @@ export function useAssist(
   getNode: () => LGraphNode | undefined,
   text: Ref<string>,
   editable: Ref<boolean>,
+  context: "instruction" | "prompt" = "instruction",
 ) {
   const { t } = useI18n();
 
@@ -44,6 +45,62 @@ export function useAssist(
   }
 
   const busyOp = ref<string | null>(null);
+
+  // Text history stack (undo / redo)
+  const history = ref<string[]>([text.value]);
+  const historyIndex = ref<number>(0);
+  let isApplyingHistory = false;
+  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function commitText(val: string) {
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+      debounceTimer = null;
+    }
+    if (history.value[historyIndex.value] === val) return;
+    const next = history.value.slice(0, historyIndex.value + 1);
+    next.push(val);
+    if (next.length > 50) next.shift();
+    history.value = next;
+    historyIndex.value = next.length - 1;
+  }
+
+  watch(
+    () => text.value,
+    (newVal) => {
+      if (isApplyingHistory) return;
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        commitText(newVal);
+      }, 400);
+    },
+  );
+
+  const canUndo = computed(() => editable.value && historyIndex.value > 0);
+  const canRedo = computed(() => editable.value && historyIndex.value < history.value.length - 1);
+
+  function undo() {
+    if (debounceTimer) {
+      commitText(text.value);
+    }
+    if (historyIndex.value <= 0 || !editable.value) return;
+    historyIndex.value--;
+    isApplyingHistory = true;
+    text.value = history.value[historyIndex.value];
+    nextTick(() => {
+      isApplyingHistory = false;
+    });
+  }
+
+  function redo() {
+    if (historyIndex.value >= history.value.length - 1 || !editable.value) return;
+    historyIndex.value++;
+    isApplyingHistory = true;
+    text.value = history.value[historyIndex.value];
+    nextTick(() => {
+      isApplyingHistory = false;
+    });
+  }
 
   function resolveProviderConfig() {
     const node = getNode();
@@ -75,11 +132,20 @@ export function useAssist(
       toast.warning(t("pda_empty", "Type some text first — there is nothing to rewrite."));
       return;
     }
+    commitText(text.value);
     busyOp.value = op.id;
     try {
-      const res = await providerApi.directorAssist({ operation: op.id, text: text.value, ...cfg });
-      if (res.result) text.value = res.result;
-      else toast.error(res.error ?? t("pda_failed", "Assist call failed."));
+      const res = await providerApi.directorAssist({ operation: op.id, text: text.value, context, ...cfg });
+      if (res.result) {
+        commitText(res.result);
+        isApplyingHistory = true;
+        text.value = res.result;
+        nextTick(() => {
+          isApplyingHistory = false;
+        });
+      } else {
+        toast.error(res.error ?? t("pda_failed", "Assist call failed."));
+      }
     } catch (err) {
       toast.error(String((err as Error)?.message ?? err));
     } finally {
@@ -104,9 +170,13 @@ export function useAssist(
     }
   });
   onBeforeUnmount(() => {
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+      debounceTimer = null;
+    }
     const node = getNode() as (LGraphNode & { onConnectionsChange?: ConnectionsChangeHook }) | undefined;
     if (node && originalOnConnectionsChange) node.onConnectionsChange = originalOnConnectionsChange;
   });
 
-  return { configLinked, busyOp, assist };
+  return { configLinked, busyOp, assist, canUndo, canRedo, undo, redo, commitText };
 }

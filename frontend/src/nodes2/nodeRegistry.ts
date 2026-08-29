@@ -28,6 +28,7 @@ import { loraLoaderNode } from "@/nodes2/nodes/lora_loader";
 import { editEncoderNode } from "@/nodes2/nodes/edit_encoder";
 import { promptDirectorNode } from "@/nodes2/nodes/prompt_director";
 import { prompterNode } from "@/nodes2/nodes/prompter";
+import { showAnyNode } from "@/nodes2/nodes/show_any";
 
 export interface NodeModule {
   id: string;
@@ -57,6 +58,7 @@ const modules: NodeModule[] = [
   editEncoderNode,
   promptDirectorNode,
   prompterNode,
+  showAnyNode,
 ];
 
 export const NODE_MODULES: Record<string, NodeModule> = Object.fromEntries(

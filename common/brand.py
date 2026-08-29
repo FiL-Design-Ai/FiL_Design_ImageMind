@@ -2,7 +2,7 @@
 
 BRAND = "FiL_Design_ImageMind"
 # Kept in step with `pyproject.toml`'s `version` by test_documentation.py.
-VERSION = "1.1.2"
+VERSION = "1.2.0"
 ROUTE_SLUG = BRAND.lower()
 SETTINGS_PREFIX = f"{BRAND}."
 CATEGORY_ROOT = "🎨 FiL Design"

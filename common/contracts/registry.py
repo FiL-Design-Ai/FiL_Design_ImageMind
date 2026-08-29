@@ -32,6 +32,7 @@ from .nodes.model_cycler import CONTRACT as MODEL_CYCLER
 from .nodes.noise_control import CONTRACT as NOISE_CONTROL
 from .nodes.prompt_director import CONTRACT as PROMPT_DIRECTOR
 from .nodes.prompter import CONTRACT as PROMPTER
+from .nodes.show_any import CONTRACT as SHOW_ANY
 from .nodes.provider import CONTRACT as PROVIDER
 from .nodes.scanner import CONTRACT as SCANNER
 from .nodes.seed import CONTRACT as SEED
@@ -67,6 +68,7 @@ NODE_SCHEMAS: dict[str, NodeContract] = {
         EDIT_ENCODER,
         PROMPT_DIRECTOR,
         PROMPTER,
+        SHOW_ANY,
     )
 }
 

@@ -666,9 +666,23 @@
   "pda_no_config": "Assist buttons need a Provider Loader wired into config.",
   "pda_empty": "Type an instruction first — there is nothing to rewrite.",
   "pda_failed": "Assist call failed.",
+  "pda_undo_tt": "Undo — restore previous text.",
+  "pda_redo_tt": "Redo — restore next text.",
   "pr_config": "Config from Provider Loader — powers the assist buttons.",
   "pr_prompt": "The prompt the assist buttons edit. Type it in or connect a STRING link — a link overrides the widget.",
   "prp_prompt_ph": "Type your prompt here or wire a STRING link…",
-  "prp_prompt_tt": "The prompt text — passed directly to the output on generate. The 3 buttons edit it live."
+  "prp_prompt_tt": "The prompt text — passed directly to the output on generate. The assist buttons edit it live.",
+  "ta_copy_tt": "Copy text to clipboard",
+  "ta_copied": "Copied to clipboard!",
+  "ta_paste_tt": "Paste text from clipboard",
+  "ta_pasted": "Pasted from clipboard!",
+  "ta_clear_tt": "Clear text (can be undone)",
+  "ta_words": "w",
+  "ta_chars": "c",
+  "tt_show_any_source": "Any incoming data signal to inspect and pass through.",
+  "tt_show_any_text": "Manual text fallback used when no source link is connected.",
+  "sa_monitor": "Data Inspector",
+  "sa_placeholder": "Connect any signal to `source` or type text here…",
+  "sa_tooltip": "Displays formatted data or text. 1-click copy with live word/char counters."
 }
 

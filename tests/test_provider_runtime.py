@@ -738,3 +738,67 @@ def test_unload_failure_is_logged_not_raised(monkeypatch, caplog):
         provider_runtime.unload_local_model("lmstudio", "google/gemma-4-e4b")
 
     assert any("unload" in record.message.lower() for record in caplog.records)
+
+
+def test_google_prompt_feedback_blocked_raises_content_blocked_error():
+    from FiL_Design_ImageMind.common.base import ContentBlockedError
+    from FiL_Design_ImageMind.common.models import GoogleStrategy
+
+    payload = {
+        "promptFeedback": {
+            "blockReason": "PROHIBITED_CONTENT",
+            "safetyRatings": [
+                {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "probability": "HIGH", "blocked": True}
+            ],
+        },
+        "usageMetadata": {"promptTokenCount": 638, "totalTokenCount": 638},
+        "modelVersion": "gemini-3.5-flash-lite",
+    }
+    with pytest.raises(ContentBlockedError) as excinfo:
+        GoogleStrategy(http_client=None, rate_limiter=None).parse_response(payload)
+
+    assert "Google Gemini blocked the prompt" in str(excinfo.value)
+    assert "PROHIBITED_CONTENT" in str(excinfo.value)
+    assert "HARM_CATEGORY_SEXUALLY_EXPLICIT" in str(excinfo.value)
+
+
+def test_google_candidate_finish_reason_safety_raises_content_blocked_error():
+    from FiL_Design_ImageMind.common.base import ContentBlockedError
+    from FiL_Design_ImageMind.common.models import GoogleStrategy
+
+    payload = {
+        "candidates": [
+            {
+                "finishReason": "SAFETY",
+                "safetyRatings": [
+                    {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "probability": "HIGH", "blocked": True}
+                ],
+                "content": {"parts": []},
+            }
+        ]
+    }
+    with pytest.raises(ContentBlockedError) as excinfo:
+        GoogleStrategy(http_client=None, rate_limiter=None).parse_response(payload)
+
+    assert "Google Gemini stopped generation due to safety policy" in str(excinfo.value)
+    assert "SAFETY" in str(excinfo.value)
+    assert "HARM_CATEGORY_DANGEROUS_CONTENT" in str(excinfo.value)
+
+
+def test_openai_content_filter_raises_content_blocked_error():
+    from FiL_Design_ImageMind.common.base import ContentBlockedError
+    from FiL_Design_ImageMind.common.models import OpenAIStrategy
+
+    payload = {
+        "choices": [
+            {
+                "finish_reason": "content_filter",
+                "message": {"content": None},
+            }
+        ]
+    }
+    with pytest.raises(ContentBlockedError) as excinfo:
+        OpenAIStrategy(http_client=None, rate_limiter=None).parse_response(payload)
+
+    assert "content safety filter" in str(excinfo.value)
+    assert "content_filter" in str(excinfo.value)

@@ -39,6 +39,7 @@ class FiLExtension(ComfyExtension):
         from .nodes.node_edit_encoder import FiLEditEncoder
         from .nodes.node_prompt_director import FiLPromptDirector
         from .nodes.node_prompter import FiLPrompter
+        from .nodes.node_show_any import FiLShowAny
         return filter_release_nodes([
             FiLSeed,
             FiLProviderLoader,
@@ -62,6 +63,7 @@ class FiLExtension(ComfyExtension):
             FiLEditEncoder,
             FiLPromptDirector,
             FiLPrompter,
+            FiLShowAny,
         ])
 
 

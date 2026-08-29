@@ -13,7 +13,7 @@ Canonical node ids:
 - `FiLUpscaleTileCalc`, `FiLUpscaleSimple`, `FiLTileAssembly`, `FiLColorWizard` — Image
 - `FiLDatasetForge` — Dataset
 - `FiLSeed` — Values
-- `FiLNeuroCleaner`, `FiLSignalSwitch`, `FiLChannel` — Tools
+- `FiLNeuroCleaner`, `FiLSignalSwitch`, `FiLChannel`, `FiLShowAny` — Tools
 - `FiLModelCycler`, `FiLLoraLoader` — Sampling
 - `FiLEditEncoder` — Conditioning
 
