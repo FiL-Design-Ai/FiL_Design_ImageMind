@@ -32,7 +32,6 @@ const images = computed<ImageDescriptor[]>(() => {
 });
 
 const hasImage = computed(() => images.value.length > 0);
-const viewMode = ref<"preview" | "info">("preview");
 
 const activeImageUrl = computed(() => {
   if (images.value.length > 0) {
@@ -66,84 +65,76 @@ const openImageInTab = () => {
   }
 };
 
-const dataType = computed(() => {
-  const raw = props.state.ui?.data_type;
-  if (Array.isArray(raw) && raw.length > 0 && raw[0]) {
-    return String(raw[0]);
+const imgDimensions = ref<{ width: number; height: number } | null>(null);
+
+const onImgLoad = (e: Event) => {
+  const el = e.target as HTMLImageElement;
+  if (el.naturalWidth && el.naturalHeight) {
+    imgDimensions.value = { width: el.naturalWidth, height: el.naturalHeight };
   }
-  if (typeof raw === "string" && raw) {
-    return raw;
+};
+
+const parsedDimensions = computed<{ width: number; height: number } | null>(() => {
+  if (imgDimensions.value) return imgDimensions.value;
+  const match =
+    text.value.match(/Resolution:\s*(\d+)\s*×\s*(\d+)/i) ||
+    text.value.match(/\[.*H=(\d+),\s*W=(\d+)/i);
+  if (match) {
+    const isHW = text.value.includes("H=");
+    const width = Number(isHW ? match[2] : match[1]);
+    const height = Number(isHW ? match[1] : match[2]);
+    if (width && height) return { width, height };
   }
-  if (hasImage.value) return "IMAGE";
-  if (isSourceLinked.value) return "INSPECTED";
-  return text.value ? "STRING" : "STANDALONE";
+  return null;
 });
 
-const typeBadgeClass = computed(() => {
-  const dt = dataType.value.toUpperCase();
-  if (dt.includes("IMAGE")) return "badge-image";
-  if (dt.includes("LATENT")) return "badge-latent";
-  if (dt.includes("JSON") || dt.includes("DICT") || dt.includes("LIST")) return "badge-json";
-  if (dt.includes("MODEL") || dt.includes("CLIP") || dt.includes("VAE")) return "badge-model";
-  if (dt.includes("CONDITIONING")) return "badge-cond";
-  return "badge-default";
+const displayDimensions = computed(() => {
+  const dims = parsedDimensions.value;
+  if (!dims) return "";
+  const count = images.value.length;
+  return count > 1 ? `${dims.width} × ${dims.height} (${count})` : `${dims.width} × ${dims.height}`;
 });
 </script>
 
 <template>
   <div class="fil-sa-root">
-    <div class="fil-sa-header">
-      <div class="fil-sa-header-left">
-        <span class="fil-sa-title">👁️ {{ t("sa_monitor", "Data Inspector") }}</span>
-        <div v-if="hasImage" class="fil-sa-tabs">
-          <button
-            type="button"
-            class="fil-sa-tab-btn"
-            :class="{ active: viewMode === 'preview' }"
-            @click="viewMode = 'preview'"
-          >
-            🖼️ {{ t("sa_tab_preview", "Preview") }}
-          </button>
-          <button
-            type="button"
-            class="fil-sa-tab-btn"
-            :class="{ active: viewMode === 'info' }"
-            @click="viewMode = 'info'"
-          >
-            📊 {{ t("sa_tab_info", "Info") }}
-          </button>
-        </div>
-      </div>
-      <span class="fil-sa-badge" :class="typeBadgeClass">{{ dataType }}</span>
-    </div>
-
     <div class="fil-sa-content">
       <!-- Image Preview Mode -->
-      <div v-if="hasImage && viewMode === 'preview'" class="fil-sa-img-container">
-        <img :src="activeImageUrl" class="fil-sa-img" alt="Show Any Preview" />
-        <div class="fil-sa-img-toolbar">
-          <button
-            type="button"
-            class="fil-sa-tool-btn"
-            @click="copyImageToClipboard"
-            :title="t('sa_copy_img', 'Copy Image to Clipboard')"
-          >
-            <span v-if="isCopied" class="fil-sa-check">✔</span>
-            <svg v-else class="fil-sa-icon" viewBox="0 0 16 16" fill="currentColor">
-              <path fill-rule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z"/>
-            </svg>
-          </button>
-          <button
-            type="button"
-            class="fil-sa-tool-btn"
-            @click="openImageInTab"
-            :title="t('sa_open_img', 'Open in New Tab')"
-          >
-            <svg class="fil-sa-icon" viewBox="0 0 16 16" fill="currentColor">
-              <path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5z"/>
-              <path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0v-5z"/>
-            </svg>
-          </button>
+      <div v-if="hasImage" class="fil-sa-img-container">
+        <div class="fil-sa-img-box">
+          <img
+            :src="activeImageUrl"
+            class="fil-sa-img"
+            alt="Show Any Preview"
+            @load="onImgLoad"
+          />
+          <div class="fil-sa-img-toolbar">
+            <button
+              type="button"
+              class="fil-sa-tool-btn"
+              @click="copyImageToClipboard"
+              :title="t('sa_copy_img', 'Copy Image to Clipboard')"
+            >
+              <span v-if="isCopied" class="fil-sa-check">✔</span>
+              <svg v-else class="fil-sa-icon" viewBox="0 0 16 16" fill="currentColor">
+                <path fill-rule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z"/>
+              </svg>
+            </button>
+            <button
+              type="button"
+              class="fil-sa-tool-btn"
+              @click="openImageInTab"
+              :title="t('sa_open_img', 'Open in New Tab')"
+            >
+              <svg class="fil-sa-icon" viewBox="0 0 16 16" fill="currentColor">
+                <path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5z"/>
+                <path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0v-5z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div v-if="displayDimensions" class="fil-sa-img-footer">
+          {{ displayDimensions }}
         </div>
       </div>
 
@@ -170,98 +161,10 @@ const typeBadgeClass = computed(() => {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
   padding: var(--fil-node-pad);
   color: var(--fil-text);
   font-family: ui-sans-serif, system-ui, sans-serif;
   height: 100%;
-}
-.fil-sa-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-width: 0;
-  flex-shrink: 0;
-  padding: 0 2px;
-}
-.fil-sa-header-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-.fil-sa-title {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--fil-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-.fil-sa-tabs {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  background: rgba(0, 0, 0, 0.3);
-  padding: 1px 2px;
-  border-radius: 4px;
-  border: 1px solid var(--fil-border);
-}
-.fil-sa-tab-btn {
-  font-size: 9.5px;
-  font-weight: 600;
-  padding: 1px 5px;
-  border-radius: 3px;
-  border: none;
-  background: transparent;
-  color: var(--fil-muted);
-  cursor: pointer;
-  transition: all 0.12s ease;
-}
-.fil-sa-tab-btn:hover {
-  color: var(--fil-text);
-}
-.fil-sa-tab-btn.active {
-  background: color-mix(in srgb, var(--fil-accent, #38bdf8) 25%, transparent);
-  color: var(--fil-accent, #38bdf8);
-}
-.fil-sa-badge {
-  font-size: 9.5px;
-  font-weight: 700;
-  padding: 1px 6px;
-  border-radius: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  user-select: none;
-}
-.badge-default {
-  background: color-mix(in srgb, var(--fil-accent, #38bdf8) 18%, transparent);
-  color: var(--fil-accent, #38bdf8);
-  border: 1px solid color-mix(in srgb, var(--fil-accent, #38bdf8) 35%, transparent);
-}
-.badge-image {
-  background: rgba(16, 185, 129, 0.18);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.35);
-}
-.badge-latent {
-  background: rgba(168, 85, 247, 0.18);
-  color: #c084fc;
-  border: 1px solid rgba(168, 85, 247, 0.35);
-}
-.badge-json {
-  background: rgba(245, 158, 11, 0.18);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.35);
-}
-.badge-model {
-  background: rgba(236, 72, 153, 0.18);
-  color: #f472b6;
-  border: 1px solid rgba(236, 72, 153, 0.35);
-}
-.badge-cond {
-  background: rgba(99, 102, 241, 0.18);
-  color: #818cf8;
-  border: 1px solid rgba(99, 102, 241, 0.35);
 }
 .fil-sa-content {
   display: flex;
@@ -286,6 +189,20 @@ const typeBadgeClass = computed(() => {
   flex-direction: column;
   min-height: 0;
 }
+.fil-sa-grow :deep(.fil-w-textarea.is-linked) {
+  border: 1px solid var(--fil-border);
+  background: rgba(0, 0, 0, 0.4);
+  color: var(--fil-text);
+  cursor: text;
+  line-height: 1.45;
+  transition: border-color 0.12s ease, background-color 0.12s ease;
+}
+.fil-sa-grow :deep(.fil-w-textarea.is-linked:hover) {
+  border-color: color-mix(in srgb, var(--fil-border) 70%, var(--fil-accent));
+}
+.fil-sa-grow :deep(.fil-w-textarea.is-linked:focus) {
+  border-color: var(--fil-accent);
+}
 .fil-sa-img-container {
   position: relative;
   width: 100%;
@@ -295,6 +212,15 @@ const typeBadgeClass = computed(() => {
   border: 1px solid var(--fil-border);
   border-radius: var(--fil-radius);
   display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.fil-sa-img-box {
+  position: relative;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
@@ -303,7 +229,23 @@ const typeBadgeClass = computed(() => {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-  border-radius: calc(var(--fil-radius) - 1px);
+}
+.fil-sa-img-footer {
+  flex: 0 0 auto;
+  width: 100%;
+  padding: 4px 8px;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.35);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 11px;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  color: var(--fil-muted);
+  text-align: center;
+  user-select: text;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .fil-sa-img-toolbar {
   position: absolute;

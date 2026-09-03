@@ -107,18 +107,20 @@ function onClear() {
             <FilIcon :name="copied ? 'check' : 'copy'" :size="11" />
           </button>
           <button
+            v-if="!linked && !readonly"
             type="button"
             class="fil-w-tool-btn"
-            :disabled="disabled || readonly || linked"
+            :disabled="disabled"
             :title="t('ta_paste_tt', 'Paste text from clipboard')"
             @click.stop="onPaste"
           >
             <FilIcon name="paste" :size="11" />
           </button>
           <button
+            v-if="!linked && !readonly"
             type="button"
             class="fil-w-tool-btn is-danger"
-            :disabled="disabled || readonly || linked || !modelValue"
+            :disabled="disabled || !modelValue"
             :title="t('ta_clear_tt', 'Clear text (can be undone)')"
             @click.stop="onClear"
           >
@@ -164,18 +166,20 @@ function onClear() {
           <FilIcon :name="copied ? 'check' : 'copy'" :size="11" />
         </button>
         <button
+          v-if="!linked && !readonly"
           type="button"
           class="fil-w-tool-btn"
-          :disabled="disabled || readonly || linked"
+          :disabled="disabled"
           :title="t('ta_paste_tt', 'Paste text from clipboard')"
           @click.stop="onPaste"
         >
           <FilIcon name="paste" :size="11" />
         </button>
         <button
+          v-if="!linked && !readonly"
           type="button"
           class="fil-w-tool-btn is-danger"
-          :disabled="disabled || readonly || linked || !modelValue"
+          :disabled="disabled || !modelValue"
           :title="t('ta_clear_tt', 'Clear text (can be undone)')"
           @click.stop="onClear"
         >
@@ -265,7 +269,7 @@ function onClear() {
   border-color: var(--fil-accent);
   background: color-mix(in srgb, var(--fil-accent) 14%, var(--fil-panel-alt));
   color: var(--fil-muted);
-  cursor: not-allowed;
+  cursor: text;
 }
 .fil-w-floating-toolbar {
   position: absolute;

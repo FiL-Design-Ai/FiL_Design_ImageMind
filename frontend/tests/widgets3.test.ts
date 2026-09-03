@@ -115,8 +115,12 @@ describe("FilTextArea", () => {
   });
 
   it("becomes read-only when the value is driven by a connected socket", () => {
-    const wrapper = mount(FilTextArea, { props: { modelValue: "from upstream", linked: true } });
+    const wrapper = mount(FilTextArea, { props: { modelValue: "from upstream", linked: true, toolbar: true } });
     expect(wrapper.find("textarea").attributes("readonly")).toBeDefined();
+    expect(wrapper.find("textarea").classes()).toContain("is-linked");
+    // Only copy button is shown when linked
+    const toolBtns = wrapper.findAll(".fil-w-tool-btn");
+    expect(toolBtns.length).toBe(1);
   });
 
   it("honours an explicit row count and the default of two", () => {
