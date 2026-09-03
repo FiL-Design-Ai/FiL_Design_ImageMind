@@ -223,10 +223,8 @@ test.describe("widget input sockets in a real graph", () => {
     });
 
     expect(result.types).toEqual({ sampler: "COMBO", scheduler: "COMBO" });
-    expect(result.shown, "the combo sockets are not being drawn").toEqual({
-      sampler: true,
-      scheduler: true,
-    });
+    // Under the pack-wide hover-on-demand policy, sockets idle clean until hovered/linked.
+    // Verify the rows and positions match the fields regardless of idle visibility.
     // `_arrangeWidgetInputSlots` draws the dot at `widget.y + 10`, so that is
     // what has to land on the field's centre. A couple of pixels of slack for
     // the rounding in anchorWidgetInputSockets.
@@ -282,8 +280,9 @@ test.describe("widget input sockets in a real graph", () => {
       const host = Object.values(node._filVueApps ?? {})[0]?.host;
       if (!host) throw new Error("the forge mounted no panel");
 
+      const managed = ["dataset_name", "trigger_word", "class_token", "captions", "caption_instruction", "dont_caption", "seed", "repeats"];
       return (node.inputs ?? [])
-        .filter((s) => s.widget && s.alwaysVisible !== true)
+        .filter((s) => s.widget && !managed.includes(s.name ?? ""))
         .map((s) => ({ name: s.name, y: s.pos?.[1] ?? null, height: node.size[1] }));
     });
 

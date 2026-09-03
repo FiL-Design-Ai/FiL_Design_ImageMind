@@ -31,9 +31,10 @@ test.describe("a select too narrow for its value", () => {
       const frames = async (n: number) => {
         for (let i = 0; i < n; i++) await new Promise((r) => requestAnimationFrame(r));
       };
-      const node = window.LiteGraph.createNode("FiLKSampler") as { pos: [number, number] } | null;
+      const node = window.LiteGraph.createNode("FiLKSampler") as { pos: [number, number]; size: [number, number] } | null;
       if (!node) throw new Error("FiLKSampler would not instantiate");
       node.pos = [40, 40];
+      node.size = [180, node.size[1]];
       window.app.graph.add(node);
       await frames(90);
 
