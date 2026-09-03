@@ -62,10 +62,13 @@ test.describe("a select too narrow for its value", () => {
         return { value: option.value, title: scheduler.getAttribute("title") };
       };
 
-      // Longest name ComfyUI ships on this axis, and the shortest.
-      const longest = Array.from(scheduler.options)
-        .map((o) => (o.textContent ?? "").trim())
-        .sort((a, b) => b.length - a.length)[0];
+      // Ensure the long scheduler name FlowMatchEulerDiscreteScheduler is tested even on vanilla ComfyUI
+      const longName = "FlowMatchEulerDiscreteScheduler";
+      const hasLong = Array.from(scheduler.options).some((o) => (o.textContent ?? "").includes(longName));
+      if (!hasLong) {
+        scheduler.add(new Option(longName, longName));
+      }
+      const longest = longName;
       const shortest = Array.from(scheduler.options)
         .map((o) => (o.textContent ?? "").trim())
         .filter(Boolean)
