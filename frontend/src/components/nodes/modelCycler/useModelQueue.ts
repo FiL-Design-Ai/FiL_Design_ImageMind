@@ -123,9 +123,14 @@ export function useModelQueue(state: FilNodeState, sourceMode: Ref<string>) {
     if (!visible) searchFilter.value = "";
   });
 
+  function normalizePath(p: string): string {
+    return p.replace(/\\/g, "/").trim().toLowerCase();
+  }
+
   function isModelMissing(name: string): boolean {
     if (!name || !name.trim() || installedModels.value.length === 0) return false;
-    return !installedModels.value.includes(name.trim());
+    const cleanName = normalizePath(name);
+    return !installedModels.value.some((installed) => normalizePath(installed) === cleanName);
   }
 
   async function loadInstalledModels() {

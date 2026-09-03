@@ -683,6 +683,10 @@
   "tt_show_any_text": "Manual text fallback used when no source link is connected.",
   "sa_monitor": "Data Inspector",
   "sa_placeholder": "Connect any signal to `source` or type text here…",
-  "sa_tooltip": "Displays formatted data or text. 1-click copy with live word/char counters."
+  "sa_tooltip": "Displays formatted data or text. 1-click copy with live word/char counters.",
+  "sa_tab_preview": "Preview",
+  "sa_tab_info": "Info",
+  "sa_copy_img": "Copy Image to Clipboard",
+  "sa_open_img": "Open in New Tab"
 }
 

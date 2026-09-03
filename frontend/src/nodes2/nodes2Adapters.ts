@@ -30,7 +30,7 @@ export function applyAdaptiveCanvasOnly<T extends { options?: Record<string, unk
         return isVueNodes() ? false : undefined;
       },
     });
-  } catch (_e) {
+  } catch {
     widget.options.canvasOnly = undefined;
   }
   return widget;

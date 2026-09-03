@@ -242,9 +242,14 @@ function syncToNodeState() {
 
 const loraMetaMap = ref<Record<string, { trigger_words?: string }>>({});
 
+function normalizePath(p: string): string {
+  return p.replace(/\\/g, "/").trim().toLowerCase();
+}
+
 function isLoraMissing(name: string): boolean {
   if (!name || !name.trim() || installedLoras.value.length === 0) return false;
-  return !installedLoras.value.includes(name.trim());
+  const cleanName = normalizePath(name);
+  return !installedLoras.value.some((installed) => normalizePath(installed) === cleanName);
 }
 
 async function fetchLoraMetaIfNeeded(name: string) {
@@ -1396,14 +1401,14 @@ function onComboClose(index: number) {
 }
 
 .fil-missing-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 11px;
+  color: var(--fil-warning, #f59e0b);
   cursor: help;
   user-select: none;
-  animation: fil-pulse-warning 1.5s infinite alternate;
-}
-@keyframes fil-pulse-warning {
-  from { opacity: 0.6; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1.15); }
+  flex-shrink: 0;
 }
 
 .fil-cycler-select-wrap {

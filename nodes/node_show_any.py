@@ -112,6 +112,14 @@ def inspect_data(source: Any, fallback_text: str = "") -> tuple[Any, str, str, i
     return source, text, cls_name.upper(), words, len(text)
 
 
+try:
+    from nodes import PreviewImage as _PreviewImageV1
+
+    _preview_saver = _PreviewImageV1()
+except Exception:  # pragma: no cover
+    _preview_saver = None
+
+
 class FiLShowAny(io.ComfyNode):
     """Universal data inspector & pass-through monitor."""
 
@@ -124,7 +132,7 @@ class FiLShowAny(io.ComfyNode):
             description=(
                 "👁️ Show Any — universal data inspector & pass-through monitor. "
                 "Accepts any data signal (Text, Image, Latent, JSON, Model, Numbers), "
-                "displays a formatted view with live word/char counters and 1-click Copy, "
+                "displays live visual preview (images/masks) or formatted text with word/char counters and 1-click Copy, "
                 "and passes the original object through downstream unchanged."
             ),
             inputs=[
@@ -147,9 +155,13 @@ class FiLShowAny(io.ComfyNode):
                     tooltip="The incoming source passed through untouched.",
                 ),
             ],
+            hidden=[io.Hidden.prompt, io.Hidden.extra_pnginfo, io.Hidden.unique_id],
+            is_output_node=True,
             search_aliases=[
                 "show any",
                 "show text",
+                "show image",
+                "preview",
                 "display",
                 "inspect",
                 "monitor",
@@ -163,12 +175,53 @@ class FiLShowAny(io.ComfyNode):
     @classmethod
     def execute(cls, source: Any = None, text: str = "", **_kwargs) -> io.NodeOutput:
         passthrough_obj, formatted_text, data_type, words, chars = inspect_data(source, text)
-        ui_data = {
+        ui_data: dict[str, Any] = {
             "text": [formatted_text],
             "data_type": [data_type],
             "words": [words],
             "chars": [chars],
+            "images": [],
         }
+
+        # If incoming source is an IMAGE or MASK tensor, generate real preview images
+        if _preview_saver is not None and torch.is_tensor(source):
+            try:
+                img_tensor = source
+                if img_tensor.ndim == 3:  # Mask [B, H, W] -> Image [B, H, W, 3]
+                    img_tensor = img_tensor.unsqueeze(-1).repeat(1, 1, 1, 3)
+                elif img_tensor.ndim == 2:  # Mask [H, W] -> Image [1, H, W, 3]
+                    img_tensor = img_tensor.unsqueeze(0).unsqueeze(-1).repeat(1, 1, 1, 3)
+
+                if img_tensor.ndim == 4:
+                    prompt_val = getattr(cls.hidden, "prompt", None)
+                    extra_val = getattr(cls.hidden, "extra_pnginfo", None)
+                    saved = _preview_saver.save_images(
+                        img_tensor, "fil.show_any", prompt_val, extra_val
+                    )
+                    if isinstance(saved, dict) and "ui" in saved and "images" in saved["ui"]:
+                        ui_data["images"] = saved["ui"]["images"]
+            except Exception:
+                pass
+
+        try:
+            node_id = getattr(cls.hidden, "unique_id", None)
+            if node_id is not None:
+                from server import PromptServer
+                if hasattr(PromptServer, "instance") and PromptServer.instance is not None:
+                    PromptServer.instance.send_sync(
+                        "fil_show_any_update",
+                        {
+                            "node": str(node_id),
+                            "text": formatted_text,
+                            "data_type": data_type,
+                            "images": ui_data["images"],
+                            "words": words,
+                            "chars": chars,
+                        },
+                    )
+        except Exception:
+            pass
+
         return io.NodeOutput(
             passthrough_obj,
             ui=ui_data,

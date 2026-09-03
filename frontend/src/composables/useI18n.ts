@@ -33,9 +33,21 @@ async function loadTranslations(lang: string): Promise<void> {
   }
 }
 
+export function normalizeLangCode(raw: unknown): string {
+  const str = String(raw || "").trim().toLowerCase();
+  if (str === "ru" || str.includes("рус") || str.includes("russian")) return "ru";
+  return "en";
+}
+
+export async function setLocale(langCode: string): Promise<void> {
+  const code = normalizeLangCode(langCode);
+  await loadTranslations(code);
+}
+
 function ensureLoaded(): void {
   if (loadPromise) return;
-  const lang = readSetting(SETTING_ID, DEFAULT_LANG);
+  const rawLang = readSetting(SETTING_ID, DEFAULT_LANG);
+  const lang = normalizeLangCode(rawLang);
   loadPromise = loadTranslations(lang);
 }
 

@@ -221,15 +221,14 @@ const { t } = useI18n();
 }
 
 .fil-missing-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 11px;
+  color: var(--fil-warning, #f59e0b);
   cursor: help;
   user-select: none;
-  animation: fil-pulse-warning 1.5s infinite alternate;
-}
-
-@keyframes fil-pulse-warning {
-  from { opacity: 0.6; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1.15); }
+  flex-shrink: 0;
 }
 
 .fil-cycler-select-wrap {

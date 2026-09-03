@@ -55,6 +55,32 @@ const NODE_CONTRACT_ENDPOINT = `${ROUTE_PREFIX}/node_contracts`;
 // hiresfix.ts/HiResFix.vue, scanner.ts/OpticScanner.vue). Only the
 // OpticScanner "no config connected" warning below still runs through this
 // hook, for whatever secondary code paths do still call it.
+function migrateLegacySettings(app: ComfyApp): void {
+  try {
+    const ui = app?.ui as { settings?: { getSettingValue?: (k: string) => unknown; setSettingValue?: (k: string, v: unknown) => void } } | undefined;
+    const settings = ui?.settings;
+    if (!settings?.getSettingValue || !settings?.setSettingValue) return;
+
+    // Migrate Theme Scope
+    const currentScope = String(settings.getSettingValue("FiL_Design_ImageMind.Appearance.Scope") || "");
+    if (currentScope === "FiL nodes + directly connected" || currentScope === "FiL + Connected") {
+      settings.setSettingValue("FiL_Design_ImageMind.Appearance.Scope", "+ Connected");
+    } else if (currentScope === "FiL nodes only") {
+      settings.setSettingValue("FiL_Design_ImageMind.Appearance.Scope", "FiL only");
+    }
+
+    // Migrate Language
+    const currentLang = String(settings.getSettingValue("FiL_Design_ImageMind.Language") || "");
+    if (currentLang === "en") {
+      settings.setSettingValue("FiL_Design_ImageMind.Language", "English");
+    } else if (currentLang === "ru") {
+      settings.setSettingValue("FiL_Design_ImageMind.Language", "Русский");
+    }
+  } catch (error) {
+    console.warn(`${LOG_TAG} failed to migrate legacy settings:`, error);
+  }
+}
+
 function graphToPromptPreflight(prompt: unknown): unknown {
   try {
     const app = (globalThis as unknown as { app?: ComfyApp }).app;
@@ -130,6 +156,7 @@ export function createFilExtension(app: ComfyApp): ComfyExtension {
       // All installers are isolated: a throw in one must not break others.
       const installers: Array<() => unknown> = [
         () => installToasts(),
+        () => migrateLegacySettings(app),
         () => installProviderManager(app),
         () => installRunButtonFx(app),
         () => installHelpToolbar(app),

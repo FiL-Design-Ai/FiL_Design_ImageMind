@@ -13,7 +13,7 @@
   <a href="https://www.python.org/"><img alt="Python 3.10+" src="https://img.shields.io/badge/Python-3.10%2B-3776ab?style=flat-square&logo=python"></a>
   <a href="https://github.com/comfyanonymous/ComfyUI"><img alt="ComfyUI 0.3.60+" src="https://img.shields.io/badge/ComfyUI-0.3.60%2B-111111?style=flat-square"></a>
   <a href="https://docs.comfy.org/custom-nodes/backend/lifecycle"><img alt="ComfyUI API V3" src="https://img.shields.io/badge/ComfyUI_API-V3-7c5cff?style=flat-square"></a>
-  <a href="#node-reference"><img alt="Nodes" src="https://img.shields.io/badge/Nodes-19-f08a45?style=flat-square"></a>
+  <a href="#node-reference"><img alt="Nodes" src="https://img.shields.io/badge/Nodes-23-f08a45?style=flat-square"></a>
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/License-MIT-yellow?style=flat-square"></a>
 </p>
 
@@ -209,7 +209,7 @@ Five core workflows the pack simplifies into compact node chains:
 
 ### Node reference
 
-All 18 nodes, grouped by category. Ranges below are the real schema limits.
+All 23 nodes, grouped by category. Ranges below are the real schema limits.
 
 #### 🎨 FiL Design/🧠 LLM
 
@@ -644,7 +644,7 @@ physical truth, zero meta-noise.
 </details>
 
 <details>
-<summary><b>♻️ Seed</b> — <code>FiLSeed</code> · <b>🧹 Cleaner</b> — <code>FiLNeuroCleaner</code> · <b>🔀 Cyber Switch</b> — <code>FiLSignalSwitch</code> · <b>📡 Channel</b> — <code>FiLChannel</code></summary>
+<summary><b>♻️ Seed</b> — <code>FiLSeed</code> · <b>🧹 Cleaner</b> — <code>FiLNeuroCleaner</code> · <b>🔀 Cyber Switch</b> — <code>FiLSignalSwitch</code> · <b>👁️ Show Any</b> — <code>FiLShowAny</code> · <b>📡 Channel</b> — <code>FiLChannel</code></summary>
 
 **♻️ Seed** — `seed` INT (0 – 2⁶⁴-1) → `SEED` INT. Panel is one row: the value plus 🔀 randomize,
 ♻️ reuse last, 🎲 new fixed random.
@@ -653,6 +653,8 @@ physical truth, zero meta-noise.
 
 **🔀 Cyber Switch** — `input` (ANY, optional) + `enable` BOOLEAN → `output` (ANY). ON forwards the
 value untouched; OFF passes `None` on the wire without blocking optional downstream nodes.
+
+**👁️ Show Any** — `source` (ANY, optional) + `text` (STRING) → `output` (ANY). Universal data inspector & pass-through monitor. Displays interactive image/mask previews or formatted text/JSON/latents with counters and 1-click clipboard copy.
 
 **📡 Channel** — Wireless signal broadcasting across the graph without visible wires.
 
@@ -705,7 +707,7 @@ value untouched; OFF passes `None` on the wire without blocking optional downstr
 
 ### Справочник по узлам
 
-Все 22 узла по категориям:
+Все 23 узла по категориям:
 
 #### 🎨 FiL Design/LLM
 - 🔌 **Provider Loader** (`FiLProviderLoader`) — выбор провайдера, модели и параметров запроса.

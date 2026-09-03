@@ -1,8 +1,16 @@
 # Changelog
 
-## 1.2.0 (2026-08-29)
+## 1.1.3 (2026-09-03)
 
 ### Added
+
+- **👁️ Show Any (`FiLShowAny`) — Live Visual & Data Preview HUD.**
+  Universal data inspector & pass-through monitor gains full interactive visual preview for `IMAGE` and `MASK` signals.
+  Features dual view tabs (**🖼️ Preview** and **📊 Info**), 1-click **Copy Image to Clipboard** (direct bitmap export via Clipboard API), **Open in New Tab** inspection, canvas image duplication suppression in LiteGraph, and real-time WebSocket updates (`fil_show_any_update`). Dynamic socket coloring automatically detects and inherits upstream wire types.
+- **🛡️ Windows Path & LoRA Normalization.**
+  Normalized slash delimiters (`\` vs `/`) and casing in `LoraLoaderPanel.vue` and `useModelQueue.ts`, eliminating false-positive "Missing" warning badges on Windows environments.
+- **🌐 Reactive Language Switch & Settings Migration.**
+  Instant UI localization updates (English / Русский) without page reload via reactive `useI18n` / `setLocale`. Automatic silent migration of legacy settings keys (`Appearance.Scope`, `Language`).
 
 - **📡 Wireless Dashboard — Interactive HUD and visual management for wireless channels.**
   Floating modal HUD for the wireless distribution engine, invoked via `Alt+W`, menu `FiL Design -> 📡 Wireless Dashboard`, or the bottom panel dock tab.

@@ -84,3 +84,25 @@ def test_show_any_node_execute():
     assert hasattr(out, "ui")
     assert out.ui["text"] == ["test prompt"]
     assert out.ui["data_type"] == ["STRING"]
+
+
+def test_show_any_node_execute_image_tensor():
+    img = torch.zeros((1, 64, 64, 3), dtype=torch.float32)
+    out = FiLShowAny.execute(source=img)
+    args = out.args if hasattr(out, "args") else out
+    assert len(args) == 1
+    assert args[0] is img
+    assert hasattr(out, "ui")
+    assert out.ui["data_type"] == ["IMAGE"]
+    assert "images" in out.ui
+
+
+def test_show_any_node_execute_mask_tensor():
+    mask = torch.zeros((1, 64, 64), dtype=torch.float32)
+    out = FiLShowAny.execute(source=mask)
+    args = out.args if hasattr(out, "args") else out
+    assert len(args) == 1
+    assert args[0] is mask
+    assert hasattr(out, "ui")
+    assert out.ui["data_type"] == ["MASK"]
+    assert "images" in out.ui

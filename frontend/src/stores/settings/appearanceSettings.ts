@@ -16,8 +16,8 @@ export const THEME_SCOPE = "FiL_Design_ImageMind.Appearance.Scope";
 export const WHOLE_UI = "FiL_Design_ImageMind.Appearance.WholeUi";
 export const ANIMATIONS = "FiL_Design_ImageMind.Appearance.Animations";
 
-export const SCOPE_OURS = "FiL nodes only";
-export const SCOPE_CONNECTED = "FiL nodes + directly connected";
+export const SCOPE_OURS = "FiL only";
+export const SCOPE_CONNECTED = "+ Connected";
 export const SCOPE_ALL = "All nodes";
 
 export type ThemeScope = typeof SCOPE_OURS | typeof SCOPE_CONNECTED | typeof SCOPE_ALL;
@@ -169,7 +169,18 @@ export function syncWholeUiPalette(theme: FilThemeName): void {
 }
 
 export function themeScope(): ThemeScope {
-  return readSetting<ThemeScope>(THEME_SCOPE, SCOPE_OURS);
+  const raw = readSetting<string>(THEME_SCOPE, SCOPE_OURS);
+  if (raw === SCOPE_ALL || raw === "All nodes") return SCOPE_ALL;
+  if (
+    raw === SCOPE_CONNECTED ||
+    raw === "+ Connected" ||
+    raw === "Connected" ||
+    raw === "FiL + Connected" ||
+    raw === "FiL nodes + directly connected"
+  ) {
+    return SCOPE_CONNECTED;
+  }
+  return SCOPE_OURS;
 }
 
 /**

@@ -14496,10 +14496,10 @@
         }
       ],
       "min_size": [
-        320,
-        140
+        260,
+        120
       ],
-      "family": "tools"
+      "family": "tool"
     }
   },
   "settings_prefix": "FiL_Design_ImageMind."

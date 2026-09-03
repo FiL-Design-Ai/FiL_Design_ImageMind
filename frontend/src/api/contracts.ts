@@ -6107,10 +6107,10 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     }
   ],
   "min_size": [
-    320,
-    140
+    260,
+    120
   ],
-  "family": "tools"
+  "family": "tool"
 },
 };
 

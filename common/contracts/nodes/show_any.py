@@ -14,8 +14,8 @@ CONTRACT = NodeContract(
         "Universal data inspector & pass-through monitor. "
         "Displays formatted data, text, or JSON with live word/char counters and 1-click Copy."
     ),
-    family="tools",
-    min_size=(320, 140),
+    family="tool",
+    min_size=(260, 120),
     inputs=NodeInputs(
         optional=[
             _string("text", default="", multiline=True, label="Text"),
