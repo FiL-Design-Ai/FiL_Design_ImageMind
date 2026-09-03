@@ -45,23 +45,26 @@ function walk(path, found = []) {
 }
 
 export function computeSourceHash(root = FRONTEND) {
-  const files = INPUTS.flatMap((input) => {
+  const relativeFiles = INPUTS.flatMap((input) => {
     const path = join(root, input);
     return existsSync(path) ? walk(path) : [];
-  }).sort();
+  })
+    .map((file) => relative(root, file).split("\\").join("/"))
+    .sort();
 
   const hash = createHash("sha256");
-  for (const file of files) {
+  for (const rel of relativeFiles) {
+    const file = join(root, rel);
     // The path goes in too, so moving a file is a change even when its
     // contents are not. Forward slashes so Windows and Linux agree.
-    hash.update(relative(root, file).split("\\").join("/"));
+    hash.update(rel);
     hash.update("\0");
     // CRLF normalised away: the same source checked out on two platforms is
     // the same source, and git already stores it this way.
     hash.update(readFileSync(file).toString("binary").split("\r\n").join("\n"), "binary");
     hash.update("\0");
   }
-  return { hash: hash.digest("hex"), fileCount: files.length };
+  return { hash: hash.digest("hex"), fileCount: relativeFiles.length };
 }
 
 function readRecorded() {
