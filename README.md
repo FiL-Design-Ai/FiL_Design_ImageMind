@@ -142,6 +142,10 @@ Restart ComfyUI. The nodes appear under **🎨 FiL Design/** in the node browser
 
 ### Provider setup
 
+> [!IMPORTANT]
+> **Don't forget to configure your API keys in the menu!**
+> Cloud vision and LLM models require an API key to function. Open the **FiL Providers** tab in the ComfyUI sidebar (look for the key icon 🔑 on the sidebar), enter your API keys for the providers you plan to use (Google Gemini, OpenAI, Groq, OpenRouter, Cloudflare), and click **Save**. You can immediately test connection with the **Probe** button.
+
 Seven providers ship in `common/config.py`. Local ones need nothing but a running server; cloud ones
 need a key.
 
@@ -157,7 +161,7 @@ need a key.
 
 **Where keys are read from, in order:**
 
-1. `data/auth.json` — written by **Settings → FiL_Design_ImageMind → Providers** (git-ignored).
+1. `data/auth.json` — written by the **FiL Providers** sidebar tab (🔑) / Settings panel (git-ignored).
 2. A real OS environment variable.
 3. `API.env` in the pack root — `KEY=value` lines, git-ignored.
 
@@ -691,6 +695,26 @@ value untouched; OFF passes `None` on the wire without blocking optional downstr
 | 🖼️ **Работа с изображением** | Планирование сетки тайлов с честной математикой нахлёста, апскейл моделью, кропы тайлов в пиксельном *и* латентном пространстве, сборка с растушёвкой, авто-цветокоррекция, LoRA Dataset Forge |
 | 🎛️ **Сэмплинг и Циклер** | Полноценный KSampler со всеми сэмплерами/планировщиками, passthrough-сокетами и встроенным превью, скрипты HighRes Fix, Noise Control, плюс авто-переключатель моделей `Model Cycler` и LoRA-адаптеров `LoRA Loader` с очисткой VRAM и водяными знаками |
 | 🎨 **Интерфейс и UX** | У каждого узла настоящая Vue-панель — 12 HUD-тем (Cyberpunk Neon, Pip-Boy Green, Vault-Tec Amber), полная ru/en локализация, Graph Undo Guard (защита от срыва графа при Ctrl+Z), Takeover Wire Replacement с тоастом отмены, компактные тумблеры, степперы |
+
+---
+
+### Настройка провайдеров и ввод API-ключей
+
+> [!IMPORTANT]
+> **Не забудьте добавить API-ключи в меню ввода!**
+> Для работы узлов анализа, зрения и генерации промптов (**Optic Scanner**, **Prompt Director**, **LoRA Dataset Forge**, **Prompter**) через облачные нейросети необходим API-ключ соответствующего сервиса.
+>
+> 🔑 **Как настроить API-ключи прямо в интерфейсе ComfyUI:**
+> 1. Откройте вкладку **FiL Providers** с иконкой ключа 🔑 на боковой панели ComfyUI (Sidebar).
+> 2. В карточке нужного провайдера (Google Gemini, OpenAI, Groq, OpenRouter, Cloudflare) вставьте ваш ключ в поле **API-ключ** (API Key).
+> 3. Нажмите **Сохранить** (Save).
+> 4. Нажмите кнопку **Probe** (Проверить), чтобы моментально протестировать доступность соединения и загрузить список актуальных моделей без запуска очередей генерации.
+>
+> **Альтернативные способы передачи ключей:**
+> - Системные переменные окружения ОС: `GOOGLE_API_KEY`, `OPENAI_API_KEY`, `GROQ_API_KEY`, `OPENROUTER_API_KEY`, `CLOUDFLARE_API_TOKEN`.
+> - Файл `API.env` в корне папки узла со строками вида `KEY=value` (файл добавлен в `.gitignore` и защищён от перезаписи при обновлениях).
+>
+> *Локальные провайдеры (Ollama, LM Studio) работают сразу «из коробки» без ключей — достаточно запустить локальный сервер.*
 
 ---
 
