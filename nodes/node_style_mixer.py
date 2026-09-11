@@ -15,7 +15,6 @@ from ..common.io_types import FilProviderConfig
 from ..common.data import (
     RANDOM_ALL_STYLE_KEY,
     RANDOM_STYLE_KEY,
-    get_all_style_keys,
     get_style_mixer_dropdown_options,
     get_style_prompt,
     resolve_random_style,

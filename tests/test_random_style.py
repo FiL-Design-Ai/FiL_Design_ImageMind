@@ -1,4 +1,3 @@
-import pytest
 from FiL_Design_ImageMind.common.data import (
     RANDOM_STYLE_KEY,
     RANDOM_ALL_STYLE_KEY,
@@ -8,8 +7,6 @@ from FiL_Design_ImageMind.common.data import (
     get_all_style_keys,
     PHOTO_STYLES,
     ART_STYLES,
-    NSFW_PHOTO_STYLES,
-    NSFW_ART_STYLES,
 )
 from FiL_Design_ImageMind.common.logic import StyleManager
 from FiL_Design_ImageMind.nodes import node_scanner

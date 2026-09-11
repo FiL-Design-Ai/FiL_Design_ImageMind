@@ -22,7 +22,6 @@ from ...data import (
     get_style_dropdown_options,
     get_visible_agent_keys,
     get_visible_focus_keys,
-    get_visible_style_keys,
 )
 
 CONTRACT = NodeContract(

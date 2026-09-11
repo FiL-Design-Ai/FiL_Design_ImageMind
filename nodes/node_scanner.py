@@ -28,7 +28,6 @@ from ..common.data import (
     get_style_dropdown_options,
     get_visible_agent_keys,
     get_visible_focus_keys,
-    get_visible_style_keys,
     is_video_model_type,
     migrate_legacy_agent,
     model_needs_prompt_post_conversion,
