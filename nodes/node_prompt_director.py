@@ -48,7 +48,9 @@ _DIRECTOR_SYSTEM_PROMPT = (
     "4. ZERO META-NOISE: never use 'masterpiece', 'highly detailed', '4K', 'best quality'; no hedging "
     "('appears to be', 'seems'); no commentary, no lists of changes.\n"
     "5. NO REASONING OR MONOLOGUE: Do NOT output thinking process, internal monologue, reasoning steps, "
-    "or <think> tags. Output ONLY the resulting prompt text directly with zero preamble."
+    "or <think> tags. Output ONLY the resulting prompt text directly with zero preamble.\n"
+    "6. CANDID LIFE & MOMENTUM: Avoid stiff catalog poses and blank stares. Capture natural transitional "
+    "micro-gestures, physical interaction with the environment (wind, temperature, light falloff), and tactile organic textures."
 )
 
 

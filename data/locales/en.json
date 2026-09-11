@@ -514,6 +514,7 @@
   "sb_empty": "No styles match these filters.",
   "sb_group_show": "Show",
   "sb_only_all": "All styles",
+  "sb_only_favourite": "Favourites",
   "sb_only_chosen": "Selected",
   "sb_only_recent": "Recently used",
   "sb_group_source": "List",

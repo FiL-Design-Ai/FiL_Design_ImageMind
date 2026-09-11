@@ -1,3 +1,4 @@
+import random
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -6,6 +7,9 @@ from .styles.art import ART_STYLES
 from .styles.nsfw_art import NSFW_ART_STYLES
 from .styles.nsfw_photo import NSFW_PHOTO_STYLES
 from .styles.photo import PHOTO_STYLES
+
+RANDOM_STYLE_KEY = "🎲 Random"
+RANDOM_ALL_STYLE_KEY = "🎲 Random ALL"
 
 LANGUAGES = ["en", "ru"]
 
@@ -30,6 +34,17 @@ TAGS_OUTPUT_INSTRUCTION = (
     "OUTPUT MODE OVERRIDE: answer with flat comma-separated visual tags ordered by visual weight, "
     "suitable for SDXL-style prompting — no prose, no sentences, no field labels, no markdown. "
     "Example shape: \"cyberpunk street, neon signs, wet asphalt, holographic advertisement, rain, purple and blue lighting\"."
+)
+
+DIRECTOR_LIFE_INJECTION_INSTRUCTION = (
+    "DIRECTOR INSTRUCTION — BREATHE CANDID LIFE & TEXTURE:\n"
+    "Transform static catalog posing into an authentic, captured moment (in medias res):\n"
+    "1. TRANSITIONAL ACTION & GAZE: The subject must NEVER pose stiffly or stare blankly into the camera. "
+    "Capture them mid-action, mid-gesture, or mid-thought (e.g., turning away, adjusting clothing, squinting against light, lips slightly parted, shifting weight, reaching for an object).\n"
+    "2. ATMOSPHERIC COUPLING: The subject and environment must physically interact "
+    "(wind whipping fabric or hair, dampness, cold breath vapor, light beams hitting dust motes, raindrops on surfaces, specular sheen on wet skin).\n"
+    "3. TACTILE REALISM (WABI-SABI): Highlight tangible micro-textures and natural imperfections — real skin pores, garment creases, flyaway hairs, fabric weave, scuffed material edges, avoiding artificial plastic smoothness.\n"
+    "4. ORGANIC STYLE FUSION: Treat the style overlay as ambient lighting, optical camera characteristics, and material atmosphere that naturally wraps the scene."
 )
 
 NONE_AGENT_KEY = "None"
@@ -633,9 +648,50 @@ def get_all_style_keys() -> List[str]:
     return [k for k in keys if not (k in seen or seen.add(k))]
 
 
+def get_style_dropdown_options(widget_name: str) -> List[str]:
+    """Return dropdown options with None, Random, and Random ALL at the top."""
+    return ["None", RANDOM_STYLE_KEY, RANDOM_ALL_STYLE_KEY] + get_visible_style_keys(widget_name)
+
+
+def get_style_mixer_dropdown_options() -> List[str]:
+    """Return Style Mixer dropdown options with (None), Random, and Random ALL at the top."""
+    return ["(None)", RANDOM_STYLE_KEY, RANDOM_ALL_STYLE_KEY] + get_all_style_keys()
+
+
+def resolve_random_style(widget_name: str, selection: str, seed: Optional[int] = None) -> Tuple[str, str]:
+    """Resolve a selection (which might be Random or Random ALL) to a concrete (key, prompt)."""
+    if not selection or selection in ("None", "(None)", "none", ""):
+        return "", ""
+
+    sel_clean = selection.strip()
+    rng = random.Random(seed) if seed is not None and seed >= 0 else random
+
+    if sel_clean == RANDOM_ALL_STYLE_KEY:
+        all_keys = get_all_style_keys()
+        if not all_keys:
+            return "", ""
+        picked_key = rng.choice(all_keys)
+        return f"{picked_key} (🎲 Random ALL)", get_style_prompt(picked_key)
+
+    if sel_clean == RANDOM_STYLE_KEY:
+        # If widget_name is one of the 4 scanner widgets, draw from that specific source
+        source_keys = get_visible_style_keys(widget_name)
+        if not source_keys:
+            # Fallback to all if widget has no specific keys (e.g. general Style Mixer slot)
+            source_keys = get_all_style_keys()
+        if not source_keys:
+            return "", ""
+        picked_key = rng.choice(source_keys)
+        return f"{picked_key} (🎲 Random)", get_style_prompt(picked_key)
+
+    # Specific style key
+    prompt = get_style_prompt(sel_clean)
+    return sel_clean, prompt
+
+
 def get_style_prompt(style_key: str) -> str:
     """Resolve a style display key to its underlying prompt string across all style libraries."""
-    if not style_key or style_key == "(None)":
+    if not style_key or style_key in ("(None)", "None", RANDOM_STYLE_KEY, RANDOM_ALL_STYLE_KEY):
         return ""
     for source in _STYLE_SOURCES.values():
         if style_key in source:

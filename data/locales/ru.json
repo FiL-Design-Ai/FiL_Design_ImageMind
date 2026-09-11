@@ -514,6 +514,7 @@
   "sb_empty": "Под эти фильтры не подходит ни один стиль.",
   "sb_group_show": "Показывать",
   "sb_only_all": "Все стили",
+  "sb_only_favourite": "Избранное",
   "sb_only_chosen": "Выбранные",
   "sb_only_recent": "Недавние",
   "sb_group_source": "Список",

@@ -5,7 +5,7 @@ from __future__ import annotations
 from ..widgets import _chip_list, _combo, _slider, _string
 from ..schema import NodeContract, NodeInputs, NodeOutput
 from ...brand import CATEGORY_STYLING
-from ...data import get_all_style_keys
+from ...data import get_style_mixer_dropdown_options
 
 CONTRACT = NodeContract(
     id="FiLStyleMixer",
@@ -17,7 +17,7 @@ CONTRACT = NodeContract(
     inputs=NodeInputs(
         required=[
             _string("base_prompt", default="", multiline=True, label="Base Prompt"),
-            _chip_list("style_1", values=["(None)"] + get_all_style_keys(), default="(None)", label="Style 1"),
+            _chip_list("style_1", values=get_style_mixer_dropdown_options(), default="(None)", label="Style 1"),
             _slider("weight_1", default=1.0, minv=0.0, maxv=1.0, step=0.05, label="Weight 1"),
         ],
         optional=[
@@ -30,9 +30,9 @@ CONTRACT = NodeContract(
             _slider("img_weight_3", default=0.4, minv=0.0, maxv=1.0, step=0.05, label="Image 3 Weight"),
             _combo("img_focus_4", values=["Auto / General", "Style & Texture", "Color & Lighting", "Subject & Composition", "Mood & Atmosphere"], default="Auto / General", label="Image 4 Focus"),
             _slider("img_weight_4", default=0.2, minv=0.0, maxv=1.0, step=0.05, label="Image 4 Weight"),
-            _chip_list("style_2", values=["(None)"] + get_all_style_keys(), default="(None)", label="Style 2"),
+            _chip_list("style_2", values=get_style_mixer_dropdown_options(), default="(None)", label="Style 2"),
             _slider("weight_2", default=0.5, minv=0.0, maxv=1.0, step=0.05, label="Weight 2"),
-            _chip_list("style_3", values=["(None)"] + get_all_style_keys(), default="(None)", label="Style 3"),
+            _chip_list("style_3", values=get_style_mixer_dropdown_options(), default="(None)", label="Style 3"),
             _slider("weight_3", default=0.3, minv=0.0, maxv=1.0, step=0.05, label="Weight 3"),
         ],
     ),

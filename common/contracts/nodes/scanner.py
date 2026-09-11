@@ -19,6 +19,7 @@ from ...data import (
     first_or_default,
     get_default_agent_key,
     get_default_focus_key,
+    get_style_dropdown_options,
     get_visible_agent_keys,
     get_visible_focus_keys,
     get_visible_style_keys,
@@ -79,7 +80,7 @@ CONTRACT = NodeContract(
             _combo(
                 "language",
                 values=list(LANGUAGES),
-                default=first_or_default(LANGUAGES, "ru"),
+                default=first_or_default(LANGUAGES, "en"),
                 section="output",
             ),
             _segmented(
@@ -133,25 +134,25 @@ CONTRACT = NodeContract(
             ),
             _chip_list(
                 "photo_style",
-                values=["None"] + get_visible_style_keys("photo_style"),
+                values=get_style_dropdown_options("photo_style"),
                 default="None",
                 section="styles",
             ),
             _chip_list(
                 "nsfw_photo_style",
-                values=["None"] + get_visible_style_keys("nsfw_photo_style"),
+                values=get_style_dropdown_options("nsfw_photo_style"),
                 default="None",
                 section="styles",
             ),
             _chip_list(
                 "art_style",
-                values=["None"] + get_visible_style_keys("art_style"),
+                values=get_style_dropdown_options("art_style"),
                 default="None",
                 section="styles",
             ),
             _chip_list(
                 "nsfw_art_style",
-                values=["None"] + get_visible_style_keys("nsfw_art_style"),
+                values=get_style_dropdown_options("nsfw_art_style"),
                 default="None",
                 section="styles",
             ),

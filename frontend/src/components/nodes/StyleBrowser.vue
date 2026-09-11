@@ -43,6 +43,7 @@ import { rankItems, type SearchField } from "@/lib/browserSearch";
 import type { BrowserItem, BrowserSidebarSection } from "@/lib/browserTypes";
 import { useI18n } from "@/composables/useI18n";
 import { CATEGORY_LABEL_KEY } from "@/constants/styleCategories";
+import { isStyleFavourite, toggleStyleFavourite } from "@/stores/styleFavourites";
 
 const props = defineProps<{ sources: StyleSource[] }>();
 
@@ -165,16 +166,32 @@ function clearAll() {
 const ALL = "all";
 const sourceFilter = ref<string>(ALL);
 const categoryFilter = ref<string>(ALL);
-const onlyFilter = ref<"all" | "chosen" | "recent">("all");
+const onlyFilter = ref<"all" | "favourite" | "chosen" | "recent">("all");
 const query = ref("");
 const cursor = ref("");
 const viewMode = ref<"grid" | "list">("grid");
+
+function isStarred(id: string): boolean {
+  const entry = entries.value.find((e) => e.id === id);
+  return entry ? isStyleFavourite(entry.key) : false;
+}
+
+function toggleStar(id: string) {
+  const entry = entries.value.find((e) => e.id === id);
+  if (entry) {
+    toggleStyleFavourite(entry.key);
+  }
+}
 
 function passes(e: StyleEntry, skip: "source" | "category" | "only" | null): boolean {
   if (skip !== "source" && sourceFilter.value !== ALL && e.sourceId !== sourceFilter.value) return false;
   if (skip !== "category" && categoryFilter.value !== ALL && e.category !== categoryFilter.value) return false;
   if (skip !== "only" && onlyFilter.value !== "all") {
-    if (onlyFilter.value === "chosen" ? !chosenIds.value.has(e.id) : !recentsFor(RECENT_SCOPE).includes(e.id)) {
+    if (onlyFilter.value === "favourite") {
+      if (!isStyleFavourite(e.key)) return false;
+    } else if (onlyFilter.value === "chosen") {
+      if (!chosenIds.value.has(e.id)) return false;
+    } else if (!recentsFor(RECENT_SCOPE).includes(e.id)) {
       return false;
     }
   }
@@ -228,6 +245,12 @@ const sidebarSections = computed<BrowserSidebarSection[]>(() => {
       heading: t("sb_group_show", "Show"),
       rows: [
         { id: "only:all", label: t("sb_only_all", "All styles"), count: countWhere("only", () => true) },
+        {
+          id: "only:favourite",
+          label: t("sb_only_favourite", "Favourites"),
+          icon: "⭐",
+          count: entries.value.filter((e) => isStyleFavourite(e.key)).length,
+        },
         {
           id: "only:chosen",
           label: t("sb_only_chosen", "Selected"),
@@ -287,7 +310,7 @@ function onSidebarPick(id: string) {
   const group = id.slice(0, at);
   const value = id.slice(at + 1);
   if (group === "only") {
-    onlyFilter.value = onlyFilter.value === value ? "all" : (value as "chosen" | "recent");
+    onlyFilter.value = onlyFilter.value === value ? "all" : (value as "favourite" | "chosen" | "recent");
   } else if (group === "source") {
     sourceFilter.value = sourceFilter.value === value ? ALL : value;
     // A category belonging to the list just left behind would filter the
@@ -334,6 +357,8 @@ watch(open, (isOpen) => {
     :search-title="t('sb_search_tt', 'Searches all four lists at once, by name and by category')"
     :empty-text="t('sb_empty', 'No styles match these filters.')"
     click-confirms
+    starrable
+    :is-starred="isStarred"
     :pref-width="1080"
     :hints="[
       [t('sb_hint_click_keys', 'click'), t('sb_hint_click', 'add or remove')],
@@ -341,6 +366,7 @@ watch(open, (isOpen) => {
       [t('fb_hint_enter_keys', 'Enter'), t('sb_hint_click', 'add or remove')],
       [t('fb_hint_esc_keys', 'Esc'), t('fb_hint_esc', 'close')],
     ]"
+    @star="toggleStar"
     @confirm="toggle"
   >
     <template #sidebar>

@@ -25,9 +25,7 @@ ART_STYLES = {
     "🎨 ЖИВОПИСЬ/🎪 Impressionist": (
         "impressionist plein-air painting, broken color strokes, optical mixing, quick daylight brush notation, vibrating edge color, visible mark rhythm, atmospheric color temperature shifts, fleeting light over hard contour, painterly immediacy without photographic sharpness."
     ),
-    "🎨 ЖИВОПИСЬ/🖌️ Asian Ink": (
-        "East Asian ink wash painting on rice paper, fluid brush taper, diluted black-to-gray wash fields, calligraphic stroke rhythm, mineral seal-red accent, open paper breathing room, composition guided by empty space rather than contour fill."
-    ),
+
     "🎨 ЖИВОПИСЬ/🖌️ Sumi-e": (
         "Japanese sumi-e brush painting, restrained monochrome wash, dry-brush fiber texture, single-breath brush decisions, disciplined empty space, ink density and stroke pressure as structure, zen austerity without sketchy graphite or comic ink drift."
     ),
@@ -41,12 +39,7 @@ ART_STYLES = {
     "✏️ ГРАФИКА/🖍️ Charcoal Drawing": (
         "charcoal drawing on textured paper, compressed-black shadow masses, rubbed midtone smudge, chalk lift highlights, dusty hand-pressure residue, broad expressive mark energy, dramatic tonal blocking without fine pen-line precision."
     ),
-    "✏️ ГРАФИКА/✏️ Graphite Study": (
-        "academic graphite study, precise edge control, tonal block-in, measured anatomy and planar light logic, fine pencil grain, gradual value ladders, atelier discipline, study-sheet clarity without loose sketch chaos or digital shading."
-    ),
-    "✏️ ГРАФИКА/🖋️ Pen & Ink": (
-        "technical pen-and-ink drawing, crisp architectural line weight, disciplined crosshatch density, nib-scratch texture, diagram-clean perspective, high legibility built from line systems, black-white construction clarity without watercolor or graphite softness."
-    ),
+
     # 💻 ЦИФРОВАЯ / DIGITAL
     "💻 ЦИФРОВАЯ/👾 Pixel Art": (
         "retro pixel-art sprite rendering, visible square pixel grid, limited but intentional palette, hard staircase edges, tiny tile-map silhouette design, crisp icon readability, CRT-era game clarity, no painterly blur or smooth AI gloss."
@@ -57,9 +50,7 @@ ART_STYLES = {
     "💻 ЦИФРОВАЯ/🎨 Digital Painting": (
         "digital painting, stylus brush build-up, layered soft-and-hard edge control, painted light grouping, textured digital brush grain, controlled color grading, strong focal silhouette, screen-born painterly finish without photo realism or generic AI smoothness."
     ),
-    "💻 ЦИФРОВАЯ/🤖 AI Art Style": (
-        "generative AI art aesthetic, hyper-clean surface transitions, latent-space texture fusion, improbable detail clustering, glossy synthetic coherence, polished high-resolution render language, surreal-but-readable composition, model-born visual interpolation without messy artifact noise."
-    ),
+
     "💻 ЦИФРОВАЯ/🌆 Concept Art": (
         "production concept-art keyframe, design-first silhouettes, cinematic atmosphere, matte-painting depth layers, readable environment or prop logic, clear focal anchor, controlled value grouping, visual-development polish, worldbuilding density without random decorative clutter."
     ),
@@ -101,9 +92,7 @@ ART_STYLES = {
     "🔬 СТИЛИЗАЦИЯ/🔍 Hyperrealism": (
         "hyperreal digital art stylization, obsessive surface fidelity, pore-level and fiber-level texture, glass-sharp edge control, intensified material truth, amplified micro-reflections, crisp focal clarity, extreme finish without collapsing into plain camera documentation."
     ),
-    "🔬 СТИЛИЗАЦИЯ/🌫️ Vaporwave": (
-        "vaporwave illustration, pastel magenta-cyan gradients, sunset grid horizon, roman bust and mall nostalgia cues, airbrushed glossy smoothness, VHS-era melancholy, soft neon haze, retro consumer-tech dreamspace without generic cyberpunk darkness."
-    ),
+
     "🔬 СТИЛИЗАЦИЯ/🎲 Glitch Art": (
         "glitch-art treatment, RGB channel separation, datamosh fractures, scanline tearing, corrupted frame bands, compression scars, broken digital signal texture, high-contrast artifact rhythm, disruption as composition, not just random noise."
     ),
@@ -216,9 +205,7 @@ ART_STYLES = {
     "👾 ДИДЖИТАЛ/👓 Anaglyph Red-Blue": (
         "anaglyph red-blue digital distortion, doubled contour misregistration, red-cyan channel offset, stereoscopic ghost edges, CRT-era 3D poster feel, analog display shift, graphic depth illusion without generic glitch noise."
     ),
-    "👾 ДИДЖИТАЛ/🔆 Octane Render": (
-        "high-end Octane-style 3D render, path-traced light transport, polished PBR materials, spectral reflections, subsurface response, razor-sharp render-engine clarity, clean studio or cinematic lighting, production-grade CGI realism without painterly drag."
-    ),
+
     "👾 ДИДЖИТАЛ/🌅 Synthwave Art": (
         "synthwave digital illustration, sunset grid horizon, magenta-cobalt neon spectrum, laser-lit silhouettes, chrome reflections, 1980s retro-future poster geometry, polished nostalgic futurism driven by palette and horizon design."
     ),
@@ -325,9 +312,7 @@ ART_STYLES = {
     "💻 ЦИФРОВАЯ/🚨 Warning Sign AI Robot Art": (
         "warning sign AI robot art, caution symbols, futuristic robot face, bold graphic composition, high contrast colors, tech poster layout, digital hazard aesthetic, neon accents, sharp typography-inspired shapes"
     ),
-    "💻 ЦИФРОВАЯ/🖼️ Pinterest Vertical AI Art Mix": (
-        "Pinterest vertical AI art mix, striking 9:16 portrait crop, bold centered subject silhouette, glossy polished digital skin texture, dramatic top-down or rim lighting, curated aesthetic color grading with teal-orange or pastel split, cinematic depth-of-field falloff, clean negative-space framing around focal point, social-media-optimized visual punch, premium wallpaper-ready composition without generic AI smoothness."
-    ),
+
     # 🔬 СТИЛИЗАЦИЯ / STYLIZATION (Pinterest curated)
     "🔬 СТИЛИЗАЦИЯ/🖤 Dark Anime Witch Gothic": (
         "dark anime witch aesthetic, gothic fantasy portrait, black lace veil and corset layering, occult altar background with candle glow, deep purple and black palette with single warm candlelight accent, mysterious direct gaze, elegant pointed silhouette with wide hat or cape, smoky incense haze, floating magical spark particles, dramatic low-key lighting with sharp shadow carve on face, ornate silver jewelry details without generic dark fantasy gloss."

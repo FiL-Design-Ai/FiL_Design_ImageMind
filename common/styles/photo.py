@@ -18,12 +18,7 @@ PHOTO_STYLES = {
     "📷 КАМЕРЫ/🕳️ Pinhole Obscura": (
         "handmade pinhole camera, lensless photography, infinite depth of field, soft global focus, long exposure softness, extreme natural vignette, curved light falloff, dreamy ethereal blur, analog imperfection, the crudest optics there are, with nothing corrected."
     ),
-    "📷 КАМЕРЫ/📹 CCTV surveillance": (
-        "low-resolution CCTV surveillance footage, fixed security camera angle, green monochrome tint, high ISO digital noise, compression artifacts, timestamp overlay, wide-angle distortion, motion ghosting, harsh overhead lighting, unattended security footage nobody was meant to look at."
-    ),
-    "📷 КАМЕРЫ/🚓 Police Dashcam": (
-        "police dashcam footage, windshield perspective, LED emergency strobe flares, shaky vehicle-mounted capture, harsh night contrast, blown highlights, road reflection glare, compressed video texture, documentary incident realism, bodycam-adjacent visual truth."
-    ),
+
     # The medium most photographs are actually made on now. Its tells are
     # computational, not optical: shadows lifted flat by HDR stacking, noise
     # scrubbed into plastic smoothness, edges over-sharpened. Reads as "a real
@@ -107,12 +102,7 @@ PHOTO_STYLES = {
         "30-second exposure from a locked-off camera at f/11 behind an ND filter, no tripod visible in frame, whatever stayed put comes out razor sharp, everyone who walked through reduced to a transparent streak with no face and no limbs, half-erased figures smeared across the pavement, water flattened to silk, passing lights stretched into continuous lines, architectural long-exposure technique."
     ),
     # Leaned entirely on "spoke and propeller geometry" — an object most
-    # scenes don't contain — with no fallback, so a live render with neither
-    # in frame came back with no skew at all. Led instead with the one thing
-    # every photograph already has: vertical lines in the background.
-    "⏱️ ЗАХВАТ/📳 Rolling Shutter Skew": (
-        "CMOS rolling shutter artifact, every vertical line in the frame — door frames, window mullions, background architecture — leaning at a consistent diagonal as the sensor reads top to bottom, a jello wobble across anything in the scene that is moving, spoke or propeller geometry bent into impossible curves if either is present, partial-frame flash banding, cheap-video sensor artifact recorded in camera."
-    ),
+
     "⏱️ ЗАХВАТ/⚡ Rear-Curtain Sync": (
         "rear-curtain flash sync at 1/4s, ambient light drawing a blurred trail that ends in a crisp flash-frozen subject, streaks running behind the direction of travel rather than ahead of it, warm ambient smear against cool flash-lit detail, night event photography technique."
     ),
@@ -272,9 +262,7 @@ PHOTO_STYLES = {
     "📸 РЕПОРТАЖ/📋 Documentary Truth": (
         "photojournalism style, raw reality capture, high contrast natural lighting, unposed subjects, environmental context detail, sharp focus, minimal post-processing, documentary realism, real-world event capture."
     ),
-    "📸 РЕПОРТАЖ/💼 Stock Quality": (
-        "stock photography standard, high-key lighting, balanced exposure, clean composition, sharp subject clarity, neutral color grading, commercial usability, simple readable frame, shot to be sold as a stock photo."
-    ),
+
     # 🧪 ЭФФЕКТЫ
     "🧪 ЭФФЕКТЫ/🤖 Holographic HUD": (
         "photograph of a practical holographic display on set, 50mm lens at f/2, transparent interface projected onto real glass, cyan-magenta UI glow spilling onto nearby surfaces, floating elements with visible projector falloff, light emission edges, reflective glass interaction, in-camera optical capture rather than a post overlay."
@@ -439,13 +427,7 @@ PHOTO_STYLES = {
     # against a plain wall. Anchored to a perforated grille, which puts the
     # fine repeating lines in the background rather than dictating the
     # subject's own clothing. Two words that read naturally here — "screen",
-    # "venetian blind" — are both `cinema` category triggers and would have
-    # pulled "photograph" into "70mm capture" the moment this stacks through
-    # Smart LLM Fusion; checked the replacement word against the full cinema
-    # keyword list before settling on it.
-    "🧪 ЭФФЕКТЫ/🌊 Цифровой муар": (
-        "photograph showing sensor moire, a perforated metal grille in the background with its repeating holes beating against the sensor's pixel grid, rainbow interference bands rippling across the pattern, colored aliasing fringes, real optical artifact recorded in camera rather than added afterwards."
-    ),
+
     "🧪 ЭФФЕКТЫ/🫧 Мыльные пузыри": (
         "macro photograph of a soap bubble, 100mm macro lens at f/8, thin-film interference, rainbow reflections, iridescent colors, smooth spherical surface, light refraction, soft highlights, focus-stacked optical physics captured in camera."
     ),
@@ -521,9 +503,7 @@ PHOTO_STYLES = {
     "🗺️ СЦЕНЫ/🖼️ Art Gallery": (
         "interior photograph of a modern gallery, 24mm tilt-shift lens at f/8, corrected verticals, white cube walls, track lighting, clean shadows, polished floor reflections, a visitor thinned to a half-transparent smear by the long exposure, minimal composition, architectural exhibition capture."
     ),
-    "🗺️ СЦЕНЫ/🛒 Grocery Store": (
-        "photograph of a supermarket aisle, 28mm lens at f/4, flat fluorescent lighting with a slight green cast, product shelves receding, a trolley abandoned at an angle across the aisle, one gap in the packed shelf where something was just lifted out, reflective floor, high detail packaging textures, handheld documentary capture."
-    ),
+
     "🗺️ СЦЕНЫ/🛩️ Airplane Window": (
         "airplane window view from passenger seat, curved plastic window edge and wing strut in foreground, cotton-wool cloud layer far below, thin atmospheric haze gradient to horizon, high-altitude sunlight casting hard shadows across the wing, scratched double-pane window surface catching side flare, compressed cloud texture from cruise altitude, 35mm lens at f/5.6 held close to the pane, travel documentary photograph without fisheye or ultra-wide distortion."
     ),
@@ -554,9 +534,7 @@ PHOTO_STYLES = {
     "🗺️ СЦЕНЫ/📚 Library Shelf": (
         "interior photograph of library shelves, 35mm lens at f/2.8, book spine texture detail, one volume pulled out and left lying flat across the row with the gap it came from still open, dust turning slowly in the lamp beam, warm lamp lighting, wooden surfaces, quiet reading environment, available-light capture."
     ),
-    "🗺️ СЦЕНЫ/🪜 Construction Site": (
-        "active construction site, steel scaffolding lattice against building face, raw concrete pour surfaces with form-tie holes, exposed rebar and conduit detail, orange safety netting accent, dust particles lit by harsh midday sun, portable light-stand and cable clutter, bare plywood and gravel ground texture, 28mm lens at f/8, industrial work-in-progress photograph."
-    ),
+
     "🗺️ СЦЕНЫ/🏚️ Abandoned Building": (
         "abandoned interior space, layered peeling paint revealing older color underneath, thick dust coating every horizontal surface, broken window glass fragments on floor, cold blue daylight entering through gaps, a torn curtain lifting and falling in the draught, dust turning in the light shaft, rusted metal fixture and exposed lath texture, decayed wallpaper or rotted fabric remnants, 24mm lens at f/8 on a tripod, urbex photograph with real material decomposition evidence."
     ),
@@ -569,9 +547,7 @@ PHOTO_STYLES = {
     "🗺️ СЦЕНЫ/🔦 Flashlight Beam": (
         "dark environment, focused flashlight beam at 1/40s, sharp light cone caught mid-sweep, strong falloff, dust swirling through the air the beam has just crossed, a search light doing its actual job."
     ),
-    "🗺️ СЦЕНЫ/🏺 Pottery Studio": (
-        "ceramic workshop with potter's wheel, wet clay on wheel surface with spiral throwing marks, the wheel still turning fast enough to smear at 1/40s, fresh wet fingerprints on the rim and down the apron, damp earthy smell implied by diffused natural light, plaster and wooden rib tools on workbench, unfired pots on drying shelves in background, splattered clay droplets on floor, warm side window lighting emphasizing clay texture, 50mm lens at f/2.8, artisan workspace photograph."
-    ),
+
     "🗺️ СЦЕНЫ/🕯️ Candle Meditation": (
         "candle-lit quiet room, single flame light source casting warm flickering glow, soft shadow pools around the room's edges, reflective surfaces catching tiny flame highlights, calm intimate atmosphere with minimal furniture silhouette, smoke trail from recently extinguished match, low ambient light with extreme warm color temperature, 50mm lens wide open at f/1.4, ISO 3200, meditative available-light photograph."
     ),

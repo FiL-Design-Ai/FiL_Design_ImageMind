@@ -11,9 +11,16 @@ from typing import Any, Optional
 from comfy_api.latest import io
 from ..common.brand import BRAND, CATEGORY_STYLING
 from ..common.clean_output import clean_output
-from ..common.config import is_model_vision_capable
-from ..common.data import get_all_style_keys, get_style_prompt
 from ..common.io_types import FilProviderConfig
+from ..common.data import (
+    RANDOM_ALL_STYLE_KEY,
+    RANDOM_STYLE_KEY,
+    get_all_style_keys,
+    get_style_mixer_dropdown_options,
+    get_style_prompt,
+    resolve_random_style,
+)
+from ..common.config import is_model_vision_capable
 from ..common.models import ModelClient
 from ..common.processing import ImageProcessor, is_valid_model_name, normalize_model_name
 from ..common.provider_runtime import safe_provider_error, unload_local_model
@@ -41,7 +48,7 @@ class FiLStyleMixer(io.ComfyNode):
 
     @classmethod
     def define_schema(cls):
-        style_options = ["(None)"] + get_all_style_keys()
+        style_options = get_style_mixer_dropdown_options()
         return io.Schema(
             node_id="FiLStyleMixer",
             display_name="🎛️ Style Mixer",
@@ -237,11 +244,18 @@ class FiLStyleMixer(io.ComfyNode):
         **_kwargs,
     ) -> io.NodeOutput:
         # Collect text style parts
+        raw_seed = _kwargs.get("seed")
+        base_seed = int(raw_seed) if isinstance(raw_seed, (int, float)) else None
         text_style_parts: list[str] = []
-        for st_name, weight in [(style_1, weight_1), (style_2, weight_2), (style_3, weight_3)]:
+        for slot_idx, (st_name, weight) in enumerate([(style_1, weight_1), (style_2, weight_2), (style_3, weight_3)], start=1):
             w = float(weight) if weight is not None else 0.0
             if st_name and st_name != "(None)" and w > 0.01:
-                prompt_text = get_style_prompt(st_name)
+                if st_name in (RANDOM_STYLE_KEY, RANDOM_ALL_STYLE_KEY):
+                    slot_seed = (base_seed + slot_idx * 1013) if base_seed is not None else None
+                    _actual_style, prompt_text = resolve_random_style("style_mixer", st_name, seed=slot_seed)
+                else:
+                    prompt_text = get_style_prompt(st_name)
+
                 if not prompt_text:
                     continue
 

@@ -1,8 +1,9 @@
 import logging
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 from .data import (
     AGENTS,
+    DIRECTOR_LIFE_INJECTION_INSTRUCTION,
     NONE_AGENT_KEY,
     NONE_FOCUS_KEY,
     NONE_AGENT_TEMPLATE,
@@ -14,6 +15,7 @@ from .data import (
     is_video_model_type,
     model_uses_positive_constraints,
     resolve_agent_key,
+    resolve_random_style,
 )
 
 from .brand import BRAND
@@ -357,17 +359,25 @@ def negative_to_positive_clause(negative_prompt: str, model_type: str) -> str:
 
 
 class StyleManager:
-    def resolve_style_selection(self, style_widget: str, style_value: str) -> Tuple[str, str]:
-        if not style_value or style_value in ("None", "none", ""):
+    def resolve_style_selection(self, style_widget: str, style_value: str, seed: Optional[int] = None) -> Tuple[str, str]:
+        if not style_value or style_value in ("None", "none", "(None)", ""):
             return "", ""
         source = _STYLE_SOURCES.get(style_widget, {})
         # Split by | or comma in case multiple styles were selected
-        raw_keys = [k.strip() for k in style_value.split("|") if k.strip() and k.strip().lower() not in ("none", "")]
+        raw_keys = [k.strip() for k in style_value.split("|") if k.strip() and k.strip().lower() not in ("none", "(none)", "")]
         if not raw_keys:
             return "", ""
         matched_keys = []
         matched_prompts = []
-        for k in raw_keys:
+        for idx, k in enumerate(raw_keys):
+            # Check if this key is a random selector
+            eff_seed = (seed + idx * 7919) if seed is not None and seed >= 0 else None
+            res_key, res_prompt = resolve_random_style(style_widget, k, eff_seed)
+            if res_prompt:
+                matched_keys.append(res_key)
+                matched_prompts.append(res_prompt)
+                continue
+
             prompt = source.get(k, "")
             if not prompt:
                 for src in _STYLE_SOURCES.values():
@@ -390,21 +400,21 @@ class StyleManager:
         }
         return hints.get(widget_name, "")
 
-    def get_active_styles(self, **style_kwargs) -> Dict[str, str]:
+    def get_active_styles(self, seed: Optional[int] = None, **style_kwargs) -> Dict[str, Tuple[str, str]]:
         result = {}
         for key in ("photo_style", "art_style", "nsfw_photo_style", "nsfw_art_style"):
             val = style_kwargs.get(key, "None")
-            style_key, style_prompt = self.resolve_style_selection(key, val)
+            style_key, style_prompt = self.resolve_style_selection(key, val, seed=seed)
             if style_key:
-                result[key] = style_prompt
+                result[key] = (style_key, style_prompt)
         return result
 
-    def build_style_block(self, **style_kwargs) -> str:
-        active = self.get_active_styles(**style_kwargs)
+    def build_style_block(self, seed: Optional[int] = None, **style_kwargs) -> str:
+        active = self.get_active_styles(seed=seed, **style_kwargs)
         if not active:
             return ""
         parts = []
-        for key, prompt in active.items():
+        for key, (_resolved_key, prompt) in active.items():
             hint = self.get_style_hint(key)
             parts.append(f"[{hint}]\n{prompt}")
         return "\n\n".join(parts)
@@ -590,6 +600,10 @@ class PromptGenerator:
         if aspect_info["active"] and not video_aspect_locked:
             system_parts.append(aspect_info["guidance"])
 
+        wants_life = bool(style_block) or (model_type != "Auto/None") or (not has_image)
+        if wants_life:
+            system_parts.append(DIRECTOR_LIFE_INJECTION_INSTRUCTION)
+
         if style_block:
             system_parts.append(f"Style overlay:\n{style_block}")
 
@@ -688,6 +702,7 @@ class PromptGenerator:
         stage1_prompt = "\n\n".join(stage1_parts)
 
         stage2_parts = _stage_parts()
+        stage2_parts.append(DIRECTOR_LIFE_INJECTION_INSTRUCTION)
         if style_block:
             stage2_parts.append(f"Style overlay:\n{style_block}")
         # Only stage 2 produces the answer the user keeps, so the tag-shape
@@ -727,8 +742,10 @@ class PromptGenerator:
     ) -> str:
         extra = user_prompt.strip()
         instruction = (
-            "Reformat the source description as a generation prompt for the target model, "
-            "applying the style overlay. Keep the source facts locked — do not invent new subjects."
+            "Reformat and direct the source description into an evocative, living generation prompt "
+            "for the target model, seamlessly weaving in the style overlay. "
+            "Keep the core subject identity locked, but infuse dynamic candid life, transitional posture, "
+            "atmospheric interaction, and tactile textures."
         )
         parts = [
             f"[SOURCE DESCRIPTION]\n{stage1_response}",

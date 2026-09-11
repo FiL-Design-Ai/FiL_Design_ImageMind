@@ -21,16 +21,7 @@ NSFW_ART_STYLES = {
     "🎨 ИЛЛЮСТРАЦИЯ/🎯 Digital Pin-up": (
         "adult digital pin-up illustration, poster-clean silhouette, retro pin-up pose logic, satin highlight shaping, painted fabric folds, glamour palette blocking, adult figure composition, polished pin-up readability stronger than plain fashion gloss."
     ),
-    # 💻 ЦИФРОВАЯ
-    "💻 ЦИФРОВАЯ/🧊 3D Render": (
-        "adult 3D character render, DAZ or Blender surface logic, subsurface skin shading, studio-grade key and rim setup, glossy shader response, precise mesh anatomy, digital figure realism, visibly rendered material clarity stronger than photo wording."
-    ),
-    "💻 ЦИФРОВАЯ/🖥️ CGI": (
-        "adult CGI artwork, cinematic volumetric light, ray-traced reflections, polished skin shaders, lens-bloom highlights, synthetic set design, digital-cinema rendering, visibly computer-generated finish rather than photographic capture."
-    ),
-    "💻 ЦИФРОВАЯ/🤖 AI Generated": (
-        "adult AI-born illustration, diffusion-texture residue, surreal edge blending, synthetic detail clustering, painterly-neural surface logic, unstable micro-pattern richness, generated-art identity instead of generic soft glamour."
-    ),
+
     # 📜 КЛАССИКА
     "📜 КЛАССИКА/🖼️ Baroque Nude": (
         "adult baroque nude painting, Caravaggio-like chiaroscuro, warm varnished flesh tones, dark architectural backdrop, oil-glaze depth, theatrical drapery weight, old-master erotic drama carried by painterly light hierarchy rather than modern glamour."

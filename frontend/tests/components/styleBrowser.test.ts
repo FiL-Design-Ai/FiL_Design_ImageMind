@@ -3,6 +3,7 @@ import { nextTick } from "vue";
 import { mount, type VueWrapper } from "@vue/test-utils";
 import StyleBrowserVue from "@/components/nodes/StyleBrowser.vue";
 import { _resetRecents } from "@/stores/browserRecents";
+import { _resetStyleFavourites, isStyleFavourite } from "@/stores/styleFavourites";
 
 /**
  * `FilBrowser` teleports to `document.body`, so every query goes through the
@@ -64,6 +65,7 @@ const click = (el: Element) => el.dispatchEvent(new MouseEvent("click", { bubble
 beforeEach(() => {
   localStorage.clear();
   _resetRecents();
+  _resetStyleFavourites();
 });
 afterEach(() => {
   wrapper?.unmount();
@@ -218,5 +220,38 @@ describe("StyleBrowser", () => {
     click(card("Film Noir"));
     await nextTick();
     expect(sidebarRow("Recently used").querySelector(".fb-row-count")?.textContent).toBe("1");
+  });
+
+  it("stars and filters favourites in the style browser", async () => {
+    open();
+    // Initially favourites count is 0
+    expect(sidebarRow("Favourites").querySelector(".fb-row-count")?.textContent).toBe("0");
+
+    // Click the star button on Polaroid 600
+    const polaroidCard = card("Polaroid 600");
+    const starBtn = polaroidCard.closest(".fb-item")?.querySelector<HTMLButtonElement>(".fb-star")!;
+    expect(starBtn).toBeTruthy();
+    expect(starBtn.classList.contains("on")).toBe(false);
+
+    click(starBtn);
+    await nextTick();
+
+    // Now it is starred and count is 1
+    expect(isStyleFavourite("📷 CAMERAS/📸 Polaroid 600")).toBe(true);
+    expect(sidebarRow("Favourites").querySelector(".fb-row-count")?.textContent).toBe("1");
+    expect(starBtn.classList.contains("on")).toBe(true);
+
+    // Clicking Favourites filter leaves only starred styles
+    click(sidebarRow("Favourites"));
+    await nextTick();
+
+    expect(cards().length).toBe(1);
+    expect(card("Polaroid 600")).toBeTruthy();
+
+    // Unstarring via clicking star again
+    click(starBtn);
+    await nextTick();
+    expect(isStyleFavourite("📷 CAMERAS/📸 Polaroid 600")).toBe(false);
+    expect(cards().length).toBe(0);
   });
 });

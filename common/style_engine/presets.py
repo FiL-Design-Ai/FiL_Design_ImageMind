@@ -123,15 +123,6 @@ PRESET_STYLE_RULES: Dict[str, Dict[str, Any]] = {
             "are moving; do not populate an empty frame with phantom crowds."
         ),
     },
-    "⏱️ ЗАХВАТ/📳 Rolling Shutter Skew": {
-        **_KINETIC_MODIFIER_BASE,
-        "forbidden": [*_KINETIC_MODIFIER_BASE["forbidden"], "perfectly straight verticals", "film-camera language"],
-        "transform": (
-            "ROLLING SHUTTER GUARDRAIL: This is a sensor readout artifact, not a lens effect. Lean the verticals, wobble the fast "
-            "movement, bend rotating geometry, band the flash across part of the frame. Keep the scene itself unchanged — the "
-            "distortion is in how it was recorded."
-        ),
-    },
     "⏱️ ЗАХВАТ/⚡ Rear-Curtain Sync": {
         **_KINETIC_MODIFIER_BASE,
         "forbidden": [*_KINETIC_MODIFIER_BASE["forbidden"], "trail leading ahead of the subject", "daylight ambient"],
@@ -1559,30 +1550,6 @@ PRESET_STYLE_RULES: Dict[str, Dict[str, Any]] = {
         "fallback_behavior": (
             "If the frame is clean, add pencil texture and construction logic while keeping the visible subject intact."
         ),
-    },
-    "✏️ ГРАФИКА/🖋️ Pen & Ink": {
-        "forbidden": ["soft graphite", "watercolor wash", "painterly blending", "digital airbrush"],
-        "required_cues": [
-            "technical pen line weight",
-            "disciplined crosshatch density",
-            "nib-scratch texture",
-            "diagram-clean perspective",
-        ],
-        "support_signals": ["pen", "ink", "crosshatch", "nib", "line weight", "diagram", "perspective"],
-        "contradiction_signals": ["graphite", "watercolor", "airbrush", "soft blending"],
-        "support_thresholds": {"full": 2, "weak": 1},
-        "default_support_mode": "weak",
-        "no_signal_mode": "weak",
-        "weak_mode_contract": (
-            "Keep pen-and-ink precise through line weight, hatching, and black-white construction without soft tonal smudge."
-        ),
-        "blocked_mode_contract": "Do not turn into sketch graphite or watercolor; preserve crisp ink-line logic.",
-        "drift_targets": ["pencil sketch", "watercolor", "digital painting"],
-        "output_obligation": "The final output must read as technical pen-and-ink drawing with crisp line systems.",
-        "transform": (
-            "PEN AND INK GUARDRAIL: Favor crisp architectural line weight, crosshatch density, nib scratches, diagram-clean perspective, and high legibility from line systems. No soft smudge or painterly blend."
-        ),
-        "fallback_behavior": "If tonal shading dominates, translate it into hatching density and line hierarchy.",
     },
     "🏛️ ИСТОРИЯ/🖼️ Medieval Icon": {
         "forbidden": ["Renaissance perspective", "photoreal saint", "modern fantasy poster", "naturalistic depth"],

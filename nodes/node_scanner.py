@@ -25,6 +25,7 @@ from ..common.data import (
     get_agent_output_mode,
     get_default_agent_key,
     get_default_focus_key,
+    get_style_dropdown_options,
     get_visible_agent_keys,
     get_visible_focus_keys,
     get_visible_style_keys,
@@ -102,7 +103,7 @@ description=(
                 io.String.Input("negative_prompt", default="", multiline=True, optional=True, tooltip=t("tt_neg_prompt", "Removes words from the generated text, not objects from the image. Short nouns, comma-separated. Under FLUX / Z-Image Turbo / Krea 2 / Ideogram 4 / Video the list is flipped into positive wording. Details: docs/scanner-prompts.md"), advanced=True),
                 io.Combo.Input("detail_level", options=list(DETAIL_LEVELS), default=default_detail_level(DETAIL_LEVELS), advanced=True,
                                tooltip=t("tt_detail", "How much detail to include in the generated description.")),
-                io.Combo.Input("language", options=LANGUAGES, default=first_or_default(LANGUAGES, "ru"), advanced=True,
+                io.Combo.Input("language", options=LANGUAGES, default=first_or_default(LANGUAGES, "en"), advanced=True,
                                tooltip=t("tt_lang", "Language of the generated prompt/description.")),
                 io.Combo.Input("model_type", options=list(MODEL_TYPE_OPTIONS), default="Auto/None", advanced=True,
                                tooltip=t("tt_model_type", "Target generation model — adjusts prompt syntax, length, and format. Video is a universal profile for video models.")),
@@ -119,13 +120,13 @@ description=(
                                tooltip=t("tt_video_camera", "Preferred camera move. The LLM builds the shot around it and may adapt per story stage — it is a preference, not a hard lock.")),
                 io.Combo.Input("prompt_mode", options=PROMPT_MODE_OPTIONS, default="Auto", advanced=True,
                                tooltip=t("tt_prompt_mode", "Auto picks Hybrid or Two-Stage depending on whether a style is selected.")),
-                io.Combo.Input("photo_style", options=["None"] + get_visible_style_keys("photo_style"), default="None", advanced=True,
+                io.Combo.Input("photo_style", options=get_style_dropdown_options("photo_style"), default="None", advanced=True,
                                tooltip=t("tt_photo_style", "Photographic style overlay applied on top of the base description.")),
-                io.Combo.Input("nsfw_photo_style", options=["None"] + get_visible_style_keys("nsfw_photo_style"), default="None", advanced=True,
+                io.Combo.Input("nsfw_photo_style", options=get_style_dropdown_options("nsfw_photo_style"), default="None", advanced=True,
                                tooltip=t("tt_nsfw_photo_style", "Adult-only photographic style overlay (alternative to Photo style).")),
-                io.Combo.Input("art_style", options=["None"] + get_visible_style_keys("art_style"), default="None", advanced=True,
+                io.Combo.Input("art_style", options=get_style_dropdown_options("art_style"), default="None", advanced=True,
                                tooltip=t("tt_art_style", "Art style overlay applied on top of the base description.")),
-                io.Combo.Input("nsfw_art_style", options=["None"] + get_visible_style_keys("nsfw_art_style"), default="None", advanced=True,
+                io.Combo.Input("nsfw_art_style", options=get_style_dropdown_options("nsfw_art_style"), default="None", advanced=True,
                                tooltip=t("tt_nsfw_art_style", "Adult-only art style overlay (alternative to Art style).")),
                 io.String.Input("custom_style", default="", multiline=True, optional=True, advanced=True,
                                 tooltip=t("tt_custom_style", "Free-form style text appended after the preset style overlay, if any.")),
@@ -436,16 +437,26 @@ description=(
 
         agent_key = resolve_agent_key(agent)
         focus_key = resolve_focus_key(agent_focus)
-        style_kwargs = dict(
-            photo_style=photo_style, nsfw_photo_style=nsfw_photo_style,
-            art_style=art_style, nsfw_art_style=nsfw_art_style,
+
+        # Resolve random or explicit styles with seed reproducibility
+        active_styles_resolved = _style_manager.get_active_styles(
+            seed=seed,
+            photo_style=photo_style,
+            nsfw_photo_style=nsfw_photo_style,
+            art_style=art_style,
+            nsfw_art_style=nsfw_art_style,
         )
-        active_keys = [v for v in (photo_style, nsfw_photo_style, art_style, nsfw_art_style) if v and v != "None"]
-        style_key = " | ".join(active_keys) if active_keys else ""
+        resolved_style_kwargs = {
+            k: active_styles_resolved[k][0] if k in active_styles_resolved else "None"
+            for k in ("photo_style", "nsfw_photo_style", "art_style", "nsfw_art_style")
+        }
+        resolved_active_keys = [v[0] for v in active_styles_resolved.values() if v[0]]
+        style_key = " | ".join(resolved_active_keys) if resolved_active_keys else ""
         nsfw_active = bool(
-            (nsfw_photo_style and nsfw_photo_style != "None")
-            or (nsfw_art_style and nsfw_art_style != "None")
+            ("nsfw_photo_style" in active_styles_resolved)
+            or ("nsfw_art_style" in active_styles_resolved)
         )
+        style_kwargs = resolved_style_kwargs
 
         system_prompt, base_prompt, style_block, language_hint = _prompt_gen.build_system_prompt_bundle(
             agent_key=agent_key,
