@@ -13,6 +13,9 @@
  * anything fails, so the graph never ends up holding both.
  */
 
+import { isSmartFixNodeEnabled } from "@/stores/settings/fixNodeSettings";
+import { toast } from "@/stores/toastStore";
+
 interface Link {
   origin_id: number;
   origin_slot: number;
@@ -192,14 +195,29 @@ export function recreateNode(node: GraphNode, litegraph?: unknown): GraphNode | 
  */
 export function patchRecreateMenuItem(node: GraphNode, options: unknown[]): void {
   for (const option of options) {
-    const item = option as { content?: string; callback?: unknown; _filPatched?: boolean } | null;
+    const item = option as {
+      content?: string;
+      callback?: (...args: unknown[]) => unknown;
+      _filPatched?: boolean;
+      _filOriginalCallback?: (...args: unknown[]) => unknown;
+    } | null;
     if (!item || item._filPatched) continue;
     if (typeof item.content !== "string" || !item.content.startsWith("Fix node")) continue;
     item._filPatched = true;
-    item.callback = () => {
+    item._filOriginalCallback = item.callback;
+    item.callback = function (...args: unknown[]) {
+      if (!isSmartFixNodeEnabled()) {
+        return item._filOriginalCallback?.apply(this, args);
+      }
       const fresh = recreateNode(node);
       const app = (globalThis as { app?: { canvas?: { setDirty?: (a: boolean, b: boolean) => void } } }).app;
-      if (fresh) requestAnimationFrame(() => app?.canvas?.setDirty?.(true, true));
+      if (fresh) {
+        const name = fresh.title || fresh.type || "Node";
+        toast.success(`Node "${name}" safely recreated — values & wires preserved`);
+        requestAnimationFrame(() => app?.canvas?.setDirty?.(true, true));
+      } else {
+        toast.warning("Could not recreate node — graph unchanged");
+      }
     };
   }
 }

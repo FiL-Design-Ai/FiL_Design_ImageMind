@@ -19,6 +19,8 @@ except ImportError:
 
 STANDARD_SIZES = [1536, 1024, 768, 512]
 AUTO_PROFILES = ["Low VRAM", "Balanced", "High VRAM", "Max Quality", "Ultra Quality"]
+BLEND_MODES = ["Cosine (Smooth)", "Linear", "Smoothstep"]
+COLOR_MATCH_MODES = ["Match Overlap Means", "None"]
 
 AUTO_PROFILE_TABLE = {
     "Low VRAM": {"tile_size": 512, "non_square": False, "overlap_bias": 1.0, "denoise_delta": 0.0, "denoise_cap": 0.20, "summary": "Compact square tiles"},
@@ -344,37 +346,127 @@ def compute_layout(aw, ah, tw, th, overlap_w: int = 0, overlap_h: int = 0) -> Ti
     return TileLayout(round(step_w), round(step_h), cols, rows, cols * rows, rects)
 
 
-def _feather_ramp_1d(length: int, overlap_start: int, overlap_end: int, dtype):
-    """1D weight ramp for `assemble_tiles`: 1.0 in the interior, linearly
-    ramping down toward (but never reaching) 0 across `overlap_start`/
-    `overlap_end` px at each end — only where that end actually has a
-    neighbouring tile to blend with (0 = no ramp, e.g. a real canvas edge).
-    Never hitting exactly 0 keeps every pixel covered by at least one
-    nonzero-weighted tile even before the two neighbours' masks are summed.
+def _make_ramp_up(n: int, dtype, mode: str):
+    import torch
+
+    if n <= 0:
+        return torch.empty(0, dtype=dtype)
+    t = torch.linspace(0.0, 1.0, n, dtype=dtype)
+    m = (mode or "cosine").lower()
+    if "cosine" in m:
+        ramp = 0.5 * (1.0 - torch.cos(torch.pi * t))
+    elif "smoothstep" in m:
+        ramp = t * t * (3.0 - 2.0 * t)
+    else:  # linear
+        ramp = t
+    # Clamp to avoid exact 0 so each pixel is anchored
+    return torch.clamp(ramp, min=1.0 / (n + 1), max=1.0)
+
+
+def _feather_ramp_1d(
+    length: int,
+    overlap_start: int,
+    overlap_end: int,
+    dtype,
+    blend_mode: str = "Cosine (Smooth)",
+    feather_strength: float = 1.0,
+):
+    """1D weight ramp for `assemble_tiles` with configurable blend curves
+    (Cosine, Linear, Smoothstep) and strength multiplier.
     """
     import torch
 
     w = torch.ones(length, dtype=dtype)
+    strength = max(0.1, min(2.0, float(feather_strength)))
+
     if overlap_start > 0:
-        n = min(overlap_start, length)
-        w[:n] = torch.minimum(w[:n], torch.linspace(1.0 / (n + 1), 1.0, n, dtype=dtype))
+        eff_start = max(1, min(round(overlap_start * strength), length))
+        w[:eff_start] = torch.minimum(w[:eff_start], _make_ramp_up(eff_start, dtype, blend_mode))
     if overlap_end > 0:
-        n = min(overlap_end, length)
-        w[length - n:] = torch.minimum(w[length - n:], torch.linspace(1.0, 1.0 / (n + 1), n, dtype=dtype))
+        eff_end = max(1, min(round(overlap_end * strength), length))
+        ramp_down = torch.flip(_make_ramp_up(eff_end, dtype, blend_mode), dims=[0])
+        w[length - eff_end:] = torch.minimum(w[length - eff_end:], ramp_down)
     return w
 
 
-def assemble_tiles(tiles, layout: dict):
+def match_tile_overlap_colors(tiles, layout: dict):
+    """Balance color and luminance across adjacent tiles by matching their
+    mean RGB values in mutual overlap strips. Prevents visible tile seams
+    caused by KSampler brightness/color drift.
+    """
+    import torch
+
+    rects = layout.get("rects", [])
+    cols = int(layout.get("cols", 1))
+    rows = int(layout.get("rows", 1))
+    if len(rects) <= 1 or tiles.shape[0] != len(rects):
+        return tiles
+
+    adjusted = tiles.clone()
+    num_tiles = len(rects)
+
+    offsets = torch.zeros((num_tiles, adjusted.shape[-1]), dtype=tiles.dtype, device=tiles.device)
+    visited = [False] * num_tiles
+    visited[0] = True
+    queue = [0]
+
+    while queue:
+        curr = queue.pop(0)
+        r, c = divmod(curr, cols)
+
+        neighbors = []
+        if c > 0:
+            neighbors.append((curr - 1, "left"))
+        if c < cols - 1:
+            neighbors.append((curr + 1, "right"))
+        if r > 0:
+            neighbors.append((curr - cols, "top"))
+        if r < rows - 1:
+            neighbors.append((curr + cols, "bottom"))
+
+        for n_idx, _dir in neighbors:
+            if not visited[n_idx]:
+                c_sx, c_sy, c_ex, c_ey = rects[curr]
+                n_sx, n_sy, n_ex, n_ey = rects[n_idx]
+
+                ox1 = max(c_sx, n_sx)
+                oy1 = max(c_sy, n_sy)
+                ox2 = min(c_ex, n_ex)
+                oy2 = min(c_ey, n_ey)
+
+                if ox2 > ox1 and oy2 > oy1:
+                    c_crop = adjusted[curr, (oy1 - c_sy):(oy2 - c_sy), (ox1 - c_sx):(ox2 - c_sx), :]
+                    n_crop = adjusted[n_idx, (oy1 - n_sy):(oy2 - n_sy), (ox1 - n_sx):(ox2 - n_sx), :]
+
+                    mean_c = c_crop.mean(dim=(0, 1))
+                    mean_n = n_crop.mean(dim=(0, 1))
+
+                    delta = mean_c - mean_n
+                    offsets[n_idx] = offsets[curr] + delta * 0.8
+
+                visited[n_idx] = True
+                queue.append(n_idx)
+
+    for idx in range(num_tiles):
+        off = offsets[idx].view(1, 1, -1)
+        adjusted[idx] = torch.clamp(adjusted[idx] + off, 0.0, 1.0)
+
+    return adjusted
+
+
+def assemble_tiles(
+    tiles,
+    layout: dict,
+    blend_mode: str = "Cosine (Smooth)",
+    feather_strength: float = 1.0,
+    color_match: str = "None",
+):
     """Recombine a batch of (independently processed) tile images back into
     one canvas, using the exact positions in `layout` (a FIL_TILE_LAYOUT dict
-    — see `common/io_types.py`) — the same grid `crop_tiles` produced them
-    from, so no re-derivation of the tile math is needed.
+    — see `common/io_types.py`).
 
-    Blends the real overlap zones with a separable linear feather (per-tile
-    2D weight mask, accumulated then normalized) rather than pairwise
-    row-then-column blending — this handles a 4-way corner overlap correctly
-    by construction instead of needing special-case corner logic. Pure
-    torch/float throughout (no PIL round-trip, no precision loss).
+    Supports configurable blend curves (Cosine, Linear, Smoothstep),
+    feather strength, and automatic overlap color matching.
     """
     import torch
 
@@ -390,6 +482,9 @@ def assemble_tiles(tiles, layout: dict):
             f"expects {len(rects)} — keep the tile order/count unchanged after processing."
         )
 
+    if color_match == "Match Overlap Means":
+        tiles = match_tile_overlap_colors(tiles, layout)
+
     channels = tiles.shape[-1]
     canvas = torch.zeros((1, canvas_h, canvas_w, channels), dtype=tiles.dtype)
     weight = torch.zeros((1, canvas_h, canvas_w, 1), dtype=tiles.dtype)
@@ -401,15 +496,18 @@ def assemble_tiles(tiles, layout: dict):
         overlap_top = max(0, rects[idx - cols][3] - sy) if row > 0 else 0
         overlap_bottom = max(0, ey - rects[idx + cols][1]) if row < rows - 1 else 0
 
-        wx = _feather_ramp_1d(ex - sx, overlap_left, overlap_right, tiles.dtype)
-        wy = _feather_ramp_1d(ey - sy, overlap_top, overlap_bottom, tiles.dtype)
+        wx = _feather_ramp_1d(ex - sx, overlap_left, overlap_right, tiles.dtype, blend_mode, feather_strength)
+        wy = _feather_ramp_1d(ey - sy, overlap_top, overlap_bottom, tiles.dtype, blend_mode, feather_strength)
         mask = (wy.view(-1, 1) * wx.view(1, -1)).unsqueeze(-1)  # [th, tw, 1]
 
         tile = tiles[idx, : ey - sy, : ex - sx, :]
         canvas[0, sy:ey, sx:ex, :] += tile * mask
         weight[0, sy:ey, sx:ex, :] += mask
 
-    return canvas / torch.clamp(weight, min=1e-6)
+    canvas.div_(torch.clamp(weight, min=1e-6))
+    del weight
+    return canvas
+
 
 
 def apply_upscale_model(image, upscale_model, target_w: int, target_h: int):

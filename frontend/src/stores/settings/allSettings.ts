@@ -33,13 +33,15 @@ import { CONNECTION_FX_SETTINGS } from "@/stores/settings/connectionFxSettings";
 import { RUN_FX_SETTINGS } from "@/stores/settings/runFxSettings";
 import { SHORTCUTS_SETTINGS } from "@/stores/settings/shortcutsSettings";
 import { WIRELESS_SETTINGS } from "@/stores/settings/wirelessSettings";
+import { FIX_NODE_SETTINGS } from "@/stores/settings/fixNodeSettings";
 
 export const ALL_SETTINGS: ComfyExtensionSettings[] = [
   // Appearance, to read as: Theme → Theme applies to → Repaint the whole ComfyUI app → Theme animations.
   ...APPEARANCE_SETTINGS.slice().reverse(),
   ...THEME_SETTINGS,
 
-  // Canvas, to read as: Mouse wheel → Connection toasts → Running node → Shortcuts.
+  // Canvas, to read as: Mouse wheel → Connection toasts → Running node → Shortcuts → Fix Node.
+  ...FIX_NODE_SETTINGS,
   ...SHORTCUTS_SETTINGS,
   ...RUN_FX_SETTINGS,
   ...CONNECTION_FX_SETTINGS,

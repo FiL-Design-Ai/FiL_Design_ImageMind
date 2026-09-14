@@ -61,9 +61,11 @@ PROVIDERS: Dict[str, ProviderConfig] = {
     "cloudflare": ProviderConfig(name="cloudflare", display_name="Cloudflare Workers AI", base_url="", auth_type=AuthType.BEARER, header_name="Authorization", header_prefix="Bearer ", models_endpoint="", chat_endpoint="/chat/completions", vision_support=True, max_context_length=128000, timeout_default=120, environment_var="CLOUDFLARE_API_TOKEN", description="Workers AI via OpenAI-compatible chat endpoint"),
     "huggingface": ProviderConfig(name="huggingface", display_name="Hugging Face (Serverless)", base_url="https://router.huggingface.co/v1", auth_type=AuthType.BEARER, header_name="Authorization", header_prefix="Bearer ", models_endpoint="/models", chat_endpoint="/chat/completions", vision_support=True, max_context_length=128000, timeout_default=90, environment_var="HF_TOKEN", description="Hugging Face Serverless Inference (Qwen3-VL, DeepSeek, Aya)"),
     "deepinfra": ProviderConfig(name="deepinfra", display_name="DeepInfra", base_url="https://api.deepinfra.com/v1/openai", auth_type=AuthType.BEARER, header_name="Authorization", header_prefix="Bearer ", models_endpoint="/models", chat_endpoint="/chat/completions", vision_support=True, max_context_length=128000, timeout_default=90, environment_var="DEEPINFRA_API_KEY", description="DeepInfra serverless AI models (Qwen3-VL 235B, DeepSeek-R1)"),
+    "vllm": ProviderConfig(name="vllm", display_name="vLLM (Local)", base_url="http://127.0.0.1:8000/v1", auth_type=AuthType.NONE, header_name="", header_prefix="", models_endpoint="/models", chat_endpoint="/chat/completions", vision_support=True, max_context_length=64000, timeout_default=120, description="High-throughput local models via vLLM"),
+    "llamacpp": ProviderConfig(name="llamacpp", display_name="llama.cpp (Local)", base_url="http://127.0.0.1:8080/v1", auth_type=AuthType.NONE, header_name="", header_prefix="", models_endpoint="/models", chat_endpoint="/chat/completions", vision_support=True, max_context_length=32000, timeout_default=120, description="Local inference via llama.cpp / llama-server"),
 }
 
-LOCAL_PROVIDERS = ("ollama", "lmstudio")
+LOCAL_PROVIDERS = ("ollama", "lmstudio", "vllm", "llamacpp")
 
 # OpenRouter free-model vision fallback chain. Used by provider_resilience when
 # a vision request to the user-selected OpenRouter model fails (e.g. the model

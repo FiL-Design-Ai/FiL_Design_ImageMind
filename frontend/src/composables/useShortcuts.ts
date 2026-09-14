@@ -14,6 +14,7 @@ import { toast } from "@/stores/toastStore";
 import { readSetting } from "@/stores/settings/providerSettings";
 
 import { useWirelessStore } from "@/stores/wirelessStore";
+import { useWorkflowGalleryStore } from "@/stores/workflowGalleryStore";
 
 const SETTING_ENABLED = "FiL_Design_ImageMind.Shortcuts.Enabled";
 const CHEATSHEET_ID = "__cheatsheet__";
@@ -40,6 +41,13 @@ export const filCommands: ComfyCommand[] = [
     menubarLabel: "Keyboard cheatsheet",
     icon: "?",
     function: openCheatsheet,
+  },
+  {
+    id: "FiL_Design_ImageMind.openWorkflowTemplates",
+    label: "FiL_Design_ImageMind — ⚡ Template Workflows",
+    menubarLabel: "⚡ Template Workflows",
+    icon: "⚡",
+    function: openWorkflowGallery,
   },
   {
     id: "FiL_Design_ImageMind.openWirelessDashboard",
@@ -88,6 +96,11 @@ function openWirelessDashboard() {
   if (!shortcutsEnabled()) return;
   const store = useWirelessStore();
   store.toggleDashboard();
+}
+
+function openWorkflowGallery() {
+  const store = useWorkflowGalleryStore();
+  store.openGallery();
 }
 
 /**

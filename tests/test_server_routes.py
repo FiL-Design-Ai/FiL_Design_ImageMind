@@ -167,3 +167,61 @@ def test_sort_models_rejects_a_models_field_that_is_not_a_list(handlers):
 def test_sort_models_rejects_an_unparseable_body(handlers):
     response = asyncio.run(handlers["sort_models"](_Request(None)))
     assert response.status == 400
+
+
+def test_new_feature_routes_are_registered(handlers):
+    for name in ("get_local_status", "get_workflow_templates", "get_workflow_template_by_id", "resolve_wireless"):
+        assert name in handlers, f"{name} is not registered: {sorted(handlers)}"
+
+
+def test_resolve_wireless_route(handlers):
+    req = _Request({
+        "prompt": {
+            "1": {"class_type": "CheckpointLoaderSimple", "inputs": {"ckpt_name": "model.safetensors"}},
+            "2": {"class_type": "FiLChannel", "inputs": {"value0": ["1", 0]}},
+            "3": {"class_type": "KSampler", "inputs": {"model": ["2", 0]}},
+        }
+    })
+    response = asyncio.run(handlers["resolve_wireless"](req))
+    assert response.status == 200
+    body = _body(response)
+    assert body["status"] == "ok"
+    assert body["prompt"]["3"]["inputs"]["model"] == ["1", 0]
+
+
+
+def test_list_template_workflows_returns_templates(handlers):
+    response = asyncio.run(handlers["get_workflow_templates"](_Request()))
+    assert response.status == 200
+    body = _body(response)
+    assert "templates" in body
+    assert isinstance(body["templates"], list)
+    assert len(body["templates"]) > 0
+    first = body["templates"][0]
+    assert "id" in first
+    assert "title" in first
+
+
+def test_load_template_workflow_data(handlers):
+    list_res = asyncio.run(handlers["get_workflow_templates"](_Request()))
+    first_id = _body(list_res)["templates"][0]["id"]
+    req = _Request()
+    req.match_info["id"] = first_id
+    response = asyncio.run(handlers["get_workflow_template_by_id"](req))
+    assert response.status == 200
+    body = _body(response)
+    assert isinstance(body, dict)
+    assert "nodes" in body
+
+
+
+def test_check_local_provider_status(handlers):
+    response = asyncio.run(handlers["get_local_status"](_Request()))
+    assert response.status == 200
+    body = _body(response)
+    assert "local_providers" in body
+    for prov in ("ollama", "lmstudio", "vllm", "llamacpp"):
+        assert prov in body["local_providers"]
+        assert isinstance(body["local_providers"][prov], bool)
+
+

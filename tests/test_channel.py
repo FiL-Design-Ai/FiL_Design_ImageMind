@@ -55,3 +55,17 @@ def test_channel_execute_is_a_harmless_noop():
     # values, even though in practice it is never scheduled.
     result_with_values = FiLChannel.execute(value0="model", value1={"vae": True})
     assert result_with_values.args == ()
+
+
+def test_resolve_wireless_prompt():
+    from FiL_Design_ImageMind.common.wireless_resolver import resolve_wireless_prompt
+
+    raw_prompt = {
+        "1": {"class_type": "CheckpointLoaderSimple", "inputs": {"ckpt_name": "v1.safetensors"}},
+        "2": {"class_type": "FiLChannel", "inputs": {"value0": ["1", 0], "value1": ["1", 2]}},
+        "3": {"class_type": "KSampler", "inputs": {"model": ["2", 0]}},
+    }
+
+    resolved = resolve_wireless_prompt(raw_prompt)
+    assert resolved["3"]["inputs"]["model"] == ["1", 0]
+

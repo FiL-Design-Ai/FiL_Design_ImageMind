@@ -38,6 +38,7 @@ from ..common.io_types import FilDict, FilProviderConfig
 from ..common.localization import t
 from ..common.logic import PromptGenerator, StyleManager
 from ..common.data import get_effective_response_format
+from ..common.decensor import decensor_adult_slang
 from ..common.model_prompt_adapters import append_response_format_instruction, post_convert_prompt
 from ..common.models import ModelClient
 from ..common.processing import ImageProcessor, is_valid_model_name, normalize_model_name
@@ -493,7 +494,8 @@ description=(
         # bundle returns it separately for exactly this.
         system_prompt = f"{system_prompt}\n\n{language_hint}"
 
-        user_message = _prompt_gen.build_stage1_user_prompt(prompt, has_image)
+        clean_prompt = decensor_adult_slang(prompt)
+        user_message = _prompt_gen.build_stage1_user_prompt(clean_prompt, has_image)
         effective_format = get_effective_response_format(model_type, response_format)
         user_message = append_response_format_instruction(user_message, model_type, effective_format)
 

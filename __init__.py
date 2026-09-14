@@ -13,8 +13,23 @@ from .common.release_gate import filter_release_nodes
 
 WEB_DIRECTORY = "./frontend/dist"
 
+# Try registering server routes immediately when imported by ComfyUI
+try:
+    server_routes.register_routes()
+except Exception as e:
+    import logging
+    logging.getLogger("FiL_Design_ImageMind").warning("Initial server_routes registration deferred: %s", e)
+
 
 class FiLExtension(ComfyExtension):
+    @override
+    async def on_load(self) -> None:
+        try:
+            server_routes.register_routes()
+        except Exception as e:
+            import logging
+            logging.getLogger("FiL_Design_ImageMind").error("Failed to register server routes on_load: %s", e)
+
     @override
     async def get_node_list(self) -> list[type[io.ComfyNode]]:
         from .nodes.node_seed import FiLSeed

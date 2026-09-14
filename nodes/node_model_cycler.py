@@ -173,6 +173,7 @@ class _CycleState:
 
 
 _CYCLE_STATE: dict[str, _CycleState] = {}
+_LAST_LOADED_MODEL: dict[str, str] = {}
 """Cycle position per node, keyed by the node's own id.
 
 Nothing in a prompt carries the position, so it lives in the process between
@@ -512,10 +513,14 @@ class FiLModelCycler(io.ComfyNode):
         if auto_advance:
             cls._advance(state, cycle_mode, current_idx, total_models)
 
-        # Free VRAM / Unload previous models if requested
-        if unload_previous:
+        # Free VRAM / Unload previous models only when the target model actually changes
+        target_name = candidates[current_idx]
+        last_model = _LAST_LOADED_MODEL.get(node_key)
+        model_changed = (last_model is not None and last_model != target_name)
+
+        if unload_previous and model_changed:
             _unload_all_models()
-        if free_vram:
+        if free_vram and (model_changed or last_model is None):
             _clear_vram_cache()
 
         # Load selected model with retry on error if skip_on_error is True
@@ -539,6 +544,7 @@ class FiLModelCycler(io.ComfyNode):
                 else:  # Diffusion Models
                     selected_model = _load_unet(target_name, weight_dtype)
 
+                _LAST_LOADED_MODEL[node_key] = target_name
                 break  # Successfully loaded!
             except (RuntimeError, ValueError, OSError, AttributeError) as err:
                 logger.warning(

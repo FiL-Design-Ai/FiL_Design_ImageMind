@@ -29,3 +29,4 @@ export { default as FilToastStack } from "./FilToastStack.vue";
 export { default as FilToggle } from "./FilToggle.vue";
 export { default as FilWirelessDiagnostics } from "./FilWirelessDiagnostics.vue";
 export { default as FilWirelessModal } from "./FilWirelessModal.vue";
+export { default as FilWorkflowGalleryModal } from "./FilWorkflowGalleryModal.vue";

@@ -320,7 +320,7 @@ Wire the individual layers into separate conditioning branches when you want to 
 | `image_1..4` | IMAGE (optional) | — | reference images |
 | `img_weight_1..4` | FLOAT (optional) | 0.8 / 0.6 / 0.4 / 0.2 | influence per reference |
 | `img_focus_1..4` | COMBO (optional) | `Auto / General` | Style & Texture, Color & Lighting, Subject & Composition, Mood & Atmosphere |
-| `style_1..3` | COMBO (optional) | `(None)` | from the full 391-preset catalog (photo, art and both NSFW libraries) |
+| `style_1..3` | COMBO (optional) | `(None)` | from the full 396-preset catalog (photo, art and both NSFW libraries) |
 | `weight_1..3` | FLOAT (optional) | 1.0 / 0.5 / 0.3 | influence per style |
 
 **Outputs:** `styled_prompt` (STRING), `style_overlay` (STRING)

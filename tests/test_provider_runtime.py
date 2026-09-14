@@ -512,7 +512,7 @@ def test_all_providers_schema_and_fetching(monkeypatch):
 
     expected_providers = {
         "ollama", "lmstudio", "openai", "google", "groq", "openrouter",
-        "cloudflare", "huggingface", "deepinfra"
+        "cloudflare", "huggingface", "deepinfra", "vllm", "llamacpp"
     }
     assert set(PROVIDERS.keys()) == expected_providers
 
@@ -527,6 +527,8 @@ def test_all_providers_schema_and_fetching(monkeypatch):
         "google": "https://generativelanguage.googleapis.com/v1beta",
         "ollama": "http://127.0.0.1:11434",
         "lmstudio": "http://127.0.0.1:1234/v1",
+        "vllm": "http://127.0.0.1:8000/v1",
+        "llamacpp": "http://127.0.0.1:8080/v1",
         "cloudflare": "https://api.cloudflare.com/client/v4/accounts/test-account/ai/v1",
     }
     monkeypatch.setattr(

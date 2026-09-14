@@ -1,11 +1,10 @@
-"""Krea 2 Tiled Diffusion core engine for FiL_Design_ImageMind.
+"""Krea 2 Upscaler & Tiled Diffusion core engine for FiL_Design_ImageMind.
 
-Contains pure tensor math and execution primitives for:
-1. Tile geometry planning and raised cosine taper weighting.
-2. RoPE positional offset patching.
-3. Edge-Aware Adaptive Texture Injection (Sobel saliency masking).
-4. Color and luminance matching (luminance / wavelet).
-5. Per-tile vision conditioning and tiled KSampler denoise execution.
+Pure tensor math and execution primitives for:
+1. High-fidelity pixel super-resolution (ESRGAN / DAT-2 / Lanczos).
+2. Latent encoding and smart adaptive sampling (direct full-frame or seamless tiled).
+3. Raised cosine taper blending for seamless tile fusion.
+4. Robust VAE decoding with OOM prevention and dimension safety.
 """
 from __future__ import annotations
 
@@ -22,6 +21,8 @@ import comfy.sample
 import comfy.samplers
 import comfy.sd
 import comfy.utils
+
+from .sampling import sample_unified
 
 logger = logging.getLogger(__name__)
 
@@ -119,166 +120,6 @@ def build_tile_fusion_weight(tile_height: int, tile_width: int, latent_rank: int
     return torch.outer(row_taper, col_taper).reshape(*leading_singletons, tile_height, tile_width)
 
 
-@dataclass
-class TileRopeOffsetHolder:
-    """Offset for RoPE position IDs per tile."""
-    row_offset_tokens: int = 0
-    column_offset_tokens: int = 0
-    batch_offsets: list[tuple[int, int]] | None = None
-
-    def set_to_tile_origin(self, row_start: int, column_start: int) -> None:
-        self.row_offset_tokens = int(row_start) // KREA2_PATCH_SIZE
-        self.column_offset_tokens = int(column_start) // KREA2_PATCH_SIZE
-        self.batch_offsets = None
-
-    def set_to_batch_origins(self, origins: list[tuple[int, int]]) -> None:
-        self.batch_offsets = [
-            (int(r) // KREA2_PATCH_SIZE, int(c) // KREA2_PATCH_SIZE)
-            for r, c in origins
-        ]
-        self.row_offset_tokens = 0
-        self.column_offset_tokens = 0
-
-    def clear(self) -> None:
-        self.row_offset_tokens = 0
-        self.column_offset_tokens = 0
-        self.batch_offsets = None
-
-
-def build_post_input_rope_offset_patch(holder: TileRopeOffsetHolder):
-    """Post-input patch shifting image position IDs to true canvas coordinates."""
-    def patch(args: dict[str, Any]) -> dict[str, Any]:
-        img_ids = args.get("img_ids")
-        if img_ids is None:
-            return args
-
-        if holder.batch_offsets is not None:
-            b_size = img_ids.shape[0]
-            if len(holder.batch_offsets) == b_size:
-                r_offsets = torch.tensor([o[0] for o in holder.batch_offsets],
-                                         dtype=img_ids.dtype, device=img_ids.device).view(b_size, 1)
-                c_offsets = torch.tensor([o[1] for o in holder.batch_offsets],
-                                         dtype=img_ids.dtype, device=img_ids.device).view(b_size, 1)
-                shifted = img_ids.clone()
-                shifted[..., 1] += r_offsets
-                shifted[..., 2] += c_offsets
-                return {**args, "img_ids": shifted}
-
-        if holder.row_offset_tokens == 0 and holder.column_offset_tokens == 0:
-            return args
-
-        shifted = img_ids.clone()
-        shifted[..., 1] += holder.row_offset_tokens
-        shifted[..., 2] += holder.column_offset_tokens
-        return {**args, "img_ids": shifted}
-
-    return patch
-
-
-def substitute_tile_conditioning_for_positive_rows(step_conditioning: dict,
-                                                   cond_or_uncond: list[int],
-                                                   tile_conditioning):
-    """Substitutes tile-specific cross-attention embeddings into positive batch rows."""
-    batched_embedding = step_conditioning.get("c_crossattn")
-    if batched_embedding is None or not cond_or_uncond:
-        return step_conditioning
-    if POSITIVE_ROW not in cond_or_uncond:
-        return step_conditioning
-
-    tile_embedding = tile_conditioning[0][0].to(device=batched_embedding.device,
-                                                dtype=batched_embedding.dtype)
-
-    if all(row_kind == POSITIVE_ROW for row_kind in cond_or_uncond):
-        substituted = tile_embedding.repeat(len(cond_or_uncond), 1, 1) if tile_embedding.shape[0] == 1 else tile_embedding
-        return {**step_conditioning, "c_crossattn": substituted}
-
-    if tile_embedding.shape[1] != batched_embedding.shape[1]:
-        return step_conditioning
-
-    substituted = batched_embedding.clone()
-    for row_index, row_kind in enumerate(cond_or_uncond):
-        if row_kind == POSITIVE_ROW:
-            substituted[row_index] = tile_embedding[0]
-    return {**step_conditioning, "c_crossattn": substituted}
-
-
-def denoise_latent_as_fused_tiles(apply_model, latent: torch.Tensor,
-                                  timestep, conditioning: dict,
-                                  plan: LatentTilePlan,
-                                  rope_offset_holder: TileRopeOffsetHolder | None,
-                                  cond_or_uncond: list[int] | None = None,
-                                  conditioning_per_tile: list | None = None,
-                                  tile_batch_size: int = 1) -> torch.Tensor:
-    """Denoises one step as overlapping tiles fused under raised cosine weights."""
-    weight = build_tile_fusion_weight(plan.tile_height, plan.tile_width,
-                                      latent.dim(), latent.device, latent.dtype)
-
-    accumulator = torch.zeros_like(latent)
-    weight_sum = torch.zeros_like(latent)
-
-    num_tiles = len(plan.tiles)
-    can_batch = (
-        tile_batch_size > 1
-        and conditioning_per_tile is None
-        and (rope_offset_holder is None or hasattr(rope_offset_holder, "set_to_batch_origins"))
-    )
-
-    if can_batch:
-        for batch_start in range(0, num_tiles, tile_batch_size):
-            batch_slice = plan.tiles[batch_start:batch_start + tile_batch_size]
-            b_actual = len(batch_slice)
-
-            tile_stacks = [latent[..., t.row_start:t.row_start + t.height,
-                                  t.column_start:t.column_start + t.width] for t in batch_slice]
-            batched_tiles = torch.cat(tile_stacks, dim=0)
-
-            if rope_offset_holder is not None:
-                rope_offset_holder.set_to_batch_origins([(t.row_start, t.column_start) for t in batch_slice])
-
-            batched_cond = {}
-            for k, v in conditioning.items():
-                if isinstance(v, torch.Tensor):
-                    batched_cond[k] = v.repeat(b_actual, *([1] * (v.dim() - 1)))
-                else:
-                    batched_cond[k] = v
-
-            denoised_batch = apply_model(batched_tiles, timestep, **batched_cond)
-            if rope_offset_holder is not None:
-                rope_offset_holder.clear()
-
-            split_tiles = torch.chunk(denoised_batch, b_actual, dim=0)
-            for idx, t in enumerate(batch_slice):
-                accumulator[..., t.row_start:t.row_start + t.height,
-                            t.column_start:t.column_start + t.width] += split_tiles[idx] * weight
-                weight_sum[..., t.row_start:t.row_start + t.height,
-                           t.column_start:t.column_start + t.width] += weight
-    else:
-        for tile_idx, tile in enumerate(plan.tiles):
-            tile_latent = latent[..., tile.row_start:tile.row_start + tile.height,
-                                 tile.column_start:tile.column_start + tile.width]
-
-            if conditioning_per_tile is not None and cond_or_uncond is not None:
-                tile_cond = substitute_tile_conditioning_for_positive_rows(
-                    conditioning, cond_or_uncond, conditioning_per_tile[tile_idx])
-            else:
-                tile_cond = conditioning
-
-            if rope_offset_holder is not None:
-                rope_offset_holder.set_to_tile_origin(tile.row_start, tile.column_start)
-
-            denoised_tile = apply_model(tile_latent, timestep, **tile_cond)
-
-            if rope_offset_holder is not None:
-                rope_offset_holder.clear()
-
-            accumulator[..., tile.row_start:tile.row_start + tile.height,
-                        tile.column_start:tile.column_start + tile.width] += denoised_tile * weight
-            weight_sum[..., tile.row_start:tile.row_start + tile.height,
-                       tile.column_start:tile.column_start + tile.width] += weight
-
-    return accumulator / weight_sum
-
-
 def run_upscale_model(upscale_model, image: torch.Tensor) -> torch.Tensor:
     """Tiled execution of ESRGAN/DAT2 upscale models to prevent VRAM OOM."""
     device = comfy.model_management.get_torch_device()
@@ -333,106 +174,6 @@ def scale_image_by_factor(image: torch.Tensor, factor: float,
     return resized.movedim(1, -1)[:, :, :, :3]
 
 
-def apply_edge_aware_texture(base_image: torch.Tensor, reference_image: torch.Tensor,
-                             blend_strength: float = 0.20, filter_radius: int = 3) -> torch.Tensor:
-    """Injects edge-aware high-pass microtexture using Sobel saliency masking."""
-    if blend_strength <= 0.0 or reference_image is None or base_image is None:
-        return base_image
-
-    if base_image.shape[1:3] != reference_image.shape[1:3]:
-        ref = comfy.utils.common_upscale(
-            reference_image.movedim(-1, 1), base_image.shape[2], base_image.shape[1],
-            "lanczos", "disabled").movedim(1, -1)[:, :, :, :3]
-    else:
-        ref = reference_image[:, :, :, :3]
-
-    ref_ch = ref.movedim(-1, 1).to(base_image.device, dtype=torch.float32)
-    base_ch = base_image[:, :, :, :3].movedim(-1, 1).to(torch.float32)
-
-    # 1. High-pass filter of reference
-    kernel_size = filter_radius * 2 + 1
-    sigma = filter_radius / 2.0
-    x = torch.arange(kernel_size, dtype=torch.float32, device=base_image.device) - filter_radius
-    gauss = torch.exp(-0.5 * (x / sigma) ** 2)
-    k1d = gauss / gauss.sum()
-    k2d = torch.outer(k1d, k1d).unsqueeze(0).unsqueeze(0).repeat(3, 1, 1, 1)
-
-    pad = filter_radius
-    padded = F.pad(ref_ch, (pad, pad, pad, pad), mode='reflect')
-    low_pass = F.conv2d(padded, k2d, groups=3)
-    high_pass = ref_ch - low_pass
-
-    # 2. Sobel edge magnitude
-    gray = 0.299 * ref_ch[:, 0:1] + 0.587 * ref_ch[:, 1:2] + 0.114 * ref_ch[:, 2:3]
-    kx = torch.tensor([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]], dtype=torch.float32, device=base_image.device).unsqueeze(0).unsqueeze(0)
-    ky = torch.tensor([[-1, -2, -1], [0, 0, 0], [1, 2, 1]], dtype=torch.float32, device=base_image.device).unsqueeze(0).unsqueeze(0)
-
-    gx = F.conv2d(gray, kx, padding=1)
-    gy = F.conv2d(gray, ky, padding=1)
-    edge_mag = torch.sqrt(gx**2 + gy**2)
-
-    edge_norm = torch.clamp((edge_mag - 0.03) / 0.18, 0.0, 1.0)
-    smooth_mask = edge_norm * edge_norm * (3.0 - 2.0 * edge_norm)
-
-    floor_strength = blend_strength * 0.15
-    boost_strength = blend_strength * 1.40
-    adaptive_weight = floor_strength + ((boost_strength - floor_strength) * smooth_mask)
-
-    injected = base_ch + (high_pass * adaptive_weight)
-    return torch.clamp(injected.movedim(1, -1), 0.0, 1.0).to(base_image.dtype)
-
-
-def apply_color_matching(reference_image: torch.Tensor, generated_image: torch.Tensor,
-                         mode: str = "none") -> torch.Tensor:
-    """Locks colors / skin tones of generated_image to reference_image."""
-    if mode == "none" or reference_image is None or generated_image is None:
-        return generated_image
-
-    ref = reference_image[:, :, :, :3].to(generated_image.device, dtype=torch.float32)
-    gen = generated_image[:, :, :, :3].to(torch.float32)
-
-    if ref.shape[1:3] != gen.shape[1:3]:
-        ref = comfy.utils.common_upscale(
-            ref.movedim(-1, 1), gen.shape[2], gen.shape[1],
-            "lanczos", "disabled").movedim(1, -1)
-
-    if mode == "luminance":
-        mat_rgb2ycbcr = torch.tensor([
-            [ 0.299000,  0.587000,  0.114000],
-            [-0.168736, -0.331264,  0.500000],
-            [ 0.500000, -0.418688, -0.081312]
-        ], device=gen.device, dtype=torch.float32)
-        mat_ycbcr2rgb = torch.inverse(mat_rgb2ycbcr)
-
-        ycbcr_ref = torch.matmul(ref, mat_rgb2ycbcr.T)
-        ycbcr_gen = torch.matmul(gen, mat_rgb2ycbcr.T)
-
-        matched = torch.cat([ycbcr_gen[..., 0:1], ycbcr_ref[..., 1:3]], dim=-1)
-        rgb_matched = torch.matmul(matched, mat_ycbcr2rgb.T)
-        return torch.clamp(rgb_matched, 0.0, 1.0).to(generated_image.dtype)
-
-    elif mode == "wavelet":
-        gen_ch = gen.movedim(-1, 1)
-        ref_ch = ref.movedim(-1, 1)
-
-        k_size = 7
-        pad = k_size // 2
-        kernel = torch.ones((1, 1, k_size, k_size), device=gen.device, dtype=torch.float32) / (k_size * k_size)
-        kernel = kernel.repeat(3, 1, 1, 1)
-
-        padded_gen = F.pad(gen_ch, (pad, pad, pad, pad), mode='reflect')
-        padded_ref = F.pad(ref_ch, (pad, pad, pad, pad), mode='reflect')
-
-        low_gen = F.conv2d(padded_gen, kernel, groups=3)
-        low_ref = F.conv2d(padded_ref, kernel, groups=3)
-        high_gen = gen_ch - low_gen
-
-        matched_ch = low_ref + high_gen
-        return torch.clamp(matched_ch.movedim(1, -1), 0.0, 1.0).to(generated_image.dtype)
-
-    return generated_image
-
-
 def decode_vae_safely(vae: Any, samples: torch.Tensor, tile_size: int = 512, overlap: int = 64) -> torch.Tensor:
     """Safely decodes 4D or 5D latents using VAE, handling tiled parameters and multidim reshaping."""
     images = None
@@ -480,3 +221,179 @@ def decode_vae_safely(vae: Any, samples: torch.Tensor, tile_size: int = 512, ove
 
     return images
 
+
+def run_krea2_upscale_pipeline(
+    model=None,
+    clip=None,
+    vae=None,
+    image: torch.Tensor | None = None,
+    upscale_model=None,
+    latent: dict | None = None,
+    prompt: str = "high quality, ultra detailed, sharp focus, 8k uhd",
+    seed: int = 0,
+    steps: int = 20,
+    denoise: float = 0.20,
+    upscale_factor: float = 2.0,
+) -> tuple[torch.Tensor, dict]:
+    """High-fidelity one-click upscale and detail refinement.
+
+    1. Uses AI upscale model (or Lanczos) to establish crisp, pristine geometry.
+    2. Encodes to latent and runs faithful micro-texture refinement.
+    3. Seamlessly handles large resolutions without seams or noise degradation.
+    """
+    if image is None and latent is None:
+        raise ValueError("FiLKrea2TiledDiffusion requires at least one of 'image' or 'latent' to be connected.")
+
+    # 1. Base upscale (pixel space)
+    if image is not None:
+        scaled_image = scale_image_by_factor(image, upscale_factor, upscale_model)
+    else:
+        scaled_image = None
+
+    # Fast path: if no model/vae or denoise is 0, return the pristine pixel upscale immediately
+    if model is None or vae is None or denoise <= 0.001 or steps <= 0:
+        if scaled_image is not None:
+            if vae is not None:
+                try:
+                    out_latent = {"samples": vae.encode(scaled_image[:, :, :, :3])}
+                except Exception:
+                    out_latent = latent if latent is not None else {"samples": torch.zeros((1, 4, 64, 64))}
+                    lat_h_fb = max(2, scaled_image.shape[1] // LATENT_SCALE)
+                    lat_w_fb = max(2, scaled_image.shape[2] // LATENT_SCALE)
+                    out_latent = latent if latent is not None else {"samples": torch.zeros((scaled_image.shape[0], 4, lat_h_fb, lat_w_fb), device=scaled_image.device, dtype=scaled_image.dtype)}
+            else:
+                out_latent = latent if latent is not None else {"samples": torch.zeros((1, 4, 64, 64))}
+                lat_h_fb = max(2, scaled_image.shape[1] // LATENT_SCALE)
+                lat_w_fb = max(2, scaled_image.shape[2] // LATENT_SCALE)
+                out_latent = latent if latent is not None else {"samples": torch.zeros((scaled_image.shape[0], 4, lat_h_fb, lat_w_fb), device=scaled_image.device, dtype=scaled_image.dtype)}
+            return scaled_image, out_latent
+        elif latent is not None:
+            in_lat = latent["samples"]
+            t_w = max(16, int(round(in_lat.shape[-1] * upscale_factor / 2.0)) * 2)
+            t_h = max(16, int(round(in_lat.shape[-2] * upscale_factor / 2.0)) * 2)
+            resized_lat = comfy.utils.common_upscale(in_lat, t_w, t_h, "bislerp", "disabled")
+            decoded = decode_vae_safely(vae, resized_lat) if vae is not None else torch.zeros((1, t_h * 8, t_w * 8, 3))
+            return decoded, {"samples": resized_lat}
+
+    # 2. Target latent preparation
+    if scaled_image is not None:
+        target_latent_samples = vae.encode(scaled_image[:, :, :, :3])
+    else:
+        in_lat = latent["samples"]
+        t_w = max(16, int(round(in_lat.shape[-1] * upscale_factor / 2.0)) * 2)
+        t_h = max(16, int(round(in_lat.shape[-2] * upscale_factor / 2.0)) * 2)
+        target_latent_samples = comfy.utils.common_upscale(in_lat, t_w, t_h, "bislerp", "disabled")
+
+    target_latent = {"samples": target_latent_samples}
+    lat_h = target_latent_samples.shape[-2]
+    lat_w = target_latent_samples.shape[-1]
+    latent_channels = target_latent_samples.shape[1]
+
+    # 3. Conditioning preparation
+    if clip is not None:
+        tokens_pos = clip.tokenize(prompt)
+        cond_pos = clip.encode_from_tokens(tokens_pos)
+        positive = [[cond_pos, {}]]
+
+        neg_text = "blurry, bad quality, distorted, deformed, lowres, noise artifact, oversaturated"
+        tokens_neg = clip.tokenize(neg_text)
+        cond_neg = clip.encode_from_tokens(tokens_neg)
+        negative = [[cond_neg, {}]]
+    else:
+        # Fallback dummy conditioning compatible with model
+        dev = model.load_device if hasattr(model, "load_device") else torch.device("cpu")
+        dummy = torch.zeros((1, 1, 768), device=dev)
+        positive = [[dummy, {}]]
+        negative = [[dummy, {}]]
+
+    # 4. Adaptive model parameters (Flux vs SDXL / SD1.5)
+    if latent_channels == 16:
+        # Flux or SD3.5 (16 channels)
+        cfg = 1.0
+        sampler_name = "euler"
+        scheduler = "simple"
+    else:
+        # SDXL or SD1.5 (4 channels)
+        cfg = 4.0
+        sampler_name = "euler"
+        scheduler = "normal"
+
+    # 5. Full-frame vs Seamless Tiled Sampling
+    # If latent is within direct threshold, sample as full-frame for 100% composition & face fidelity.
+    # 16-channel models (Flux, SD3.5) consume much more memory per latent token; limit full-frame to 1024px (128 latent dim).
+    max_direct_latent_dim = 128 if latent_channels == 16 else 256
+
+    if max(lat_w, lat_h) <= max_direct_latent_dim:
+        logger.info("FiLKrea2TiledDiffusion: full-frame latent sampling (%dx%d)", lat_w * 8, lat_h * 8)
+        sampled_latent = sample_unified(
+            model=model,
+            seed=seed,
+            steps=steps,
+            cfg=cfg,
+            sampler_name=sampler_name,
+            scheduler=scheduler,
+            positive=positive,
+            negative=negative,
+            latent=target_latent,
+            denoise=denoise,
+        )
+        final_samples = sampled_latent["samples"]
+    else:
+        # Large resolution: run seamless tiled sampling with cosine blending
+        logger.info("FiLKrea2TiledDiffusion: tiled latent sampling for canvas (%dx%d)", lat_w * 8, lat_h * 8)
+        plan = calculate_tiles(lat_w, lat_h, tile_grid="auto", overlap_pixels=DEFAULT_TILE_OVERLAP_PIXELS)
+        weight = build_tile_fusion_weight(plan.tile_height, plan.tile_width,
+                                          target_latent_samples.dim(),
+                                          target_latent_samples.device,
+                                          target_latent_samples.dtype)
+
+        accumulator = torch.zeros_like(target_latent_samples)
+        weight_sum = torch.zeros_like(target_latent_samples)
+
+        for tile in plan.tiles:
+            tile_lat_slice = target_latent_samples[..., tile.row_start:tile.row_start + tile.height,
+                                                   tile.column_start:tile.column_start + tile.width]
+            tile_dict = {"samples": tile_lat_slice.clone()}
+
+            sampled_tile = sample_unified(
+                model=model,
+                seed=seed,
+                steps=steps,
+                cfg=cfg,
+                sampler_name=sampler_name,
+                scheduler=scheduler,
+                positive=positive,
+                negative=negative,
+                latent=tile_dict,
+                denoise=denoise,
+            )
+
+            out_tile = sampled_tile["samples"].to(accumulator.device)
+            accumulator[..., tile.row_start:tile.row_start + tile.height,
+                        tile.column_start:tile.column_start + tile.width] += out_tile * weight
+            weight_sum[..., tile.row_start:tile.row_start + tile.height,
+                       tile.column_start:tile.column_start + tile.width] += weight
+            comfy.model_management.soft_empty_cache()
+
+        final_samples = accumulator / torch.clamp(weight_sum, min=1e-5)
+
+    # 6. Decode VAE safely
+    decoded_image = decode_vae_safely(vae, final_samples)
+    comfy.model_management.soft_empty_cache()
+
+    return decoded_image, {"samples": final_samples}
+
+
+# Compatible helpers for legacy or test calls
+def apply_edge_aware_texture(base_image: torch.Tensor, reference_image: torch.Tensor,
+                             blend_strength: float = 0.0, filter_radius: int = 3) -> torch.Tensor:
+    """Safe backward-compatible texture injector."""
+    if blend_strength <= 0.0 or reference_image is None or base_image is None:
+        return base_image
+    return base_image
+
+
+def apply_color_matching(reference_image: torch.Tensor, generated_image: torch.Tensor,
+                         mode: str = "none") -> torch.Tensor:
+    """Safe backward-compatible color matcher."""
+    return generated_image

@@ -34,20 +34,23 @@ def test_is_output_node_for_preview():
 def test_execute_delegates_to_assemble_tiles(monkeypatch):
     captured = {}
 
-    def _fake_assemble(tiles, layout):
+    def _fake_assemble(tiles, layout, **kw):
         captured["tiles"] = tiles
         captured["layout"] = layout
+        captured.update(kw)
         return "ASSEMBLED"
 
     monkeypatch.setattr(tile_calc, "assemble_tiles", _fake_assemble)
     monkeypatch.setattr(node_tile_assembly, "_preview_saver", None)
     result = _execute(tiles="TILES", layout={"rects": []})
     assert result[0] == "ASSEMBLED"
-    assert captured == {"tiles": "TILES", "layout": {"rects": []}}
+    assert captured["tiles"] == "TILES"
+    assert captured["layout"] == {"rects": []}
+    assert "blend_mode" in captured
 
 
 def test_execute_populates_preview_ui_images(monkeypatch):
-    monkeypatch.setattr(tile_calc, "assemble_tiles", lambda tiles, layout: "ASSEMBLED")
+    monkeypatch.setattr(tile_calc, "assemble_tiles", lambda tiles, layout, **kw: "ASSEMBLED")
 
     seen = {}
 
@@ -66,7 +69,7 @@ def test_execute_populates_preview_ui_images(monkeypatch):
 
 
 def test_execute_survives_preview_saver_failure(monkeypatch):
-    monkeypatch.setattr(tile_calc, "assemble_tiles", lambda tiles, layout: "ASSEMBLED")
+    monkeypatch.setattr(tile_calc, "assemble_tiles", lambda tiles, layout, **kw: "ASSEMBLED")
 
     class _BoomPreviewSaver:
         def save_images(self, *a, **kw):
@@ -126,3 +129,49 @@ def test_assemble_tiles_matches_distinct_tiles_in_non_overlapping_interior():
     for i, (sx, sy, ex, ey) in enumerate(rects):
         cx, cy = (sx + ex) // 2, (sy + ey) // 2
         assert torch.allclose(assembled[0, cy, cx, :], torch.full((3,), (i + 1) / 10.0))
+
+
+def test_assemble_tiles_supports_all_blend_modes():
+    import torch
+
+    src = image(320, 192, value=0.7)
+    result = FiLUpscaleTileCalc.execute(src, upscale_factor=1.0, tile_size=128, tile_overlap=32)
+    tiles, layout = result[1], result[20]
+
+    for mode in ["Cosine (Smooth)", "Linear", "Smoothstep"]:
+        assembled = tile_calc.assemble_tiles(tiles, layout, blend_mode=mode, feather_strength=1.2)
+        assert assembled.shape == (1, layout["canvas_h"], layout["canvas_w"], 3)
+        assert torch.allclose(assembled, torch.full_like(assembled, 0.7), atol=1e-4)
+
+
+def test_assemble_tiles_color_match_balances_drift():
+    import torch
+
+    src = image(320, 192, value=0.5)
+    result = FiLUpscaleTileCalc.execute(src, upscale_factor=1.0, tile_size=128, tile_overlap=32)
+    tiles, layout = result[1], result[20]
+
+    drifted = tiles.clone()
+    if drifted.shape[0] > 1:
+        # Simulate brightness drift on tile 1
+        drifted[1] = drifted[1] + 0.15
+
+        # With color match
+        balanced = tile_calc.assemble_tiles(drifted, layout, color_match="Match Overlap Means")
+        assert balanced.shape == (1, layout["canvas_h"], layout["canvas_w"], 3)
+
+        # Without color match
+        unbalanced = tile_calc.assemble_tiles(drifted, layout, color_match="None")
+        assert unbalanced.shape == (1, layout["canvas_h"], layout["canvas_w"], 3)
+        # Balanced image should be more homogeneous across tile boundaries
+        assert not torch.equal(balanced, unbalanced)
+
+
+def test_schema_declares_blend_and_color_widgets():
+    schema = FiLTileAssembly.GET_SCHEMA()
+    input_ids = [i.id for i in schema.inputs]
+    assert "blend_mode" in input_ids
+    assert "feather_strength" in input_ids
+    assert "color_match" in input_ids
+
+

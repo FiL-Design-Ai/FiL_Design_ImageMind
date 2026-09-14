@@ -33,6 +33,27 @@ class FiLTileAssembly(io.ComfyNode):
             inputs=[
                 io.Image.Input("tiles", tooltip=_t("tla_tiles", "Batch of processed tile images — same order/count as the `tiles` output that produced `layout`.")),
                 FilTileLayout.Input("layout", tooltip=_t("tla_layout", "Tile layout from FiL Upscaler Advanced/Simple's `layout` output.")),
+                io.Combo.Input(
+                    "blend_mode",
+                    options=tile_calc.BLEND_MODES,
+                    default="Cosine (Smooth)",
+                    tooltip=_t("tla_blend_mode", "Curve used to feather overlap seams: Cosine for smooth transitions, Linear for classic ramp, Smoothstep for cubic interpolation."),
+                ),
+                io.Float.Input(
+                    "feather_strength",
+                    default=1.0,
+                    min=0.2,
+                    max=1.5,
+                    step=0.05,
+                    display_mode=io.NumberDisplay.slider,
+                    tooltip=_t("tla_feather_strength", "Feathering depth multiplier across overlap zones."),
+                ),
+                io.Combo.Input(
+                    "color_match",
+                    options=tile_calc.COLOR_MATCH_MODES,
+                    default="Match Overlap Means",
+                    tooltip=_t("tla_color_match", "Automatically match mean color/brightness in tile overlaps to eliminate visible exposure seams."),
+                ),
             ],
             outputs=[
                 io.Image.Output(display_name="image", tooltip="Reassembled full-size image."),
@@ -45,8 +66,21 @@ class FiLTileAssembly(io.ComfyNode):
         )
 
     @classmethod
-    def execute(cls, tiles, layout) -> io.NodeOutput:
-        image = tile_calc.assemble_tiles(tiles, layout)
+    def execute(
+        cls,
+        tiles,
+        layout,
+        blend_mode: str = "Cosine (Smooth)",
+        feather_strength: float = 1.0,
+        color_match: str = "Match Overlap Means",
+    ) -> io.NodeOutput:
+        image = tile_calc.assemble_tiles(
+            tiles,
+            layout,
+            blend_mode=blend_mode,
+            feather_strength=feather_strength,
+            color_match=color_match,
+        )
         ui_data: dict = {"images": []}
         if _preview_saver is not None:
             try:

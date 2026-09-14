@@ -194,7 +194,19 @@ def test_nsfw_cloudflare_verified_models_detected():
     assert caps.is_nsfw_capable("cloudflare", "@cf/deepseek-ai/deepseek-r1-distill-qwen-32b") is True
     assert caps.is_nsfw_capable("cloudflare", "@cf/meta/llama-4-scout-17b-16e-instruct") is True
     assert caps.is_nsfw_capable("cloudflare", "@cf/qwen/qwq-32b") is True
+    assert caps.is_nsfw_capable("cloudflare", "@cf/aisingapore/gemma-sea-lion-v4-27b-it") is True
+    assert caps.is_nsfw_capable("cloudflare", "@cf/ibm-granite/granite-4.0-h-micro") is True
+    assert caps.is_nsfw_capable("cloudflare", "@cf/qwen/qwen3-30b-a3b-fp8") is True
+    assert caps.is_nsfw_capable("cloudflare", "@cf/meta/llama-3.2-1b-instruct") is False
+    assert caps.is_nsfw_capable("cloudflare", "@cf/meta/llama-3.2-3b-instruct") is False
+    assert caps.is_nsfw_capable("cloudflare", "@cf/openai/gpt-oss-120b") is False
     assert caps.is_nsfw_capable("cloudflare", "@cf/google/gemma-2b-it-lora") is False
+
+
+def test_nsfw_groq_models_not_badged_due_to_infrastructure_filter():
+    assert caps.is_nsfw_capable("groq", "openai/gpt-oss-20b") is False
+    assert caps.is_nsfw_capable("groq", "openai/gpt-oss-safeguard-20b") is False
+    assert caps.is_nsfw_capable("groq", "qwen/qwen3.8-27b") is False
 
 
 def test_nsfw_google_gemini_models_not_badged_due_to_server_layer2_policy():

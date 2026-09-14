@@ -180,11 +180,20 @@ def test_schema_declares_the_two_text_fields_and_seed() -> None:
     schema = FiLPromptDirector.define_schema()
     assert schema.node_id == "FiLPromptDirector"
     inputs = {i.id: i for i in schema.inputs}
-    for name in ("config", "instruction", "source_prompt", "language", "seed"):
+    for name in ("config", "instruction", "source_prompt", "language", "seed", "mode", "camera_motion"):
         assert name in inputs, f"missing input {name}"
     assert inputs["language"].default == "en"
     assert inputs["seed"].default == 0
+    assert inputs["mode"].default == "DiT Image (Static)"
+    assert inputs["camera_motion"].default == "Auto / Freeform"
     assert [o.display_name for o in schema.outputs] == ["prompt"]
+
+
+def test_video_mode_system_prompt_includes_kinetic_rules_and_camera() -> None:
+    prompt = build_system_prompt("en", mode="Video (Wan2.1 / Hunyuan / LTX)", camera_motion="Dolly In / Push-in")
+    assert "Wan2.1" in prompt
+    assert "KINETIC CONTINUITY" in prompt
+    assert "Enforced camera motion: Dolly In / Push-in" in prompt
 
 
 def test_validate_inputs_rejects_a_broken_config() -> None:

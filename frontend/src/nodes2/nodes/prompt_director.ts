@@ -26,6 +26,8 @@ const stringDefaults: Record<string, string> = {
   source_prompt: "",
   language: "en",
   control_after_generate: "fixed",
+  mode: "DiT Image (Static)",
+  camera_motion: "Auto / Freeform",
 };
 const numberDefaults: Record<string, number> = { seed: 0 };
 

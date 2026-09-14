@@ -11,38 +11,22 @@ import { FIL_STATE_KEY, installFilStatePersistence, restoreFilState, type Persis
 const Krea2Vue = defineAsyncComponent(() => import("@/components/nodes/Krea2TiledDiffusionPanel.vue"));
 
 export const KREA2_SOCKET_INPUTS = [
+  "upscale_factor",
+  "denoise",
   "prompt",
   "seed",
   "steps",
-  "denoise",
-  "vision_weight",
-  "upscale_factor",
-  "tile_grid",
-  "tile_overlap",
-  "tile_batch_size",
-  "texture_injection",
-  "color_match",
-  "identity_lora_name",
-  "identity_lora_strength",
 ];
 
 const numericDefaults: Record<string, number> = {
-  seed: 0,
-  steps: 8,
-  denoise: 0.22,
-  vision_weight: 1.40,
   upscale_factor: 2.0,
-  tile_batch_size: 1,
-  texture_injection: 0.20,
-  identity_lora_strength: 1.0,
+  denoise: 0.20,
+  seed: 0,
+  steps: 20,
 };
 
 const stringDefaults: Record<string, string> = {
-  prompt: "hyperrealistic, highly detailed, 8k uhd",
-  tile_grid: "auto",
-  tile_overlap: "auto (256px)",
-  color_match: "none",
-  identity_lora_name: "none",
+  prompt: "high quality, ultra detailed, sharp focus, 8k uhd",
   control_after_generate: "randomize",
 };
 
@@ -52,10 +36,10 @@ export const krea2TiledDiffusionNode: NodeModule = {
   id: "FiLKrea2TiledDiffusion",
   register(nodeType: LGraphNodeType, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
-      minSize: [320, 560],
+      minSize: [320, 360],
       initialWidth: 320,
       family: "image",
-      description: "Ultra-high-definition tiled upscale with RoPE canvas coordinates, edge-aware adaptive texture and color matching.",
+      description: "High-fidelity one-click AI upscale and detail enhancement with strict original preservation.",
       badges: [{ text: "krea2", color: "#62c987", text_color: "#1a1a1a" }],
     });
 
@@ -96,7 +80,7 @@ export const krea2TiledDiffusionNode: NodeModule = {
       node._filKrea2State = state;
 
       installFilStatePersistence(node, state);
-      addFilDomWidget(node, "fil_krea2_view", Krea2Vue, { state, height: 560, growable: true });
+      addFilDomWidget(node, "fil_krea2_view", Krea2Vue, { state, height: 360, growable: true });
       exposeWidgetInputSockets(this, KREA2_SOCKET_INPUTS);
       return result;
     };

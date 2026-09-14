@@ -21,13 +21,29 @@ from .brand import BRAND
 logger = logging.getLogger(f"{BRAND}.Processing")
 
 
-def comfy_image_to_rgb_uint8(image: Any) -> np.ndarray:
+def comfy_image_to_rgb_uint8(image: Any, max_side: int = 0) -> np.ndarray:
     if hasattr(image, "detach"):
-        frame = image[0].detach().cpu().numpy()
+        frame = image[0].detach()
     elif hasattr(image, "cpu"):
-        frame = image[0].cpu().numpy()
+        frame = image[0]
     else:
-        frame = np.asarray(image[0])
+        frame = image[0]
+
+    # Pre-downscale huge frames before moving to numpy when max_side is set
+    if max_side > 0 and hasattr(frame, "shape") and len(frame.shape) >= 2:
+        h = int(frame.shape[-3]) if len(frame.shape) >= 3 else int(frame.shape[0])
+        w = int(frame.shape[-2]) if len(frame.shape) >= 3 else int(frame.shape[1])
+        longest = max(h, w)
+        if longest > max_side:
+            step = max(1, int(np.ceil(longest / max_side)))
+            if step > 1:
+                frame = frame[::step, ::step]
+
+    if hasattr(frame, "cpu"):
+        frame = frame.cpu().numpy()
+    else:
+        frame = np.asarray(frame)
+
     if frame.ndim == 2:
         frame = frame[..., np.newaxis]
     if frame.ndim != 3:
@@ -42,8 +58,8 @@ def comfy_image_to_rgb_uint8(image: Any) -> np.ndarray:
     return frame
 
 
-def comfy_image_to_pil(image: Any) -> Image.Image:
-    return Image.fromarray(comfy_image_to_rgb_uint8(image)).convert("RGB")
+def comfy_image_to_pil(image: Any, max_side: int = 0) -> Image.Image:
+    return Image.fromarray(comfy_image_to_rgb_uint8(image, max_side=max_side)).convert("RGB")
 
 
 class ImageProcessor:
@@ -102,7 +118,7 @@ class ImageProcessor:
         results = []
         for i in range(b):
             single = image_tensor[i : i + 1]
-            pil = comfy_image_to_pil(single)
+            pil = comfy_image_to_pil(single, max_side=self.max_side)
             b64 = self.to_base64(pil)
             results.append(b64)
         return results, w, h

@@ -313,35 +313,58 @@ class FiLDatasetForge(io.ComfyNode):
     @classmethod
     def _caption_all(cls, images, config, *, mode, language, max_words, class_token,
                      dont_caption, extra_instruction, seed, unique_id) -> list[str]:
+        class _LazyBase64Sequence:
+            def __init__(self, imgs, proc):
+                self._imgs = imgs
+                self._proc = proc
+
+            def __len__(self) -> int:
+                return len(self._imgs)
+
+            def __getitem__(self, idx: int) -> str:
+                return self._proc.to_base64(self._imgs[idx])
+
         with _processor.with_max_side(config.get("max_image_side", 1024)) as processor:
-            images_b64 = [processor.to_base64(image) for image in images]
+            lazy_images = _LazyBase64Sequence(images, processor)
 
-        raw_max_tokens = config.get("max_tokens")
-        max_tokens = None if raw_max_tokens in (0, None) else raw_max_tokens
+            raw_max_tokens = config.get("max_tokens")
+            max_tokens = None if raw_max_tokens in (0, None) else raw_max_tokens
 
-        # The V3 backend (common.progress) carries the frame the caption LLM
-        # is looking at right now to the UI alongside the bar; on hosts old
-        # enough to only have the legacy ProgressBar the preview is dropped.
-        progress = FilProgress(len(images_b64), unique_id)
+            # The V3 backend (common.progress) carries the frame the caption LLM
+            # is looking at right now to the UI alongside the bar; on hosts old
+            # enough to only have the legacy ProgressBar the preview is dropped.
+            progress = FilProgress(len(lazy_images), unique_id)
 
-        def on_progress(index: int, total: int) -> None:
-            _raise_if_interrupted()
-            progress.update(index, preview=images[index])
+            def on_progress(index: int, total: int) -> None:
+                _raise_if_interrupted()
+                progress.update(index, preview=images[index])
+                try:
+                    import comfy.model_management as mm
+                    mm.soft_empty_cache()
+                except Exception:
+                    pass
 
-        provider = config.get("provider", "ollama")
-        model = normalize_model_name(config.get("model", ""))
-        captions = captioning.caption_batch(
-            _client(), images_b64,
-            provider=provider,
-            model=model,
-            on_progress=on_progress,
-            mode=mode, language=language, max_words=max_words,
-            class_token=class_token, dont_caption=dont_caption,
-            extra_instruction=extra_instruction,
-            temperature=config.get("temperature", 0.4),
-            seed=seed, max_tokens=max_tokens,
-            rate_limit_ms=config.get("rate_limit_ms", 100),
-        )
+            provider = config.get("provider", "ollama")
+            model = normalize_model_name(config.get("model", ""))
+            captions = captioning.caption_batch(
+                _client(), lazy_images,  # type: ignore[arg-type]
+                provider=provider,
+                model=model,
+                on_progress=on_progress,
+                mode=mode, language=language, max_words=max_words,
+                class_token=class_token, dont_caption=dont_caption,
+                extra_instruction=extra_instruction,
+                temperature=config.get("temperature", 0.4),
+                seed=seed, max_tokens=max_tokens,
+                rate_limit_ms=config.get("rate_limit_ms", 100),
+            )
+
+        try:
+            import comfy.model_management as mm
+            mm.soft_empty_cache()
+        except Exception:
+            pass
+
         # Provider Loader's unload switch: the batch above is every LLM call
         # captioning makes, so a local model may leave memory once it ends.
         if bool(config.get("unload_llm", False)):

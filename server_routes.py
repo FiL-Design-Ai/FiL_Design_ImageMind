@@ -4,6 +4,7 @@ FiL_Design_ImageMind API Routes — минимальные REST-эндпоинт
 
 import asyncio
 import logging
+import os
 
 from aiohttp import web
 
@@ -461,21 +462,113 @@ def apply_auth_payload(data):
             # Reason goes to the log only — responses never echo exception text.
             logger.warning("rejected credentials for %s: %s", provider, exc)
             return {"error": "invalid base_url"}, 400
-        invalidate_model_cache(provider)
-    return {"status": "saved", "accounts": get_safe_provider_accounts()}, 200
+from typing import Any
+
+def check_local_provider_status() -> dict[str, bool]:
+    import socket
+    from urllib.parse import urlparse
+    from .common.config import LOCAL_PROVIDERS, PROVIDERS
+    status: dict[str, bool] = {}
+    for prov_name in LOCAL_PROVIDERS:
+        prov = PROVIDERS.get(prov_name)
+        if not prov or not prov.base_url:
+            continue
+        try:
+            parsed = urlparse(prov.base_url)
+            host = parsed.hostname or "127.0.0.1"
+            port = parsed.port or (80 if parsed.scheme == "http" else 443)
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.settimeout(0.25)
+                res = s.connect_ex((host, port))
+                status[prov_name] = (res == 0)
+        except Exception:
+            status[prov_name] = False
+    return status
+
+
+def list_template_workflows() -> list[dict[str, Any]]:
+    import json
+    import os
+    workflows_dir = os.path.join(os.path.dirname(__file__), "example_workflows")
+    if not os.path.isdir(workflows_dir):
+        return []
+    templates = []
+    for file in sorted(os.listdir(workflows_dir)):
+        if not file.endswith(".json"):
+            continue
+        full_path = os.path.join(workflows_dir, file)
+        try:
+            with open(full_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            meta = data.get("extra", {}).get("imagemind_meta", {})
+            title = meta.get("title") or file.replace("fil-", "").replace(".json", "").replace("-", " ").title()
+            templates.append({
+                "id": os.path.splitext(file)[0],
+                "filename": file,
+                "title": title,
+                "title_ru": meta.get("title_ru", title),
+                "description": meta.get("description", "Ready-to-use ImageMind template workflow."),
+                "description_ru": meta.get("description_ru", "Готовый эталонный рабочий процесс ImageMind."),
+                "category": meta.get("category", "Starter"),
+                "category_ru": meta.get("category_ru", "Шаблоны"),
+                "badge": meta.get("badge", "Template"),
+            })
+        except Exception as exc:
+            logger.warning("Failed to read workflow template %s: %s", file, exc)
+    return templates
+
+
+def load_template_workflow_data(template_id: str) -> dict[str, Any] | None:
+    import json
+    import os
+    workflows_dir = os.path.join(os.path.dirname(__file__), "example_workflows")
+    safe_name = os.path.basename(f"{template_id}.json" if not template_id.endswith(".json") else template_id)
+    full_path = os.path.join(workflows_dir, safe_name)
+    if not os.path.isfile(full_path):
+        return None
+    try:
+        with open(full_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as exc:
+        logger.warning("Failed to parse workflow template %s: %s", template_id, exc)
+        return None
 
 
 def register_routes():
     global _ROUTES_REGISTERED
+    diag_file = os.path.join(os.path.dirname(__file__), "routes_diag.log")
+    try:
+        with open(diag_file, "a", encoding="utf-8") as df:
+            df.write(f"register_routes called. _ROUTES_REGISTERED={_ROUTES_REGISTERED}\n")
+    except Exception:
+        pass
+
     if _ROUTES_REGISTERED:
         return
     try:
         from server import PromptServer
-    except ImportError:
+    except Exception as exc:
+        try:
+            with open(diag_file, "a", encoding="utf-8") as df:
+                df.write(f"Failed to import PromptServer: {exc}\n")
+        except Exception:
+            pass
         return
+
     if not hasattr(PromptServer, "instance") or PromptServer.instance is None:
+        try:
+            with open(diag_file, "a", encoding="utf-8") as df:
+                df.write("PromptServer.instance is None or missing!\n")
+        except Exception:
+            pass
         return
+
     server = PromptServer.instance
+    try:
+        with open(diag_file, "a", encoding="utf-8") as df:
+            df.write(f"PromptServer.instance found! server.app={hasattr(server, 'app')}\n")
+    except Exception:
+        pass
 
     set_log_level(get_config().get("logging.console.level", "WARNING"))
 
@@ -507,6 +600,35 @@ def register_routes():
     @server.routes.get(f"/{ROUTE_SLUG}/providers")
     async def list_providers(request):
         return web.json_response({"providers": PROVIDER_DISPLAY_NAMES})
+
+    @server.routes.get(f"/{ROUTE_SLUG}/providers/local_status")
+    async def get_local_status(request):
+        status = await asyncio.to_thread(check_local_provider_status)
+        return web.json_response({"status": "ok", "local_providers": status})
+
+    @server.routes.get(f"/{ROUTE_SLUG}/workflows/templates")
+    async def get_workflow_templates(request):
+        templates = await asyncio.to_thread(list_template_workflows)
+        return web.json_response({"status": "ok", "templates": templates})
+
+    @server.routes.get(f"/{ROUTE_SLUG}/workflows/templates/{{id}}")
+    async def get_workflow_template_by_id(request):
+        template_id = request.match_info.get("id", "").strip()
+        data = await asyncio.to_thread(load_template_workflow_data, template_id)
+        if data is None:
+            return web.json_response({"error": "template not found"}, status=404)
+        return web.json_response(data)
+
+    @server.routes.post(f"/{ROUTE_SLUG}/workflows/resolve_wireless")
+    async def resolve_wireless(request):
+        try:
+            body = await request.json()
+        except Exception:
+            return web.json_response({"error": "invalid JSON"}, status=400)
+        prompt = body.get("prompt", body) if isinstance(body, dict) else {}
+        from .common.wireless_resolver import resolve_wireless_prompt
+        resolved = resolve_wireless_prompt(prompt)
+        return web.json_response({"status": "ok", "prompt": resolved})
 
     @server.routes.get(f"/{ROUTE_SLUG}/auth")
     async def get_auth(request):
@@ -800,4 +922,44 @@ def register_routes():
         return web.json_response(public_node_contracts_v2())
 
     _ROUTES_REGISTERED = True
+
+    # If server.app is already created (e.g. dynamic reload or V3 async load),
+    # register routes directly with the running aiohttp application router.
+    if hasattr(server, "app") and server.app is not None:
+        try:
+            existing = {getattr(r.resource, "canonical", "") for r in server.app.router.routes()}
+            new_routes = [
+                r for r in server.routes
+                if isinstance(r, web.RouteDef) and r.path.startswith(f"/{ROUTE_SLUG}") and r.path not in existing
+            ]
+            if new_routes:
+                added_count = 0
+                for r in new_routes:
+                    try:
+                        if r.path not in existing:
+                            server.app.router.add_route(r.method, r.path, r.handler)
+                            existing.add(r.path)
+                            added_count += 1
+                    except Exception as err_single:
+                        logger.debug("Skip route %s: %s", r.path, err_single)
+                    try:
+                        api_path = "/api" + r.path
+                        if api_path not in existing:
+                            server.app.router.add_route(r.method, api_path, r.handler)
+                            existing.add(api_path)
+                    except Exception as err_api:
+                        logger.debug("Skip api route %s: %s", r.path, err_api)
+                try:
+                    with open(diag_file, "a", encoding="utf-8") as df:
+                        df.write(f"Directly added {added_count} routes (+api) to server.app.router!\n")
+                except Exception:
+                    pass
+        except Exception as err:
+            logger.debug("Direct server.app route registration notice: %s", err)
+            try:
+                with open(diag_file, "a", encoding="utf-8") as df:
+                    df.write(f"Direct server.app registration error: {err}\n")
+            except Exception:
+                pass
+
     logger.info(f"[{BRAND}] API routes registered: /{ROUTE_SLUG}/*")

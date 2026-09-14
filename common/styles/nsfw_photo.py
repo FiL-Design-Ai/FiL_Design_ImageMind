@@ -211,4 +211,20 @@ NSFW_PHOTO_STYLES = {
     "🦾 КИБЕРПАНК/💎 Prismatic Implant Glamour": (
         "adult prismatic implant glamour photography, reflective dermal plates, crystal-like optic prosthetics, exposed nude adult body, rainbow neon caustics on skin, polished studio-night lighting, luxury transhuman erotic realism with visible photographic skin and metal response."
     ),
+    # 🔥 ХАРДКОР
+    "🔥 ХАРДКОР/🍑 POV Rear Penetration": (
+        "explicit adult photography, intimate low-angle rear three-quarter POV camera angle, deep anal penetration from behind, close-up on physical contact point, arched spine, strained lower back muscle contours, flushed heat-toned skin with sweat beads, natural lubrication sheen, adult partner hands gripping hips, warm bedside rim lighting, shallow depth of field on rumpled linen."
+    ),
+    "🔥 ХАРДКОР/💋 Oral Intimacy Close-up": (
+        "explicit adult macro photography, close-up lens, deep oral intimacy, parted lips wrapped, glistening saliva and lubrication sheen, dilated pupils, flushed cheeks, hand gently guiding from above, authentic skin pores and micro-textures, intimate warm tungsten bedside lighting, shallow depth of field."
+    ),
+    "🔥 ХАРДКОР/⚡ Passionate Hardcore Cinema": (
+        "explicit adult erotic photography, 35mm lens, intense physical intercourse between consenting adult lovers, rhythmic momentum, intertwined limbs, heavy breathing, perspiration beading on bare skin, dynamic chiaroscuro bedroom lighting, rumpled satin sheets, genuine photographic visceral intimacy."
+    ),
+    "🔥 ХАРДКОР/💦 Climax & Fluid Realism": (
+        "explicit adult climax photography, macro camera capture, glistening fluid sheen across flushed skin and thighs, post-intimacy shudder, relaxed arched posture on bed, micro-droplets of sweat, ambient soft morning window light falloff, authentic physical adult realism without airbrushing."
+    ),
+    "🔥 ХАРДКОР/🛏️ Bedside Rear Passion": (
+        "explicit adult bedroom photography, 50mm portrait lens, woman on all fours arched on rumpled bed, intense rear-entry intimacy, tense glute and spinal muscles, skin flushed with heat, parted lips, bedside lamp casting dramatic amber shadows, photographic adult truth."
+    ),
 }

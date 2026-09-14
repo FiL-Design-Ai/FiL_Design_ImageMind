@@ -51,9 +51,27 @@ const sourcePrompt = stringField("source_prompt", "");
 const language = stringField("language", "en");
 const seed = numberField("seed", 0);
 const controlAfterGenerate = stringField("control_after_generate", "fixed");
+const mode = stringField("mode", "DiT Image (Static)");
+const cameraMotion = stringField("camera_motion", "Auto / Freeform");
 
 const languageOptions = computed(() => comboOptions("language", ["en", "ru", "zh"]));
 const controlOptions = computed(() => comboOptions("control_after_generate", ["fixed", "increment", "decrement", "randomize"]));
+const modeOptions = computed(() => comboOptions("mode", ["DiT Image (Static)", "Video (Wan2.1 / Hunyuan / LTX)"]));
+const cameraMotionOptions = computed(() => comboOptions("camera_motion", [
+  "Auto / Freeform",
+  "Static / Locked-off",
+  "Smooth Pan Left/Right",
+  "Tilt Up/Down",
+  "Dolly In / Push-in",
+  "Dolly Out / Pull-back",
+  "Crane / Pedestal Rise",
+  "Tracking / Follow Shot",
+  "Orbit 360",
+  "POV / First-Person",
+  "FPV Drone Flythrough",
+  "Handheld Shaky-cam",
+]));
+const isVideoMode = computed(() => mode.value.toLowerCase().includes("video"));
 // Two-letter codes are what the widget stores and what the backend interpolates
 // into the language rule; the flags are display only.
 const LANGUAGE_LABELS: Record<string, string> = { en: "🇬🇧 English", ru: "🇷🇺 Русский", zh: "🇨🇳 中文" };
@@ -76,6 +94,14 @@ const LANGUAGE_LABELS: Record<string, string> = { en: "🇬🇧 English", ru: "�
       v-model="sourcePrompt" :rows="4" toolbar :linked="isLinked('source_prompt')"
       :placeholder="t('pdp_source_ph', 'The prompt to rewrite — type it or wire a STRING link…')"
       :title="linkedTip('source_prompt', t('pdp_source_tt', 'The existing prompt the LLM rewrites. A wired link overrides this field.'))" />
+
+    <FilSegmented v-model="mode" :options="modeOptions"
+      :label="t('pdp_mode', '🎬 Mode')"
+      :title="t('pdp_mode_tt', 'Generation target: DiT Static Image or Kinetic Video prompt.')" />
+
+    <FilSelect v-if="isVideoMode" v-model="cameraMotion" :options="cameraMotionOptions" inline-label
+      :label="t('pdp_camera_motion', '🎥 Camera')"
+      :title="t('pdp_camera_motion_tt', 'Enforced camera trajectory for video generation.')" />
 
     <FilSegmented v-model="language" :options="languageOptions" :option-labels="LANGUAGE_LABELS"
       :label="t('pdp_language', '🌐 Language')"

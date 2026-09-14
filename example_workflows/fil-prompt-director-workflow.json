@@ -87,7 +87,9 @@
         {"name": "instruction", "type": "STRING", "widget": {"name": "instruction"}, "link": null},
         {"name": "source_prompt", "type": "STRING", "widget": {"name": "source_prompt"}, "link": 2},
         {"name": "language", "type": "COMBO", "widget": {"name": "language"}, "link": null},
-        {"name": "seed", "type": "INT", "widget": {"name": "seed"}, "link": null}
+        {"name": "seed", "type": "INT", "widget": {"name": "seed"}, "link": null},
+        {"name": "mode", "type": "COMBO", "widget": {"name": "mode"}, "link": null},
+        {"name": "camera_motion", "type": "COMBO", "widget": {"name": "camera_motion"}, "link": null}
       ],
       "outputs": [
         {"name": "prompt", "type": "STRING", "links": [4]}
@@ -99,13 +101,17 @@
         "en",
         123456,
         "fixed",
+        "DiT Image (Static)",
+        "Auto / Freeform",
         {
           "nodeState": {
             "instruction": "Make it look like a real 35mm film photograph with volumetric rain, tactile worn fabrics, warm lantern light and deep atmospheric depth.",
             "source_prompt": "",
             "language": "en",
             "seed": 123456,
-            "control_after_generate": "fixed"
+            "control_after_generate": "fixed",
+            "mode": "DiT Image (Static)",
+            "camera_motion": "Auto / Freeform"
           }
         }
       ]

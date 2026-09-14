@@ -58,5 +58,6 @@ export const CATEGORY_LABEL_KEY: Record<string, string> = {
   "🚀 SCI-FI": "stcat_scifi",
   "🛀 ТЕКСТУРЫ": "stcat_textures",
   "🦾 КИБЕРПАНК": "stcat_cyberpunk",
+  "🔥 ХАРДКОР": "stcat_hardcore",
   "🧪 ЭФФЕКТЫ": "stcat_effects",
 };
