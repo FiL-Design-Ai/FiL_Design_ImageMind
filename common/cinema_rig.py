@@ -527,6 +527,33 @@ def _axis_prompt(source: Dict[str, object], name: str) -> str:
     return str(name)
 
 
+def get_semantic_optical_anchors(
+    aperture: str = "",
+    lens: str = "",
+    focal_length: str = "",
+) -> List[str]:
+    """Universal optical tokens ensuring older/anime models render cinematic bokeh and framing."""
+    anchors: List[str] = []
+
+    aperture_lower = (aperture or "").lower()
+    if any(stop in aperture_lower for stop in ("f/0.95", "f/1.2", "f/1.4", "f/1.8", "f/2.0", "f/2.8")):
+        anchors.append("shallow depth of field, sharp subject focus, creamy blurred background, optical bokeh")
+    elif any(stop in aperture_lower for stop in ("f/8", "f/11", "f/16")):
+        anchors.append("deep focus, sharp foreground to background")
+
+    focal_lower = (focal_length or "").lower()
+    if any(fl in focal_lower for fl in ("14mm", "18mm", "24mm", "28mm")):
+        anchors.append("wide angle perspective, expansive field of view")
+    elif any(fl in focal_lower for fl in ("85mm", "100mm", "135mm", "200mm")):
+        anchors.append("telephoto lens compression, subject background separation")
+
+    lens_lower = (lens or "").lower()
+    if "anamorphic" in lens_lower:
+        anchors.append("cinematic widescreen look, horizontal lens flare, oval bokeh")
+
+    return anchors
+
+
 def assemble_rig(
     scene_prompt: str = "",
     camera: str = "",
@@ -568,6 +595,11 @@ def assemble_rig(
             color_grading = "Auto / Neutral"
 
     prefix, suffix = wrapper_for_camera(camera)
+    semantic_anchors = get_semantic_optical_anchors(
+        aperture=aperture,
+        lens=lens,
+        focal_length=focal_length,
+    )
     head = [
         part
         for part in (
@@ -578,6 +610,7 @@ def assemble_rig(
             _axis_prompt(CINEMA_CAMERAS, camera),
             _axis_prompt(CINEMA_LENSES, lens),
             _axis_prompt(CINEMA_APERTURES, aperture),
+            *semantic_anchors,
             _axis_prompt(CINEMA_MOVEMENTS, camera_movement),
             _axis_prompt(CINEMA_LIGHTING, lighting_setup),
             _axis_prompt(CINEMA_OPTICS, optics_filter),

@@ -14,7 +14,6 @@ import math
 from typing import Any
 
 import torch
-import torch.nn.functional as F
 
 import comfy.model_management
 import comfy.sample
@@ -109,13 +108,49 @@ def raised_cosine_taper(index: int, length: int) -> float:
     return max(TAPER_FLOOR, taper)
 
 
-def build_tile_fusion_weight(tile_height: int, tile_width: int, latent_rank: int,
-                             device: torch.device, dtype: torch.dtype) -> torch.Tensor:
-    """Raised cosine outer-product weight tensor shaped to broadcast over latent."""
-    row_taper = torch.tensor([raised_cosine_taper(r, tile_height) for r in range(tile_height)],
-                             device=device, dtype=dtype)
-    col_taper = torch.tensor([raised_cosine_taper(c, tile_width) for c in range(tile_width)],
-                             device=device, dtype=dtype)
+def calculate_edge_taper(length: int, overlap: int, is_start_border: bool, is_end_border: bool) -> list[float]:
+    """Calculates seamless Hann window feathering across overlap zones.
+
+    Borders against the image canvas keep full 1.0 weight (no edge darkening).
+    Inter-tile seams feather smoothly with raised cosine across the overlap band.
+    """
+    if length <= 1:
+        return [1.0]
+    feather_band = max(1, min(overlap, length // 2)) if overlap > 0 else 0
+    tapers: list[float] = []
+    for i in range(length):
+        w = 1.0
+        if not is_start_border and feather_band > 0 and i < feather_band:
+            w = min(w, 0.5 * (1.0 - math.cos(math.pi * (i + 0.5) / feather_band)))
+        dist_end = length - 1 - i
+        if not is_end_border and feather_band > 0 and dist_end < feather_band:
+            w = min(w, 0.5 * (1.0 - math.cos(math.pi * (dist_end + 0.5) / feather_band)))
+        tapers.append(max(TAPER_FLOOR, w))
+    return tapers
+
+
+def build_tile_fusion_weight(
+    tile_height: int,
+    tile_width: int,
+    latent_rank: int,
+    device: torch.device,
+    dtype: torch.dtype,
+    overlap: int = 0,
+    is_top_border: bool = False,
+    is_bottom_border: bool = False,
+    is_left_border: bool = False,
+    is_right_border: bool = False,
+) -> torch.Tensor:
+    """Seamless window weight tensor shaped to broadcast over latent."""
+    if overlap > 0:
+        row_weights = calculate_edge_taper(tile_height, overlap, is_top_border, is_bottom_border)
+        col_weights = calculate_edge_taper(tile_width, overlap, is_left_border, is_right_border)
+    else:
+        row_weights = [raised_cosine_taper(r, tile_height) for r in range(tile_height)]
+        col_weights = [raised_cosine_taper(c, tile_width) for c in range(tile_width)]
+
+    row_taper = torch.tensor(row_weights, device=device, dtype=dtype)
+    col_taper = torch.tensor(col_weights, device=device, dtype=dtype)
     leading_singletons = (1,) * max(0, latent_rank - 2)
     return torch.outer(row_taper, col_taper).reshape(*leading_singletons, tile_height, tile_width)
 
@@ -342,10 +377,6 @@ def run_krea2_upscale_pipeline(
         # Large resolution: run seamless tiled sampling with cosine blending
         logger.info("FiLKrea2TiledDiffusion: tiled latent sampling for canvas (%dx%d)", lat_w * 8, lat_h * 8)
         plan = calculate_tiles(lat_w, lat_h, tile_grid="auto", overlap_pixels=DEFAULT_TILE_OVERLAP_PIXELS)
-        weight = build_tile_fusion_weight(plan.tile_height, plan.tile_width,
-                                          target_latent_samples.dim(),
-                                          target_latent_samples.device,
-                                          target_latent_samples.dtype)
 
         accumulator = torch.zeros_like(target_latent_samples)
         weight_sum = torch.zeros_like(target_latent_samples)
@@ -354,6 +385,23 @@ def run_krea2_upscale_pipeline(
             tile_lat_slice = target_latent_samples[..., tile.row_start:tile.row_start + tile.height,
                                                    tile.column_start:tile.column_start + tile.width]
             tile_dict = {"samples": tile_lat_slice.clone()}
+
+            is_top = (tile.row_start == 0)
+            is_bottom = (tile.row_start + tile.height >= lat_h)
+            is_left = (tile.column_start == 0)
+            is_right = (tile.column_start + tile.width >= lat_w)
+
+            weight = build_tile_fusion_weight(
+                tile.height, tile.width,
+                target_latent_samples.dim(),
+                target_latent_samples.device,
+                target_latent_samples.dtype,
+                overlap=plan.overlap,
+                is_top_border=is_top,
+                is_bottom_border=is_bottom,
+                is_left_border=is_left,
+                is_right_border=is_right,
+            )
 
             sampled_tile = sample_unified(
                 model=model,

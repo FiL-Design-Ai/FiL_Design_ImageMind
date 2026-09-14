@@ -407,3 +407,17 @@ def test_reshoot_mode_through_the_node() -> None:
     )
     assert rigged.startswith(RESHOOT_LOCK)
     assert "never appears" not in rigged
+
+
+def test_semantic_optical_anchors() -> None:
+    from FiL_Design_ImageMind.common.cinema_rig import get_semantic_optical_anchors
+
+    shallow = get_semantic_optical_anchors(aperture="f/1.4 (Cinematic Shallow)")
+    assert "shallow depth of field, sharp subject focus, creamy blurred background, optical bokeh" in shallow
+
+    wide = get_semantic_optical_anchors(focal_length="14mm (Ultra Wide)")
+    assert "wide angle perspective, expansive field of view" in wide
+
+    anamorphic = get_semantic_optical_anchors(lens="Panavision C-Series Anamorphic")
+    assert "cinematic widescreen look, horizontal lens flare, oval bokeh" in anamorphic
+

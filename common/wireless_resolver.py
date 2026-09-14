@@ -34,6 +34,43 @@ KNOWN_OUTPUT_TYPES: dict[str, list[str]] = {
 }
 
 
+def find_root_origin(
+    tx_id: str,
+    transmitters: dict[str, dict[str, Any]],
+    visited: list[str],
+) -> tuple[str, int] | None:
+    """Recursively traces the origin link through daisy-chained transmitters.
+
+    Detects cyclic dependencies (e.g. A -> B -> A) and returns None with an explicit warning.
+    """
+    if tx_id in visited:
+        cycle_chain = " -> ".join(visited + [tx_id])
+        logger.warning("Circular loop detected in FiLChannel links: %s. Loop broken.", cycle_chain)
+        return None
+
+    tx_data = transmitters.get(tx_id)
+    if not tx_data:
+        return None
+
+    inputs = tx_data.get("inputs", {})
+    if not isinstance(inputs, dict):
+        return None
+
+    for _slot_name, link in inputs.items():
+        if not (isinstance(link, list) and len(link) >= 2):
+            continue
+        next_id = str(link[0])
+        next_slot = int(link[1])
+
+        # If next node is also a transmitter, follow it recursively
+        if next_id in transmitters:
+            return find_root_origin(next_id, transmitters, visited + [tx_id])
+
+        return next_id, next_slot
+
+    return None
+
+
 def resolve_wireless_prompt(
     prompt: dict[str, Any],
     workflow: dict[str, Any] | None = None,
@@ -57,38 +94,31 @@ def resolve_wireless_prompt(
     if not transmitters:
         return resolved_prompt
 
-    # 2. Map channel slot -> [origin_node_id, origin_slot_index]
-    # Also attempt to identify data type / channel name
+    # 2. Map channel transmitters to root origin node (with cycle breaking)
     channels: list[dict[str, Any]] = []
 
-    for tx_id, tx_data in transmitters.items():
-        inputs = tx_data.get("inputs", {})
-        if not isinstance(inputs, dict):
+    for tx_id in transmitters:
+        root = find_root_origin(tx_id, transmitters, visited=[])
+        if root is None:
             continue
+        origin_id, origin_slot = root
 
-        for slot_name, link in inputs.items():
-            if not (isinstance(link, list) and len(link) >= 2):
-                continue
-            origin_id = str(link[0])
-            origin_slot = int(link[1])
+        origin_node = resolved_prompt.get(origin_id, {})
+        origin_class = origin_node.get("class_type", "")
 
-            origin_node = resolved_prompt.get(origin_id, {})
-            origin_class = origin_node.get("class_type", "")
+        # Guess carried type if possible
+        guessed_type = "UNKNOWN"
+        if origin_class in KNOWN_OUTPUT_TYPES:
+            known_outs = KNOWN_OUTPUT_TYPES[origin_class]
+            if 0 <= origin_slot < len(known_outs):
+                guessed_type = known_outs[origin_slot]
 
-            # Guess carried type if possible
-            guessed_type = "UNKNOWN"
-            if origin_class in KNOWN_OUTPUT_TYPES:
-                known_outs = KNOWN_OUTPUT_TYPES[origin_class]
-                if 0 <= origin_slot < len(known_outs):
-                    guessed_type = known_outs[origin_slot]
-
-            channels.append({
-                "transmitter_id": tx_id,
-                "transmitter_slot": slot_name,
-                "origin_id": origin_id,
-                "origin_slot": origin_slot,
-                "type": guessed_type,
-            })
+        channels.append({
+            "transmitter_id": tx_id,
+            "origin_id": origin_id,
+            "origin_slot": origin_slot,
+            "type": guessed_type,
+        })
 
     if not channels:
         return resolved_prompt

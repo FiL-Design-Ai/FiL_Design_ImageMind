@@ -69,3 +69,21 @@ def test_resolve_wireless_prompt():
     resolved = resolve_wireless_prompt(raw_prompt)
     assert resolved["3"]["inputs"]["model"] == ["1", 0]
 
+
+def test_resolve_wireless_prompt_cycle_detection():
+    """Ensure circular references between FiLChannel nodes do not cause infinite recursion."""
+    from FiL_Design_ImageMind.common.wireless_resolver import resolve_wireless_prompt
+
+    cyclic_prompt = {
+        "1": {"class_type": "CheckpointLoaderSimple", "inputs": {"ckpt_name": "v1.safetensors"}},
+        "2": {"class_type": "FiLChannel", "inputs": {"value0": ["3", 0]}},
+        "3": {"class_type": "FiLChannel", "inputs": {"value0": ["2", 0]}},
+        "4": {"class_type": "KSampler", "inputs": {"model": ["2", 0]}},
+    }
+
+    # Should not raise RecursionError and gracefully break the loop
+    resolved = resolve_wireless_prompt(cyclic_prompt)
+    assert "4" in resolved
+    assert resolved["4"]["inputs"]["model"] in (["2", 0], ["3", 0])
+
+

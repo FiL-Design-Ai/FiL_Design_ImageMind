@@ -46,16 +46,22 @@ def _empty_image() -> torch.Tensor:
 # exists to eyeball the crops, and a 40-image set at 1024² would hand ComfyUI
 # ~500 MB of float32 for that glance. 512 stays useful for spotting a bad crop.
 _PREVIEW_MAX_SIDE = 512
+MAX_PREVIEW_FRAMES = 16
 
 
 def _preview_tensor(images: list, size: int) -> torch.Tensor:
-    """Letterbox every bucketed frame onto one square canvas so they can stack."""
+    """Letterbox bucketed frames onto square canvases for UI visual validation.
+
+    Capped at MAX_PREVIEW_FRAMES to keep WebSocket payload and UI memory under 50 MB
+    even when thousands of dataset images are processed.
+    """
     if not images:
         return _empty_image()
+    preview_slice = images[:MAX_PREVIEW_FRAMES]
     side = max(64, min(int(size), _PREVIEW_MAX_SIDE))
     frames = [
         np.asarray(bucketing.pad_to_canvas(image, side), dtype=np.float32) / 255.0
-        for image in images
+        for image in preview_slice
     ]
     return torch.from_numpy(np.stack(frames, axis=0))
 
@@ -385,6 +391,8 @@ class FiLDatasetForge(io.ComfyNode):
             f"✍️ Подписи: {manifest['caption_source']}"
             + (f" ({manifest['model']})" if manifest.get("model") else ""),
         ]
+        if total > MAX_PREVIEW_FRAMES:
+            lines.append(f"👁️ Превью на выходе: первые {MAX_PREVIEW_FRAMES} кадров (все {total} сохранены на диске)")
         if manifest["layout"] == "kohya":
             lines.append(f"🔁 Повторы: {manifest['repeats']} → шагов за эпоху: {manifest['repeats'] * manifest['image_count']}")
         if removed:
