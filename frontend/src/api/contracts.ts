@@ -6421,6 +6421,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
         "tooltip": null,
         "values": [
           "64 px (U-Net & DiT Safe)",
+          "32 px (DiT Safe 4x4)",
           "16 px (DiT Patch 2x2)",
           "8 px (1 Latent Pixel)",
           "Disabled (Exact)"

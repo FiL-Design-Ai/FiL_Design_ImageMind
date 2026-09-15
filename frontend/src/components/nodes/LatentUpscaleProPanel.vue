@@ -57,6 +57,7 @@ const modeOptions = computed(() => comboOptions("mode", ["By Factor", "Target Si
 const upscaleMethodOptions = computed(() => comboOptions("upscale_method", ["bislerp", "nearest-exact", "area", "bilinear", "bicubic"]));
 const snapToOptions = computed(() => comboOptions("snap_to", [
   "64 px (U-Net & DiT Safe)",
+  "32 px (DiT Safe 4x4)",
   "16 px (DiT Patch 2x2)",
   "8 px (1 Latent Pixel)",
   "Disabled (Exact)",

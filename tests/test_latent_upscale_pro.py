@@ -70,6 +70,64 @@ def test_upscale_by_factor_snap_16():
     assert out_latent["samples"].shape == (1, 4, lh, lw)
 
 
+def test_upscale_by_factor_snap_32():
+    latent = _make_latent(1, 4, 128, 128)
+    out = FiLLatentUpscalePro.execute(
+        samples=latent,
+        mode="By Factor",
+        scale_by=1.33,
+        snap_to="32 px (DiT Safe 4x4)",
+        round_mode="nearest",
+    )
+
+    out_latent, w, h = out
+    lw, lh = w // 8, h // 8
+    # 1361.92 snapped to 32 = 1376
+    assert w == 1376
+    assert h == 1376
+    assert w % 32 == 0
+    assert h % 32 == 0
+    assert out_latent["samples"].shape == (1, 4, lh, lw)
+
+
+def test_upscale_5d_video_latent():
+    # [Batch, Channels, Frames, Height, Width]
+    video_tensor = torch.randn(1, 4, 8, 32, 32, dtype=torch.float32)
+    latent = {"samples": video_tensor}
+
+    out = FiLLatentUpscalePro.execute(
+        samples=latent,
+        mode="By Factor",
+        scale_by=1.5,
+        snap_to="64 px (U-Net & DiT Safe)",
+    )
+
+    out_latent, w, h = out
+    lw, lh = w // 8, h // 8
+    # 32 * 8 = 256 px -> 256 * 1.5 = 384 px (divisible by 64) -> 48 latent px
+    assert w == 384
+    assert h == 384
+    assert out_latent["samples"].shape == (1, 4, 8, lh, lw)
+
+
+def test_upscale_5d_video_latent_with_mask():
+    video_tensor = torch.randn(1, 4, 8, 32, 32, dtype=torch.float32)
+    mask_tensor = torch.ones(1, 1, 8, 32, 32, dtype=torch.float32)
+    latent = {"samples": video_tensor, "noise_mask": mask_tensor}
+
+    out = FiLLatentUpscalePro.execute(
+        samples=latent,
+        mode="By Factor",
+        scale_by=1.5,
+        snap_to="64 px (U-Net & DiT Safe)",
+    )
+
+    out_latent, w, h = out
+    lw, lh = w // 8, h // 8
+    assert "noise_mask" in out_latent
+    assert out_latent["noise_mask"].shape == (1, 1, 8, lh, lw)
+
+
 def test_upscale_target_size():
     latent = _make_latent(1, 4, 128, 128)
     out = FiLLatentUpscalePro.execute(
@@ -149,6 +207,6 @@ def test_upscale_invalid_inputs():
     with pytest.raises(ValueError, match="must be a valid LATENT dictionary"):
         FiLLatentUpscalePro.execute(samples=None)
 
-    with pytest.raises(ValueError, match="Expected 4D latent tensor"):
+    with pytest.raises(ValueError, match="Expected 4D or 5D latent tensor"):
         FiLLatentUpscalePro.execute(samples={"samples": torch.zeros((10, 10))})
 

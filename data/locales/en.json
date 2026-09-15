@@ -810,6 +810,14 @@
   "lup_longest_edge": "Longest edge in pixels (used in 'Longest Edge' mode).",
   "lup_upscale_method": "Interpolation method for latent tensors. 'bislerp' is standard for diffusion latents.",
   "lup_snap_to": "Grid snapping rule. 64 px eliminates border artifacts on SD1.5/SDXL and DiT; 16 px guarantees even latents for Flux.",
-  "lup_round_mode": "Rounding direction when snapping to the grid."
+  "lup_round_mode": "Rounding direction when snapping to the grid.",
+  "lup_p_mode": "⚙️ Mode",
+  "lup_p_scale_by": "🔍 Scale By",
+  "lup_p_width": "Width (px)",
+  "lup_p_height": "Height (px)",
+  "lup_p_longest_edge": "📏 Longest Edge (px)",
+  "lup_p_method": "⚡ Method",
+  "lup_p_snap": "📐 Snap Grid",
+  "lup_p_round": "🎯 Rounding"
 }
 

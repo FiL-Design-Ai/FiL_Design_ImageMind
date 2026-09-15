@@ -13,6 +13,7 @@ _UPSCALE_METHODS = ["bislerp", "nearest-exact", "area", "bilinear", "bicubic"]
 _MODES = ["By Factor", "Target Size", "Longest Edge"]
 _SNAP_MODES = [
     "64 px (U-Net & DiT Safe)",
+    "32 px (DiT Safe 4x4)",
     "16 px (DiT Patch 2x2)",
     "8 px (1 Latent Pixel)",
     "Disabled (Exact)",
@@ -21,6 +22,7 @@ _ROUND_MODES = ["nearest", "up", "down"]
 
 _SNAP_STEP_MAP = {
     "64 px (U-Net & DiT Safe)": 64,
+    "32 px (DiT Safe 4x4)": 32,
     "16 px (DiT Patch 2x2)": 16,
     "8 px (1 Latent Pixel)": 8,
     "Disabled (Exact)": 8,
@@ -160,11 +162,21 @@ class FiLLatentUpscalePro(io.ComfyNode):
             raise ValueError("Input 'samples' must be a valid LATENT dictionary containing 'samples' tensor.")
 
         latent_tensor: torch.Tensor = samples["samples"]
-        if latent_tensor.ndim < 4:
-            raise ValueError(f"Expected 4D latent tensor [B, C, H, W], got shape {tuple(latent_tensor.shape)}")
+        if not isinstance(latent_tensor, torch.Tensor):
+            raise ValueError("Expected 'samples' in LATENT to be a torch.Tensor")
 
-        cur_lh = int(latent_tensor.shape[-2])
-        cur_lw = int(latent_tensor.shape[-1])
+        is_5d = latent_tensor.ndim == 5
+        if is_5d:
+            b, c, f, cur_lh, cur_lw = latent_tensor.shape
+            # Reshape [B, C, F, H, W] -> [B * F, C, H, W] for 2D spatial upscale
+            input_tensor = latent_tensor.permute(0, 2, 1, 3, 4).reshape(b * f, c, cur_lh, cur_lw)
+        elif latent_tensor.ndim == 4:
+            cur_lh = int(latent_tensor.shape[-2])
+            cur_lw = int(latent_tensor.shape[-1])
+            input_tensor = latent_tensor
+        else:
+            raise ValueError(f"Expected 4D or 5D latent tensor [B, C, H, W] or [B, C, F, H, W], got shape {tuple(latent_tensor.shape)}")
+
         cur_px_w = cur_lw * 8
         cur_px_h = cur_lh * 8
 
@@ -198,12 +210,16 @@ class FiLLatentUpscalePro(io.ComfyNode):
         import comfy.utils
 
         rescaled_tensor = comfy.utils.common_upscale(
-            latent_tensor,
+            input_tensor,
             target_lw,
             target_lh,
             upscale_method,
             "disabled",
         )
+
+        if is_5d:
+            # Restore [B * F, C, H, W] -> [B, C, F, H, W]
+            rescaled_tensor = rescaled_tensor.view(b, f, c, target_lh, target_lw).permute(0, 2, 1, 3, 4).contiguous()
 
         out = samples.copy()
         out["samples"] = rescaled_tensor
@@ -211,7 +227,12 @@ class FiLLatentUpscalePro(io.ComfyNode):
         # 5. Handle noise_mask if present
         if "noise_mask" in samples and isinstance(samples["noise_mask"], torch.Tensor):
             mask = samples["noise_mask"]
-            if mask.ndim == 4:
+            if is_5d and mask.ndim == 5:
+                mb, mc, mf, mh, mw = mask.shape
+                m_reshaped = mask.permute(0, 2, 1, 3, 4).reshape(mb * mf, mc, mh, mw)
+                res_m = comfy.utils.common_upscale(m_reshaped, target_lw, target_lh, "bilinear", "disabled")
+                out["noise_mask"] = res_m.view(mb, mf, mc, target_lh, target_lw).permute(0, 2, 1, 3, 4).contiguous()
+            elif mask.ndim == 4:
                 # [B, C, H, W]
                 out["noise_mask"] = comfy.utils.common_upscale(
                     mask,
