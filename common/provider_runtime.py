@@ -71,8 +71,10 @@ def _error_status(exc: Exception) -> tuple[str, str]:
             if code == 402 or looks_like_quota(body, str(exc)):
                 return "quota_exhausted", QUOTA_MESSAGE
             return "rate_limited", "Провайдер временно ограничил запросы."
-    if isinstance(exc, (requests.exceptions.ConnectionError, requests.exceptions.Timeout)):
-        return "offline", "Провайдер недоступен."
+    if isinstance(exc, requests.exceptions.Timeout) or any(t in str(exc).lower() for t in ("timeout", "timed out")):
+        return "offline", "Сервер не ответил вовремя (таймаут). Проверь, запущен ли сервис."
+    if isinstance(exc, requests.exceptions.ConnectionError) or "connection" in str(exc).lower():
+        return "offline", "Провайдер недоступен (ошибка соединения)."
     text = str(exc).lower()
     if "401" in text or "403" in text or "unauthorized" in text or "forbidden" in text:
         return "auth_error", "API-ключ отклонён провайдером."
@@ -80,8 +82,6 @@ def _error_status(exc: Exception) -> tuple[str, str]:
         return "quota_exhausted", QUOTA_MESSAGE
     if "429" in text or "rate limit" in text:
         return "rate_limited", "Провайдер временно ограничил запросы."
-    if "connection" in text or "timeout" in text or "timed out" in text:
-        return "offline", "Провайдер недоступен."
     return "offline", "Не удалось связаться с провайдером."
 
 

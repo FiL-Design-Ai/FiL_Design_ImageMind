@@ -32,6 +32,11 @@ class HTTPClient:
 
     def request(self, method: str, url: str, **kwargs: Any) -> requests.Response:
         timeout = kwargs.pop("timeout", self.default_timeout)
+        if isinstance(timeout, (int, float)):
+            connect_timeout = min(3.0, float(timeout))
+            req_timeout: Any = (connect_timeout, float(timeout))
+        else:
+            req_timeout = timeout
         quiet = kwargs.pop("quiet", False)
         max_retries = kwargs.pop("max_retries", self.max_retries)
         retry_statuses = set(kwargs.pop("retry_statuses", _DEFAULT_RETRY_STATUSES))
@@ -59,7 +64,7 @@ class HTTPClient:
                         logger.warning("Retry %s/%s for %s in %.2fs", attempt, max_retries, url, wait_time)
                     time.sleep(wait_time)
 
-                response = self._session.request(method, url, timeout=timeout, **kwargs)
+                response = self._session.request(method, url, timeout=req_timeout, **kwargs)
 
                 if response.status_code >= 400:
                     if response.status_code in no_retry_statuses:
@@ -80,10 +85,15 @@ class HTTPClient:
                     response.raise_for_status()
                 return response
 
-            except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as exc:
+            except requests.exceptions.Timeout as exc:
+                # Timeouts must fail fast: do NOT retry when a server is hanging or silent.
+                if not quiet:
+                    logger.warning("Request timed out on %s (timeout=%s): %s", url, timeout, exc)
+                raise
+            except requests.exceptions.ConnectionError as exc:
                 if attempt < max_retries:
                     if not quiet:
-                        logger.warning("Network error on %s: %s", url, exc)
+                        logger.warning("Network connection error on %s: %s", url, exc)
                     continue
                 if not quiet:
                     logger.error("Failed all %s attempts for %s: %s", max_retries + 1, url, exc)

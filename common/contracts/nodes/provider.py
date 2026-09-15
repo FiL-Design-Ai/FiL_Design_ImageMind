@@ -31,6 +31,7 @@ CONTRACT = NodeContract(
             _int("max_tokens", default=0, minv=0, maxv=65536, step=1, label="Max tokens"),
             _int("rate_limit_ms", default=100, minv=0, maxv=5000, step=10, label="Rate limit (ms)"),
             _int("max_image_side", default=1024, minv=128, maxv=4096, step=64, label="Max image side"),
+            _int("timeout", default=10, minv=1, maxv=120, step=1, label="Timeout (s)"),
         ],
     ),
     outputs=[

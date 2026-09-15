@@ -39,6 +39,8 @@ class FiLProviderLoader(io.ComfyNode):
                              tooltip=t("tt_rate_limit", "Minimum delay between requests to this provider, to avoid rate limiting.")),
                 io.Int.Input("max_image_side", default=1024, min=128, max=4096, step=64, advanced=True,
                              tooltip=t("tt_max_image_side", "Images are downscaled so their longest side does not exceed this value.")),
+                io.Int.Input("timeout", default=10, min=1, max=120, step=1, advanced=True,
+                             tooltip=t("tt_provider_timeout", "Maximum time in seconds to wait for provider response (default 10s).")),
             ],
             outputs=[
                 FilProviderConfig.Output(display_name="config", tooltip="Provider configuration dict for FiL nodes."),
@@ -65,7 +67,7 @@ class FiLProviderLoader(io.ComfyNode):
     def execute(cls, provider: str, model: str = "", refresh_models: bool = False,
                 unload_llm: bool = False,
                 temperature: float = 0.7, max_tokens: int = 0, rate_limit_ms: int = 100,
-                max_image_side: int = 1024) -> io.NodeOutput:
+                max_image_side: int = 1024, timeout: int = 10) -> io.NodeOutput:
         p_key = get_provider_key(provider)
         model_name = normalize_model_name(model)
 
@@ -92,6 +94,7 @@ class FiLProviderLoader(io.ComfyNode):
             "rate_limit_ms": rate_limit_ms,
             "max_image_side": max_image_side,
             "unload_llm": bool(unload_llm),
+            "timeout": max(1, int(timeout)),
         }
 
         return io.NodeOutput(config, model_name)

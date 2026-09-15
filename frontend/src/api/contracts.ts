@@ -333,6 +333,25 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
         "section": null,
         "visible_when": null,
         "visible_when_value": null
+      },
+      {
+        "name": "timeout",
+        "kind": "number",
+        "label": "Timeout (s)",
+        "default": 10,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": 1,
+        "max": 120,
+        "step": 1,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
       }
     ],
     "hidden": []

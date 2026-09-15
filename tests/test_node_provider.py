@@ -17,6 +17,15 @@ def test_execute_packs_all_widget_values_into_config():
     assert config["max_tokens"] == 256
     assert config["rate_limit_ms"] == 50
     assert config["max_image_side"] == 768
+    assert config["timeout"] == 10
+
+
+def test_execute_custom_timeout():
+    result = node_provider.FiLProviderLoader.execute(
+        provider="ollama", model="llama3", timeout=5,
+    )
+    config = result[0]
+    assert config["timeout"] == 5
 
 
 def test_unload_llm_defaults_to_off():

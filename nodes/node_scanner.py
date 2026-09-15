@@ -526,8 +526,13 @@ description=(
 
         fallback_reason = None
         cfg = get_config()
-        hybrid_timeout = cfg.get_timeout(provider, "hybrid")
-        two_stage_timeout = cfg.get_timeout(provider, "two_stage")
+        configured_timeout = config.get("timeout") if isinstance(config, dict) else None
+        if configured_timeout is not None:
+            hybrid_timeout = max(1, int(configured_timeout))
+            two_stage_timeout = max(1, int(configured_timeout))
+        else:
+            hybrid_timeout = min(10, cfg.get_timeout(provider, "hybrid"))
+            two_stage_timeout = min(10, cfg.get_timeout(provider, "two_stage"))
 
         image_runs = []
         try:

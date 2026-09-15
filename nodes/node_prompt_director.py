@@ -184,6 +184,7 @@ class FiLPromptDirector(io.ComfyNode):
         clean_instruction = decensor_adult_slang(instruction)
         clean_source = decensor_adult_slang(source_prompt)
         user_message = build_user_message(clean_instruction, clean_source)
+        timeout = int(config.get("timeout", 10))
 
         try:
             raw_result = _model_client.generate(
@@ -194,6 +195,7 @@ class FiLPromptDirector(io.ComfyNode):
                 temperature=temperature,
                 seed=seed,
                 max_tokens=max_tokens,
+                timeout=timeout,
                 rate_limit_ms=rate_limit_ms,
             )
         except FiLError as exc:

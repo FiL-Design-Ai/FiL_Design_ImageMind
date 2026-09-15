@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from unittest.mock import patch
 
+import pytest
 import requests
 
 from FiL_Design_ImageMind.common import provider_resilience as pr
@@ -352,3 +353,21 @@ def test_openrouter_catalog_needs_a_key():
     pr.invalidate_openrouter_catalog_cache()
     data, ok = pr._fetch_openrouter_catalog("")
     assert (data, ok) == ([], False)
+
+
+def test_http_client_timeout_fails_fast_without_retries():
+    """Network timeouts must fail fast (1 attempt) instead of multiplying wait time by retries."""
+    from unittest.mock import MagicMock
+    from FiL_Design_ImageMind.common.network import HTTPClient
+
+    client = HTTPClient(max_retries=3)
+    mock_session = MagicMock()
+    mock_session.request.side_effect = requests.exceptions.Timeout("Read timed out")
+    client._session = mock_session
+
+    with pytest.raises(requests.exceptions.Timeout):
+        client.get("http://127.0.0.1:11434/api/tags", timeout=10)
+
+    # Must fail fast after exactly 1 attempt, NOT 4 attempts!
+    assert mock_session.request.call_count == 1
+
