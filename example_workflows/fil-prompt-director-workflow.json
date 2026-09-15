@@ -20,7 +20,8 @@
         {"name": "temperature", "type": "FLOAT", "widget": {"name": "temperature"}, "link": null},
         {"name": "max_tokens", "type": "INT", "widget": {"name": "max_tokens"}, "link": null},
         {"name": "rate_limit_ms", "type": "INT", "widget": {"name": "rate_limit_ms"}, "link": null},
-        {"name": "max_image_side", "type": "INT", "widget": {"name": "max_image_side"}, "link": null}
+        {"name": "max_image_side", "type": "INT", "widget": {"name": "max_image_side"}, "link": null},
+        {"name": "timeout", "type": "INT", "widget": {"name": "timeout"}, "link": null}
       ],
       "outputs": [
         {"name": "config", "type": "FIL_PROVIDER_CONFIG", "links": [1, 3]},
@@ -36,6 +37,7 @@
         0,
         100,
         1024,
+        10,
         {
           "nodeState": {
             "provider": "ollama",
@@ -44,6 +46,7 @@
             "max_tokens": 0,
             "rate_limit_ms": 100,
             "max_image_side": 1024,
+            "timeout": 10,
             "refresh_models": false,
             "unload_llm": false
           }

@@ -150,3 +150,4 @@ def test_upscale_invalid_inputs():
 
     with pytest.raises(ValueError, match="Expected 4D latent tensor"):
         FiLLatentUpscalePro.execute(samples={"samples": torch.zeros((10, 10))})
+

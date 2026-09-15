@@ -13,7 +13,7 @@
   <a href="https://www.python.org/"><img alt="Python 3.10+" src="https://img.shields.io/badge/Python-3.10%2B-3776ab?style=flat-square&logo=python"></a>
   <a href="https://github.com/comfyanonymous/ComfyUI"><img alt="ComfyUI 0.3.60+" src="https://img.shields.io/badge/ComfyUI-0.3.60%2B-111111?style=flat-square"></a>
   <a href="https://docs.comfy.org/custom-nodes/backend/lifecycle"><img alt="ComfyUI API V3" src="https://img.shields.io/badge/ComfyUI_API-V3-7c5cff?style=flat-square"></a>
-  <a href="#node-reference"><img alt="Nodes" src="https://img.shields.io/badge/Nodes-24-f08a45?style=flat-square"></a>
+  <a href="#node-reference"><img alt="Nodes" src="https://img.shields.io/badge/Nodes-25-f08a45?style=flat-square"></a>
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/License-MIT-yellow?style=flat-square"></a>
 </p>
 
@@ -516,6 +516,27 @@ trimmed to the outputs most graphs actually use.
 | `wb_mask` | MASK (optional) | — | white-balance picker: mask the area that should be neutral |
 
 **Output:** `image`
+
+</details>
+
+<details>
+<summary><b>📐 Latent Upscaler Pro</b> — <code>FiLLatentUpscalePro</code> — artifact-free latent scaling with grid snapping</summary>
+
+Smart latent scaler that prevents border seams, blur and edge artifacts on SD1.5, SDXL, and DiT architectures (Flux, SD3) by aligning latent dimensions to clean mathematical step boundaries.
+
+| Input | Type | Default | Range / options |
+|---|---|---|---|
+| `samples` | LATENT | — | input latent tensor to scale |
+| `mode` | COMBO | `By Factor` | By Factor, Target Size, Longest Edge |
+| `scale_by` | FLOAT | `1.5` | 0.05 – 8.0, step 0.05 |
+| `target_width` | INT | `1024` | 64 – 8192, step 64 |
+| `target_height` | INT | `1024` | 64 – 8192, step 64 |
+| `longest_edge` | INT | `1536` | 128 – 8192, step 64 |
+| `upscale_method` | COMBO | `bislerp` | bislerp, nearest-exact, area, bilinear, bicubic |
+| `snap_to` | COMBO | `64 px (U-Net & DiT Safe)` | 64 px (U-Net & DiT Safe), 16 px (DiT Patch 2x2), 8 px (1 Latent Pixel), Disabled (Exact) |
+| `round_mode` | COMBO | `nearest` | nearest, up, down |
+
+**Outputs:** `latent` (LATENT), `width` (INT), `height` (INT), `latent_w` (INT), `latent_h` (INT), `effective_scale` (FLOAT)
 
 </details>
 

@@ -51,3 +51,4 @@ CONTRACT = NodeContract(
         NodeOutput(name="effective_scale", type="FLOAT"),
     ],
 )
+
