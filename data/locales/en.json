@@ -235,6 +235,8 @@
   "lbl_advanced_settings": "⚙️ Advanced Parameters",
   "cr_director_sig_tt": "Director visual signature highlights",
   "utc_section_auto": "⚙️ Auto / advanced",
+  "btn_choose": "⚙️ Choose",
+  "lbl_model_prefix": "🧠 Model:",
   "prov_loading_models": "Loading models…",
   "prov_models_updated": "Models updated",
   "toast_close": "Close",

@@ -235,6 +235,8 @@
   "lbl_advanced_settings": "⚙️ Дополнительные параметры",
   "cr_director_sig_tt": "Краткое описание визуального стиля режиссёра",
   "utc_section_auto": "⚙️ Авто / дополнительно",
+  "btn_choose": "⚙️ Выбрать",
+  "lbl_model_prefix": "🧠 Модель:",
   "prov_loading_models": "Загрузка моделей…",
   "prov_models_updated": "Список моделей обновлён",
   "toast_close": "Закрыть",

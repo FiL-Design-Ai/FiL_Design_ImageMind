@@ -84,6 +84,7 @@ export interface DirectorAssistRequest {
   style?: "neutral" | "photorealism" | "cinematic" | "anime" | "precise" | "creative" | "minimal";
   length?: "concise" | "balanced" | "detailed" | "targeted" | "comprehensive";
   target_language?: "auto" | "en" | "ru";
+  timeout?: number;
 }
 
 /** The route answers `{result}` on success or `{error}` with a non-2xx status. */

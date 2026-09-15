@@ -208,6 +208,7 @@ def run_director_assist(
     style: str = "neutral",
     length: str = "balanced",
     target_language: str = "auto",
+    timeout: int = 10,
 ) -> dict:
     """Blocking LLM call; returns `{"result": ...}` or `{"error": ...}`."""
     try:
@@ -225,6 +226,7 @@ def run_director_assist(
             temperature=temperature,
             max_tokens=ASSIST_MAX_TOKENS,
             rate_limit_ms=rate_limit_ms,
+            timeout=timeout,
         )
     except FiLError as exc:
         logger.warning("[DirectorAssist] provider error: %s", sanitize_sensitive_data(exc.message))

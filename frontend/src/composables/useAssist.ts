@@ -142,11 +142,13 @@ export function useAssist(
     if (!provider || !model) return null;
     const temperature = Number(findFilWidget(origin, "temperature")?.value);
     const rateLimit = Number(findFilWidget(origin, "rate_limit_ms")?.value);
+    const timeout = Number(findFilWidget(origin, "timeout")?.value);
     return {
       provider,
       model,
       temperature: Number.isFinite(temperature) ? temperature : undefined,
       rate_limit_ms: Number.isFinite(rateLimit) ? rateLimit : undefined,
+      timeout: Number.isFinite(timeout) ? timeout : undefined,
     };
   }
 

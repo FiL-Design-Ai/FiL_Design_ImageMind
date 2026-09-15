@@ -687,6 +687,10 @@ def register_routes():
             rate_limit_ms = min(max(int(data.get("rate_limit_ms", 100)), 0), 5000)
         except (TypeError, ValueError):
             rate_limit_ms = 100
+        try:
+            timeout = min(max(int(data.get("timeout", 10)), 1), 120)
+        except (TypeError, ValueError):
+            timeout = 10
         context = str(data.get("context", "instruction")).strip().lower()
         style = str(data.get("style", "neutral")).strip().lower()
         length = str(data.get("length", "balanced")).strip().lower()
@@ -703,6 +707,7 @@ def register_routes():
             style,
             length,
             target_language,
+            timeout,
         )
         if "error" in result:
             return web.json_response(result, status=502)

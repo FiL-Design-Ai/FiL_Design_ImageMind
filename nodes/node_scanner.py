@@ -79,10 +79,10 @@ class FiLOpticScanner(io.ComfyNode):
             node_id="FiLOpticScanner",
             display_name="🕵️ Optic Scanner",
             category=CATEGORY_LLM,
-description=(
-            "👁️ Optic Scanner — analyzes images with LLM vision models and generates "
-            "optimized prompts for Z-Image, FLUX, SDXL, QWEN, Krea 2, and Ideogram 4."
-        ),
+            description=(
+                "🕵️ Optic Scanner — analyzes images with LLM vision models and generates "
+                "optimized prompts for Z-Image, FLUX, SDXL, QWEN, Krea 2, and Ideogram 4."
+            ),
             inputs=[
                 FilProviderConfig.Input("config", tooltip=t("tt_config", "Config from Provider Loader node.")),
                 io.Combo.Input("agent", options=_AGENT_KEYS, default=get_default_agent_key(),

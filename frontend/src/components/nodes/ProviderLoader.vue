@@ -134,10 +134,10 @@ onMounted(async () => {
           <FilIcon :name="PROVIDER_ICON[provider]" :size="16" />
           <span class="provider-title">{{ PROVIDER_LABEL[provider] ?? provider }}</span>
         </div>
-        <span class="open-icon">⚙️ Choose</span>
+        <span class="open-icon">{{ t('btn_choose', '⚙️ Choose') }}</span>
       </div>
       <div class="trigger-model">
-        <span class="model-label">🧠 Model:</span>
+        <span class="model-label">{{ t('lbl_model_prefix', '🧠 Model:') }}</span>
         <span class="model-name" :title="model">{{ model }}</span>
       </div>
     </button>
