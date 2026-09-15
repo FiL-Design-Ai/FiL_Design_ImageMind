@@ -13,9 +13,9 @@ class FiLUpscaleTileCalc(io.ComfyNode):
     def define_schema(cls):
         return io.Schema(
             node_id="FiLUpscaleTileCalc",
-            display_name="🔍 Upscaler Advanced",
+            display_name="🧮 Upscaler Advanced",
             category=CATEGORY_IMAGE,
-            description="📐 FiL Upscale Tile Calc — computes optimal tile grid layout for upscaling. Supports auto-profile and manual grid.",
+            description="🧮 FiL Upscale Tile Calc — computes optimal tile grid layout for upscaling. Supports auto-profile and manual grid.",
             inputs=[
                 io.Image.Input("image", optional=True,
                                tooltip=_t("utc_image", "Input image to analyze. Optional if latent is connected instead — at least one of image/latent is required; source dimensions come from whichever is connected.")),

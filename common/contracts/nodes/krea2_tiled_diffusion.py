@@ -8,7 +8,7 @@ from ...brand import CATEGORY_IMAGE
 
 CONTRACT = NodeContract(
     id="FiLKrea2TiledDiffusion",
-    title="📐 Krea 2 Tiled Diffusion",
+    title="💎 Krea 2 Tiled Diffusion",
     category=CATEGORY_IMAGE,
     description="High-fidelity one-click AI upscale and detail enhancement with strict original preservation.",
     min_size=(320, 360),

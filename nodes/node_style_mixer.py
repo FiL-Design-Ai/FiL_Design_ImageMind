@@ -50,7 +50,7 @@ class FiLStyleMixer(io.ComfyNode):
         style_options = get_style_mixer_dropdown_options()
         return io.Schema(
             node_id="FiLStyleMixer",
-            display_name="🎛️ Style Mixer",
+            display_name="🧪 Style Mixer",
             category=CATEGORY_STYLING,
             description="Blends visual styles and reference images with weighted influence sliders and optional Vision LLM fusion.",
             inputs=[

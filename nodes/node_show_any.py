@@ -127,10 +127,10 @@ class FiLShowAny(io.ComfyNode):
     def define_schema(cls):
         return io.Schema(
             node_id="FiLShowAny",
-            display_name="👁️ Show Any",
+            display_name="🖥️ Show Any",
             category=CATEGORY_TOOLS,
             description=(
-                "👁️ Show Any — universal data inspector & pass-through monitor. "
+                "🖥️ Show Any — universal data inspector & pass-through monitor. "
                 "Accepts any data signal (Text, Image, Latent, JSON, Model, Numbers), "
                 "displays live visual preview (images/masks) or formatted text with word/char counters and 1-click Copy, "
                 "and passes the original object through downstream unchanged."

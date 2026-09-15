@@ -1305,7 +1305,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
 },
   "FiLUpscaleTileCalc": {
   "id": "FiLUpscaleTileCalc",
-  "title": "🔍 Upscaler Advanced",
+  "title": "🧮 Upscaler Advanced",
   "category": "🎨 FiL Design/🖼️ Image",
   "description": "Computes optimal tile grid layout for upscaling.",
   "inputs": {
@@ -2671,7 +2671,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
 },
   "FiLStyleMixer": {
   "id": "FiLStyleMixer",
-  "title": "🎛️ Style Mixer",
+  "title": "🧪 Style Mixer",
   "category": "🎨 FiL Design/🎨 Styling",
   "description": "Blends visual styles and reference images with weighted influence sliders and optional Vision LLM fusion.",
   "inputs": {
@@ -6177,7 +6177,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
 },
   "FiLShowAny": {
   "id": "FiLShowAny",
-  "title": "👁️ Show Any",
+  "title": "🖥️ Show Any",
   "category": "🎨 FiL Design/🧰 Tools",
   "description": "Universal data inspector & pass-through monitor. Displays formatted data, text, or JSON with live word/char counters and 1-click Copy.",
   "inputs": {
@@ -6219,7 +6219,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
 },
   "FiLKrea2TiledDiffusion": {
   "id": "FiLKrea2TiledDiffusion",
-  "title": "📐 Krea 2 Tiled Diffusion",
+  "title": "💎 Krea 2 Tiled Diffusion",
   "category": "🎨 FiL Design/🖼️ Image",
   "description": "High-fidelity one-click AI upscale and detail enhancement with strict original preservation.",
   "inputs": {

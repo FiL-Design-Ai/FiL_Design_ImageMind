@@ -22,9 +22,9 @@ class FiLKrea2TiledDiffusion(io.ComfyNode):
     def define_schema(cls):
         return io.Schema(
             node_id="FiLKrea2TiledDiffusion",
-            display_name="📐 Krea 2 Tiled Diffusion",
+            display_name="💎 Krea 2 Tiled Diffusion",
             category=CATEGORY_IMAGE,
-            description="📐 FiL Krea 2 Tiled Diffusion — high-fidelity one-click AI upscale and detail enhancement with strict original preservation.",
+            description="💎 FiL Krea 2 Tiled Diffusion — high-fidelity one-click AI upscale and detail enhancement with strict original preservation.",
             inputs=[
                 io.Image.Input("image", optional=True,
                                tooltip=_t("krea2_image", "Input image to upscale and enhance.")),

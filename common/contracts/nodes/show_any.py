@@ -8,7 +8,7 @@ from ...brand import CATEGORY_TOOLS
 
 CONTRACT = NodeContract(
     id="FiLShowAny",
-    title="👁️ Show Any",
+    title="🖥️ Show Any",
     category=CATEGORY_TOOLS,
     description=(
         "Universal data inspector & pass-through monitor. "

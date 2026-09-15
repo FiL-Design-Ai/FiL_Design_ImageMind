@@ -310,7 +310,7 @@ Wire the individual layers into separate conditioning branches when you want to 
 #### 🎨 FiL Design/🎨 Styling
 
 <details>
-<summary><b>🎛️ Style Mixer</b> — <code>FiLStyleMixer</code> — weighted blend of styles and reference images</summary>
+<summary><b>🧪 Style Mixer</b> — <code>FiLStyleMixer</code> — weighted blend of styles and reference images</summary>
 
 | Input | Type | Default | Notes |
 |---|---|---|---|
@@ -430,7 +430,7 @@ range.
 </details>
 
 <details>
-<summary><b>🎨 Krea2 Tiled Diffusion</b> — <code>FiLKrea2TiledDiffusion</code> — edge-aware tiled diffusion & texture injection</summary>
+<summary><b>💎 Krea 2 Tiled Diffusion</b> — <code>FiLKrea2TiledDiffusion</code> — edge-aware tiled diffusion & texture injection</summary>
 
 High-fidelity tiled diffusion engine designed for Krea2 / Flux.2 architectures with edge-aware Sobel texture preservation, color matching and identity LoRA integration.
 
@@ -455,7 +455,7 @@ High-fidelity tiled diffusion engine designed for Krea2 / Flux.2 architectures w
 #### 🎨 FiL Design/🖼️ Image
 
 <details>
-<summary><b>🔍 Upscaler Advanced</b> — <code>FiLUpscaleTileCalc</code> — tile-grid planner + model upscaler</summary>
+<summary><b>🧮 Upscaler Advanced</b> — <code>FiLUpscaleTileCalc</code> — tile-grid planner + model upscaler</summary>
 
 | Input | Type | Default | Range / options |
 |---|---|---|---|
@@ -694,7 +694,7 @@ physical truth, zero meta-noise.
 </details>
 
 <details>
-<summary><b>♻️ Seed</b> — <code>FiLSeed</code> · <b>🧹 Cleaner</b> — <code>FiLNeuroCleaner</code> · <b>🔀 Cyber Switch</b> — <code>FiLSignalSwitch</code> · <b>👁️ Show Any</b> — <code>FiLShowAny</code> · <b>📡 Channel</b> — <code>FiLChannel</code></summary>
+<summary><b>♻️ Seed</b> — <code>FiLSeed</code> · <b>🧹 Cleaner</b> — <code>FiLNeuroCleaner</code> · <b>🔀 Cyber Switch</b> — <code>FiLSignalSwitch</code> · <b>🖥️ Show Any</b> — <code>FiLShowAny</code> · <b>📡 Channel</b> — <code>FiLChannel</code></summary>
 
 **♻️ Seed** — `seed` INT (0 – 2⁶⁴-1) → `SEED` INT. Panel is one row: the value plus 🔀 randomize,
 ♻️ reuse last, 🎲 new fixed random.
@@ -704,7 +704,7 @@ physical truth, zero meta-noise.
 **🔀 Cyber Switch** — `input` (ANY, optional) + `enable` BOOLEAN → `output` (ANY). ON forwards the
 value untouched; OFF passes `None` on the wire without blocking optional downstream nodes.
 
-**👁️ Show Any** — `source` (ANY, optional) + `text` (STRING) → `output` (ANY). Universal data inspector & pass-through monitor. Displays interactive image/mask previews or formatted text/JSON/latents with counters and 1-click clipboard copy.
+**🖥️ Show Any** — `source` (ANY, optional) + `text` (STRING) → `output` (ANY). Universal data inspector & pass-through monitor. Displays interactive image/mask previews or formatted text/JSON/latents with counters and 1-click clipboard copy.
 
 **📡 Channel** — Wireless signal broadcasting across the graph without visible wires.
 

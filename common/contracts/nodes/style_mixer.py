@@ -9,7 +9,7 @@ from ...data import get_style_mixer_dropdown_options
 
 CONTRACT = NodeContract(
     id="FiLStyleMixer",
-    title="🎛️ Style Mixer",
+    title="🧪 Style Mixer",
     category=CATEGORY_STYLING,
     description="Blends visual styles and reference images with weighted influence sliders and optional Vision LLM fusion.",
     family="base",

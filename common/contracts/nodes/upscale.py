@@ -8,7 +8,7 @@ from ...brand import CATEGORY_IMAGE
 
 CONTRACT = NodeContract(
     id="FiLUpscaleTileCalc",
-    title="🔍 Upscaler Advanced",
+    title="🧮 Upscaler Advanced",
     category=CATEGORY_IMAGE,
     description="Computes optimal tile grid layout for upscaling.",
     min_size=(320, 300),
