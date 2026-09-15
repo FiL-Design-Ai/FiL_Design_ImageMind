@@ -6339,6 +6339,221 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   ],
   "family": "image"
 },
+  "FiLLatentUpscalePro": {
+  "id": "FiLLatentUpscalePro",
+  "title": "📐 Latent Upscaler Pro",
+  "category": "🎨 FiL Design/🖼️ Image",
+  "description": "Smart latent scaler with artifact-free grid snapping (64/16/8 px), aspect ratio preservation, and pixel dimension outputs.",
+  "inputs": {
+    "required": [
+      {
+        "name": "mode",
+        "kind": "combo",
+        "label": "Mode",
+        "default": "By Factor",
+        "tooltip": null,
+        "values": [
+          "By Factor",
+          "Target Size",
+          "Longest Edge"
+        ],
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "scale_by",
+        "kind": "slider",
+        "label": "Scale by",
+        "default": 1.5,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": 0.05,
+        "max": 8,
+        "step": 0.05,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "upscale_method",
+        "kind": "combo",
+        "label": "Upscale method",
+        "default": "bislerp",
+        "tooltip": null,
+        "values": [
+          "bislerp",
+          "nearest-exact",
+          "area",
+          "bilinear",
+          "bicubic"
+        ],
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "snap_to",
+        "kind": "combo",
+        "label": "Snap to",
+        "default": "64 px (U-Net & DiT Safe)",
+        "tooltip": null,
+        "values": [
+          "64 px (U-Net & DiT Safe)",
+          "16 px (DiT Patch 2x2)",
+          "8 px (1 Latent Pixel)",
+          "Disabled (Exact)"
+        ],
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      }
+    ],
+    "optional": [
+      {
+        "name": "target_width",
+        "kind": "number",
+        "label": "Target width",
+        "default": 1024,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": 64,
+        "max": 8192,
+        "step": 64,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "target_height",
+        "kind": "number",
+        "label": "Target height",
+        "default": 1024,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": 64,
+        "max": 8192,
+        "step": 64,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "longest_edge",
+        "kind": "number",
+        "label": "Longest edge",
+        "default": 1536,
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": 128,
+        "max": 8192,
+        "step": 64,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      },
+      {
+        "name": "round_mode",
+        "kind": "combo",
+        "label": "Round mode",
+        "default": "nearest",
+        "tooltip": null,
+        "values": [
+          "nearest",
+          "up",
+          "down"
+        ],
+        "columns": null,
+        "searchable": null,
+        "multiline": null,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": "advanced",
+        "visible_when": null,
+        "visible_when_value": null
+      }
+    ],
+    "hidden": []
+  },
+  "outputs": [
+    {
+      "name": "latent",
+      "type": "LATENT"
+    },
+    {
+      "name": "width",
+      "type": "INT"
+    },
+    {
+      "name": "height",
+      "type": "INT"
+    },
+    {
+      "name": "latent_w",
+      "type": "INT"
+    },
+    {
+      "name": "latent_h",
+      "type": "INT"
+    },
+    {
+      "name": "effective_scale",
+      "type": "FLOAT"
+    }
+  ],
+  "min_size": [
+    320,
+    260
+  ],
+  "family": "image"
+},
 };
 
 export type NodeId = keyof typeof NODE_CONTRACTS;

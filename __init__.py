@@ -56,6 +56,7 @@ class FiLExtension(ComfyExtension):
         from .nodes.node_prompter import FiLPrompter
         from .nodes.node_show_any import FiLShowAny
         from .nodes.node_krea2_tiled_diffusion import FiLKrea2TiledDiffusion
+        from .nodes.node_latent_upscale_pro import FiLLatentUpscalePro
         return filter_release_nodes([
             FiLSeed,
             FiLProviderLoader,
@@ -81,6 +82,7 @@ class FiLExtension(ComfyExtension):
             FiLPrompter,
             FiLShowAny,
             FiLKrea2TiledDiffusion,
+            FiLLatentUpscalePro,
         ])
 
 

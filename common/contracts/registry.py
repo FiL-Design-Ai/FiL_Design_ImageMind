@@ -42,6 +42,7 @@ from .nodes.tile_assembly import CONTRACT as TILE_ASSEMBLY
 from .nodes.upscale import CONTRACT as UPSCALE
 from .nodes.upscale_simple import CONTRACT as UPSCALE_SIMPLE
 from .nodes.krea2_tiled_diffusion import CONTRACT as KREA2_TILED_DIFFUSION
+from .nodes.latent_upscale_pro import CONTRACT as LATENT_UPSCALE_PRO
 from .schema import NodeContract
 
 NODE_SCHEMAS: dict[str, NodeContract] = {
@@ -71,6 +72,7 @@ NODE_SCHEMAS: dict[str, NodeContract] = {
         PROMPTER,
         SHOW_ANY,
         KREA2_TILED_DIFFUSION,
+        LATENT_UPSCALE_PRO,
     )
 }
 

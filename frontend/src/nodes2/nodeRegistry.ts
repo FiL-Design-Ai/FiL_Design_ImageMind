@@ -30,6 +30,7 @@ import { promptDirectorNode } from "@/nodes2/nodes/prompt_director";
 import { prompterNode } from "@/nodes2/nodes/prompter";
 import { showAnyNode } from "@/nodes2/nodes/show_any";
 import { krea2TiledDiffusionNode } from "@/nodes2/nodes/krea2_tiled_diffusion";
+import { latentUpscaleProNode } from "@/nodes2/nodes/latent_upscale_pro";
 
 export interface NodeModule {
   id: string;
@@ -61,6 +62,7 @@ const modules: NodeModule[] = [
   prompterNode,
   showAnyNode,
   krea2TiledDiffusionNode,
+  latentUpscaleProNode,
 ];
 
 export const NODE_MODULES: Record<string, NodeModule> = Object.fromEntries(

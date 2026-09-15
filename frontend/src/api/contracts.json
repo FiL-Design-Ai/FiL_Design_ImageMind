@@ -95,6 +95,10 @@
     "FiLKrea2TiledDiffusion": {
       "title": "📐 Krea 2 Tiled Diffusion",
       "category": "🎨 FiL Design/🖼️ Image"
+    },
+    "FiLLatentUpscalePro": {
+      "title": "📐 Latent Upscaler Pro",
+      "category": "🎨 FiL Design/🖼️ Image"
     }
   },
   "schemas": {
@@ -8809,6 +8813,369 @@
       ],
       "title": "NodeContract",
       "type": "object"
+    },
+    "FiLLatentUpscalePro": {
+      "$defs": {
+        "NodeInputs": {
+          "additionalProperties": false,
+          "properties": {
+            "required": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Required",
+              "type": "array"
+            },
+            "optional": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Optional",
+              "type": "array"
+            },
+            "hidden": {
+              "items": {
+                "$ref": "#/$defs/WidgetSpec"
+              },
+              "title": "Hidden",
+              "type": "array"
+            }
+          },
+          "title": "NodeInputs",
+          "type": "object"
+        },
+        "NodeOutput": {
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "title": "Name",
+              "type": "string"
+            },
+            "type": {
+              "enum": [
+                "INT",
+                "FLOAT",
+                "STRING",
+                "BOOLEAN",
+                "DICT",
+                "IMAGE",
+                "MASK",
+                "LATENT",
+                "MODEL",
+                "CLIP",
+                "VAE",
+                "CONDITIONING",
+                "ANY"
+              ],
+              "title": "Type",
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "type"
+          ],
+          "title": "NodeOutput",
+          "type": "object"
+        },
+        "WidgetKind": {
+          "description": "Frontend rendering hint for a single widget.",
+          "enum": [
+            "combo",
+            "segmented",
+            "chip_grid",
+            "chip_list",
+            "number",
+            "slider",
+            "boolean",
+            "string",
+            "color",
+            "dict",
+            "custom"
+          ],
+          "title": "WidgetKind",
+          "type": "string"
+        },
+        "WidgetSpec": {
+          "additionalProperties": false,
+          "description": "A single widget on a node body.",
+          "properties": {
+            "name": {
+              "description": "Widget name; matches the ComfyUI INPUT_TYPES key.",
+              "title": "Name",
+              "type": "string"
+            },
+            "kind": {
+              "$ref": "#/$defs/WidgetKind"
+            },
+            "label": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional display label (defaults to the widget name).",
+              "title": "Label"
+            },
+            "default": {
+              "default": null,
+              "title": "Default"
+            },
+            "tooltip": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Tooltip"
+            },
+            "values": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Values"
+            },
+            "columns": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Layout hint for chip grids.",
+              "title": "Columns"
+            },
+            "searchable": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Whether a chip list shows a search box.",
+              "title": "Searchable"
+            },
+            "multiline": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Whether string widget uses multiline textarea.",
+              "title": "Multiline"
+            },
+            "min": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Min"
+            },
+            "max": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Max"
+            },
+            "step": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Step"
+            },
+            "units": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Units"
+            },
+            "options": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Options"
+            },
+            "section": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Section"
+            },
+            "visible_when": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Visible When"
+            },
+            "visible_when_value": {
+              "anyOf": [
+                {},
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Visible When Value"
+            }
+          },
+          "required": [
+            "name",
+            "kind"
+          ],
+          "title": "WidgetSpec",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Full frontend contract for a single FiL Design ImageMind node.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "category": {
+          "title": "Category",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "inputs": {
+          "$ref": "#/$defs/NodeInputs"
+        },
+        "outputs": {
+          "items": {
+            "$ref": "#/$defs/NodeOutput"
+          },
+          "title": "Outputs",
+          "type": "array"
+        },
+        "min_size": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min Size"
+        },
+        "family": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Family"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "category"
+      ],
+      "title": "NodeContract",
+      "type": "object"
     }
   },
   "data": {
@@ -15092,6 +15459,221 @@
       "min_size": [
         320,
         360
+      ],
+      "family": "image"
+    },
+    "FiLLatentUpscalePro": {
+      "id": "FiLLatentUpscalePro",
+      "title": "📐 Latent Upscaler Pro",
+      "category": "🎨 FiL Design/🖼️ Image",
+      "description": "Smart latent scaler with artifact-free grid snapping (64/16/8 px), aspect ratio preservation, and pixel dimension outputs.",
+      "inputs": {
+        "required": [
+          {
+            "name": "mode",
+            "kind": "combo",
+            "label": "Mode",
+            "default": "By Factor",
+            "tooltip": null,
+            "values": [
+              "By Factor",
+              "Target Size",
+              "Longest Edge"
+            ],
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "scale_by",
+            "kind": "slider",
+            "label": "Scale by",
+            "default": 1.5,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": 0.05,
+            "max": 8,
+            "step": 0.05,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "upscale_method",
+            "kind": "combo",
+            "label": "Upscale method",
+            "default": "bislerp",
+            "tooltip": null,
+            "values": [
+              "bislerp",
+              "nearest-exact",
+              "area",
+              "bilinear",
+              "bicubic"
+            ],
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "snap_to",
+            "kind": "combo",
+            "label": "Snap to",
+            "default": "64 px (U-Net & DiT Safe)",
+            "tooltip": null,
+            "values": [
+              "64 px (U-Net & DiT Safe)",
+              "16 px (DiT Patch 2x2)",
+              "8 px (1 Latent Pixel)",
+              "Disabled (Exact)"
+            ],
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          }
+        ],
+        "optional": [
+          {
+            "name": "target_width",
+            "kind": "number",
+            "label": "Target width",
+            "default": 1024,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": 64,
+            "max": 8192,
+            "step": 64,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "target_height",
+            "kind": "number",
+            "label": "Target height",
+            "default": 1024,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": 64,
+            "max": 8192,
+            "step": 64,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "longest_edge",
+            "kind": "number",
+            "label": "Longest edge",
+            "default": 1536,
+            "tooltip": null,
+            "values": null,
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": 128,
+            "max": 8192,
+            "step": 64,
+            "units": null,
+            "options": null,
+            "section": null,
+            "visible_when": null,
+            "visible_when_value": null
+          },
+          {
+            "name": "round_mode",
+            "kind": "combo",
+            "label": "Round mode",
+            "default": "nearest",
+            "tooltip": null,
+            "values": [
+              "nearest",
+              "up",
+              "down"
+            ],
+            "columns": null,
+            "searchable": null,
+            "multiline": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "units": null,
+            "options": null,
+            "section": "advanced",
+            "visible_when": null,
+            "visible_when_value": null
+          }
+        ],
+        "hidden": []
+      },
+      "outputs": [
+        {
+          "name": "latent",
+          "type": "LATENT"
+        },
+        {
+          "name": "width",
+          "type": "INT"
+        },
+        {
+          "name": "height",
+          "type": "INT"
+        },
+        {
+          "name": "latent_w",
+          "type": "INT"
+        },
+        {
+          "name": "latent_h",
+          "type": "INT"
+        },
+        {
+          "name": "effective_scale",
+          "type": "FLOAT"
+        }
+      ],
+      "min_size": [
+        320,
+        260
       ],
       "family": "image"
     }

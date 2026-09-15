@@ -43,6 +43,7 @@ RELEASE_NODES: set[str] = {
     "FiLPrompter",
     "FiLShowAny",
     "FiLKrea2TiledDiffusion",
+    "FiLLatentUpscalePro",
 }
 
 _TRUTHY = {"1", "true", "yes", "on"}

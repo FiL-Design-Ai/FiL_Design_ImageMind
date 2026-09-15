@@ -799,6 +799,15 @@
   "pmp_chip_nsfw": "NSFW",
   "pmp_quick_filters": "Quick filters",
   "pmp_reset": "Reset",
-  "pmp_reset_filters": "Reset all active filters and search"
+  "pmp_reset_filters": "Reset all active filters and search",
+  "lup_samples": "Input latent to upscale.",
+  "lup_mode": "Scaling mode: 'By Factor' uses multiplier, 'Target Size' scales to exact dimensions, 'Longest Edge' scales preserving aspect ratio.",
+  "lup_scale_by": "Upscale factor used when mode is 'By Factor'.",
+  "lup_target_width": "Target width in pixels (used in 'Target Size' mode).",
+  "lup_target_height": "Target height in pixels (used in 'Target Size' mode).",
+  "lup_longest_edge": "Longest edge in pixels (used in 'Longest Edge' mode).",
+  "lup_upscale_method": "Interpolation method for latent tensors. 'bislerp' is standard for diffusion latents.",
+  "lup_snap_to": "Grid snapping rule. 64 px eliminates border artifacts on SD1.5/SDXL and DiT; 16 px guarantees even latents for Flux.",
+  "lup_round_mode": "Rounding direction when snapping to the grid."
 }
 
