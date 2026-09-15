@@ -45,6 +45,7 @@ const temperature = computed(() => Number(field("temperature", 0.7).get()));
 const maxTokens = computed(() => Number(field("max_tokens", 0).get()));
 const rateLimit = computed(() => Number(field("rate_limit_ms", 100).get()));
 const maxImageSide = computed(() => Number(field("max_image_side", 1024).get()));
+const timeout = computed(() => Number(field("timeout", 10).get()));
 const state = props.state;
 
 // The unload switch only means something to the local servers — they are the
@@ -160,6 +161,9 @@ onMounted(async () => {
       <FilSlider :model-value="rateLimit" :min="0" :max="5000" :step="10" :label="t('lbl_rate_limit', '⏱️ Rate limit')" inline-label
         :title="t('tt_rate_limit', 'Minimum delay between requests to this provider, to avoid rate limiting.')"
         @update:model-value="(v: number) => (state.nodeState.rate_limit_ms = v)" />
+      <FilSlider :model-value="timeout" :min="1" :max="120" :step="1" :label="t('lbl_timeout', '⏳ Timeout (s)')" inline-label
+        :title="t('tt_provider_timeout', 'Maximum time in seconds to wait for provider response (default 10s).')"
+        @update:model-value="(v: number) => (state.nodeState.timeout = v)" />
       <FilSlider :model-value="maxImageSide" :min="128" :max="4096" :step="64" :label="t('lbl_max_image_side', '🖼️ Max image side')" inline-label
         :title="t('tt_max_image_side', 'Images are downscaled so their longest side does not exceed this value.')"
         @update:model-value="(v: number) => (state.nodeState.max_image_side = v)" />

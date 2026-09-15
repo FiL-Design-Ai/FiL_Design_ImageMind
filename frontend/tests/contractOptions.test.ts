@@ -42,6 +42,7 @@ const NODE_ID_BY_FILE: Record<string, string> = {
   "PrompterPanel.vue": "FiLPrompter",
   "ShowAnyPanel.vue": "FiLShowAny",
   "Krea2TiledDiffusionPanel.vue": "FiLKrea2TiledDiffusion",
+  "LatentUpscaleProPanel.vue": "FiLLatentUpscalePro",
 };
 
 /**

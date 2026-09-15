@@ -124,6 +124,8 @@
   "lbl_temperature": "🌡️ Температура",
   "lbl_max_tokens": "🔢 Макс. токенов",
   "lbl_rate_limit": "⏱️ Пауза запросов",
+  "lbl_timeout": "⏳ Таймаут (сек)",
+  "tt_provider_timeout": "Максимальное время ожидания ответа провайдера в секундах (по умолчанию 10с).",
   "lbl_tile_size": "🔲 Размер тайла",
   "lbl_overlap": "🧵 Перекрытие",
   "lbl_auto_overlap": "🧵 Авто",

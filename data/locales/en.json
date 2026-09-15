@@ -124,6 +124,8 @@
   "lbl_temperature": "🌡️ Temperature",
   "lbl_max_tokens": "🔢 Max tokens",
   "lbl_rate_limit": "⏱️ Rate limit",
+  "lbl_timeout": "⏳ Timeout (s)",
+  "tt_provider_timeout": "Maximum time in seconds to wait for provider response (default 10s).",
   "lbl_tile_size": "🔲 Tile size",
   "lbl_overlap": "🧵 Overlap",
   "lbl_auto_overlap": "🧵 Auto",

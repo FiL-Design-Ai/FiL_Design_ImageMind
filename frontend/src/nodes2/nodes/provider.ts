@@ -48,6 +48,7 @@ export const providerNode: NodeModule = {
       { name: "max_tokens", kind: "number" as const, fallback: 0 },
       { name: "rate_limit_ms", kind: "number" as const, fallback: 100 },
       { name: "max_image_side", kind: "number" as const, fallback: 1024 },
+      { name: "timeout", kind: "number" as const, fallback: 10 },
     ];
 
     const originalCreated = p.onNodeCreated;
@@ -77,10 +78,11 @@ export const providerNode: NodeModule = {
       const initialMaxTokens = sanitizeWidgetValue(findFilWidget(node, "max_tokens"), "number", 0);
       const initialRateLimit = sanitizeWidgetValue(findFilWidget(node, "rate_limit_ms"), "number", 100);
       const initialMaxImageSide = sanitizeWidgetValue(findFilWidget(node, "max_image_side"), "number", 1024);
+      const initialTimeout = sanitizeWidgetValue(findFilWidget(node, "timeout"), "number", 10);
 
       // `seed`/`control_after_generate` are gone from the node schema; keeping
       // them here only re-created dead state on every node.
-      for (const name of ["provider", "model", "refresh_models", "unload_llm", "temperature", "max_tokens", "rate_limit_ms", "max_image_side"]) {
+      for (const name of ["provider", "model", "refresh_models", "unload_llm", "temperature", "max_tokens", "rate_limit_ms", "max_image_side", "timeout"]) {
         hideNativeWidget(node, name);
       }
 
@@ -93,6 +95,7 @@ export const providerNode: NodeModule = {
           max_tokens: initialMaxTokens,
           rate_limit_ms: initialRateLimit,
           max_image_side: initialMaxImageSide,
+          timeout: initialTimeout,
         }),
         initialValues: {
           provider: initialProvider,
@@ -102,6 +105,7 @@ export const providerNode: NodeModule = {
           max_tokens: initialMaxTokens,
           rate_limit_ms: initialRateLimit,
           max_image_side: initialMaxImageSide,
+          timeout: initialTimeout,
         },
         ui: {},
       };
