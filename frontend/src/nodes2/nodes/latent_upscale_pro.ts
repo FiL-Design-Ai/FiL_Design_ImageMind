@@ -37,8 +37,8 @@ export const latentUpscaleProNode: NodeModule = {
   id: "FiLLatentUpscalePro",
   register(nodeType: LGraphNodeType, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
-      minSize: [320, 320],
-      initialWidth: 320,
+      minSize: [280, 240],
+      initialWidth: 280,
       family: "image",
       description: "Smart latent scaler with artifact-free grid snapping (64/16/8 px), aspect ratio preservation, and pixel dimension outputs.",
       badges: [{ text: "latent", color: "#38bdf8", text_color: "#000" }],
@@ -81,7 +81,7 @@ export const latentUpscaleProNode: NodeModule = {
       node._filLatentUpscaleProState = state;
 
       installFilStatePersistence(node, state);
-      addFilDomWidget(node, "fil_latent_upscale_pro_view", LatentUpscaleProVue, { state, height: 320, growable: true });
+      addFilDomWidget(node, "fil_latent_upscale_pro_view", LatentUpscaleProVue, { state, height: 195 });
       exposeWidgetInputSockets(this, LATENT_UPSCALE_PRO_SOCKET_INPUTS);
       return result;
     };

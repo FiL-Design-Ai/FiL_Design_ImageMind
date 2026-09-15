@@ -11,7 +11,7 @@ CONTRACT = NodeContract(
     title="📐 Latent Upscaler Pro",
     category=CATEGORY_IMAGE,
     description="Smart latent scaler with artifact-free grid snapping (64/16/8 px), aspect ratio preservation, and pixel dimension outputs.",
-    min_size=(320, 260),
+    min_size=(280, 240),
     family="image",
     inputs=NodeInputs(
         required=[
@@ -46,9 +46,6 @@ CONTRACT = NodeContract(
         NodeOutput(name="latent", type="LATENT"),
         NodeOutput(name="width", type="INT"),
         NodeOutput(name="height", type="INT"),
-        NodeOutput(name="latent_w", type="INT"),
-        NodeOutput(name="latent_h", type="INT"),
-        NodeOutput(name="effective_scale", type="FLOAT"),
     ],
 )
 

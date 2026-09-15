@@ -39,16 +39,14 @@ def test_upscale_by_factor_snap_64():
         round_mode="nearest",
     )
 
-    out_latent, w, h, lw, lh, eff_scale = out
+    out_latent, w, h = out
+    lw, lh = w // 8, h // 8
     # 1024 * 1.33 = 1361.92 -> 1344 px (divisible by 64)
     assert w == 1344
     assert h == 1344
     assert w % 64 == 0
     assert h % 64 == 0
-    assert lw == 1344 // 8
-    assert lh == 1344 // 8
     assert out_latent["samples"].shape == (1, 4, lh, lw)
-    assert round(eff_scale, 2) == 1.31
 
 
 def test_upscale_by_factor_snap_16():
@@ -61,7 +59,8 @@ def test_upscale_by_factor_snap_16():
         round_mode="nearest",
     )
 
-    out_latent, w, h, lw, lh, eff_scale = out
+    out_latent, w, h = out
+    lw, lh = w // 8, h // 8
     # 1361.92 snapped to 16 = 1360
     assert w == 1360
     assert h == 1360
@@ -82,7 +81,7 @@ def test_upscale_target_size():
         round_mode="nearest",
     )
 
-    out_latent, w, h, lw, lh, _ = out
+    out_latent, w, h = out
     # 1200 -> 1216, 800 -> 832
     assert w == 1216
     assert h == 832
@@ -102,7 +101,7 @@ def test_upscale_longest_edge_preserves_aspect_ratio():
         round_mode="nearest",
     )
 
-    out_latent, w, h, lw, lh, _ = out
+    out_latent, w, h = out
     # longest edge = 1536, short edge = 768
     assert w == 1536
     assert h == 768
@@ -123,7 +122,8 @@ def test_upscale_preserves_noise_mask():
         snap_to="64 px (U-Net & DiT Safe)",
     )
 
-    out_latent, w, h, lw, lh, _ = out
+    out_latent, w, h = out
+    lw, lh = w // 8, h // 8
     assert "noise_mask" in out_latent
     assert out_latent["noise_mask"].shape == (1, 1, lh, lw)
 
@@ -139,7 +139,8 @@ def test_upscale_preserves_3d_noise_mask():
         snap_to="64 px (U-Net & DiT Safe)",
     )
 
-    out_latent, w, h, lw, lh, _ = out
+    out_latent, w, h = out
+    lw, lh = w // 8, h // 8
     assert "noise_mask" in out_latent
     assert out_latent["noise_mask"].shape == (1, lh, lw)
 

@@ -168,8 +168,8 @@ const roundModeOptions = computed(() => comboOptions("round_mode", ["nearest", "
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 8px;
+  gap: 6px;
+  padding: 4px 6px;
   color: var(--fil-text);
   font-family: ui-sans-serif, system-ui, sans-serif;
 }
@@ -182,7 +182,7 @@ const roundModeOptions = computed(() => comboOptions("round_mode", ["nearest", "
 .fil-size-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 6px;
   width: 100%;
 }
 </style>

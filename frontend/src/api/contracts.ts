@@ -6534,23 +6534,11 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     {
       "name": "height",
       "type": "INT"
-    },
-    {
-      "name": "latent_w",
-      "type": "INT"
-    },
-    {
-      "name": "latent_h",
-      "type": "INT"
-    },
-    {
-      "name": "effective_scale",
-      "type": "FLOAT"
     }
   ],
   "min_size": [
-    320,
-    260
+    280,
+    240
   ],
   "family": "image"
 },

@@ -139,18 +139,6 @@ class FiLLatentUpscalePro(io.ComfyNode):
                     display_name="height",
                     tooltip="Resulting image height in pixels (divisible by chosen snap).",
                 ),
-                io.Int.Output(
-                    display_name="latent_w",
-                    tooltip="Resulting latent width in latent pixels (width / 8).",
-                ),
-                io.Int.Output(
-                    display_name="latent_h",
-                    tooltip="Resulting latent height in latent pixels (height / 8).",
-                ),
-                io.Float.Output(
-                    display_name="effective_scale",
-                    tooltip="Effective scale multiplier after grid snapping.",
-                ),
             ],
             search_aliases=["latent upscale", "upscale latent by", "latent resizer", "snap", "hires latent"],
         )
@@ -244,13 +232,8 @@ class FiLLatentUpscalePro(io.ComfyNode):
                 )
                 out["noise_mask"] = res_m.squeeze(1)
 
-        effective_scale = round(float(target_px_w) / float(max(1, cur_px_w)), 4)
-
         return io.NodeOutput(
             out,
             int(target_px_w),
             int(target_px_h),
-            int(target_lw),
-            int(target_lh),
-            float(effective_scale),
         )
