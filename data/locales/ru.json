@@ -137,6 +137,8 @@
   "lbl_manual_cols": "↔️ Колонки",
   "lbl_manual_rows": "↕️ Ряды",
   "lbl_upscale_factor": "🔍 Множитель апскейла",
+  "lbl_tile_mode": "🎯 Режим тайлов",
+  "utc_hud_tt": "Расчетные параметры тайлов для сэмплинга и бесшовной сборки.",
   "lbl_full_auto": "🤖 Полный авто",
   "lbl_auto_profile": "🎚️ Авто-профиль",
   "lbl_non_square": "📐 Неквадратные тайлы",

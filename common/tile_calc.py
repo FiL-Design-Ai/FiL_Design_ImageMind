@@ -89,10 +89,18 @@ def apply_latent_resize(latent, target_lw: int, target_lh: int):
     """Resize a LATENT dict's `samples` tensor to target_lw x target_lh using
     bislerp — the standard ComfyUI latent-space upscale interpolation
     (lanczos, used for the pixel `image` output, only applies to RGB data).
+    Supports both 4D (B, C, H, W) and 5D video latents (B, C, T, H, W).
     """
     import comfy.utils
 
-    resized = comfy.utils.common_upscale(latent["samples"], target_lw, target_lh, "bislerp", "disabled")
+    samples = latent["samples"]
+    is_5d = samples.ndim == 5
+    if is_5d:
+        b, c, t, h, w = samples.shape
+        samples = samples.permute(0, 2, 1, 3, 4).reshape(b * t, c, h, w)
+    resized = comfy.utils.common_upscale(samples, target_lw, target_lh, "bislerp", "disabled")
+    if is_5d:
+        resized = resized.reshape(b, t, c, target_lh, target_lw).permute(0, 2, 1, 3, 4)
     return {"samples": resized}
 
 

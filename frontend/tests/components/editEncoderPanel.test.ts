@@ -120,3 +120,4 @@ describe("EditEncoderPanel.vue", () => {
     expect(wrapper.text()).toContain("Text encoder reads 384x384");
   });
 });
+

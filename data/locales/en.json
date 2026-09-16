@@ -137,6 +137,8 @@
   "lbl_manual_cols": "↔️ Cols",
   "lbl_manual_rows": "↕️ Rows",
   "lbl_upscale_factor": "🔍 Upscale factor",
+  "lbl_tile_mode": "🎯 Tile mode",
+  "utc_hud_tt": "Live estimated tiling metrics for downstream sampling and assembly.",
   "lbl_full_auto": "🤖 Full auto",
   "lbl_auto_profile": "🎚️ Auto profile",
   "lbl_non_square": "📐 Non-square tiles",
