@@ -5324,11 +5324,11 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
         "name": "source_mode",
         "kind": "combo",
         "label": "Source mode",
-        "default": "Checkpoints",
+        "default": "Diffusion Models",
         "tooltip": null,
         "values": [
-          "Checkpoints",
-          "Diffusion Models"
+          "Diffusion Models",
+          "Checkpoints"
         ],
         "columns": null,
         "searchable": null,

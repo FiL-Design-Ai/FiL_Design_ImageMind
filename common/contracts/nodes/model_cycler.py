@@ -15,7 +15,7 @@ CONTRACT = NodeContract(
     family="tool",
     inputs=NodeInputs(
         required=[
-            _combo("source_mode", values=["Checkpoints", "Diffusion Models"], default="Checkpoints", label="Source mode"),
+            _combo("source_mode", values=["Diffusion Models", "Checkpoints"], default="Diffusion Models", label="Source mode"),
             _string("model_list", default="", multiline=True, label="Model list"),
             _string("filter_pattern", default="", label="Filter pattern"),
             _combo("cycle_mode", values=["Sequential (Loop)", "Sequential (Stop)", "Ping-Pong", "Random", "Fixed Index"], default="Sequential (Loop)", label="Cycle mode"),
