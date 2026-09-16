@@ -161,7 +161,7 @@
   "ks_model": "Модель диффузии для сэмплинга.",
   "ks_seed": "Сид шума.",
   "ks_steps": "Количество шагов денойзинга.",
-  "ks_cfg": "Масштаб classifier-free guidance (CFG).",
+  "ks_cfg": "Масштаб classifier-free guidance (CFG). Для современных DiT (FLUX, Z-Image, Qwen) ставь 1.0 (или 2.5–3.5), чтобы не пережечь картинку.",
   "ks_sampler": "Алгоритм сэмплинга.",
   "ks_scheduler": "Расписание шума (scheduler).",
   "ks_positive": "Позитивный кондишенинг.",

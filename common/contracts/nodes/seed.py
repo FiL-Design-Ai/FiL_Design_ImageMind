@@ -8,7 +8,7 @@ from ...brand import CATEGORY_VALUES
 
 CONTRACT = NodeContract(
     id="FiLSeed",
-    title="♻️ Seed",
+    title="🌱 Seed",
     category=CATEGORY_VALUES,
     description="Fixed or randomized seed with reuse buttons.",
     min_size=(300, 90),

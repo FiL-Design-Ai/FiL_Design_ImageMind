@@ -11732,7 +11732,7 @@ var gT, _T, vT = n((() => {
 	LT = {
 		FiLSeed: {
 			id: "FiLSeed",
-			title: "♻️ Seed",
+			title: "🌱 Seed",
 			category: "🎨 FiL Design/🔢 Values",
 			description: "Fixed or randomized seed with reuse buttons.",
 			inputs: {

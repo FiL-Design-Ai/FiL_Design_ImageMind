@@ -58,7 +58,7 @@ export const SETTINGS_PREFIX = "FiL_Design_ImageMind.";
 export const NODE_CONTRACTS: Record<string, NodeContract> = {
   "FiLSeed": {
   "id": "FiLSeed",
-  "title": "♻️ Seed",
+  "title": "🌱 Seed",
   "category": "🎨 FiL Design/🔢 Values",
   "description": "Fixed or randomized seed with reuse buttons.",
   "inputs": {

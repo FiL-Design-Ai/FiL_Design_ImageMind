@@ -161,7 +161,7 @@
   "ks_model": "Diffusion model to sample with.",
   "ks_seed": "Noise seed.",
   "ks_steps": "Number of denoising steps.",
-  "ks_cfg": "Classifier-free guidance scale.",
+  "ks_cfg": "Classifier-free guidance scale (CFG). For modern DiT models (FLUX, Z-Image, Qwen), use 1.0 (or 2.5–3.5) to avoid image burn artifacts.",
   "ks_sampler": "Sampling algorithm.",
   "ks_scheduler": "Noise schedule.",
   "ks_positive": "Positive conditioning.",

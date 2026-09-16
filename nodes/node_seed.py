@@ -10,9 +10,9 @@ class FiLSeed(io.ComfyNode):
     def define_schema(cls):
         return io.Schema(
             node_id="FiLSeed",
-            display_name="♻️ Seed",
+            display_name="🌱 Seed",
             category=CATEGORY_VALUES,
-            description="🔢 FiL Seed — deterministic or random seed generator. Returns an integer for use as a random seed elsewhere in the graph.",
+            description="🌱 FiL Seed — deterministic or random seed generator. Returns an integer for use as a random seed elsewhere in the graph.",
             inputs=[
                 io.Int.Input("seed", default=0, min=0, max=SEED_MAX,
                              tooltip="Resolved seed value (managed by the UI)."),

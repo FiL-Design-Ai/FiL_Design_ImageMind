@@ -1,7 +1,7 @@
 {
   "node_ids": {
     "FiLSeed": {
-      "title": "♻️ Seed",
+      "title": "🌱 Seed",
       "category": "🎨 FiL Design/🔢 Values"
     },
     "FiLProviderLoader": {
@@ -9181,7 +9181,7 @@
   "data": {
     "FiLSeed": {
       "id": "FiLSeed",
-      "title": "♻️ Seed",
+      "title": "🌱 Seed",
       "category": "🎨 FiL Design/🔢 Values",
       "description": "Fixed or randomized seed with reuse buttons.",
       "inputs": {
