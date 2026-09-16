@@ -13779,7 +13779,7 @@ var gT, _T, vT = n((() => {
 					name: "language",
 					kind: "combo",
 					label: "Language",
-					default: "English",
+					default: "en",
 					tooltip: null,
 					values: ["en", "ru"],
 					columns: null,

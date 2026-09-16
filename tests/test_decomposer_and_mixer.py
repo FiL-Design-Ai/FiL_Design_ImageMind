@@ -142,7 +142,7 @@ def test_decomposer_json_nulls_are_not_literal_strings():
     })
 
     with patch("FiL_Design_ImageMind.nodes.node_decomposer._model_client.generate", return_value=json_null_resp):
-        output = FiLImageDecomposer.execute(config=config, prompt=None)
+        output = FiLImageDecomposer.execute(config=config, prompt="Test nulls")
         res_tuple = output.args if hasattr(output, "args") else output
 
         # Verify no literal "None" strings are returned
@@ -151,6 +151,17 @@ def test_decomposer_json_nulls_are_not_literal_strings():
         assert res_tuple[2] == ""
         assert res_tuple[3] == ""
         assert res_tuple[4] == ""
+
+
+def test_decomposer_no_image_no_prompt_returns_error():
+    """Test that missing both image and prompt returns a clear error without calling LLM."""
+    config = {"provider": "Ollama", "model": "llama3"}
+    with patch("FiL_Design_ImageMind.nodes.node_decomposer._model_client.generate") as mock_gen:
+        output = FiLImageDecomposer.execute(config=config, image=None, prompt="")
+        res_tuple = output.args if hasattr(output, "args") else output
+        assert "⚠️ Ошибка:" in res_tuple[0]
+        mock_gen.assert_not_called()
+
 
 
 def test_style_mixer_node_execution():

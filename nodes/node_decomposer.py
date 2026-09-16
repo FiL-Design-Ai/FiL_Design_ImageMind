@@ -171,6 +171,9 @@ class FiLImageDecomposer(io.ComfyNode):
         has_image = image is not None
         prompt_str = str(prompt or "").strip()
 
+        if not has_image and not prompt_str:
+            return io.NodeOutput("⚠️ Ошибка: подключите изображение или введите тему/промпт для декомпозиции.", "", "", "", "")
+
         img_b64 = None
         if has_image:
             if not is_model_vision_capable(provider, model):

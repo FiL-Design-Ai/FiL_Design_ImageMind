@@ -2620,7 +2620,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
         "name": "language",
         "kind": "combo",
         "label": "Language",
-        "default": "English",
+        "default": "en",
         "tooltip": null,
         "values": [
           "en",

@@ -19,7 +19,7 @@ CONTRACT = NodeContract(
             _string("prompt", default="", multiline=True, label="Description"),
         ],
         optional=[
-            _combo("language", values=LANGUAGES, default="English", label="Language"),
+            _combo("language", values=LANGUAGES, default=LANGUAGES[0], label="Language"),
         ],
     ),
     outputs=[
