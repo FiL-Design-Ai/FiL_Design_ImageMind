@@ -57,8 +57,10 @@ class FiLHighResFix(io.ComfyNode):
             node_id="FiLHighResFix",
             display_name="🔬 HighRes Fix",
             category=CATEGORY_SAMPLING,
-            description="🔬 FiL HighRes Fix — packs latent/pixel upscale + re-sample settings into a script for FiLKSampler.",
+            description="🔬 FiL HighRes Fix — script module for FiLKSampler (packs latent/pixel upscale + re-sample settings). Connects to KSampler 'script' input.",
             inputs=[
+                FilHiresScript.Input("script", optional=True,
+                                     tooltip=t("hrf_script", "Optional upstream FiL script to extend.")),
                 io.Combo.Input("upscale_type", options=["latent", "pixel", "both"], default="latent",
                                tooltip=t("hrf_upscale_type", "Upscale in latent space, pixel space, or both.")),
                 io.Combo.Input("hires_ckpt_name", options=_checkpoints(), default="(use same)",
@@ -87,8 +89,6 @@ class FiLHighResFix(io.ComfyNode):
                                tooltip=t("hrf_cn_strength", "ControlNet strength.")),
                 io.Combo.Input("preprocessor", options=["none", "canny"], default="none", advanced=True,
                                tooltip=t("hrf_cn_preproc", "Preprocess the ControlNet hint image. 'none' feeds the raw upscaled image (right for tile ControlNets).")),
-                FilHiresScript.Input("script", optional=True,
-                                     tooltip=t("hrf_script", "Optional upstream FiL script to extend.")),
             ],
             outputs=[
                 FilHiresScript.Output("script", display_name="script", tooltip="FiL HighRes-fix script for FiLKSampler."),

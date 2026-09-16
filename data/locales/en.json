@@ -200,6 +200,8 @@
   "hrf_cn_name": "ControlNet model to apply.",
   "hrf_cn_strength": "ControlNet strength.",
   "hrf_script": "Optional upstream FiL script to extend.",
+  "hrf_role_script": "Script module for FiL KSampler",
+  "hrf_role_script_tt": "Configures upscale passes and passes the script into FiL KSampler's 'script' input.",
   "nsc_rng_source": "Device the initial noise is drawn on. 'gpu' can better match Automatic1111-style noise for the same seed.",
   "nsc_add_seed_noise": "Blend in noise from a second seed for a controlled variation.",
   "nsc_seed": "Variation seed (used when Variation is ON).",

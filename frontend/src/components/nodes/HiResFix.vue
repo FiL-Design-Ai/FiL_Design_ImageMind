@@ -168,10 +168,21 @@ function newFixedSeed() {
   seedValue.value = randomSeed(seedWidget());
   seedMode.value = "fixed";
 }
+
+// If an external link is connected to the "seed" socket, force own-seed mode so
+// the seed row becomes visible and displays the connected status.
+watch(seedLinked, (linked) => {
+  if (linked && useSameSeed.value !== "OFF") {
+    useSameSeed.value = "OFF";
+  }
+}, { immediate: true });
 </script>
 
 <template>
   <div class="fil-hrf-root">
+    <div class="fil-hrf-role-bar" :title="t('hrf_role_script_tt', 'Configures upscale passes and passes the script into FiL KSampler\'s script input.')">
+      <span class="fil-hrf-role-badge">⚡ {{ t('hrf_role_script', 'Script module for FiL KSampler') }}</span>
+    </div>
     <!-- No option-labels: the emoji they used to carry pushed all three past
          the pill's share of the row and every one of them ellipsised. -->
     <FilSegmented :options="['latent', 'pixel', 'both']"
@@ -215,10 +226,12 @@ function newFixedSeed() {
       </span>
     </div>
 
-    <FilSegmented :options="['ON', 'OFF']" :option-labels="{ ON: '♻️ same seed', OFF: '🎲 own' }" :model-value="useSameSeed"
-      :label="t('lbl_use_same_seed', '🌱 Seed source')" :disabled="seedLinked"
-      :title="seedLinked ? t('fld_linked_tt', 'Driven by the connected input — disconnect it to edit here.') : t('hrf_same_seed', 'Reuse the samplers seed for the hires pass.')"
-      @update:model-value="(v) => (useSameSeed = v as 'ON' | 'OFF')" />
+    <div class="fil-seed-source-wrap" :ref="(el: unknown) => { if (useSameSeed === 'ON') setFieldEl('seed', el); }">
+      <FilSegmented :options="['ON', 'OFF']" :option-labels="{ ON: '♻️ same seed', OFF: '🎲 own' }" :model-value="useSameSeed"
+        :label="t('lbl_use_same_seed', '🌱 Seed source')" :disabled="seedLinked"
+        :title="seedLinked ? t('fld_linked_tt', 'Driven by the connected input — disconnect it to edit here.') : t('hrf_same_seed', 'Reuse the samplers seed for the hires pass.')"
+        @update:model-value="(v) => (useSameSeed = v as 'ON' | 'OFF')" />
+    </div>
 
     <FilSeedRow
       v-if="useSameSeed === 'OFF'"
@@ -282,6 +295,28 @@ function newFixedSeed() {
  * rule in styles/brand.ts — keep only layout here. */
 .fil-hrf-root { width: 100%; box-sizing: border-box; min-width: 0; display: flex; flex-direction: column; gap: var(--fil-node-gap); padding: var(--fil-node-pad);
   color: var(--fil-text); font-family: ui-sans-serif, system-ui, sans-serif; }
+
+.fil-hrf-role-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 2px;
+}
+
+.fil-hrf-role-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--fil-accent) 15%, transparent);
+  color: var(--fil-accent-text);
+  border: 1px solid color-mix(in srgb, var(--fil-accent) 30%, transparent);
+  letter-spacing: 0.02em;
+}
+
+.fil-seed-source-wrap {
+  width: 100%;
+}
 
 .fil-iterations-row {
   display: flex;

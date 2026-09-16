@@ -14,7 +14,7 @@ const HiResFixVue = defineAsyncComponent(() => import("@/components/nodes/HiResF
  * native widget, which hides its input slot with it — `exposeWidgetInputSockets`
  * gives the slot a row and a visible dot back.
  */
-export const HIRESFIX_SOCKET_INPUTS = ["seed", "denoise", "hires_steps", "upscale_by"];
+export const HIRESFIX_SOCKET_INPUTS = ["upscale_by", "denoise", "hires_steps", "seed"];
 
 const numericDefaults: Record<string, number> = {
   upscale_by: 1.25, denoise: 0.56, iterations: 1, strength: 1.0,
