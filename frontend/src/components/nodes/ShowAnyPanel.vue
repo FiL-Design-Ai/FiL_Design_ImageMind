@@ -41,6 +41,8 @@ const activeImageUrl = computed(() => {
   return "";
 });
 
+const showInfo = ref(false);
+
 const isCopied = ref(false);
 const copyImageToClipboard = async () => {
   if (!activeImageUrl.value) return;
@@ -101,7 +103,7 @@ const displayDimensions = computed(() => {
   <div class="fil-sa-root">
     <div class="fil-sa-content">
       <!-- Image Preview Mode -->
-      <div v-if="hasImage" class="fil-sa-img-container">
+      <div v-if="hasImage && !showInfo" class="fil-sa-img-container">
         <div class="fil-sa-img-box">
           <img
             :src="activeImageUrl"
@@ -110,6 +112,17 @@ const displayDimensions = computed(() => {
             @load="onImgLoad"
           />
           <div class="fil-sa-img-toolbar">
+            <button
+              type="button"
+              class="fil-sa-tool-btn"
+              @click="showInfo = true"
+              :title="t('sa_toggle_info', 'Show Data / Tensor Info')"
+            >
+              <svg class="fil-sa-icon" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+              </svg>
+            </button>
             <button
               type="button"
               class="fil-sa-tool-btn"
@@ -140,17 +153,29 @@ const displayDimensions = computed(() => {
       </div>
 
       <!-- Text / Info Mode -->
-      <FilTextArea
-        v-else
-        :ref="(el: unknown) => setFieldEl('text', el)"
-        class="fil-sa-grow"
-        v-model="text"
-        :rows="4"
-        toolbar
-        :linked="isSourceLinked || isTextLinked"
-        :placeholder="t('sa_placeholder', 'Connect any signal to `source` or type text here…')"
-        :title="t('sa_tooltip', 'Displays formatted data or text. 1-click copy with live word/char counters.')"
-      />
+      <div v-else class="fil-sa-text-container">
+        <div v-if="hasImage && showInfo" class="fil-sa-info-bar">
+          <button
+            type="button"
+            class="fil-sa-back-btn"
+            @click="showInfo = false"
+            :title="t('sa_back_to_img', 'Back to Image Preview')"
+          >
+            ← {{ t('sa_btn_img', 'Preview') }}
+          </button>
+          <span class="fil-sa-info-title">{{ t('sa_tensor_meta', 'Tensor Info') }}</span>
+        </div>
+        <FilTextArea
+          :ref="(el: unknown) => setFieldEl('text', el)"
+          class="fil-sa-grow"
+          v-model="text"
+          :rows="4"
+          toolbar
+          :linked="isSourceLinked || isTextLinked"
+          :placeholder="t('sa_placeholder', 'Connect any signal to `source` or type text here…')"
+          :title="t('sa_tooltip', 'Displays formatted data or text. 1-click copy with live word/char counters.')"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -158,37 +183,98 @@ const displayDimensions = computed(() => {
 <style scoped>
 .fil-sa-root {
   width: 100%;
+  height: 100%;
   box-sizing: border-box;
   min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   padding: var(--fil-node-pad);
   color: var(--fil-text);
   font-family: ui-sans-serif, system-ui, sans-serif;
-  height: 100%;
+  position: relative;
+  overflow: hidden;
 }
 .fil-sa-content {
-  display: flex;
-  min-width: 0;
+  position: relative;
+  width: 100%;
   flex: 1 1 auto;
-  min-height: 0;
+  min-width: 0;
+  min-height: 90px;
   height: 100%;
+  overflow: hidden;
 }
-.fil-sa-content > :first-child {
-  flex: 1 1 auto;
-  min-width: 0;
+.fil-sa-img-container {
+  position: absolute;
+  inset: 0;
+  width: 100%;
   height: 100%;
+  min-width: 0;
+  min-height: 0;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--fil-border);
+  border-radius: var(--fil-radius);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+}
+.fil-sa-text-container {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.fil-sa-info-bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 4px 4px;
+  font-size: 11px;
+}
+.fil-sa-back-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+  color: var(--fil-accent, #38bdf8);
+  cursor: pointer;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  transition: background-color 0.1s;
+}
+.fil-sa-back-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+.fil-sa-info-title {
+  color: var(--fil-muted);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 .fil-sa-grow {
   flex: 1 1 auto;
-  min-height: 50px;
+  min-height: 0;
+  width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
+}
+.fil-sa-grow :deep(.fil-w-textarea-box) {
+  flex: 1 1 auto;
+  height: 100%;
   min-height: 0;
+}
+.fil-sa-grow :deep(.fil-w-textarea) {
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
 }
 .fil-sa-grow :deep(.fil-w-textarea.is-linked) {
   border: 1px solid var(--fil-border);
@@ -204,18 +290,6 @@ const displayDimensions = computed(() => {
 .fil-sa-grow :deep(.fil-w-textarea.is-linked:focus) {
   border-color: var(--fil-accent);
 }
-.fil-sa-img-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  min-height: 100px;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid var(--fil-border);
-  border-radius: var(--fil-radius);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
 .fil-sa-img-box {
   position: relative;
   width: 100%;
@@ -230,6 +304,7 @@ const displayDimensions = computed(() => {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
+  display: block;
 }
 .fil-sa-img-footer {
   flex: 0 0 auto;

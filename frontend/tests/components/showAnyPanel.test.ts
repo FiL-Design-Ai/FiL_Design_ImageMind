@@ -107,4 +107,35 @@ describe("ShowAnyPanel.vue", () => {
     expect(textarea.classes()).toContain("is-linked");
     expect(textarea.attributes("readonly")).toBeDefined();
   });
+
+  it("allows toggling between image preview and tensor info metadata", async () => {
+    const state = makeState(
+      { text: "Resolution: 1024 × 1024 px (RGB)\nDtype: torch.float32" },
+      {
+        images: [{ filename: "tensor.png", subfolder: "", type: "temp" }],
+        data_type: "IMAGE",
+      }
+    );
+    const wrapper = mount(ShowAnyPanel, { props: { state: state as never } });
+    expect(wrapper.find(".fil-sa-img").exists()).toBe(true);
+    expect(wrapper.find(".fil-sa-text-container").exists()).toBe(false);
+
+    // Find the toggle info button in the image toolbar (first tool-btn)
+    const toggleBtn = wrapper.find(".fil-sa-tool-btn");
+    expect(toggleBtn.exists()).toBe(true);
+    await toggleBtn.trigger("click");
+
+    // Now text container should be visible with metadata
+    expect(wrapper.find(".fil-sa-text-container").exists()).toBe(true);
+    expect(wrapper.find(".fil-sa-img").exists()).toBe(false);
+    expect(wrapper.find("textarea").element.value).toContain("Resolution: 1024 × 1024 px");
+
+    // Click back button to return to image preview
+    const backBtn = wrapper.find(".fil-sa-back-btn");
+    expect(backBtn.exists()).toBe(true);
+    await backBtn.trigger("click");
+
+    expect(wrapper.find(".fil-sa-img").exists()).toBe(true);
+    expect(wrapper.find(".fil-sa-text-container").exists()).toBe(false);
+  });
 });
