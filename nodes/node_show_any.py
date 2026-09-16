@@ -22,7 +22,8 @@ def inspect_data(source: Any, fallback_text: str = "") -> tuple[Any, str, str, i
     if source is None:
         text = fallback_text or ""
         words = len(text.split()) if text.strip() else 0
-        return text, text, "STANDALONE", words, len(text)
+        passthrough = text if fallback_text else None
+        return passthrough, text, "STANDALONE", words, len(text)
 
     # 1. Plain String
     if isinstance(source, str):
@@ -44,12 +45,21 @@ def inspect_data(source: Any, fallback_text: str = "") -> tuple[Any, str, str, i
     if isinstance(source, dict) and "samples" in source and torch.is_tensor(source["samples"]):
         samples = source["samples"]
         shape = list(samples.shape)
+        has_mask = "noise_mask" in source
         if len(shape) == 4:
             b, c, h, w = shape
-            has_mask = "noise_mask" in source
             text = (
                 f"🌀 LATENT [B={b}, C={c}, H={h}, W={w}]\n"
                 f"Pixel Equivalent: {w * 8} × {h * 8} px (8x)\n"
+                f"Channels: {c} | Noise Mask: {'Present' if has_mask else 'None'}\n"
+                f"Dtype: {samples.dtype} | Device: {samples.device}"
+            )
+        elif len(shape) == 5:
+            # 5D Video Latent: [B, C, F, H, W] (e.g. Wan2.1, HunyuanVideo, Cosmos)
+            b, c, f, h, w = shape
+            text = (
+                f"🌀 VIDEO LATENT [B={b}, Frames={f}, C={c}, H={h}, W={w}]\n"
+                f"Pixel Equivalent: {w * 8} × {h * 8} px ({f} frames, 8x)\n"
                 f"Channels: {c} | Noise Mask: {'Present' if has_mask else 'None'}\n"
                 f"Dtype: {samples.dtype} | Device: {samples.device}"
             )
@@ -58,10 +68,23 @@ def inspect_data(source: Any, fallback_text: str = "") -> tuple[Any, str, str, i
         words = len(text.split())
         return source, text, "LATENT", words, len(text)
 
-    # 4. Torch Tensor (Image, Mask, Weights)
+    # 4. Torch Tensor (Image, Video, Mask, Weights)
     if torch.is_tensor(source):
         shape = list(source.shape)
-        if len(shape) == 4:
+        if len(shape) == 5:
+            # 5D Video Tensor: [B, F, H, W, C]
+            b, f, h, w, c = shape
+            c_name = "RGB" if c == 3 else "RGBA" if c == 4 else "Grayscale" if c == 1 else f"{c}-channel"
+            min_v = float(source.min().item()) if source.numel() > 0 else 0.0
+            max_v = float(source.max().item()) if source.numel() > 0 else 0.0
+            text = (
+                f"🎬 VIDEO TENSOR [B={b}, Frames={f}, H={h}, W={w}, C={c}]\n"
+                f"Resolution: {w} × {h} px ({f} frames, {c_name})\n"
+                f"Value Range: [{min_v:.3f} .. {max_v:.3f}]\n"
+                f"Dtype: {source.dtype} | Device: {source.device}"
+            )
+            data_type = "VIDEO"
+        elif len(shape) == 4:
             b, h, w, c = shape
             min_v = float(source.min().item()) if source.numel() > 0 else 0.0
             max_v = float(source.max().item()) if source.numel() > 0 else 0.0
@@ -75,7 +98,25 @@ def inspect_data(source: Any, fallback_text: str = "") -> tuple[Any, str, str, i
             data_type = "IMAGE"
         elif len(shape) == 3:
             b, h, w = shape
-            text = f"🎭 MASK TENSOR [B={b}, H={h}, W={w}]\nResolution: {w} × {h} px\nDtype: {source.dtype} | Device: {source.device}"
+            min_v = float(source.min().item()) if source.numel() > 0 else 0.0
+            max_v = float(source.max().item()) if source.numel() > 0 else 0.0
+            text = (
+                f"🎭 MASK TENSOR [B={b}, H={h}, W={w}]\n"
+                f"Resolution: {w} × {h} px\n"
+                f"Value Range: [{min_v:.3f} .. {max_v:.3f}]\n"
+                f"Dtype: {source.dtype} | Device: {source.device}"
+            )
+            data_type = "MASK"
+        elif len(shape) == 2:
+            h, w = shape
+            min_v = float(source.min().item()) if source.numel() > 0 else 0.0
+            max_v = float(source.max().item()) if source.numel() > 0 else 0.0
+            text = (
+                f"🎭 MASK TENSOR [H={h}, W={w}]\n"
+                f"Resolution: {w} × {h} px\n"
+                f"Value Range: [{min_v:.3f} .. {max_v:.3f}]\n"
+                f"Dtype: {source.dtype} | Device: {source.device}"
+            )
             data_type = "MASK"
         else:
             text = f"📊 TENSOR shape={shape}\nDtype: {source.dtype} | Device: {source.device}"
@@ -107,6 +148,51 @@ def inspect_data(source: Any, fallback_text: str = "") -> tuple[Any, str, str, i
     # 6. ComfyUI Objects (Model, CLIP, VAE, etc.)
     cls_name = source.__class__.__name__
     mod_name = source.__class__.__module__
+
+    if cls_name == "ModelPatcher" or hasattr(source, "model"):
+        model_obj = getattr(source, "model", None)
+        arch_name = getattr(model_obj, "__class__", type(None)).__name__
+        model_type = "Unknown"
+        if hasattr(model_obj, "model_type"):
+            model_type = str(getattr(model_obj, "model_type"))
+        elif hasattr(model_obj, "model_config"):
+            model_type = getattr(model_obj.model_config, "__class__", type(None)).__name__
+
+        dtype = getattr(source, "model_dtype", None) or getattr(model_obj, "manual_cast_dtype", None)
+        device = getattr(source, "load_device", None) or getattr(source, "current_device", None)
+
+        text = (
+            f"🧠 MODEL ({cls_name})\n"
+            f"Architecture: {arch_name}\n"
+            f"Type/Config: {model_type}\n"
+            f"Dtype: {dtype or 'Default'} | Device: {device or 'Auto'}"
+        )
+        words = len(text.split())
+        return source, text, "MODEL", words, len(text)
+
+    if cls_name == "VAE" or hasattr(source, "first_stage_model"):
+        vae_device = getattr(source, "device", None)
+        vae_dtype = getattr(source, "vae_dtype", None)
+        text = (
+            f"📦 VAE ({cls_name})\n"
+            f"Device: {vae_device or 'Auto'} | Dtype: {vae_dtype or 'Default'}"
+        )
+        words = len(text.split())
+        return source, text, "VAE", words, len(text)
+
+    if cls_name == "CLIP" or hasattr(source, "cond_stage_model"):
+        clip_device = getattr(source, "load_device", None) or getattr(source, "patcher", None)
+        tokenizer = getattr(source, "tokenizer", None)
+        tok_name = tokenizer.__class__.__name__ if tokenizer else "Default"
+        dev_name = getattr(clip_device, "load_device", "Auto") if hasattr(clip_device, "load_device") else "Auto"
+        text = (
+            f"📎 CLIP ({cls_name})\n"
+            f"Tokenizer: {tok_name}\n"
+            f"Device: {dev_name}"
+        )
+        words = len(text.split())
+        return source, text, "CLIP", words, len(text)
+
     text = f"📦 {cls_name} ({mod_name})\n{repr(source)[:500]}"
     words = len(text.split())
     return source, text, cls_name.upper(), words, len(text)
@@ -183,16 +269,24 @@ class FiLShowAny(io.ComfyNode):
             "images": [],
         }
 
-        # If incoming source is an IMAGE or MASK tensor, generate real preview images
+        # If incoming source is an IMAGE, VIDEO, or MASK tensor, generate real preview images
         if _preview_saver is not None and torch.is_tensor(source):
             try:
-                img_tensor = source
-                if img_tensor.ndim == 3:  # Mask [B, H, W] -> Image [B, H, W, 3]
+                img_tensor = source.detach().cpu().float()
+                if img_tensor.ndim == 5:  # Video [B, F, H, W, C] -> flatten frames [B*F, H, W, C]
+                    b, f, h, w, c = img_tensor.shape
+                    max_frames = min(f, 16)
+                    img_tensor = img_tensor[:, :max_frames].reshape(b * max_frames, h, w, c)
+                elif img_tensor.ndim == 3:  # Mask [B, H, W] -> Image [B, H, W, 3]
                     img_tensor = img_tensor.unsqueeze(-1).repeat(1, 1, 1, 3)
                 elif img_tensor.ndim == 2:  # Mask [H, W] -> Image [1, H, W, 3]
                     img_tensor = img_tensor.unsqueeze(0).unsqueeze(-1).repeat(1, 1, 1, 3)
 
                 if img_tensor.ndim == 4:
+                    if img_tensor.numel() > 0 and img_tensor.max() > 1.0:
+                        img_tensor = img_tensor / 255.0
+                    img_tensor = torch.clamp(img_tensor, 0.0, 1.0)
+
                     prompt_val = getattr(cls.hidden, "prompt", None)
                     extra_val = getattr(cls.hidden, "extra_pnginfo", None)
                     saved = _preview_saver.save_images(
