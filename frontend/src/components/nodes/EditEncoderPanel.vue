@@ -235,10 +235,11 @@ const METHOD_LABELS: Record<string, string> = {
   uxo: "UXO (experimental)",
 };
 
-const presetOptions = computed(() => comboOptions("system_preset", ["none", "use reference"]));
+const presetOptions = computed(() => comboOptions("system_preset", ["none", "use reference", "krea2_identity"]));
 const PRESET_LABELS: Record<string, string> = {
   none: "Custom / None",
-  "use reference": "Use reference",
+  "use reference": "Use reference (Style / General)",
+  krea2_identity: "🎯 Krea2 Identity (High likeness)",
 };
 
 const lastRun = computed(() => (props.state.ui as { lastRun?: EditEncoderRun | null }).lastRun ?? null);

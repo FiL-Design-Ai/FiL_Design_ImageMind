@@ -1443,3 +1443,14 @@ def test_the_quoted_text_includes_the_vision_blocks_when_a_role_is_sent():
                             system_preset="use reference",
                             images={"image1": torch.rand(1, 64, 64, 3)})
     assert "Picture 1:" in _summary_of(result)
+
+
+def test_krea2_identity_preset_sends_descriptive_grounding_prompt():
+    clip = _VisionClip()
+    _, _, result = _execute(clip=clip, reference_mode="vision",
+                            system_preset="krea2_identity",
+                            images={"image1": torch.rand(1, 64, 64, 3)})
+    text = _summary_of(result)
+    assert "Encoder role: sent (preset 'krea2_identity')" in text
+    assert "Picture 1:" in text
+    assert "Describe the image by detailing the color, shape, size" in clip.templates[0]

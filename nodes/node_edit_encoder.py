@@ -148,6 +148,14 @@ SYSTEM_PROMPT_SUGGESTED = (
     "appropriate."
 )
 
+# Training-matched descriptive grounding prompt from comfyui-krea2edit / ai-toolkit.
+# Focuses Qwen3-VL strictly on anatomical and spatial image layout, yielding maximum
+# face and subject fidelity in identity-edit LoRAs.
+SYSTEM_PROMPT_KREA2_IDENTITY = (
+    "Describe the image by detailing the color, shape, size, "
+    "texture, quantity, text, spatial relationships of the objects and background:"
+)
+
 # Which of those roles to send, as a choice rather than a paste.
 #
 # Both entries are measured on Krea 2, same seed, same reference:
@@ -160,12 +168,15 @@ SYSTEM_PROMPT_SUGGESTED = (
 #                   that an explicit "keep her pose" is followed less closely:
 #                   "Generate a new image that meets the user's requirements"
 #                   invites re-invention.
+#   krea2_identity  training-matched prompt for Krea 2 Identity Edit LoRA with
+#                   maximum subject likeness and anatomical consistency.
 #
 # So the rule the presets encode: describing a style, pick `use reference`;
-# giving an instruction, leave it on `none`.
+# giving an instruction, leave it on `none`; running identity edits, pick `krea2_identity`.
 SYSTEM_PRESETS = {
     "none": "",
     "use reference": SYSTEM_PROMPT_SUGGESTED,
+    "krea2_identity": SYSTEM_PROMPT_KREA2_IDENTITY,
 }
 
 # Legacy value. `system_preset` used to offer a third entry, "custom", and the
