@@ -19,7 +19,7 @@ class FiLUpscaleSimple(io.ComfyNode):
             node_id="FiLUpscaleSimple",
             display_name="🔍 Upscaler Simple",
             category=CATEGORY_IMAGE,
-            description="📐 FiL Upscale Simple — upscale + tile an image (or latent) through a model.",
+            description="🔍 FiL Upscale Simple — upscale + tile an image (or latent) through a model.",
             inputs=[
                 io.Image.Input("image", optional=True,
                                tooltip=_t("upl_image", "Input image to upscale. Optional if latent is connected instead — at least one of image/latent is required.")),

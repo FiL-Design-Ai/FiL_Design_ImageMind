@@ -17,7 +17,7 @@ CONTRACT = NodeContract(
         required=[
             _slider("upscale_factor", default=2.0, minv=1.0, maxv=8.0, step=0.1, label="Upscale factor"),
             _slider("denoise", default=0.20, minv=0.0, maxv=1.0, step=0.01, label="Denoise"),
-            _string("prompt", default="high quality, ultra detailed, sharp focus, 8k uhd", label="Prompt"),
+            _string("prompt", default="crisp textures, sharp focus, authentic skin pores, fine fabrics, realistic micro-details", label="Prompt"),
             _int("seed", default=0, minv=0, maxv=0xFFFFFFFFFFFFFFFF, step=1, label="Seed"),
             _int("steps", default=20, minv=1, maxv=100, step=1, label="Steps"),
         ],

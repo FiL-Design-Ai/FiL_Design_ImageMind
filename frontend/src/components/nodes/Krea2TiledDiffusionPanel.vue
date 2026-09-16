@@ -45,7 +45,7 @@ function comboOptions(name: string, fallback: string[]): string[] {
 // Fields
 const upscaleFactor = numberField("upscale_factor", 2.0);
 const denoise = numberField("denoise", 0.20);
-const prompt = stringField("prompt", "high quality, ultra detailed, sharp focus, 8k uhd");
+const prompt = stringField("prompt", "crisp textures, sharp focus, authentic skin pores, fine fabrics, realistic micro-details");
 const seed = numberField("seed", 0);
 const controlAfterGenerate = stringField("control_after_generate", "randomize");
 const steps = numberField("steps", 20);

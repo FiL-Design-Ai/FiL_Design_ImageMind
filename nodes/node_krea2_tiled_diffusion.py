@@ -42,7 +42,7 @@ class FiLKrea2TiledDiffusion(io.ComfyNode):
                                tooltip=_t("krea2_upscale_factor", "Target upscale multiplier (e.g. 2.0x).")),
                 io.Float.Input("denoise", default=0.20, min=0.0, max=1.0, step=0.01, display_mode=io.NumberDisplay.slider,
                                tooltip=_t("krea2_denoise", "Denoising strength (Creativity). 0.15-0.25 strictly preserves original identity while adding crisp micro-details.")),
-                io.String.Input("prompt", multiline=True, default="high quality, ultra detailed, sharp focus, 8k uhd",
+                io.String.Input("prompt", multiline=True, default="crisp textures, sharp focus, authentic skin pores, fine fabrics, realistic micro-details",
                                 tooltip=_t("krea2_prompt", "Positive prompt describing desired texture and detail.")),
                 io.Int.Input("seed", default=0, min=0, max=0xFFFFFFFFFFFFFFFF, control_after_generate=True,
                              tooltip=_t("krea2_seed", "Random seed for diffusion noise.")),
@@ -59,7 +59,7 @@ class FiLKrea2TiledDiffusion(io.ComfyNode):
     @classmethod
     def execute(cls, image=None, model=None, vae=None, upscale_model=None, clip=None, latent=None,
                 upscale_factor: float = 2.0, denoise: float = 0.20,
-                prompt: str = "high quality, ultra detailed, sharp focus, 8k uhd",
+                prompt: str = "crisp textures, sharp focus, authentic skin pores, fine fabrics, realistic micro-details",
                 seed: int = 0, steps: int = 20, **kwargs):
         """Executes one-click faithful upscale and detail refinement."""
         # kwargs absorber ensures backward compatibility with older workflows

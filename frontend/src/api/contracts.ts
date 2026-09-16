@@ -6266,7 +6266,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
         "name": "prompt",
         "kind": "string",
         "label": "Prompt",
-        "default": "high quality, ultra detailed, sharp focus, 8k uhd",
+        "default": "crisp textures, sharp focus, authentic skin pores, fine fabrics, realistic micro-details",
         "tooltip": null,
         "values": null,
         "columns": null,
