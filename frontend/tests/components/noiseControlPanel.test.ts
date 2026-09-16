@@ -45,4 +45,21 @@ describe("NoiseControlPanel.vue", () => {
     const select = wrapper.find("select");
     expect((select.element as HTMLSelectElement).disabled).toBe(true);
   });
+
+  it("toggles variation fields on and off with add_seed_noise switch", async () => {
+    const state = makeState({ nodeState: { add_seed_noise: false } });
+    const wrapper = mount(NoiseControlPanel, { props: { state: state as never } });
+    // When add_seed_noise is false, variation fields should be hidden
+    expect(wrapper.text()).not.toContain("Variation seed");
+    expect(wrapper.text()).not.toContain("Variation weight");
+
+    // Click toggle switch to turn ON
+    const toggleBtn = wrapper.find("button[role='switch']");
+    expect(toggleBtn.exists()).toBe(true);
+    await toggleBtn.trigger("click");
+    await nextTick();
+
+    expect(wrapper.text()).toContain("Variation seed");
+    expect(wrapper.text()).toContain("Variation weight");
+  });
 });

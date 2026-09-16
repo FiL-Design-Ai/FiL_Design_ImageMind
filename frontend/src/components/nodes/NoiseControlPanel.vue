@@ -8,7 +8,7 @@
  * node is four fields, and two of them being inert by default is most of it.
  */
 import { computed } from "vue";
-import { FilSlider, FilNumberInput, FilSelect, FilSegmented } from "@/components/widgets";
+import { FilSlider, FilNumberInput, FilSelect, FilSegmented, FilToggle } from "@/components/widgets";
 import { useI18n } from "@/composables/useI18n";
 import { findFilWidget } from "@/nodes2/util";
 import { useWidgetSockets } from "@/composables/useWidgetSockets";
@@ -37,6 +37,12 @@ function stringField(name: string, fallback: string) {
     set: (v: string) => { props.state.nodeState[name] = v; },
   });
 }
+function boolField(name: string, fallback: boolean) {
+  return computed<"ON" | "OFF">({
+    get: () => ((props.state.nodeState[name] ?? props.state.initialValues[name] ?? fallback) ? "ON" : "OFF"),
+    set: (v: "ON" | "OFF") => { props.state.nodeState[name] = v === "ON"; },
+  });
+}
 
 function comboOptions(name: string, fallback: string[]): string[] {
   const node = props.state.node;
@@ -46,6 +52,7 @@ function comboOptions(name: string, fallback: string[]): string[] {
 }
 
 const rngSource = stringField("rng_source", "cpu");
+const addSeedNoise = boolField("add_seed_noise", true);
 const seed = numberField("seed", 0);
 const controlAfterGenerate = stringField("control_after_generate", "randomize");
 const weight = numberField("weight", 0.5);
@@ -63,20 +70,27 @@ const RNG_LABELS: Record<string, string> = { cpu: "🖥️ CPU", gpu: "🎮 GPU"
       :label="t('nscp_rng_source', '🎲 Noise on')"
       :title="t('nsc_rng_source', 'Device the initial noise is drawn on.')" />
 
-    <FilNumberInput :ref="(el: unknown) => setFieldEl('seed', el)"
-      v-model="seed" :min="0" :max="0xFFFFFFFFFFFFFFFF" :step="1" :disabled="isLinked('seed')" inline-label
-      :label="t('nscp_seed', '🌱 Variation seed')"
-      :title="linkedTip('seed', t('nsc_seed', 'Variation seed.'))" />
+    <FilToggle :model-value="addSeedNoise"
+      :label="t('nscp_add_seed_noise', '🌱 Variation')"
+      :title="t('nsc_add_seed_noise', 'Blend in noise from a second seed for a controlled variation.')"
+      @update:model-value="(v) => (addSeedNoise = v)" />
 
-    <FilSelect v-model="controlAfterGenerate" :options="controlOptions" :disabled="isLinked('seed')" inline-label
-      :label="t('nscp_after_generate', '🔁 After generate')"
-      :title="linkedTip('seed', t('nscp_after_generate_tt', 'What ComfyUI does to the variation seed once the prompt has run.'))" />
+    <template v-if="addSeedNoise === 'ON'">
+      <FilNumberInput :ref="(el: unknown) => setFieldEl('seed', el)"
+        v-model="seed" :min="0" :max="0xFFFFFFFFFFFFFFFF" :step="1" :disabled="isLinked('seed')" inline-label
+        :label="t('nscp_seed', '🌱 Variation seed')"
+        :title="linkedTip('seed', t('nsc_seed', 'Variation seed.'))" />
 
-    <FilSlider :ref="(el: unknown) => setFieldEl('weight', el)"
-      :model-value="weight" :min="0" :max="1" :step="0.01" :disabled="isLinked('weight')" inline-label
-      :label="t('nscp_weight', '⚖️ Variation weight')"
-      :title="linkedTip('weight', t('nsc_weight', 'Variation strength: 0 = base seed only, 1 = variation seed only.'))"
-      @update:model-value="(v: number) => (weight = v)" />
+      <FilSelect v-model="controlAfterGenerate" :options="controlOptions" :disabled="isLinked('seed')" inline-label
+        :label="t('nscp_after_generate', '🔁 After generate')"
+        :title="linkedTip('seed', t('nscp_after_generate_tt', 'What ComfyUI does to the variation seed once the prompt has run.'))" />
+
+      <FilSlider :ref="(el: unknown) => setFieldEl('weight', el)"
+        :model-value="weight" :min="0" :max="1" :step="0.01" :disabled="isLinked('weight')" inline-label
+        :label="t('nscp_weight', '⚖️ Variation weight')"
+        :title="linkedTip('weight', t('nsc_weight', 'Variation strength: 0 = base seed only, 1 = variation seed only.'))"
+        @update:model-value="(v: number) => (weight = v)" />
+    </template>
   </div>
 </template>
 

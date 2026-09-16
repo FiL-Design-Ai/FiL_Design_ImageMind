@@ -40,12 +40,35 @@ def _prepare_noise(latent_image, seed: int, rng_source: str = "cpu", batch_inds=
     import torch
     import comfy.model_management
 
+    if getattr(latent_image, "is_nested", False):
+        tensors = latent_image.unbind()
+        noises = [_prepare_noise(t, seed, rng_source, batch_inds) for t in tensors]
+        import comfy.nested_tensor
+        return comfy.nested_tensor.NestedTensor(noises)
+
     device = comfy.model_management.get_torch_device()
     generator = torch.Generator(device=device).manual_seed(seed)
-    noise = torch.randn(
-        latent_image.size(), dtype=torch.float32, layout=latent_image.layout,
-        generator=generator, device=device,
-    )
+
+    if batch_inds is None:
+        noise = torch.randn(
+            latent_image.size(), dtype=torch.float32, layout=latent_image.layout,
+            generator=generator, device=device,
+        )
+    else:
+        import numpy as np
+
+        unique_inds, inverse = np.unique(batch_inds, return_inverse=True)
+        noises = []
+        for i in range(unique_inds[-1] + 1):
+            n = torch.randn(
+                [1] + list(latent_image.size())[1:], dtype=torch.float32, layout=latent_image.layout,
+                generator=generator, device=device,
+            )
+            if i in unique_inds:
+                noises.append(n)
+        noises = [noises[i] for i in inverse]
+        noise = torch.cat(noises, dim=0)
+
     return noise.to(dtype=latent_image.dtype, device="cpu")
 
 
