@@ -224,3 +224,46 @@ def test_installed_sampler_and_scheduler_still_pass_straight_through(monkeypatch
     )
     assert seen["sampler_name"] == comfy.samplers.KSampler.SAMPLERS[-1]
     assert seen["scheduler"] == comfy.samplers.KSampler.SCHEDULERS[-1]
+
+
+def test_missing_latent_raises_clear_error():
+    import pytest
+
+    with pytest.raises(ValueError, match="missing required 'latent' input"):
+        FiLKSampler.execute(
+            model="MODEL", seed=1, steps=1, cfg=7.0,
+            sampler_name="euler", scheduler="normal",
+            positive="P", negative="N", latent=None, vae_decode="false",
+        )
+
+
+def test_preview_handles_5d_video_tensors(monkeypatch):
+    import torch
+    from FiL_Design_ImageMind.nodes import node_ksampler
+    from executor_harness import as_the_executor_calls_it
+
+    saved_shapes: list[tuple[int, ...]] = []
+
+    class _FakePreviewSaver:
+        def save_images(self, image, prefix, prompt, extra_pnginfo):
+            saved_shapes.append(tuple(image.shape))
+            return {"ui": {"images": [{"filename": "video_frame.png"}]}}
+
+    # 5D Video Tensor: [Batch=1, Frames=4, Height=16, Width=16, Channels=3]
+    video_tensor = torch.zeros((1, 4, 16, 16, 3), dtype=torch.float32)
+
+    monkeypatch.setattr(sampling, "sample_unified", lambda *a, **kw: {"samples": "BASE"})
+    monkeypatch.setattr(sampling, "_decode", lambda vae, latent, tiled=False: video_tensor)
+    monkeypatch.setattr(node_ksampler, "_preview_saver", _FakePreviewSaver())
+
+    execute = as_the_executor_calls_it(FiLKSampler)
+    result = execute(
+        model="MODEL", seed=1, steps=1, cfg=7.0, sampler_name="euler", scheduler="normal",
+        positive="P", negative="N", latent={"samples": "L"},
+        vae_decode="true", vae="VAE",
+    )
+
+    assert result.ui["images"] == [{"filename": "video_frame.png"}]
+    # 5D [1, 4, 16, 16, 3] was folded into 4D [4, 16, 16, 3]
+    assert saved_shapes == [(4, 16, 16, 3)]
+

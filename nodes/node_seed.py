@@ -1,6 +1,7 @@
 from comfy_api.latest import io
 
 from ..common.brand import CATEGORY_VALUES
+from ..common.localization import t
 
 SEED_MAX = 0xFFFFFFFFFFFFFFFF
 
@@ -14,10 +15,10 @@ class FiLSeed(io.ComfyNode):
             category=CATEGORY_VALUES,
             description="🌱 FiL Seed — deterministic or random seed generator. Returns an integer for use as a random seed elsewhere in the graph.",
             inputs=[
-                io.Int.Input("seed", default=0, min=0, max=SEED_MAX,
-                             tooltip="Resolved seed value (managed by the UI)."),
+                io.Int.Input("seed", default=0, min=0, max=SEED_MAX, control_after_generate=True,
+                             tooltip=t("sd_tooltip_seed", "Resolved seed value (managed by the UI).")),
             ],
-            outputs=[io.Int.Output(id="SEED", display_name="SEED", tooltip="Deterministic or random integer seed.")],
+            outputs=[io.Int.Output(id="SEED", display_name="SEED", tooltip=t("sd_output_seed", "Deterministic or random integer seed."))],
             search_aliases=["random", "randomizer", "entropy", "RNG"],
         )
 

@@ -4,7 +4,7 @@
  * `state` object; mutations propagate to ComfyUI serialization via
  * `getValue()` already wired in the host.
  */
-import { computed, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { FilButton } from "@/components/widgets";
 import { toast } from "@/stores/toastStore";
 import { useI18n } from "@/composables/useI18n";
@@ -81,6 +81,23 @@ function newFixed() {
   mode.value = "fixed";
 }
 
+const isCopied = ref(false);
+let copiedTimer: ReturnType<typeof setTimeout> | null = null;
+async function copySeed() {
+  const textToCopy = mode.value === "fixed" ? String(seed.value) : (props.state.lastRunSeed != null ? String(props.state.lastRunSeed) : String(seed.value));
+  try {
+    if (navigator?.clipboard?.writeText) {
+      await navigator.clipboard.writeText(textToCopy);
+    }
+    isCopied.value = true;
+    toast.success(`${t("sd_copied", "Seed copied to clipboard")}: ${textToCopy}`);
+    if (copiedTimer) clearTimeout(copiedTimer);
+    copiedTimer = setTimeout(() => { isCopied.value = false; }, 1500);
+  } catch {
+    toast.warning(t("sd_copy_failed", "Failed to copy to clipboard"));
+  }
+}
+
 // Writable so a fixed seed can be typed directly into the field. Typing any
 // digits switches the node to "fixed" and applies the value; in random mode the
 // field is readonly (see :readonly in the template) so the setter never fires.
@@ -134,6 +151,7 @@ const displayFontPx = computed(() => {
       <FilButton label="🔀" variant="standard" :title="t('sd_mode', 'Random generates a new seed each run.')" @click="setRandom" />
       <FilButton label="♻️" variant="standard" :title="t('sd_use_last', 'Reuse the seed from the last executed run.')" @click="useLast" />
       <FilButton label="🎲" variant="accent" :title="t('sd_new_fixed', 'Generate a new random fixed seed.')" @click="newFixed" />
+      <FilButton :label="isCopied ? '✔' : '📋'" variant="standard" :title="t('sd_copy', 'Copy seed to clipboard')" @click="copySeed" />
     </div>
   </div>
 </template>

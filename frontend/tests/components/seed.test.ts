@@ -18,11 +18,26 @@ describe("Seed.vue", () => {
     setActivePinia(createPinia());
   });
 
-  it("renders three icon action buttons", () => {
+  it("renders four icon action buttons including clipboard copy", () => {
     const state = makeState();
     const wrapper = mount(SeedVue, { props: { state } });
     const labels = wrapper.findAll(".fil-seed-actions button").map((b) => b.text());
-    expect(labels).toEqual(["🔀", "♻️", "🎲"]);
+    expect(labels).toEqual(["🔀", "♻️", "🎲", "📋"]);
+  });
+
+  it("copies seed to clipboard when copy button is clicked", async () => {
+    let written = "";
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: async (text: string) => { written = text; },
+      },
+    });
+    const state = makeState({ nodeState: { mode: "fixed", seed: 987654 } });
+    const wrapper = mount(SeedVue, { props: { state } });
+    const copyBtn = wrapper.findAll(".fil-seed-actions button").find((b) => b.text() === "📋");
+    expect(copyBtn).toBeTruthy();
+    await copyBtn?.trigger("click");
+    expect(written).toBe("987654");
   });
 
   it("shows seed value in fixed mode", () => {

@@ -155,6 +155,9 @@ class FiLKSampler(io.ComfyNode):
         if vae is None:
             vae = kwargs.get("optional_vae")
 
+        if latent is None or not isinstance(latent, dict) or "samples" not in latent:
+            raise ValueError("⚡ KSampler: missing required 'latent' input (or latent dictionary has no 'samples').")
+
         cls._reject_unknown_choices(sampler_name, scheduler)
 
         if vae is None:
@@ -213,8 +216,13 @@ class FiLKSampler(io.ComfyNode):
                     # never passes a hidden value as an argument, so `prompt`
                     # and `extra_pnginfo` were always None here and the saved
                     # preview carried no workflow.
+                    preview_img = image
+                    if hasattr(preview_img, "ndim") and preview_img.ndim == 5:
+                        b, f, h, w, c = preview_img.shape
+                        preview_img = preview_img.reshape(b * f, h, w, c)
+
                     saved = _preview_saver.save_images(
-                        image, "fil.ksampler", cls.hidden.prompt, cls.hidden.extra_pnginfo,
+                        preview_img, "fil.ksampler", cls.hidden.prompt, cls.hidden.extra_pnginfo,
                     )
                     ui_data["images"] = saved["ui"]["images"]
                 except Exception as exc:
