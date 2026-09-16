@@ -31,8 +31,9 @@ FiL_Design_ImageMind/
 │   ├── node_prompt_director.py # FiLPromptDirector (режиссура и трансформация промптов)
 │   ├── node_tile_assembly.py# FiLTileAssembly (высокоточная сборка тайлов с блендингом)
 │   ├── node_style_mixer.py  # FiLStyleMixer (смешивание и взвешивание стилей)
-│   ├── node_krea2_diffusion.py # FiLKrea2TiledDiffusion (тайловый диффузионный апскейл)
-│   └── ...                  # Дополнительные специализированные ноды (всего 24)
+│   ├── node_krea2_tiled_diffusion.py # FiLKrea2TiledDiffusion (тайловый диффузионный апскейл)
+│   ├── node_latent_upscale_pro.py # FiLLatentUpscalePro (латентный апскейлер с сеткой сжатия DiT/U-Net)
+│   └── ...                  # Дополнительные специализированные ноды (всего 25)
 ├── frontend/                # Vue 3 + TypeScript интерфейс узлов ComfyUI
 │   ├── src/
 │   │   ├── api/             # Сгенерированные контракты бэкенда (contracts.ts, contracts.json)
