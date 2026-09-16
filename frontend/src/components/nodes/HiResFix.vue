@@ -84,6 +84,7 @@ const preprocessorOptions = computed(() => comboOptions("preprocessor", ["none",
 
 const showLatent = computed(() => upscaleType.value === "latent");
 const showPixel = computed(() => upscaleType.value === "pixel" || upscaleType.value === "both");
+const showResample = computed(() => upscaleType.value !== "pixel");
 
 const effectiveScale = computed(() => {
   const scale = Math.pow(upscaleBy.value, Math.max(1, iterations.value));
@@ -207,84 +208,92 @@ watch(seedLinked, (linked) => {
       :disabled="isLinked('upscale_by')"
       :title="isLinked('upscale_by') ? t('fld_linked_tt', 'Driven by the connected input — disconnect it to edit here.') : t('hrf_upscale_by', 'Upscale multiplier.')"
       @update:model-value="(v: number) => (upscaleBy = v)" />
-    <FilSlider :ref="(el: unknown) => setFieldEl('denoise', el)"
-      :model-value="denoise" :min="0" :max="1" :step="0.01" :label="t('lbl_hrf_denoise', '💧 Denoise')" inline-label
-      :disabled="isLinked('denoise')"
-      :title="isLinked('denoise') ? t('fld_linked_tt', 'Driven by the connected input — disconnect it to edit here.') : t('hrf_denoise', 'Denoise strength for the hires re-sample.')"
-      @update:model-value="(v: number) => (denoise = v)" />
 
-    <FilNumberInput :ref="(el: unknown) => setFieldEl('hires_steps', el)"
-      v-model="hiresSteps" :min="1" :max="10000" :step="1" :disabled="isLinked('hires_steps')" inline-label
-      :label="t('lbl_hires_steps', '🪜 Hires steps')"
-      :title="isLinked('hires_steps') ? t('fld_linked_tt', 'Driven by the connected input — disconnect it to edit here.') : t('hrf_steps', 'Steps for the hires re-sample.')" />
-
-    <div class="fil-iterations-row">
-      <FilNumberInput v-model="iterations" :min="0" :max="5" :step="1" inline-label
-        :label="t('lbl_iterations', '🔁 Iterations')" :title="t('hrf_iterations', 'How many upscale+resample passes to run.')" />
-      <span v-if="iterations > 1" class="fil-effective-scale-badge" :title="t('hrf_total_scale_tt', 'Total cumulative upscale ratio across passes')">
-        ⚡ {{ effectiveScale }}x {{ t('hrf_total_scale', 'Total') }}
-      </span>
+    <div v-if="upscaleType === 'pixel'" class="fil-hrf-pixel-note">
+      <span class="fil-hrf-note-icon">ℹ️</span>
+      <span class="fil-hrf-note-text">{{ t('hrf_pixel_mode_note', 'Pure model upscale (no diffusion pass). Switch to "both" to enable denoise & re-sampling.') }}</span>
     </div>
 
-    <div class="fil-seed-source-wrap" :ref="(el: unknown) => { if (useSameSeed === 'ON') setFieldEl('seed', el); }">
-      <FilSegmented :options="['ON', 'OFF']" :option-labels="{ ON: '♻️ same seed', OFF: '🎲 own' }" :model-value="useSameSeed"
-        :label="t('lbl_use_same_seed', '🌱 Seed source')" :disabled="seedLinked"
-        :title="seedLinked ? t('fld_linked_tt', 'Driven by the connected input — disconnect it to edit here.') : t('hrf_same_seed', 'Reuse the samplers seed for the hires pass.')"
-        @update:model-value="(v) => (useSameSeed = v as 'ON' | 'OFF')" />
-    </div>
+    <template v-if="showResample">
+      <FilSlider :ref="(el: unknown) => setFieldEl('denoise', el)"
+        :model-value="denoise" :min="0" :max="1" :step="0.01" :label="t('lbl_hrf_denoise', '💧 Denoise')" inline-label
+        :disabled="isLinked('denoise')"
+        :title="isLinked('denoise') ? t('fld_linked_tt', 'Driven by the connected input — disconnect it to edit here.') : t('hrf_denoise', 'Denoise strength for the hires re-sample.')"
+        @update:model-value="(v: number) => (denoise = v)" />
 
-    <FilSeedRow
-      v-if="useSameSeed === 'OFF'"
-      :ref="(el: unknown) => setFieldEl('seed', el)"
-      :display="seedDisplay"
-      :mode="seedMode"
-      :disabled="seedLinked"
-      :field-aria-label="t('hrf_aria_seed_value', 'Hires seed value')"
-      :field-title="seedMode === 'fixed' ? t('hrf_seed_locked', 'Locked hires seed') : t('hrf_seed_auto_random', 'Auto-random — a new hires seed is generated each run')"
-      :labels="{
-        random: t('hrf_seed_random', 'Random'),
-        useLast: t('hrf_seed_use_last', 'Use last'),
-        newFixed: t('hrf_seed_new_fixed', 'New fixed'),
-      }"
-      :titles="{
-        random: t('hrf_seed_mode_tt', 'Random generates a new hires seed each run.'),
-        useLast: props.state.lastRunSeed != null ? `${t('hrf_seed_use_last_prefix', `Reuse the last run's hires seed:`)} ${props.state.lastRunSeed}` : t('hrf_seed_use_last_tt', 'Reuse the hires seed from the last executed run.'),
-        newFixed: t('hrf_seed_new_fixed_tt', 'Generate a new random fixed hires seed.'),
-      }"
-      @input-seed="(v: number) => (seedValue = v)"
-      @random="setRandomSeed"
-      @use-last="useLastSeed"
-      @new-fixed="newFixedSeed"
-    />
+      <FilNumberInput :ref="(el: unknown) => setFieldEl('hires_steps', el)"
+        v-model="hiresSteps" :min="1" :max="10000" :step="1" :disabled="isLinked('hires_steps')" inline-label
+        :label="t('lbl_hires_steps', '🪜 Hires steps')"
+        :title="isLinked('hires_steps') ? t('fld_linked_tt', 'Driven by the connected input — disconnect it to edit here.') : t('hrf_steps', 'Steps for the hires re-sample.')" />
 
-    <!-- Nine rows always on screen made the node the tallest in the pack, and
-         five of them are set once and never touched again. Same collapsible
-         section Optic Scanner uses, collapsed by default: the everyday
-         controls stay in view, the rest is one click away. (Iterations used
-         to live in here too — pulled back out, it is an everyday control.) -->
-    <FilSection
-      :title="t('hrf_sec_advanced', 'ADVANCED')"
-      :model-value="isCollapsed('advanced')"
-      @update:model-value="(v: boolean) => setCollapsed('advanced', v)"
-    />
-    <template v-if="!isCollapsed('advanced')">
-      <FilSelect :options="ckptOptions" :model-value="hiresCkpt" inline-label
-        :label="t('lbl_hires_ckpt', '📦 Hires checkpoint')" :title="t('hrf_ckpt', 'Checkpoint for the hires pass. (use same) reuses the base model.')"
-        @update:model-value="(v: string) => (hiresCkpt = v)" />
-      <FilSegmented :options="['ON', 'OFF']" :option-labels="{ ON: '🕹️ ON', OFF: 'OFF' }" :model-value="useControlnet"
-        :label="t('lbl_use_cn', '🕹️ Use ControlNet')"
-        :title="t('hrf_use_cn', 'Guide the hires pass with a ControlNet. Tile ControlNets work without a preprocessor.')"
-        @update:model-value="(v) => (useControlnet = v as 'ON' | 'OFF')" />
-      <template v-if="useControlnet === 'ON'">
-        <FilSelect :options="controlNetOptions" :model-value="controlNetName" inline-label
-          :label="t('lbl_cn_name', '🧩 ControlNet model')" :title="t('hrf_cn_name', 'ControlNet model to apply.')"
-          @update:model-value="(v: string) => (controlNetName = v)" />
-        <FilSlider :model-value="strength" :min="0" :max="10" :step="0.01" :label="t('lbl_cn_strength', '💪 Strength')" inline-label
-          :title="t('hrf_cn_strength', 'ControlNet strength.')" @update:model-value="(v: number) => (strength = v)" />
-        <FilSegmented :options="preprocessorOptions" :option-labels="{ none: '🚫 none', canny: '🪞 canny' }"
-          :model-value="preprocessor" :label="t('lbl_cn_preproc', '🧪 Preprocessor')"
-          :title="t('hrf_cn_preproc', `Preprocess the ControlNet hint image. 'none' feeds the raw upscaled image (right for tile ControlNets).`)"
-          @update:model-value="(v: string) => (preprocessor = v)" />
+      <div class="fil-iterations-row">
+        <FilNumberInput v-model="iterations" :min="0" :max="5" :step="1" inline-label
+          :label="t('lbl_iterations', '🔁 Iterations')" :title="t('hrf_iterations', 'How many upscale+resample passes to run.')" />
+        <span v-if="iterations > 1" class="fil-effective-scale-badge" :title="t('hrf_total_scale_tt', 'Total cumulative upscale ratio across passes')">
+          ⚡ {{ effectiveScale }}x {{ t('hrf_total_scale', 'Total') }}
+        </span>
+      </div>
+
+      <div class="fil-seed-source-wrap" :ref="(el: unknown) => { if (useSameSeed === 'ON') setFieldEl('seed', el); }">
+        <FilSegmented :options="['ON', 'OFF']" :option-labels="{ ON: '♻️ same seed', OFF: '🎲 own' }" :model-value="useSameSeed"
+          :label="t('lbl_use_same_seed', '🌱 Seed source')" :disabled="seedLinked"
+          :title="seedLinked ? t('fld_linked_tt', 'Driven by the connected input — disconnect it to edit here.') : t('hrf_same_seed', 'Reuse the samplers seed for the hires pass.')"
+          @update:model-value="(v) => (useSameSeed = v as 'ON' | 'OFF')" />
+      </div>
+
+      <FilSeedRow
+        v-if="useSameSeed === 'OFF'"
+        :ref="(el: unknown) => setFieldEl('seed', el)"
+        :display="seedDisplay"
+        :mode="seedMode"
+        :disabled="seedLinked"
+        :field-aria-label="t('hrf_aria_seed_value', 'Hires seed value')"
+        :field-title="seedMode === 'fixed' ? t('hrf_seed_locked', 'Locked hires seed') : t('hrf_seed_auto_random', 'Auto-random — a new hires seed is generated each run')"
+        :labels="{
+          random: t('hrf_seed_random', 'Random'),
+          useLast: t('hrf_seed_use_last', 'Use last'),
+          newFixed: t('hrf_seed_new_fixed', 'New fixed'),
+        }"
+        :titles="{
+          random: t('hrf_seed_mode_tt', 'Random generates a new hires seed each run.'),
+          useLast: props.state.lastRunSeed != null ? `${t('hrf_seed_use_last_prefix', `Reuse the last run's hires seed:`)} ${props.state.lastRunSeed}` : t('hrf_seed_use_last_tt', 'Reuse the hires seed from the last executed run.'),
+          newFixed: t('hrf_seed_new_fixed_tt', 'Generate a new random fixed hires seed.'),
+        }"
+        @input-seed="(v: number) => (seedValue = v)"
+        @random="setRandomSeed"
+        @use-last="useLastSeed"
+        @new-fixed="newFixedSeed"
+      />
+
+      <!-- Nine rows always on screen made the node the tallest in the pack, and
+           five of them are set once and never touched again. Same collapsible
+           section Optic Scanner uses, collapsed by default: the everyday
+           controls stay in view, the rest is one click away. (Iterations used
+           to live in here too — pulled back out, it is an everyday control.) -->
+      <FilSection
+        :title="t('hrf_sec_advanced', 'ADVANCED')"
+        :model-value="isCollapsed('advanced')"
+        @update:model-value="(v: boolean) => setCollapsed('advanced', v)"
+      />
+      <template v-if="!isCollapsed('advanced')">
+        <FilSelect :options="ckptOptions" :model-value="hiresCkpt" inline-label
+          :label="t('lbl_hires_ckpt', '📦 Hires checkpoint')" :title="t('hrf_ckpt', 'Checkpoint for the hires pass. (use same) reuses the base model.')"
+          @update:model-value="(v: string) => (hiresCkpt = v)" />
+        <FilSegmented :options="['ON', 'OFF']" :option-labels="{ ON: '🕹️ ON', OFF: 'OFF' }" :model-value="useControlnet"
+          :label="t('lbl_use_cn', '🕹️ Use ControlNet')"
+          :title="t('hrf_use_cn', 'Guide the hires pass with a ControlNet. Tile ControlNets work without a preprocessor.')"
+          @update:model-value="(v) => (useControlnet = v as 'ON' | 'OFF')" />
+        <template v-if="useControlnet === 'ON'">
+          <FilSelect :options="controlNetOptions" :model-value="controlNetName" inline-label
+            :label="t('lbl_cn_name', '🧩 ControlNet model')" :title="t('hrf_cn_name', 'ControlNet model to apply.')"
+            @update:model-value="(v: string) => (controlNetName = v)" />
+          <FilSlider :model-value="strength" :min="0" :max="10" :step="0.01" :label="t('lbl_cn_strength', '💪 Strength')" inline-label
+            :title="t('hrf_cn_strength', 'ControlNet strength.')" @update:model-value="(v: number) => (strength = v)" />
+          <FilSegmented :options="preprocessorOptions" :option-labels="{ none: '🚫 none', canny: '🪞 canny' }"
+            :model-value="preprocessor" :label="t('lbl_cn_preproc', '🧪 Preprocessor')"
+            :title="t('hrf_cn_preproc', `Preprocess the ControlNet hint image. 'none' feeds the raw upscaled image (right for tile ControlNets).`)"
+            @update:model-value="(v: string) => (preprocessor = v)" />
+        </template>
       </template>
     </template>
   </div>
@@ -338,6 +347,24 @@ watch(seedLinked, (linked) => {
   border: 1px solid color-mix(in srgb, var(--fil-accent) 40%, transparent);
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+.fil-hrf-pixel-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--fil-text) 5%, transparent);
+  border: 1px dashed color-mix(in srgb, var(--fil-text) 20%, transparent);
+  font-size: 11px;
+  line-height: 1.35;
+  color: color-mix(in srgb, var(--fil-text) 75%, transparent);
+}
+
+.fil-hrf-note-icon {
+  flex-shrink: 0;
+  font-size: 12px;
 }
 
 /* The own-seed row is FilSeedRow now — the same widget OpticScanner renders. */

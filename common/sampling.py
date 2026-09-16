@@ -422,8 +422,57 @@ def _latent_dims(latent) -> tuple[int, int]:
     return int(samples.shape[-1]), int(samples.shape[-2])  # (w, h) in latent space
 
 
+def _upscale_latent(latent: dict[str, Any], method: str, scale_by: float) -> dict[str, Any]:
+    """Upscale latent tensor and its noise_mask (if present) with 4D and 5D video support."""
+    import torch
+
+    samples = latent.get("samples")
+    if not torch.is_tensor(samples):
+        # Fallback for mock objects or unit tests
+        from nodes import LatentUpscaleBy
+
+        return LatentUpscaleBy().upscale(latent, method, scale_by)[0]
+
+    import comfy.utils
+    is_5d = samples.ndim == 5
+    if is_5d:
+        b, c, f, h, w = samples.shape
+        target_w = max(1, round(w * scale_by))
+        target_h = max(1, round(h * scale_by))
+        reshaped = samples.permute(0, 2, 1, 3, 4).reshape(b * f, c, h, w)
+        up = comfy.utils.common_upscale(reshaped, target_w, target_h, method, "disabled")
+        rescaled = up.view(b, f, c, target_h, target_w).permute(0, 2, 1, 3, 4).contiguous()
+    else:
+        h, w = samples.shape[-2], samples.shape[-1]
+        target_w = max(1, round(w * scale_by))
+        target_h = max(1, round(h * scale_by))
+        rescaled = comfy.utils.common_upscale(samples, target_w, target_h, method, "disabled")
+
+    out = latent.copy()
+    out["samples"] = rescaled
+
+    if "noise_mask" in latent and isinstance(latent["noise_mask"], torch.Tensor):
+        mask = latent["noise_mask"]
+        if is_5d and mask.ndim == 5:
+            mb, mc, mf, mh, mw = mask.shape
+            m_reshaped = mask.permute(0, 2, 1, 3, 4).reshape(mb * mf, mc, mh, mw)
+            res_m = comfy.utils.common_upscale(m_reshaped, target_w, target_h, "bilinear", "disabled")
+            out["noise_mask"] = res_m.view(mb, mf, mc, target_h, target_w).permute(0, 2, 1, 3, 4).contiguous()
+        elif mask.ndim == 4:
+            out["noise_mask"] = comfy.utils.common_upscale(mask, target_w, target_h, "bilinear", "disabled")
+        elif mask.ndim == 3:
+            res_m = comfy.utils.common_upscale(mask.unsqueeze(1), target_w, target_h, "bilinear", "disabled")
+            out["noise_mask"] = res_m.squeeze(1)
+        elif mask.ndim == 2:
+            res_m = comfy.utils.common_upscale(mask.unsqueeze(0).unsqueeze(0), target_w, target_h, "bilinear", "disabled")
+            out["noise_mask"] = res_m.squeeze(0).squeeze(0)
+
+    return out
+
+
 def _pixel_upscale(image, pixel_upscaler: str, target_scale: float):
     """Run an ESRGAN-style model then rescale to the requested net factor."""
+    import torch
     from comfy_extras.nodes_upscale_model import ImageUpscaleWithModel, UpscaleModelLoader
     from nodes import ImageScaleBy
 
@@ -435,7 +484,7 @@ def _pixel_upscale(image, pixel_upscaler: str, target_scale: float):
     correction = target_scale / model_scale if model_scale > 0 else 1.0
     if abs(correction - 1.0) > 1e-3:
         upscaled = ImageScaleBy().upscale(upscaled, "lanczos", correction)[0]
-    return upscaled
+    return torch.clamp(upscaled, 0.0, 1.0)
 
 
 def apply_hiresfix(
@@ -460,8 +509,6 @@ def apply_hiresfix(
     Returns ``(latent, warnings)``. On any recoverable problem the original
     latent is returned with a warning message rather than raising.
     """
-    from nodes import LatentUpscaleBy
-
     warnings: list[str] = []
 
     upscale_type = hiresfix.get("upscale_type", "latent")
@@ -517,7 +564,8 @@ def apply_hiresfix(
 
         # 1) Upscale.
         if upscale_type == "latent":
-            latent = LatentUpscaleBy().upscale(latent, latent_upscaler, upscale_by)[0]
+            latent = _upscale_latent(latent, latent_upscaler, upscale_by)
+            image = None
         else:  # "both"
             image = _decode(vae, latent, tiled=tiled)
             try:

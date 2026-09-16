@@ -398,3 +398,67 @@ def test_apply_hiresfix_latent_mode_never_touches_vae(monkeypatch):
     )
     assert result == {"samples": "SAMPLED"}
     assert warnings == []
+
+
+def test_upscale_latent_scales_noise_mask_and_preserves_dimensions():
+    import torch
+
+    samples = torch.zeros((1, 4, 16, 16), dtype=torch.float32)
+    mask_4d = torch.ones((1, 1, 16, 16), dtype=torch.float32)
+    latent_4d = {"samples": samples, "noise_mask": mask_4d}
+
+    out_4d = sampling._upscale_latent(latent_4d, "bilinear", 2.0)
+    assert out_4d["samples"].shape == (1, 4, 32, 32)
+    assert out_4d["noise_mask"].shape == (1, 1, 32, 32)
+
+    # Test 3D noise_mask [B, H, W]
+    mask_3d = torch.ones((1, 16, 16), dtype=torch.float32)
+    latent_3d = {"samples": samples, "noise_mask": mask_3d}
+    out_3d = sampling._upscale_latent(latent_3d, "bilinear", 2.0)
+    assert out_3d["noise_mask"].shape == (1, 32, 32)
+
+    # Test 2D noise_mask [H, W]
+    mask_2d = torch.ones((16, 16), dtype=torch.float32)
+    latent_2d = {"samples": samples, "noise_mask": mask_2d}
+    out_2d = sampling._upscale_latent(latent_2d, "bilinear", 2.0)
+    assert out_2d["noise_mask"].shape == (32, 32)
+
+
+def test_upscale_latent_supports_5d_video_tensors():
+    import torch
+
+    # 5D Video Latent: [Batch, Channels, Frames, Height, Width]
+    samples_5d = torch.zeros((1, 16, 4, 16, 16), dtype=torch.float32)
+    mask_5d = torch.ones((1, 1, 4, 16, 16), dtype=torch.float32)
+    latent_5d = {"samples": samples_5d, "noise_mask": mask_5d}
+
+    out = sampling._upscale_latent(latent_5d, "bilinear", 1.5)
+    assert out["samples"].shape == (1, 16, 4, 24, 24)
+    assert out["noise_mask"].shape == (1, 1, 4, 24, 24)
+
+
+def test_pixel_upscale_clamps_to_unit_range(monkeypatch):
+    import torch
+
+    image = torch.zeros((1, 16, 16, 3), dtype=torch.float32)
+
+    class _FakeLoader:
+        @classmethod
+        def execute(cls, name):
+            return ("MODEL",)
+
+    class _FakeUpscaleWithModel:
+        @classmethod
+        def execute(cls, model, img):
+            # Simulates model output with overshoots / undershoots
+            out = torch.full((1, 32, 32, 3), 1.5, dtype=torch.float32)
+            out[0, 0, 0, :] = -0.5
+            return (out,)
+
+    monkeypatch.setattr("comfy_extras.nodes_upscale_model.UpscaleModelLoader", _FakeLoader)
+    monkeypatch.setattr("comfy_extras.nodes_upscale_model.ImageUpscaleWithModel", _FakeUpscaleWithModel)
+
+    result = sampling._pixel_upscale(image, "any_model.pth", 2.0)
+    assert float(result.min()) >= 0.0
+    assert float(result.max()) <= 1.0
+

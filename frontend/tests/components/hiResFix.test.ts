@@ -60,6 +60,33 @@ describe("HiResFix.vue upscale type", () => {
     expect(wrapper.text()).not.toContain("Latent upscaler");
     expect(wrapper.text()).toContain("Pixel upscaler");
   });
+
+  it("hides re-sample controls in 'pixel' mode and shows pure upscale note", async () => {
+    const wrapper = mount(HiResFixVue, { props: { state: makeState() as never } });
+    // Default 'latent' shows denoise, hires steps, seed source
+    expect(wrapper.text()).toContain("Denoise");
+    expect(wrapper.text()).toContain("Hires steps");
+    expect(wrapper.text()).toContain("Seed source");
+    expect(wrapper.find(".fil-hrf-pixel-note").exists()).toBe(false);
+
+    // Switching to 'pixel' hides resample controls and displays notice
+    await segmentedOption(wrapper, "Upscale type", "pixel").trigger("click");
+    await nextTick();
+    expect(wrapper.find(".fil-hrf-pixel-note").exists()).toBe(true);
+    expect(wrapper.text()).not.toContain("Denoise");
+    expect(wrapper.text()).not.toContain("Hires steps");
+    expect(wrapper.text()).not.toContain("Seed source");
+    expect(wrapper.text()).not.toContain("ADVANCED");
+
+    // Switching to 'both' restores resample controls and hides notice
+    await segmentedOption(wrapper, "Upscale type", "both").trigger("click");
+    await nextTick();
+    expect(wrapper.find(".fil-hrf-pixel-note").exists()).toBe(false);
+    expect(wrapper.text()).toContain("Denoise");
+    expect(wrapper.text()).toContain("Hires steps");
+    expect(wrapper.text()).toContain("Seed source");
+    expect(wrapper.text()).toContain("ADVANCED");
+  });
 });
 
 describe("HiResFix.vue advanced / ControlNet section", () => {
