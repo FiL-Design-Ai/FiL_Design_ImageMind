@@ -263,3 +263,24 @@ def test_post_convert_prompt_receives_the_style_enforcer(monkeypatch):
 
     assert captured.get("style_enforcer") is node_scanner._style_enforcer
     assert captured.get("style_key") == CORPO_CYBORG
+
+
+def test_aspect_ratio_auto_detected_from_image_tensor(monkeypatch):
+    import torch
+    _setup(monkeypatch, lambda **kw: "analyzed prompt")
+    monkeypatch.setattr(node_scanner._processor, "process_batch", lambda img: (["dummy_b64"], 1280, 720))
+    # Simulate a 16:9 widescreen image [1, 720, 1280, 3] without wiring width/height sockets
+    dummy_image = torch.zeros((1, 720, 1280, 3))
+    prompt_out, meta_json, meta_dict = _execute(
+        config={"provider": "ollama", "model": "qwen3-vl"},
+        image=dummy_image,
+        width=0,
+        height=0,
+    )
+    target_dim = meta_dict.get("target_dimensions")
+    assert target_dim is not None
+    assert target_dim["width"] == 1280
+    assert target_dim["height"] == 720
+    assert target_dim["aspect_ratio"] == "16:9"
+    assert target_dim["orientation"] == "Landscape"
+

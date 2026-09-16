@@ -458,13 +458,23 @@ class FiLOpticScanner(io.ComfyNode):
         )
         style_kwargs = resolved_style_kwargs
 
+        # Target dimensions: take explicit width/height if wired, otherwise derive from image tensor [B, H, W, C]
+        eff_width = int(width) if width and width > 0 else 0
+        eff_height = int(height) if height and height > 0 else 0
+        if (eff_width <= 0 or eff_height <= 0) and image is not None:
+            try:
+                eff_height = int(image.shape[1])
+                eff_width = int(image.shape[2])
+            except Exception:
+                pass
+
         system_prompt, base_prompt, style_block, language_hint = _prompt_gen.build_system_prompt_bundle(
             agent_key=agent_key,
             detail_level=detail_level,
             language=language,
             model_type=model_type,
-            width=width,
-            height=height,
+            width=eff_width,
+            height=eff_height,
             focus_key=focus_key,
             has_image=has_image,
             response_format=response_format,
@@ -562,7 +572,7 @@ class FiLOpticScanner(io.ComfyNode):
                         agent_key=agent_key, detail_level=detail_level,
                         language=language, rate_limit_ms=rate_limit_ms,
                         contract=contract, enforcement=enforcement,
-                        width=width, height=height,
+                        width=eff_width, height=eff_height,
                         focus_key=focus_key, has_image=has_image,
                         neg_clause=neg_clause or "",
                         video_duration=eff_video_duration,
@@ -593,7 +603,7 @@ class FiLOpticScanner(io.ComfyNode):
                     agent_key=agent_key, detail_level=detail_level,
                     language=language, rate_limit_ms=rate_limit_ms,
                     contract=contract, enforcement=enforcement,
-                    width=width, height=height,
+                    width=eff_width, height=eff_height,
                     focus_key=focus_key, has_image=has_image,
                     neg_clause=neg_clause or "",
                     video_duration=eff_video_duration,
@@ -670,7 +680,7 @@ class FiLOpticScanner(io.ComfyNode):
 
         t1 = datetime.now(timezone.utc)
         from ..common.logic import compute_aspect_ratio_info
-        aspect_info = compute_aspect_ratio_info(width, height)
+        aspect_info = compute_aspect_ratio_info(eff_width, eff_height)
 
         meta_dict = {
             "provider": provider,
@@ -694,8 +704,8 @@ class FiLOpticScanner(io.ComfyNode):
             "style_applied": style_applied,
             "image_hash": image_hash,
             "target_dimensions": {
-                "width": width,
-                "height": height,
+                "width": eff_width,
+                "height": eff_height,
                 "aspect_ratio": aspect_info["ratio_str"],
                 "orientation": aspect_info["orientation"],
             } if aspect_info["active"] else None,
