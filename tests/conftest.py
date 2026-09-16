@@ -12,6 +12,10 @@ for path in (str(COMFY_ROOT), str(CUSTOM_NODES_ROOT)):
     if path not in sys.path:
         sys.path.insert(0, path)
 
+EMBEDED_SITE_PACKAGES = Path(r"d:\AI\ComfyUI-Easy-Install\python_embeded\Lib\site-packages")
+if EMBEDED_SITE_PACKAGES.exists() and str(EMBEDED_SITE_PACKAGES) not in sys.path:
+    sys.path.append(str(EMBEDED_SITE_PACKAGES))
+
 # comfy.model_management picks its device at import time and starts from
 # CPUState.GPU — nothing probes torch.cuda.is_available(), it only steps down to
 # CPU when `--cpu` was parsed. So on a machine without CUDA every call reaching

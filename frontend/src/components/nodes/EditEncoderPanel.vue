@@ -3,16 +3,15 @@
  * FiLEditEncoder — prompt + reference images into one edit conditioning
  * (mirrors nodes/node_edit_encoder.py).
  *
- * The four controls here are the ones that change what the node *does* with a
- * reference; everything else it owns (the two megapixel caps, the encoder role,
- * the latents method) is advanced and stays a native widget below.
- *
- * `reference_mode` is first and segmented rather than a dropdown, because
- * picking between its three values is the single decision this node exists to
- * make: whether the reference is looked at, pasted into the frame, or both.
+ * All controls are fully open and visible without nested spoilers or accordions:
+ * 1. Prompt & balancing sliders (Prompt weight + References weight)
+ * 2. References reach mode (Vision / Latents / Both)
+ * 3. Reference cards with role, phase and per-slot strength
+ * 4. VLM & Latents Engine parameters (method, megapixel caps, system role)
+ * 5. Diagnostic run report
  */
 import { computed } from "vue";
-import { FilTextArea, FilSelect, FilSegmented, FilSlider } from "@/components/widgets";
+import { FilTextArea, FilTextInput, FilSelect, FilSegmented, FilSlider } from "@/components/widgets";
 import { NODE_CONTRACTS } from "@/api/contracts";
 import { useI18n } from "@/composables/useI18n";
 import { findFilWidget } from "@/nodes2/util";
@@ -34,6 +33,16 @@ function stringField(name: string, fallback: string) {
   });
 }
 
+function numericField(name: string, fallback: number) {
+  return computed({
+    get: () => {
+      const raw = Number(props.state.nodeState[name] ?? props.state.initialValues[name] ?? fallback);
+      return Number.isFinite(raw) ? raw : fallback;
+    },
+    set: (v: number) => { props.state.nodeState[name] = v; },
+  });
+}
+
 function comboOptions(name: string, fallback: string[]): string[] {
   const node = props.state.node;
   const w = node ? findFilWidget(node, name) : null;
@@ -46,6 +55,15 @@ const refs = computed(() => Number((props.state.ui as { refs?: number }).refs ??
 const prompt = stringField("prompt", "");
 const referenceMode = stringField("reference_mode", "vision");
 const cardsField = stringField("reference_cards", "");
+
+const promptStrength = numericField("prompt_strength", 1.0);
+const referenceStrength = numericField("reference_strength", 1.0);
+
+const referenceLatentsMethod = stringField("reference_latents_method", "index_timestep_zero");
+const visionMegapixels = numericField("vision_megapixels", 0.15);
+const latentMegapixels = numericField("latent_megapixels", 1.0);
+const systemPreset = stringField("system_preset", "none");
+const systemPrompt = stringField("system_prompt", "");
 
 /**
  * The jobs a reference can be given, from the contract rather than a copy kept
@@ -62,10 +80,7 @@ type Card = { role: string; strength: number; window: string; treatment?: string
 
 /**
  * When during sampling a reference speaks — the values and the labels of
- * `common/edit_roles.WINDOWS`, which also carries the renders that chose the
- * boundaries. Written out here rather than read from the contract because the
- * contract's `values` list belongs to the roles; if a window is ever added
- * there, it has to be added here too.
+ * `common/edit_roles.WINDOWS`.
  */
 const WINDOW_OPTIONS = ["whole run", "layout", "look"];
 const DEFAULT_WINDOW = "whole run";
@@ -80,13 +95,17 @@ const STRENGTH_MIN = -1;
 const STRENGTH_MAX = 2;
 
 /**
+ * Roles that were offered and rendered identically to the one they map to.
+ */
+const MERGED_ROLES: Record<string, string> = {
+  subject: "as is",
+  style: "palette",
+  composition: "lighting",
+  "shape only": "lighting",
+};
+
+/**
  * One card per wired reference, whatever the field currently holds.
- *
- * Parsed leniently and padded to the number of wired slots, mirroring
- * `_edit_roles.parse_cards`: the field can hold hand-written JSON, or a
- * `prompt_preset` value left over from a workflow saved before roles existed.
- * Neither is worth an error message on a panel — the backend recognises the
- * legacy names, and anything unreadable simply reads as "no jobs given".
  */
 const cards = computed<Card[]>(() => {
   let parsed: unknown;
@@ -108,22 +127,10 @@ const cards = computed<Card[]>(() => {
   });
 });
 
-/**
- * Write the cards back, and write nothing at all when every reference is doing
- * the default job at full strength: an empty field is what a fresh node has,
- * and a workflow saved after clicking a role back to "as is" should not look
- * different from one where nobody touched it.
- *
- * A strength of 1 is left out of the JSON for the same reason — it is the
- * default the backend fills in, and writing it down makes an untouched card
- * look edited.
- */
 function write(next: Card[]) {
   const touched = next.some(
     card => card.role !== DEFAULT_ROLE || card.strength !== 1 || card.window !== DEFAULT_WINDOW,
   );
-  // Defaults are left out of the JSON: they are what the backend fills in, and
-  // writing them down makes an untouched card look edited.
   cardsField.value = touched
     ? JSON.stringify(next.map((card) => {
         const out: Record<string, unknown> = { role: card.role };
@@ -153,35 +160,20 @@ const thumbTip = computed(() =>
     + "role's treatment is already applied here."),
 );
 
-/**
- * Why this card's picture may not have arrived, straight from the last run.
- *
- * The `summary` says the same thing once for the whole node, which is exactly
- * what makes it useless with five cards wired: it cannot say *which*.
- */
 function note(slot: number): string {
   const list = lastRun.value?.notes;
   return Array.isArray(list) ? (list[slot] ?? "") : "";
 }
 
-/**
- * The prepared copy of one reference, as the last run left it.
- *
- * Empty until a run has happened, and empty for a slot wired since — the card
- * then shows its placeholder rather than the picture from a different graph.
- */
 function thumb(slot: number): string {
   const list = lastRun.value?.thumbs;
   return Array.isArray(list) ? (list[slot] ?? "") : "";
 }
 
-/** "0.55" / "−0.50 away" — the sign is a direction, so it gets a word. */
 function strengthLabel(value: number): string {
   return value < 0 ? `${value.toFixed(2)} ${t("eep_away", "away")}` : value.toFixed(2);
 }
 
-/** Kept out of the template: the fallback quotes a role name, and a quoted
- * string inside a Vue attribute expression has nowhere left to nest. */
 const roleTip = computed(() =>
   t("eep_role_tt",
     "What the model takes from this picture. The role brings the treatment that makes it "
@@ -189,20 +181,18 @@ const roleTip = computed(() =>
     + "to copy."),
 );
 
-const promptStrength = computed({
-  get: () => {
-    const raw = Number(props.state.nodeState.prompt_strength ?? props.state.initialValues.prompt_strength ?? 1);
-    return Number.isFinite(raw) ? raw : 1;
-  },
-  set: (v: number) => { props.state.nodeState.prompt_strength = v; },
-});
-
 const promptStrengthTip = computed(() =>
   t("ee_prompt_strength",
     "How loudly the written instruction speaks against the pictures. 1 is as written and "
     + "costs nothing. Below 1 the references decide more and the text less; 0 is what the "
     + "model takes from the pictures alone. Above 1 pushes the instruction harder. Anything "
     + "but 1 encodes a second time with the instruction silenced."),
+);
+
+const refStrengthTip = computed(() =>
+  t("ee_strength",
+    "How hard the references pull on the text encoder. 1.0 is the plain encode and costs nothing; "
+    + "anything else encodes a second time against blank references and interpolates."),
 );
 
 const windowTip = computed(() =>
@@ -230,39 +220,27 @@ const ROLE_LABELS: Record<string, string> = {
   palette: "🌈 palette",
 };
 
-/**
- * Roles that were offered and rendered identically to the one they map to, so
- * they no longer appear in the list (`common/edit_roles.MERGED_ROLES` carries
- * the same table and the renders that cut them).
- *
- * A saved workflow still holds them, and the backend resolves them this way —
- * so the panel has to as well. Falling back to the default role instead would
- * show a card doing one job while the encode did another.
- */
-const MERGED_ROLES: Record<string, string> = {
-  subject: "as is",
-  style: "palette",
-  composition: "lighting",
-  "shape only": "lighting",
-};
-
 const modeOptions = computed(() => comboOptions("reference_mode", ["vision", "latents", "both"]));
-
 const MODE_LABELS: Record<string, string> = {
   vision: "👁️ vision",
   latents: "🧩 latents",
   both: "👁️🧩 both",
 };
 
-/**
- * What the last run did, straight from its `ui` payload. Shown because every
- * way this node can disappoint is silent: a reference discarded, a strength
- * that does nothing in this mode, a style preset with nothing treated. The
- * `summary` output says all of it — and says it to nobody unless it is wired.
- *
- * The first line is the shape of the run; a NOTE line is the part worth
- * interrupting for, so that is what a warned run shows.
- */
+const methodOptions = computed(() => comboOptions("reference_latents_method", ["index_timestep_zero", "index", "offset", "uxo"]));
+const METHOD_LABELS: Record<string, string> = {
+  index_timestep_zero: "Krea 2 (index_timestep_zero)",
+  index: "FLUX.2 / Kontext (index)",
+  offset: "Offset (experimental)",
+  uxo: "UXO (experimental)",
+};
+
+const presetOptions = computed(() => comboOptions("system_preset", ["none", "use reference"]));
+const PRESET_LABELS: Record<string, string> = {
+  none: "Custom / None",
+  "use reference": "Use reference",
+};
+
 const lastRun = computed(() => (props.state.ui as { lastRun?: EditEncoderRun | null }).lastRun ?? null);
 
 const report = computed(() => {
@@ -272,8 +250,6 @@ const report = computed(() => {
   const note = lines.find(l => l.startsWith("NOTE:"));
   const text = (note ?? lines[0]).replace(/^NOTE:\s*/, "");
   return {
-    // The NOTE prefix carried the capital letter; put one back rather than
-    // opening the line mid-sentence.
     text: text.charAt(0).toUpperCase() + text.slice(1),
     warned: !!note,
     full: run.summary,
@@ -283,32 +259,48 @@ const report = computed(() => {
 
 <template>
   <div class="fil-ee-root">
+    <!-- Header: Active references count -->
     <div class="fil-ee-head" :title="t('eep_refs_tt', 'Reference images wired into the slots below the panel — each one adds a latent to the conditioning.')">
-      🖼️ {{ refs }} {{ tPlural('eep_refs', refs, 'reference', 'references', 'references') }}
+      <span class="fil-ee-head-count">🖼️ {{ refs }} {{ tPlural('eep_refs', refs, 'reference', 'references', 'references') }}</span>
+      <span v-if="refs > 0" class="fil-ee-badge-active">ACTIVE</span>
     </div>
 
+    <!-- Section 1: Prompt & Balancing weights -->
     <FilTextArea :ref="(el: unknown) => setFieldEl('prompt', el)"
       v-model="prompt" :rows="3" :linked="isLinked('prompt')"
       :placeholder="t('eep_prompt_ph', 'What to change, keep, or compose from the references…')"
       :title="linkedTip('prompt', t('ee_prompt', 'Edit instruction: what to change, keep, or compose from the references.'))" />
 
-    <FilSlider :ref="(el: unknown) => setFieldEl('prompt_strength', el)"
-      :model-value="promptStrength" :min="0" :max="2" :step="0.05"
-      :disabled="isLinked('prompt_strength')" inline-label
-      :label="t('eep_prompt_strength', '🗣️ Prompt')"
-      :title="linkedTip('prompt_strength', promptStrengthTip)"
-      @update:model-value="(v: number) => { promptStrength = v; }" />
+    <div class="fil-ee-grid-2">
+      <FilSlider :ref="(el: unknown) => setFieldEl('prompt_strength', el)"
+        :model-value="promptStrength" :min="0" :max="2" :step="0.05"
+        :disabled="isLinked('prompt_strength')" inline-label
+        :label="t('eep_prompt_strength', '🗣️ Prompt')"
+        :title="linkedTip('prompt_strength', promptStrengthTip)"
+        @update:model-value="(v: number) => { promptStrength = v; }" />
 
+      <FilSlider :ref="(el: unknown) => setFieldEl('reference_strength', el)"
+        :model-value="referenceStrength" :min="0" :max="3" :step="0.05"
+        :disabled="isLinked('reference_strength')" inline-label
+        :label="t('eep_ref_strength', '⚖️ References')"
+        :title="linkedTip('reference_strength', refStrengthTip)"
+        @update:model-value="(v: number) => { referenceStrength = v; }" />
+    </div>
+
+    <!-- Section 2: References reach mode -->
     <FilSegmented v-model="referenceMode" :options="modeOptions" :option-labels="MODE_LABELS"
       :label="t('eep_mode', '🎯 References reach')"
       :title="t('ee_mode', 'How references reach the model.')" />
 
-    <div v-if="refs" class="fil-ee-cards">
+    <!-- Section 3: Reference Cards (100% open) -->
+    <div v-if="refs > 0" class="fil-ee-cards">
       <div v-for="(card, i) in cards" :key="i" class="fil-ee-card">
         <div class="fil-ee-card-row">
           <img v-if="thumb(i)" class="fil-ee-thumb" :src="thumb(i)" alt="" :title="thumbTip" />
-          <span v-else class="fil-ee-slot">{{ i + 1 }}</span>
-          <FilSelect :model-value="card.role" :options="ROLE_OPTIONS" :option-labels="ROLE_LABELS"
+          <div v-else class="fil-ee-slot-badge" :title="i === 0 ? t('eep_slot_primary', 'Primary / Mask') : ''">
+            {{ t('eep_slot_ref', 'Ref #') }}{{ i + 1 }}
+          </div>
+          <FilSelect class="fil-ee-role" :model-value="card.role" :options="ROLE_OPTIONS" :option-labels="ROLE_LABELS"
             :title="roleTip"
             @update:model-value="(v: string) => setRole(i, v)" />
           <FilSelect class="fil-ee-window" :model-value="card.window" :options="WINDOW_OPTIONS"
@@ -316,7 +308,7 @@ const report = computed(() => {
             @update:model-value="(v: string) => setWindow(i, v)" />
         </div>
         <div class="fil-ee-card-row">
-          <span class="fil-ee-slot">{{ strengthLabel(card.strength) }}</span>
+          <span class="fil-ee-slot-val">{{ strengthLabel(card.strength) }}</span>
           <FilSlider :model-value="card.strength"
             :min="STRENGTH_MIN" :max="STRENGTH_MAX" :step="0.05" :title="strengthTip"
             @update:model-value="(v: number) => setStrength(i, v)" />
@@ -324,40 +316,237 @@ const report = computed(() => {
         <div v-if="note(i)" class="fil-ee-card-note" :title="note(i)">⚠️ {{ note(i) }}</div>
       </div>
     </div>
+    <div v-else class="fil-ee-no-refs">
+      🔌 {{ t('eep_no_refs', 'No reference images wired — connect images to image0..image3 inputs') }}
+    </div>
 
-<div v-if="report" class="fil-ee-report" :class="{ warned: report.warned }" :title="report.full">
+    <!-- Section 4: VLM & Latents Engine (100% open, no hidden accordions) -->
+    <div class="fil-ee-engine">
+      <div class="fil-ee-engine-head">
+        {{ t('eep_engine_settings', '⚙️ VLM & Latents Engine') }}
+      </div>
+
+      <div class="fil-ee-field">
+        <span class="fil-ee-field-label" :title="t('ee_method', 'Only used when reference_mode sends latents.')">
+          {{ t('eep_latents_method', 'Reference Latents Method') }}
+        </span>
+        <FilSelect v-model="referenceLatentsMethod" :options="methodOptions" :option-labels="METHOD_LABELS"
+          :title="t('ee_method', 'Only used when reference_mode sends latents.')" />
+      </div>
+
+      <div class="fil-ee-grid-2">
+        <FilSlider :model-value="visionMegapixels" :min="0.05" :max="2.0" :step="0.05" inline-label
+          :label="t('eep_vision_mp', '👁️ VLM MP')"
+          :title="t('ee_vl_mp', 'Size of the copy the text encoder reads.')"
+          @update:model-value="(v: number) => { visionMegapixels = v; }" />
+
+        <FilSlider :model-value="latentMegapixels" :min="0.2" :max="2.0" :step="0.05" inline-label
+          :label="t('eep_latent_mp', '🧩 Latent MP')"
+          :title="t('ee_lat_mp', 'Cap for the copy the VAE encodes.')"
+          @update:model-value="(v: number) => { latentMegapixels = v; }" />
+      </div>
+
+      <div class="fil-ee-system-box">
+        <div class="fil-ee-field">
+          <span class="fil-ee-field-label" :title="t('ee_preset', 'Role sent to the text encoder.')">
+            {{ t('eep_system_preset', 'System Preset') }}
+          </span>
+          <FilSelect v-model="systemPreset" :options="presetOptions" :option-labels="PRESET_LABELS"
+            :title="t('ee_preset', 'Role sent to the text encoder.')" />
+        </div>
+
+        <FilTextInput v-if="systemPreset === 'none'" v-model="systemPrompt"
+          :placeholder="t('eep_system_prompt_ph', 'Custom system prompt for VLM (optional)...')"
+          :title="t('ee_system', 'Optional role for the text encoder, sent before it reads the references.')" />
+      </div>
+    </div>
+
+    <!-- Section 5: Run diagnostic report -->
+    <div v-if="report" class="fil-ee-report" :class="{ warned: report.warned }" :title="report.full">
       {{ report.warned ? '⚠️' : '✅' }} {{ report.text }}
     </div>
   </div>
 </template>
 
 <style scoped>
-/* Container surface comes from the shared `.fil-node-shell [class$="-root"]`
- * rule in styles/brand.ts — keep only layout here. */
-.fil-ee-root { width: 100%; box-sizing: border-box; min-width: 0; display: flex; flex-direction: column; gap: var(--fil-node-gap); padding: var(--fil-node-pad);
-  color: var(--fil-text); font-family: ui-sans-serif, system-ui, sans-serif; }
-.fil-ee-head { font-size: 11px; line-height: 1.2; color: var(--fil-muted); }
-/* One row per wired reference. The slot number is the whole label: it is what
- * the summary, the socket and the vision blocks all count by. */
-.fil-ee-cards { display: flex; flex-direction: column; gap: 4px; }
-.fil-ee-card { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.fil-ee-card-note { font-size: 10px; line-height: 1.3; color: var(--fil-warn, #f0b429);
-  padding-left: 40px; }
-.fil-ee-card-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
-.fil-ee-card-row > :last-child { flex: 1 1 auto; min-width: 0; }
-/* The window is a short fixed choice next to the role, which is the long one. */
-.fil-ee-card-row > .fil-ee-window { flex: 0 0 auto; width: 92px; }
-/* Fixed gutter so the select and the slider start on the same line, whatever
- * the strength reads — the number sits where the slot number does. */
-/* Same gutter as the slot number it replaces, so the select below never shifts
- * sideways when a run fills the thumbnails in. */
-.fil-ee-thumb { flex: 0 0 auto; width: 34px; height: 34px; object-fit: cover;
-  border-radius: 3px; display: block; }
-.fil-ee-slot { flex: 0 0 auto; width: 34px; text-align: right; font-size: 11px;
-  line-height: 1.2; color: var(--fil-muted); font-variant-numeric: tabular-nums; }
-/* The last run, in one line. Clipped rather than wrapped so the node keeps its
- * height whatever the report says; the full text is the tooltip. */
-.fil-ee-report { font-size: 11px; line-height: 1.3; color: var(--fil-muted);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.fil-ee-report.warned { color: var(--fil-danger); white-space: normal; }
+.fil-ee-root {
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--fil-node-gap, 8px);
+  padding: var(--fil-node-pad, 8px);
+  color: var(--fil-text, #fff);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+.fil-ee-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  line-height: 1.2;
+  color: var(--fil-muted, #888);
+}
+
+.fil-ee-badge-active {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  letter-spacing: 0.5px;
+}
+
+.fil-ee-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  min-width: 0;
+}
+
+.fil-ee-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fil-ee-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 6px;
+  background: var(--fil-surface-subtle, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--fil-border-subtle, rgba(255, 255, 255, 0.06));
+  border-radius: 6px;
+}
+
+.fil-ee-card-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.fil-ee-card-row > :last-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.fil-ee-role {
+  flex: 1 1 auto;
+  min-width: 110px;
+}
+
+.fil-ee-card-row > .fil-ee-window {
+  flex: 0 0 auto;
+  width: 110px;
+}
+
+.fil-ee-thumb {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid var(--fil-border-subtle, rgba(255, 255, 255, 0.1));
+  display: block;
+}
+
+.fil-ee-slot-badge {
+  flex: 0 0 auto;
+  min-width: 44px;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  color: var(--fil-muted, #aaa);
+}
+
+.fil-ee-slot-val {
+  flex: 0 0 auto;
+  width: 44px;
+  text-align: right;
+  font-size: 11px;
+  line-height: 1.2;
+  color: var(--fil-muted, #aaa);
+  font-variant-numeric: tabular-nums;
+}
+
+.fil-ee-card-note {
+  font-size: 10px;
+  line-height: 1.3;
+  color: var(--fil-warn, #f0b429);
+  padding-left: 50px;
+}
+
+.fil-ee-no-refs {
+  font-size: 11px;
+  color: var(--fil-muted, #777);
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed var(--fil-border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: 6px;
+  text-align: center;
+}
+
+/* Engine Section */
+.fil-ee-engine {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  background: var(--fil-surface-subtle, rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--fil-border-subtle, rgba(255, 255, 255, 0.07));
+  border-radius: 6px;
+}
+
+.fil-ee-engine-head {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--fil-muted, #888);
+}
+
+.fil-ee-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.fil-ee-field-label {
+  font-size: 10px;
+  color: var(--fil-muted, #888);
+}
+
+.fil-ee-system-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fil-ee-report {
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--fil-muted, #888);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 4px 6px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 4px;
+}
+
+.fil-ee-report.warned {
+  color: var(--fil-danger, #f87171);
+  white-space: normal;
+}
 </style>

@@ -29,22 +29,25 @@ export const EDIT_ENCODER_SOCKET_INPUTS = ["prompt", "prompt_strength", "referen
  * over the cards, useful driven from the graph and redundant by hand, so it
  * keeps its input socket (see `EDIT_ENCODER_SOCKET_INPUTS`) and loses its dial.
  */
-const LEGACY_WIDGETS = ["reference_treatment", "treatment_per_reference", "system_preset"];
+const LEGACY_WIDGETS = ["reference_treatment", "treatment_per_reference"];
 
-// The panel drives the controls that decide what happens to a reference. The
-// advanced ones — both megapixel caps, the encoder role, and
-// `reference_latents_method` — stay native widgets below the panel.
-//
-// `reference_cards` is JSON the panel writes a card at a time. It stays a
-// hidden native widget rather than a panel-only value so a graph built through
-// the API can still fill it in, and so a workflow saved before roles existed
-// hands its old `prompt_preset` value straight to the backend's parser.
+// The panel drives all controls that decide what happens to a reference and
+// configures the VLM text encoder and latent injection methods. All native
+// LiteGraph widgets are hidden so they don't break layout or render raw grey boxes.
 const stringDefaults: Record<string, string> = {
   prompt: "",
   reference_mode: "vision",
   reference_cards: "",
+  system_preset: "none",
+  system_prompt: "",
+  reference_latents_method: "index_timestep_zero",
 };
-const numericDefaults: Record<string, number> = { reference_strength: 1, prompt_strength: 1 };
+const numericDefaults: Record<string, number> = {
+  reference_strength: 1,
+  prompt_strength: 1,
+  vision_megapixels: 0.15,
+  latent_megapixels: 1.0,
+};
 const HIDE = [
   ...Object.keys(stringDefaults),
   ...Object.keys(numericDefaults),
@@ -101,8 +104,8 @@ export const editEncoderNode: NodeModule = {
   id: "FiLEditEncoder",
   register(nodeType: LGraphNodeType, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
-      minSize: [300, 300],
-      initialWidth: 300,
+      minSize: [320, 360],
+      initialWidth: 320,
       family: "conditioning",
       description: "Prompt + reference images in one conditioning for FLUX.2-family edit models.",
       badges: [{ text: "EDIT", color: "#f472b6", text_color: "#000" }],
@@ -144,7 +147,7 @@ export const editEncoderNode: NodeModule = {
       };
       Object.defineProperty(state, "node", { value: node, enumerable: false, configurable: true });
       node._filEditEncoderState = state;
-      addFilDomWidget(node, "fil_edit_encoder_view", EditEncoderVue, { state, height: 250 });
+      addFilDomWidget(node, "fil_edit_encoder_view", EditEncoderVue, { state, height: 380 });
       exposeWidgetInputSockets(this, EDIT_ENCODER_SOCKET_INPUTS);
       return result;
     };
