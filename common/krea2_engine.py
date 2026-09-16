@@ -14,6 +14,7 @@ import math
 from typing import Any
 
 import torch
+import torch.nn.functional as F
 
 import comfy.model_management
 import comfy.sample
@@ -269,12 +270,16 @@ def run_krea2_upscale_pipeline(
     steps: int = 20,
     denoise: float = 0.20,
     upscale_factor: float = 2.0,
+    tile_overlap: str = "auto (256px)",
+    texture_injection: float = 0.20,
+    color_match: str = "none",
 ) -> tuple[torch.Tensor, dict]:
     """High-fidelity one-click upscale and detail refinement.
 
     1. Uses AI upscale model (or Lanczos) to establish crisp, pristine geometry.
     2. Encodes to latent and runs faithful micro-texture refinement.
     3. Seamlessly handles large resolutions without seams or noise degradation.
+    4. Applies Sobel high-pass texture injection and color locking.
     """
     if image is None and latent is None:
         raise ValueError("FiLKrea2TiledDiffusion requires at least one of 'image' or 'latent' to be connected.")
@@ -354,8 +359,6 @@ def run_krea2_upscale_pipeline(
         scheduler = "normal"
 
     # 5. Full-frame vs Seamless Tiled Sampling
-    # If latent is within direct threshold, sample as full-frame for 100% composition & face fidelity.
-    # 16-channel models (Flux, SD3.5) consume much more memory per latent token; limit full-frame to 1024px (128 latent dim).
     max_direct_latent_dim = 128 if latent_channels == 16 else 256
 
     if max(lat_w, lat_h) <= max_direct_latent_dim:
@@ -375,8 +378,16 @@ def run_krea2_upscale_pipeline(
         final_samples = sampled_latent["samples"]
     else:
         # Large resolution: run seamless tiled sampling with cosine blending
-        logger.info("FiLKrea2TiledDiffusion: tiled latent sampling for canvas (%dx%d)", lat_w * 8, lat_h * 8)
-        plan = calculate_tiles(lat_w, lat_h, tile_grid="auto", overlap_pixels=DEFAULT_TILE_OVERLAP_PIXELS)
+        overlap_px = DEFAULT_TILE_OVERLAP_PIXELS
+        if "128" in str(tile_overlap):
+            overlap_px = 128
+        elif "384" in str(tile_overlap):
+            overlap_px = 384
+        elif "256" in str(tile_overlap):
+            overlap_px = 256
+
+        logger.info("FiLKrea2TiledDiffusion: tiled latent sampling for canvas (%dx%d, overlap %dpx)", lat_w * 8, lat_h * 8, overlap_px)
+        plan = calculate_tiles(lat_w, lat_h, tile_grid="auto", overlap_pixels=overlap_px)
 
         accumulator = torch.zeros_like(target_latent_samples)
         weight_sum = torch.zeros_like(target_latent_samples)
@@ -429,19 +440,138 @@ def run_krea2_upscale_pipeline(
     decoded_image = decode_vae_safely(vae, final_samples)
     comfy.model_management.soft_empty_cache()
 
+    # 7. Post-processing: Texture Injection & Color Locking
+    ref_image = scaled_image if scaled_image is not None else image
+    if ref_image is not None and decoded_image is not None:
+        if texture_injection > 0.0:
+            decoded_image = apply_texture_injection(decoded_image, ref_image, blend_strength=texture_injection)
+        if color_match and color_match != "none":
+            decoded_image = apply_color_matching(ref_image, decoded_image, mode=color_match)
+
     return decoded_image, {"samples": final_samples}
 
 
-# Compatible helpers for legacy or test calls
-def apply_edge_aware_texture(base_image: torch.Tensor, reference_image: torch.Tensor,
-                             blend_strength: float = 0.0, filter_radius: int = 3) -> torch.Tensor:
-    """Safe backward-compatible texture injector."""
+def apply_texture_injection(
+    base_image: torch.Tensor,
+    reference_image: torch.Tensor,
+    blend_strength: float = 0.20,
+    filter_radius: int = 3,
+) -> torch.Tensor:
+    """Injects edge-aware high-pass microtexture (pores, fibers, film grain, sharp decals)
+    from reference_image into base_image using Sobel saliency masking to suppress noise on flat areas.
+    """
     if blend_strength <= 0.0 or reference_image is None or base_image is None:
         return base_image
-    return base_image
+
+    if base_image.shape[1:3] != reference_image.shape[1:3]:
+        ref = comfy.utils.common_upscale(
+            reference_image.movedim(-1, 1), base_image.shape[2], base_image.shape[1],
+            "lanczos", "disabled").movedim(1, -1)[:, :, :, :3]
+    else:
+        ref = reference_image[:, :, :, :3]
+
+    ref_ch = ref.movedim(-1, 1).to(base_image.device, dtype=torch.float32)
+    base_ch = base_image[:, :, :, :3].movedim(-1, 1).to(torch.float32)
+
+    # 1. High-pass filter of reference image
+    kernel_size = filter_radius * 2 + 1
+    sigma = filter_radius / 2.0
+    x = torch.arange(kernel_size, dtype=torch.float32, device=base_image.device) - filter_radius
+    gauss = torch.exp(-0.5 * (x / sigma) ** 2)
+    k1d = gauss / gauss.sum()
+    k2d = torch.outer(k1d, k1d).unsqueeze(0).unsqueeze(0).repeat(3, 1, 1, 1)
+
+    pad = filter_radius
+    padded = F.pad(ref_ch, (pad, pad, pad, pad), mode="reflect")
+    low_pass = F.conv2d(padded, k2d, groups=3)
+    high_pass = ref_ch - low_pass
+
+    # 2. Sobel edge magnitude to detect high-frequency contours vs flat skin/glass/background
+    gray = 0.299 * ref_ch[:, 0:1] + 0.587 * ref_ch[:, 1:2] + 0.114 * ref_ch[:, 2:3]
+    kx = torch.tensor([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]], dtype=torch.float32, device=base_image.device).unsqueeze(0).unsqueeze(0)
+    ky = torch.tensor([[-1, -2, -1], [0, 0, 0], [1, 2, 1]], dtype=torch.float32, device=base_image.device).unsqueeze(0).unsqueeze(0)
+
+    gx = F.conv2d(gray, kx, padding=1)
+    gy = F.conv2d(gray, ky, padding=1)
+    edge_mag = torch.sqrt(gx**2 + gy**2)
+
+    # Normalize: smooth flat areas -> 0.0, sharp edges/textures -> 1.0
+    edge_norm = torch.clamp((edge_mag - 0.03) / 0.18, 0.0, 1.0)
+    smooth_mask = edge_norm * edge_norm * (3.0 - 2.0 * edge_norm)
+
+    # Dynamic adaptive weighting: floor preserves subtle micro-texture without noise, boost sharpens edges
+    floor_strength = blend_strength * 0.15
+    boost_strength = blend_strength * 1.40
+    adaptive_weight = floor_strength + ((boost_strength - floor_strength) * smooth_mask)
+
+    injected = base_ch + (high_pass * adaptive_weight)
+    return torch.clamp(injected.movedim(1, -1), 0.0, 1.0).to(base_image.dtype)
 
 
-def apply_color_matching(reference_image: torch.Tensor, generated_image: torch.Tensor,
-                         mode: str = "none") -> torch.Tensor:
-    """Safe backward-compatible color matcher."""
+# Compatible alias
+apply_edge_aware_texture = apply_texture_injection
+
+
+def apply_color_matching(
+    reference_image: torch.Tensor,
+    generated_image: torch.Tensor,
+    mode: str = "none",
+) -> torch.Tensor:
+    """Locks colors / skin tones of generated_image to reference_image."""
+    if mode == "none" or reference_image is None or generated_image is None:
+        return generated_image
+
+    ref = reference_image[:, :, :, :3].to(generated_image.device, dtype=torch.float32)
+    gen = generated_image[:, :, :, :3].to(torch.float32)
+
+    if ref.shape[1:3] != gen.shape[1:3]:
+        ref = comfy.utils.common_upscale(
+            ref.movedim(-1, 1), gen.shape[2], gen.shape[1],
+            "lanczos", "disabled").movedim(1, -1)
+
+    if mode == "luminance":
+        mat_rgb2ycbcr = torch.tensor([
+            [ 0.299000,  0.587000,  0.114000],
+            [-0.168736, -0.331264,  0.500000],
+            [ 0.500000, -0.418688, -0.081312],
+        ], device=gen.device, dtype=torch.float32)
+
+        ref_ycbcr = torch.matmul(ref, mat_rgb2ycbcr.T)
+        ref_ycbcr[..., 1:] += 0.5
+
+        gen_ycbcr = torch.matmul(gen, mat_rgb2ycbcr.T)
+        gen_ycbcr[..., 1:] += 0.5
+
+        merged_ycbcr = torch.cat([gen_ycbcr[..., 0:1], ref_ycbcr[..., 1:]], dim=-1)
+        merged_ycbcr[..., 1:] -= 0.5
+
+        mat_ycbcr2rgb = torch.tensor([
+            [1.000000,  0.000000,  1.402000],
+            [1.000000, -0.344136, -0.714136],
+            [1.000000,  1.772000,  0.000000],
+        ], device=gen.device, dtype=torch.float32)
+
+        restored_rgb = torch.matmul(merged_ycbcr, mat_ycbcr2rgb.T)
+        return torch.clamp(restored_rgb, 0.0, 1.0).to(generated_image.dtype)
+
+    elif mode == "wavelet":
+        radius = 48
+        kernel_size = radius * 2 + 1
+        sigma = radius / 3.0
+        x = torch.arange(kernel_size, dtype=torch.float32, device=gen.device) - radius
+        gauss = torch.exp(-0.5 * (x / sigma) ** 2)
+        k1d = gauss / gauss.sum()
+        k2d = torch.outer(k1d, k1d).unsqueeze(0).unsqueeze(0).repeat(3, 1, 1, 1)
+
+        pad = radius
+        ref_pad = F.pad(ref.movedim(-1, 1), (pad, pad, pad, pad), mode="reflect")
+        gen_pad = F.pad(gen.movedim(-1, 1), (pad, pad, pad, pad), mode="reflect")
+
+        ref_low = F.conv2d(ref_pad, k2d, groups=3)
+        gen_low = F.conv2d(gen_pad, k2d, groups=3)
+
+        gen_high = gen.movedim(-1, 1) - gen_low
+        restored = torch.clamp(ref_low + gen_high, 0.0, 1.0)
+        return restored.movedim(1, -1).to(generated_image.dtype)
+
     return generated_image

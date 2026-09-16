@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from ..widgets import _int, _slider, _string
+from ..widgets import _combo, _int, _slider, _string
 from ..schema import NodeContract, NodeInputs, NodeOutput
 from ...brand import CATEGORY_IMAGE
 
@@ -20,6 +20,9 @@ CONTRACT = NodeContract(
             _string("prompt", default="crisp textures, sharp focus, authentic skin pores, fine fabrics, realistic micro-details", label="Prompt"),
             _int("seed", default=0, minv=0, maxv=0xFFFFFFFFFFFFFFFF, step=1, label="Seed"),
             _int("steps", default=20, minv=1, maxv=100, step=1, label="Steps"),
+            _combo("tile_overlap", values=["auto (256px)", "128px (fast)", "256px (optimal)", "384px (ultra-smooth)"], default="auto (256px)", label="Tile overlap"),
+            _slider("texture_injection", default=0.20, minv=0.0, maxv=1.0, step=0.05, label="Texture injection"),
+            _combo("color_match", values=["none", "luminance", "wavelet"], default="none", label="Color match"),
         ],
         optional=[],
     ),

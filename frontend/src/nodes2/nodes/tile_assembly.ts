@@ -21,7 +21,7 @@ export const tileAssemblyNode: NodeModule = {
   id: "FiLTileAssembly",
   register(nodeType: LGraphNodeType, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
-      minSize: [280, 110],
+      minSize: [280, 130],
       initialWidth: 280,
       family: "image",
       description: "Recombines processed tiles back into one image, feathered across the real overlap zones.",
@@ -65,7 +65,7 @@ export const tileAssemblyNode: NodeModule = {
       const state = reactive(rawState);
       (node as any)._filTileAssemblyState = state;
 
-      addFilDomWidget(this, "fil_tile_assembly_view", TileAssemblyPanel, { state, height: 95 });
+      addFilDomWidget(this, "fil_tile_assembly_view", TileAssemblyPanel, { state, height: 115 });
       exposeWidgetInputSockets(this, TILE_ASSEMBLY_SOCKET_INPUTS);
       return result;
     };

@@ -4,7 +4,7 @@
  * feather depth, and mutual overlap color matching.
  */
 import { computed } from "vue";
-import { FilSlider, FilSelect } from "@/components/widgets";
+import { FilSlider, FilSelect, FilSegmented } from "@/components/widgets";
 import { useI18n } from "@/composables/useI18n";
 import { findFilWidget } from "@/nodes2/util";
 import { useWidgetSockets } from "@/composables/useWidgetSockets";
@@ -56,19 +56,18 @@ const colorMatch = stringField("color_match", "Match Overlap Means");
 
 const BLEND_MODES = ["Cosine (Smooth)", "Linear", "Smoothstep"] as const;
 const BLEND_LABELS: Record<string, string> = {
-  "Cosine (Smooth)": "Cosine (Smooth)",
-  "Linear": "Linear",
-  "Smoothstep": "Smoothstep",
+  "Cosine (Smooth)": "🌊 Cosine (Smooth)",
+  "Linear": "📐 Linear",
+  "Smoothstep": "⚡ Smoothstep",
 };
 
 const COLOR_MATCH_OPTIONS = ["Match Overlap Means", "None"] as const;
 const COLOR_MATCH_LABELS: Record<string, string> = {
-  "Match Overlap Means": "Match Overlap",
-  "None": "Off",
+  "Match Overlap Means": "🎨 Match",
+  "None": "🚫 Off",
 };
 
 const blendOptions = computed(() => comboOptions("blend_mode", [...BLEND_MODES]));
-const colorMatchOptions = computed(() => comboOptions("color_match", [...COLOR_MATCH_OPTIONS]));
 </script>
 
 <template>
@@ -95,10 +94,10 @@ const colorMatchOptions = computed(() => comboOptions("color_match", [...COLOR_M
       @update:model-value="(v: number) => (featherStrength = v)"
     />
 
-    <FilSelect
-      :options="colorMatchOptions"
-      :option-labels="COLOR_MATCH_LABELS"
+    <FilSegmented
       v-model="colorMatch"
+      :options="[...COLOR_MATCH_OPTIONS]"
+      :option-labels="COLOR_MATCH_LABELS"
       inline-label
       :label="t('lbl_color_match', 'Color match')"
       :title="t('tla_color_match', 'Automatically match mean color/brightness in tile overlaps to eliminate visible exposure seams.')"
@@ -110,11 +109,12 @@ const colorMatchOptions = computed(() => comboOptions("color_match", [...COLOR_M
 .fil-tla-root {
   width: 100%;
   box-sizing: border-box;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--fil-node-gap, 6px);
+  gap: var(--fil-node-gap, 8px);
   padding: var(--fil-node-pad, 6px);
-  color: var(--fil-text);
+  color: var(--fil-text, #fff);
   font-family: ui-sans-serif, system-ui, sans-serif;
 }
 </style>

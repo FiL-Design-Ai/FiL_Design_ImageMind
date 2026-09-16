@@ -48,6 +48,13 @@ class FiLKrea2TiledDiffusion(io.ComfyNode):
                              tooltip=_t("krea2_seed", "Random seed for diffusion noise.")),
                 io.Int.Input("steps", default=20, min=1, max=100,
                              tooltip=_t("krea2_steps", "Sampling steps (20 steps recommended for high quality).")),
+                io.Combo.Input("tile_overlap", options=["auto (256px)", "128px (fast)", "256px (optimal)", "384px (ultra-smooth)"],
+                               default="auto (256px)",
+                               tooltip=_t("krea2_tile_overlap", "Overlap between tiles. 256px is optimal; 384px is ultra-seamless for delicate portraits.")),
+                io.Float.Input("texture_injection", default=0.20, min=0.0, max=1.0, step=0.05, display_mode=io.NumberDisplay.slider,
+                               tooltip=_t("krea2_texture_injection", "Injects genuine high-frequency microtexture from input image to eliminate plastic skin. 0.0: off, 0.20: natural skin pores.")),
+                io.Combo.Input("color_match", options=["none", "luminance", "wavelet"], default="none",
+                               tooltip=_t("krea2_color_match", "Locks white balance and skin tones to original image. 'luminance': Photoshop color mode. 'wavelet': smooth frequency split.")),
             ],
             outputs=[
                 io.Image.Output(display_name="image", tooltip="Final upscaled image with preserved identity and enhanced details."),
@@ -60,7 +67,11 @@ class FiLKrea2TiledDiffusion(io.ComfyNode):
     def execute(cls, image=None, model=None, vae=None, upscale_model=None, clip=None, latent=None,
                 upscale_factor: float = 2.0, denoise: float = 0.20,
                 prompt: str = "crisp textures, sharp focus, authentic skin pores, fine fabrics, realistic micro-details",
-                seed: int = 0, steps: int = 20, **kwargs):
+                seed: int = 0, steps: int = 20,
+                tile_overlap: str = "auto (256px)",
+                texture_injection: float = 0.20,
+                color_match: str = "none",
+                **kwargs):
         """Executes one-click faithful upscale and detail refinement."""
         # kwargs absorber ensures backward compatibility with older workflows
         return run_krea2_upscale_pipeline(
@@ -75,4 +86,7 @@ class FiLKrea2TiledDiffusion(io.ComfyNode):
             steps=steps,
             denoise=denoise,
             upscale_factor=upscale_factor,
+            tile_overlap=tile_overlap,
+            texture_injection=texture_injection,
+            color_match=color_match,
         )

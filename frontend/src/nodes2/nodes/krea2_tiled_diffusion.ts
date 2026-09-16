@@ -16,6 +16,7 @@ export const KREA2_SOCKET_INPUTS = [
   "prompt",
   "seed",
   "steps",
+  "texture_injection",
 ];
 
 const numericDefaults: Record<string, number> = {
@@ -23,11 +24,14 @@ const numericDefaults: Record<string, number> = {
   denoise: 0.20,
   seed: 0,
   steps: 20,
+  texture_injection: 0.20,
 };
 
 const stringDefaults: Record<string, string> = {
-  prompt: "high quality, ultra detailed, sharp focus, 8k uhd",
+  prompt: "crisp textures, sharp focus, authentic skin pores, fine fabrics, realistic micro-details",
   control_after_generate: "randomize",
+  tile_overlap: "auto (256px)",
+  color_match: "none",
 };
 
 const HIDE = [...Object.keys(numericDefaults), ...Object.keys(stringDefaults)];
@@ -36,7 +40,7 @@ export const krea2TiledDiffusionNode: NodeModule = {
   id: "FiLKrea2TiledDiffusion",
   register(nodeType: LGraphNodeType, _nodeData: ComfyNodeData): void {
     registerStyledNode(nodeType, {
-      minSize: [320, 360],
+      minSize: [320, 340],
       initialWidth: 320,
       family: "image",
       description: "High-fidelity one-click AI upscale and detail enhancement with strict original preservation.",
