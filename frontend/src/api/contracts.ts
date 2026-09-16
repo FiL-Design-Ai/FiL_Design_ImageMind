@@ -1922,7 +1922,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   ],
   "min_size": [
     280,
-    110
+    130
   ],
   "family": "image"
 },
@@ -5835,7 +5835,8 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
         "tooltip": "Legacy: a canned role for the text encoder. Reference cards write the roles now, one per picture; kept for workflows saved before them.",
         "values": [
           "none",
-          "use reference"
+          "use reference",
+          "krea2_identity"
         ],
         "columns": null,
         "searchable": null,
@@ -5971,8 +5972,8 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     }
   ],
   "min_size": [
-    300,
-    300
+    320,
+    360
   ],
   "family": "conditioning"
 },
@@ -6401,7 +6402,7 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
   ],
   "min_size": [
     320,
-    360
+    340
   ],
   "family": "image"
 },
@@ -6608,6 +6609,68 @@ export const NODE_CONTRACTS: Record<string, NodeContract> = {
     240
   ],
   "family": "image"
+},
+  "FiLLoraPrompter": {
+  "id": "FiLLoraPrompter",
+  "title": "🧬 LoRA Prompter",
+  "category": "🎨 FiL Design/🧰 Tools",
+  "description": "Dynamic LoRA prompt composer. Displays interactive trigger-word chips from connected LoRA Loader, allowing 1-click toggling and smart prompt assembly.",
+  "inputs": {
+    "required": [
+      {
+        "name": "prompt",
+        "kind": "string",
+        "label": "Prompt",
+        "default": "",
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": true,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      }
+    ],
+    "optional": [
+      {
+        "name": "triggers",
+        "kind": "string",
+        "label": "Triggers",
+        "default": "",
+        "tooltip": null,
+        "values": null,
+        "columns": null,
+        "searchable": null,
+        "multiline": true,
+        "min": null,
+        "max": null,
+        "step": null,
+        "units": null,
+        "options": null,
+        "section": null,
+        "visible_when": null,
+        "visible_when_value": null
+      }
+    ],
+    "hidden": []
+  },
+  "outputs": [
+    {
+      "name": "prompt",
+      "type": "STRING"
+    }
+  ],
+  "min_size": [
+    340,
+    160
+  ],
+  "family": "llm"
 },
 };
 

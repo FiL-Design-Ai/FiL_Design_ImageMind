@@ -1,5 +1,5 @@
 import { defineAsyncComponent } from "vue";
-import type { ComfyApp, ComfyNodeData, LGraphNode, LGraphNodeType } from "@/types/comfy";
+import type { ComfyApp, ComfyNodeData, LGraphLink, LGraphNode, LGraphNodeType, LGraphSlot } from "@/types/comfy";
 import type { NodeModule } from "@/nodes2/nodeRegistry";
 import { registerStyledNode } from "@/nodes2/nodeStyle";
 import { addFilDomWidget, unmountAllFilWidgets } from "@/nodes2/domWidgetHost";
@@ -7,49 +7,185 @@ import { createSyncedNodeState, findFilWidget, hideNativeWidget, sanitizeWidgetV
 import { exposeWidgetInputSockets, installWidgetSocketSync } from "@/nodes2/widgetInputSockets";
 import { applyFxComposables } from "@/nodes2/applyFxComposables";
 
+import { typeColor } from "@/nodes2/wireless/channelColor";
+import { FIL_SLOT_COLORS } from "@/nodes2/slotTypeColors";
+
 const ShowAnyVue = defineAsyncComponent(() => import("@/components/nodes/ShowAnyPanel.vue"));
 
 export const SHOW_ANY_SOCKET_INPUTS = ["source", "text"];
 
-function updateDynamicShowAnySocket(node: LGraphNode): void {
+const CORE_TYPE_COLORS: Readonly<Record<string, string>> = {
+  IMAGE: "#64B5F6",
+  LATENT: "#FF9CF9",
+  MODEL: "#B39DDB",
+  CLIP: "#FFD500",
+  VAE: "#FF6E6E",
+  CONDITIONING: "#FFA931",
+  MASK: "#FFFFFF",
+  CONTROL_NET: "#A78BFA",
+  STRING: "#6EE7B7",
+  INT: "#4ADE80",
+  FLOAT: "#FACC15",
+  BOOLEAN: "#A78BFA",
+  AUDIO: "#FB7185",
+  VIDEO: "#38BDF8",
+};
+
+export function getKnownSlotColor(type: string): string | undefined {
+  if (!type || type === "*") return undefined;
+  const hostColor = typeColor(type);
+  if (hostColor) return hostColor;
+
+  if (FIL_SLOT_COLORS[type]) return FIL_SLOT_COLORS[type];
+
+  const upper = type.toUpperCase();
+  return CORE_TYPE_COLORS[upper];
+}
+
+export interface ResolvedShowAnyType {
+  type: string;
+  color?: string;
+}
+
+export function resolveShowAnyType(node: LGraphNode): ResolvedShowAnyType {
+  const inputSlot = node.inputs?.[0];
+  if (!inputSlot) return { type: "*" };
+
+  const graph = node.graph;
+  const linkId = inputSlot.link;
+
+  if (linkId != null && graph?.links) {
+    let currLinkId: number | null = linkId;
+    const visitedLinks = new Set<number>();
+    const visitedNodes = new Set<number | string>();
+
+    while (currLinkId != null && !visitedLinks.has(currLinkId)) {
+      visitedLinks.add(currLinkId);
+      const link: LGraphLink | undefined = graph.links[currLinkId];
+      if (!link) break;
+
+      const originNode: LGraphNode | null | undefined =
+        link.origin_id != null ? graph.getNodeById?.(link.origin_id) : undefined;
+      const originSlot: LGraphSlot | undefined =
+        link.origin_slot != null ? originNode?.outputs?.[link.origin_slot] : undefined;
+
+      const rawType = String(originSlot?.type || link.type || "*").trim();
+      const slotColor = originSlot?.color_on || originSlot?.color_off;
+
+      if (rawType && rawType !== "*" && rawType !== "-1") {
+        return {
+          type: rawType,
+          color: slotColor || getKnownSlotColor(rawType),
+        };
+      }
+
+      if (originNode && originNode.id != null && !visitedNodes.has(originNode.id)) {
+        visitedNodes.add(originNode.id);
+
+        const originState = (
+          originNode as LGraphNode & { _filShowAnyState?: { ui?: { data_type?: string } } }
+        )._filShowAnyState;
+        const originRuntimeType = originState?.ui?.data_type;
+        if (originRuntimeType && originRuntimeType !== "*" && originRuntimeType !== "UNKNOWN") {
+          return {
+            type: originRuntimeType,
+            color: getKnownSlotColor(originRuntimeType),
+          };
+        }
+
+        const upstreamSlot: LGraphSlot | undefined = originNode.inputs?.[0];
+        if (upstreamSlot?.link != null) {
+          currLinkId = upstreamSlot.link;
+          continue;
+        }
+      }
+
+      break;
+    }
+  }
+
+  // Fallback 1: runtime data_type from executed backend
+  const selfState = (
+    node as LGraphNode & { _filShowAnyState?: { ui?: { data_type?: string } } }
+  )._filShowAnyState;
+  const selfRuntimeType = selfState?.ui?.data_type;
+  if (selfRuntimeType && selfRuntimeType !== "*" && selfRuntimeType !== "UNKNOWN") {
+    return {
+      type: selfRuntimeType,
+      color: getKnownSlotColor(selfRuntimeType),
+    };
+  }
+
+  // Fallback 2: text slot wired
+  const textSlot = node.inputs?.find((i) => i.name === "text");
+  if (textSlot?.link != null) {
+    return {
+      type: "STRING",
+      color: getKnownSlotColor("STRING"),
+    };
+  }
+
+  return { type: "*" };
+}
+
+export function updateDynamicShowAnySocket(node: LGraphNode): void {
   if (!node.inputs?.[0] || !node.outputs?.[0]) return;
   const inputSlot = node.inputs[0];
   const outputSlot = node.outputs[0];
 
-  const linkId = inputSlot.link;
-  if (linkId != null && node.graph?.links) {
-    const link = node.graph.links[linkId];
-    if (link) {
-      const originNode =
-        link.origin_id != null ? node.graph.getNodeById?.(link.origin_id) : undefined;
-      const originSlot =
-        link.origin_slot != null ? originNode?.outputs?.[link.origin_slot] : undefined;
-      const detectedType = String(originSlot?.type || link.type || "*");
+  const resolved = resolveShowAnyType(node);
+  const detectedType = resolved.type;
+  const color = resolved.color;
 
-      outputSlot.type = detectedType;
-      outputSlot.label = detectedType === "*" ? "*" : detectedType;
-      if (originSlot?.color_on) outputSlot.color_on = originSlot.color_on;
-      if (originSlot?.color_off) outputSlot.color_off = originSlot.color_off;
-      node.graph.setDirtyCanvas?.(true, true);
-      return;
+  const isConnected = detectedType !== "*";
+
+  if (isConnected) {
+    inputSlot.label = detectedType;
+    if (color) {
+      inputSlot.color_on = color;
+      inputSlot.color_off = color;
+    } else {
+      delete inputSlot.color_on;
+      delete inputSlot.color_off;
+    }
+
+    outputSlot.type = detectedType;
+    outputSlot.name = detectedType;
+    outputSlot.label = detectedType;
+    if (color) {
+      outputSlot.color_on = color;
+      outputSlot.color_off = color;
+    } else {
+      delete outputSlot.color_on;
+      delete outputSlot.color_off;
+    }
+  } else {
+    inputSlot.label = "source";
+    delete inputSlot.color_on;
+    delete inputSlot.color_off;
+
+    outputSlot.type = "*";
+    outputSlot.name = "*";
+    outputSlot.label = "*";
+    delete outputSlot.color_on;
+    delete outputSlot.color_off;
+  }
+
+  // Notify downstream ShowAny nodes if connected
+  if (outputSlot.links && node.graph?.links) {
+    for (const outLinkId of outputSlot.links) {
+      const outLink = node.graph.links[outLinkId];
+      if (outLink?.target_id != null) {
+        const targetNode = node.graph.getNodeById?.(outLink.target_id) as
+          | (LGraphNode & { _filShowAnyState?: unknown })
+          | undefined;
+        if (targetNode && (targetNode.type === "FiLShowAny" || targetNode.comfyClass === "FiLShowAny")) {
+          updateDynamicShowAnySocket(targetNode);
+        }
+      }
     }
   }
 
-  // Fallback: if source is unwired, but text input is wired
-  const textSlot = node.inputs?.find((i) => i.name === "text");
-  if (textSlot?.link != null) {
-    outputSlot.type = "STRING";
-    outputSlot.label = "STRING";
-    delete outputSlot.color_on;
-    delete outputSlot.color_off;
-    node.graph?.setDirtyCanvas?.(true, true);
-    return;
-  }
-
-  outputSlot.type = "*";
-  outputSlot.label = "*";
-  delete outputSlot.color_on;
-  delete outputSlot.color_off;
   node.graph?.setDirtyCanvas?.(true, true);
 }
 
@@ -256,6 +392,7 @@ export const showAnyNode: NodeModule = {
         const dtVal = Array.isArray(dtRaw) ? dtRaw[0] : dtRaw;
         if (typeof dtVal === "string") {
           state.ui.data_type = dtVal;
+          updateDynamicShowAnySocket(this as LGraphNode);
         }
       }
 
@@ -317,6 +454,7 @@ if (typeof window !== "undefined") {
           }
           if (typeof detail.data_type === "string") {
             node._filShowAnyState.ui.data_type = detail.data_type;
+            updateDynamicShowAnySocket(node);
           }
           if (Array.isArray(detail.images)) {
             node._filShowAnyState.ui.images = detail.images;

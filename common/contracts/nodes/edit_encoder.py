@@ -16,7 +16,7 @@ CONTRACT = NodeContract(
     title="🎯 Edit Encoder",
     category=CATEGORY_CONDITIONING,
     description="Prompt + reference images in one conditioning for FLUX.2-family edit models.",
-    min_size=(300, 300),
+    min_size=(320, 360),
     family="conditioning",
     inputs=NodeInputs(
         required=[
@@ -73,7 +73,7 @@ CONTRACT = NodeContract(
                         "so workflows saved before cards keep working.",
             ),
             _combo(
-                "system_preset", values=["none", "use reference"], default="none",
+                "system_preset", values=["none", "use reference", "krea2_identity"], default="none",
                 label="System preset", section="advanced",
                 tooltip="Legacy: a canned role for the text encoder. Reference cards write "
                         "the roles now, one per picture; kept for workflows saved before them.",

@@ -845,6 +845,16 @@
   "lup_p_longest_edge": "📏 Longest Edge (px)",
   "lup_p_method": "⚡ Method",
   "lup_p_snap": "📐 Snap Grid",
-  "lup_p_round": "🎯 Rounding"
+  "lup_p_round": "🎯 Rounding",
+  "lp_triggers_title": "LoRA Triggers",
+  "lp_add_all_tt": "Add all trigger words to the prompt",
+  "lp_add_all": "All",
+  "lp_clear_all_tt": "Remove all trigger words from the prompt",
+  "lp_clear_all": "Clear",
+  "lp_chip_remove_tt": "Click to remove trigger from prompt",
+  "lp_chip_add_tt": "Click to add trigger to prompt",
+  "lp_connect_hint": "Connect `triggers` from 🧬 LoRA Loader to pick triggers by click",
+  "lp_prompt_ph": "Type your prompt here or click triggers above to insert…",
+  "lp_prompt_tt": "Assembled prompt string passed downstream."
 }
 

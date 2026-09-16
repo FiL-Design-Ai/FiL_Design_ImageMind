@@ -31,6 +31,7 @@ import { prompterNode } from "@/nodes2/nodes/prompter";
 import { showAnyNode } from "@/nodes2/nodes/show_any";
 import { krea2TiledDiffusionNode } from "@/nodes2/nodes/krea2_tiled_diffusion";
 import { latentUpscaleProNode } from "@/nodes2/nodes/latent_upscale_pro";
+import { loraPrompterNode } from "@/nodes2/nodes/lora_prompter";
 
 export interface NodeModule {
   id: string;
@@ -63,6 +64,7 @@ const modules: NodeModule[] = [
   showAnyNode,
   krea2TiledDiffusionNode,
   latentUpscaleProNode,
+  loraPrompterNode,
 ];
 
 export const NODE_MODULES: Record<string, NodeModule> = Object.fromEntries(

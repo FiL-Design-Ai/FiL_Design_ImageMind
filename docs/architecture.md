@@ -13,11 +13,11 @@ Canonical node ids:
 - `FiLUpscaleTileCalc`, `FiLUpscaleSimple`, `FiLTileAssembly`, `FiLColorWizard`, `FiLLatentUpscalePro` — Image
 - `FiLDatasetForge` — Dataset
 - `FiLSeed` — Values
-- `FiLNeuroCleaner`, `FiLSignalSwitch`, `FiLChannel`, `FiLShowAny` — Tools
+- `FiLNeuroCleaner`, `FiLSignalSwitch`, `FiLChannel`, `FiLShowAny`, `FiLLoraPrompter` — Tools
 - `FiLModelCycler`, `FiLLoraLoader` — Sampling
 - `FiLEditEncoder` — Conditioning
 
-Twenty-five in all. Nothing here is maintained by hand: `tools/preflight_check.py`
+Twenty-six in all. Nothing here is maintained by hand: `tools/preflight_check.py`
 derives the list from `__init__.py`, and `tests/test_node_contracts.py` proves
 every node has a contract, a frontend module and a place in the release gate.
 

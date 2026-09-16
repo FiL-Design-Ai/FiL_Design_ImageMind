@@ -75,3 +75,4 @@ describe("Krea2TiledDiffusionPanel.vue", () => {
     expect(state.nodeState.color_match).toBe("luminance");
   });
 });
+

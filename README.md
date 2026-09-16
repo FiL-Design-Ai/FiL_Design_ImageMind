@@ -694,7 +694,7 @@ physical truth, zero meta-noise.
 </details>
 
 <details>
-<summary><b>♻️ Seed</b> — <code>FiLSeed</code> · <b>🧹 Cleaner</b> — <code>FiLNeuroCleaner</code> · <b>🔀 Cyber Switch</b> — <code>FiLSignalSwitch</code> · <b>🖥️ Show Any</b> — <code>FiLShowAny</code> · <b>📡 Channel</b> — <code>FiLChannel</code></summary>
+<summary><b>♻️ Seed</b> — <code>FiLSeed</code> · <b>🧹 Cleaner</b> — <code>FiLNeuroCleaner</code> · <b>🔀 Cyber Switch</b> — <code>FiLSignalSwitch</code> · <b>🖥️ Show Any</b> — <code>FiLShowAny</code> · <b>📡 Channel</b> — <code>FiLChannel</code> · <b>🧬 LoRA Prompter</b> — <code>FiLLoraPrompter</code></summary>
 
 **♻️ Seed** — `seed` INT (0 – 2⁶⁴-1) → `SEED` INT. Panel is one row: the value plus 🔀 randomize,
 ♻️ reuse last, 🎲 new fixed random.
@@ -817,6 +817,7 @@ value untouched; OFF passes `None` on the wire without blocking optional downstr
 - ♻️ **Seed Generator** (`FiLSeed`) — управление генератором случайных чисел (до MAX_SAFE_INTEGER).
 - 🔀 **Cyber Switch** (`FiLSignalSwitch`) — универсальный переключатель сигналов с пробросом `None`.
 - 👁️ **Show Any** (`FiLShowAny`) — универсальный инспектор и монитор любых данных со сквозной передачей, счётчиком и копированием.
+- 🧬 **LoRA Prompter** (`FiLLoraPrompter`) — смарт-компоновщик промптов с интерактивными кликабельными чипсами триггеров из LoRA Loader.
 - 📡 **Channel** (`FiLChannel`) — беспроводная трансляция сигналов по всему графу.
 
 ---
