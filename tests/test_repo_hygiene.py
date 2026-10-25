@@ -25,6 +25,10 @@ PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 # names can coincide with anything.
 PRUNED = {"node_modules", ".git", "__pycache__", "node_112_contents", "node_113_contents"}
 
+# Where the desktop app keeps its own git worktrees. They are checkouts git
+# tracks and .gitignore hides, not stale duplicates, so the walk skips them.
+WORKTREES = Path(".claude") / "worktrees"
+
 # What identifies this package rather than any other Python project. Both are
 # checked: a copy could be partial, and the contract registry is the file the
 # duplicate actually cost time on.
@@ -46,6 +50,8 @@ def _walk() -> list[Path]:
     while stack:
         for entry in stack.pop().iterdir():
             if not entry.is_dir() or entry.is_symlink() or entry.name in PRUNED:
+                continue
+            if entry.relative_to(PACKAGE_ROOT) == WORKTREES:
                 continue
             found.append(entry)
             stack.append(entry)
