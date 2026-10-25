@@ -109,8 +109,9 @@ const LANGUAGE_LABELS: Record<string, string> = { en: "🇬🇧 English", ru: "�
 
     <FilNumberInput :ref="(el: unknown) => setFieldEl('seed', el)"
       v-model="seed" :min="0" :max="0xFFFFFFFFFFFFFFFF" :step="1" inline-label
+      :disabled="isLinked('seed')"
       :label="t('pdp_seed', '🌱 Seed')"
-      :title="t('pdp_seed_tt', 'Fixed seed reuses the cached answer (instant, no API call); a new seed asks the model for a fresh variant.')" />
+      :title="linkedTip('seed', t('pdp_seed_tt', 'Fixed seed reuses the cached answer (instant, no API call); a new seed asks the model for a fresh variant.'))" />
 
     <FilSelect v-model="controlAfterGenerate" :options="controlOptions" inline-label
       :label="t('pdp_after_generate', '🔁 After generate')"
