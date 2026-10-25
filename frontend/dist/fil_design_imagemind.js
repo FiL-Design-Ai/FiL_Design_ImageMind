@@ -11250,7 +11250,9 @@ function Uw(e) {
 	t._filSocketLabelsInstalled = !0;
 	let n = t.onDrawForeground;
 	t.onDrawForeground = function(...e) {
-		let t = n?.apply(this, e), r = e[0], i = !!globalThis.app?.canvas?.low_quality;
+		let t = n?.apply(this, e);
+		this._filSyncWidgetSockets?.();
+		let r = e[0], i = !!globalThis.app?.canvas?.low_quality;
 		if (!r || i || this.flags?.collapsed) return t;
 		let a = globalThis.LiteGraph;
 		r.save(), r.font = `${a?.NODE_SUBTEXT_SIZE ?? 11}px ${a?.NODE_FONT ?? "Arial"}`, r.fillStyle = a?.NODE_TEXT_COLOR ?? "#AAA", r.textAlign = "left";
@@ -11300,18 +11302,18 @@ function Jw(e, t) {
 	let n = eT(), r = e.pos?.[1], i = e.size?.[1];
 	if (!n || r == null || i == null) return;
 	let a = !1, o = [], s = e._filSocketPolicy === "always";
-	for (let { name: c, el: l } of t) {
-		if (!l) {
-			Zw(e, c, !1), Qw(e, c, !1), o.push(c);
+	for (let { name: i, el: c } of t) {
+		if (!c) {
+			Zw(e, i, !1), Qw(e, i, !1), o.push(i);
 			continue;
 		}
-		Zw(e, c, s || e.inputs?.find((e) => e.name === c)?.link != null), Qw(e, c, !0);
-		let t = Z(e, c);
+		Zw(e, i, s || e.inputs?.find((e) => e.name === i)?.link != null), Qw(e, i, !0);
+		let t = Z(e, i);
 		if (!t) continue;
-		let u = l.getBoundingClientRect();
-		if (u.height === 0) continue;
-		let d = (u.top + u.height / 2 - n.canvasTop) / n.scale - n.offsetY - r;
-		if (d < 0 || d > i) continue;
+		let l = c.getBoundingClientRect();
+		if (l.height === 0) continue;
+		let u = c.closest(".fil-vue-host"), d = u ? (l.top + l.height / 2 - u.getBoundingClientRect().top) / n.scale : (l.top + l.height / 2 - n.canvasTop) / n.scale - n.offsetY - r;
+		if (d < 0) continue;
 		let f = Math.round(d - nT);
 		t.y !== f && (t.y = f, a = !0);
 	}
@@ -16559,16 +16561,16 @@ function zT(e, t) {
 		});
 	}
 	return ya(() => {
-		o();
-		let e = Object.values(n).find(Boolean)?.closest(".fil-vue-host");
-		e && (typeof ResizeObserver < "u" && (s = new ResizeObserver(u), s.observe(e)), typeof MutationObserver < "u" && (c = new MutationObserver(u), c.observe(e, {
+		o(), e.node && (e.node._filSyncWidgetSockets = o);
+		let t = Object.values(n).find(Boolean)?.closest(".fil-vue-host");
+		t && (typeof ResizeObserver < "u" && (s = new ResizeObserver(u), s.observe(t)), typeof MutationObserver < "u" && (c = new MutationObserver(u), c.observe(t, {
 			childList: !0,
 			subtree: !0,
 			attributes: !0,
 			attributeFilter: ["class", "style"]
 		})));
 	}), Hn(() => e.ui?.linkVersion, u), Sa(() => {
-		s?.disconnect(), c?.disconnect(), l && cancelAnimationFrame(l);
+		e.node && delete e.node._filSyncWidgetSockets, s?.disconnect(), c?.disconnect(), l && cancelAnimationFrame(l);
 	}), {
 		setFieldEl: i,
 		isLinked: a,

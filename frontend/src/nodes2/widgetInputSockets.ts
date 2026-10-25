@@ -87,6 +87,10 @@ function installMissingSocketLabels(node: LGraphNode): void {
   const original = n.onDrawForeground;
   n.onDrawForeground = function (this: { flags?: { collapsed?: boolean }; inputs?: SlotLike[] }, ...args: unknown[]) {
     const result = original?.apply(this, args);
+    // Re-measure the panel on every draw of this node. Relayouts that the
+    // observers miss (a node resized by the canvas, a field moved by a sibling)
+    // still repaint the node, so the dots follow their fields.
+    (this as { _filSyncWidgetSockets?: () => void })._filSyncWidgetSockets?.();
     const ctx = args[0] as CanvasRenderingContext2D | undefined;
     const lowQuality = Boolean((globalThis as { app?: { canvas?: { low_quality?: boolean } } }).app?.canvas?.low_quality);
     if (!ctx || lowQuality || this.flags?.collapsed) return result;
@@ -309,8 +313,18 @@ export function anchorWidgetInputSockets(node: LGraphNode, anchors: WidgetSocket
     if (!w) continue;
     const rect = el.getBoundingClientRect();
     if (rect.height === 0) continue; // collapsed section, or hidden by hideOnZoom
-    const centerY = (rect.top + rect.height / 2 - view.canvasTop) / view.scale - view.offsetY - nodeY;
-    if (centerY < 0 || centerY > nodeHeight) continue; // mid-relayout — keep the last row
+    // Measure from the panel's own top edge: the panel is the node body, and
+    // LiteGraph's `pos`/`size` can lag behind it, which put every dot on a
+    // stale row. Fall back to canvas coordinates only for a field outside a panel.
+    const host = el.closest<HTMLElement>(".fil-vue-host");
+    const centerY = host
+      ? (rect.top + rect.height / 2 - host.getBoundingClientRect().top) / view.scale
+      : (rect.top + rect.height / 2 - view.canvasTop) / view.scale - view.offsetY - nodeY;
+    // Above the node's top edge means the panel is mid-relayout — keep the last
+    // row. Below `nodeHeight` is fine: LiteGraph's node size lags the panel
+    // when a field sits low in a tall panel, and skipping such fields left
+    // their dots on the fallback row for good.
+    if (centerY < 0) continue;
     const y = Math.round(centerY - SLOT_HALF_HEIGHT);
     if (w.y !== y) {
       w.y = y;
