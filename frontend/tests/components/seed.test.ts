@@ -75,3 +75,26 @@ describe("Seed.vue", () => {
     expect(state.nodeState.seed).toBe(12345);
   });
 });
+
+/** A seed widget as ComfyUI declares it: the full 0..2^64-1 range, values stored as JS numbers. */
+function seedNode(value: number) {
+  const widget = { name: "seed", value, options: { min: 0, max: 18446744073709551615 } };
+  return { widgets: [widget], inputs: [] };
+}
+
+describe("Seed.vue reuse-last with seeds above 2^53", () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+  });
+
+  it("reuse-last keeps the seed the last run drew", async () => {
+    const drawn = 12489629842520945000;
+    const state = makeState({ nodeState: { mode: "random", seed: 0 } });
+    Object.defineProperty(state, "node", { value: seedNode(drawn), enumerable: false, configurable: true });
+    const wrapper = mount(SeedVue, { props: { state } });
+    const reuseBtn = wrapper.findAll(".fil-seed-actions button").find((b) => b.text() === "♻️");
+    await reuseBtn?.trigger("click");
+    expect(state.nodeState.mode).toBe("fixed");
+    expect(state.nodeState.seed).toBe(drawn);
+  });
+});
