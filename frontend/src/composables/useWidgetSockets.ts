@@ -55,6 +55,8 @@ export function useWidgetSockets(state: FilNodeState, names: string[]) {
 
   onMounted(() => {
     sync();
+    // Canvas draws of the node call this, see `installMissingSocketLabels`.
+    if (state.node) (state.node as { _filSyncWidgetSockets?: () => void })._filSyncWidgetSockets = sync;
     // Reached from a field element, never by querying the document: every FiL
     // panel carries the same host class, so a global lookup would hand back
     // some other node's panel whenever more than one is on the canvas.
@@ -80,6 +82,7 @@ export function useWidgetSockets(state: FilNodeState, names: string[]) {
   watch(() => (state.ui as Record<string, unknown>)?.linkVersion, schedule);
 
   onBeforeUnmount(() => {
+    if (state.node) delete (state.node as { _filSyncWidgetSockets?: () => void })._filSyncWidgetSockets;
     resizeObserver?.disconnect();
     mutationObserver?.disconnect();
     if (frame) cancelAnimationFrame(frame);

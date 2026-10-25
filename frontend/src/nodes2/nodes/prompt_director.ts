@@ -16,10 +16,11 @@ const PromptDirectorVue = defineAsyncComponent(() => import("@/components/nodes/
  *
  * Both text fields are wireable: a director fed by other nodes (Optic Scanner,
  * a saved prompt, a text node with a standing instruction) is fed from the
- * graph. The seed and its control_after_generate companion are hidden
- * natively and rendered at the bottom of the panel, Noise Control style.
+ * graph. The seed is wireable too, and its dot sits on the seed row at the
+ * bottom of the panel, Noise Control style. control_after_generate stays a
+ * panel control only.
  */
-export const DIRECTOR_SOCKET_INPUTS = ["instruction", "source_prompt"];
+export const DIRECTOR_SOCKET_INPUTS = ["instruction", "source_prompt", "seed"];
 
 const stringDefaults: Record<string, string> = {
   instruction: "",

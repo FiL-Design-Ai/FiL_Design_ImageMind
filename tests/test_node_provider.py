@@ -73,3 +73,14 @@ def test_validate_inputs_rejects_placeholders():
     assert node_provider.FiLProviderLoader.validate_inputs("(no models)") is not True
     assert node_provider.FiLProviderLoader.validate_inputs("") is not True
 
+
+
+def test_config_carries_only_the_keys_downstream_nodes_read():
+    # Consumers read provider, model and the generation knobs from this dict.
+    # Scanner-style keys (agent, language, style) live on the consuming node's
+    # own widgets; a copy here would be dead and misleading.
+    config, _ = node_provider.FiLProviderLoader.execute(provider="ollama", model="llama3")
+    assert set(config) == {
+        "provider", "model", "temperature", "max_tokens", "rate_limit_ms",
+        "max_image_side", "unload_llm", "timeout",
+    }

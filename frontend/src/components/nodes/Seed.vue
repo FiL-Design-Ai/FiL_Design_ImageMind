@@ -54,7 +54,8 @@ watch(
   () => props.state.nodeState,
   (s) => {
     if (typeof s.mode === "string") mode.value = s.mode as "random" | "fixed";
-    if (typeof s.seed === "number") seed.value = Number(s.seed);
+    const w = seedWidget();
+    if (typeof s.seed === "number" && w) w.value = s.seed;
   },
   { deep: true },
 );
@@ -72,7 +73,11 @@ function useLast() {
     toast.warning(t("sd_no_last_seed", "No last-run seed recorded yet"));
     return;
   }
-  seed.value = last;
+  // Not through `seed.value`: its setter folds into the safe-integer range, and
+  // ComfyUI's own randomize draws far above it. The widget already holds this
+  // exact number, so it is what gets sent — reuse it as it is.
+  props.state.nodeState.seed = last;
+  if (w) w.value = last;
   mode.value = "fixed";
 }
 
