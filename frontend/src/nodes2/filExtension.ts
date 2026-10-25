@@ -105,7 +105,11 @@ function graphToPromptPreflight(prompt: unknown): unknown {
 }
 
 export function createFilExtension(app: ComfyApp): ComfyExtension {
-  return {
+  // Node types whose FiL module already ran. The catch-up in `setup` and the
+  // `beforeRegisterNodeDef` hook can both reach the same type.
+  const registeredTypes = new WeakSet<object>();
+
+  const extension: ComfyExtension = {
     name: EXTENSION_NAME,
 
     // Declarative settings — registered BEFORE setup so the panel renders
@@ -194,6 +198,20 @@ export function createFilExtension(app: ComfyApp): ComfyExtension {
           console.warn(`${LOG_TAG} installer ${install.name || "anonymous"} failed:`, error);
         }
       }
+      // `beforeRegisterNodeDef` can miss node types that were defined before
+      // this extension loaded: on a fresh page the FiL panels then never mount.
+      // Run the same registration for those types once the page has settled —
+      // running it inside setup itself fails, because the app is not ready yet.
+      setTimeout(() => {
+        const known = (window as unknown as { LiteGraph?: { registered_node_types?: Record<string, object> } })
+          .LiteGraph?.registered_node_types ?? {};
+        for (const nodeType of Object.values(known)) {
+          const nodeData = (nodeType as { nodeData?: ComfyNodeData }).nodeData;
+          if (nodeData && NODE_MODULES[nodeData.name]) {
+            void extension.beforeRegisterNodeDef?.(nodeType as LGraphNodeType, nodeData);
+          }
+        }
+      }, 0);
     },
 
     getCustomWidgets(): Record<string, unknown> {
@@ -201,6 +219,7 @@ export function createFilExtension(app: ComfyApp): ComfyExtension {
     },
 
     async beforeRegisterNodeDef(nodeType: LGraphNodeType, nodeData: ComfyNodeData): Promise<void> {
+      if (registeredTypes.has(nodeType)) return;
       const nodeModule = NODE_MODULES[nodeData.name];
       if (!nodeModule) {
         // Someone else's node. It gets a title-bar stripe only if the user set
@@ -217,6 +236,7 @@ export function createFilExtension(app: ComfyApp): ComfyExtension {
       }
       try {
         await nodeModule.register(nodeType, nodeData);
+        registeredTypes.add(nodeType);
       } catch (error) {
         console.warn(`${LOG_TAG} failed to register "${nodeData.name}":`, error);
       }
@@ -241,6 +261,7 @@ export function createFilExtension(app: ComfyApp): ComfyExtension {
       endGraphConfigure();
     },
   };
+  return extension;
 }
 
 // Re-exported for tests and introspection.

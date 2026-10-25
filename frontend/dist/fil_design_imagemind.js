@@ -25643,7 +25643,7 @@ function eB(e) {
 	return e;
 }
 function tB(e) {
-	return {
+	let t = /* @__PURE__ */ new WeakSet(), n = {
 		name: ll,
 		settings: Vz,
 		commands: [...lz, ...eR],
@@ -25681,24 +25681,32 @@ function tB(e) {
 			} catch (t) {
 				console.warn(`${cl} installer ${e.name || "anonymous"} failed:`, t);
 			}
+			setTimeout(() => {
+				let e = window.LiteGraph?.registered_node_types ?? {};
+				for (let t of Object.values(e)) {
+					let e = t.nodeData;
+					e && kL[e.name] && n.beforeRegisterNodeDef?.(t, e);
+				}
+			}, 0);
 		},
 		getCustomWidgets() {
 			return {};
 		},
-		async beforeRegisterNodeDef(e, t) {
-			let n = kL[t.name];
-			if (!n) {
+		async beforeRegisterNodeDef(e, n) {
+			if (t.has(e)) return;
+			let r = kL[n.name];
+			if (!r) {
 				try {
 					vR(e);
 				} catch (e) {
-					console.warn(`${cl} failed to tint "${t.name}":`, e);
+					console.warn(`${cl} failed to tint "${n.name}":`, e);
 				}
 				return;
 			}
 			try {
-				await n.register(e, t);
+				await r.register(e, n), t.add(e);
 			} catch (e) {
-				console.warn(`${cl} failed to register "${t.name}":`, e);
+				console.warn(`${cl} failed to register "${n.name}":`, e);
 			}
 		},
 		async graphToPrompt(e) {
@@ -25711,6 +25719,7 @@ function tB(e) {
 			Eb();
 		}
 	};
+	return n;
 }
 //#endregion
 //#region src/api/contractCheck.ts
